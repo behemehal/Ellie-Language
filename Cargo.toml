@@ -1,0 +1,10 @@
+[package]
+name = "ellie_engine"
+version = "1.2.0"
+authors = ["Ahmetcan Aksu <ahmetcanco@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+lazy_static = "1.4.0"
