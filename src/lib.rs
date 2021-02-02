@@ -1,26 +1,10 @@
-![icon](./picture/TextIcon/EllieTextIcon@0,33x.png)
+#[allow(unused_assignments)]
 
-# Ellie
-Ellie language engine [NOT COMPLETE]
+//[allow(warnings)]
+//[feature(drain_filter)]
+//[feature(alloc)]
 
-
-
-## CLI usage
-
-`ellie ./test.ei`
-
-
-Language does not have a runtime for now, here are the tasks we need to complete before creating a runtime
-
-- Variables [X]
-- Functions [X]
-- If Else   [ ]
-- For Loops [ ]
-
-
-# LICENSE
-
-```
+/*
 MIT License
 
 Copyright (c) 2020 Behemehal
@@ -42,4 +26,17 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-```
+*/
+
+//TODO: no-std use core::alloc::Layout; Nightly
+//TODO: no-std extern crate alloc; Nightly
+
+#[macro_use]
+extern crate lazy_static;
+pub mod processors;
+pub mod error;
+pub mod mapper;
+pub mod raw_utils;
+pub mod syntax;
+pub mod utils;
+pub mod runtime;

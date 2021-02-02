@@ -1,0 +1,10 @@
+v c : collective = {
+    a: string = "ok",
+    b: string = "ok",
+    c: string = "ok",
+    d: collective = {
+        f: string = "ok",
+        g: string = "ok",
+        h: string = "ok",
+    };
+};
