@@ -1,4 +1,4 @@
- v c : collective = {
+v c : collective = {
     a: string = "ok",
     b: string = "ok",
     c: string = "ok",

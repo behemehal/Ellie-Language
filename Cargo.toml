@@ -1,10 +1,20 @@
 [package]
 name = "ellie_engine"
 version = "1.2.0"
-authors = ["Ahmetcan Aksu <ahmetcanco@gmail.com>"]
+authors = ["Behemehal <info@behemehal.net>"]
 edition = "2018"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+license-file = "LICENSE"
 
 [dependencies]
 lazy_static = "1.4.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
+
+[lib]
+name = "ellie"
+path = "src/lib.rs"
+
+[[bin]]
+name = "ellie"
+test = false
+bench = false

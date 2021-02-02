@@ -32,27 +32,28 @@ isMaybeOk = "no";
 isOk = false;
 ```
 
-## Value Types
-
-```rust
-
-bool true | false
-String "test"
-Char "a
-int 1
-
 ```
 
 ## Functions
 
 ```rust
 
-func test(test : String) > String {
+fn test(test : string) > string {
     return test;
 }
+```
 
-v testF : func(test: String) > String = {
-    return test + 1
-};
+## Arrays
 
+```rust
+
+d test = [
+    1,
+    2,
+    3,
+    [
+        4,
+        5
+    ]
+];
 ```

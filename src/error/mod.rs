@@ -1,16 +1,17 @@
 #![allow(warnings)]
 //use core::fmt;
+use serde::Serialize;
 
 pub mod errorList;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct Error {
     pub code: u8,
     pub message: String,
     pub title: String,
     pub builded_message: String,
     pub debug_message: String,
-    pub pos: crate::mapper::defs::Cursor,
+    pub pos: crate::mapper::defs::Cursor
 }
 
 
@@ -18,14 +19,6 @@ pub struct ErrorBuildField {
     pub key: String,
     pub value: String
 }
-
-//TODO: Implement display for error
-//impl fmt::Display for Error {
-//    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-//        // We need to remove "-" from the number output.
-//        formatter.write_str(&format!("{}", self.error.builded_message).to_string())   
-//    }
-//}
 
 impl Error {
     pub fn build(body: String, fields: Vec<ErrorBuildField>) -> String {
@@ -58,8 +51,8 @@ impl Default for Error {
     }
 }
 
-impl Drop for Error {
-    fn drop(&mut self) {
-        //panic!("DROP")
-    }
-}
+//impl Drop for Error {
+//    fn drop(&mut self) {
+//        //panic!("DROP")
+//    }
+//}

@@ -2,7 +2,8 @@ pub mod terminal_colors;
 
 pub struct ReliableNameRangeResponse {
     pub reliable: bool,
-    pub at: usize
+    pub at: usize,
+    pub found: char
 }
 
 pub enum ReliableNameRanges {
@@ -11,14 +12,20 @@ pub enum ReliableNameRanges {
     FunctionName
 }
 
+pub fn is_opearators(value: &str) -> bool {
+    let operators = "+-/*><=";
+    operators.contains(&value)
+}
+
 pub fn reliable_name_range(_range: ReliableNameRanges, value: String) -> ReliableNameRangeResponse {
     let variable_range = "qwertyuıopasdfghjklizxcvbnm0123456789";
-    //let function_range = "qwertyuıopasdfghjklizxcvbnm";
-    //let type_range = "qwertyuıopasdfghjklizxcvbnm";
+
+    
     let find = value.split("").position(|x| !variable_range.contains(&x));
     return ReliableNameRangeResponse {
         reliable: find == None,
-        at: find.unwrap_or(0)
+        at: find.unwrap_or(0),
+        found: value.chars().nth(if let Some(e) = find {e - 1} else {0}).unwrap_or_default()
     };
 }
 

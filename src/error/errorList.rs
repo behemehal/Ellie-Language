@@ -12,7 +12,6 @@ lazy_static! {
         ..Default::default()
     };
 
-
     pub static ref error_s2: crate::error::Error = crate::error::Error {
         code: 0x01,
         title: "SyntaxError".to_string(),
@@ -52,6 +51,41 @@ lazy_static! {
         code: 0x06,
         title: "RefferenceError".to_string(),
         message: "Insufficent parameters supplied, Function requires '$token' parameters found '$token2' length of parameters".to_string(),
+        ..Default::default()
+    };
+
+    pub static ref error_s8: crate::error::Error = crate::error::Error {
+        code: 0x07,
+        title: "RefferenceError".to_string(),
+        message: "Expected type annotations".to_string(),
+        ..Default::default()
+    };
+
+    pub static ref error_s9: crate::error::Error = crate::error::Error {
+        code: 0x08,
+        title: "TypeError".to_string(),
+        message: "Unknown operator '$token'".to_string(),
+        ..Default::default()
+    };
+
+    pub static ref error_s10: crate::error::Error = crate::error::Error {
+        code: 0x09,
+        title: "TypeError".to_string(),
+        message: "Duplicate parameter found".to_string(),
+        ..Default::default()
+    };
+
+    pub static ref error_s11: crate::error::Error = crate::error::Error {
+        code: 0x10,
+        title: "TypeError".to_string(),
+        message: "Cannot set type annotations on dynamic variable".to_string(),
+        ..Default::default()
+    };
+
+    pub static ref error_s12: crate::error::Error = crate::error::Error {
+        code: 0x11,
+        title: "SyntaxError".to_string(),
+        message: "Expected operator found value instead, '$token'".to_string(),
         ..Default::default()
     };
 }

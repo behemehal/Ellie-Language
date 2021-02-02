@@ -1,23 +1,10 @@
-//[allow(warnings)]
-//[feature(drain_filter)]
-//[feature(alloc)]
-
-//TODO: no-std use core::alloc::Layout; Nightly
-//TODO: no-std extern crate alloc; Nightly
-
-#[macro_use]
-extern crate lazy_static;
-
-pub mod error;
-pub mod mapper;
-pub mod raw_utils;
-pub mod syntax;
-pub mod utils;
-
+use ellie::{mapper, utils};
 use fs::File;
 use std::env;
-//use std::path::Path;
 use std::{fs, io::Read};
+
+use serde::{Deserialize, Serialize};
+use serde_json::Result;
 
 fn main() {
     if env::args().any(|x| x == "-v") || env::args().any(|x| x == "--version") {
@@ -47,6 +34,7 @@ fn main() {
                 .filter(|x| x.contains("."))
                 .collect::<Vec<String>>();
             let debug_arg = env::args().any(|x| x == "--debug");
+            let map_errors_arg = env::args().any(|x| x == "--map-errors");
             let file_arg_check = file_args.first();
             if file_arg_check != None {
                 let file_arg = file_arg_check.unwrap();
@@ -68,6 +56,7 @@ fn main() {
                             code.clone(),
                             mapper::defs::MapperOptions {
                                 functions: true,
+                                break_on_error: false,
                                 loops: true,
                                 global_variables: true,
                                 collectives: true,
@@ -76,6 +65,8 @@ fn main() {
                         );
                         let mapped = mapper.Map();
                         if mapped.syntax_errors.len() != 0 {
+                            //let serialized = serde_json::to_string(&mapped.syntax_errors).unwrap();
+                            //println!("serialized = {}", serialized);
                             for error in &mapped.syntax_errors {
                                 println!(
                                     "{}{}Error[{:#04x}]{} - {}{}{}: {}",
@@ -123,26 +114,28 @@ fn main() {
                                     ),
                                     utils::arrow(
                                         (error.pos.range_start.1 + 1) as usize,
-                                        ((error.pos.range_end.1 + 1)
-                                            - (error.pos.range_start.1 + 1))
-                                            as usize
+                                        ((error.pos.range_end.1) - (error.pos.range_start.1)) as usize
                                     ),
                                     utils::terminal_colors::get_color(
                                         utils::terminal_colors::Colors::Reset
                                     )
                                 );
                             }
-                        //print!("Errors: {:#?}", mapped.syntax_errors);
                         } else {
-                            if env::args().any(|x| x == "-rw") || env::args().any(|x| x == "--raw-compile") {
+                            if env::args().any(|x| x == "-rw")
+                                || env::args().any(|x| x == "--raw-compile")
+                            {
                                 //let mut wraw = File::create("compiled.wraw").expect("Unable to create file");
                                 //let serialized = serde_json::to_string(&point).unwrap();
                                 //for i in &syntax.clone().items {
                                 //    write!(wraw, "{:?}", i);
                                 //}
-                                println!("Pre-compiled raw generation not supported yet");
+                                println!(
+                                    "Pre-compiled raw generation not supported yet {:#?}",
+                                    code.clone()
+                                );
                             } else {
-                                print!("Collected: {:#?}", mapped.items);
+                                print!("Collected: {:#?}", mapped);
                             }
                         }
                     }

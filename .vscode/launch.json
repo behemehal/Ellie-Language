@@ -9,13 +9,13 @@
       "request": "launch",
       "name": "Debug executable 'ellie_engine'",
       "cargo": {
-        "args": ["build", "--bin=ellie_engine", "--package=ellie_engine"],
+        "args": ["build", "--bin=ellie", "--package=ellie_engine"],
         "filter": {
-          "name": "ellie_engine",
+          "name": "ellie",
           "kind": "bin"
         }
       },
-      "args": [".\\test.ei", "--map-errors"],
+      "args": [".\\test.ei", "--debug"],
       "cwd": "${workspaceFolder}"
     },
     {
