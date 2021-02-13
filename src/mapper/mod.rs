@@ -269,7 +269,7 @@ impl Mapper {
                                     data.r#type = data.r#type.clone() + &letter_char.clone();
                                 } else if data.r#type != "" && (last_char == " " && (letter_char != ":" && letter_char != " ")) {
                                     errors.push(error::Error {
-                                        debug_message: "\\src\\mapper\\mod.rs:239:0".to_string(),
+                                        debug_message: "ThnicLimts".to_string(),
                                         title: error::errorList::error_s1.title.clone(),
                                         code: error::errorList::error_s1.code,
                                         message: error::errorList::error_s1.message.clone(),

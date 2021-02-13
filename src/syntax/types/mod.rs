@@ -1,30 +1,16 @@
-use crate::syntax::types;
-use crate::mapper::defs;
+pub mod array_type;
+pub mod bool_type;
+pub mod comparison_type;
+pub mod double_type;
+pub mod function_call;
+pub mod logical_type;
+pub mod number_type;
+pub mod refference_type;
+pub mod string_type;
+pub mod operator_type;
 
-#[derive(PartialEq, Eq, Default, Debug, Clone, Copy)]
-pub struct NumberType {
-    pub value: usize,
-    pub complete: bool,
-}
-
-#[derive(PartialEq, Eq, Default, Debug, Clone)]
-pub struct StringType {
-    pub value: String,
-    pub quote_type: String,
-    pub complete: bool,
-}
-
-#[derive(PartialEq, Default, Debug, Clone, Copy)]
-pub struct DoubleType {
-    pub value: f32,
-    pub complete: bool,
-}
-
-#[derive(PartialEq, Eq, Default, Debug, Clone, Copy)]
-pub struct BoolType {
-    pub value: bool,
-}
-
+use serde::Serialize;
+/*
 #[derive(PartialEq, Default, Debug, Clone)]
 pub struct CollectiveEntry {
     pub key: String,
@@ -34,7 +20,7 @@ pub struct CollectiveEntry {
     pub typed: bool,
     pub value_complete: bool,
     pub raw_value: String,
-    pub value: Box<types::Types>,
+    pub value: Box<Types>,
 }
 
 #[derive(PartialEq, Default, Debug, Clone)]
@@ -42,80 +28,45 @@ pub struct CollectiveType {
     pub layer_size: usize,
     pub collective: Vec<CollectiveEntry>,
 }
+*/
 
-#[derive(PartialEq, Default, Debug, Clone)]
-pub struct ArrayEntry {
-    pub value_complete: bool,
-    pub value: Box<types::Types>,
+pub enum __ArithmeticOperator {
+    Addition,
+    Subtraction,
+    Multiplication,
+    Exponentiation,
+    Division,
+    Modulus,
+    Increment,
+    Decrement,
 }
 
-#[derive(PartialEq, Default, Debug, Clone)]
-pub struct ArrayType {
-    pub layer_size: usize,
-    pub complete: bool,
-    pub comma: bool,
-    pub child_start: bool,
-    pub collective: Vec<ArrayEntry>,
-}
-
-
-#[derive(PartialEq, Default, Debug, Clone)]
-pub struct FunctionCallParameter {
-    pub value: types::Types,
-    pub pos: defs::Cursor,
-}
-
-#[derive(PartialEq, Default, Debug, Clone)]
-pub struct FunctionCall {
-    pub name: String,
-    pub name_pos: defs::Cursor,
-    pub comma: bool,
-    pub complete: bool,
-    pub params: Vec<FunctionCallParameter>,
-}
-
-#[derive(PartialEq, Default, Debug, Clone)]
-pub struct RefferenceType {
-    pub refference: Box<types::Types>,
-    pub on_dot: bool,
-    pub chain: Vec<String>,
-}
-
-pub enum ArithmeticOperatorItem {
-    
-}
-
-#[derive(PartialEq, Default, Debug, Clone)]
-pub struct ArithmeticOperator {
-
-}
-
-
-#[derive(PartialEq, Debug, Clone)]
+#[derive(PartialEq, Debug, Clone, Serialize)]
 pub enum Types {
-    Number(NumberType),
-    Double(DoubleType),
-    Bool(BoolType),
-    String(StringType),
-    Collective(CollectiveType),
-    Refference(RefferenceType),
-    Array(ArrayType),
+    Number(number_type::NumberType),
+    Double(double_type::DoubleType),
+    Bool(bool_type::BoolType),
+    String(string_type::StringType),
+    Collective, //DEPRECATED
+    Refference(refference_type::RefferenceType),
+    Operator(operator_type::OperatorType),
+    Array(array_type::ArrayType),
     Function,
-    FunctionCall(FunctionCall),
+    FunctionCall(function_call::FunctionCall),
     Void,
     Null,
 }
 
 impl Types {
-    
     pub fn is_string_open(&self) -> bool {
         match &*self {
             Types::Number(_) => true,
             Types::Double(_) => true,
             Types::Bool(_) => true,
             Types::String(data) => !data.complete,
-            Types::Collective(_) => false,
-            Types::Refference(data) => false,
+            Types::Refference(_) => false,
+            Types::Operator(_) => false,
+            Types::Collective => false,
             Types::Array(data) => {
                 if !data.complete {
                     if data.collective.len() == 0 {
@@ -126,9 +77,9 @@ impl Types {
                 } else {
                     false
                 }
-            },
+            }
             Types::Function => false,
-            Types::FunctionCall(data) => false,
+            Types::FunctionCall(_) => false,
             Types::Void => true,
             Types::Null => true,
         }
@@ -138,10 +89,11 @@ impl Types {
         match &*self {
             Types::Number(_) => true, //Always complete
             Types::Double(_) => true, //Always complete
-            Types::Bool(_) => true, //Always complete
+            Types::Bool(_) => true,   //Always complete
             Types::String(data) => data.complete,
-            Types::Collective(_) => false,
+            Types::Collective => false,
             Types::Refference(data) => !data.on_dot,
+            Types::Operator(_) => false,
             Types::Array(data) => data.complete,
             Types::Function => false,
             Types::FunctionCall(data) => data.complete,
@@ -156,25 +108,25 @@ impl Types {
             Types::Double(_) => false,
             Types::Bool(_) => false,
             Types::String(_) => false,
-            Types::Collective(_) => false,
+            Types::Collective => false,
             Types::Refference(_) => false,
+            Types::Operator(_) => false,
             Types::Array(_) => true,
             Types::Function => false,
             Types::FunctionCall(_) => false,
             Types::Void => false,
             Types::Null => false,
         }
-    
     }
-    
     pub fn is_string(&self) -> bool {
         match *self {
             Types::Number(_) => false,
             Types::Double(_) => false,
             Types::Bool(_) => false,
             Types::String(_) => true,
-            Types::Collective(_) => false,
+            Types::Collective => false,
             Types::Refference(_) => false,
+            Types::Operator(_) => false,
             Types::Array(_) => false,
             Types::Function => false,
             Types::FunctionCall(_) => false,
@@ -189,8 +141,9 @@ impl Types {
             Types::Double(_) => false,
             Types::Bool(_) => false,
             Types::String(data) => !data.complete,
-            Types::Collective(_) => false,
+            Types::Collective => false,
             Types::Refference(_) => false,
+            Types::Operator(_) => false,
             Types::Array(_) => false,
             Types::Function => false,
             Types::FunctionCall(_) => false,
@@ -205,8 +158,9 @@ impl Types {
             Types::Double(_) => None,
             Types::Bool(_) => None,
             Types::String(_) => None,
-            Types::Collective(_) => None,
+            Types::Collective => None,
             Types::Refference(_) => None,
+            Types::Operator(_) => None,
             Types::Array(a) => Some(!a.complete),
             Types::Function => None,
             Types::FunctionCall(_) => None,
@@ -221,8 +175,9 @@ impl Types {
             Types::Double(_) => false,
             Types::Bool(_) => false,
             Types::String(_) => false,
-            Types::Collective(_) => false,
+            Types::Collective => false,
             Types::Refference(_) => false,
+            Types::Operator(_) => false,
             Types::Array(a) => a.complete,
             Types::Function => false,
             Types::FunctionCall(_) => false,
@@ -237,8 +192,9 @@ impl Types {
             Types::Double(e) => e.complete = true,
             Types::Bool(_) => (),
             Types::String(e) => e.complete = true,
-            Types::Collective(_) => (),
+            Types::Collective => (),
             Types::Refference(_) => (),
+            Types::Operator(_) => (),
             Types::Array(e) => e.complete = true,
             Types::Function => (),
             Types::FunctionCall(_) => (),

@@ -23,7 +23,7 @@ pub fn collect(
         if letter_char == ":" {
             if data.name == "" {
                 errors.push(error::Error {
-                    debug_message: "\\src\\processors\\variable_processors.rs:94:0".to_string(),
+                    debug_message: "Ann".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -50,7 +50,7 @@ pub fn collect(
         } else if letter_char == "=" {
             if !data.dynamic {
                 errors.push(error::Error {
-                    debug_message: "\\src\\processors\\variable_processors.rs:117:0".to_string(),
+                    debug_message: "Project:Ann".to_string(),
                     title: error::errorList::error_s8.title.clone(),
                     code: error::errorList::error_s8.code,
                     message: error::errorList::error_s8.message.clone(),
@@ -62,7 +62,7 @@ pub fn collect(
                 });
             } else if data.name == "" {
                 errors.push(error::Error {
-                    debug_message: "\\src\\processors\\variable_processors.rs:133:0".to_string(),
+                    debug_message: "bhemehal".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -90,7 +90,7 @@ pub fn collect(
             if current_reliability.reliable {
                 if last_char == " " && data.name != "" {
                     errors.push(error::Error {
-                        debug_message: "\\src\\processors\\variable_processors.rs:161:0".to_string(),
+                        debug_message: "Ataturk".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),

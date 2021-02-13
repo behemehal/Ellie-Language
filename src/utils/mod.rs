@@ -13,7 +13,7 @@ pub enum ReliableNameRanges {
 }
 
 pub fn is_opearators(value: &str) -> bool {
-    let operators = "+-/*><=";
+    let operators = "|&";
     operators.contains(&value)
 }
 

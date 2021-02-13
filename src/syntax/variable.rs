@@ -1,4 +1,6 @@
-#[derive(PartialEq, Debug, Clone)]
+use serde::Serialize;
+
+#[derive(PartialEq, Debug, Clone, Serialize)]
 pub struct VariableCollector {
     pub initialized: bool,
     pub dynamic:bool,
