@@ -3,9 +3,6 @@ use fs::File;
 use std::env;
 use std::{fs, io::Read};
 
-use serde::{Deserialize, Serialize};
-use serde_json::Result;
-
 fn main() {
     if env::args().any(|x| x == "-v") || env::args().any(|x| x == "--version") {
         const VERSION: &'static str = env!("CARGO_PKG_VERSION");
@@ -34,7 +31,7 @@ fn main() {
                 .filter(|x| x.contains("."))
                 .collect::<Vec<String>>();
             let debug_arg = env::args().any(|x| x == "--debug");
-            let map_errors_arg = env::args().any(|x| x == "--map-errors");
+            //let map_errors_arg = env::args().any(|x| x == "--map-errors");
             let file_arg_check = file_args.first();
             if file_arg_check != None {
                 let file_arg = file_arg_check.unwrap();
