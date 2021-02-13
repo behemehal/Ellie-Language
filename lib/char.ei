@@ -1,0 +1,26 @@
+import ./Number;
+
+/*
+    Ellie Char Type
+*/
+
+
+class String {
+    
+    constructor() {
+
+    }
+
+    pb fn size() {
+        
+    }
+
+    get size > usize {
+
+    }
+    
+    get byte > usize {
+
+    }
+
+}

@@ -1,0 +1,6 @@
+import ./Number;
+
+class Enumerate {
+    v index: usize;
+    d data;
+}

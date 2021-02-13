@@ -1,0 +1,22 @@
+import ./Number;
+
+/*
+    Ellie String Type
+*/
+
+
+class String {
+    
+    constructor() {
+
+    }
+
+    get length > usize {
+
+    }
+    
+    get charArray > usize {
+
+    }
+
+}
