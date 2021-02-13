@@ -3,7 +3,7 @@
 # Ellie
 Ellie language engine [NOT COMPLETE]
 
-
+Why ellie? Ellie is sanboxed script engine contains memory saving countermeasures for low memory devices and portable workflow
 
 ## CLI usage
 
@@ -14,7 +14,7 @@ Language does not have a runtime for now, here are the tasks we need to complete
 
 - Variables [X]
 - Functions [X]
-- If Else   [ ]
+- If Else   [?]
 - For Loops [ ]
 
 

@@ -48,23 +48,39 @@ pub fn collect(
             } else {
                 if letter_char == "." {
                     // String prototype
-                    itered_data.value = types::Types::Refference(types::RefferenceType {
-                        refference: Box::new(itered_data.value.clone()),
-                        on_dot: true,
-                        chain: Vec::new(),
-                    });
-                } else if utils::is_opearators(letter_char) {
-                    //itered_data.value = types::Types::Operators(types::OperatorType {
-                    //    first: Box::new(itered_data.value.clone()),
-                    //    operator_collect: letter_char.to_string(),
-                    //    collecting_operator: true,
-                    //    ..Default::default()
-                    //});
+                    itered_data.value =
+                        types::Types::Refference(types::refference_type::RefferenceType {
+                            refference: Box::new(itered_data.value.clone()),
+                            on_dot: true,
+                            chain: Vec::new(),
+                        });
+                } else if types::logical_type::LogicalOpearators::is_opearator(letter_char) {
+                    itered_data.value =
+                        types::Types::Operator(types::operator_type::OperatorType {
+                            first: Box::new(itered_data.value.clone()),
+                            first_filled: true,
+                            operator: types::operator_type::Operators::LogicalType(
+                                types::logical_type::LogicalOpearators::Null,
+                            ),
+                            operator_collect: letter_char.to_string(),
+                            ..Default::default()
+                        });
+                } else if types::comparison_type::ComparisonOperators::is_opearator(letter_char) {
+                    itered_data.value =
+                        types::Types::Operator(types::operator_type::OperatorType {
+                            first: Box::new(itered_data.value.clone()),
+                            first_filled: true,
+                            operator_collect: letter_char.to_string(),
+                            operator: types::operator_type::Operators::ComparisonType(
+                                types::comparison_type::ComparisonOperators::Null,
+                            ),
+                            ..Default::default()
+                        });
                 } else if letter_char == " " {
                     data.complete = true;
                 } else {
                     errors.push(error::Error {
-                        debug_message: "Trtex".to_string(),
+                        debug_message: "mRNA".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -99,7 +115,7 @@ pub fn collect(
             if letter_char == data.quote_type && last_char != "\\" {
                 if data.complete {
                     errors.push(error::Error {
-                        debug_message: "\\src\\processors\\value_processor.rs::86:0".to_string(),
+                        debug_message: "Mece".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -124,11 +140,12 @@ pub fn collect(
                 }
             } else if letter_char == "." {
                 // String prototype
-                itered_data.value = types::Types::Refference(types::RefferenceType {
-                    refference: Box::new(itered_data.value.clone()),
-                    on_dot: true,
-                    chain: Vec::new(),
-                });
+                itered_data.value =
+                    types::Types::Refference(types::refference_type::RefferenceType {
+                        refference: Box::new(itered_data.value.clone()),
+                        on_dot: true,
+                        chain: Vec::new(),
+                    });
                 CollectorResponse {
                     itered_data: itered_data.clone(),
                     errors,
@@ -157,115 +174,15 @@ pub fn collect(
                 }
             }
         }
-        types::Types::Collective(data) => {
-            if data.collective.len() == 0 {
-                //Collective just started
-                if letter_char == " " {
-                } else {
-                    let current_reliability = crate::utils::reliable_name_range(
-                        crate::utils::ReliableNameRanges::VariableName,
-                        letter_char.to_string(),
-                    );
-
-                    if current_reliability.reliable {
-                        data.collective.push(types::CollectiveEntry {
-                            key: letter_char.to_string(),
-                            dynamic: false,
-                            key_named: false,
-                            r#type: String::from(""),
-                            typed: false,
-                            value_complete: false,
-                            raw_value: String::from(""),
-                            value: Box::new(types::Types::Null),
-                        })
-                    } else {
-                        errors.push(error::Error {
-                            debug_message: "\\src\\mapper\\mod.rs:227:0".to_string(),
-                            title: error::errorList::error_s1.title.clone(),
-                            code: error::errorList::error_s1.code,
-                            message: error::errorList::error_s1.message.clone(),
-                            builded_message: error::Error::build(
-                                error::errorList::error_s1.message.clone(),
-                                vec![error::ErrorBuildField {
-                                    key: "token".to_string(),
-                                    value: letter_char.to_string(),
-                                }],
-                            ),
-                            pos: mapper::defs::Cursor {
-                                range_start: pos.clone(),
-                                range_end: pos.clone().skipChar(1),
-                            },
-                        });
-                    }
-                }
-            } else {
-                let last_entry = data.collective.len() - 1;
-
-                if !data.collective[last_entry].key_named {
-                    if letter_char == "=" {
-                        //TODO: Do we have to check collective entry named? or unnamed entry cannot pass first if?
-                        data.collective[last_entry].key_named = true;
-                        data.collective[last_entry].dynamic = true;
-                    } else if letter_char == ":" {
-                        data.collective[last_entry].key_named = true;
-                    } else {
-                        let current_reliability = crate::utils::reliable_name_range(
-                            crate::utils::ReliableNameRanges::VariableName,
-                            letter_char.to_string(),
-                        );
-
-                        if current_reliability.reliable {
-                            data.collective[last_entry].key += letter_char;
-                        } else {
-                            errors.push(error::Error {
-                                debug_message: "\\src\\mapper\\mod.rs:227:0".to_string(),
-                                title: error::errorList::error_s1.title.clone(),
-                                code: error::errorList::error_s1.code,
-                                message: error::errorList::error_s1.message.clone(),
-                                builded_message: error::Error::build(
-                                    error::errorList::error_s1.message.clone(),
-                                    vec![error::ErrorBuildField {
-                                        key: "token".to_string(),
-                                        value: letter_char.to_string(),
-                                    }],
-                                ),
-                                pos: mapper::defs::Cursor {
-                                    range_start: pos.clone(),
-                                    range_end: pos.clone().skipChar(1),
-                                },
-                            });
-                        }
-                    }
-                } else {
-                    if data.collective[last_entry].dynamic {
-                        println!(
-                            "{:#?}",
-                            collect(
-                                &mut itered_data.clone(),
-                                letter_char.clone(),
-                                next_char.to_string().clone(),
-                                last_char.to_string().clone(),
-                                pos.clone(),
-                            )
-                        );
-                    //println!("CollectiveData: {:#?}", collected);
-                    } else {
-                        //We're expecting data type
-                        println!("Non-dynamic collection entry not supported yet?");
-                    }
-                }
-            }
-
-            CollectorResponse {
-                itered_data: itered_data.clone(),
-                errors,
-            }
-        }
+        types::Types::Collective => CollectorResponse {
+            itered_data: itered_data.clone(),
+            errors,
+        },
         types::Types::Refference(data) => {
             if letter_char == "." {
                 if data.on_dot {
                     errors.push(error::Error {
-                        debug_message: "\\src\\processors\\value_processor.rs::127:0".to_string(),
+                        debug_message: "Yugirmnoa".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -301,8 +218,7 @@ pub fn collect(
                         //});
                     } else {
                         errors.push(error::Error {
-                            debug_message: "\\src\\processors\\value_processor.rs::127:0"
-                                .to_string(),
+                            debug_message: "Fsteasthialvi".to_string(),
                             title: error::errorList::error_s1.title.clone(),
                             code: error::errorList::error_s1.code,
                             message: error::errorList::error_s1.message.clone(),
@@ -330,6 +246,103 @@ pub fn collect(
                 errors,
             }
         }
+        types::Types::Operator(data) => {
+            if !data.first_filled { //First
+                 //TODO same as second litte bit different
+            } else if !data.operator_collected {
+                //Operator
+                let is_opearator = types::operator_type::Operators::resolve_operator(
+                    data.operator.clone(),
+                    &(data.operator_collect.clone() + letter_char),
+                );
+
+                if is_opearator.is_err() {
+                    if letter_char == " " {
+                        data.operator_collected = true;
+                    } else {
+                        errors.push(error::Error {
+                            debug_message: "Rndelle".to_string(),
+                            title: error::errorList::error_s13.title.clone(),
+                            code: error::errorList::error_s13.code,
+                            message: error::errorList::error_s13.message.clone(),
+                            builded_message: error::Error::build(
+                                error::errorList::error_s13.message.clone(),
+                                vec![error::ErrorBuildField {
+                                    key: "token".to_string(),
+                                    value: letter_char.to_string(),
+                                }],
+                            ),
+                            pos: mapper::defs::Cursor {
+                                range_start: pos.clone(),
+                                range_end: pos.clone().skipChar(1),
+                            },
+                        });
+                    }
+                } else if let Ok(parsed_operator) = is_opearator {
+                    data.operator_collect += letter_char;
+                    if let types::operator_type::Operators::ComparisonType(_) = data.operator {
+                        data.operator = parsed_operator;
+                    } else {
+                        data.operator = parsed_operator;
+                    }
+                }
+            } else {
+                //Second
+
+                let mut will_be_itered = variable::VariableCollector {
+                    value: *data.second.clone(),
+                    ..variable::VariableCollector::default()
+                };
+
+                let itered_child = collect(
+                    &mut will_be_itered,
+                    letter_char.clone(),
+                    next_char.to_string().clone(),
+                    last_char.to_string().clone(),
+                    mapper::defs::CursorPosition(0, 0),
+                );
+
+                if itered_child.errors.len() != 0 {
+                    for returned_error in itered_child.errors {
+                        //errors.extend(itered_array_vector.errors);
+                        let mut edited = returned_error;
+                        edited.pos.range_start.0 += pos.0;
+                        edited.pos.range_start.1 += pos.1;
+                        edited.pos.range_end.0 += pos.0;
+                        edited.pos.range_end.1 += pos.1;
+                        errors.push(edited);
+                    }
+                }
+
+                if let types::Types::Operator(child_operator) = itered_child.itered_data.value {
+                    itered_data.value = types::Types::Operator(types::operator_type::OperatorType {
+                        cloaked: child_operator.cloaked,
+                        first: Box::new(types::Types::Operator(
+                            types::operator_type::OperatorType {
+                                cloaked: data.cloaked,
+                                first: data.first.clone(),
+                                first_filled: true,
+                                second: child_operator.first,
+                                operator: data.operator.clone(),
+                                operator_collect: data.operator_collect.clone(),
+                                operator_collected: true,
+                            },
+                        )),
+                        first_filled: true,
+                        operator: child_operator.operator,
+                        operator_collect: child_operator.operator_collect,
+                        ..Default::default()
+                    })
+                } else {
+                    data.second = Box::new(itered_child.itered_data.value);
+                }
+            }
+
+            CollectorResponse {
+                itered_data: itered_data.clone(),
+                errors,
+            }
+        }
         types::Types::Array(data) => {
             /*
                 Don't look right to it, it's dangerously complicated
@@ -348,7 +361,7 @@ pub fn collect(
             */
 
             let last_entry = data.clone().collective.len();
-            let mut value: types::Types = types::Types::Null;
+            //let mut value: types::Types = types::Types::Null;
 
             let is_s_n = if last_entry != 0
                 && data.collective[last_entry - 1]
@@ -381,10 +394,12 @@ pub fn collect(
                     });
                 } else {
                     data.child_start = true;
-                    value = types::Types::Array(types::ArrayType::default());
-                    data.collective[last_entry - 1] = types::ArrayEntry {
+                    //value = types::Types::Array(types::ArrayType::default());
+                    data.collective[last_entry - 1] = types::array_type::ArrayEntry {
                         value_complete: false,
-                        value: Box::new(types::Types::Array(types::ArrayType::default())),
+                        value: Box::new(types::Types::Array(
+                            types::array_type::ArrayType::default(),
+                        )),
                     };
                 }
             } else if letter_char == "," && !data.child_start && is_s_n {
@@ -431,7 +446,8 @@ pub fn collect(
                     }
                     data.comma = true;
                     data.layer_size += 1;
-                    data.collective.push(types::ArrayEntry::default());
+                    data.collective
+                        .push(types::array_type::ArrayEntry::default());
                 }
             } else if letter_char == "]" && !data.child_start && is_s_n {
                 if data.comma {
@@ -484,11 +500,12 @@ pub fn collect(
                     itered_data.value_complete = true;
                 }
             } else if data.complete && letter_char == "." && is_s_n {
-                itered_data.value = types::Types::Refference(types::RefferenceType {
-                    refference: Box::new(itered_data.value.clone()),
-                    on_dot: true,
-                    chain: vec![],
-                })
+                itered_data.value =
+                    types::Types::Refference(types::refference_type::RefferenceType {
+                        refference: Box::new(itered_data.value.clone()),
+                        on_dot: true,
+                        chain: vec![],
+                    })
             } else if data.complete && utils::is_opearators(letter_char) && is_s_n {
                 //itered_data.value = types::Types::Operators(types::OperatorType {
                 //    first: Box::new(itered_data.value.clone()),
@@ -524,51 +541,51 @@ pub fn collect(
                 }
 
                 let itered_entry = match itered_array_vector.itered_data.value {
-                    types::Types::Number(match_data) => types::ArrayEntry {
+                    types::Types::Number(match_data) => types::array_type::ArrayEntry {
                         value_complete: match_data.complete,
                         value: Box::new(types::Types::Number(match_data)),
                     },
-                    types::Types::Double(match_data) => types::ArrayEntry {
+                    types::Types::Double(match_data) => types::array_type::ArrayEntry {
                         value_complete: match_data.complete,
                         value: Box::new(types::Types::Double(match_data)),
                     },
-                    //types::Types::Operators(match_data) => types::ArrayEntry {
-                    //    value_complete: false,
-                    //    value: Box::new(types::Types::Operators(match_data)),
-                    //},
-                    types::Types::Bool(match_data) => types::ArrayEntry {
+                    types::Types::Operator(match_data) => types::array_type::ArrayEntry {
+                        value_complete: false,
+                        value: Box::new(types::Types::Operator(match_data)),
+                    },
+                    types::Types::Bool(match_data) => types::array_type::ArrayEntry {
                         value_complete: true,
                         value: Box::new(types::Types::Bool(match_data)),
                     },
-                    types::Types::String(match_data) => types::ArrayEntry {
+                    types::Types::String(match_data) => types::array_type::ArrayEntry {
                         value_complete: match_data.complete,
                         value: Box::new(types::Types::String(match_data)),
                     },
-                    types::Types::Collective(_) => types::ArrayEntry {
+                    types::Types::Collective => types::array_type::ArrayEntry {
                         value_complete: true,
                         value: Box::new(types::Types::Null),
                     },
-                    types::Types::Refference(_) => types::ArrayEntry {
+                    types::Types::Refference(_) => types::array_type::ArrayEntry {
                         value_complete: true,
                         value: Box::new(types::Types::Null),
                     },
-                    types::Types::Array(match_data) => types::ArrayEntry {
+                    types::Types::Array(match_data) => types::array_type::ArrayEntry {
                         value_complete: false,
                         value: Box::new(types::Types::Array(match_data)),
                     },
-                    types::Types::Function => types::ArrayEntry {
+                    types::Types::Function => types::array_type::ArrayEntry {
                         value_complete: true,
                         value: Box::new(types::Types::Null),
                     },
-                    types::Types::FunctionCall(_) => types::ArrayEntry {
+                    types::Types::FunctionCall(_) => types::array_type::ArrayEntry {
                         value_complete: true,
                         value: Box::new(types::Types::Null),
                     },
-                    types::Types::Void => types::ArrayEntry {
+                    types::Types::Void => types::array_type::ArrayEntry {
                         value_complete: true,
                         value: Box::new(types::Types::Null),
                     },
-                    types::Types::Null => types::ArrayEntry {
+                    types::Types::Null => types::array_type::ArrayEntry {
                         value_complete: true,
                         value: Box::new(types::Types::Null),
                     },
@@ -605,7 +622,8 @@ pub fn collect(
         types::Types::FunctionCall(data) => {
             let mut last_param = data.params.len();
             if last_param == 0 {
-                data.params.push(types::FunctionCallParameter::default());
+                data.params
+                    .push(types::function_call::FunctionCallParameter::default());
                 last_param = data.params.len();
             }
 
@@ -619,7 +637,8 @@ pub fn collect(
             if letter_char == "," && is_s_n && !data.params[last_param - 1].value.is_array() {
                 if data.params[last_param - 1].value.is_complete() {
                     data.comma = true;
-                    data.params.push(types::FunctionCallParameter::default())
+                    data.params
+                        .push(types::function_call::FunctionCallParameter::default())
                 } else {
                     errors.push(error::Error {
                         debug_message: "Crusial".to_string(),
@@ -642,7 +661,7 @@ pub fn collect(
             } else if letter_char == ")" && is_s_n {
                 if data.comma {
                     errors.push(error::Error {
-                        debug_message: "Qere".to_string(),
+                        debug_message: "Rmvoal".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -697,52 +716,52 @@ pub fn collect(
                     mapper::defs::CursorPosition(0, 0),
                 ));
 
-                let itered_entry = match itered_param_value.itered_data.value.clone() {
-                    types::Types::Number(match_data) => types::ArrayEntry {
+                let _itered_entry = match itered_param_value.itered_data.value.clone() {
+                    types::Types::Number(match_data) => types::array_type::ArrayEntry {
                         value_complete: match_data.complete,
                         value: Box::new(types::Types::Number(match_data)),
                     },
-                    types::Types::Double(match_data) => types::ArrayEntry {
+                    types::Types::Double(match_data) => types::array_type::ArrayEntry {
                         value_complete: match_data.complete,
                         value: Box::new(types::Types::Double(match_data)),
                     },
-                    //types::Types::Operators(match_data) => types::ArrayEntry {
-                    //    value_complete: false,
-                    //    value: Box::new(types::Types::Operators(match_data)),
-                    //},
-                    types::Types::Bool(match_data) => types::ArrayEntry {
+                    types::Types::Operator(match_data) => types::array_type::ArrayEntry {
+                        value_complete: false,
+                        value: Box::new(types::Types::Operator(match_data)),
+                    },
+                    types::Types::Bool(match_data) => types::array_type::ArrayEntry {
                         value_complete: true,
                         value: Box::new(types::Types::Bool(match_data)),
                     },
-                    types::Types::String(match_data) => types::ArrayEntry {
+                    types::Types::String(match_data) => types::array_type::ArrayEntry {
                         value_complete: match_data.complete,
                         value: Box::new(types::Types::String(match_data)),
                     },
-                    types::Types::Collective(_) => types::ArrayEntry {
+                    types::Types::Collective => types::array_type::ArrayEntry {
                         value_complete: true,
                         value: Box::new(types::Types::Null),
                     },
-                    types::Types::Refference(_) => types::ArrayEntry {
+                    types::Types::Refference(_) => types::array_type::ArrayEntry {
                         value_complete: true,
                         value: Box::new(types::Types::Null),
                     },
-                    types::Types::Array(match_data) => types::ArrayEntry {
+                    types::Types::Array(match_data) => types::array_type::ArrayEntry {
                         value_complete: false,
                         value: Box::new(types::Types::Array(match_data)),
                     },
-                    types::Types::Function => types::ArrayEntry {
+                    types::Types::Function => types::array_type::ArrayEntry {
                         value_complete: true,
                         value: Box::new(types::Types::Null),
                     },
-                    types::Types::FunctionCall(_) => types::ArrayEntry {
+                    types::Types::FunctionCall(_) => types::array_type::ArrayEntry {
                         value_complete: true,
                         value: Box::new(types::Types::Null),
                     },
-                    types::Types::Void => types::ArrayEntry {
+                    types::Types::Void => types::array_type::ArrayEntry {
                         value_complete: true,
                         value: Box::new(types::Types::Null),
                     },
-                    types::Types::Null => types::ArrayEntry {
+                    types::Types::Null => types::array_type::ArrayEntry {
                         value_complete: true,
                         value: Box::new(types::Types::Null),
                     },
@@ -775,7 +794,7 @@ pub fn collect(
             //let is_num = itered_data.raw_value.parse::<usize>().is_ok();
             if itered_data.raw_value == "" {
                 if letter_char == "\"" || letter_char == "'" {
-                    itered_data.value = types::Types::String(types::StringType {
+                    itered_data.value = types::Types::String(types::string_type::StringType {
                         quote_type: letter_char.to_string(),
                         ..Default::default()
                     })
@@ -784,7 +803,7 @@ pub fn collect(
                     .parse::<i32>()
                     .is_ok()
                 {
-                    itered_data.value = types::Types::Number(types::NumberType {
+                    itered_data.value = types::Types::Number(types::number_type::NumberType {
                         value: (itered_data.raw_value.clone() + &letter_char)
                             .parse::<usize>()
                             .unwrap(),
@@ -792,7 +811,7 @@ pub fn collect(
                     })
                 } else if letter_char == "[" {
                     println!("Array Started");
-                    itered_data.value = types::Types::Array(types::ArrayType {
+                    itered_data.value = types::Types::Array(types::array_type::ArrayType {
                         layer_size: 0,
                         child_start: false,
                         complete: false,
@@ -800,11 +819,7 @@ pub fn collect(
                         collective: Vec::new(),
                     });
                 } else if letter_char == "{" {
-                    println!("Objective Started");
-                    itered_data.value = types::Types::Collective(types::CollectiveType {
-                        layer_size: 0,
-                        collective: Vec::new(),
-                    });
+                    panic!("Collective is deprecated");
                 } else if letter_char == "(" {
                     //itered_data.value = types::Types::Operators(types::OperatorType {
                     //    brace: true,
@@ -820,17 +835,18 @@ pub fn collect(
                         itered_data.raw_value.clone(),
                     );
                     if current_reliability.reliable {
-                        itered_data.value = types::Types::FunctionCall(types::FunctionCall {
-                            name: itered_data.raw_value.to_string(),
-                            name_pos: mapper::defs::Cursor {
-                                range_start: mapper::defs::CursorPosition(
-                                    pos.0,
-                                    pos.1 - itered_data.raw_value.len() as i64,
-                                ),
-                                range_end: mapper::defs::CursorPosition(pos.0, pos.1 - 1),
-                            },
-                            ..Default::default()
-                        });
+                        itered_data.value =
+                            types::Types::FunctionCall(types::function_call::FunctionCall {
+                                name: itered_data.raw_value.to_string(),
+                                name_pos: mapper::defs::Cursor {
+                                    range_start: mapper::defs::CursorPosition(
+                                        pos.0,
+                                        pos.1 - itered_data.raw_value.len() as i64,
+                                    ),
+                                    range_end: mapper::defs::CursorPosition(pos.0, pos.1 - 1),
+                                },
+                                ..Default::default()
+                            });
                     } else {
                         errors.push(error::Error {
                             debug_message: "Wole".to_string(),
@@ -861,7 +877,7 @@ pub fn collect(
                     }
                 } else if next_char == ";" || next_char == " " {
                     if itered_data.raw_value == "false" || itered_data.raw_value == "true" {
-                        itered_data.value = types::Types::Bool(types::BoolType {
+                        itered_data.value = types::Types::Bool(types::bool_type::BoolType {
                             value: if itered_data.raw_value == "true" {
                                 true
                             } else {
@@ -869,7 +885,7 @@ pub fn collect(
                             },
                         })
                     } else if itered_data.raw_value.parse::<i32>().is_ok() {
-                        itered_data.value = types::Types::Number(types::NumberType {
+                        itered_data.value = types::Types::Number(types::number_type::NumberType {
                             value: (itered_data.raw_value.clone() + &letter_char)
                                 .parse::<usize>()
                                 .unwrap(),
