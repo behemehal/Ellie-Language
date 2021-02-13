@@ -7,7 +7,7 @@
     {
       "type": "lldb",
       "request": "launch",
-      "name": "Debug executable 'ellie_engine'",
+      "name": "Debug executable file",
       "cargo": {
         "args": ["build", "--bin=ellie", "--package=ellie_engine"],
         "filter": {
@@ -16,6 +16,20 @@
         }
       },
       "args": [".\\test.ei", "--debug"],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug executable test",
+      "cargo": {
+        "args": ["build", "--bin=test", "--package=ellie_engine"],
+        "filter": {
+          "name": "test",
+          "kind": "bin"
+        }
+      },
+      "args": [],
       "cwd": "${workspaceFolder}"
     },
     {
