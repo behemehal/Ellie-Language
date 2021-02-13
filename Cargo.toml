@@ -18,3 +18,8 @@ path = "src/lib.rs"
 name = "ellie"
 test = false
 bench = false
+
+[[bin]]
+name = "test"
+test = false
+bench = false
