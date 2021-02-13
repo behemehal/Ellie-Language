@@ -3,7 +3,6 @@
 use std::ops::{Deref, DerefMut};
 
 lazy_static! {
-    //pub static ref FOO : ::std::time::SystemTime = ::std::time::SystemTime::now();
     #[derive(PartialEq, Debug, Clone, Copy)]
     pub static ref error_s1: crate::error::Error = crate::error::Error {
         code: 0x00,
@@ -86,6 +85,14 @@ lazy_static! {
         code: 0x11,
         title: "SyntaxError".to_string(),
         message: "Expected operator found value instead, '$token'".to_string(),
+        ..Default::default()
+    };
+
+    #[derive(PartialEq, Debug, Clone, Copy)]
+    pub static ref error_s13: crate::error::Error = crate::error::Error {
+        code: 0x12,
+        title: "SyntaxError".to_string(),
+        message: "Expected operator found '$token'".to_string(),
         ..Default::default()
     };
 }
