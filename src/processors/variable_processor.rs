@@ -138,7 +138,6 @@ pub fn collect(
             mapper.collected.push(mapper.current.clone());
             mapper.current = mapper::Collecting::None;
         } else if letter_char == "=" {
-            println!("|DEBUG| VARIABLE NAMED: {}", data.name);
             if data.r#type == "" {
                 errors.push(error::Error {
                     debug_message: "\\src\\processors\\variable_processors.rs:211:0".to_string(),

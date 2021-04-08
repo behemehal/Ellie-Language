@@ -1,6 +1,7 @@
 //This is will catch operator with unknown behaviour
 
 use serde::Serialize;
+use crate::syntax::variable;
 use crate::syntax::types;
 
 use crate::syntax::types::comparison_type::ComparisonOperators;
@@ -45,6 +46,7 @@ pub struct OperatorType {
     pub first: Box<types::Types>,
     pub first_filled: bool,
     pub second: Box<types::Types>,
+    pub itered_cache: Box<variable::VariableCollector>,
     pub operator: Operators,
     pub operator_collect: String,
     pub operator_collected: bool

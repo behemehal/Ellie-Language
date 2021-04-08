@@ -1,4 +1,5 @@
 pub mod array_type;
+pub mod cloak_type;
 pub mod bool_type;
 pub mod comparison_type;
 pub mod double_type;
@@ -50,6 +51,7 @@ pub enum Types {
     Collective, //DEPRECATED
     Refference(refference_type::RefferenceType),
     Operator(operator_type::OperatorType),
+    Cloak(cloak_type::CloakType),
     Array(array_type::ArrayType),
     Function,
     FunctionCall(function_call::FunctionCall),
@@ -77,6 +79,17 @@ impl Types {
                 } else {
                     false
                 }
+            },
+            Types::Cloak(data) => {
+                if !data.complete {
+                    if data.collective.len() == 0 {
+                        false
+                    } else {
+                        !data.collective[data.collective.len() - 1].value_complete
+                    }
+                } else {
+                    false
+                }
             }
             Types::Function => false,
             Types::FunctionCall(_) => false,
@@ -95,6 +108,7 @@ impl Types {
             Types::Refference(data) => !data.on_dot,
             Types::Operator(_) => false,
             Types::Array(data) => data.complete,
+            Types::Cloak(data) => data.complete,
             Types::Function => false,
             Types::FunctionCall(data) => data.complete,
             Types::Void => true,
@@ -112,6 +126,7 @@ impl Types {
             Types::Refference(_) => false,
             Types::Operator(_) => false,
             Types::Array(_) => true,
+            Types::Cloak(_) => false,
             Types::Function => false,
             Types::FunctionCall(_) => false,
             Types::Void => false,
@@ -128,6 +143,7 @@ impl Types {
             Types::Refference(_) => false,
             Types::Operator(_) => false,
             Types::Array(_) => false,
+            Types::Cloak(_) => false,
             Types::Function => false,
             Types::FunctionCall(_) => false,
             Types::Void => false,
@@ -145,6 +161,7 @@ impl Types {
             Types::Refference(_) => false,
             Types::Operator(_) => false,
             Types::Array(_) => false,
+            Types::Cloak(_) => false,
             Types::Function => false,
             Types::FunctionCall(_) => false,
             Types::Void => false,
@@ -162,6 +179,7 @@ impl Types {
             Types::Refference(_) => None,
             Types::Operator(_) => None,
             Types::Array(a) => Some(!a.complete),
+            Types::Cloak(_) => None,
             Types::Function => None,
             Types::FunctionCall(_) => None,
             Types::Void => None,
@@ -179,6 +197,7 @@ impl Types {
             Types::Refference(_) => false,
             Types::Operator(_) => false,
             Types::Array(a) => a.complete,
+            Types::Cloak(_) => false,
             Types::Function => false,
             Types::FunctionCall(_) => false,
             Types::Void => false,
@@ -196,6 +215,7 @@ impl Types {
             Types::Refference(_) => (),
             Types::Operator(_) => (),
             Types::Array(e) => e.complete = true,
+            Types::Cloak(e) => e.complete = true,
             Types::Function => (),
             Types::FunctionCall(_) => (),
             Types::Void => (),

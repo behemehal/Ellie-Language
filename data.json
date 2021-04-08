@@ -1,0 +1,42 @@
+{
+    "initialized": false,
+    "dynamic": false,
+    "name": "",
+    "named": false,
+    "typed": false,
+    "value_complete": true,
+    "type": "",
+    "raw_value": "",
+    "value": {
+        "Array": {
+            "layer_size": 1,
+            "complete": true,
+            "comma": false,
+            "child_start": false,
+            "collective": [{
+                "value_complete": false,
+                "value": {
+                    "Array": {
+                        "layer_size": 1,
+                        "complete": true,
+                        "comma": false,
+                        "child_start": false,
+                        "collective": [{
+                            "value_complete": true,
+                            "value": {
+                                "Number": {
+                                    "value": 1,
+                                    "complete": true
+                                }
+                            }
+                        }]
+                    }
+                }
+            }]
+        }
+    },
+    "pos": {
+        "range_start": [0, 0],
+        "range_end": [0, 0]
+    }
+}
