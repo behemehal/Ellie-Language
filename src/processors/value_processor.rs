@@ -374,7 +374,7 @@ pub fn collect(
             };
 
             if letter_char == "[" && !data.child_start && is_s_n {
-                if !data.comma {
+                if !data.comma && last_entry != 0 {
                     errors.push(error::Error {
                         debug_message: "Tette".to_string(),
                         title: error::errorList::error_s1.title.clone(),
@@ -394,13 +394,21 @@ pub fn collect(
                     });
                 } else {
                     data.child_start = true;
-                    //value = types::Types::Array(types::ArrayType::default());
-                    data.collective[last_entry - 1] = types::array_type::ArrayEntry {
-                        value_complete: false,
-                        value: Box::new(types::Types::Array(
-                            types::array_type::ArrayType::default(),
-                        )),
-                    };
+                    if last_entry == 0 {
+                        data.collective.push(types::array_type::ArrayEntry {
+                            value_complete: false,
+                            value: Box::new(types::Types::Array(
+                                types::array_type::ArrayType::default(),
+                            )),
+                        });
+                    } else {
+                        data.collective[last_entry - 1] = types::array_type::ArrayEntry {
+                            value_complete: false,
+                            value: Box::new(types::Types::Array(
+                                types::array_type::ArrayType::default(),
+                            )),
+                        };
+                    }
                 }
             } else if letter_char == "," && !data.child_start && is_s_n {
                 if data.complete {
