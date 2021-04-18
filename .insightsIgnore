@@ -25,3 +25,6 @@ ellie-lang-0.0.3.vsix
 gulpfile.js
 license
 *.txt
+.git
+code.ei
+code.js
