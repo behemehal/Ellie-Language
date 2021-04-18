@@ -1,1 +1,5 @@
-d test = 1 == 1;
+if true {
+    v test : ok = "test";
+} else {
+    v test : ok = "test";
+}
