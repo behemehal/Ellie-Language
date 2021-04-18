@@ -22,6 +22,14 @@ function purifyCode(type, element) {
     var purified = "";
     if (type == "Number") {
         purified += element.value;
+    } else if (type == "Array") {
+        var pr = element.collective.map(x => x.value).map(x => purifyCode(Object.keys(x), x[Object.keys(x)]))[0];
+        purified += "[ "
+        purified += pr
+        purified += " ]"
+
+        //purified += ` ${element.operator_collect} `
+        //purified += purifyCode(Object.keys(element.second)[0], element.second[Object.keys(element.second)[0]]) + ")";
     } else if (type == "String") {
         purified += element.value;
     } else if (type == "Cloak") {

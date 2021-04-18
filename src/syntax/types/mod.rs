@@ -9,6 +9,7 @@ pub mod number_type;
 pub mod refference_type;
 pub mod string_type;
 pub mod operator_type;
+pub mod variable_type;
 
 use serde::Serialize;
 /*
@@ -56,6 +57,7 @@ pub enum Types {
     Function,
     FunctionCall(function_call::FunctionCall),
     Void,
+    VariableType(variable_type::VariableType),
     Null,
 }
 
@@ -93,6 +95,7 @@ impl Types {
             }
             Types::Function => false,
             Types::FunctionCall(_) => false,
+            Types::VariableType(_) => true,
             Types::Void => true,
             Types::Null => true,
         }
@@ -106,12 +109,13 @@ impl Types {
             Types::String(data) => data.complete,
             Types::Collective => false,
             Types::Refference(data) => !data.on_dot,
-            Types::Operator(_) => false,
+            Types::Operator(e) => e.first_filled && e.operator != operator_type::Operators::Null && (e.second_is_not_null && e.second.is_complete()),
             Types::Array(data) => data.complete,
             Types::Cloak(data) => data.complete,
             Types::Function => false,
             Types::FunctionCall(data) => data.complete,
-            Types::Void => true,
+            Types::VariableType(_) => true,
+            Types::Void => false,
             Types::Null => true,
         }
     }
@@ -129,10 +133,12 @@ impl Types {
             Types::Cloak(_) => false,
             Types::Function => false,
             Types::FunctionCall(_) => false,
+            Types::VariableType(_) => true,
             Types::Void => false,
             Types::Null => false,
         }
     }
+
     pub fn is_string(&self) -> bool {
         match *self {
             Types::Number(_) => false,
@@ -146,6 +152,7 @@ impl Types {
             Types::Cloak(_) => false,
             Types::Function => false,
             Types::FunctionCall(_) => false,
+            Types::VariableType(_) => true,
             Types::Void => false,
             Types::Null => false,
         }
@@ -164,6 +171,7 @@ impl Types {
             Types::Cloak(_) => false,
             Types::Function => false,
             Types::FunctionCall(_) => false,
+            Types::VariableType(_) => true,
             Types::Void => false,
             Types::Null => false,
         }
@@ -182,6 +190,7 @@ impl Types {
             Types::Cloak(_) => None,
             Types::Function => None,
             Types::FunctionCall(_) => None,
+            Types::VariableType(_) => None,
             Types::Void => None,
             Types::Null => None,
         }
@@ -200,6 +209,7 @@ impl Types {
             Types::Cloak(_) => false,
             Types::Function => false,
             Types::FunctionCall(_) => false,
+            Types::VariableType(_) => true,
             Types::Void => false,
             Types::Null => false,
         }
@@ -218,6 +228,7 @@ impl Types {
             Types::Cloak(e) => e.complete = true,
             Types::Function => (),
             Types::FunctionCall(_) => (),
+            Types::VariableType(_) => (),
             Types::Void => (),
             Types::Null => (),
         };

@@ -29,6 +29,6 @@ mod test {
             emulated_collector_data = itered.itered_data;
         }
         assert_eq!(syntax_errors.len(), 0);
-        assert!(emulated_collector_data.value.is_string());
+        assert!(emulated_collector_data.data.value.is_string());
     }
 }

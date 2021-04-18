@@ -1,9 +1,5 @@
 #[allow(unused_assignments)]
 
-//[allow(warnings)]
-//[feature(drain_filter)]
-//[feature(alloc)]
-
 /*
 MIT License
 

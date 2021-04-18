@@ -5,8 +5,9 @@ fn main() {
     let pos = ellie::mapper::defs::CursorPosition(0, 0);
     let mut emulated_collector_data = ellie::syntax::variable::VariableCollector::default();
     let code = "         
-    [[1]]
-    ";
+    ((1 == (1)) || (1 == 1))";
+    //
+    //((1 == 1) || (1 == 1))
     //(1 == 1 || 1 || 1 == 1 && 2
     //(1 == 1 || 1 == 1 && 2
 

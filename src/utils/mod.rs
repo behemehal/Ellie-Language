@@ -19,8 +19,6 @@ pub fn is_opearators(value: &str) -> bool {
 
 pub fn reliable_name_range(_range: ReliableNameRanges, value: String) -> ReliableNameRangeResponse {
     let variable_range = "qwertyuıopasdfghjklizxcvbnm0123456789";
-
-    
     let find = value.split("").position(|x| !variable_range.contains(&x));
     return ReliableNameRangeResponse {
         reliable: find == None,
@@ -38,7 +36,7 @@ pub fn get_letter(letter: String, index: usize, turn: bool) -> String {
             return if sliced.len() == 0 { "".to_string() } else { sliced[0].to_string()};
         }
     } else {
-        if index == 0 || index == 1 {
+        if index == 0 {
             return "".to_string();
         } else {
             let sliced: Vec<char> = letter.chars().skip(index - 1).take(1).collect();

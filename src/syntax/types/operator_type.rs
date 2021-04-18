@@ -46,6 +46,7 @@ pub struct OperatorType {
     pub first: Box<types::Types>,
     pub first_filled: bool,
     pub second: Box<types::Types>,
+    pub second_is_not_null: bool,
     pub itered_cache: Box<variable::VariableCollector>,
     pub operator: Operators,
     pub operator_collect: String,

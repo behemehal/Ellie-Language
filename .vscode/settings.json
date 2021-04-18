@@ -1,1 +1,4 @@
-{}
+{
+    "editor.wordWrap": "off",
+    "editor.ruler": 180
+}

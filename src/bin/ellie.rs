@@ -111,7 +111,8 @@ fn main() {
                                     ),
                                     utils::arrow(
                                         (error.pos.range_start.1 + 1) as usize,
-                                        ((error.pos.range_end.1) - (error.pos.range_start.1)) as usize
+                                        ((error.pos.range_end.1) - (error.pos.range_start.1))
+                                            as usize
                                     ),
                                     utils::terminal_colors::get_color(
                                         utils::terminal_colors::Colors::Reset
