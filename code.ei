@@ -1,5 +1,6 @@
-if true {
-    v test : ok = "test";
-} else {
-    v test : ok = "test";
+if not {
+    v dert : ok = "asd";
+} else if "test" {
+    d c = "ert";
+    d q = "qereerereq";
 }

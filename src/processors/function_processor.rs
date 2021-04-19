@@ -480,7 +480,7 @@ pub fn collect(
                         functiondata.inside_object_count -= 1;
                     }
                 } else {
-                    let mut mapper = mapper::Mapper::new(
+                    let child_mapper = mapper::Mapper::new(
                         functiondata.inside_code_string.clone(),
                         mapper::defs::MapperOptions {
                             functions: true,
@@ -492,7 +492,7 @@ pub fn collect(
                         },
                     );
                     mapper.pos = mapper.pos;
-                    let mapped = mapper.Map();
+                    let mapped = child_mapper.Map();
                     for i in mapped.syntax_errors {
                         errors.push(i)
                     }

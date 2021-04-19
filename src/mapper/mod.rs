@@ -33,6 +33,7 @@ pub struct Mapper {
     pub pos: defs::CursorPosition,
     pub ignore_line: bool,
     pub current: Collecting,
+    pub keyword_catch: String,
 }
 
 impl Mapper {
@@ -44,9 +45,10 @@ impl Mapper {
             pos: defs::CursorPosition(0, 0),
             ignore_line: false,
             current: Collecting::None,
+            keyword_catch: String::new(),
         }
     }
-    pub fn Map(&mut self) -> Mapped {
+    pub fn Map(mut self) -> Mapped {
         let mut errors: Vec<error::Error> = Vec::new();
 
         pub fn cursorWriteDebug(letter_char: String, row: i64, column: i64) {
@@ -70,94 +72,42 @@ impl Mapper {
                 &utils::get_letter(self.code.clone().to_string(), index + 2, true).to_owned();
 
             if char != '\n' && char != '\r' && char != '\t' {
-                if (letter_char == "d" && next_char == " ") && self.current == Collecting::None {
-                    self.current = Collecting::Variable(variable::VariableCollector {
-                        initialized: true,
-                        data: variable::Variable {
-                            dynamic: true,
-                            pos: defs::Cursor {
-                                range_start: self.pos,
-                                ..Default::default()
-                            },
-                            ..Default::default()
-                        },
-                        ..Default::default()
-                    });
-                    continue 'charLoop;
-                } else if (letter_char == "v" && next_char == " ")
-                    && self.current == Collecting::None
-                {
-                    self.current = Collecting::Variable(variable::VariableCollector {
-                        initialized: true,
-                        data: variable::Variable {
-                            pos: defs::Cursor {
-                                range_start: self.pos,
-                                ..Default::default()
-                            },
-                            ..Default::default()
-                        },
-                        ..Default::default()
-                    });
-                    continue 'charLoop;
-                } else if (letter_char == "f"
-                    && next_char == "n"
-                    && next_next_char == " "
-                    && self.current == Collecting::None)
-                {
-                    self.current = Collecting::Function(function::FunctionCollector::default());
-                    continue 'charLoop;
-                } else if (letter_char == "e"
-                    && next_char == "l"
-                    && next_next_char == "s"
-                    && next_next_next_char == "e")
-                    && self.current == Collecting::None
-                {
-                    let collected_length = self.collected.clone().len();
-                    if collected_length == 0 {
-                        panic!("Error");
-                    } else if let Collecting::Condition(value) =
-                        &mut self.collected[collected_length - 1]
-                    {
-                        let mut repeated_condition = condition::ConditionCollector::default();
-                        repeated_condition.chains = value.chains.clone();
-                        repeated_condition.might_be_else_if = true;
-                        self.current = mapper::Collecting::Condition(repeated_condition);
-                        self.collected.remove(collected_length - 1);
-                    } else {
-                        //User used else statement without if
-                        panic!("Error: {:#?}", self.collected);
-                    }
-                } else if (letter_char == "i" && next_char == "f" && next_next_char == " ")
-                    && self.current == Collecting::None
-                {
-                    self.current = Collecting::Condition(condition::ConditionCollector {
-                        ..Default::default()
-                    });
+                if self.current == Collecting::None {
+                    self.keyword_catch += letter_char;
+                    processors::type_processor::collect(
+                        &mut self,
+                        letter_char,
+                        next_char.clone(),
+                        next_next_char.clone(),
+                        next_next_next_char.clone()
+                    );
+                } else {
+                    self.keyword_catch = String::new();
                 }
 
                 match self.current {
                     Collecting::Variable(_) => processors::variable_processor::collect(
-                        self,
+                        &mut self,
                         &mut errors,
                         letter_char,
                         next_char.clone(),
                         last_char.clone(),
                     ),
                     Collecting::Condition(_) => processors::condition_processor::collect(
-                        self,
+                        &mut self,
                         &mut errors,
                         letter_char,
                         next_char.clone(),
                         last_char.clone(),
                     ),
                     Collecting::Function(_) => processors::function_processor::collect(
-                        self,
+                        &mut self,
                         &mut errors,
                         letter_char,
                         next_char.clone(),
                         last_char.clone(),
                     ),
-                    (_) => (),
+                    (_) => ()
                 }
                 self.pos.1 += 1;
             } else if (last_char == "\r" || letter_char == "\n") {

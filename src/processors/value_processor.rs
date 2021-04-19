@@ -42,7 +42,9 @@ pub fn collect(
                     });
                 } else {
                     data.complete = true;
-                    data.value = (data.value.to_string() + &letter_char).parse::<usize>().unwrap();
+                    data.value = (data.value.to_string() + &letter_char)
+                        .parse::<usize>()
+                        .unwrap();
                 }
             } else {
                 if letter_char == "." {
@@ -556,28 +558,30 @@ pub fn collect(
                 && types::logical_type::LogicalOpearators::is_opearator(letter_char)
                 && is_s_n
             {
-                itered_data.data.value = types::Types::Operator(types::operator_type::OperatorType {
-                    first: Box::new(types::Types::Array(data.clone())),
-                    first_filled: true,
-                    operator: types::operator_type::Operators::LogicalType(
-                        types::logical_type::LogicalOpearators::Null,
-                    ),
-                    operator_collect: letter_char.to_string(),
-                    ..Default::default()
-                });
+                itered_data.data.value =
+                    types::Types::Operator(types::operator_type::OperatorType {
+                        first: Box::new(types::Types::Array(data.clone())),
+                        first_filled: true,
+                        operator: types::operator_type::Operators::LogicalType(
+                            types::logical_type::LogicalOpearators::Null,
+                        ),
+                        operator_collect: letter_char.to_string(),
+                        ..Default::default()
+                    });
             } else if data.complete
                 && types::comparison_type::ComparisonOperators::is_opearator(letter_char)
                 && is_s_n
             {
-                itered_data.data.value = types::Types::Operator(types::operator_type::OperatorType {
-                    first: Box::new(types::Types::Array(data.clone())),
-                    first_filled: true,
-                    operator: types::operator_type::Operators::ComparisonType(
-                        types::comparison_type::ComparisonOperators::Null,
-                    ),
-                    operator_collect: letter_char.to_string(),
-                    ..Default::default()
-                });
+                itered_data.data.value =
+                    types::Types::Operator(types::operator_type::OperatorType {
+                        first: Box::new(types::Types::Array(data.clone())),
+                        first_filled: true,
+                        operator: types::operator_type::Operators::ComparisonType(
+                            types::comparison_type::ComparisonOperators::Null,
+                        ),
+                        operator_collect: letter_char.to_string(),
+                        ..Default::default()
+                    });
             } else {
                 if letter_char != " " {
                     //TODO IS THIS SAFE ?
@@ -695,7 +699,8 @@ pub fn collect(
         types::Types::Cloak(data) => {
             let last_entry = data.clone().collective.len();
 
-            let is_s_n = if last_entry != 0 && !data.collective[last_entry - 1].value.is_complete() {
+            let is_s_n = if last_entry != 0 && !data.collective[last_entry - 1].value.is_complete()
+            {
                 false
             } else {
                 true
@@ -847,25 +852,30 @@ pub fn collect(
                 && types::logical_type::LogicalOpearators::is_opearator(letter_char)
                 && is_s_n
             {
-                itered_data.data.value = types::Types::Operator(types::operator_type::OperatorType {
-                    first: Box::new(types::Types::Cloak(data.clone())),
-                    first_filled: true,
-                    operator: types::operator_type::Operators::LogicalType(
-                        types::logical_type::LogicalOpearators::Null,
-                    ),
-                    operator_collect: letter_char.to_string(),
-                    ..Default::default()
-                });
-            } else if data.complete && types::comparison_type::ComparisonOperators::is_opearator(letter_char) && is_s_n {
-                itered_data.data.value = types::Types::Operator(types::operator_type::OperatorType {
-                    first: Box::new(types::Types::Cloak(data.clone())),
-                    first_filled: true,
-                    operator: types::operator_type::Operators::ComparisonType(
-                        types::comparison_type::ComparisonOperators::Null,
-                    ),
-                    operator_collect: letter_char.to_string(),
-                    ..Default::default()
-                });
+                itered_data.data.value =
+                    types::Types::Operator(types::operator_type::OperatorType {
+                        first: Box::new(types::Types::Cloak(data.clone())),
+                        first_filled: true,
+                        operator: types::operator_type::Operators::LogicalType(
+                            types::logical_type::LogicalOpearators::Null,
+                        ),
+                        operator_collect: letter_char.to_string(),
+                        ..Default::default()
+                    });
+            } else if data.complete
+                && types::comparison_type::ComparisonOperators::is_opearator(letter_char)
+                && is_s_n
+            {
+                itered_data.data.value =
+                    types::Types::Operator(types::operator_type::OperatorType {
+                        first: Box::new(types::Types::Cloak(data.clone())),
+                        first_filled: true,
+                        operator: types::operator_type::Operators::ComparisonType(
+                            types::comparison_type::ComparisonOperators::Null,
+                        ),
+                        operator_collect: letter_char.to_string(),
+                        ..Default::default()
+                    });
             } else {
                 if letter_char != " " {
                     //TODO IS THIS SAFE ?
@@ -1179,12 +1189,18 @@ pub fn collect(
                 if letter_char == " " && !data.value_complete {
                     if data.value == "false" || data.value == "true" {
                         itered_data.data.value = types::Types::Bool(types::bool_type::BoolType {
-                            value: data.value.parse::<bool>().unwrap()
+                            value: data.value.parse::<bool>().unwrap(),
                         });
                     } else {
                         data.value_complete = true;
                     }
+                } else if letter_char == "\"" || letter_char == "'" {
+                    itered_data.data.value = types::Types::String(types::string_type::StringType {
+                        quote_type: letter_char.to_string(),
+                        ..Default::default()
+                    })
                 } else {
+                    //String 'i handle la
                     errors.push(error::Error {
                         debug_message: "Wole".to_string(),
                         title: error::errorList::error_s1.title.clone(),
@@ -1217,7 +1233,7 @@ pub fn collect(
                 itered_data: itered_data.clone(),
                 errors,
             }
-        },
+        }
         types::Types::Null => {
             //let is_num = itered_data.raw_value.parse::<usize>().is_ok();
             if itered_data.raw_value == "" {
@@ -1258,10 +1274,11 @@ pub fn collect(
                         collective: Vec::new(),
                     });
                 } else if letter_char != " " {
-                    itered_data.data.value = types::Types::VariableType(types::variable_type::VariableType {
-                        value_complete: false,
-                        value: itered_data.raw_value.clone() + &letter_char
-                    });
+                    itered_data.data.value =
+                        types::Types::VariableType(types::variable_type::VariableType {
+                            value_complete: false,
+                            value: itered_data.raw_value.clone() + &letter_char,
+                        });
                 }
             } else if letter_char != " " {
                 /*
@@ -1315,12 +1332,13 @@ pub fn collect(
                 */
                 if next_char == ";" || next_char == " " {
                     if itered_data.raw_value.parse::<i32>().is_ok() {
-                        itered_data.data.value = types::Types::Number(types::number_type::NumberType {
-                            value: (itered_data.raw_value.clone() + &letter_char)
-                                .parse::<usize>()
-                                .unwrap(),
-                            complete: false,
-                        })
+                        itered_data.data.value =
+                            types::Types::Number(types::number_type::NumberType {
+                                value: (itered_data.raw_value.clone() + &letter_char)
+                                    .parse::<usize>()
+                                    .unwrap(),
+                                complete: false,
+                            })
                     }
                 }
                 /*

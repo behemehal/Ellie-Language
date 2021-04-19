@@ -14,7 +14,8 @@ Language does not have a runtime for now, here are the tasks we need to complete
 
 - Variables [X]
 - Functions [X]
-- If Else   [?]
+- If Else   [X]
+- Classes   [ ]
 - For Loops [ ]
 
 

@@ -49,7 +49,7 @@ fn main() {
                         println!("Unable to read file ~{}", file_arg.clone())
                     } else {
                         let code = code_string.unwrap();
-                        let mut mapper = mapper::Mapper::new(
+                        let mapper = mapper::Mapper::new(
                             code.clone(),
                             mapper::defs::MapperOptions {
                                 functions: true,

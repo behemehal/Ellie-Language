@@ -12,6 +12,7 @@ pub fn collect(
 ) {
     if let mapper::Collecting::Condition(ref mut data) = mapper.current {
         if data.might_be_else_if {
+            println!("Mıgt be else if");
             if data.else_if_keyword_collector == "else if" {
                 data.initialized = true;
                 data.cloak_collected = false;
@@ -57,7 +58,7 @@ pub fn collect(
                     data.chains.push(condition::ConditionChain::default());
                 }
 
-                data.chains[chain_length].cloak_data.collective.push(
+                data.chains[chain_length].condition.collective.push(
                     types::cloak_type::CloakEntry {
                         value: Box::new(data.cloak_itered_data.data.value.clone()),
                         value_complete: true,
@@ -78,6 +79,7 @@ pub fn collect(
             }
         } else {
             if letter_char == "}" {
+                println!("Complete");
                 if data.inside_object_start {
                     if data.inside_object_count == 0 {
                         data.inside_object_start = true;
@@ -85,7 +87,7 @@ pub fn collect(
                         data.inside_object_count -= 1;
                     }
                 } else {
-                    let mut mapper = mapper::Mapper::new(
+                    let child_mapper = mapper::Mapper::new(
                         data.inside_code_string.clone(),
                         mapper::defs::MapperOptions {
                             functions: true,
@@ -96,21 +98,18 @@ pub fn collect(
                             variables: true,
                         },
                     );
-                    mapper.pos = mapper.pos;
-                    let mapped = mapper.Map();
+                    mapper.pos = child_mapper.pos;
+                    let mapped = child_mapper.Map();
                     for i in mapped.syntax_errors {
                         errors.push(i)
                     }
-                    println!("Complete");
                     let chains_length = data.chains.clone().len() - 1;
                     data.chains[chains_length].inside_code = mapped.items;
                     mapper.collected.push(mapper.current.clone());
                     mapper.current = mapper::Collecting::None;
+                    println!("Closed");
                 }
             } else {
-                if letter_char == "e" {
-                    println!("might be else");
-                }
                 data.inside_code_string += letter_char;
             }
         }

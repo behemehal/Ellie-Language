@@ -54,7 +54,6 @@ pub fn collect(
                         });
                     }
                     variabledata.named = true;
-                    //println!("|DEBUG| VARIABLE NAMED: {}", data.name);
                 }
             } else if letter_char == ";" && variabledata.data.dynamic {
                 mapper.collected.push(mapper.current.clone());
@@ -92,7 +91,6 @@ pub fn collect(
                     });
                 } else {
                     variabledata.named = true;
-                    println!("|DEBUG| VARIABLE NAMED: {}", variabledata.data.name);
                 }
             } else {
                 let current_reliability = crate::utils::reliable_name_range(
@@ -102,7 +100,7 @@ pub fn collect(
                 if current_reliability.reliable {
                     if last_char == " " && variabledata.data.name != "" {
                         errors.push(error::Error {
-                            debug_message: "\\src\\mapper\\mod.rs:161:0".to_string(),
+                            debug_message: "Cver".to_string(),
                             title: error::errorList::error_s1.title.clone(),
                             code: error::errorList::error_s1.code,
                             message: error::errorList::error_s1.message.clone(),
@@ -204,7 +202,6 @@ pub fn collect(
         } else {
             if letter_char == ";" {
                 if let mapper::Collecting::Variable(collected) = mapper.current.clone() {
-                    println!("{:#?}", collected.data.value);
                     if collected.data.value.is_complete() {
                         mapper.collected.push(mapper.current.clone());
                         mapper.current = mapper::Collecting::None;

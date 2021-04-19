@@ -67,3 +67,21 @@ pub fn arrow(line: usize, range: usize) -> String {
     }
     return s;
 }
+
+pub fn trim_good(line: String) -> String {
+    let mut fixed = String::new();
+    for i in 0..line.len() {
+        let last = line.chars().nth(if i == 0 { 0 } else {i - 1});
+        let current = line.chars().nth(i).unwrap();
+        
+        if let Some(q) = last {
+            if q != ' ' || current != ' ' || i == 0 {
+                fixed += &current.to_string();
+            }
+        } else {
+            fixed += &current.to_string();
+        }
+
+    }
+    return fixed;
+}
