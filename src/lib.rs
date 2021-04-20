@@ -1,4 +1,6 @@
 #![allow(unused_assignments)]
+#![allow(unknown_lints)]
+#![warn(clippy::all)]
 
 /*
 MIT License
