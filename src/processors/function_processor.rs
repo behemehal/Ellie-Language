@@ -27,7 +27,7 @@ pub fn collect(
                 functiondata.parameter_bracket_start_pos.range_end.0 = mapper.pos.skipChar(1).0; //parameter start
                 functiondata.parameter_bracket_start_pos.range_end.1 = mapper.pos.skipChar(1).1; //parameter start
                 functiondata.named = true;
-            } else if last_char == " " && letter_char != " " && functiondata.data.name != "" {
+            } else if last_char == " " && letter_char != " " && !functiondata.data.name.is_empty() {
                 errors.push(error::Error {
                     debug_message: "Entropy".to_string(),
                     title: error::errorList::error_s1.title.clone(),
@@ -41,7 +41,7 @@ pub fn collect(
                         }],
                     ),
                     pos: mapper::defs::Cursor {
-                        range_start: mapper.pos.clone(),
+                        range_start: mapper.pos,
                         range_end: mapper.pos.clone().skipChar(1),
                     },
                 });
@@ -51,7 +51,7 @@ pub fn collect(
                     letter_char.to_string(),
                 );
                 if current_reliability.reliable {
-                    if last_char == " " && functiondata.data.name != "" {
+                    if last_char == " " && !functiondata.data.name.is_empty() {
                         errors.push(error::Error {
                             debug_message: "Physicist".to_string(),
                             title: error::errorList::error_s1.title.clone(),
@@ -65,7 +65,7 @@ pub fn collect(
                                 }],
                             ),
                             pos: mapper::defs::Cursor {
-                                range_start: mapper.pos.clone(),
+                                range_start: mapper.pos,
                                 range_end: mapper.pos.clone().skipChar(1),
                             },
                         });
@@ -86,7 +86,7 @@ pub fn collect(
                             }],
                         ),
                         pos: mapper::defs::Cursor {
-                            range_start: mapper.pos.clone(),
+                            range_start: mapper.pos,
                             range_end: mapper.pos.clone().skipChar(1),
                         },
                     });
@@ -110,13 +110,8 @@ pub fn collect(
             let typing = if last_entry == 0 {
                 false
             } else {
-                if functiondata.data.parameters[last_entry - 1].named
+                functiondata.data.parameters[last_entry - 1].named
                     && !functiondata.data.parameters[last_entry - 1].colon_expected
-                {
-                    true
-                } else {
-                    false
-                }
             };
 
             let current_reliability = utils::reliable_name_range(
@@ -133,52 +128,14 @@ pub fn collect(
                             .data
                             .parameters
                             .push(function::FunctionParameterCollector::default())
-                    } else {
-                        if last_char == " "
-                            && functiondata.data.parameters[last_entry - 1].data.name != ""
-                        {
-                            errors.push(error::Error {
-                                debug_message: "Irenar".to_string(),
-                                title: error::errorList::error_s1.title.clone(),
-                                code: error::errorList::error_s1.code,
-                                message: error::errorList::error_s1.message.clone(),
-                                builded_message: error::Error::build(
-                                    error::errorList::error_s1.message.clone(),
-                                    vec![error::ErrorBuildField {
-                                        key: "token".to_string(),
-                                        value: letter_char.to_string(),
-                                    }],
-                                ),
-                                pos: mapper::defs::Cursor {
-                                    range_start: mapper.pos.clone(),
-                                    range_end: mapper.pos.clone().skipChar(1),
-                                },
-                            });
-                        } else {
-                            if functiondata.data.parameters[last_entry - 1].data.name == "" {
-                                functiondata.data.parameters[last_entry - 1]
-                                    .name_pos
-                                    .range_start = mapper.pos;
-                            }
-                            functiondata.data.parameters[last_entry - 1].data.name += letter_char;
-                            functiondata.data.parameters[last_entry - 1]
-                                .name_pos
-                                .range_end = mapper.pos;
-                        }
-                    }
-                } else {
-                    if letter_char == ":" {
-                        functiondata.data.parameters[last_entry - 1].named = true;
-                    } else if letter_char == " " {
-                        if last_entry != 0 {
-                            if functiondata.data.parameters[last_entry - 1].data.name != "" {
-                                functiondata.data.parameters[last_entry - 1].named = true;
-                                functiondata.data.parameters[last_entry - 1].colon_expected = true;
-                            }
-                        }
-                    } else {
+                    } else if last_char == " "
+                        && !functiondata.data.parameters[last_entry - 1]
+                            .data
+                            .name
+                            .is_empty()
+                    {
                         errors.push(error::Error {
-                            debug_message: "Quadro".to_string(),
+                            debug_message: "Irenar".to_string(),
                             title: error::errorList::error_s1.title.clone(),
                             code: error::errorList::error_s1.code,
                             message: error::errorList::error_s1.message.clone(),
@@ -190,11 +147,55 @@ pub fn collect(
                                 }],
                             ),
                             pos: mapper::defs::Cursor {
-                                range_start: mapper.pos.clone(),
+                                range_start: mapper.pos,
                                 range_end: mapper.pos.clone().skipChar(1),
                             },
                         });
+                    } else {
+                        if functiondata.data.parameters[last_entry - 1]
+                            .data
+                            .name
+                            .is_empty()
+                        {
+                            functiondata.data.parameters[last_entry - 1]
+                                .name_pos
+                                .range_start = mapper.pos;
+                        }
+                        functiondata.data.parameters[last_entry - 1].data.name += letter_char;
+                        functiondata.data.parameters[last_entry - 1]
+                            .name_pos
+                            .range_end = mapper.pos;
                     }
+                } else if letter_char == ":" {
+                    functiondata.data.parameters[last_entry - 1].named = true;
+                } else if letter_char == " " {
+                    if last_entry != 0
+                        && !functiondata.data.parameters[last_entry - 1]
+                            .data
+                            .name
+                            .is_empty()
+                    {
+                        functiondata.data.parameters[last_entry - 1].named = true;
+                        functiondata.data.parameters[last_entry - 1].colon_expected = true;
+                    }
+                } else {
+                    errors.push(error::Error {
+                        debug_message: "Quadro".to_string(),
+                        title: error::errorList::error_s1.title.clone(),
+                        code: error::errorList::error_s1.code,
+                        message: error::errorList::error_s1.message.clone(),
+                        builded_message: error::Error::build(
+                            error::errorList::error_s1.message.clone(),
+                            vec![error::ErrorBuildField {
+                                key: "token".to_string(),
+                                value: letter_char.to_string(),
+                            }],
+                        ),
+                        pos: mapper::defs::Cursor {
+                            range_start: mapper.pos,
+                            range_end: mapper.pos.clone().skipChar(1),
+                        },
+                    });
                 }
             } else if colon_expected {
                 if letter_char == ":" {
@@ -213,7 +214,7 @@ pub fn collect(
                             }],
                         ),
                         pos: mapper::defs::Cursor {
-                            range_start: mapper.pos.clone(),
+                            range_start: mapper.pos,
                             range_end: mapper.pos.clone().skipChar(1),
                         },
                     });
@@ -221,7 +222,9 @@ pub fn collect(
             } else if typing {
                 if current_reliability.reliable {
                     if last_char == " "
-                        && functiondata.data.parameters[last_entry - 1].type_text != ""
+                        && !functiondata.data.parameters[last_entry - 1]
+                            .type_text
+                            .is_empty()
                     {
                         errors.push(error::Error {
                             debug_message: "Estetik".to_string(),
@@ -236,11 +239,14 @@ pub fn collect(
                                 }],
                             ),
                             pos: mapper::defs::Cursor {
-                                range_start: mapper.pos.clone(),
+                                range_start: mapper.pos,
                                 range_end: mapper.pos.clone().skipChar(1),
                             },
                         });
-                    } else if functiondata.data.parameters[last_entry - 1].type_text == "" {
+                    } else if functiondata.data.parameters[last_entry - 1]
+                        .type_text
+                        .is_empty()
+                    {
                         functiondata.data.parameters[last_entry - 1]
                             .type_pos
                             .range_start = mapper.pos;
@@ -254,8 +260,7 @@ pub fn collect(
                         .data
                         .parameters
                         .iter()
-                        .map(|x| x.data.name.clone())
-                        .collect::<Vec<String>>();
+                        .map(|x| x.data.name.clone());
                     let mut parameter_names_deduped = functiondata
                         .data
                         .parameters
@@ -292,8 +297,7 @@ pub fn collect(
                         .data
                         .parameters
                         .iter()
-                        .map(|x| x.data.name.clone())
-                        .collect::<Vec<String>>();
+                        .map(|x| x.data.name.clone());
                     let mut parameter_names_deduped = functiondata
                         .data
                         .parameters
@@ -326,7 +330,7 @@ pub fn collect(
                         });
                     } else if functiondata.data.parameters[functiondata.data.parameters.len() - 1]
                         .type_text
-                        == ""
+                        .is_empty()
                     {
                         errors.push(error::Error {
                             debug_message: "Elliead".to_string(),
@@ -341,7 +345,7 @@ pub fn collect(
                                 }],
                             ),
                             pos: mapper::defs::Cursor {
-                                range_start: mapper.pos.clone(),
+                                range_start: mapper.pos,
                                 range_end: mapper.pos.clone().skipChar(1),
                             },
                         });
@@ -375,7 +379,7 @@ pub fn collect(
                             }],
                         ),
                         pos: mapper::defs::Cursor {
-                            range_start: mapper.pos.clone(),
+                            range_start: mapper.pos,
                             range_end: mapper.pos.clone().skipChar(1),
                         },
                     });
@@ -387,7 +391,7 @@ pub fn collect(
                 );
 
                 if current_reliability.reliable {
-                    if last_char == " " && functiondata.return_type_text != "" {
+                    if last_char == " " && !functiondata.return_type_text.is_empty() {
                         errors.push(error::Error {
                             debug_message: "Ellie".to_string(),
                             title: error::errorList::error_s1.title.clone(),
@@ -401,53 +405,51 @@ pub fn collect(
                                 }],
                             ),
                             pos: mapper::defs::Cursor {
-                                range_start: mapper.pos.clone(),
+                                range_start: mapper.pos,
                                 range_end: mapper.pos.clone().skipChar(1),
                             },
                         });
                     } else {
                         functiondata.return_type_text += letter_char;
                     }
-                } else {
-                    if letter_char == "{" {
-                        if functiondata.return_type_text == "" {
-                            errors.push(error::Error {
-                                debug_message: "Aesthetics".to_string(),
-                                title: error::errorList::error_s8.title.clone(),
-                                code: error::errorList::error_s8.code,
-                                message: error::errorList::error_s8.message.clone(),
-                                builded_message: error::errorList::error_s8.message.clone(),
-                                pos: mapper::defs::Cursor {
-                                    range_start: mapper.pos.clone(),
-                                    range_end: mapper.pos.clone().skipChar(1),
-                                },
-                            });
-                        } else {
-                            functiondata.return_typed = true;
-                            functiondata.data.return_type = types::Types::Void;
-                            functiondata.inside_code_wrote = true;
-                            functiondata.code_bracket_start.range_start.0 = mapper.pos.0; //Bracket start
-                            functiondata.code_bracket_start.range_start.1 = mapper.pos.1;
-                        }
-                    } else if letter_char != " " {
+                } else if letter_char == "{" {
+                    if functiondata.return_type_text.is_empty() {
                         errors.push(error::Error {
-                            debug_message: "Elsa".to_string(),
-                            title: error::errorList::error_s1.title.clone(),
-                            code: error::errorList::error_s1.code,
-                            message: error::errorList::error_s1.message.clone(),
-                            builded_message: error::Error::build(
-                                error::errorList::error_s1.message.clone(),
-                                vec![error::ErrorBuildField {
-                                    key: "token".to_string(),
-                                    value: letter_char.to_string(),
-                                }],
-                            ),
+                            debug_message: "Aesthetics".to_string(),
+                            title: error::errorList::error_s8.title.clone(),
+                            code: error::errorList::error_s8.code,
+                            message: error::errorList::error_s8.message.clone(),
+                            builded_message: error::errorList::error_s8.message.clone(),
                             pos: mapper::defs::Cursor {
-                                range_start: mapper.pos.clone(),
+                                range_start: mapper.pos,
                                 range_end: mapper.pos.clone().skipChar(1),
                             },
                         });
+                    } else {
+                        functiondata.return_typed = true;
+                        functiondata.data.return_type = types::Types::Void;
+                        functiondata.inside_code_wrote = true;
+                        functiondata.code_bracket_start.range_start.0 = mapper.pos.0; //Bracket start
+                        functiondata.code_bracket_start.range_start.1 = mapper.pos.1;
                     }
+                } else if letter_char != " " {
+                    errors.push(error::Error {
+                        debug_message: "Elsa".to_string(),
+                        title: error::errorList::error_s1.title.clone(),
+                        code: error::errorList::error_s1.code,
+                        message: error::errorList::error_s1.message.clone(),
+                        builded_message: error::Error::build(
+                            error::errorList::error_s1.message.clone(),
+                            vec![error::ErrorBuildField {
+                                key: "token".to_string(),
+                                value: letter_char.to_string(),
+                            }],
+                        ),
+                        pos: mapper::defs::Cursor {
+                            range_start: mapper.pos,
+                            range_end: mapper.pos.clone().skipChar(1),
+                        },
+                    });
                 }
             } else if letter_char != " " {
                 errors.push(error::Error {
@@ -463,46 +465,44 @@ pub fn collect(
                         }],
                     ),
                     pos: mapper::defs::Cursor {
-                        range_start: mapper.pos.clone(),
+                        range_start: mapper.pos,
                         range_end: mapper.pos.clone().skipChar(1),
                     },
                 });
             }
-        } else {
-            if letter_char == "{" {
-                functiondata.inside_object_start = true;
-                functiondata.inside_object_count += 1;
-            } else if letter_char == "}" {
-                if functiondata.inside_object_start {
-                    if functiondata.inside_object_count == 0 {
-                        functiondata.inside_object_start = true;
-                    } else {
-                        functiondata.inside_object_count -= 1;
-                    }
+        } else if letter_char == "{" {
+            functiondata.inside_object_start = true;
+            functiondata.inside_object_count += 1;
+        } else if letter_char == "}" {
+            if functiondata.inside_object_start {
+                if functiondata.inside_object_count == 0 {
+                    functiondata.inside_object_start = true;
                 } else {
-                    let child_mapper = mapper::Mapper::new(
-                        functiondata.inside_code_string.clone(),
-                        mapper::defs::MapperOptions {
-                            functions: true,
-                            break_on_error: false,
-                            loops: true,
-                            global_variables: true,
-                            collectives: true,
-                            variables: true,
-                        },
-                    );
-                    mapper.pos = mapper.pos;
-                    let mapped = child_mapper.Map();
-                    for i in mapped.syntax_errors {
-                        errors.push(i)
-                    }
-                    functiondata.data.inside_code = mapped.items;
-                    mapper.collected.push(mapper.current.clone());
-                    mapper.current = mapper::Collecting::None;
+                    functiondata.inside_object_count -= 1;
                 }
             } else {
-                functiondata.inside_code_string += letter_char;
+                let child_mapper = mapper::Mapper::new(
+                    functiondata.inside_code_string.clone(),
+                    mapper::defs::MapperOptions {
+                        functions: true,
+                        break_on_error: false,
+                        loops: true,
+                        global_variables: true,
+                        collectives: true,
+                        variables: true,
+                    },
+                );
+                mapper.pos = child_mapper.pos;
+                let mapped = child_mapper.Map();
+                for i in mapped.syntax_errors {
+                    errors.push(i)
+                }
+                functiondata.data.inside_code = mapped.items;
+                mapper.collected.push(mapper.current.clone());
+                mapper.current = mapper::Collecting::None;
             }
+        } else {
+            functiondata.inside_code_string += letter_char;
         }
     }
 }

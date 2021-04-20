@@ -20,7 +20,7 @@ pub fn collect(
     if let mapper::Collecting::Variable(ref mut variabledata) = mapper.current {
         if !variabledata.named {
             if letter_char == ":" {
-                if variabledata.data.name == "" {
+                if variabledata.data.name.is_empty() {
                     errors.push(error::Error {
                         debug_message: "Redaktik".to_string(),
                         title: error::errorList::error_s1.title.clone(),
@@ -34,7 +34,7 @@ pub fn collect(
                             }],
                         ),
                         pos: mapper::defs::Cursor {
-                            range_start: mapper.pos.clone(),
+                            range_start: mapper.pos,
                             range_end: mapper.pos.clone().skipChar(1),
                         },
                     });
@@ -67,11 +67,11 @@ pub fn collect(
                         message: error::errorList::error_s8.message.clone(),
                         builded_message: error::errorList::error_s8.message.clone(),
                         pos: mapper::defs::Cursor {
-                            range_start: mapper.pos.clone(),
+                            range_start: mapper.pos,
                             range_end: mapper.pos.clone().skipChar(1),
                         },
                     });
-                } else if variabledata.data.name == "" {
+                } else if variabledata.data.name.is_empty() {
                     errors.push(error::Error {
                         debug_message: "\\src\\mapper\\mod.rs:133:0".to_string(),
                         title: error::errorList::error_s1.title.clone(),
@@ -85,7 +85,7 @@ pub fn collect(
                             }],
                         ),
                         pos: mapper::defs::Cursor {
-                            range_start: mapper.pos.clone(),
+                            range_start: mapper.pos,
                             range_end: mapper.pos.clone().skipChar(1),
                         },
                     });
@@ -98,7 +98,7 @@ pub fn collect(
                     letter_char.to_string(),
                 );
                 if current_reliability.reliable {
-                    if last_char == " " && variabledata.data.name != "" {
+                    if last_char == " " && !variabledata.data.name.is_empty() {
                         errors.push(error::Error {
                             debug_message: "Cver".to_string(),
                             title: error::errorList::error_s1.title.clone(),
@@ -112,17 +112,16 @@ pub fn collect(
                                 }],
                             ),
                             pos: mapper::defs::Cursor {
-                                range_start: mapper.pos.clone(),
+                                range_start: mapper.pos,
                                 range_end: mapper.pos.clone().skipChar(1),
                             },
                         });
                     } else {
-                        variabledata.data.name =
-                            variabledata.data.name.clone() + &letter_char.clone();
+                        variabledata.data.name = variabledata.data.name.clone() + letter_char;
                     }
                 } else if letter_char != " "
                     && (letter_char != ":" || letter_char != "=" || letter_char != ";")
-                    && (last_char == " " || variabledata.data.name != "")
+                    && (last_char == " " || !variabledata.data.name.is_empty())
                 {
                     errors.push(error::Error {
                         debug_message: "Ahencam".to_string(),
@@ -137,7 +136,7 @@ pub fn collect(
                             }],
                         ),
                         pos: mapper::defs::Cursor {
-                            range_start: mapper.pos.clone(),
+                            range_start: mapper.pos,
                             range_end: mapper.pos.clone().skipChar(1),
                         },
                     });
@@ -149,7 +148,7 @@ pub fn collect(
                 mapper.collected.push(mapper.current.clone());
                 mapper.current = mapper::Collecting::None;
             } else if letter_char == "=" {
-                if variabledata.r#type == "" {
+                if variabledata.r#type.is_empty() {
                     errors.push(error::Error {
                         debug_message: "Odio".to_string(),
                         title: error::errorList::error_s1.title.clone(),
@@ -163,7 +162,7 @@ pub fn collect(
                             }],
                         ),
                         pos: mapper::defs::Cursor {
-                            range_start: mapper.pos.clone(),
+                            range_start: mapper.pos,
                             range_end: mapper.pos.clone().skipChar(1),
                         },
                     });
@@ -175,9 +174,12 @@ pub fn collect(
                     crate::utils::ReliableNameRanges::VariableName,
                     letter_char.to_string(),
                 );
-                if current_reliability.reliable && (variabledata.r#type == "" || last_char != " ") {
-                    variabledata.r#type = variabledata.r#type.clone() + &letter_char.clone();
-                } else if variabledata.r#type != ""
+                if current_reliability.reliable
+                    && (variabledata.r#type.is_empty() || last_char != " ")
+                {
+                    //variabledata.r#type += variabledata.r#type.clone() + &letter_char;
+                    variabledata.r#type += &letter_char;
+                } else if !variabledata.r#type.is_empty()
                     && (last_char == " " && (letter_char != ":" && letter_char != " "))
                 {
                     errors.push(error::Error {
@@ -193,52 +195,50 @@ pub fn collect(
                             }],
                         ),
                         pos: mapper::defs::Cursor {
-                            range_start: mapper.pos.clone(),
+                            range_start: mapper.pos,
                             range_end: mapper.pos.clone().skipChar(1),
                         },
                     });
                 }
             }
-        } else {
-            if letter_char == ";" {
-                if let mapper::Collecting::Variable(collected) = mapper.current.clone() {
-                    if collected.data.value.is_complete() {
-                        mapper.collected.push(mapper.current.clone());
-                        mapper.current = mapper::Collecting::None;
-                    } else {
-                        errors.push(error::Error {
-                            debug_message: "Protocol".to_string(),
-                            title: error::errorList::error_s1.title.clone(),
-                            code: error::errorList::error_s1.code,
-                            message: error::errorList::error_s1.message.clone(),
-                            builded_message: error::Error::build(
-                                error::errorList::error_s1.message.clone(),
-                                vec![error::ErrorBuildField {
-                                    key: "token".to_string(),
-                                    value: letter_char.to_string(),
-                                }],
-                            ),
-                            pos: mapper::defs::Cursor {
-                                range_start: mapper.pos.clone().skipChar(1),
-                                range_end: mapper.pos.clone().skipChar(2),
-                            },
-                        });
-                    }
+        } else if letter_char == ";" {
+            if let mapper::Collecting::Variable(collected) = mapper.current.clone() {
+                if collected.data.value.is_complete() {
+                    mapper.collected.push(mapper.current.clone());
+                    mapper.current = mapper::Collecting::None;
+                } else {
+                    errors.push(error::Error {
+                        debug_message: "Protocol".to_string(),
+                        title: error::errorList::error_s1.title.clone(),
+                        code: error::errorList::error_s1.code,
+                        message: error::errorList::error_s1.message.clone(),
+                        builded_message: error::Error::build(
+                            error::errorList::error_s1.message.clone(),
+                            vec![error::ErrorBuildField {
+                                key: "token".to_string(),
+                                value: letter_char.to_string(),
+                            }],
+                        ),
+                        pos: mapper::defs::Cursor {
+                            range_start: mapper.pos.clone().skipChar(1),
+                            range_end: mapper.pos.clone().skipChar(2),
+                        },
+                    });
                 }
-            } else {
-                let mut cd = variabledata.clone();
-                let collected = processors::value_processor::collect(
-                    &mut cd,
-                    letter_char,
-                    next_char.to_string(),
-                    last_char.to_string(),
-                    mapper.pos.clone(),
-                );
-                for i in collected.errors {
-                    errors.push(i)
-                }
-                mapper.current = mapper::Collecting::Variable(collected.itered_data);
             }
+        } else {
+            let mut cd = variabledata.clone();
+            let collected = processors::value_processor::collect(
+                &mut cd,
+                letter_char,
+                next_char,
+                last_char,
+                mapper.pos,
+            );
+            for i in collected.errors {
+                errors.push(i)
+            }
+            mapper.current = mapper::Collecting::Variable(collected.itered_data);
         }
     }
 }

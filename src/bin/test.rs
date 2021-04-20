@@ -1,4 +1,4 @@
-use ellie;
+//use ellie;
 use std::fs;
 
 fn main() {
@@ -47,6 +47,6 @@ fn main() {
         emulated_collector_data = itered.itered_data;
     }
     let j = serde_json::to_string(&emulated_collector_data).unwrap();
-    fs::write("data.json", j.clone()).unwrap();
+    fs::write("data.json", j).unwrap();
     //println!("{:#?}", emulated_collector_data.clone());
 }

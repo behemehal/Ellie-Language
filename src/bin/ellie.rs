@@ -5,7 +5,7 @@ use std::{fs, io::Read};
 
 fn main() {
     if env::args().any(|x| x == "-v") || env::args().any(|x| x == "--version") {
-        const VERSION: &'static str = env!("CARGO_PKG_VERSION");
+        const VERSION: &str = env!("CARGO_PKG_VERSION");
         println!("v{}", VERSION);
     } else if env::args().any(|x| x == "-h") || env::args().any(|x| x == "--help") {
         println!("Usage: ellie [options] [file path]");
@@ -22,13 +22,12 @@ fn main() {
             .drain(1..)
             .collect::<Vec<String>>();
 
-        if args.len() == 0 {
+        if args.is_empty() {
             println!("No file present\n-h for help");
         } else {
             let file_args = args
-                .clone()
                 .into_iter()
-                .filter(|x| x.contains("."))
+                .filter(|x| x.contains('.'))
                 .collect::<Vec<String>>();
             let debug_arg = env::args().any(|x| x == "--debug");
             //let map_errors_arg = env::args().any(|x| x == "--map-errors");
@@ -37,18 +36,15 @@ fn main() {
                 let file_arg = file_arg_check.unwrap();
                 //let file = Path::new(&file_arg.clone());
                 let mut file_content = Vec::new();
-                let file = File::open(&file_arg.clone());
-                if file.is_err() {
+                let file_read = File::open(&file_arg.clone());
+                if file_read.is_err() {
                     println!("File not found ~{}", &file_arg.clone());
-                } else {
-                    file.unwrap()
-                        .read_to_end(&mut file_content)
-                        .expect("Unable to read");
+                } else if let Ok(mut file) = file_read {
+                    file.read_to_end(&mut file_content).expect("Unable to read");
                     let code_string = String::from_utf8(file_content);
                     if code_string.is_err() {
                         println!("Unable to read file ~{}", file_arg.clone())
-                    } else {
-                        let code = code_string.unwrap();
+                    } else if let Ok(code) = code_string {
                         let mapper = mapper::Mapper::new(
                             code.clone(),
                             mapper::defs::MapperOptions {
@@ -61,7 +57,7 @@ fn main() {
                             },
                         );
                         let mapped = mapper.Map();
-                        if mapped.syntax_errors.len() != 0 {
+                        if !mapped.syntax_errors.is_empty() {
                             //let serialized = serde_json::to_string(&mapped.syntax_errors).unwrap();
                             //println!("serialized = {}", serialized);
                             for error in &mapped.syntax_errors {
@@ -119,22 +115,17 @@ fn main() {
                                     )
                                 );
                             }
+                        } else if env::args().any(|x| x == "-rw")
+                            || env::args().any(|x| x == "--raw-compile")
+                        {
+                            //let mut wraw = File::create("compiled.wraw").expect("Unable to create file");
+                            //let serialized = serde_json::to_string(&point).unwrap();
+                            //for i in &syntax.clone().items {
+                            //    write!(wraw, "{:?}", i);
+                            //}
+                            println!("Pre-compiled raw generation not supported yet {:#?}", code);
                         } else {
-                            if env::args().any(|x| x == "-rw")
-                                || env::args().any(|x| x == "--raw-compile")
-                            {
-                                //let mut wraw = File::create("compiled.wraw").expect("Unable to create file");
-                                //let serialized = serde_json::to_string(&point).unwrap();
-                                //for i in &syntax.clone().items {
-                                //    write!(wraw, "{:?}", i);
-                                //}
-                                println!(
-                                    "Pre-compiled raw generation not supported yet {:#?}",
-                                    code.clone()
-                                );
-                            } else {
-                                print!("Collected: {:#?}", mapped);
-                            }
+                            print!("Collected: {:#?}", mapped);
                         }
                     }
                 }

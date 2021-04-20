@@ -73,7 +73,7 @@ impl Types {
             Types::Collective => false,
             Types::Array(data) => {
                 if !data.complete {
-                    if data.collective.len() == 0 {
+                    if data.collective.is_empty() {
                         false
                     } else {
                         !data.collective[data.collective.len() - 1].value_complete
@@ -84,7 +84,7 @@ impl Types {
             },
             Types::Cloak(data) => {
                 if !data.complete {
-                    if data.collective.len() == 0 {
+                    if data.collective.is_empty() {
                         false
                     } else {
                         !data.collective[data.collective.len() - 1].value_complete

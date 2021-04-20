@@ -36,68 +36,66 @@ pub fn collect(
                             }],
                         ),
                         pos: mapper::defs::Cursor {
-                            range_start: pos.clone(),
+                            range_start: pos,
                             range_end: pos.clone().skipChar(1),
                         },
                     });
                 } else {
                     data.complete = true;
-                    data.value = (data.value.to_string() + &letter_char)
+                    data.value = (data.value.to_string() + letter_char)
                         .parse::<usize>()
                         .unwrap();
                 }
-            } else {
-                if letter_char == "." {
-                    // String prototype
-                    itered_data.data.value =
-                        types::Types::Refference(types::refference_type::RefferenceType {
-                            refference: Box::new(itered_data.data.value.clone()),
-                            on_dot: true,
-                            chain: Vec::new(),
-                        });
-                } else if types::logical_type::LogicalOpearators::is_opearator(letter_char) {
-                    itered_data.data.value =
-                        types::Types::Operator(types::operator_type::OperatorType {
-                            first: Box::new(itered_data.data.value.clone()),
-                            first_filled: true,
-                            operator: types::operator_type::Operators::LogicalType(
-                                types::logical_type::LogicalOpearators::Null,
-                            ),
-                            operator_collect: letter_char.to_string(),
-                            ..Default::default()
-                        });
-                } else if types::comparison_type::ComparisonOperators::is_opearator(letter_char) {
-                    itered_data.data.value =
-                        types::Types::Operator(types::operator_type::OperatorType {
-                            first: Box::new(itered_data.data.value.clone()),
-                            first_filled: true,
-                            operator_collect: letter_char.to_string(),
-                            operator: types::operator_type::Operators::ComparisonType(
-                                types::comparison_type::ComparisonOperators::Null,
-                            ),
-                            ..Default::default()
-                        });
-                } else if letter_char == " " || letter_char == ")" {
-                    data.complete = true;
-                } else {
-                    errors.push(error::Error {
-                        debug_message: "mRNA".to_string(),
-                        title: error::errorList::error_s1.title.clone(),
-                        code: error::errorList::error_s1.code,
-                        message: error::errorList::error_s1.message.clone(),
-                        builded_message: error::Error::build(
-                            error::errorList::error_s1.message.clone(),
-                            vec![error::ErrorBuildField {
-                                key: "token".to_string(),
-                                value: letter_char.to_string(),
-                            }],
-                        ),
-                        pos: mapper::defs::Cursor {
-                            range_start: pos.clone(),
-                            range_end: pos.clone().skipChar(1),
-                        },
+            } else if letter_char == "." {
+                // String prototype
+                itered_data.data.value =
+                    types::Types::Refference(types::refference_type::RefferenceType {
+                        refference: Box::new(itered_data.data.value.clone()),
+                        on_dot: true,
+                        chain: Vec::new(),
                     });
-                }
+            } else if types::logical_type::LogicalOpearators::is_opearator(letter_char) {
+                itered_data.data.value =
+                    types::Types::Operator(types::operator_type::OperatorType {
+                        first: Box::new(itered_data.data.value.clone()),
+                        first_filled: true,
+                        operator: types::operator_type::Operators::LogicalType(
+                            types::logical_type::LogicalOpearators::Null,
+                        ),
+                        operator_collect: letter_char.to_string(),
+                        ..Default::default()
+                    });
+            } else if types::comparison_type::ComparisonOperators::is_opearator(letter_char) {
+                itered_data.data.value =
+                    types::Types::Operator(types::operator_type::OperatorType {
+                        first: Box::new(itered_data.data.value.clone()),
+                        first_filled: true,
+                        operator_collect: letter_char.to_string(),
+                        operator: types::operator_type::Operators::ComparisonType(
+                            types::comparison_type::ComparisonOperators::Null,
+                        ),
+                        ..Default::default()
+                    });
+            } else if letter_char == " " || letter_char == ")" {
+                data.complete = true;
+            } else {
+                errors.push(error::Error {
+                    debug_message: "mRNA".to_string(),
+                    title: error::errorList::error_s1.title.clone(),
+                    code: error::errorList::error_s1.code,
+                    message: error::errorList::error_s1.message.clone(),
+                    builded_message: error::Error::build(
+                        error::errorList::error_s1.message.clone(),
+                        vec![error::ErrorBuildField {
+                            key: "token".to_string(),
+                            value: letter_char.to_string(),
+                        }],
+                    ),
+                    pos: mapper::defs::Cursor {
+                        range_start: pos,
+                        range_end: pos.clone().skipChar(1),
+                    },
+                });
             }
             CollectorResponse {
                 itered_data: itered_data.clone(),
@@ -128,7 +126,7 @@ pub fn collect(
                             }],
                         ),
                         pos: mapper::defs::Cursor {
-                            range_start: pos.clone(),
+                            range_start: pos,
                             range_end: pos.clone().skipChar(1),
                         },
                     });
@@ -163,7 +161,7 @@ pub fn collect(
                     errors,
                 }
             } else if letter_char != "\\" {
-                data.value = data.value.clone() + &letter_char;
+                data.value = data.value.clone() + letter_char;
                 CollectorResponse {
                     itered_data: itered_data.clone(),
                     errors,
@@ -195,7 +193,7 @@ pub fn collect(
                             }],
                         ),
                         pos: mapper::defs::Cursor {
-                            range_start: pos.clone(),
+                            range_start: pos,
                             range_end: pos.clone().skipChar(1),
                         },
                     });
@@ -207,8 +205,8 @@ pub fn collect(
                     data.on_dot = false;
                     data.chain.push(letter_char.to_string());
                 } else if last_char == " "
-                    && data.chain.len() != 0
-                    && data.chain[data.chain.len() - 1] != ""
+                    && !data.chain.is_empty()
+                    && !data.chain[data.chain.len() - 1].is_empty()
                 {
                     if utils::is_opearators(letter_char) {
                         //itered_data.data.value = types::Types::Operators(types::OperatorType {
@@ -231,7 +229,7 @@ pub fn collect(
                                 }],
                             ),
                             pos: mapper::defs::Cursor {
-                                range_start: pos.clone(),
+                                range_start: pos,
                                 range_end: pos.clone().skipChar(1),
                             },
                         });
@@ -239,7 +237,7 @@ pub fn collect(
                 } else {
                     let chain_last_element = data.chain.len() - 1;
                     data.chain[chain_last_element] =
-                        data.chain[chain_last_element].clone() + &letter_char;
+                        data.chain[chain_last_element].clone() + letter_char;
                 }
             }
             CollectorResponse {
@@ -275,7 +273,7 @@ pub fn collect(
                                 }],
                             ),
                             pos: mapper::defs::Cursor {
-                                range_start: pos.clone(),
+                                range_start: pos,
                                 range_end: pos.clone().skipChar(1),
                             },
                         });
@@ -294,12 +292,12 @@ pub fn collect(
                 data.second_is_not_null = true;
                 let itered_child = collect(
                     &mut will_be_itered,
-                    letter_char.clone(),
-                    next_char.to_string().clone(),
-                    last_char.to_string().clone(),
+                    letter_char,
+                    next_char,
+                    last_char,
                     mapper::defs::CursorPosition(0, 0),
                 );
-                if itered_child.errors.len() != 0 {
+                if itered_child.errors.is_empty() {
                     for returned_error in itered_child.errors {
                         let mut edited = returned_error;
                         edited.pos.range_start.0 += pos.0;
@@ -349,7 +347,7 @@ pub fn collect(
                                         first: Box::new(types::Types::Operator(
                                             types::operator_type::OperatorType {
                                                 first_filled: true,
-                                                cloaked: data.cloaked.clone(),
+                                                cloaked: data.cloaked,
                                                 first: data.first.clone(),
                                                 second: child_operator.first.clone(),
                                                 operator: data.operator.clone(),
@@ -366,7 +364,7 @@ pub fn collect(
                             }
                             _ => {
                                 data.second = Box::new(itered_child.itered_data.data.value.clone());
-                                data.itered_cache = Box::new(itered_child.itered_data.clone());
+                                data.itered_cache = Box::new(itered_child.itered_data);
                             }
                         }
                         //println!("dont Collapse: {:#?} to {:#?}", child_operator.clone().operator, data.operator);
@@ -403,16 +401,8 @@ pub fn collect(
             let last_entry = data.clone().collective.len();
             //let mut value: types::Types = types::Types::Null;
 
-            let is_s_n = if last_entry != 0 && !data.collective[last_entry - 1].value.is_complete()
-            {
-                false
-            } else {
-                true
-            };
+            let is_s_n = last_entry != 0 || data.collective[last_entry - 1].value.is_complete();
 
-            if letter_char == "[" {
-                //print!("{:#?} {:#?}, {:#?} {:#?}",!data.child_start, is_s_n, pos, data);
-            }
             if letter_char == "[" && !data.child_start && is_s_n {
                 if !data.comma && last_entry != 0 {
                     errors.push(error::Error {
@@ -428,7 +418,7 @@ pub fn collect(
                             }],
                         ),
                         pos: mapper::defs::Cursor {
-                            range_start: pos.clone(),
+                            range_start: pos,
                             range_end: pos.clone().skipChar(1),
                         },
                     });
@@ -465,7 +455,7 @@ pub fn collect(
                             }],
                         ),
                         pos: mapper::defs::Cursor {
-                            range_start: pos.clone(),
+                            range_start: pos,
                             range_end: pos.clone().skipChar(1),
                         },
                     });
@@ -483,7 +473,7 @@ pub fn collect(
                             }],
                         ),
                         pos: mapper::defs::Cursor {
-                            range_start: pos.clone(),
+                            range_start: pos,
                             range_end: pos.clone().skipChar(1),
                         },
                     });
@@ -512,7 +502,7 @@ pub fn collect(
                             }],
                         ),
                         pos: mapper::defs::Cursor {
-                            range_start: pos.clone(),
+                            range_start: pos,
                             range_end: pos.clone().skipChar(1),
                         },
                     });
@@ -530,7 +520,7 @@ pub fn collect(
                             }],
                         ),
                         pos: mapper::defs::Cursor {
-                            range_start: pos.clone(),
+                            range_start: pos,
                             range_end: pos.clone().skipChar(1),
                         },
                     });
@@ -587,7 +577,7 @@ pub fn collect(
                     //TODO IS THIS SAFE ?
                     data.comma = false;
                 }
-                let mut will_be_itered = if data.collective.len() == 0 {
+                let mut will_be_itered = if data.collective.is_empty() {
                     variable::VariableCollector::default()
                 } else {
                     variable::VariableCollector {
@@ -601,9 +591,9 @@ pub fn collect(
 
                 let itered_array_vector = Box::new(collect(
                     &mut will_be_itered,
-                    letter_char.clone(),
-                    next_char.to_string().clone(),
-                    last_char.to_string().clone(),
+                    letter_char,
+                    next_char,
+                    last_char,
                     mapper::defs::CursorPosition(0, 0),
                 ));
 
@@ -672,7 +662,7 @@ pub fn collect(
                     },
                 };
 
-                if itered_array_vector.errors.len() != 0 {
+                if !itered_array_vector.errors.is_empty() {
                     for returned_error in itered_array_vector.errors {
                         //errors.extend(itered_array_vector.errors);
                         let mut edited = returned_error;
@@ -684,7 +674,7 @@ pub fn collect(
                     }
                 }
 
-                if data.collective.len() == 0 {
+                if data.collective.is_empty() {
                     data.collective.push(itered_entry);
                 } else {
                     data.collective[last_entry - 1] = itered_entry;
@@ -699,12 +689,7 @@ pub fn collect(
         types::Types::Cloak(data) => {
             let last_entry = data.clone().collective.len();
 
-            let is_s_n = if last_entry != 0 && !data.collective[last_entry - 1].value.is_complete()
-            {
-                false
-            } else {
-                true
-            };
+            let is_s_n = last_entry == 0 || data.collective[last_entry - 1].value.is_complete();
 
             if letter_char == "(" && !data.child_start && is_s_n {
                 if !data.comma && last_entry != 0 {
@@ -721,7 +706,7 @@ pub fn collect(
                             }],
                         ),
                         pos: mapper::defs::Cursor {
-                            range_start: pos.clone(),
+                            range_start: pos,
                             range_end: pos.clone().skipChar(1),
                         },
                     });
@@ -758,7 +743,7 @@ pub fn collect(
                             }],
                         ),
                         pos: mapper::defs::Cursor {
-                            range_start: pos.clone(),
+                            range_start: pos,
                             range_end: pos.clone().skipChar(1),
                         },
                     });
@@ -776,7 +761,7 @@ pub fn collect(
                             }],
                         ),
                         pos: mapper::defs::Cursor {
-                            range_start: pos.clone(),
+                            range_start: pos,
                             range_end: pos.clone().skipChar(1),
                         },
                     });
@@ -806,7 +791,7 @@ pub fn collect(
                             }],
                         ),
                         pos: mapper::defs::Cursor {
-                            range_start: pos.clone(),
+                            range_start: pos,
                             range_end: pos.clone().skipChar(1),
                         },
                     });
@@ -824,7 +809,7 @@ pub fn collect(
                             }],
                         ),
                         pos: mapper::defs::Cursor {
-                            range_start: pos.clone(),
+                            range_start: pos,
                             range_end: pos.clone().skipChar(1),
                         },
                     });
@@ -882,7 +867,7 @@ pub fn collect(
                     data.comma = false;
                 }
 
-                let mut will_be_itered = if data.collective.len() == 0 {
+                let mut will_be_itered = if data.collective.is_empty() {
                     variable::VariableCollector::default()
                 } else {
                     variable::VariableCollector {
@@ -896,9 +881,9 @@ pub fn collect(
 
                 let itered_cloak_vector = Box::new(collect(
                     &mut will_be_itered,
-                    letter_char.clone(),
-                    next_char.to_string().clone(),
-                    last_char.to_string().clone(),
+                    letter_char,
+                    next_char,
+                    last_char,
                     mapper::defs::CursorPosition(0, 0),
                 ));
 
@@ -967,7 +952,7 @@ pub fn collect(
                     },
                 };
 
-                if itered_cloak_vector.errors.len() != 0 {
+                if !itered_cloak_vector.errors.is_empty() {
                     for returned_error in itered_cloak_vector.errors {
                         //errors.extend(itered_array_vector.errors);
                         let mut edited = returned_error;
@@ -979,7 +964,7 @@ pub fn collect(
                     }
                 }
 
-                if data.collective.len() == 0 {
+                if data.collective.is_empty() {
                     data.collective.push(itered_entry);
                 } else {
                     data.collective[last_entry - 1] = itered_entry;
@@ -1004,11 +989,7 @@ pub fn collect(
             }
 
             let is_s_n =
-                if last_param != 0 && data.params[last_param - 1].value.is_string_non_complete() {
-                    false
-                } else {
-                    true
-                };
+                !(last_param != 0 && data.params[last_param - 1].value.is_string_non_complete());
 
             if letter_char == "," && is_s_n && !data.params[last_param - 1].value.is_array() {
                 if data.params[last_param - 1].value.is_complete() {
@@ -1054,27 +1035,30 @@ pub fn collect(
                         },
                     });
                 } else {
+                    errors.push(error::Error {
+                        debug_message: "Freede".to_string(),
+                        title: error::errorList::error_s1.title.clone(),
+                        code: error::errorList::error_s1.code,
+                        message: error::errorList::error_s1.message.clone(),
+                        builded_message: error::Error::build(
+                            error::errorList::error_s1.message.clone(),
+                            vec![error::ErrorBuildField {
+                                key: "token".to_string(),
+                                value: letter_char.to_string(),
+                            }],
+                        ),
+                        pos: mapper::defs::Cursor {
+                            range_start: pos.clone().skipChar(1),
+                            range_end: pos.clone().skipChar(2),
+                        },
+                    });
+                    /* TODO: Figure out what is this
                     if data.params[last_param - 1].value.is_complete() || true {
+                        //W?
                         data.complete = true
                     } else {
-                        errors.push(error::Error {
-                            debug_message: "Freede".to_string(),
-                            title: error::errorList::error_s1.title.clone(),
-                            code: error::errorList::error_s1.code,
-                            message: error::errorList::error_s1.message.clone(),
-                            builded_message: error::Error::build(
-                                error::errorList::error_s1.message.clone(),
-                                vec![error::ErrorBuildField {
-                                    key: "token".to_string(),
-                                    value: letter_char.to_string(),
-                                }],
-                            ),
-                            pos: mapper::defs::Cursor {
-                                range_start: pos.clone().skipChar(1),
-                                range_end: pos.clone().skipChar(2),
-                            },
-                        });
                     }
+                    */
                 }
             } else {
                 let mut last_param_value = variable::VariableCollector {
@@ -1089,9 +1073,9 @@ pub fn collect(
 
                 let itered_param_value = Box::new(collect(
                     &mut last_param_value,
-                    letter_char.clone(),
-                    next_char.to_string().clone(),
-                    last_char.to_string().clone(),
+                    letter_char,
+                    next_char,
+                    last_char,
                     mapper::defs::CursorPosition(0, 0),
                 ));
 
@@ -1154,7 +1138,7 @@ pub fn collect(
                     },
                 };
 
-                if itered_param_value.errors.len() != 0 {
+                if itered_param_value.errors.is_empty() {
                     for returned_error in itered_param_value.errors {
                         //errors.extend(itered_array_vector.errors);
                         let mut edited = returned_error;
@@ -1185,49 +1169,47 @@ pub fn collect(
 
             if current_reliability.reliable {
                 data.value += letter_char;
-            } else {
-                if letter_char == " " && !data.value_complete {
-                    if data.value == "false" || data.value == "true" {
-                        itered_data.data.value = types::Types::Bool(types::bool_type::BoolType {
-                            value: data.value.parse::<bool>().unwrap(),
-                        });
-                    } else {
-                        data.value_complete = true;
-                    }
-                } else if letter_char == "\"" || letter_char == "'" {
-                    itered_data.data.value = types::Types::String(types::string_type::StringType {
-                        quote_type: letter_char.to_string(),
-                        ..Default::default()
-                    })
-                } else {
-                    //String 'i handle la
-                    errors.push(error::Error {
-                        debug_message: "Wole".to_string(),
-                        title: error::errorList::error_s1.title.clone(),
-                        code: error::errorList::error_s1.code,
-                        message: error::errorList::error_s1.message.clone(),
-                        builded_message: error::Error::build(
-                            error::errorList::error_s1.message.clone(),
-                            vec![error::ErrorBuildField {
-                                key: "token".to_string(),
-                                value: current_reliability.found.to_string(),
-                            }],
-                        ),
-                        pos: mapper::defs::Cursor {
-                            range_start: mapper::defs::CursorPosition(
-                                pos.0,
-                                (pos.1 - itered_data.raw_value.len() as i64)
-                                    + current_reliability.at as i64,
-                            ),
-                            range_end: mapper::defs::CursorPosition(
-                                pos.0,
-                                ((pos.1 - itered_data.raw_value.len() as i64)
-                                    + current_reliability.at as i64)
-                                    + 1,
-                            ),
-                        },
+            } else if letter_char == " " && !data.value_complete {
+                if data.value == "false" || data.value == "true" {
+                    itered_data.data.value = types::Types::Bool(types::bool_type::BoolType {
+                        value: data.value.parse::<bool>().unwrap(),
                     });
+                } else {
+                    data.value_complete = true;
                 }
+            } else if letter_char == "\"" || letter_char == "'" {
+                itered_data.data.value = types::Types::String(types::string_type::StringType {
+                    quote_type: letter_char.to_string(),
+                    ..Default::default()
+                })
+            } else {
+                //String 'i handle la
+                errors.push(error::Error {
+                    debug_message: "Wole".to_string(),
+                    title: error::errorList::error_s1.title.clone(),
+                    code: error::errorList::error_s1.code,
+                    message: error::errorList::error_s1.message.clone(),
+                    builded_message: error::Error::build(
+                        error::errorList::error_s1.message.clone(),
+                        vec![error::ErrorBuildField {
+                            key: "token".to_string(),
+                            value: current_reliability.found.to_string(),
+                        }],
+                    ),
+                    pos: mapper::defs::Cursor {
+                        range_start: mapper::defs::CursorPosition(
+                            pos.0,
+                            (pos.1 - itered_data.raw_value.len() as i64)
+                                + current_reliability.at as i64,
+                        ),
+                        range_end: mapper::defs::CursorPosition(
+                            pos.0,
+                            ((pos.1 - itered_data.raw_value.len() as i64)
+                                + current_reliability.at as i64)
+                                + 1,
+                        ),
+                    },
+                });
             }
             CollectorResponse {
                 itered_data: itered_data.clone(),
@@ -1236,19 +1218,18 @@ pub fn collect(
         }
         types::Types::Null => {
             //let is_num = itered_data.raw_value.parse::<usize>().is_ok();
-            if itered_data.raw_value == "" {
+            if itered_data.raw_value.is_empty() {
                 if letter_char == "\"" || letter_char == "'" {
                     itered_data.data.value = types::Types::String(types::string_type::StringType {
                         quote_type: letter_char.to_string(),
                         ..Default::default()
                     })
-                } else if (itered_data.raw_value.clone() + &letter_char)
-                    .to_string()
+                } else if (itered_data.raw_value.clone() + letter_char)
                     .parse::<i32>()
                     .is_ok()
                 {
                     itered_data.data.value = types::Types::Number(types::number_type::NumberType {
-                        value: (itered_data.raw_value.clone() + &letter_char)
+                        value: (itered_data.raw_value.clone() + letter_char)
                             .parse::<usize>()
                             .unwrap(),
                         complete: false,
@@ -1277,94 +1258,20 @@ pub fn collect(
                     itered_data.data.value =
                         types::Types::VariableType(types::variable_type::VariableType {
                             value_complete: false,
-                            value: itered_data.raw_value.clone() + &letter_char,
+                            value: itered_data.raw_value.clone() + letter_char,
                         });
                 }
             } else if letter_char != " " {
-                /*
-                if letter_char == "(" {
-                    let current_reliability = crate::utils::reliable_name_range(
-                        crate::utils::ReliableNameRanges::VariableName,
-                        itered_data.raw_value.clone(),
-                    );
-                    if current_reliability.reliable {
-                        itered_data.data.value =
-                            types::Types::FunctionCall(types::function_call::FunctionCall {
-                                name: itered_data.raw_value.to_string(),
-                                name_pos: mapper::defs::Cursor {
-                                    range_start: mapper::defs::CursorPosition(
-                                        pos.0,
-                                        pos.1 - itered_data.raw_value.len() as i64,
-                                    ),
-                                    range_end: mapper::defs::CursorPosition(pos.0, pos.1 - 1),
-                                },
-                                ..Default::default()
-                            });
-                    } else {
-                        errors.push(error::Error {
-                            debug_message: "Wole".to_string(),
-                            title: error::errorList::error_s1.title.clone(),
-                            code: error::errorList::error_s1.code,
-                            message: error::errorList::error_s1.message.clone(),
-                            builded_message: error::Error::build(
-                                error::errorList::error_s1.message.clone(),
-                                vec![error::ErrorBuildField {
-                                    key: "token".to_string(),
-                                    value: current_reliability.found.to_string(),
-                                }],
-                            ),
-                            pos: mapper::defs::Cursor {
-                                range_start: mapper::defs::CursorPosition(
-                                    pos.0,
-                                    (pos.1 - itered_data.raw_value.len() as i64)
-                                        + current_reliability.at as i64,
-                                ),
-                                range_end: mapper::defs::CursorPosition(
-                                    pos.0,
-                                    ((pos.1 - itered_data.raw_value.len() as i64)
-                                        + current_reliability.at as i64)
-                                        + 1,
-                                ),
-                            },
-                        });
-                    }
-                } else
-                */
-                if next_char == ";" || next_char == " " {
-                    if itered_data.raw_value.parse::<i32>().is_ok() {
-                        itered_data.data.value =
-                            types::Types::Number(types::number_type::NumberType {
-                                value: (itered_data.raw_value.clone() + &letter_char)
-                                    .parse::<usize>()
-                                    .unwrap(),
-                                complete: false,
-                            })
-                    }
+                if (next_char == ";" || next_char == " ")
+                    && itered_data.raw_value.parse::<i32>().is_ok()
+                {
+                    itered_data.data.value = types::Types::Number(types::number_type::NumberType {
+                        value: (itered_data.raw_value.clone() + letter_char)
+                            .parse::<usize>()
+                            .unwrap(),
+                        complete: false,
+                    })
                 }
-                /*
-                else {
-                    //TODO catch unknown behaivour
-                    errors.push(error::Error {
-                        debug_message: "Eriea".to_string(),
-                        title: error::errorList::error_s1.title.clone(),
-                        code: error::errorList::error_s1.code,
-                        message: error::errorList::error_s1.message.clone(),
-                        builded_message: error::Error::build(
-                            error::errorList::error_s1.message.clone(),
-                            vec![error::ErrorBuildField {
-                                key: "token".to_string(),
-                                value: itered_data.raw_value.clone(),
-                            }],
-                        ),
-                        pos: mapper::defs::Cursor {
-                            range_start: pos
-                                .clone()
-                                .popChar(itered_data.raw_value.clone().len() as i64),
-                            range_end: pos.clone().skipChar(1),
-                        },
-                    });
-                }
-                */
                 itered_data.raw_value += &letter_char;
             }
             CollectorResponse {

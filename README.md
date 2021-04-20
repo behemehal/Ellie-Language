@@ -18,6 +18,8 @@ Language does not have a runtime for now, here are the tasks we need to complete
 - Classes   [ ]
 - For Loops [ ]
 
+# Note
+This is a prototype
 
 # LICENSE
 
