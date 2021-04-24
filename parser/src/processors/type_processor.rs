@@ -1,6 +1,6 @@
 use crate::parser;
 use crate::syntax::{condition, function, variable};
-use ellie_core::{error, defs, utils};
+use ellie_core::{defs, utils};
 
 pub fn collect(
     parser: &mut parser::Parser,

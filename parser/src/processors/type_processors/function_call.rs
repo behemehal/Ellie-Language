@@ -1,7 +1,6 @@
-use crate::parser;
 use crate::processors::value_processor;
 use crate::syntax::{types, variable};
-use ellie_core::{error, defs, utils};
+use ellie_core::{error, defs};
 
 pub fn collect(
     itered_data: &mut variable::VariableCollector,

@@ -1,7 +1,6 @@
 use ellie_parser;
 use ellie_core;
-
-use std::fs;
+//use std::fs;
 
 
 fn main() {
@@ -49,7 +48,7 @@ fn main() {
         }
         emulated_collector_data = itered.itered_data;
     }
-    let j = serde_json::to_string(&emulated_collector_data).unwrap();
+    //let j = serde_json::to_string(&emulated_collector_data).unwrap();
     //fs::write("data.json", j).unwrap();
     println!("{:#?}", emulated_collector_data.clone());
 }
