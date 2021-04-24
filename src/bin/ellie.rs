@@ -1,4 +1,5 @@
-use ellie::{mapper, utils};
+use ellie_parser::parser;
+use ellie_core::utils;
 use fs::File;
 use std::env;
 use std::{fs, io::Read};
@@ -45,9 +46,9 @@ fn main() {
                     if code_string.is_err() {
                         println!("Unable to read file ~{}", file_arg.clone())
                     } else if let Ok(code) = code_string {
-                        let mapper = mapper::Mapper::new(
+                        let parser = parser::Parser::new(
                             code.clone(),
-                            mapper::defs::MapperOptions {
+                            ellie_core::defs::ParserOptions {
                                 functions: true,
                                 break_on_error: false,
                                 loops: true,
@@ -56,7 +57,7 @@ fn main() {
                                 variables: true,
                             },
                         );
-                        let mapped = mapper.Map();
+                        let mapped = parser.Map();
                         if !mapped.syntax_errors.is_empty() {
                             //let serialized = serde_json::to_string(&mapped.syntax_errors).unwrap();
                             //println!("serialized = {}", serialized);

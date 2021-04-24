@@ -5,7 +5,7 @@ mod test {
 
     #[test]
     fn string_collected_with_no_error() {
-        let pos = ellie::mapper::defs::CursorPosition(0, 0);
+        let pos = ellie::parser::defs::CursorPosition(0, 0);
         let code = "\"merhaba\"";
         let mut emulated_collector_data = ellie::syntax::variable::VariableCollector::default();
         let mut syntax_errors= vec![];

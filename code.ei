@@ -1,6 +1,5 @@
-if not {
-    v dert : ok = "asd";
-} else if "test" {
-    d c = "ert";
-    d q = "qereerereq";
-}
+
+v test : string = "Merhaba";
+v numara : number = 123;
+d num = 123;
+

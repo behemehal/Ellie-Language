@@ -1,9 +1,12 @@
-//use ellie;
+use ellie_parser;
+use ellie_core;
+
 use std::fs;
 
+
 fn main() {
-    let pos = ellie::mapper::defs::CursorPosition(0, 0);
-    let mut emulated_collector_data = ellie::syntax::variable::VariableCollector::default();
+    let pos = ellie_core::defs::CursorPosition(0, 0);
+    let mut emulated_collector_data = ellie_parser::syntax::variable::VariableCollector::default();
     let code = "         
     0.5";
     //
@@ -16,9 +19,9 @@ fn main() {
             continue;
         }
         let letter_char = &char.to_string();
-        let last_char = &ellie::utils::get_letter(code.to_string(), index, false).to_owned();
-        let next_char = &ellie::utils::get_letter(code.to_string(), index, true).to_owned();
-        let itered = ellie::processors::value_processor::collect(
+        let last_char = &ellie_core::utils::get_letter(code.to_string(), index, false).to_owned();
+        let next_char = &ellie_core::utils::get_letter(code.to_string(), index, true).to_owned();
+        let itered = ellie_parser::processors::value_processor::collect(
             &mut emulated_collector_data,
             letter_char,
             next_char.to_string(),
@@ -31,16 +34,16 @@ fn main() {
                 "{}{}Error[{:#04x}]{} - {}{}{}: {}",
                 format!(
                     "{}[{}]{} ",
-                    ellie::utils::terminal_colors::get_color(ellie::utils::terminal_colors::Colors::Yellow),
+                    ellie_core::utils::terminal_colors::get_color(ellie_core::utils::terminal_colors::Colors::Yellow),
                     error.debug_message,
-                    ellie::utils::terminal_colors::get_color(ellie::utils::terminal_colors::Colors::Reset)
+                    ellie_core::utils::terminal_colors::get_color(ellie_core::utils::terminal_colors::Colors::Reset)
                 ),
-                ellie::utils::terminal_colors::get_color(ellie::utils::terminal_colors::Colors::Red),
+                ellie_core::utils::terminal_colors::get_color(ellie_core::utils::terminal_colors::Colors::Red),
                 &error.code,
-                ellie::utils::terminal_colors::get_color(ellie::utils::terminal_colors::Colors::Reset),
-                ellie::utils::terminal_colors::get_color(ellie::utils::terminal_colors::Colors::Cyan),
+                ellie_core::utils::terminal_colors::get_color(ellie_core::utils::terminal_colors::Colors::Reset),
+                ellie_core::utils::terminal_colors::get_color(ellie_core::utils::terminal_colors::Colors::Cyan),
                 error.title,
-                ellie::utils::terminal_colors::get_color(ellie::utils::terminal_colors::Colors::Reset),
+                ellie_core::utils::terminal_colors::get_color(ellie_core::utils::terminal_colors::Colors::Reset),
                 error.builded_message
             );
         }

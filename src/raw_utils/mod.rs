@@ -1,6 +1,6 @@
 #![allow(warnings)]
 
-use crate::mapper::Collecting;
+use crate::parser::Collecting;
 
 struct RawUtils {
     pub ellie_version: (i64,i64,i64,i64)

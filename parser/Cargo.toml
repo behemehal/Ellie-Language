@@ -1,0 +1,13 @@
+[package]
+name = "ellie_parser"
+description = "Parser for ellie language"
+version = "0.1.0"
+authors = ["Ahmetcan Aksu <ahmetcanaksu@behemehal.net>"]
+edition = "2018"
+license = "MIT"
+
+[dependencies]
+lazy_static = "1.4.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
+ellie_core = { path = "../core", version = "0.1.0" }

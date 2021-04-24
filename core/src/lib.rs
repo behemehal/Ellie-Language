@@ -26,8 +26,8 @@ SOFTWARE.
 #![allow(unknown_lints)]
 #![warn(clippy::all)]
 
-//TODO: no-std use core::alloc::Layout; Nightly
-//TODO: no-std extern crate alloc; Nightly
-
-extern crate ellie_core;
-extern crate ellie_parser;
+#[macro_use]
+extern crate lazy_static;
+pub mod utils;
+pub mod error;
+pub mod defs;
