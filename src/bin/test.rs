@@ -5,7 +5,7 @@ fn main() {
     let pos = ellie::mapper::defs::CursorPosition(0, 0);
     let mut emulated_collector_data = ellie::syntax::variable::VariableCollector::default();
     let code = "         
-    ((1 == (1)) || (1 == 1))";
+    0.5";
     //
     //((1 == 1) || (1 == 1))
     //(1 == 1 || 1 || 1 == 1 && 2
@@ -47,6 +47,6 @@ fn main() {
         emulated_collector_data = itered.itered_data;
     }
     let j = serde_json::to_string(&emulated_collector_data).unwrap();
-    fs::write("data.json", j).unwrap();
-    //println!("{:#?}", emulated_collector_data.clone());
+    //fs::write("data.json", j).unwrap();
+    println!("{:#?}", emulated_collector_data.clone());
 }

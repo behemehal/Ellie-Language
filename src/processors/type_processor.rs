@@ -10,15 +10,9 @@ pub fn collect(
 ) {
     let keyword = crate::utils::trim_good(mapper.keyword_catch.trim_start().to_string()); //one step next
 
-    println!(
-        "{:#?}:{:#?} | {}",
-        keyword,
-        keyword == "else if",
-        keyword == "else if"
-    );
     //println!("{:#?}", keyword);
 
-    if keyword == "v " {
+    if keyword == "v " ||  keyword == "pub v" || keyword == "pri v" {
         println!("Variable started");
         mapper.current = mapper::Collecting::Variable(variable::VariableCollector {
             initialized: true,
@@ -31,7 +25,7 @@ pub fn collect(
             },
             ..Default::default()
         });
-    } else if keyword == "d " {
+    } else if keyword == "d " || keyword == "pub d" || keyword == "pri d"{
         println!("Dynamic Variable Started");
         mapper.current = mapper::Collecting::Variable(variable::VariableCollector {
             initialized: true,
@@ -84,7 +78,34 @@ pub fn collect(
             //User used else statement without if
             panic!("Error: {:#?}", mapper.collected);
         }
-    } else if keyword == "else" {
-        
+    } else if keyword == "else {" {
+        println!("ELSE");
+        let collected_length = mapper.collected.clone().len();
+        if collected_length == 0 {
+            panic!("Error");
+        } else if let mapper::Collecting::Condition(value) = &mut mapper.collected[collected_length - 1] {
+            let mut repeated_condition = condition::ConditionCollector {
+                chains: value.chains.clone(),
+                initialized: true,
+                cloak_collected: true,
+                keyword_pos: mapper::defs::Cursor {
+                    range_start: mapper::defs::CursorPosition(mapper.pos.0 - 1, mapper.pos.0),
+                    range_end: mapper::defs::CursorPosition(mapper.pos.0, mapper.pos.0 + 1),
+                },
+                ..Default::default()
+            };
+            repeated_condition.chains.push(condition::ConditionChain {
+                r#type: condition::ConditionType::Else,
+                ..Default::default()
+            });
+            mapper.current = mapper::Collecting::Condition(repeated_condition);
+            mapper.collected.remove(collected_length - 1);
+            println!("ELSE IF {:#?}", mapper);
+        } else {
+            //User used else statement without if
+            panic!("Error: {:#?}", mapper.collected);
+        }
+    } else if keyword == "class " {
+        println!("CLASS");
     }
 }

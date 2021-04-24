@@ -11,36 +11,6 @@ pub fn collect(
     last_char: String,
 ) {
     if let mapper::Collecting::Condition(ref mut data) = mapper.current {
-        /*
-            if data.might_be_else_if {
-                println!("Mıgt be else if");
-                if data.else_if_keyword_collector == "else if" {
-                    data.initialized = true;
-                    data.cloak_collected = false;
-                    data.cloak_pos.range_start.0 = mapper.pos.0; //Function naming started so we set the position
-                    data.keyword_pos.range_start.0 = mapper.pos.0 - 1; //Function naming started so we set the position
-                    data.keyword_pos.range_end.0 = mapper.pos.0; //Function naming started so we set the position
-                    data.chains.push(condition::ConditionChain {
-                        r#type: condition::ConditionType::ElseIf,
-                        ..Default::default()
-                    });
-                    data.else_if_keyword_collector = "".to_string();
-                    data.might_be_else_if = false;
-                } else if data.else_if_keyword_collector.trim() == "else" && letter_char == "{" {
-                    println!("Else");
-                    data.cloak_collected = true;
-                    data.initialized = true;
-                    data.chains.push(condition::ConditionChain {
-                        r#type: condition::ConditionType::Else,
-                        ..Default::default()
-                    });
-                    data.else_if_keyword_collector = "".to_string();
-                    data.might_be_else_if = false;
-                } else {
-                    data.else_if_keyword_collector += letter_char;
-                }
-            } else
-        */
 
         if !data.initialized {
             if last_char == "i" && letter_char == "f" {
@@ -115,5 +85,37 @@ pub fn collect(
         } else {
             data.inside_code_string += letter_char;
         }
+
     }
 }
+
+    /*
+            if data.might_be_else_if {
+                println!("Mıgt be else if");
+                if data.else_if_keyword_collector == "else if" {
+                    data.initialized = true;
+                    data.cloak_collected = false;
+                    data.cloak_pos.range_start.0 = mapper.pos.0; //Function naming started so we set the position
+                    data.keyword_pos.range_start.0 = mapper.pos.0 - 1; //Function naming started so we set the position
+                    data.keyword_pos.range_end.0 = mapper.pos.0; //Function naming started so we set the position
+                    data.chains.push(condition::ConditionChain {
+                        r#type: condition::ConditionType::ElseIf,
+                        ..Default::default()
+                    });
+                    data.else_if_keyword_collector = "".to_string();
+                    data.might_be_else_if = false;
+                } else if data.else_if_keyword_collector.trim() == "else" && letter_char == "{" {
+                    println!("Else");
+                    data.cloak_collected = true;
+                    data.initialized = true;
+                    data.chains.push(condition::ConditionChain {
+                        r#type: condition::ConditionType::Else,
+                        ..Default::default()
+                    });
+                    data.else_if_keyword_collector = "".to_string();
+                    data.might_be_else_if = false;
+                } else {
+                    data.else_if_keyword_collector += letter_char;
+                }
+            } else
+    */

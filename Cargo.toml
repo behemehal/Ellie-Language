@@ -13,6 +13,7 @@ serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
 [lib]
 name = "ellie"
 path = "src/lib.rs"
+crate-type = ["dylib"]
 
 [[bin]]
 name = "ellie"
