@@ -1,5 +1,9 @@
 use serde::Serialize;
 use ellie_core::defs;
+use crate::syntax::r#type;
+
+use alloc::string::String;
+
 
 #[derive(PartialEq, Debug, Clone, Serialize, Default)]
 pub struct Variable {
@@ -15,7 +19,7 @@ pub struct VariableCollector {
     pub named: bool,
     pub typed: bool,
     pub value_complete: bool,
-    pub r#type: String,
+    pub r#type: r#type::TypeConstructorCollector,
     pub raw_value: String,
     pub data: Variable
 }

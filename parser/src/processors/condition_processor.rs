@@ -3,6 +3,10 @@ use crate::processors;
 use crate::syntax::{condition, types};
 use ellie_core::{error, defs};
 
+use alloc::vec::Vec;
+use alloc::string::String;
+use alloc::boxed::Box;
+
 pub fn collect(
     parser: &mut parser::Parser,
     errors: &mut Vec<error::Error>,
@@ -52,7 +56,7 @@ pub fn collect(
                 data.cloak_itered_data = collected.itered_data;
             }
         } else if letter_char == "}" {
-            println!("Complete");
+            //println!("Complete");
             if data.inside_object_start {
                 if data.inside_object_count == 0 {
                     data.inside_object_start = true;
@@ -80,7 +84,7 @@ pub fn collect(
                 data.chains[chains_length].inside_code = mapped.items;
                 parser.collected.push(parser.current.clone());
                 parser.current = parser::Collecting::None;
-                println!("Closed");
+                //println!("Closed");
             }
         } else {
             data.inside_code_string += letter_char;

@@ -1,5 +1,9 @@
 use crate::syntax::{types, variable};
-use ellie_core::{error, defs, utils};
+use ellie_core::{defs, error, utils};
+
+use alloc::string::{String, ToString};
+use alloc::vec;
+use alloc::vec::Vec;
 
 pub fn collect(
     itered_data: &mut variable::VariableCollector,
@@ -25,11 +29,10 @@ pub fn collect(
             } else {
                 data.value_complete = true;
             }
-        } else if letter_char == "\"" || letter_char == "'" {
-            itered_data.data.value = types::Types::String(types::string_type::StringType {
-                quote_type: letter_char.to_string(),
-                ..Default::default()
-            })
+        } else if letter_char == "\"" {
+            itered_data.data.value = types::Types::String(types::string_type::StringType::default())
+        } else if letter_char == "'" {
+            itered_data.data.value = types::Types::Char(types::char_type::CharType::default())
         } else {
             //String 'i handle la
             errors.push(error::Error {

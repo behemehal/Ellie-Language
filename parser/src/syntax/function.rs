@@ -2,6 +2,9 @@ use crate::parser::Collecting;
 use crate::syntax::types;
 use ellie_core::{defs};
 
+use alloc::vec::Vec;
+use alloc::string::String;
+
 #[derive(PartialEq, Debug, Clone, Default)]
 pub struct FunctionParameter {
     pub name: String,

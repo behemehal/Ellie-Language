@@ -2,6 +2,9 @@ use ellie_core::{defs, error};
 use crate::syntax::{variable, types};
 use crate::processors::type_processors;
 
+use alloc::vec::Vec;
+use alloc::string::String;
+
 #[derive(Debug, PartialEq)]
 pub struct CollectorResponse {
     pub itered_data: variable::VariableCollector,
@@ -20,11 +23,13 @@ pub fn collect(
         types::Types::Number(_) => {
             type_processors::number::collect(itered_data, &mut errors, letter_char, next_char, last_char, pos)
         },
-        types::Types::Double(_) => (),
         types::Types::Bool(_) => (),
         types::Types::String(_) => {
             type_processors::string::collect(itered_data, &mut errors, letter_char, next_char, last_char, pos)
         }
+        types::Types::Char(_) => {
+            type_processors::char::collect(itered_data, &mut errors, letter_char, next_char, last_char, pos)
+        },
         types::Types::Collective => (),
         types::Types::Refference(_) => {
             type_processors::refference::collect(itered_data, &mut errors, letter_char, next_char, last_char, pos)

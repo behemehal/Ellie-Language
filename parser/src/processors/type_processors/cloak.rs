@@ -2,6 +2,11 @@ use ellie_core::{error, defs};
 use crate::syntax::{types, variable};
 use crate::processors::value_processor;
 
+use alloc::vec;
+use alloc::vec::Vec;
+use alloc::string::{String, ToString};
+use alloc::boxed::Box;
+
 pub fn collect(
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
@@ -100,6 +105,7 @@ pub fn collect(
                     .push(types::cloak_type::CloakEntry::default());
             }
         } else if letter_char == ")" && !data.child_start && is_s_n {
+            #[cfg(feature = "std")]
             println!("Complete the value");
             if data.comma {
                 errors.push(error::Error {
@@ -220,10 +226,6 @@ pub fn collect(
                     value_complete: match_data.complete,
                     value: Box::new(types::Types::Number(match_data)),
                 },
-                types::Types::Double(match_data) => types::cloak_type::CloakEntry {
-                    value_complete: match_data.complete,
-                    value: Box::new(types::Types::Double(match_data)),
-                },
                 types::Types::Operator(match_data) => types::cloak_type::CloakEntry {
                     value_complete: false,
                     value: Box::new(types::Types::Operator(match_data)),
@@ -235,6 +237,10 @@ pub fn collect(
                 types::Types::String(match_data) => types::cloak_type::CloakEntry {
                     value_complete: match_data.complete,
                     value: Box::new(types::Types::String(match_data)),
+                },
+                types::Types::Char(match_data) => types::cloak_type::CloakEntry {
+                    value_complete: match_data.complete,
+                    value: Box::new(types::Types::Char(match_data)),
                 },
                 types::Types::Collective => types::cloak_type::CloakEntry {
                     value_complete: true,

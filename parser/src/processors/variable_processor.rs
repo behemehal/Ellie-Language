@@ -1,7 +1,11 @@
 use crate::parser;
 use crate::processors;
 use crate::syntax::variable;
-use ellie_core::{error, defs, utils};
+use ellie_core::{defs, error, utils};
+
+use alloc::string::{String, ToString};
+use alloc::vec;
+use alloc::vec::Vec;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct CollectorResponse {
@@ -143,11 +147,12 @@ pub fn collect(
             }
         } else if !variabledata.typed && !variabledata.data.dynamic {
             if letter_char == ";" {
-                if variabledata.data.dynamic {}
+                #[cfg(feature = "std")]
+                println!("Typed, type check required");
                 parser.collected.push(parser.current.clone());
                 parser.current = parser::Collecting::None;
             } else if letter_char == "=" {
-                if variabledata.r#type.is_empty() {
+                if variabledata.r#type.collecting.is_empty() {
                     errors.push(error::Error {
                         debug_message: "Odio".to_string(),
                         title: error::errorList::error_s1.title.clone(),
@@ -166,19 +171,22 @@ pub fn collect(
                         },
                     });
                 } else {
+                    #[cfg(feature = "std")]
+                    println!("Typed, type check required");
                     variabledata.typed = true;
                 }
             } else {
                 let current_reliability = utils::reliable_name_range(
-                    utils::ReliableNameRanges::VariableName,
+                    utils::ReliableNameRanges::Type,
                     letter_char.to_string(),
                 );
                 if current_reliability.reliable
-                    && (variabledata.r#type.is_empty() || last_char != " ")
+                    && (variabledata.r#type.collecting.is_empty() || last_char != " ")
                 {
                     //variabledata.r#type += variabledata.r#type.clone() + &letter_char;
-                    variabledata.r#type += &letter_char;
-                } else if !variabledata.r#type.is_empty()
+                    variabledata.r#type.collecting += &letter_char;
+                    processors::type_check_processor::collect(&mut variabledata.r#type, errors, letter_char.to_string(), last_char);
+                } else if !variabledata.r#type.collecting.is_empty()
                     && (last_char == " " && (letter_char != ":" && letter_char != " "))
                 {
                     errors.push(error::Error {

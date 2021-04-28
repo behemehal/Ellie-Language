@@ -7,6 +7,10 @@ use crate::syntax::types;
 use crate::syntax::types::comparison_type::ComparisonOperators;
 use crate::syntax::types::logical_type::LogicalOpearators;
 
+use alloc::string::String;
+use alloc::boxed::Box;
+
+
 #[derive(PartialEq, Debug, Clone, Serialize)]
 pub enum Operators {
     ComparisonType(ComparisonOperators),

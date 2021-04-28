@@ -1,6 +1,11 @@
 use crate::syntax::{types, variable};
 use ellie_core::{defs, error, utils};
 
+use alloc::vec;
+use alloc::vec::Vec;
+use alloc::string::{String, ToString};
+use alloc::boxed::Box;
+
 pub fn collect(
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
@@ -10,7 +15,7 @@ pub fn collect(
     pos: defs::CursorPosition,
 ) {
     if let types::Types::String(ref mut data) = itered_data.data.value {
-        if letter_char == data.quote_type && last_char != "\\" {
+        if letter_char == "\"" && last_char != "\\" {
             if data.complete {
                 errors.push(error::Error {
                     debug_message: "Mece".to_string(),

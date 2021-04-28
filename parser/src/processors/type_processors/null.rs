@@ -1,6 +1,9 @@
 use crate::syntax::{types, variable};
 use ellie_core::{defs, error};
 
+use alloc::string::{String, ToString};
+use alloc::vec::Vec;
+
 pub fn collect(
     itered_data: &mut variable::VariableCollector,
     _errors: &mut Vec<error::Error>,
@@ -12,23 +15,20 @@ pub fn collect(
     if let types::Types::Null = itered_data.data.value {
         //let is_num = itered_data.raw_value.parse::<usize>().is_ok();
         if itered_data.raw_value.is_empty() {
-            if letter_char == "\"" || letter_char == "'" {
-                itered_data.data.value = types::Types::String(types::string_type::StringType {
-                    quote_type: letter_char.to_string(),
-                    ..Default::default()
-                })
+            if letter_char == "\"" {
+                itered_data.data.value = types::Types::String(types::string_type::StringType::default());
+            } else if letter_char == "'" {
+                itered_data.data.value = types::Types::Char(types::char_type::CharType::default());
             } else if (itered_data.raw_value.clone() + letter_char)
-                .parse::<i32>()
+                .parse::<i64>()
                 .is_ok()
             {
                 itered_data.data.value = types::Types::Number(types::number_type::NumberType {
-                    value: (itered_data.raw_value.clone() + letter_char)
-                        .parse::<usize>()
-                        .unwrap(),
-                    complete: false,
-                })
+                    r#type: types::number_type::NumberTypes::I64,
+                    raw: itered_data.raw_value.clone() + letter_char,
+                    ..Default::default()
+                });
             } else if letter_char == "[" {
-                println!("Array Started");
                 itered_data.data.value = types::Types::Array(types::array_type::ArrayType {
                     layer_size: 0,
                     child_start: false,
@@ -39,7 +39,6 @@ pub fn collect(
             } else if letter_char == "{" {
                 panic!("Collective is deprecated");
             } else if letter_char == "(" {
-                println!("Cloak Started");
                 itered_data.data.value = types::Types::Cloak(types::cloak_type::CloakType {
                     layer_size: 0,
                     child_start: false,
@@ -55,14 +54,12 @@ pub fn collect(
                     });
             }
         } else if letter_char != " " {
-            if (next_char == ";" || next_char == " ")
-                && itered_data.raw_value.parse::<i32>().is_ok()
+            if (next_char == ";" || next_char == " ") && itered_data.raw_value.parse::<i64>().is_ok()
             {
                 itered_data.data.value = types::Types::Number(types::number_type::NumberType {
-                    value: (itered_data.raw_value.clone() + letter_char)
-                        .parse::<usize>()
-                        .unwrap(),
-                    complete: false,
+                    r#type: types::number_type::NumberTypes::I64,
+                    raw: itered_data.raw_value.clone() + letter_char,
+                    ..Default::default()
                 })
             }
             itered_data.raw_value += &letter_char;

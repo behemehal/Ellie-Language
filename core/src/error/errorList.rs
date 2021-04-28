@@ -87,11 +87,38 @@ lazy_static! {
         ..Default::default()
     };
 
-    #[derive(PartialEq, Debug, Clone, Copy)]
     pub static ref error_s13: crate::error::Error = crate::error::Error {
         code: 0x12,
         title: "SyntaxError".to_string(),
         message: "Expected operator found '$token'".to_string(),
+        ..Default::default()
+    };
+
+    pub static ref error_s14: crate::error::Error = crate::error::Error {
+        code: 0x13,
+        title: "TypeError".to_string(),
+        message: "Cannot leave char empty".to_string(),
+        ..Default::default()
+    };
+
+    pub static ref error_s15: crate::error::Error = crate::error::Error {
+        code: 0x14,
+        title: "TypeError".to_string(),
+        message: "Char type can take one charachter only".to_string(),
+        ..Default::default()
+    };
+
+    pub static ref error_s16: crate::error::Error = crate::error::Error {
+        code: 0x15,
+        title: "OverflowError".to_string(),
+        message: "The value '$val' cannot fit to type '$type'".to_string(),
+        ..Default::default()
+    };
+
+    pub static ref error_s17: crate::error::Error = crate::error::Error {
+        code: 0x16,
+        title: "OverflowError".to_string(),
+        message: "The value '$val' has infinite size".to_string(),
         ..Default::default()
     };
 }

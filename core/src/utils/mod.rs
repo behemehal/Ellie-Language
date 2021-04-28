@@ -17,17 +17,46 @@ pub fn is_opearators(value: &str) -> bool {
     operators.contains(&value)
 }
 
-pub fn reliable_name_range(_range: ReliableNameRanges, value: String) -> ReliableNameRangeResponse {
-    let variable_range = "qwertyuıopasdfghjklizxcvbnm0123456789";
-    let find = value.split("").position(|x| !variable_range.contains(&x));
-    return ReliableNameRangeResponse {
-        reliable: find == None,
-        at: find.unwrap_or(0),
-        found: value
-            .chars()
-            .nth(if let Some(e) = find { e - 1 } else { 0 })
-            .unwrap_or_default(),
-    };
+pub fn reliable_name_range(range: ReliableNameRanges, value: String) -> ReliableNameRangeResponse {
+
+    match range {
+        ReliableNameRanges::VariableName => {
+            let variable_range = "qwertyuıopasdfghjklizxcvbnm0123456789";
+            let find = value.split("").position(|x| !variable_range.contains(&x));
+            return ReliableNameRangeResponse {
+                reliable: find == None,
+                at: find.unwrap_or(0),
+                found: value
+                    .chars()
+                    .nth(if let Some(e) = find { e - 1 } else { 0 })
+                    .unwrap_or_default(),
+            };
+        },
+        ReliableNameRanges::Type => {
+            let variable_range = "qwertyuıopasdfghjklizxcvbnm0123456789<>";
+            let find = value.split("").position(|x| !variable_range.contains(&x));
+            return ReliableNameRangeResponse {
+                reliable: find == None,
+                at: find.unwrap_or(0),
+                found: value
+                    .chars()
+                    .nth(if let Some(e) = find { e - 1 } else { 0 })
+                    .unwrap_or_default(),
+            };
+        },
+        ReliableNameRanges::FunctionName => {
+            let variable_range = "qwertyuıopasdfghjklizxcvbnm";
+            let find = value.split("").position(|x| !variable_range.contains(&x));
+            return ReliableNameRangeResponse {
+                reliable: find == None,
+                at: find.unwrap_or(0),
+                found: value
+                    .chars()
+                    .nth(if let Some(e) = find { e - 1 } else { 0 })
+                    .unwrap_or_default(),
+            };
+        }
+    }
 }
 
 pub fn get_letter(letter: String, index: usize, turn: bool) -> String {

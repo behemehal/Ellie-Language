@@ -2,6 +2,11 @@ use crate::processors::value_processor;
 use crate::syntax::{types, variable};
 use ellie_core::{defs, error};
 
+use alloc::vec;
+use alloc::vec::Vec;
+use alloc::string::{String, ToString};
+use alloc::boxed::Box;
+
 pub fn collect(
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
@@ -14,6 +19,7 @@ pub fn collect(
         if !data.first_filled {
             //First
             //TODO same as second litte bit different
+            #[cfg(feature = "std")]
             println!("FIRST");
         } else if !data.operator_collected {
             //Operator

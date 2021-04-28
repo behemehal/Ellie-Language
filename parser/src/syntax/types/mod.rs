@@ -8,6 +8,7 @@ pub mod logical_type;
 pub mod number_type;
 pub mod refference_type;
 pub mod string_type;
+pub mod char_type;
 pub mod operator_type;
 pub mod variable_type;
 
@@ -46,9 +47,9 @@ pub enum __ArithmeticOperator {
 #[derive(PartialEq, Debug, Clone, Serialize)]
 pub enum Types {
     Number(number_type::NumberType),
-    Double(double_type::DoubleType),
     Bool(bool_type::BoolType),
     String(string_type::StringType),
+    Char(char_type::CharType),
     Collective, //DEPRECATED
     Refference(refference_type::RefferenceType),
     Operator(operator_type::OperatorType),
@@ -65,9 +66,9 @@ impl Types {
     pub fn is_string_open(&self) -> bool {
         match &*self {
             Types::Number(_) => true,
-            Types::Double(_) => true,
             Types::Bool(_) => true,
             Types::String(data) => !data.complete,
+            Types::Char(data) => !data.complete,
             Types::Refference(_) => false,
             Types::Operator(_) => false,
             Types::Collective => false,
@@ -104,9 +105,9 @@ impl Types {
     pub fn is_complete(&self) -> bool {
         match &*self {
             Types::Number(_) => true, //Always complete
-            Types::Double(_) => true, //Always complete
             Types::Bool(_) => true,   //Always complete
             Types::String(data) => data.complete,
+            Types::Char(data) => data.complete,
             Types::Collective => false,
             Types::Refference(data) => !data.on_dot,
             Types::Operator(e) => e.first_filled && e.operator != operator_type::Operators::Null && (e.second_is_not_null && e.second.is_complete()),
@@ -123,9 +124,9 @@ impl Types {
     pub fn is_array(&self) -> bool {
         match *self {
             Types::Number(_) => false,
-            Types::Double(_) => false,
             Types::Bool(_) => false,
             Types::String(_) => false,
+            Types::Char(_) => false,
             Types::Collective => false,
             Types::Refference(_) => false,
             Types::Operator(_) => false,
@@ -142,9 +143,9 @@ impl Types {
     pub fn is_string(&self) -> bool {
         match *self {
             Types::Number(_) => false,
-            Types::Double(_) => false,
             Types::Bool(_) => false,
             Types::String(_) => true,
+            Types::Char(_) => false,
             Types::Collective => false,
             Types::Refference(_) => false,
             Types::Operator(_) => false,
@@ -159,11 +160,12 @@ impl Types {
     }
 
     pub fn is_string_non_complete(&self) -> bool {
+        //TODO Char is might be buggy
         match &*self {
             Types::Number(_) => false,
-            Types::Double(_) => false,
             Types::Bool(_) => false,
             Types::String(data) => !data.complete,
+            Types::Char(data) => !data.complete,
             Types::Collective => false,
             Types::Refference(_) => false,
             Types::Operator(_) => false,
@@ -180,9 +182,9 @@ impl Types {
     pub fn is_array_non_complete(&self) -> Option<bool> {
         match &*self {
             Types::Number(_) => None,
-            Types::Double(_) => None,
             Types::Bool(_) => None,
             Types::String(_) => None,
+            Types::Char(_) => None,
             Types::Collective => None,
             Types::Refference(_) => None,
             Types::Operator(_) => None,
@@ -199,9 +201,9 @@ impl Types {
     pub fn is_array_complete(&self) -> bool {
         match &*self {
             Types::Number(_) => false,
-            Types::Double(_) => false,
             Types::Bool(_) => false,
             Types::String(_) => false,
+            Types::Char(_) => false,
             Types::Collective => false,
             Types::Refference(_) => false,
             Types::Operator(_) => false,
@@ -218,9 +220,9 @@ impl Types {
     pub fn make_complete(&mut self) {
         match self {
             Types::Number(e) => e.complete = true,
-            Types::Double(e) => e.complete = true,
             Types::Bool(_) => (),
             Types::String(e) => e.complete = true,
+            Types::Char(e) => e.complete = true,
             Types::Collective => (),
             Types::Refference(_) => (),
             Types::Operator(_) => (),

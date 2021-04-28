@@ -2,6 +2,10 @@ use serde::Serialize;
 use crate::syntax::types;
 use ellie_core::defs;
 
+use alloc::vec::Vec;
+use alloc::string::String;
+
+
 #[derive(PartialEq, Default, Debug, Clone, Serialize)]
 pub struct FunctionCallParameter {
     pub value: types::Types,

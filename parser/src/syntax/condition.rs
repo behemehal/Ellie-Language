@@ -2,6 +2,9 @@ use ellie_core::defs;
 use crate::parser::Collecting;
 use crate::syntax::{types, variable};
 
+use crate::alloc::vec::Vec;
+use crate::alloc::string::String;
+
 #[derive(PartialEq, Debug, Clone)]
 pub enum ConditionType {
     If,

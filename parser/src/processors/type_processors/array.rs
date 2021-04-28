@@ -2,6 +2,11 @@ use crate::processors::value_processor;
 use crate::syntax::{types, variable};
 use ellie_core::{error, defs};
 
+use alloc::vec;
+use alloc::vec::Vec;
+use alloc::string::{String, ToString};
+use alloc::boxed::Box;
+
 pub fn collect(
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
@@ -235,10 +240,6 @@ pub fn collect(
                     value_complete: match_data.complete,
                     value: Box::new(types::Types::Number(match_data)),
                 },
-                types::Types::Double(match_data) => types::array_type::ArrayEntry {
-                    value_complete: match_data.complete,
-                    value: Box::new(types::Types::Double(match_data)),
-                },
                 types::Types::Operator(match_data) => types::array_type::ArrayEntry {
                     value_complete: false,
                     value: Box::new(types::Types::Operator(match_data)),
@@ -250,6 +251,10 @@ pub fn collect(
                 types::Types::String(match_data) => types::array_type::ArrayEntry {
                     value_complete: match_data.complete,
                     value: Box::new(types::Types::String(match_data)),
+                },
+                types::Types::Char(match_data) => types::array_type::ArrayEntry {
+                    value_complete: match_data.complete,
+                    value: Box::new(types::Types::Char(match_data)),
                 },
                 types::Types::Collective => types::array_type::ArrayEntry {
                     value_complete: true,

@@ -8,11 +8,15 @@ use crate::parser;
 use crate::processors;
 use crate::syntax::{condition, function, types, variable};
 
+use crate::alloc::vec::Vec;
+use crate::alloc::string::{String, ToString};
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct Parsed {
     pub items: Vec<Collecting>,
     pub syntax_errors: Vec<error::Error>,
 }
+
 
 #[derive(PartialEq, Debug, Clone)]
 pub enum Collecting {
@@ -34,6 +38,10 @@ pub struct Parser {
 }
 
 impl Parser {
+    pub fn type_Check(&self, r#type: String) -> bool {
+        true
+    }
+
     pub fn new(code: String, options: defs::ParserOptions) -> Self {
         Parser {
             code,
@@ -62,11 +70,11 @@ impl Parser {
             let last_char =
                 &utils::get_letter(self.code.clone().to_string(), index, false).to_string();
             let next_char =
-                &utils::get_letter(self.code.clone().to_string(), index, true).to_owned();
+                &utils::get_letter(self.code.clone().to_string(), index, true).to_string();
             let next_next_char =
-                &utils::get_letter(self.code.clone().to_string(), index + 1, true).to_owned();
+                &utils::get_letter(self.code.clone().to_string(), index + 1, true).to_string();
             let next_next_next_char =
-                &utils::get_letter(self.code.clone().to_string(), index + 2, true).to_owned();
+                &utils::get_letter(self.code.clone().to_string(), index + 2, true).to_string();
 
             if char != '\n' && char != '\r' && char != '\t' {
                 if self.current == Collecting::None {

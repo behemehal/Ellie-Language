@@ -1,6 +1,10 @@
 use serde::Serialize;
 use crate::syntax::types;
 
+use alloc::string::String;
+use alloc::boxed::Box;
+
+
 #[derive(PartialEq, Debug, Clone, Serialize)]
 pub enum ComparisonOperators {
     Equal,

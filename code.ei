@@ -1,5 +1,1 @@
-
-v test : string = "Merhaba";
-v numara : number = 123;
-d num = 123;
-
+v numara : f64 = 2.34.2;

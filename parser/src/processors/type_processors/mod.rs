@@ -1,5 +1,6 @@
 pub mod number;
 pub mod string;
+pub mod char;
 pub mod refference;
 pub mod operator;
 pub mod array;
