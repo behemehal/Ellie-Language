@@ -258,9 +258,9 @@ pub fn collect(
                     value_complete: false,
                     value: Box::new(types::Types::Cloak(match_data)),
                 },
-                types::Types::Function => types::cloak_type::CloakEntry {
+                types::Types::ArrowFunction(match_data) => types::cloak_type::CloakEntry {
                     value_complete: true,
-                    value: Box::new(types::Types::Null),
+                    value: Box::new(types::Types::ArrowFunction(match_data)),
                 },
                 types::Types::FunctionCall(_) => types::cloak_type::CloakEntry {
                     value_complete: true,

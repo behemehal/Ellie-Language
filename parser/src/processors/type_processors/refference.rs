@@ -78,7 +78,36 @@ pub fn collect(
                         if let types::Types::Number(refference_value) = &*data.refference {
                             //It's a f32 or f64
 
-                            if itered_data.r#type.data.name == "f32" {
+                            if itered_data.data.dynamic {
+                                itered_data.r#type.data.name = "f32".to_string();
+                            }
+
+                            if let types::number_type::NumberSize::F32(_) = refference_value.value {
+                                errors.push(error::Error {
+                                    debug_message: "NonNumProp".to_string(),
+                                    title: error::errorList::error_s18.title.clone(),
+                                    code: error::errorList::error_s18.code,
+                                    message: error::errorList::error_s18.message.clone(),
+                                    builded_message: error::errorList::error_s18.message.clone(),
+                                    pos: defs::Cursor {
+                                        range_start: pos,
+                                        range_end: pos.clone().skipChar(1),
+                                    },
+                                    ..Default::default()
+                                });
+                            } else if let types::number_type::NumberSize::F64(_) = refference_value.value {
+                                errors.push(error::Error {
+                                    debug_message: "NonNumProp".to_string(),
+                                    title: error::errorList::error_s18.title.clone(),
+                                    code: error::errorList::error_s18.code,
+                                    message: error::errorList::error_s18.message.clone(),
+                                    builded_message: error::errorList::error_s18.message.clone(),
+                                    pos: defs::Cursor {
+                                        range_start: pos,
+                                        range_end: pos.clone().skipChar(1),
+                                    },
+                                });
+                            } else if itered_data.r#type.data.name == "f32" {
                                 let double_parse =
                                     (refference_value.raw.clone() + "." + letter_char)
                                         .parse::<f32>();
@@ -91,15 +120,20 @@ pub fn collect(
                                             message: error::errorList::error_s17.message.clone(),
                                             builded_message: error::Error::build(
                                                 error::errorList::error_s17.message.clone(),
-                                                vec![
-                                                    error::ErrorBuildField {
-                                                        key: "val".to_string(),
-                                                        value: (refference_value.raw.clone() + letter_char),
-                                                    },
-                                                ],
+                                                vec![error::ErrorBuildField {
+                                                    key: "val".to_string(),
+                                                    value: (refference_value.raw.clone()
+                                                        + letter_char),
+                                                }],
                                             ),
                                             pos: defs::Cursor {
-                                                range_start: pos.clone().popChar((refference_value.raw.clone() + "." + letter_char).len() as i64),
+                                                range_start: pos.clone().popChar(
+                                                    (refference_value.raw.clone()
+                                                        + "."
+                                                        + letter_char)
+                                                        .len()
+                                                        as i64,
+                                                ),
                                                 range_end: pos.clone().skipChar(1),
                                             },
                                         });
@@ -168,6 +202,7 @@ pub fn collect(
                                                 error::ErrorBuildField {
                                                     key: "val".to_string(),
                                                     value: (refference_value.raw.clone()
+                                                        + "."
                                                         + letter_char),
                                                 },
                                                 error::ErrorBuildField {
@@ -208,16 +243,65 @@ pub fn collect(
                                 });
                             }
                         } else {
-                            panic!("Unexpected token number");
+                            errors.push(error::Error {
+                                debug_message: "NonNumProp".to_string(),
+                                title: error::errorList::error_s18.title.clone(),
+                                code: error::errorList::error_s18.code,
+                                message: error::errorList::error_s18.message.clone(),
+                                builded_message: error::errorList::error_s18.message.clone(),
+                                pos: defs::Cursor {
+                                    range_start: pos,
+                                    range_end: pos.clone().skipChar(1),
+                                },
+                                ..Default::default()
+                            });
                         }
                     } else {
-                        panic!("Unexpected token number: {:#?}", data);
-                        //Properties cannot be a raw number
+                        errors.push(error::Error {
+                            debug_message: "NonNumProp".to_string(),
+                            title: error::errorList::error_s18.title.clone(),
+                            code: error::errorList::error_s18.code,
+                            message: error::errorList::error_s18.message.clone(),
+                            pos: defs::Cursor {
+                                range_start: pos,
+                                range_end: pos.clone().skipChar(1),
+                            },
+                            ..Default::default()
+                        });
                     }
                 } else {
-                    let chain_last_element = data.chain.len() - 1;
-                    data.chain[chain_last_element] =
-                        data.chain[chain_last_element].clone() + letter_char;
+                    let current_reliability = utils::reliable_name_range(
+                        utils::ReliableNameRanges::VariableName,
+                        letter_char.to_string(),
+                    );
+                    if current_reliability.reliable {
+                        if data.chain.is_empty() {
+                            data.chain.push(letter_char.to_string());
+                        } else {
+                            let chain_last_element = data.chain.len() - 1;
+                            data.chain[chain_last_element] =
+                                data.chain[chain_last_element].clone() + letter_char;
+                        }
+                    } else {
+                        errors.push(error::Error {
+                            debug_message: "Remarkable".to_string(),
+                            title: error::errorList::error_s1.title.clone(),
+                            code: error::errorList::error_s1.code,
+                            message: error::errorList::error_s1.message.clone(),
+                            builded_message: error::Error::build(
+                                error::errorList::error_s1.message.clone(),
+                                vec![error::ErrorBuildField {
+                                    key: "token".to_string(),
+                                    value: letter_char.to_string(),
+                                }],
+                            ),
+                            pos: defs::Cursor {
+                                range_start: pos,
+                                range_end: pos.clone().skipChar(1),
+                            },
+                        });
+                    }
+
                 }
             }
         }

@@ -121,4 +121,11 @@ lazy_static! {
         message: "The value '$val' has infinite size".to_string(),
         ..Default::default()
     };
+
+    pub static ref error_s18: crate::error::Error = crate::error::Error {
+        code: 0x17,
+        title: "TypeError".to_string(),
+        message: "Types cannot have number properties".to_string(),
+        ..Default::default()
+    };
 }

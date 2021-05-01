@@ -12,6 +12,7 @@ serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
 
 ellie_core = {path = "core", version = "0.1.0"}
 ellie_parser = {path = "parser", version = "0.1.0"}
+ellie_assembler = {path = "assembler", version = "0.1.0"}
 
 
 [lib]
@@ -25,6 +26,11 @@ test = false
 bench = false
 
 [[bin]]
-name = "test"
+name = "value_test"
+test = false
+bench = false
+
+[[bin]]
+name = "type_test"
 test = false
 bench = false

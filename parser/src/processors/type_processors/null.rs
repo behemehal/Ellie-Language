@@ -16,7 +16,8 @@ pub fn collect(
         //let is_num = itered_data.raw_value.parse::<usize>().is_ok();
         if itered_data.raw_value.is_empty() {
             if letter_char == "\"" {
-                itered_data.data.value = types::Types::String(types::string_type::StringType::default());
+                itered_data.data.value =
+                    types::Types::String(types::string_type::StringType::default());
             } else if letter_char == "'" {
                 itered_data.data.value = types::Types::Char(types::char_type::CharType::default());
             } else if (itered_data.raw_value.clone() + letter_char)
@@ -36,6 +37,11 @@ pub fn collect(
                     comma: false,
                     collective: Vec::new(),
                 });
+            } else if letter_char == "@" {
+                itered_data.data.value = types::Types::ArrowFunction(types::arrow_function::ArrowFunction {
+                    complete: false,
+                    ..Default::default()
+                });
             } else if letter_char == "{" {
                 panic!("Collective is deprecated");
             } else if letter_char == "(" {
@@ -54,7 +60,8 @@ pub fn collect(
                     });
             }
         } else if letter_char != " " {
-            if (next_char == ";" || next_char == " ") && itered_data.raw_value.parse::<i64>().is_ok()
+            if (next_char == ";" || next_char == " ")
+                && itered_data.raw_value.parse::<i64>().is_ok()
             {
                 itered_data.data.value = types::Types::Number(types::number_type::NumberType {
                     r#type: types::number_type::NumberTypes::I64,

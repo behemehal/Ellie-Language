@@ -1,22 +1,52 @@
 ![icon](./picture/TextIcon/EllieTextIcon@0,33x.png)
 
 # Ellie
-Ellie language engine [NOT COMPLETE]
+Ellie language [NOT COMPLETE]
 
-Why ellie? Ellie is sanboxed script engine contains memory saving countermeasures for low memory devices and portable workflow
+Why ellie? Ellie is a scripting engine that runs on embedded and sandboxed environments.
 
 ## CLI usage
 
 `ellie ./test.ei`
-
 
 Language does not have a runtime for now, here are the tasks we need to complete before creating a runtime
 
 - Variables [X]
 - Functions [X]
 - If Else   [X]
-- Classes   [ ]
+- Classes   [?]
 - For Loops [ ]
+
+# Variables
+
+```rust
+
+v variableName : i8 = 1;
+d variableName = 1; //Dynamic Variable
+
+```
+
+# Data Types
+
+Ellie has same primitive types like rust
+
+```rust
+    i8
+    i16
+    i32
+    i64
+    i128
+    isize
+    u8
+    u16
+    u32
+    u64
+    u128
+    usize
+    f32
+    f64
+```
+
 
 # Note
 This is a prototype

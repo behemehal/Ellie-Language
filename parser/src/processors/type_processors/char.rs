@@ -12,8 +12,6 @@ pub fn collect(
     _last_char: String,
     pos: defs::CursorPosition,
 ) {
-    let q: char;
-
     if let types::Types::Char(ref mut data) = itered_data.data.value {
         if letter_char == "'" {
             if data.value.is_empty() {
@@ -30,6 +28,13 @@ pub fn collect(
                 });
             }
             data.complete = true;
+        } else if letter_char == "." && data.complete {
+            itered_data.data.value =
+                types::Types::Refference(types::refference_type::RefferenceType {
+                    refference: Box::new(itered_data.data.value.clone()),
+                    on_dot: true,
+                    chain: Vec::new(),
+                });
         } else if data.value.is_empty() {
             data.value += letter_char;
         } else {

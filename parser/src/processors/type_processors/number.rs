@@ -37,23 +37,11 @@ pub fn collect(
                     },
                 });
             } else {
-                /*
-                let dynamic_calculated_type =
-                if nm >= 0 && nm <= 255
-                if nm <= 127 && nm >= -128 {
-                    types::number_type::NumberTypes::I8
-                } else if nm < 32767 && nm > -32768 {
-                    types::number_type::NumberTypes::I16
-                } else if nm < 2147483647 && nm > -2147483648 {
-                    types::number_type::NumberTypes::I32
-                } else if nm < 9223372036854775807 && nm > -9223372036854775808 {
-                    types::number_type::NumberTypes::I64
-                } else if nm < 170141183460469231731687303715884105727 && nm > -170141183460469231731687303715884105728 {
-                    types::number_type::NumberTypes::I128
-                } else {
-                    types::number_type::NumberTypes::ISize
-                };
-                */
+                
+                if itered_data.data.dynamic { //Make type default to u16
+                    itered_data.r#type.data.name = "u8".to_string(); 
+                }
+                
 
                 if itered_data.r#type.data.name == "u8" {
                     data.raw = data.raw.to_string() + letter_char;
@@ -477,7 +465,7 @@ pub fn collect(
                     }
                 } else {
                     //#[cfg(feature = "std")]
-                    println!("{:#?}", itered_data.r#type);
+                    //println!("{:#?}", itered_data.r#type);
 
                     errors.push(error::Error {
                         debug_message: "hurt".to_string(),
