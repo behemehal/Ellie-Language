@@ -37,7 +37,7 @@ pub fn collect(
             } else {
                 data.complete = true;
             }
-        } else if letter_char == "." {
+        } else if letter_char == "." && data.complete {
             // String prototype
             itered_data.data.value =
                 types::Types::Refference(types::refference_type::RefferenceType {
