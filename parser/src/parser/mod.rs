@@ -56,15 +56,6 @@ impl Parser {
     pub fn Map(mut self) -> Parsed {
         let mut errors: Vec<error::Error> = Vec::new();
 
-        pub fn cursorWriteDebug(letter_char: String, row: i64, column: i64) {
-            //println!(
-            //    "Scaned | char: {:?}, {}:{} |",
-            //    letter_char,
-            //    row,
-            //    column
-            //);
-        }
-
         'charLoop: for (index, char) in self.code.clone().chars().enumerate() {
             let letter_char = &char.to_string();
             let last_char =

@@ -2,10 +2,10 @@ use crate::processors::value_processor;
 use crate::syntax::{types, variable};
 use ellie_core::{defs, error};
 
+use alloc::boxed::Box;
+use alloc::string::{String, ToString};
 use alloc::vec;
 use alloc::vec::Vec;
-use alloc::string::{String, ToString};
-use alloc::boxed::Box;
 
 pub fn collect(
     itered_data: &mut variable::VariableCollector,
@@ -16,12 +16,7 @@ pub fn collect(
     pos: defs::CursorPosition,
 ) {
     if let types::Types::Operator(ref mut data) = itered_data.data.value {
-        if !data.first_filled {
-            //First
-            //TODO same as second litte bit different
-            #[cfg(feature = "std")]
-            println!("FIRST");
-        } else if !data.operator_collected {
+        if !data.operator_collected {
             //Operator
             let is_opearator = types::operator_type::Operators::resolve_operator(
                 data.operator.clone(),
@@ -81,12 +76,6 @@ pub fn collect(
             if let types::Types::Operator(child_operator) =
                 itered_child.itered_data.data.value.clone()
             {
-                /*
-                println!(
-                    "Collapse: {:#?} to {:#?}",
-                    child_operator, data
-                );
-                */
                 if child_operator.operator == data.operator {
                     itered_data.data.value =
                         types::Types::Operator(types::operator_type::OperatorType {
@@ -138,10 +127,8 @@ pub fn collect(
                             data.itered_cache = Box::new(itered_child.itered_data);
                         }
                     }
-                    //println!("dont Collapse: {:#?} to {:#?}", child_operator.clone().operator, data.operator);
                 }
             } else {
-                //println!("iterec: {:#?}", itered_child.itered_data);
                 data.itered_cache = Box::new(itered_child.itered_data.clone());
                 data.second = Box::new(itered_child.itered_data.data.value);
             }

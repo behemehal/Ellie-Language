@@ -14,14 +14,11 @@ pub fn collect(
 ) {
     let keyword = utils::trim_good(parser.keyword_catch.trim_start().to_string()); //one step next
 
-    //println!("{:#?}", keyword);
-
-    if keyword == "v " ||  keyword == "pub v" || keyword == "pri v" {
-        #[cfg(feature = "std")]
-        println!("Variable started");
+    if keyword == "v " ||  keyword == "pub v " || keyword == "pri v " {
         parser.current = parser::Collecting::Variable(variable::VariableCollector {
             initialized: true,
             data: variable::Variable {
+                public: keyword == "v " ||  keyword == "pub v ",
                 pos: defs::Cursor {
                     range_start: parser.pos,
                     ..Default::default()
@@ -31,8 +28,6 @@ pub fn collect(
             ..Default::default()
         });
     } else if keyword == "d " || keyword == "pub d" || keyword == "pri d"{
-        #[cfg(feature = "std")]
-        println!("Dynamic Variable Started");
         parser.current = parser::Collecting::Variable(variable::VariableCollector {
             initialized: true,
             data: variable::Variable {
@@ -45,17 +40,11 @@ pub fn collect(
             },
             ..Default::default()
         });
-    } else if keyword == "fn " {
-        #[cfg(feature = "std")]
-        println!("Function started");
+    } else if keyword == "fn " || keyword == "pub fn" || keyword == "pri fn" {
         parser.current = parser::Collecting::Function(function::FunctionCollector::default());
     } else if keyword == "if" {
-        #[cfg(feature = "std")]
-        println!("IF {:#?}", _letter_char);
         parser.current = parser::Collecting::Condition(condition::ConditionCollector::default());
     } else if keyword == "else if" {
-        #[cfg(feature = "std")]
-        println!("ELSE IF");
         let collected_length = parser.collected.clone().len();
         if collected_length == 0 {
             panic!("Error");
@@ -82,15 +71,11 @@ pub fn collect(
             });
             parser.current = parser::Collecting::Condition(repeated_condition);
             parser.collected.remove(collected_length - 1);
-            #[cfg(feature = "std")]
-            println!("ELSE IF {:#?}", parser);
         } else {
             //User used else statement without if
             panic!("Error: {:#?}", parser.collected);
         }
     } else if keyword == "else {" {
-        #[cfg(feature = "std")]
-        println!("ELSE");
         let collected_length = parser.collected.clone().len();
         if collected_length == 0 {
             panic!("Error");
@@ -111,14 +96,11 @@ pub fn collect(
             });
             parser.current = parser::Collecting::Condition(repeated_condition);
             parser.collected.remove(collected_length - 1);
-            #[cfg(feature = "std")]
-            println!("ELSE IF {:#?}", parser);
         } else {
             //User used else statement without if
             panic!("Error: {:#?}", parser.collected);
         }
     } else if keyword == "class " {
-        #[cfg(feature = "std")]
         println!("CLASS");
     }
 }

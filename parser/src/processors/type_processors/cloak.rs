@@ -105,8 +105,6 @@ pub fn collect(
                     .push(types::cloak_type::CloakEntry::default());
             }
         } else if letter_char == ")" && !data.child_start && is_s_n {
-            #[cfg(feature = "std")]
-            println!("Complete the value");
             if data.comma {
                 errors.push(error::Error {
                     debug_message: "Okoe".to_string(),

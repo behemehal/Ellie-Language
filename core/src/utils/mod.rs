@@ -21,7 +21,7 @@ pub fn reliable_name_range(range: ReliableNameRanges, value: String) -> Reliable
 
     match range {
         ReliableNameRanges::VariableName => {
-            let variable_range = "qwertyuıopasdfghjklizxcvbnm0123456789";
+            let variable_range = "QWERTYUIOPASDFGHJKLIZXCVBNMqwertyuıopasdfghjklizxcvbnm0123456789";
             let find = value.split("").position(|x| !variable_range.contains(&x));
             return ReliableNameRangeResponse {
                 reliable: find == None,
@@ -33,7 +33,7 @@ pub fn reliable_name_range(range: ReliableNameRanges, value: String) -> Reliable
             };
         },
         ReliableNameRanges::Type => {
-            let variable_range = "qwertyuıopasdfghjklizxcvbnm0123456789<>";
+            let variable_range = "QWERTYUIOPASDFGHJKLIZXCVBNMqwertyuıopasdfghjklizxcvbnm0123456789<>";
             let find = value.split("").position(|x| !variable_range.contains(&x));
             return ReliableNameRangeResponse {
                 reliable: find == None,
@@ -45,7 +45,7 @@ pub fn reliable_name_range(range: ReliableNameRanges, value: String) -> Reliable
             };
         },
         ReliableNameRanges::FunctionName => {
-            let variable_range = "qwertyuıopasdfghjklizxcvbnm";
+            let variable_range = "QWERTYUIOPASDFGHJKLIZXCVBNMqwertyuıopasdfghjklizxcvbnm";
             let find = value.split("").position(|x| !variable_range.contains(&x));
             return ReliableNameRangeResponse {
                 reliable: find == None,

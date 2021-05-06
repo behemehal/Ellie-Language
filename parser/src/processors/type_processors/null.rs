@@ -1,7 +1,7 @@
 use crate::syntax::{types, variable};
 use ellie_core::{defs, error};
 
-use alloc::string::{String, ToString};
+use alloc::string::String;
 use alloc::vec::Vec;
 
 pub fn collect(

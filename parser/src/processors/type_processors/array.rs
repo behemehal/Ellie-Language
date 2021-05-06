@@ -272,9 +272,9 @@ pub fn collect(
                     value_complete: false,
                     value: Box::new(types::Types::Cloak(match_data)),
                 },
-                types::Types::Function => types::array_type::ArrayEntry {
+                types::Types::ArrowFunction(match_data) => types::array_type::ArrayEntry {
                     value_complete: true,
-                    value: Box::new(types::Types::Null),
+                    value: Box::new(types::Types::ArrowFunction(match_data)),
                 },
                 types::Types::FunctionCall(_) => types::array_type::ArrayEntry {
                     value_complete: true,

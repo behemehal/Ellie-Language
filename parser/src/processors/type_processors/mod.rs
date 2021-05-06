@@ -8,3 +8,4 @@ pub mod function_call;
 pub mod null;
 pub mod variable;
 pub mod cloak;
+pub mod arrow_function;

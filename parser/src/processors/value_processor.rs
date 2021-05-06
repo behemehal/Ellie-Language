@@ -43,7 +43,9 @@ pub fn collect(
         types::Types::Cloak(_) => {
             type_processors::cloak::collect(itered_data, &mut errors, letter_char, next_char, last_char, pos)
         }
-        types::Types::Function => (),
+        types::Types::ArrowFunction(_) => {
+            type_processors::arrow_function::collect(itered_data, &mut errors, letter_char, next_char, last_char, pos)
+        },
         types::Types::FunctionCall(_) => {
             type_processors::function_call::collect(itered_data, &mut errors, letter_char, next_char, last_char, pos)
         }

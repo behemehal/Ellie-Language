@@ -62,6 +62,14 @@ pub fn collect(
                 parser.collected.push(parser.current.clone());
                 parser.current = parser::Collecting::None;
             } else if letter_char == "=" {
+                println!(
+                    "{}[ParserWarning]{}: WORKING BLIND, ReadMore: {}https://github.com/behemehal/Ellie-Language/issues/2{}",
+                    utils::terminal_colors::get_color(utils::terminal_colors::Colors::Yellow),
+                    utils::terminal_colors::get_color(utils::terminal_colors::Colors::Reset),
+                    utils::terminal_colors::get_color(utils::terminal_colors::Colors::Cyan),
+                    utils::terminal_colors::get_color(utils::terminal_colors::Colors::Reset),
+                );
+
                 if !variabledata.data.dynamic {
                     errors.push(error::Error {
                         debug_message: "Ertsalik".to_string(),
@@ -147,12 +155,17 @@ pub fn collect(
             }
         } else if !variabledata.typed && !variabledata.data.dynamic {
             if letter_char == ";" {
-                #[cfg(feature = "std")]
-                println!("Typed, type check required");
+                println!(
+                    "{}[ParserWarning]{}: WORKING BLIND, ReadMore: {}https://github.com/behemehal/Ellie-Language/issues/2{}",
+                    utils::terminal_colors::get_color(utils::terminal_colors::Colors::Yellow),
+                    utils::terminal_colors::get_color(utils::terminal_colors::Colors::Reset),
+                    utils::terminal_colors::get_color(utils::terminal_colors::Colors::Cyan),
+                    utils::terminal_colors::get_color(utils::terminal_colors::Colors::Reset),
+                );
                 parser.collected.push(parser.current.clone());
                 parser.current = parser::Collecting::None;
             } else if letter_char == "=" {
-                if variabledata.r#type.collecting.is_empty() {
+                if variabledata.r#type.is_type_empty() {
                     errors.push(error::Error {
                         debug_message: "Odio".to_string(),
                         title: error::errorList::error_s1.title.clone(),
@@ -171,42 +184,24 @@ pub fn collect(
                         },
                     });
                 } else {
-                    #[cfg(feature = "std")]
-                    println!("Typed, type check required");
+                    println!(
+                        "{}[ParserWarning]{}: WORKING BLIND, ReadMore: {}https://github.com/behemehal/Ellie-Language/issues/2{}",
+                        utils::terminal_colors::get_color(utils::terminal_colors::Colors::Yellow),
+                        utils::terminal_colors::get_color(utils::terminal_colors::Colors::Reset),
+                        utils::terminal_colors::get_color(utils::terminal_colors::Colors::Cyan),
+                        utils::terminal_colors::get_color(utils::terminal_colors::Colors::Reset),
+                    );
                     variabledata.typed = true;
                 }
             } else {
-                let current_reliability = utils::reliable_name_range(
-                    utils::ReliableNameRanges::Type,
+                processors::type_check_processor::collect(
+                    &mut variabledata.r#type,
+                    errors,
                     letter_char.to_string(),
+                    parser.pos,
+                    next_char,
+                    last_char,
                 );
-                if current_reliability.reliable
-                    && (variabledata.r#type.collecting.is_empty() || last_char != " ")
-                {
-                    //variabledata.r#type += variabledata.r#type.clone() + &letter_char;
-                    variabledata.r#type.collecting += &letter_char;
-                    processors::type_check_processor::collect(&mut variabledata.r#type, errors, letter_char.to_string(), last_char);
-                } else if !variabledata.r#type.collecting.is_empty()
-                    && (last_char == " " && (letter_char != ":" && letter_char != " "))
-                {
-                    errors.push(error::Error {
-                        debug_message: "ThnicLimts".to_string(),
-                        title: error::errorList::error_s1.title.clone(),
-                        code: error::errorList::error_s1.code,
-                        message: error::errorList::error_s1.message.clone(),
-                        builded_message: error::Error::build(
-                            error::errorList::error_s1.message.clone(),
-                            vec![error::ErrorBuildField {
-                                key: "token".to_string(),
-                                value: letter_char.to_string(),
-                            }],
-                        ),
-                        pos: defs::Cursor {
-                            range_start: parser.pos,
-                            range_end: parser.pos.clone().skipChar(1),
-                        },
-                    });
-                }
             }
         } else if letter_char == ";" {
             if let parser::Collecting::Variable(collected) = parser.current.clone() {

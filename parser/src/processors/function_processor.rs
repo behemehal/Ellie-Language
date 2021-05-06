@@ -32,7 +32,7 @@ pub fn collect(
                 functiondata.named = true;
             } else if last_char == " " && letter_char != " " && !functiondata.data.name.is_empty() {
                 errors.push(error::Error {
-                    debug_message: "Entropy".to_string(),
+                    debug_message: "1357731e-ad50-11eb-8529-0242ac130003".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -56,7 +56,7 @@ pub fn collect(
                 if current_reliability.reliable {
                     if last_char == " " && !functiondata.data.name.is_empty() {
                         errors.push(error::Error {
-                            debug_message: "Physicist".to_string(),
+                            debug_message: "1357753a-ad50-11eb-8529-0242ac130003".to_string(),
                             title: error::errorList::error_s1.title.clone(),
                             code: error::errorList::error_s1.code,
                             message: error::errorList::error_s1.message.clone(),
@@ -77,7 +77,7 @@ pub fn collect(
                     }
                 } else if letter_char != " " {
                     errors.push(error::Error {
-                        debug_message: "AntiLine".to_string(),
+                        debug_message: "1357753a-ad50-11eb-8529-0242ac130003".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -138,7 +138,7 @@ pub fn collect(
                             .is_empty()
                     {
                         errors.push(error::Error {
-                            debug_message: "Irenar".to_string(),
+                            debug_message: "1357762a-ad50-11eb-8529-0242ac130003".to_string(),
                             title: error::errorList::error_s1.title.clone(),
                             code: error::errorList::error_s1.code,
                             message: error::errorList::error_s1.message.clone(),

@@ -1,4 +1,4 @@
-use crate::syntax::{types, variable};
+use crate::syntax::{types, variable, r#type};
 use ellie_core::{defs, error, utils};
 
 use alloc::string::{String, ToString};
@@ -79,7 +79,10 @@ pub fn collect(
                             //It's a f32 or f64
 
                             if itered_data.data.dynamic {
-                                itered_data.r#type.data.name = "f32".to_string();
+                                 itered_data.r#type = r#type::Collecting::Generic(r#type::GenericType { 
+                                     r#type: "f32".to_string()
+                                 });
+                                 //  itered_data.r#type.raw_name()
                             }
 
                             if let types::number_type::NumberSize::F32(_) = refference_value.value {
@@ -92,8 +95,7 @@ pub fn collect(
                                     pos: defs::Cursor {
                                         range_start: pos,
                                         range_end: pos.clone().skipChar(1),
-                                    },
-                                    ..Default::default()
+                                    }
                                 });
                             } else if let types::number_type::NumberSize::F64(_) = refference_value.value {
                                 errors.push(error::Error {
@@ -107,7 +109,7 @@ pub fn collect(
                                         range_end: pos.clone().skipChar(1),
                                     },
                                 });
-                            } else if itered_data.r#type.data.name == "f32" {
+                            } else if  itered_data.r#type.raw_name() == "f32" {
                                 let double_parse =
                                     (refference_value.raw.clone() + "." + letter_char)
                                         .parse::<f32>();
@@ -176,7 +178,7 @@ pub fn collect(
                                         },
                                     });
                                 }
-                            } else if itered_data.r#type.data.name == "f64" {
+                            } else if  itered_data.r#type.raw_name() == "f64" {
                                 let double_parse =
                                     (refference_value.raw.clone() + "." + letter_char)
                                         .parse::<f64>();
@@ -228,7 +230,7 @@ pub fn collect(
                                         vec![
                                             error::ErrorBuildField {
                                                 key: "token1".to_string(),
-                                                value: itered_data.r#type.data.name.clone(),
+                                                value: itered_data.r#type.raw_name()
                                             },
                                             error::ErrorBuildField {
                                                 key: "token2".to_string(),
@@ -252,8 +254,7 @@ pub fn collect(
                                 pos: defs::Cursor {
                                     range_start: pos,
                                     range_end: pos.clone().skipChar(1),
-                                },
-                                ..Default::default()
+                                }
                             });
                         }
                     } else {

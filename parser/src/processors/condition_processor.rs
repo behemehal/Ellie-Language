@@ -56,7 +56,6 @@ pub fn collect(
                 data.cloak_itered_data = collected.itered_data;
             }
         } else if letter_char == "}" {
-            //println!("Complete");
             if data.inside_object_start {
                 if data.inside_object_count == 0 {
                     data.inside_object_start = true;
@@ -84,7 +83,6 @@ pub fn collect(
                 data.chains[chains_length].inside_code = mapped.items;
                 parser.collected.push(parser.current.clone());
                 parser.current = parser::Collecting::None;
-                //println!("Closed");
             }
         } else {
             data.inside_code_string += letter_char;
@@ -92,34 +90,3 @@ pub fn collect(
 
     }
 }
-
-    /*
-            if data.might_be_else_if {
-                println!("Mıgt be else if");
-                if data.else_if_keyword_collector == "else if" {
-                    data.initialized = true;
-                    data.cloak_collected = false;
-                    data.cloak_pos.range_start.0 = parser.pos.0; //Function naming started so we set the position
-                    data.keyword_pos.range_start.0 = parser.pos.0 - 1; //Function naming started so we set the position
-                    data.keyword_pos.range_end.0 = parser.pos.0; //Function naming started so we set the position
-                    data.chains.push(condition::ConditionChain {
-                        r#type: condition::ConditionType::ElseIf,
-                        ..Default::default()
-                    });
-                    data.else_if_keyword_collector = "".to_string();
-                    data.might_be_else_if = false;
-                } else if data.else_if_keyword_collector.trim() == "else" && letter_char == "{" {
-                    println!("Else");
-                    data.cloak_collected = true;
-                    data.initialized = true;
-                    data.chains.push(condition::ConditionChain {
-                        r#type: condition::ConditionType::Else,
-                        ..Default::default()
-                    });
-                    data.else_if_keyword_collector = "".to_string();
-                    data.might_be_else_if = false;
-                } else {
-                    data.else_if_keyword_collector += letter_char;
-                }
-            } else
-    */

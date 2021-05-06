@@ -4,6 +4,7 @@ pub mod bool_type;
 pub mod comparison_type;
 pub mod double_type;
 pub mod function_call;
+pub mod arrow_function;
 pub mod logical_type;
 pub mod number_type;
 pub mod refference_type;
@@ -13,25 +14,6 @@ pub mod operator_type;
 pub mod variable_type;
 
 use serde::Serialize;
-/*
-#[derive(PartialEq, Default, Debug, Clone)]
-pub struct CollectiveEntry {
-    pub key: String,
-    pub dynamic: bool,
-    pub key_named: bool,
-    pub r#type: String,
-    pub typed: bool,
-    pub value_complete: bool,
-    pub raw_value: String,
-    pub value: Box<Types>,
-}
-
-#[derive(PartialEq, Default, Debug, Clone)]
-pub struct CollectiveType {
-    pub layer_size: usize,
-    pub collective: Vec<CollectiveEntry>,
-}
-*/
 
 pub enum __ArithmeticOperator {
     Addition,
@@ -55,7 +37,7 @@ pub enum Types {
     Operator(operator_type::OperatorType),
     Cloak(cloak_type::CloakType),
     Array(array_type::ArrayType),
-    Function,
+    ArrowFunction(arrow_function::ArrowFunction),
     FunctionCall(function_call::FunctionCall),
     Void,
     VariableType(variable_type::VariableType),
@@ -94,7 +76,7 @@ impl Types {
                     false
                 }
             }
-            Types::Function => false,
+            Types::ArrowFunction(_) => false,
             Types::FunctionCall(_) => false,
             Types::VariableType(_) => true,
             Types::Void => true,
@@ -113,7 +95,7 @@ impl Types {
             Types::Operator(e) => e.first_filled && e.operator != operator_type::Operators::Null && (e.second_is_not_null && e.second.is_complete()),
             Types::Array(data) => data.complete,
             Types::Cloak(data) => data.complete,
-            Types::Function => false,
+            Types::ArrowFunction(data) => data.complete,
             Types::FunctionCall(data) => data.complete,
             Types::VariableType(_) => true,
             Types::Void => false,
@@ -132,7 +114,7 @@ impl Types {
             Types::Operator(_) => false,
             Types::Array(_) => true,
             Types::Cloak(_) => false,
-            Types::Function => false,
+            Types::ArrowFunction(_) => false,
             Types::FunctionCall(_) => false,
             Types::VariableType(_) => true,
             Types::Void => false,
@@ -151,7 +133,7 @@ impl Types {
             Types::Operator(_) => false,
             Types::Array(_) => false,
             Types::Cloak(_) => false,
-            Types::Function => false,
+            Types::ArrowFunction(_) => false,
             Types::FunctionCall(_) => false,
             Types::VariableType(_) => true,
             Types::Void => false,
@@ -171,7 +153,7 @@ impl Types {
             Types::Operator(_) => false,
             Types::Array(_) => false,
             Types::Cloak(_) => false,
-            Types::Function => false,
+            Types::ArrowFunction(_) => false,
             Types::FunctionCall(_) => false,
             Types::VariableType(_) => true,
             Types::Void => false,
@@ -190,7 +172,7 @@ impl Types {
             Types::Operator(_) => None,
             Types::Array(a) => Some(!a.complete),
             Types::Cloak(_) => None,
-            Types::Function => None,
+            Types::ArrowFunction(_) => None,
             Types::FunctionCall(_) => None,
             Types::VariableType(_) => None,
             Types::Void => None,
@@ -209,7 +191,7 @@ impl Types {
             Types::Operator(_) => false,
             Types::Array(a) => a.complete,
             Types::Cloak(_) => false,
-            Types::Function => false,
+            Types::ArrowFunction(_) => false,
             Types::FunctionCall(_) => false,
             Types::VariableType(_) => true,
             Types::Void => false,
@@ -228,7 +210,7 @@ impl Types {
             Types::Operator(_) => (),
             Types::Array(e) => e.complete = true,
             Types::Cloak(e) => e.complete = true,
-            Types::Function => (),
+            Types::ArrowFunction(e) => e.complete = true,
             Types::FunctionCall(_) => (),
             Types::VariableType(_) => (),
             Types::Void => (),

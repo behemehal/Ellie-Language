@@ -11,12 +11,8 @@ fn main() {
     } else if env::args().any(|x| x == "-h") || env::args().any(|x| x == "--help") {
         println!("Usage: ellie [options] [file path]");
         println!("Options:");
-        println!("\t--version        || -v : Show Version");
-        println!("\t--help           || -h : Show Help");
-        println!("\t--raw-compile    || -rw  : Pre-compile program but dont run");
-        println!("\t--enable-fs      || -df  : Enable file system access");
-        println!("\t--enable-fs      || -df  : Enable file system access");
-        println!("\t--enable-network || -en  : Enable network access");
+        println!("\t--version        || -v  : Show Version");
+        println!("\t--help           || -h  : Show Help");
     } else {
         let args = env::args()
             .collect::<Vec<String>>()
