@@ -15,6 +15,13 @@ pub fn collect(
     pos: defs::CursorPosition,
 ) {
     if let types::Types::String(ref mut data) = itered_data.data.value {
+
+        if itered_data.data.dynamic {
+            itered_data.r#type = crate::syntax::r#type::Collecting::Generic(crate::syntax::r#type::GenericType { 
+                r#type: "string".to_string()
+            });
+        }
+
         if letter_char == "\"" && last_char != "\\" {
             if data.complete {
                 errors.push(error::Error {
