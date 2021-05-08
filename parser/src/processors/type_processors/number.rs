@@ -37,7 +37,7 @@ pub fn collect(
                     },
                 });
             } else {
-                if itered_data.data.dynamic {
+                if matches!(&itered_data.r#type, crate::syntax::r#type::Collecting::Generic(x) if x.r#type.is_empty()) && itered_data.data.dynamic {
                     //Make type default to u16
                     itered_data.r#type = crate::syntax::r#type::Collecting::Generic(crate::syntax::r#type::GenericType { 
                         r#type: "u16".to_string()
