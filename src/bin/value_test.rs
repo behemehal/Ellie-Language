@@ -6,12 +6,21 @@ use ellie_core;
 fn main() {
     let pos = ellie_core::defs::CursorPosition(0, 0);
     let mut emulated_collector_data = ellie_parser::syntax::variable::VariableCollector::default();
-    let code = "         
-    0.5";
-    //
-    //((1 == 1) || (1 == 1))
-    //(1 == 1 || 1 || 1 == 1 && 2
-    //(1 == 1 || 1 == 1 && 2
+    emulated_collector_data.data.dynamic = true;
+    //We should set to dynamic for catching type
+    /*
+        emulated_collector_data.r#type = ellie_parser::syntax::r#type::Collecting::Generic(
+            ellie_parser::syntax::r#type::GenericType {
+                r#type: "f32".to_string()
+            }
+        );
+    */
+
+    let code = "
+
+        0.33
+    
+    ";
 
     for (index, char) in code.chars().enumerate() {
         if char == '\n' || char == '\r' {
