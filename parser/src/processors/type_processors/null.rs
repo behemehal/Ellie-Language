@@ -17,10 +17,13 @@ pub fn collect(
         if itered_data.raw_value.is_empty() {
             if letter_char == "\"" {
                 if itered_data.data.dynamic {
-                    itered_data.r#type = crate::syntax::r#type::Collecting::Generic(crate::syntax::r#type::GenericType { 
-                        r#type: "string".to_string()
-                    });
-                } else if !matches!(&itered_data.r#type, crate::syntax::r#type::Collecting::Generic(x) if x.r#type == "string") {
+                    itered_data.r#type = crate::syntax::r#type::Collecting::Generic(
+                        crate::syntax::r#type::GenericType {
+                            r#type: "string".to_string(),
+                        },
+                    );
+                } else if !matches!(&itered_data.r#type, crate::syntax::r#type::Collecting::Generic(x) if x.r#type == "string")
+                {
                     errors.push(error::Error {
                         debug_message: "Nulity".to_string(),
                         title: error::errorList::error_s3.title.clone(),
@@ -31,7 +34,7 @@ pub fn collect(
                             vec![
                                 error::ErrorBuildField {
                                     key: "token1".to_string(),
-                                    value: itered_data.r#type.raw_name()
+                                    value: itered_data.r#type.raw_name(),
                                 },
                                 error::ErrorBuildField {
                                     key: "token2".to_string(),
@@ -45,13 +48,17 @@ pub fn collect(
                         },
                     });
                 }
-                itered_data.data.value = types::Types::String(types::string_type::StringType::default());
+                itered_data.data.value =
+                    types::Types::String(types::string_type::StringType::default());
             } else if letter_char == "'" {
                 if itered_data.data.dynamic {
-                    itered_data.r#type = crate::syntax::r#type::Collecting::Generic(crate::syntax::r#type::GenericType { 
-                        r#type: "char".to_string()
-                    });
-                } else if !matches!(&itered_data.r#type, crate::syntax::r#type::Collecting::Generic(x) if x.r#type == "char") {
+                    itered_data.r#type = crate::syntax::r#type::Collecting::Generic(
+                        crate::syntax::r#type::GenericType {
+                            r#type: "char".to_string(),
+                        },
+                    );
+                } else if !matches!(&itered_data.r#type, crate::syntax::r#type::Collecting::Generic(x) if x.r#type == "char")
+                {
                     errors.push(error::Error {
                         debug_message: "Heliport".to_string(),
                         title: error::errorList::error_s3.title.clone(),
@@ -62,7 +69,7 @@ pub fn collect(
                             vec![
                                 error::ErrorBuildField {
                                     key: "token1".to_string(),
-                                    value: itered_data.r#type.raw_name()
+                                    value: itered_data.r#type.raw_name(),
                                 },
                                 error::ErrorBuildField {
                                     key: "token2".to_string(),
@@ -96,10 +103,11 @@ pub fn collect(
                     collective: Vec::new(),
                 });
             } else if letter_char == "@" {
-                itered_data.data.value = types::Types::ArrowFunction(types::arrow_function::ArrowFunctionCollector {
-                    complete: false,
-                    ..Default::default()
-                });
+                itered_data.data.value =
+                    types::Types::ArrowFunction(types::arrow_function::ArrowFunctionCollector {
+                        complete: false,
+                        ..Default::default()
+                    });
             } else if letter_char == "{" {
                 panic!("Collective is deprecated");
             } else if letter_char == "(" {

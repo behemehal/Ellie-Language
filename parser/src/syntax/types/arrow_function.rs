@@ -1,6 +1,6 @@
-use serde::Serialize;
-use crate::syntax::{function, r#type};
 use crate::parser::Collecting;
+use crate::syntax::{function, r#type};
+use serde::Serialize;
 
 //use ellie_core::{defs};
 //use alloc::string::String;
@@ -9,7 +9,7 @@ use crate::parser::Collecting;
 pub struct ArrowFunction {
     pub parameters: Vec<function::FunctionParameterCollector>,
     pub return_type: Box<r#type::Collecting>,
-    pub inside_code: Vec<Collecting>
+    pub inside_code: Vec<Collecting>,
 }
 
 #[derive(PartialEq, Debug, Clone, Default, Serialize)]
@@ -21,5 +21,5 @@ pub struct ArrowFunctionCollector {
     pub inside_code_string: String,
     pub return_typed: bool,
     pub brace_count: i64,
-    pub data: ArrowFunction
+    pub data: ArrowFunction,
 }

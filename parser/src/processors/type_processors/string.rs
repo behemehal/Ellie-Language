@@ -1,10 +1,10 @@
 use crate::syntax::{types, variable};
 use ellie_core::{defs, error, utils};
 
+use alloc::boxed::Box;
+use alloc::string::{String, ToString};
 use alloc::vec;
 use alloc::vec::Vec;
-use alloc::string::{String, ToString};
-use alloc::boxed::Box;
 
 pub fn collect(
     itered_data: &mut variable::VariableCollector,
@@ -15,11 +15,11 @@ pub fn collect(
     pos: defs::CursorPosition,
 ) {
     if let types::Types::String(ref mut data) = itered_data.data.value {
-
         if itered_data.data.dynamic {
-            itered_data.r#type = crate::syntax::r#type::Collecting::Generic(crate::syntax::r#type::GenericType { 
-                r#type: "string".to_string()
-            });
+            itered_data.r#type =
+                crate::syntax::r#type::Collecting::Generic(crate::syntax::r#type::GenericType {
+                    r#type: "string".to_string(),
+                });
         }
 
         if letter_char == "\"" && last_char != "\\" {

@@ -1,5 +1,5 @@
-use ellie_parser::parser;
 use ellie_core::utils;
+use ellie_parser::parser;
 use fs::File;
 use std::env;
 use std::{fs, io::Read};

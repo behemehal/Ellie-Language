@@ -1,6 +1,6 @@
-use serde::Serialize;
-use alloc::string::String;
 use alloc::boxed::Box;
+use alloc::string::String;
+use serde::Serialize;
 
 #[derive(PartialEq, Debug, Clone, Serialize, Default)]
 pub struct FunctionType {
@@ -29,12 +29,12 @@ pub struct ArrayType {
     pub bracket_inserted: bool,
     pub len: crate::syntax::types::Types,
     pub at_comma: bool,
-    pub typed: bool
+    pub typed: bool,
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Default)]
 pub struct GenericType {
-    pub r#type: String
+    pub r#type: String,
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize)]
@@ -42,7 +42,7 @@ pub enum Collecting {
     Array(ArrayType),
     Generic(GenericType),
     Function(FunctionType),
-    Cloak(CloakType)
+    Cloak(CloakType),
 }
 
 impl Default for Collecting {
@@ -57,7 +57,7 @@ impl Collecting {
             Collecting::Array(data) => data.complete,
             Collecting::Generic(data) => data.r#type.is_empty(),
             Collecting::Function(data) => data.complete,
-            Collecting::Cloak(_) => false
+            Collecting::Cloak(_) => false,
         }
     }
 
@@ -66,7 +66,7 @@ impl Collecting {
             Collecting::Array(_) => "array".to_string(),
             Collecting::Generic(data) => data.r#type.clone(),
             Collecting::Function(_) => "function".to_string(),
-            Collecting::Cloak(_) => "cloak".to_string()
+            Collecting::Cloak(_) => "cloak".to_string(),
         }
     }
 }

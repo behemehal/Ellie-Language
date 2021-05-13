@@ -1,10 +1,10 @@
 use crate::parser::Collecting;
-use crate::syntax::{types, r#type};
-use ellie_core::{defs};
+use crate::syntax::{r#type, types};
+use ellie_core::defs;
 use serde::Serialize;
 
-use alloc::vec::Vec;
 use alloc::string::String;
+use alloc::vec::Vec;
 
 #[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct FunctionParameter {
@@ -26,9 +26,9 @@ pub struct FunctionParameterCollector {
 
 #[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct Function {
-    pub name: String, //Function Name string
+    pub name: String,                                //Function Name string
     pub parameters: Vec<FunctionParameterCollector>, //Parameter vector
-    pub return_type: types::Types, //Return type from enum
+    pub return_type: types::Types,                   //Return type from enum
     pub inside_code: Vec<Collecting>,
 }
 
@@ -36,23 +36,23 @@ pub struct Function {
 pub struct FunctionCollector {
     pub data: Function,
     pub initialized: bool,
-    pub named: bool, //Function named
+    pub named: bool,            //Function named
     pub name_pos: defs::Cursor, //Name position fn [test] ......
-    
-    pub parameter_wrote: bool,  //Parameter type complete
+
+    pub parameter_wrote: bool,                     //Parameter type complete
     pub parameter_bracket_start_pos: defs::Cursor, //Bracket start [(] )
-    pub parameter_bracket_end_pos: defs::Cursor, //Bracket end ( [)]
+    pub parameter_bracket_end_pos: defs::Cursor,   //Bracket end ( [)]
 
     pub return_type_text: String, //Collected return type text will be matched with syntax::types::Types
-    pub return_typed: bool, //Function return typed
+    pub return_typed: bool,       //Function return typed
     pub pointer_typed: bool,
-    pub return_pointer_position: defs::Cursor,//Function's type pointer position fn test() [>] String {.....
+    pub return_pointer_position: defs::Cursor, //Function's type pointer position fn test() [>] String {.....
 
-    pub inside_object_start: bool, //When a { detected we make this variable true so we will be sure that the } is not the } we will close the function 
-    pub inside_object_count: i64, //When a { detected we make this variable true so we will be sure that the } is not the } we will close the function 
+    pub inside_object_start: bool, //When a { detected we make this variable true so we will be sure that the } is not the } we will close the function
+    pub inside_object_count: i64, //When a { detected we make this variable true so we will be sure that the } is not the } we will close the function
     pub code_bracket_start: defs::Cursor, //Bracket start fn test() > String [{]
     pub code_bracket_end: defs::Cursor, //Bracket start fn test() > String { ... [}]
-    pub inside_code_wrote: bool, 
+    pub inside_code_wrote: bool,
 
     pub inside_code_string: String,
 

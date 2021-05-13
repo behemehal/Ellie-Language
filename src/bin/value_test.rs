@@ -1,7 +1,6 @@
-use ellie_parser;
 use ellie_core;
+use ellie_parser;
 //use std::fs;
-
 
 fn main() {
     let pos = ellie_core::defs::CursorPosition(0, 0);
@@ -42,16 +41,28 @@ fn main() {
                 "{}{}Error[{:#04x}]{} - {}{}{}: {}",
                 format!(
                     "{}[{}]{} ",
-                    ellie_core::utils::terminal_colors::get_color(ellie_core::utils::terminal_colors::Colors::Yellow),
+                    ellie_core::utils::terminal_colors::get_color(
+                        ellie_core::utils::terminal_colors::Colors::Yellow
+                    ),
                     error.debug_message,
-                    ellie_core::utils::terminal_colors::get_color(ellie_core::utils::terminal_colors::Colors::Reset)
+                    ellie_core::utils::terminal_colors::get_color(
+                        ellie_core::utils::terminal_colors::Colors::Reset
+                    )
                 ),
-                ellie_core::utils::terminal_colors::get_color(ellie_core::utils::terminal_colors::Colors::Red),
+                ellie_core::utils::terminal_colors::get_color(
+                    ellie_core::utils::terminal_colors::Colors::Red
+                ),
                 &error.code,
-                ellie_core::utils::terminal_colors::get_color(ellie_core::utils::terminal_colors::Colors::Reset),
-                ellie_core::utils::terminal_colors::get_color(ellie_core::utils::terminal_colors::Colors::Cyan),
+                ellie_core::utils::terminal_colors::get_color(
+                    ellie_core::utils::terminal_colors::Colors::Reset
+                ),
+                ellie_core::utils::terminal_colors::get_color(
+                    ellie_core::utils::terminal_colors::Colors::Cyan
+                ),
                 error.title,
-                ellie_core::utils::terminal_colors::get_color(ellie_core::utils::terminal_colors::Colors::Reset),
+                ellie_core::utils::terminal_colors::get_color(
+                    ellie_core::utils::terminal_colors::Colors::Reset
+                ),
                 error.builded_message
             );
         }

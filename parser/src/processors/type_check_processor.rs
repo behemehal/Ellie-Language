@@ -56,11 +56,11 @@ pub fn collect(
                 for i in processed_data.errors {
                     errors.push(i)
                 }
-                
+
                 if emulated_collector_data.data.value.is_complete() {
                     data.complete = true;
                 }
-                
+
                 data.len = emulated_collector_data.data.value;
             }
         }
@@ -170,7 +170,14 @@ pub fn collect(
                         last_char,
                     );
 
-                    if matches!(data.params[if len == 0 { 0 } else { len - 1 }].clone(), crate::syntax::r#type::Collecting::Array(x) if x.complete) || matches!(data.params[if len == 0 { 0 } else { len - 1 }].clone(), crate::syntax::r#type::Collecting::Function(x) if x.complete) || matches!(data.params[if len == 0 { 0 } else { len - 1 }].clone(), crate::syntax::r#type::Collecting::Cloak(x) if x.complete) || matches!(data.params[if len == 0 { 0 } else { len - 1 }].clone(), crate::syntax::r#type::Collecting::Generic(_)) {
+                    if matches!(data.params[if len == 0 { 0 } else { len - 1 }].clone(), crate::syntax::r#type::Collecting::Array(x) if x.complete)
+                        || matches!(data.params[if len == 0 { 0 } else { len - 1 }].clone(), crate::syntax::r#type::Collecting::Function(x) if x.complete)
+                        || matches!(data.params[if len == 0 { 0 } else { len - 1 }].clone(), crate::syntax::r#type::Collecting::Cloak(x) if x.complete)
+                        || matches!(
+                            data.params[if len == 0 { 0 } else { len - 1 }].clone(),
+                            crate::syntax::r#type::Collecting::Generic(_)
+                        )
+                    {
                         data.complete = true;
                     }
                 }

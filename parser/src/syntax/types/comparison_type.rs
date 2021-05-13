@@ -1,9 +1,8 @@
-use serde::Serialize;
 use crate::syntax::types;
+use serde::Serialize;
 
-use alloc::string::String;
 use alloc::boxed::Box;
-
+use alloc::string::String;
 
 #[derive(PartialEq, Debug, Clone, Serialize)]
 pub enum ComparisonOperators {
@@ -13,7 +12,7 @@ pub enum ComparisonOperators {
     LessThan,
     GreaterThanOrEqual,
     LessThanOrEqual,
-    Null
+    Null,
 }
 
 impl Default for ComparisonOperators {
@@ -31,14 +30,13 @@ impl ComparisonOperators {
         match value {
             "==" => Ok(ComparisonOperators::Equal),
             "!=" => Ok(ComparisonOperators::NotEqual),
-            ">"  => Ok(ComparisonOperators::GreaterThan),
-            "<"  => Ok(ComparisonOperators::LessThan),
+            ">" => Ok(ComparisonOperators::GreaterThan),
+            "<" => Ok(ComparisonOperators::LessThan),
             ">=" => Ok(ComparisonOperators::GreaterThanOrEqual),
             "<=" => Ok(ComparisonOperators::GreaterThan),
-            _ => Err(true)
+            _ => Err(true),
         }
     }
-    
 }
 
 #[derive(PartialEq, Debug, Clone, Default, Serialize)]
@@ -49,5 +47,5 @@ pub struct ComparisonType {
     pub second: Box<types::Types>,
     pub operator: ComparisonOperators,
     pub operator_collect: String,
-    pub operator_collected: bool
+    pub operator_collected: bool,
 }

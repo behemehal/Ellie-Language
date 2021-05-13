@@ -1,21 +1,20 @@
 //This is will catch operator with unknown behaviour
 
-use serde::Serialize;
-use crate::syntax::variable;
 use crate::syntax::types;
+use crate::syntax::variable;
+use serde::Serialize;
 
 use crate::syntax::types::comparison_type::ComparisonOperators;
 use crate::syntax::types::logical_type::LogicalOpearators;
 
-use alloc::string::String;
 use alloc::boxed::Box;
-
+use alloc::string::String;
 
 #[derive(PartialEq, Debug, Clone, Serialize)]
 pub enum Operators {
     ComparisonType(ComparisonOperators),
     LogicalType(LogicalOpearators),
-    Null
+    Null,
 }
 
 impl Operators {
@@ -54,6 +53,5 @@ pub struct OperatorType {
     pub itered_cache: Box<variable::VariableCollector>,
     pub operator: Operators,
     pub operator_collect: String,
-    pub operator_collected: bool
+    pub operator_collected: bool,
 }
-

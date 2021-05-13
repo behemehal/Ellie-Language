@@ -1,16 +1,16 @@
 pub mod array_type;
-pub mod cloak_type;
+pub mod arrow_function;
 pub mod bool_type;
+pub mod char_type;
+pub mod cloak_type;
 pub mod comparison_type;
 pub mod double_type;
 pub mod function_call;
-pub mod arrow_function;
 pub mod logical_type;
 pub mod number_type;
+pub mod operator_type;
 pub mod refference_type;
 pub mod string_type;
-pub mod char_type;
-pub mod operator_type;
 pub mod variable_type;
 
 use serde::Serialize;
@@ -64,7 +64,7 @@ impl Types {
                 } else {
                     false
                 }
-            },
+            }
             Types::Cloak(data) => {
                 if !data.complete {
                     if data.collective.is_empty() {
@@ -92,7 +92,11 @@ impl Types {
             Types::Char(data) => data.complete,
             Types::Collective => false,
             Types::Refference(data) => !data.on_dot,
-            Types::Operator(e) => e.first_filled && e.operator != operator_type::Operators::Null && (e.second_is_not_null && e.second.is_complete()),
+            Types::Operator(e) => {
+                e.first_filled
+                    && e.operator != operator_type::Operators::Null
+                    && (e.second_is_not_null && e.second.is_complete())
+            }
             Types::Array(data) => data.complete,
             Types::Cloak(data) => data.complete,
             Types::ArrowFunction(data) => data.complete,
