@@ -18,7 +18,7 @@ fn main() {
     let code = "
 
         v test: i8 = 1;
-    
+
     ";
 
     for (index, char) in code.chars().enumerate() {
