@@ -75,7 +75,7 @@ pub fn collect(
                     },
                 );
                 parser.pos = child_parser.pos;
-                let mapped = child_parser.Map();
+                let mapped = child_parser.map();
                 for i in mapped.syntax_errors {
                     errors.push(i)
                 }

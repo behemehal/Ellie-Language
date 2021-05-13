@@ -53,7 +53,7 @@ fn main() {
                                 variables: true,
                             },
                         );
-                        let mapped = parser.Map();
+                        let mapped = parser.map();
                         if !mapped.syntax_errors.is_empty() {
                             //let serialized = serde_json::to_string(&mapped.syntax_errors).unwrap();
                             //println!("serialized = {}", serialized);

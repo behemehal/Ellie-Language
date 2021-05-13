@@ -18,7 +18,7 @@ fn main() {
 
     let code = "
 
-        0.33
+        v test: i8 = 1;
     
     ";
 

@@ -1,31 +1,30 @@
 use crate::parser::Collecting;
-use crate::syntax::types;
+use crate::syntax::{types, r#type};
 use ellie_core::{defs};
+use serde::Serialize;
 
 use alloc::vec::Vec;
 use alloc::string::String;
 
-#[derive(PartialEq, Debug, Clone, Default)]
+#[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct FunctionParameter {
     pub name: String,
-    pub r#type: types::Types,
+    pub r#type: r#type::Collecting,
 }
 
-
-#[derive(PartialEq, Debug, Clone, Default)]
+#[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct FunctionParameterCollector {
     pub data: FunctionParameter,
     pub named: bool,
     pub name_pos: defs::Cursor, //Function parameter name position fn test([parameterName] : String) ....
     pub colon_expected: bool,
-    pub r#type: types::Types,
+    pub child_brace: i8,
     pub type_text: String,
     pub typed: bool,
     pub type_pos: defs::Cursor, //Function parameter type position fn test(parameterName : [String]) ....
 }
 
-
-#[derive(PartialEq, Debug, Clone, Default)]
+#[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct Function {
     pub name: String, //Function Name string
     pub parameters: Vec<FunctionParameterCollector>, //Parameter vector
@@ -33,7 +32,7 @@ pub struct Function {
     pub inside_code: Vec<Collecting>,
 }
 
-#[derive(PartialEq, Debug, Clone, Default)]
+#[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct FunctionCollector {
     pub data: Function,
     pub initialized: bool,

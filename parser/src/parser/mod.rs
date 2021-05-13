@@ -1,12 +1,11 @@
 //TODO: no-std use crate::alloc::string::{String, ToString};
 //TODO: no-std use crate::alloc::vec::Vec;
 
-#![allow(warnings)] //TODO Remove this
+use serde::Serialize;
 
 use ellie_core::{defs, error, utils};
-use crate::parser;
 use crate::processors;
-use crate::syntax::{condition, function, types, variable};
+use crate::syntax::{condition, function, variable};
 
 use crate::alloc::vec::Vec;
 use crate::alloc::string::{String, ToString};
@@ -18,7 +17,7 @@ pub struct Parsed {
 }
 
 
-#[derive(PartialEq, Debug, Clone)]
+#[derive(PartialEq, Debug, Clone, Serialize)]
 pub enum Collecting {
     Variable(variable::VariableCollector),
     Function(function::FunctionCollector),
@@ -38,9 +37,6 @@ pub struct Parser {
 }
 
 impl Parser {
-    pub fn type_Check(&self, r#type: String) -> bool {
-        true
-    }
 
     pub fn new(code: String, options: defs::ParserOptions) -> Self {
         Parser {
@@ -53,10 +49,10 @@ impl Parser {
             keyword_catch: String::new(),
         }
     }
-    pub fn Map(mut self) -> Parsed {
+    pub fn map(mut self) -> Parsed {
         let mut errors: Vec<error::Error> = Vec::new();
 
-        'charLoop: for (index, char) in self.code.clone().chars().enumerate() {
+        for (index, char) in self.code.clone().chars().enumerate() {
             let letter_char = &char.to_string();
             let last_char =
                 &utils::get_letter(self.code.clone().to_string(), index, false).to_string();
@@ -103,10 +99,10 @@ impl Parser {
                         next_char.clone(),
                         last_char.clone(),
                     ),
-                    (_) => ()
+                    _ => ()
                 }
                 self.pos.1 += 1;
-            } else if (last_char == "\r" || letter_char == "\n") {
+            } else if last_char == "\r" || letter_char == "\n" {
                 self.pos.0 += 1;
                 self.pos.1 = 0;
             }

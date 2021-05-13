@@ -16,6 +16,7 @@ pub struct FunctionType {
 
 #[derive(PartialEq, Debug, Clone, Serialize, Default)]
 pub struct CloakType {
+    pub complete: bool,
     pub data: Vec<Collecting>,
     pub bracket_inserted: bool,
     pub at_comma: bool,
