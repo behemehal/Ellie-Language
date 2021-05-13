@@ -14,7 +14,7 @@ pub struct Variable {
     pub pos : defs::Cursor
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Default)]
+#[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct VariableCollector {
     pub initialized: bool,
     pub named: bool,

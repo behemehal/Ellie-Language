@@ -1,6 +1,3 @@
-/target
-/deprecated
-/deprecated2
 bot.js
 /node_modules
 /package.json
@@ -11,3 +8,4 @@ code.js
 data.json
 fasm
 Cargo.lock
+target

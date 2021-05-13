@@ -1,6 +1,6 @@
 v numFun : fn(i8, i32)::i8 = @(firstPar: i8, secondPar: i32) > i8 => 1;
 
-v numFunExtended : fn(i8, i32)::i8 = @(firstPar: i8, secondPar: i32) > i8 => {
+v numFunExtended : fn(i8, i32)::i8 = @(firstPar: i8, secondPar: i32) > i8 : {
     return 1;
 };
 

@@ -25,8 +25,6 @@ pub fn collect(
             if !data.typed {
                 if letter_char == "(" && !data.bracket_inserted {
                     data.bracket_inserted = true;
-                } else if letter_char == ")" && data.bracket_inserted {
-                    data.bracket_inserted = false;
                 } else if letter_char == "," {
                     data.typed = true;
                 } else {
@@ -48,14 +46,21 @@ pub fn collect(
                     ..Default::default()
                 };
 
-                crate::processors::value_processor::collect(
+                let processed_data = crate::processors::value_processor::collect(
                     &mut emulated_collector_data,
                     &letter_char,
                     next_char,
                     last_char,
                     pos,
                 );
-
+                for i in processed_data.errors {
+                    errors.push(i)
+                }
+                
+                if emulated_collector_data.data.value.is_complete() {
+                    data.complete = true;
+                }
+                
                 data.len = emulated_collector_data.data.value;
             }
         }
@@ -163,7 +168,11 @@ pub fn collect(
                         pos,
                         next_char,
                         last_char,
-                    )
+                    );
+
+                    if matches!(data.params[if len == 0 { 0 } else { len - 1 }].clone(), crate::syntax::r#type::Collecting::Array(x) if x.complete) || matches!(data.params[if len == 0 { 0 } else { len - 1 }].clone(), crate::syntax::r#type::Collecting::Function(x) if x.complete) || matches!(data.params[if len == 0 { 0 } else { len - 1 }].clone(), crate::syntax::r#type::Collecting::Cloak(x) if x.complete) || matches!(data.params[if len == 0 { 0 } else { len - 1 }].clone(), crate::syntax::r#type::Collecting::Generic(_)) {
+                        data.complete = true;
+                    }
                 }
             } else if !data.return_typed {
                 if data.return_keyword != 2 {

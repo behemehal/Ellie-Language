@@ -37,7 +37,7 @@ pub enum Types {
     Operator(operator_type::OperatorType),
     Cloak(cloak_type::CloakType),
     Array(array_type::ArrayType),
-    ArrowFunction(arrow_function::ArrowFunction),
+    ArrowFunction(arrow_function::ArrowFunctionCollector),
     FunctionCall(function_call::FunctionCall),
     Void,
     VariableType(variable_type::VariableType),

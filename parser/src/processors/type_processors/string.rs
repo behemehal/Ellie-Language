@@ -15,6 +15,13 @@ pub fn collect(
     pos: defs::CursorPosition,
 ) {
     if let types::Types::String(ref mut data) = itered_data.data.value {
+
+        if itered_data.data.dynamic {
+            itered_data.r#type = crate::syntax::r#type::Collecting::Generic(crate::syntax::r#type::GenericType { 
+                r#type: "string".to_string()
+            });
+        }
+
         if letter_char == "\"" && last_char != "\\" {
             if data.complete {
                 errors.push(error::Error {
@@ -53,7 +60,25 @@ pub fn collect(
             //    ..Default::default()
             //});
         } else if letter_char != "\\" {
-            data.value = data.value.clone() + letter_char;
+            data.value += letter_char;
+        } else if letter_char != " " {
+            errors.push(error::Error {
+                debug_message: "mRNA".to_string(),
+                title: error::errorList::error_s1.title.clone(),
+                code: error::errorList::error_s1.code,
+                message: error::errorList::error_s1.message.clone(),
+                builded_message: error::Error::build(
+                    error::errorList::error_s1.message.clone(),
+                    vec![error::ErrorBuildField {
+                        key: "token".to_string(),
+                        value: letter_char.to_string(),
+                    }],
+                ),
+                pos: defs::Cursor {
+                    range_start: pos,
+                    range_end: pos.clone().skipChar(1),
+                },
+            });
         }
     }
 }
