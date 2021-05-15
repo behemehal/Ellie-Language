@@ -1,11 +1,11 @@
 [package]
 name = "ellie_engine"
-version = "1.7.4"
+version = "1.7.5"
 authors = ["Ahmetcan Aksu <ahmetcanaksu@behemehal.net>"]
 edition = "2018"
 license-file = "LICENSE"
 [dependencies]
-lazy_static = { version = "1.4.0", default-features = false}
+lazy_static = { version = "1.4.0", features = ["spin_no_std"]}
 serde = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
 
