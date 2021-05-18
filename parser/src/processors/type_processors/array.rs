@@ -40,7 +40,7 @@ pub fn collect(
         if letter_char == "[" && !data.child_start && is_s_n {
             if !data.comma && last_entry != 0 {
                 errors.push(error::Error {
-                    debug_message: "Tette".to_string(),
+                    debug_message: "./parser/src/processors/type_processors/array.rs:42".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -77,7 +77,7 @@ pub fn collect(
         } else if letter_char == "," && !data.child_start && is_s_n {
             if data.complete {
                 errors.push(error::Error {
-                    debug_message: "Hmlute".to_string(),
+                    debug_message: "./parser/src/processors/type_processors/array.rs:79".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -95,7 +95,7 @@ pub fn collect(
                 });
             } else if data.comma {
                 errors.push(error::Error {
-                    debug_message: "qrewrty".to_string(),
+                    debug_message: "./parser/src/processors/type_processors/array.rs:97".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -124,7 +124,7 @@ pub fn collect(
         } else if letter_char == "]" && !data.child_start && is_s_n {
             if data.comma {
                 errors.push(error::Error {
-                    debug_message: "Tretra".to_string(),
+                    debug_message: "./parser/src/processors/type_processors/array.rs:126".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -142,7 +142,7 @@ pub fn collect(
                 });
             } else if data.complete {
                 errors.push(error::Error {
-                    debug_message: "Nonntkr".to_string(),
+                    debug_message: "./parser/src/processors/type_processors/array.rs:144".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -314,3 +314,4 @@ pub fn collect(
         }
     }
 }
+

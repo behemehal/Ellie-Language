@@ -22,7 +22,7 @@ pub fn collect(
                     });
                 } else if !matches!(&itered_data.r#type, crate::syntax::r#type::Collecting::Generic(x) if x.r#type == "string") {
                     errors.push(error::Error {
-                        debug_message: "Nulity".to_string(),
+                        debug_message: "./parser/src/processors/type_processors/null.rs:24".to_string(),
                         title: error::errorList::error_s3.title.clone(),
                         code: error::errorList::error_s3.code,
                         message: error::errorList::error_s3.message.clone(),
@@ -53,7 +53,7 @@ pub fn collect(
                     });
                 } else if !matches!(&itered_data.r#type, crate::syntax::r#type::Collecting::Generic(x) if x.r#type == "char") {
                     errors.push(error::Error {
-                        debug_message: "Heliport".to_string(),
+                        debug_message: "./parser/src/processors/type_processors/null.rs:55".to_string(),
                         title: error::errorList::error_s3.title.clone(),
                         code: error::errorList::error_s3.code,
                         message: error::errorList::error_s3.message.clone(),
@@ -131,3 +131,4 @@ pub fn collect(
         }
     }
 }
+

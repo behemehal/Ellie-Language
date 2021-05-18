@@ -23,7 +23,7 @@ pub fn collect(
         if letter_char == "(" && !data.child_start && is_s_n {
             if !data.comma && last_entry != 0 {
                 errors.push(error::Error {
-                    debug_message: "Qutooe".to_string(),
+                    debug_message: "./parser/src/processors/type_processors/cloak.rs:25".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -60,7 +60,7 @@ pub fn collect(
         } else if letter_char == "," && !data.child_start && is_s_n {
             if data.complete {
                 errors.push(error::Error {
-                    debug_message: "erwtes".to_string(),
+                    debug_message: "./parser/src/processors/type_processors/cloak.rs:62".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -78,7 +78,7 @@ pub fn collect(
                 });
             } else if data.comma {
                 errors.push(error::Error {
-                    debug_message: "qrtqw".to_string(),
+                    debug_message: "./parser/src/processors/type_processors/cloak.rs:80".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -107,7 +107,7 @@ pub fn collect(
         } else if letter_char == ")" && !data.child_start && is_s_n {
             if data.comma {
                 errors.push(error::Error {
-                    debug_message: "Okoe".to_string(),
+                    debug_message: "./parser/src/processors/type_processors/cloak.rs:109".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -125,7 +125,7 @@ pub fn collect(
                 });
             } else if data.complete {
                 errors.push(error::Error {
-                    debug_message: "Cporm".to_string(),
+                    debug_message: "./parser/src/processors/type_processors/cloak.rs:127".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -298,3 +298,4 @@ pub fn collect(
         }
     }
 }
+

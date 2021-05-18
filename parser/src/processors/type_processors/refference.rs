@@ -17,7 +17,7 @@ pub fn collect(
         if letter_char == "." {
             if data.on_dot {
                 errors.push(error::Error {
-                    debug_message: "Yugirmnoa".to_string(),
+                    debug_message: "./parser/src/processors/type_processors/refference.rs:19".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -53,7 +53,7 @@ pub fn collect(
                     //});
                 } else {
                     errors.push(error::Error {
-                        debug_message: "Fsteasthialvi".to_string(),
+                        debug_message: "./parser/src/processors/type_processors/refference.rs:55".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -87,7 +87,7 @@ pub fn collect(
 
                             if let types::number_type::NumberSize::F32(_) = refference_value.value {
                                 errors.push(error::Error {
-                                    debug_message: "NonNumProp".to_string(),
+                                    debug_message: "./parser/src/processors/type_processors/refference.rs:89".to_string(),
                                     title: error::errorList::error_s18.title.clone(),
                                     code: error::errorList::error_s18.code,
                                     message: error::errorList::error_s18.message.clone(),
@@ -99,7 +99,7 @@ pub fn collect(
                                 });
                             } else if let types::number_type::NumberSize::F64(_) = refference_value.value {
                                 errors.push(error::Error {
-                                    debug_message: "NonNumProp".to_string(),
+                                    debug_message: "./parser/src/processors/type_processors/refference.rs:101".to_string(),
                                     title: error::errorList::error_s18.title.clone(),
                                     code: error::errorList::error_s18.code,
                                     message: error::errorList::error_s18.message.clone(),
@@ -116,7 +116,7 @@ pub fn collect(
                                 if let Ok(parsed_double) = double_parse {
                                     if parsed_double.is_infinite() {
                                         errors.push(error::Error {
-                                            debug_message: "InfinityAndBeyond".to_string(),
+                                            debug_message: "./parser/src/processors/type_processors/refference.rs:118".to_string(),
                                             title: error::errorList::error_s17.title.clone(),
                                             code: error::errorList::error_s17.code,
                                             message: error::errorList::error_s17.message.clone(),
@@ -154,7 +154,7 @@ pub fn collect(
                                     }
                                 } else {
                                     errors.push(error::Error {
-                                        debug_message: "Onion".to_string(),
+                                        debug_message: "./parser/src/processors/type_processors/refference.rs:156".to_string(),
                                         title: error::errorList::error_s16.title.clone(),
                                         code: error::errorList::error_s16.code,
                                         message: error::errorList::error_s16.message.clone(),
@@ -194,7 +194,7 @@ pub fn collect(
                                         })
                                 } else {
                                     errors.push(error::Error {
-                                        debug_message: "Onion".to_string(),
+                                        debug_message: "./parser/src/processors/type_processors/refference.rs:196".to_string(),
                                         title: error::errorList::error_s16.title.clone(),
                                         code: error::errorList::error_s16.code,
                                         message: error::errorList::error_s16.message.clone(),
@@ -221,7 +221,7 @@ pub fn collect(
                                 }
                             } else {
                                 errors.push(error::Error {
-                                    debug_message: "Heliport".to_string(),
+                                    debug_message: "./parser/src/processors/type_processors/refference.rs:223".to_string(),
                                     title: error::errorList::error_s3.title.clone(),
                                     code: error::errorList::error_s3.code,
                                     message: error::errorList::error_s3.message.clone(),
@@ -246,7 +246,7 @@ pub fn collect(
                             }
                         } else {
                             errors.push(error::Error {
-                                debug_message: "NonNumProp".to_string(),
+                                debug_message: "./parser/src/processors/type_processors/refference.rs:248".to_string(),
                                 title: error::errorList::error_s18.title.clone(),
                                 code: error::errorList::error_s18.code,
                                 message: error::errorList::error_s18.message.clone(),
@@ -259,7 +259,7 @@ pub fn collect(
                         }
                     } else {
                         errors.push(error::Error {
-                            debug_message: "NonNumProp".to_string(),
+                            debug_message: "./parser/src/processors/type_processors/refference.rs:261".to_string(),
                             title: error::errorList::error_s18.title.clone(),
                             code: error::errorList::error_s18.code,
                             message: error::errorList::error_s18.message.clone(),
@@ -285,7 +285,7 @@ pub fn collect(
                         }
                     } else {
                         errors.push(error::Error {
-                            debug_message: "Remarkable".to_string(),
+                            debug_message: "./parser/src/processors/type_processors/refference.rs:287".to_string(),
                             title: error::errorList::error_s1.title.clone(),
                             code: error::errorList::error_s1.code,
                             message: error::errorList::error_s1.message.clone(),
@@ -308,3 +308,4 @@ pub fn collect(
         }
     }
 }
+

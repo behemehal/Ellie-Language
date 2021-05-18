@@ -82,7 +82,7 @@ pub fn collect(
                 });
             } else if letter_char != " " && last_char == " " && data.r#type.trim() != "" {
                 errors.push(error::Error {
-                    debug_message: "Leil".to_string(),
+                    debug_message: "./parser/src/processors/type_check_processor.rs:84".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -108,7 +108,7 @@ pub fn collect(
                     data.r#type = utils::trim_good(data.r#type.trim().to_string());
                 } else if letter_char != " " {
                     errors.push(error::Error {
-                        debug_message: "Eille".to_string(),
+                        debug_message: "./parser/src/processors/type_check_processor.rs:110".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -142,7 +142,7 @@ pub fn collect(
                 } else if data.params.is_empty() && data.bracket_inserted {
                     //This should have been filled If everything were right
                     errors.push(error::Error {
-                        debug_message: "Fnator".to_string(),
+                        debug_message: "./parser/src/processors/type_check_processor.rs:144".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -178,7 +178,7 @@ pub fn collect(
                 if data.return_keyword != 2 {
                     if letter_char != ":" {
                         errors.push(error::Error {
-                            debug_message: "Fnator".to_string(),
+                            debug_message: "./parser/src/processors/type_check_processor.rs:180".to_string(),
                             title: error::errorList::error_s1.title.clone(),
                             code: error::errorList::error_s1.code,
                             message: error::errorList::error_s1.message.clone(),
@@ -212,3 +212,4 @@ pub fn collect(
         Collecting::Cloak(_) => {}
     }
 }
+

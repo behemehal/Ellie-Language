@@ -23,7 +23,7 @@ pub fn collect(
         if letter_char == "'" && last_char != "\\" {
             if data.value == '\0'  {
                 errors.push(error::Error {
-                    debug_message: "Smzlkg".to_string(),
+                    debug_message: "./parser/src/processors/type_processors/char.rs:25".to_string(),
                     title: error::errorList::error_s14.title.clone(),
                     code: error::errorList::error_s14.code,
                     message: error::errorList::error_s14.message.clone(),
@@ -45,7 +45,7 @@ pub fn collect(
         } else if !data.complete {
             if data.value != '\0' {
                 errors.push(error::Error {
-                    debug_message: "Smzlkg".to_string(),
+                    debug_message: "./parser/src/processors/type_processors/char.rs:47".to_string(),
                     title: error::errorList::error_s15.title.clone(),
                     code: error::errorList::error_s15.code,
                     message: error::errorList::error_s15.message.clone(),
@@ -60,7 +60,7 @@ pub fn collect(
             }
         } else if letter_char != " " {
             errors.push(error::Error {
-                debug_message: "mRNA".to_string(),
+                debug_message: "./parser/src/processors/type_processors/char.rs:62".to_string(),
                 title: error::errorList::error_s1.title.clone(),
                 code: error::errorList::error_s1.code,
                 message: error::errorList::error_s1.message.clone(),
@@ -79,3 +79,4 @@ pub fn collect(
         }
     }
 }
+

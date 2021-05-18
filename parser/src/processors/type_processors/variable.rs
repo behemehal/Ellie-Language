@@ -36,7 +36,7 @@ pub fn collect(
         } else {
             //String 'i handle la
             errors.push(error::Error {
-                debug_message: "Wole".to_string(),
+                debug_message: "./parser/src/processors/type_processors/variable.rs:38".to_string(),
                 title: error::errorList::error_s1.title.clone(),
                 code: error::errorList::error_s1.code,
                 message: error::errorList::error_s1.message.clone(),
@@ -64,3 +64,4 @@ pub fn collect(
         }
     }
 }
+

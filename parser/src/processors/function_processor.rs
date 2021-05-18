@@ -32,7 +32,7 @@ pub fn collect(
                 functiondata.named = true;
             } else if last_char == " " && letter_char != " " && !functiondata.data.name.is_empty() {
                 errors.push(error::Error {
-                    debug_message: "1357731e-ad50-11eb-8529-0242ac130003".to_string(),
+                    debug_message: "./parser/src/processors/function_processor.rs:34".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -56,7 +56,7 @@ pub fn collect(
                 if current_reliability.reliable {
                     if last_char == " " && !functiondata.data.name.is_empty() {
                         errors.push(error::Error {
-                            debug_message: "1357753a-ad50-11eb-8529-0242ac130003".to_string(),
+                            debug_message: "./parser/src/processors/function_processor.rs:58".to_string(),
                             title: error::errorList::error_s1.title.clone(),
                             code: error::errorList::error_s1.code,
                             message: error::errorList::error_s1.message.clone(),
@@ -77,7 +77,7 @@ pub fn collect(
                     }
                 } else if letter_char != " " {
                     errors.push(error::Error {
-                        debug_message: "1357753a-ad50-11eb-8529-0242ac130003".to_string(),
+                        debug_message: "./parser/src/processors/function_processor.rs:79".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -138,7 +138,7 @@ pub fn collect(
                             .is_empty()
                     {
                         errors.push(error::Error {
-                            debug_message: "1357762a-ad50-11eb-8529-0242ac130003".to_string(),
+                            debug_message: "./parser/src/processors/function_processor.rs:140".to_string(),
                             title: error::errorList::error_s1.title.clone(),
                             code: error::errorList::error_s1.code,
                             message: error::errorList::error_s1.message.clone(),
@@ -183,7 +183,7 @@ pub fn collect(
                     }
                 } else {
                     errors.push(error::Error {
-                        debug_message: "Quadro".to_string(),
+                        debug_message: "./parser/src/processors/function_processor.rs:185".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -205,7 +205,7 @@ pub fn collect(
                     functiondata.data.parameters[last_entry - 1].colon_expected = false;
                 } else if letter_char != " " {
                     errors.push(error::Error {
-                        debug_message: "Nucleic".to_string(),
+                        debug_message: "./parser/src/processors/function_processor.rs:207".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -230,7 +230,7 @@ pub fn collect(
                             .is_empty()
                     {
                         errors.push(error::Error {
-                            debug_message: "Estetik".to_string(),
+                            debug_message: "./parser/src/processors/function_processor.rs:232".to_string(),
                             title: error::errorList::error_s1.title.clone(),
                             code: error::errorList::error_s1.code,
                             message: error::errorList::error_s1.message.clone(),
@@ -274,7 +274,7 @@ pub fn collect(
 
                     if parameter_names.len() != parameter_names_deduped.len() {
                         errors.push(error::Error {
-                            debug_message: "Artiyik".to_string(),
+                            debug_message: "./parser/src/processors/function_processor.rs:276".to_string(),
                             title: error::errorList::error_s10.title.clone(),
                             code: error::errorList::error_s10.code,
                             message: error::errorList::error_s10.message.clone(),
@@ -311,7 +311,7 @@ pub fn collect(
 
                     if parameter_names.len() != parameter_names_deduped.len() {
                         errors.push(error::Error {
-                            debug_message: "Selranda".to_string(),
+                            debug_message: "./parser/src/processors/function_processor.rs:313".to_string(),
                             title: error::errorList::error_s10.title.clone(),
                             code: error::errorList::error_s10.code,
                             message: error::errorList::error_s10.message.clone(),
@@ -336,7 +336,7 @@ pub fn collect(
                         .is_empty()
                     {
                         errors.push(error::Error {
-                            debug_message: "Elliead".to_string(),
+                            debug_message: "./parser/src/processors/function_processor.rs:338".to_string(),
                             title: error::errorList::error_s1.title.clone(),
                             code: error::errorList::error_s1.code,
                             message: error::errorList::error_s1.message.clone(),
@@ -370,7 +370,7 @@ pub fn collect(
                     functiondata.pointer_typed = true
                 } else if letter_char != " " {
                     errors.push(error::Error {
-                        debug_message: "Elase".to_string(),
+                        debug_message: "./parser/src/processors/function_processor.rs:372".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -396,7 +396,7 @@ pub fn collect(
                 if current_reliability.reliable {
                     if last_char == " " && !functiondata.return_type_text.is_empty() {
                         errors.push(error::Error {
-                            debug_message: "Ellie".to_string(),
+                            debug_message: "./parser/src/processors/function_processor.rs:398".to_string(),
                             title: error::errorList::error_s1.title.clone(),
                             code: error::errorList::error_s1.code,
                             message: error::errorList::error_s1.message.clone(),
@@ -418,7 +418,7 @@ pub fn collect(
                 } else if letter_char == "{" {
                     if functiondata.return_type_text.is_empty() {
                         errors.push(error::Error {
-                            debug_message: "Aesthetics".to_string(),
+                            debug_message: "./parser/src/processors/function_processor.rs:420".to_string(),
                             title: error::errorList::error_s8.title.clone(),
                             code: error::errorList::error_s8.code,
                             message: error::errorList::error_s8.message.clone(),
@@ -437,7 +437,7 @@ pub fn collect(
                     }
                 } else if letter_char != " " {
                     errors.push(error::Error {
-                        debug_message: "Elsa".to_string(),
+                        debug_message: "./parser/src/processors/function_processor.rs:439".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -456,7 +456,7 @@ pub fn collect(
                 }
             } else if letter_char != " " {
                 errors.push(error::Error {
-                    debug_message: "Aghtcnm".to_string(),
+                    debug_message: "./parser/src/processors/function_processor.rs:458".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -509,3 +509,4 @@ pub fn collect(
         }
     }
 }
+

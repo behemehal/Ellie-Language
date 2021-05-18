@@ -27,7 +27,7 @@ pub fn collect(
                     data.operator_collected = true;
                 } else {
                     errors.push(error::Error {
-                        debug_message: "Rndelle".to_string(),
+                        debug_message: "./parser/src/processors/type_processors/operator.rs:29".to_string(),
                         title: error::errorList::error_s13.title.clone(),
                         code: error::errorList::error_s13.code,
                         message: error::errorList::error_s13.message.clone(),
@@ -135,3 +135,4 @@ pub fn collect(
         }
     }
 }
+

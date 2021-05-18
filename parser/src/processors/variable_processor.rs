@@ -25,7 +25,7 @@ pub fn collect(
             if letter_char == ":" {
                 if variabledata.data.name.is_empty() {
                     errors.push(error::Error {
-                        debug_message: "Redaktik".to_string(),
+                        debug_message: "./parser/src/processors/variable_processor.rs:27".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -45,7 +45,7 @@ pub fn collect(
                     if variabledata.data.dynamic {
                         //TODO REMOVE THIS
                         errors.push(error::Error {
-                            debug_message: "Ethicl".to_string(),
+                            debug_message: "./parser/src/processors/variable_processor.rs:47".to_string(),
                             title: error::errorList::error_s11.title.clone(),
                             code: error::errorList::error_s11.code,
                             message: error::errorList::error_s11.message.clone(),
@@ -72,7 +72,7 @@ pub fn collect(
 
                 if !variabledata.data.dynamic {
                     errors.push(error::Error {
-                        debug_message: "Ertsalik".to_string(),
+                        debug_message: "./parser/src/processors/variable_processor.rs:74".to_string(),
                         title: error::errorList::error_s8.title.clone(),
                         code: error::errorList::error_s8.code,
                         message: error::errorList::error_s8.message.clone(),
@@ -84,7 +84,7 @@ pub fn collect(
                     });
                 } else if variabledata.data.name.is_empty() {
                     errors.push(error::Error {
-                        debug_message: "\\src\\parser\\mod.rs:133:0".to_string(),
+                        debug_message: "./parser/src/processors/variable_processor.rs:86".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -111,7 +111,7 @@ pub fn collect(
                 if current_reliability.reliable {
                     if last_char == " " && !variabledata.data.name.is_empty() {
                         errors.push(error::Error {
-                            debug_message: "Cver".to_string(),
+                            debug_message: "./parser/src/processors/variable_processor.rs:113".to_string(),
                             title: error::errorList::error_s1.title.clone(),
                             code: error::errorList::error_s1.code,
                             message: error::errorList::error_s1.message.clone(),
@@ -135,7 +135,7 @@ pub fn collect(
                     && (last_char == " " || !variabledata.data.name.is_empty())
                 {
                     errors.push(error::Error {
-                        debug_message: "Ahencam".to_string(),
+                        debug_message: "./parser/src/processors/variable_processor.rs:137".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -167,7 +167,7 @@ pub fn collect(
             } else if letter_char == "=" {
                 if variabledata.r#type.is_type_empty() {
                     errors.push(error::Error {
-                        debug_message: "Odio".to_string(),
+                        debug_message: "./parser/src/processors/variable_processor.rs:169".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -210,7 +210,7 @@ pub fn collect(
                     parser.current = parser::Collecting::None;
                 } else {
                     errors.push(error::Error {
-                        debug_message: "Protocol".to_string(),
+                        debug_message: "./parser/src/processors/variable_processor.rs:212".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -244,3 +244,4 @@ pub fn collect(
         }
     }
 }
+
