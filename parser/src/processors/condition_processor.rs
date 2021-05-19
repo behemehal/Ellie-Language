@@ -1,11 +1,11 @@
 use crate::parser;
 use crate::processors;
 use crate::syntax::{condition, types};
-use ellie_core::{error, defs};
+use ellie_core::{defs, error};
 
-use alloc::vec::Vec;
-use alloc::string::String;
 use alloc::boxed::Box;
+use alloc::string::String;
+use alloc::vec::Vec;
 
 pub fn collect(
     parser: &mut parser::Parser,
@@ -15,7 +15,6 @@ pub fn collect(
     last_char: String,
 ) {
     if let parser::Collecting::Condition(ref mut data) = parser.current {
-
         if !data.initialized {
             if last_char == "i" && letter_char == "f" {
                 data.initialized = true;
@@ -87,6 +86,5 @@ pub fn collect(
         } else {
             data.inside_code_string += letter_char;
         }
-
     }
 }

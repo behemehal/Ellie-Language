@@ -1,16 +1,16 @@
-use ellie_core::defs;
-use serde::Serialize;
 use crate::parser::Collecting;
 use crate::syntax::{types, variable};
+use ellie_core::defs;
+use serde::Serialize;
 
-use crate::alloc::vec::Vec;
 use crate::alloc::string::String;
+use crate::alloc::vec::Vec;
 
 #[derive(PartialEq, Debug, Clone, Serialize)]
 pub enum ConditionType {
     If,
     ElseIf,
-    Else
+    Else,
 }
 
 impl Default for ConditionType {
@@ -23,7 +23,7 @@ impl Default for ConditionType {
 pub struct ConditionChain {
     pub r#type: ConditionType,
     pub condition: types::cloak_type::CloakType,
-    pub inside_code: Vec<Collecting>
+    pub inside_code: Vec<Collecting>,
 }
 
 #[derive(PartialEq, Debug, Clone, Default, Serialize)]
@@ -37,12 +37,11 @@ pub struct ConditionCollector {
     pub might_be_else_if: bool,
     pub else_if_keyword_collector: String,
 
-    pub chains : Vec<ConditionChain>,
+    pub chains: Vec<ConditionChain>,
     pub keyword_pos: defs::Cursor,
     pub initialized: bool,
 
     pub inside_code_string: String,
-    
     pub inside_object_start: bool,
     pub inside_object_count: i64,
 

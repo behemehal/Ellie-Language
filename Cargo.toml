@@ -16,7 +16,6 @@ ellie_parser = {path = "parser", version = "0.1.0"}
 [lib]
 name = "ellie_lib"
 path = "src/lib.rs"
-crate-type = ["dylib"]
 
 [[bin]]
 name = "ellie"

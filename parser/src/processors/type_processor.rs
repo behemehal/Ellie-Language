@@ -4,7 +4,6 @@ use ellie_core::{defs, utils};
 
 use alloc::string::{String, ToString};
 
-
 pub fn collect(
     parser: &mut parser::Parser,
     _letter_char: &str,
@@ -14,11 +13,11 @@ pub fn collect(
 ) {
     let keyword = utils::trim_good(parser.keyword_catch.trim_start().to_string()); //one step next
 
-    if keyword == "v " ||  keyword == "pub v " || keyword == "pri v " {
+    if keyword == "v " || keyword == "pub v " || keyword == "pri v " {
         parser.current = parser::Collecting::Variable(variable::VariableCollector {
             initialized: true,
             data: variable::Variable {
-                public: keyword == "v " ||  keyword == "pub v ",
+                public: keyword == "v " || keyword == "pub v ",
                 pos: defs::Cursor {
                     range_start: parser.pos,
                     ..Default::default()
@@ -27,7 +26,7 @@ pub fn collect(
             },
             ..Default::default()
         });
-    } else if keyword == "d " || keyword == "pub d" || keyword == "pri d"{
+    } else if keyword == "d " || keyword == "pub d" || keyword == "pri d" {
         parser.current = parser::Collecting::Variable(variable::VariableCollector {
             initialized: true,
             data: variable::Variable {
@@ -79,7 +78,9 @@ pub fn collect(
         let collected_length = parser.collected.clone().len();
         if collected_length == 0 {
             panic!("Error");
-        } else if let parser::Collecting::Condition(value) = &mut parser.collected[collected_length - 1] {
+        } else if let parser::Collecting::Condition(value) =
+            &mut parser.collected[collected_length - 1]
+        {
             let mut repeated_condition = condition::ConditionCollector {
                 chains: value.chains.clone(),
                 initialized: true,

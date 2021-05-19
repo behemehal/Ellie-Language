@@ -1,15 +1,14 @@
+use crate::syntax::types;
 use serde::Serialize;
 
-
-use alloc::string::String;
 use alloc::boxed::Box;
-
+use alloc::string::String;
 
 #[derive(PartialEq, Debug, Clone, Serialize)]
 pub enum LogicalOpearators {
     And,
     Or,
-    Null
+    Null,
 }
 
 impl Default for LogicalOpearators {
@@ -34,15 +33,14 @@ impl LogicalOpearators {
     }
 }
 
-
 #[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct LogicalType {
     pub cloaked: bool,
-    pub first: Box<crate::syntax::types::Types>,
+    pub first: Box<types::Types>,
     pub first_filled: bool,
-    pub second: Box<crate::syntax::types::Types>,
+    pub second: Box<types::Types>,
     pub operator: LogicalOpearators,
     pub operator_collect: String,
     pub operator_collected: bool,
-    pub child_start: bool
+    pub child_start: bool,
 }

@@ -2,9 +2,7 @@ use crate::parser::{defs, Collecting};
 use crate::syntax::{types, variable};
 
 #[derive(PartialEq, Debug, Clone, Default)]
-pub struct Property {
-
-}
+pub struct Property {}
 
 #[derive(PartialEq, Debug, Clone, Default)]
 pub struct Class {
@@ -13,6 +11,4 @@ pub struct Class {
 }
 
 #[derive(PartialEq, Debug, Clone, Default)]
-pub struct ClassCollector {
-
-}
+pub struct ClassCollector {}

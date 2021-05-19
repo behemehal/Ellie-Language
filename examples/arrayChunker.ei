@@ -1,0 +1,42 @@
+//A module that chunks array to given number
+//[1, 2, 3, 4, 5, 6, 7, 8, 9] > [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+
+class Chunker<T> {
+    co Chunker(chunkCount, items);
+    pri v chunkCount : isize;
+    pri v items : array(T); //This is a dynamic array
+    fn chunks() > array(array(T)) {
+        v chunks : array(array(T));
+        v temp : array(T);
+        //iter 0 to given items length, write to variable i
+        foreach (d i, 0, this.items.len) {
+            if temp.len == this.chunkCount { //if we reached given cut size
+                chunks.push(tempList); //Push chunk to main array
+                tempList.empty(); //Clear temp array
+            } else {
+                temp.push(this.items.at(i)); //Add to temp array until its full of given limit
+            }
+        }
+        if tempList.len != 0 { //If temp array isn't empty push remaining chunk to main array
+            chunks.push(tempList);
+            tempList.empty(); //Clear temp array
+        }
+        return chunks; //Return main array
+    }
+}
+
+//Usage:
+v categories : array(9, i8) = [
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+];
+
+v chunker: Chunker = new Chunker<array(9, i8)>(3, categories);
+v chunked : array(array(3, i8)) = chunker.chunks();

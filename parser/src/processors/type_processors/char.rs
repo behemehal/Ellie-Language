@@ -13,15 +13,16 @@ pub fn collect(
     pos: defs::CursorPosition,
 ) {
     if let types::Types::Char(ref mut data) = itered_data.data.value {
-
         if itered_data.data.dynamic {
-            itered_data.r#type = crate::syntax::r#type::Collecting::Generic(crate::syntax::r#type::GenericType { 
-                r#type: "char".to_string()
-            });
+            itered_data.r#type = crate::syntax::definers::Collecting::Generic(
+                crate::syntax::definers::GenericType {
+                    r#type: "char".to_string(),
+                },
+            );
         }
 
         if letter_char == "'" && last_char != "\\" {
-            if data.value == '\0'  {
+            if data.value == '\0' {
                 errors.push(error::Error {
                     debug_message: "./parser/src/processors/type_processors/char.rs:25".to_string(),
                     title: error::errorList::error_s14.title.clone(),
@@ -79,4 +80,3 @@ pub fn collect(
         }
     }
 }
-

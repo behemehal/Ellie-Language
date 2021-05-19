@@ -1,11 +1,11 @@
-use ellie_core::{error, defs};
-use crate::syntax::{types, variable};
 use crate::processors::value_processor;
+use crate::syntax::{types, variable};
+use ellie_core::{defs, error};
 
+use alloc::boxed::Box;
+use alloc::string::{String, ToString};
 use alloc::vec;
 use alloc::vec::Vec;
-use alloc::string::{String, ToString};
-use alloc::boxed::Box;
 
 pub fn collect(
     itered_data: &mut variable::VariableCollector,
@@ -23,7 +23,8 @@ pub fn collect(
         if letter_char == "(" && !data.child_start && is_s_n {
             if !data.comma && last_entry != 0 {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/cloak.rs:25".to_string(),
+                    debug_message: "./parser/src/processors/type_processors/cloak.rs:25"
+                        .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -60,7 +61,8 @@ pub fn collect(
         } else if letter_char == "," && !data.child_start && is_s_n {
             if data.complete {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/cloak.rs:62".to_string(),
+                    debug_message: "./parser/src/processors/type_processors/cloak.rs:62"
+                        .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -78,7 +80,8 @@ pub fn collect(
                 });
             } else if data.comma {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/cloak.rs:80".to_string(),
+                    debug_message: "./parser/src/processors/type_processors/cloak.rs:80"
+                        .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -107,7 +110,8 @@ pub fn collect(
         } else if letter_char == ")" && !data.child_start && is_s_n {
             if data.comma {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/cloak.rs:109".to_string(),
+                    debug_message: "./parser/src/processors/type_processors/cloak.rs:109"
+                        .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -125,7 +129,8 @@ pub fn collect(
                 });
             } else if data.complete {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/cloak.rs:127".to_string(),
+                    debug_message: "./parser/src/processors/type_processors/cloak.rs:127"
+                        .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -298,4 +303,3 @@ pub fn collect(
         }
     }
 }
-

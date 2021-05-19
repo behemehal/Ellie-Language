@@ -1,11 +1,11 @@
 use crate::processors::value_processor;
 use crate::syntax::{types, variable};
-use ellie_core::{error, defs};
+use ellie_core::{defs, error};
 
+use alloc::boxed::Box;
+use alloc::string::{String, ToString};
 use alloc::vec;
 use alloc::vec::Vec;
-use alloc::string::{String, ToString};
-use alloc::boxed::Box;
 
 pub fn collect(
     itered_data: &mut variable::VariableCollector,
@@ -33,7 +33,8 @@ pub fn collect(
                     .push(types::function_call::FunctionCallParameter::default())
             } else {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/function_call.rs:35".to_string(),
+                    debug_message: "./parser/src/processors/type_processors/function_call.rs:35"
+                        .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -53,7 +54,8 @@ pub fn collect(
         } else if letter_char == ")" && is_s_n {
             if data.comma {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/function_call.rs:55".to_string(),
+                    debug_message: "./parser/src/processors/type_processors/function_call.rs:55"
+                        .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -71,7 +73,8 @@ pub fn collect(
                 });
             } else {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/function_call.rs:73".to_string(),
+                    debug_message: "./parser/src/processors/type_processors/function_call.rs:73"
+                        .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -188,4 +191,3 @@ pub fn collect(
         }
     }
 }
-

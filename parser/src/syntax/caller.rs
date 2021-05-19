@@ -1,10 +1,12 @@
+#[repr(C)]
 #[derive(PartialEq, Debug, Clone)]
 pub enum CallerType {
     FunctionCaller,
     VariableCaller,
-    Unknown
+    Unknown,
 }
 
+#[repr(C)]
 #[derive(PartialEq, Debug, Clone)]
 pub struct Caller {
     pub initialized: bool,
@@ -14,5 +16,5 @@ pub struct Caller {
     pub r#type: CallerType,
     pub raw_value: String,
     pub value: crate::syntax::types::Types,
-    pub pos : crate::parser::defs::Cursor
+    pub pos: crate::parser::defs::Cursor,
 }

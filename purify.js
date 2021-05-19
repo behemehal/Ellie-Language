@@ -7,17 +7,6 @@ var code = file.value;
 
 var getValue = (element) => element.value;
 
-/*
-    Equal,
-    NotEqual,
-    GreaterThan,
-    LessThan,
-    GreaterThanOrEqual,
-    LessThanOrEqual,
-    Null
-*/
-
-
 function purifyCode(type, element) {
     var purified = "";
     if (type == "Number") {

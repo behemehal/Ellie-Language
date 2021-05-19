@@ -1,7 +1,7 @@
 use crate::alloc::string::String;
 use crate::alloc::vec::Vec;
 use crate::syntax;
-use crate::syntax::r#type::Collecting;
+use crate::syntax::definers::Collecting;
 use ellie_core::{defs, error, utils};
 
 /*
@@ -66,17 +66,17 @@ pub fn collect(
         }
         Collecting::Generic(data) => {
             if data.r#type.trim() == "fn" {
-                *type_data = Collecting::Function(syntax::r#type::FunctionType {
+                *type_data = Collecting::Function(syntax::definers::FunctionType {
                     bracket_inserted: letter_char == "(",
                     params: if letter_char == "(" {
-                        vec![Collecting::Generic(syntax::r#type::GenericType::default())]
+                        vec![Collecting::Generic(syntax::definers::GenericType::default())]
                     } else {
                         vec![]
                     },
                     ..Default::default()
                 });
             } else if letter_char == "(" && data.r#type == "array" {
-                *type_data = Collecting::Array(syntax::r#type::ArrayType {
+                *type_data = Collecting::Array(syntax::definers::ArrayType {
                     bracket_inserted: letter_char == "(",
                     ..Default::default()
                 });
@@ -132,12 +132,12 @@ pub fn collect(
                 if letter_char == "(" && !data.bracket_inserted {
                     data.bracket_inserted = true;
                     data.params
-                        .push(Collecting::Generic(syntax::r#type::GenericType::default()));
+                        .push(Collecting::Generic(syntax::definers::GenericType::default()));
                 } else if letter_char == ")" && data.bracket_inserted {
                     data.parameter_collected = true;
                 } else if letter_char == "," && !data.params.is_empty() && !data.at_comma {
                     data.params
-                        .push(Collecting::Generic(syntax::r#type::GenericType::default()));
+                        .push(Collecting::Generic(syntax::definers::GenericType::default()));
                     data.at_comma = true;
                 } else if data.params.is_empty() && data.bracket_inserted {
                     //This should have been filled If everything were right
@@ -170,7 +170,7 @@ pub fn collect(
                         last_char,
                     );
 
-                    if matches!(data.params[if len == 0 { 0 } else { len - 1 }].clone(), crate::syntax::r#type::Collecting::Array(x) if x.complete) || matches!(data.params[if len == 0 { 0 } else { len - 1 }].clone(), crate::syntax::r#type::Collecting::Function(x) if x.complete) || matches!(data.params[if len == 0 { 0 } else { len - 1 }].clone(), crate::syntax::r#type::Collecting::Cloak(x) if x.complete) || matches!(data.params[if len == 0 { 0 } else { len - 1 }].clone(), crate::syntax::r#type::Collecting::Generic(_)) {
+                    if matches!(data.params[if len == 0 { 0 } else { len - 1 }].clone(), crate::syntax::definers::Collecting::Array(x) if x.complete) || matches!(data.params[if len == 0 { 0 } else { len - 1 }].clone(), crate::syntax::definers::Collecting::Function(x) if x.complete) || matches!(data.params[if len == 0 { 0 } else { len - 1 }].clone(), crate::syntax::definers::Collecting::Cloak(x) if x.complete) || matches!(data.params[if len == 0 { 0 } else { len - 1 }].clone(), crate::syntax::definers::Collecting::Generic(_)) {
                         data.complete = true;
                     }
                 }

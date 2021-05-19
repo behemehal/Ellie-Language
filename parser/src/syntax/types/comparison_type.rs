@@ -38,7 +38,6 @@ impl ComparisonOperators {
             _ => Err(true)
         }
     }
-    
 }
 
 #[derive(PartialEq, Debug, Clone, Default, Serialize)]

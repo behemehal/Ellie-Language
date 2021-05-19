@@ -57,7 +57,9 @@ pub fn collect(
                                 .is_empty()
                         {
                             errors.push(error::Error {
-                                debug_message: "./parser/src/processors/type_processors/arrow_function.rs:59".to_string(),
+                                debug_message:
+                                    "./parser/src/processors/type_processors/arrow_function.rs:59"
+                                        .to_string(),
                                 title: error::errorList::error_s1.title.clone(),
                                 code: error::errorList::error_s1.code,
                                 message: error::errorList::error_s1.message.clone(),
@@ -80,7 +82,9 @@ pub fn collect(
                         functiondata.parameter_wrote = true;
                     } else if letter_char != " " {
                         errors.push(error::Error {
-                            debug_message: "./parser/src/processors/type_processors/arrow_function.rs:82".to_string(),
+                            debug_message:
+                                "./parser/src/processors/type_processors/arrow_function.rs:82"
+                                    .to_string(),
                             title: error::errorList::error_s1.title.clone(),
                             code: error::errorList::error_s1.code,
                             message: error::errorList::error_s1.message.clone(),
@@ -103,9 +107,9 @@ pub fn collect(
                 {
                     functiondata.parameter_wrote = true;
                 } else if letter_char == ","
-                    && (matches!(functiondata.data.parameters[last_entry - 1].data.r#type.clone(), crate::syntax::r#type::Collecting::Array(x) if x.complete)
-                        || matches!(functiondata.data.parameters[last_entry - 1].data.r#type.clone(), crate::syntax::r#type::Collecting::Function(x) if x.complete)
-                        || matches!(functiondata.data.parameters[last_entry - 1].data.r#type.clone(), crate::syntax::r#type::Collecting::Cloak(x) if x.complete))
+                    && (matches!(functiondata.data.parameters[last_entry - 1].data.r#type.clone(), crate::syntax::definers::Collecting::Array(x) if x.complete)
+                        || matches!(functiondata.data.parameters[last_entry - 1].data.r#type.clone(), crate::syntax::definers::Collecting::Function(x) if x.complete)
+                        || matches!(functiondata.data.parameters[last_entry - 1].data.r#type.clone(), crate::syntax::definers::Collecting::Cloak(x) if x.complete))
                 {
                     //If its type's comma dont stop collecting it
                     functiondata
@@ -135,7 +139,8 @@ pub fn collect(
                 functiondata.return_typed = true;
             } else if letter_char != " " {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/arrow_function.rs:137".to_string(),
+                    debug_message: "./parser/src/processors/type_processors/arrow_function.rs:137"
+                        .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -154,9 +159,9 @@ pub fn collect(
             }
         } else if !functiondata.return_typed {
             if letter_char == "{"
-                && (matches!(*functiondata.data.return_type.clone(), crate::syntax::r#type::Collecting::Array(x) if x.complete)
-                    || matches!(*functiondata.data.return_type.clone(), crate::syntax::r#type::Collecting::Function(x) if x.complete)
-                    || matches!(*functiondata.data.return_type.clone(), crate::syntax::r#type::Collecting::Cloak(x) if x.complete))
+                && (matches!(*functiondata.data.return_type.clone(), crate::syntax::definers::Collecting::Array(x) if x.complete)
+                    || matches!(*functiondata.data.return_type.clone(), crate::syntax::definers::Collecting::Function(x) if x.complete)
+                    || matches!(*functiondata.data.return_type.clone(), crate::syntax::definers::Collecting::Cloak(x) if x.complete))
             {
                 functiondata.return_typed = true;
             } else {
@@ -198,4 +203,3 @@ pub fn collect(
         }
     }
 }
-

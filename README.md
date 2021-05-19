@@ -5,6 +5,9 @@ Ellie language [NOT COMPLETE]
 
 Why ellie? Ellie is a scripting engine that runs on embedded and sandboxed environments.
 
+# Language Tour
+You can see [LanguageTour.md](./LanguageTour.md)
+
 ## CLI usage
 
 `ellie ./test.ei`
@@ -15,37 +18,9 @@ Language does not have a runtime for now, here are the tasks we need to complete
 - Functions [X]
 - If Else   [X]
 - Classes   [?]
+- Enums     [ ]
 - For Loops [ ]
 
-# Variables
-
-```rust
-
-v variableName : i8 = 1;
-d variableName = 1; //Dynamic Variable
-
-```
-
-# Data Types
-
-Ellie has same primitive types like rust
-
-```rust
-    i8
-    i16
-    i32
-    i64
-    i128
-    isize
-    u8
-    u16
-    u32
-    u64
-    u128
-    usize
-    f32
-    f64
-```
 
 
 # Note

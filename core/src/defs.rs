@@ -1,6 +1,6 @@
 #![allow(warnings)] //TODO Remove this
-use serde::Serialize;
 use core::fmt;
+use serde::Serialize;
 
 #[derive(PartialEq, Debug, Clone)]
 pub struct ParserOptions {
@@ -9,18 +9,29 @@ pub struct ParserOptions {
     pub loops: bool,
     pub global_variables: bool,
     pub collectives: bool,
-    pub variables: bool
+    pub variables: bool,
 }
 
 impl Default for ParserOptions {
-    fn default() -> Self { ParserOptions {functions: true, break_on_error: false, loops: true, global_variables: true, collectives: true, variables: true} }
+    fn default() -> Self {
+        ParserOptions {
+            functions: true,
+            break_on_error: false,
+            loops: true,
+            global_variables: true,
+            collectives: true,
+            variables: true,
+        }
+    }
 }
 
 #[derive(PartialEq, Debug, Clone, Copy, Serialize)]
-pub struct CursorPosition(pub i64,pub i64);
+pub struct CursorPosition(pub i64, pub i64);
 
 impl Default for CursorPosition {
-    fn default() -> Self { CursorPosition(0, 0) }
+    fn default() -> Self {
+        CursorPosition(0, 0)
+    }
 }
 
 impl CursorPosition {
@@ -38,12 +49,15 @@ impl CursorPosition {
 #[derive(PartialEq, Debug, Clone, Copy, Serialize)]
 pub struct Cursor {
     pub range_start: CursorPosition,
-    pub range_end: CursorPosition
+    pub range_end: CursorPosition,
 }
 
 impl Default for Cursor {
     fn default() -> Self {
-        Cursor {range_start: CursorPosition::default(), range_end: CursorPosition::default()}
+        Cursor {
+            range_start: CursorPosition::default(),
+            range_end: CursorPosition::default(),
+        }
     }
 }
 
@@ -57,6 +71,17 @@ pub struct SyntaxError {
 impl fmt::Display for SyntaxError {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         // We need to remove "-" from the number output.
-        formatter.write_str(&format!("{} {}",if self.debugText != "" {"[".to_owned() + &self.debugText + "]"} else {"".to_string()}, self.error.builded_message).to_string())   
+        formatter.write_str(
+            &format!(
+                "{} {}",
+                if self.debugText != "" {
+                    "[".to_owned() + &self.debugText + "]"
+                } else {
+                    "".to_string()
+                },
+                self.error.builded_message
+            )
+            .to_string(),
+        )
     }
 }

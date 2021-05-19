@@ -1,10 +1,10 @@
-use ellie_core::{error, defs, utils};
 use crate::parser;
 use crate::syntax::{function, types};
+use ellie_core::{defs, error, utils};
 
+use crate::alloc::string::{String, ToString};
 use crate::alloc::vec;
 use crate::alloc::vec::Vec;
-use crate::alloc::string::{String, ToString};
 
 pub fn collect(
     parser: &mut parser::Parser,
@@ -13,5 +13,4 @@ pub fn collect(
     _next_char: String,
     last_char: String,
 ) {
-    
 }

@@ -1,5 +1,5 @@
-pub mod variable;
+pub mod condition;
+pub mod definers;
 pub mod function;
 pub mod types;
-pub mod condition;
-pub mod r#type;
+pub mod variable;

@@ -1,4 +1,4 @@
-use crate::syntax::{types, variable, r#type};
+use crate::syntax::{definers, types, variable};
 use ellie_core::{defs, error, utils};
 
 use alloc::string::{String, ToString};
@@ -17,7 +17,8 @@ pub fn collect(
         if letter_char == "." {
             if data.on_dot {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/refference.rs:19".to_string(),
+                    debug_message: "./parser/src/processors/type_processors/refference.rs:19"
+                        .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -53,7 +54,8 @@ pub fn collect(
                     //});
                 } else {
                     errors.push(error::Error {
-                        debug_message: "./parser/src/processors/type_processors/refference.rs:55".to_string(),
+                        debug_message: "./parser/src/processors/type_processors/refference.rs:55"
+                            .to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -79,27 +81,18 @@ pub fn collect(
                             //It's a f32 or f64
 
                             if itered_data.data.dynamic {
-                                 itered_data.r#type = r#type::Collecting::Generic(r#type::GenericType { 
-                                     r#type: "f32".to_string()
-                                 });
-                                 //  itered_data.r#type.raw_name()
+                                itered_data.r#type =
+                                    definers::Collecting::Generic(definers::GenericType {
+                                        r#type: "f32".to_string(),
+                                    });
+                                //  itered_data.r#type.raw_name()
                             }
 
                             if let types::number_type::NumberSize::F32(_) = refference_value.value {
                                 errors.push(error::Error {
-                                    debug_message: "./parser/src/processors/type_processors/refference.rs:89".to_string(),
-                                    title: error::errorList::error_s18.title.clone(),
-                                    code: error::errorList::error_s18.code,
-                                    message: error::errorList::error_s18.message.clone(),
-                                    builded_message: error::errorList::error_s18.message.clone(),
-                                    pos: defs::Cursor {
-                                        range_start: pos,
-                                        range_end: pos.clone().skipChar(1),
-                                    }
-                                });
-                            } else if let types::number_type::NumberSize::F64(_) = refference_value.value {
-                                errors.push(error::Error {
-                                    debug_message: "./parser/src/processors/type_processors/refference.rs:101".to_string(),
+                                    debug_message:
+                                        "./parser/src/processors/type_processors/refference.rs:89"
+                                            .to_string(),
                                     title: error::errorList::error_s18.title.clone(),
                                     code: error::errorList::error_s18.code,
                                     message: error::errorList::error_s18.message.clone(),
@@ -109,7 +102,23 @@ pub fn collect(
                                         range_end: pos.clone().skipChar(1),
                                     },
                                 });
-                            } else if  itered_data.r#type.raw_name() == "f32" {
+                            } else if let types::number_type::NumberSize::F64(_) =
+                                refference_value.value
+                            {
+                                errors.push(error::Error {
+                                    debug_message:
+                                        "./parser/src/processors/type_processors/refference.rs:101"
+                                            .to_string(),
+                                    title: error::errorList::error_s18.title.clone(),
+                                    code: error::errorList::error_s18.code,
+                                    message: error::errorList::error_s18.message.clone(),
+                                    builded_message: error::errorList::error_s18.message.clone(),
+                                    pos: defs::Cursor {
+                                        range_start: pos,
+                                        range_end: pos.clone().skipChar(1),
+                                    },
+                                });
+                            } else if itered_data.r#type.raw_name() == "f32" {
                                 let double_parse =
                                     (refference_value.raw.clone() + "." + letter_char)
                                         .parse::<f32>();
@@ -178,7 +187,7 @@ pub fn collect(
                                         },
                                     });
                                 }
-                            } else if  itered_data.r#type.raw_name() == "f64" {
+                            } else if itered_data.r#type.raw_name() == "f64" {
                                 let double_parse =
                                     (refference_value.raw.clone() + "." + letter_char)
                                         .parse::<f64>();
@@ -221,7 +230,9 @@ pub fn collect(
                                 }
                             } else {
                                 errors.push(error::Error {
-                                    debug_message: "./parser/src/processors/type_processors/refference.rs:223".to_string(),
+                                    debug_message:
+                                        "./parser/src/processors/type_processors/refference.rs:223"
+                                            .to_string(),
                                     title: error::errorList::error_s3.title.clone(),
                                     code: error::errorList::error_s3.code,
                                     message: error::errorList::error_s3.message.clone(),
@@ -230,7 +241,7 @@ pub fn collect(
                                         vec![
                                             error::ErrorBuildField {
                                                 key: "token1".to_string(),
-                                                value: itered_data.r#type.raw_name()
+                                                value: itered_data.r#type.raw_name(),
                                             },
                                             error::ErrorBuildField {
                                                 key: "token2".to_string(),
@@ -246,7 +257,9 @@ pub fn collect(
                             }
                         } else {
                             errors.push(error::Error {
-                                debug_message: "./parser/src/processors/type_processors/refference.rs:248".to_string(),
+                                debug_message:
+                                    "./parser/src/processors/type_processors/refference.rs:248"
+                                        .to_string(),
                                 title: error::errorList::error_s18.title.clone(),
                                 code: error::errorList::error_s18.code,
                                 message: error::errorList::error_s18.message.clone(),
@@ -254,12 +267,14 @@ pub fn collect(
                                 pos: defs::Cursor {
                                     range_start: pos,
                                     range_end: pos.clone().skipChar(1),
-                                }
+                                },
                             });
                         }
                     } else {
                         errors.push(error::Error {
-                            debug_message: "./parser/src/processors/type_processors/refference.rs:261".to_string(),
+                            debug_message:
+                                "./parser/src/processors/type_processors/refference.rs:261"
+                                    .to_string(),
                             title: error::errorList::error_s18.title.clone(),
                             code: error::errorList::error_s18.code,
                             message: error::errorList::error_s18.message.clone(),
@@ -285,7 +300,9 @@ pub fn collect(
                         }
                     } else {
                         errors.push(error::Error {
-                            debug_message: "./parser/src/processors/type_processors/refference.rs:287".to_string(),
+                            debug_message:
+                                "./parser/src/processors/type_processors/refference.rs:287"
+                                    .to_string(),
                             title: error::errorList::error_s1.title.clone(),
                             code: error::errorList::error_s1.code,
                             message: error::errorList::error_s1.message.clone(),
@@ -302,10 +319,8 @@ pub fn collect(
                             },
                         });
                     }
-
                 }
             }
         }
     }
 }
-
