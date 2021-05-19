@@ -61,7 +61,7 @@ pub fn collect(
             //    collecting_operator: true,
             //    ..Default::default()
             //});
-        } else if letter_char != "\\" {
+        } else if !data.complete {
             data.value += letter_char;
         } else if letter_char != " " {
             errors.push(error::Error {
