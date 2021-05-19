@@ -87,6 +87,9 @@
 
   ```
 * Class
+
+    You can see complex [example](./examples/arrayChunker.ei)
+
     ```ellie
         class Test<T> { //A generic type class
 
