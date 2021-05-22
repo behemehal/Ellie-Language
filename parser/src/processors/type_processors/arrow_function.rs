@@ -137,6 +137,7 @@ pub fn collect(
                 functiondata.pointer_typed = true;
             } else if letter_char == "{" {
                 functiondata.return_typed = true;
+                functiondata.pointer_typed = true;
             } else if letter_char != " " {
                 errors.push(error::Error {
                     debug_message: "./parser/src/processors/type_processors/arrow_function.rs:137"
@@ -159,7 +160,10 @@ pub fn collect(
             }
         } else if !functiondata.return_typed {
             if letter_char == "{"
-                && (matches!(*functiondata.data.return_type.clone(), crate::syntax::definers::Collecting::Array(x) if x.complete)
+                && (matches!(
+                    *functiondata.data.return_type.clone(),
+                    crate::syntax::definers::Collecting::Generic(_)
+                ) || matches!(*functiondata.data.return_type.clone(), crate::syntax::definers::Collecting::Array(x) if x.complete)
                     || matches!(*functiondata.data.return_type.clone(), crate::syntax::definers::Collecting::Function(x) if x.complete)
                     || matches!(*functiondata.data.return_type.clone(), crate::syntax::definers::Collecting::Cloak(x) if x.complete))
             {
