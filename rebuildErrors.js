@@ -15,7 +15,7 @@ function refactorFile(file, fileDir) {
         var line = lines[i];
         if (line.includes("debug_message: \"") && fileDir != "./core/src/error/mod.rs") {
             var first = line.split("debug_message: \"")[0];
-            factoredFile += first + "debug_message: \"" + fileDir + ":" + i + "\".to_string(),\n"
+            factoredFile += first + "debug_message: \"" + fileDir + ":" + i + "\".to_string(),\r\n"
             factored = true;
         } else {
             factoredFile += line + "\n";
@@ -24,6 +24,7 @@ function refactorFile(file, fileDir) {
     if (factored) {
         log(`Factoring ${fileDir}:${i + 1}`);
         fs.writeFileSync(fileDir, factoredFile, 'utf8');
+        console.log(factoredFile);
     }
 }
 
