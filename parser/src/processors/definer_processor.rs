@@ -21,6 +21,30 @@ pub fn collect(
     last_char: String,
 ) {
     match type_data {
+        Collecting::DynamicArray(ref mut data) => {
+            if letter_char == "(" && !data.bracket_inserted {
+                data.bracket_inserted = true;
+            } else if letter_char == ")"
+                && (matches!(
+                    *data.r#type.clone(),
+                    crate::syntax::definers::Collecting::Generic(_)
+                ) || matches!(*data.r#type.clone(), crate::syntax::definers::Collecting::Array(x) if x.complete)
+                    || matches!(*data.r#type.clone(), crate::syntax::definers::Collecting::Function(x) if x.complete)
+                    || matches!(*data.r#type.clone(), crate::syntax::definers::Collecting::Cloak(x) if x.complete)
+                    || matches!(*data.r#type.clone(), crate::syntax::definers::Collecting::DynamicArray(x) if x.complete))
+            {
+                data.complete = true;
+            } else {
+                collect(
+                    &mut data.r#type,
+                    errors,
+                    letter_char,
+                    pos,
+                    next_char,
+                    last_char,
+                )
+            }
+        }
         Collecting::Array(ref mut data) => {
             if !data.typed {
                 if letter_char == "(" && !data.bracket_inserted {
@@ -56,11 +80,9 @@ pub fn collect(
                 for i in processed_data.errors {
                     errors.push(i)
                 }
-                
                 if emulated_collector_data.data.value.is_complete() {
                     data.complete = true;
                 }
-                
                 data.len = emulated_collector_data.data.value;
             }
         }
@@ -108,7 +130,8 @@ pub fn collect(
                     data.r#type = utils::trim_good(data.r#type.trim().to_string());
                 } else if letter_char != " " {
                     errors.push(error::Error {
-                        debug_message: "./parser/src/processors/type_check_processor.rs:110".to_string(),
+                        debug_message: "./parser/src/processors/type_check_processor.rs:110"
+                            .to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -142,7 +165,8 @@ pub fn collect(
                 } else if data.params.is_empty() && data.bracket_inserted {
                     //This should have been filled If everything were right
                     errors.push(error::Error {
-                        debug_message: "./parser/src/processors/type_check_processor.rs:144".to_string(),
+                        debug_message: "./parser/src/processors/type_check_processor.rs:144"
+                            .to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -170,7 +194,14 @@ pub fn collect(
                         last_char,
                     );
 
-                    if matches!(data.params[if len == 0 { 0 } else { len - 1 }].clone(), crate::syntax::definers::Collecting::Array(x) if x.complete) || matches!(data.params[if len == 0 { 0 } else { len - 1 }].clone(), crate::syntax::definers::Collecting::Function(x) if x.complete) || matches!(data.params[if len == 0 { 0 } else { len - 1 }].clone(), crate::syntax::definers::Collecting::Cloak(x) if x.complete) || matches!(data.params[if len == 0 { 0 } else { len - 1 }].clone(), crate::syntax::definers::Collecting::Generic(_)) {
+                    if matches!(data.params[if len == 0 { 0 } else { len - 1 }].clone(), crate::syntax::definers::Collecting::Array(x) if x.complete)
+                        || matches!(data.params[if len == 0 { 0 } else { len - 1 }].clone(), crate::syntax::definers::Collecting::Function(x) if x.complete)
+                        || matches!(data.params[if len == 0 { 0 } else { len - 1 }].clone(), crate::syntax::definers::Collecting::Cloak(x) if x.complete)
+                        || matches!(
+                            data.params[if len == 0 { 0 } else { len - 1 }].clone(),
+                            crate::syntax::definers::Collecting::Generic(_)
+                        )
+                    {
                         data.complete = true;
                     }
                 }
@@ -178,7 +209,8 @@ pub fn collect(
                 if data.return_keyword != 2 {
                     if letter_char != ":" {
                         errors.push(error::Error {
-                            debug_message: "./parser/src/processors/type_check_processor.rs:180".to_string(),
+                            debug_message: "./parser/src/processors/type_check_processor.rs:180"
+                                .to_string(),
                             title: error::errorList::error_s1.title.clone(),
                             code: error::errorList::error_s1.code,
                             message: error::errorList::error_s1.message.clone(),
@@ -212,4 +244,3 @@ pub fn collect(
         Collecting::Cloak(_) => {}
     }
 }
-

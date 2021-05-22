@@ -33,6 +33,13 @@ pub struct ArrayType {
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Default)]
+pub struct DynamicArrayType {
+    pub complete: bool,
+    pub r#type: Box<Collecting>,
+    pub bracket_inserted: bool,
+}
+
+#[derive(PartialEq, Debug, Clone, Serialize, Default)]
 pub struct GenericType {
     pub r#type: String,
 }
@@ -40,6 +47,7 @@ pub struct GenericType {
 #[derive(PartialEq, Debug, Clone, Serialize)]
 pub enum Collecting {
     Array(ArrayType),
+    DynamicArray(DynamicArrayType),
     Generic(GenericType),
     Function(FunctionType),
     Cloak(CloakType),
@@ -54,8 +62,19 @@ impl Default for Collecting {
 impl Collecting {
     pub fn is_type_empty(&self) -> bool {
         match self {
-            Collecting::Array(data) => data.complete,
+            Collecting::Array(data) => !data.complete,
+            Collecting::DynamicArray(data) => !data.complete,
             Collecting::Generic(data) => data.r#type.is_empty(),
+            Collecting::Function(data) => !data.complete,
+            Collecting::Cloak(_) => false,
+        }
+    }
+
+    pub fn is_complete(&self) -> bool {
+        match self {
+            Collecting::Array(data) => data.complete,
+            Collecting::DynamicArray(data) => data.complete,
+            Collecting::Generic(data) => !data.r#type.is_empty(),
             Collecting::Function(data) => data.complete,
             Collecting::Cloak(_) => false,
         }
@@ -64,6 +83,7 @@ impl Collecting {
     pub fn raw_name(&self) -> String {
         match self {
             Collecting::Array(_) => "array".to_string(),
+            Collecting::DynamicArray(_) => "dynamic_array".to_string(),
             Collecting::Generic(data) => data.r#type.clone(),
             Collecting::Function(_) => "function".to_string(),
             Collecting::Cloak(_) => "cloak".to_string(),

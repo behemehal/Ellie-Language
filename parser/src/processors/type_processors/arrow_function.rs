@@ -107,9 +107,10 @@ pub fn collect(
                 {
                     functiondata.parameter_wrote = true;
                 } else if letter_char == ","
-                    && (matches!(functiondata.data.parameters[last_entry - 1].data.r#type.clone(), crate::syntax::definers::Collecting::Array(x) if x.complete)
-                        || matches!(functiondata.data.parameters[last_entry - 1].data.r#type.clone(), crate::syntax::definers::Collecting::Function(x) if x.complete)
-                        || matches!(functiondata.data.parameters[last_entry - 1].data.r#type.clone(), crate::syntax::definers::Collecting::Cloak(x) if x.complete))
+                    && functiondata.data.parameters[last_entry - 1]
+                        .data
+                        .r#type
+                        .is_complete()
                 {
                     //If its type's comma dont stop collecting it
                     functiondata
@@ -122,7 +123,7 @@ pub fn collect(
                     } else if letter_char == "(" {
                         functiondata.data.parameters[last_entry - 1].child_brace += 1;
                     }
-                    processors::type_check_processor::collect(
+                    processors::definer_processor::collect(
                         &mut functiondata.data.parameters[last_entry - 1].data.r#type,
                         errors,
                         letter_char.to_string(),
@@ -159,17 +160,10 @@ pub fn collect(
                 });
             }
         } else if !functiondata.return_typed {
-            if letter_char == "{"
-                && (matches!(
-                    *functiondata.data.return_type.clone(),
-                    crate::syntax::definers::Collecting::Generic(_)
-                ) || matches!(*functiondata.data.return_type.clone(), crate::syntax::definers::Collecting::Array(x) if x.complete)
-                    || matches!(*functiondata.data.return_type.clone(), crate::syntax::definers::Collecting::Function(x) if x.complete)
-                    || matches!(*functiondata.data.return_type.clone(), crate::syntax::definers::Collecting::Cloak(x) if x.complete))
-            {
+            if letter_char == "{" && functiondata.data.return_type.is_complete() {
                 functiondata.return_typed = true;
             } else {
-                processors::type_check_processor::collect(
+                processors::definer_processor::collect(
                     &mut functiondata.data.return_type,
                     errors,
                     letter_char.to_string(),
