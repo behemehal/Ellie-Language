@@ -17,7 +17,7 @@ fn main() {
 
     let code = "
 
-        v test: i8 = 1;
+        @(test: array(i8, 8), test2: i8) {}
     
     ";
 

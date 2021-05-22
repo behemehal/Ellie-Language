@@ -13,4 +13,5 @@ pub fn collect(
     _next_char: String,
     last_char: String,
 ) {
+
 }

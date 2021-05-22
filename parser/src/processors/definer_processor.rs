@@ -24,15 +24,7 @@ pub fn collect(
         Collecting::DynamicArray(ref mut data) => {
             if letter_char == "(" && !data.bracket_inserted {
                 data.bracket_inserted = true;
-            } else if letter_char == ")"
-                && (matches!(
-                    *data.r#type.clone(),
-                    crate::syntax::definers::Collecting::Generic(_)
-                ) || matches!(*data.r#type.clone(), crate::syntax::definers::Collecting::Array(x) if x.complete)
-                    || matches!(*data.r#type.clone(), crate::syntax::definers::Collecting::Function(x) if x.complete)
-                    || matches!(*data.r#type.clone(), crate::syntax::definers::Collecting::Cloak(x) if x.complete)
-                    || matches!(*data.r#type.clone(), crate::syntax::definers::Collecting::DynamicArray(x) if x.complete))
-            {
+            } else if letter_char == ")" && data.r#type.is_complete() {
                 data.complete = true;
             } else {
                 collect(
@@ -49,7 +41,7 @@ pub fn collect(
             if !data.typed {
                 if letter_char == "(" && !data.bracket_inserted {
                     data.bracket_inserted = true;
-                } else if letter_char == "," {
+                } else if letter_char == "," && data.r#type.is_complete() {
                     data.typed = true;
                 } else {
                     collect(
@@ -99,7 +91,12 @@ pub fn collect(
                 });
             } else if letter_char == "(" && data.r#type == "array" {
                 *type_data = Collecting::Array(syntax::definers::ArrayType {
-                    bracket_inserted: letter_char == "(",
+                    bracket_inserted: true,
+                    ..Default::default()
+                });
+            } else if letter_char == "(" && data.r#type == "dynamicArray" {
+                *type_data = Collecting::DynamicArray(syntax::definers::DynamicArrayType {
+                    bracket_inserted: true,
                     ..Default::default()
                 });
             } else if letter_char != " " && last_char == " " && data.r#type.trim() != "" {
@@ -194,13 +191,7 @@ pub fn collect(
                         last_char,
                     );
 
-                    if matches!(data.params[if len == 0 { 0 } else { len - 1 }].clone(), crate::syntax::definers::Collecting::Array(x) if x.complete)
-                        || matches!(data.params[if len == 0 { 0 } else { len - 1 }].clone(), crate::syntax::definers::Collecting::Function(x) if x.complete)
-                        || matches!(data.params[if len == 0 { 0 } else { len - 1 }].clone(), crate::syntax::definers::Collecting::Cloak(x) if x.complete)
-                        || matches!(
-                            data.params[if len == 0 { 0 } else { len - 1 }].clone(),
-                            crate::syntax::definers::Collecting::Generic(_)
-                        )
+                    if data.params[if len == 0 { 0 } else { len - 1 }].is_complete()
                     {
                         data.complete = true;
                     }

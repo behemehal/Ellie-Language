@@ -16,7 +16,7 @@ fn main() {
         let letter_char = &char.to_string();
         let last_char = &ellie_core::utils::get_letter(code.to_string(), index, false).to_owned();
         let next_char = &ellie_core::utils::get_letter(code.to_string(), index, true).to_owned();
-        ellie_parser::processors::type_check_processor::collect(
+        ellie_parser::processors::definer_processor::collect(
             &mut emulated_collector_data,
             &mut errors,
             letter_char.to_string(),

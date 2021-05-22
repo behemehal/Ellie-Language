@@ -1,2 +1,1 @@
-v test: i8 = 1 + 1;
-
+v test: array(i8, 7) = "tes\"t";
