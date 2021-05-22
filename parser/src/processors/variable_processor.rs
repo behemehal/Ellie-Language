@@ -171,7 +171,7 @@ pub fn collect(
                 parser.collected.push(parser.current.clone());
                 parser.current = parser::Collecting::None;
             } else if letter_char == "=" {
-                if variabledata.r#type.is_type_empty() {
+                if !variabledata.r#type.is_complete() {
                     errors.push(error::Error {
                         debug_message: "./parser/src/processors/variable_processor.rs:169"
                             .to_string(),
@@ -201,7 +201,7 @@ pub fn collect(
                     variabledata.typed = true;
                 }
             } else {
-                processors::type_check_processor::collect(
+                processors::definer_processor::collect(
                     &mut variabledata.r#type,
                     errors,
                     letter_char.to_string(),
