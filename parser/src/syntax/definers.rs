@@ -17,7 +17,7 @@ pub struct FunctionType {
 #[derive(PartialEq, Debug, Clone, Serialize, Default)]
 pub struct CloakType {
     pub complete: bool,
-    pub data: Vec<Collecting>,
+    pub r#type: Vec<Collecting>,
     pub bracket_inserted: bool,
     pub at_comma: bool,
 }
@@ -66,7 +66,7 @@ impl Collecting {
             Collecting::DynamicArray(data) => !data.complete,
             Collecting::Generic(data) => data.r#type.is_empty(),
             Collecting::Function(data) => !data.complete,
-            Collecting::Cloak(_) => false,
+            Collecting::Cloak(data) => !data.complete,
         }
     }
 
@@ -76,7 +76,7 @@ impl Collecting {
             Collecting::DynamicArray(data) => data.complete,
             Collecting::Generic(data) => !data.r#type.is_empty(),
             Collecting::Function(data) => data.complete,
-            Collecting::Cloak(_) => false,
+            Collecting::Cloak(data) => data.complete
         }
     }
 

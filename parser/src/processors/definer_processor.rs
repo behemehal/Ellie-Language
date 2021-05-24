@@ -79,19 +79,21 @@ pub fn collect(
             }
         }
         Collecting::Generic(data) => {
-            if data.r#type.trim() == "fn" {
+            if letter_char == "(" && data.r#type.trim() == "fn" {
                 *type_data = Collecting::Function(syntax::definers::FunctionType {
-                    bracket_inserted: letter_char == "(",
-                    params: if letter_char == "(" {
-                        vec![Collecting::Generic(syntax::definers::GenericType::default())]
-                    } else {
-                        vec![]
-                    },
+                    bracket_inserted: true,
+                    params: vec![Collecting::Generic(syntax::definers::GenericType::default())],
                     ..Default::default()
                 });
             } else if letter_char == "(" && data.r#type == "array" {
                 *type_data = Collecting::Array(syntax::definers::ArrayType {
                     bracket_inserted: true,
+                    ..Default::default()
+                });
+            } else if letter_char == "(" && data.r#type == "cloak" {
+                *type_data = Collecting::Cloak(syntax::definers::CloakType {
+                    bracket_inserted: true,
+                    r#type: vec![Collecting::Generic(syntax::definers::GenericType::default())],
                     ..Default::default()
                 });
             } else if letter_char == "(" && data.r#type == "dynamicArray" {
@@ -101,7 +103,7 @@ pub fn collect(
                 });
             } else if letter_char != " " && last_char == " " && data.r#type.trim() != "" {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_check_processor.rs:84".to_string(),
+                    debug_message: "./parser/src/processors/definer_processor.rs:103".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -127,8 +129,7 @@ pub fn collect(
                     data.r#type = utils::trim_good(data.r#type.trim().to_string());
                 } else if letter_char != " " {
                     errors.push(error::Error {
-                        debug_message: "./parser/src/processors/type_check_processor.rs:110"
-                            .to_string(),
+                        debug_message: "./parser/src/processors/definer_processor.rs:129".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -162,8 +163,7 @@ pub fn collect(
                 } else if data.params.is_empty() && data.bracket_inserted {
                     //This should have been filled If everything were right
                     errors.push(error::Error {
-                        debug_message: "./parser/src/processors/type_check_processor.rs:144"
-                            .to_string(),
+                        debug_message: "./parser/src/processors/definer_processor.rs:164" .to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -200,8 +200,7 @@ pub fn collect(
                 if data.return_keyword != 2 {
                     if letter_char != ":" {
                         errors.push(error::Error {
-                            debug_message: "./parser/src/processors/type_check_processor.rs:180"
-                                .to_string(),
+                            debug_message: "./parser/src/processors/definer_processor.rs:202" .to_string(),
                             title: error::errorList::error_s1.title.clone(),
                             code: error::errorList::error_s1.code,
                             message: error::errorList::error_s1.message.clone(),
@@ -232,6 +231,29 @@ pub fn collect(
                 }
             }
         }
-        Collecting::Cloak(_) => {}
+        Collecting::Cloak(data) => {
+            let length_of_childs = data.r#type.len();
+            let is_complete = if length_of_childs == 0 {
+                false
+            } else {
+                data.r#type[ if length_of_childs == 1 { 0 } else { length_of_childs - 1 }].is_complete()
+            };
+
+            if letter_char == "," && is_complete {
+                data.r#type.push(Collecting::Generic(syntax::definers::GenericType::default()));
+            } else if letter_char == ")" && is_complete {
+                data.complete = true;
+            } else {
+                collect(
+                    &mut data.r#type[ if length_of_childs == 1 { 0 } else { length_of_childs - 1 }],
+                    errors,
+                    letter_char,
+                    pos,
+                    next_char,
+                    last_char,
+                )
+            }
+        }
     }
 }
+
