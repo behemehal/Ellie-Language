@@ -4,8 +4,9 @@ use crate::syntax::function;
 use crate::syntax::{types, variable};
 use ellie_core::{defs, error, utils};
 
-use alloc::string::String;
+use alloc::string::{String, ToString};
 use alloc::vec::Vec;
+use alloc::vec;
 
 pub fn collect(
     itered_data: &mut variable::VariableCollector,

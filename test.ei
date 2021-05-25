@@ -1,1 +1,1 @@
-v cloakTest : cloak(i8, char) = (33, 33);
+v cloakTest : dynamicArray(char) = [3, 3];

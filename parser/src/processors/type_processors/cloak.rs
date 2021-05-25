@@ -1,6 +1,6 @@
 use crate::processors::value_processor;
 use crate::syntax::{types, variable, definers};
-use ellie_core::{defs, error};
+use ellie_core::{defs, error, utils};
 
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};
@@ -196,7 +196,10 @@ pub fn collect(
             let mut will_be_itered : variable::VariableCollector;
             if let definers::Collecting::Cloak(cloak_data) = itered_data.r#type.clone() {
                 will_be_itered = if data.collective.is_empty() {
-                    variable::VariableCollector::default()
+                    variable::VariableCollector {
+                        r#type: cloak_data.r#type[0].clone(),
+                        ..variable::VariableCollector::default()
+                    }
                 } else {
                     variable::VariableCollector {
                         r#type: cloak_data.r#type[data.collective.len() - 1].clone(),
@@ -208,7 +211,6 @@ pub fn collect(
                     }
                 };
             } else {
-                panic!("PANIC");
                 will_be_itered = if data.collective.is_empty() {
                     variable::VariableCollector::default()
                 } else {
@@ -220,6 +222,13 @@ pub fn collect(
                         ..variable::VariableCollector::default()
                     }
                 };
+                #[cfg(feature = "std")]
+                println!(
+                    "{}[ParserError]{}: This shouldn't have happened",
+                    utils::terminal_colors::get_color(utils::terminal_colors::Colors::Red),
+                    utils::terminal_colors::get_color(utils::terminal_colors::Colors::Reset),
+                );
+
             }
 
             let itered_cloak_vector = Box::new(value_processor::collect(

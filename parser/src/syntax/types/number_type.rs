@@ -1,7 +1,9 @@
 use alloc::fmt::Display;
 use alloc::fmt::Formatter;
 use alloc::string::String;
+use alloc::format;
 use serde::Serialize;
+use enum_as_inner::EnumAsInner;
 
 #[derive(PartialEq, Eq, Debug, Clone, Copy, Serialize)]
 pub enum NumberTypes {
@@ -27,7 +29,7 @@ impl Default for NumberTypes {
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Copy, Serialize)]
+#[derive(PartialEq, Debug, Clone, Copy, Serialize, EnumAsInner)]
 pub enum NumberSize {
     U8(u8),
     U16(u16),
@@ -45,11 +47,28 @@ pub enum NumberSize {
     F64(f64),
 }
 
+/*
+
+let mut s = String::from("α is alpha, β is beta");
+let beta_offset = s.find('β').unwrap_or(s.len());
+
+s.replace_range(..beta_offset, "Α is capital alpha; ");
+assert_eq!(s, "Α is capital alpha; β is beta");
+
+*/
+
+impl NumberSize {
+    pub fn get_type(&self) -> String {
+        let mut q: String = format!("{:?}",self);
+        let bracket_offset = q.find('(').unwrap_or_else(|| q.len());
+        q.replace_range(bracket_offset.., "");
+        q
+    }
+}
+
 impl Display for NumberSize {
     fn fmt(&self, f: &mut Formatter) -> alloc::fmt::Result {
-        write!(f, "{:?}", self)
-        // or, alternatively:
-        // fmt::Debug::fmt(self, f)
+        write!(f, "{:?}",self)
     }
 }
 

@@ -1,8 +1,10 @@
 use crate::syntax::{types, variable};
 use ellie_core::{defs, error};
 
+use alloc::boxed::Box;
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
+use alloc::vec;
 
 pub fn collect(
     itered_data: &mut variable::VariableCollector,

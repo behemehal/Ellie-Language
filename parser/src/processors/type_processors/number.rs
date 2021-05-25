@@ -470,7 +470,7 @@ pub fn collect(
                     }
                 } else {
                     errors.push(error::Error {
-                        debug_message: "./parser/src/processors/type_processors/number.rs:487" .to_string(),
+                        debug_message: "@./parser/src/processors/type_processors/number.rs:487".to_string(),
                         title: error::errorList::error_s3.title.clone(),
                         code: error::errorList::error_s3.code,
                         message: error::errorList::error_s3.message.clone(),
@@ -483,7 +483,7 @@ pub fn collect(
                                 },
                                 error::ErrorBuildField {
                                     key: "token2".to_string(),
-                                    value: data.value.to_string().to_lowercase(),
+                                    value: data.value.get_type().to_lowercase(),
                                 },
                             ],
                         ),

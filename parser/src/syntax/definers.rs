@@ -1,5 +1,6 @@
 use alloc::boxed::Box;
-use alloc::string::String;
+use alloc::string::{String, ToString};
+use alloc::vec::Vec;
 use serde::Serialize;
 
 #[derive(PartialEq, Debug, Clone, Serialize, Default)]
@@ -76,7 +77,7 @@ impl Collecting {
             Collecting::DynamicArray(data) => data.complete,
             Collecting::Generic(data) => !data.r#type.is_empty(),
             Collecting::Function(data) => data.complete,
-            Collecting::Cloak(data) => data.complete
+            Collecting::Cloak(data) => data.complete,
         }
     }
 

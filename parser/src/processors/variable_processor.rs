@@ -64,6 +64,7 @@ pub fn collect(
                 parser.collected.push(parser.current.clone());
                 parser.current = parser::Collecting::None;
             } else if letter_char == "=" {
+                #[cfg(feature = "std")]
                 println!(
                     "{}[ParserWarning]{}: WORKING BLIND, ReadMore: {}https://github.com/behemehal/Ellie-Language/issues/2{}",
                     utils::terminal_colors::get_color(utils::terminal_colors::Colors::Yellow),
@@ -161,6 +162,7 @@ pub fn collect(
             }
         } else if !variabledata.typed && !variabledata.data.dynamic {
             if letter_char == ";" {
+                #[cfg(feature = "std")]
                 println!(
                     "{}[ParserWarning]{}: WORKING BLIND, ReadMore: {}https://github.com/behemehal/Ellie-Language/issues/2{}",
                     utils::terminal_colors::get_color(utils::terminal_colors::Colors::Yellow),
@@ -172,7 +174,6 @@ pub fn collect(
                 parser.current = parser::Collecting::None;
             } else if letter_char == "=" {
                 if !variabledata.r#type.is_complete() {
-                    println!("{:#?}", variabledata.r#type);
                     errors.push(error::Error {
                         debug_message: "./parser/src/processors/variable_processor.rs:175"
                             .to_string(),
@@ -192,6 +193,7 @@ pub fn collect(
                         },
                     });
                 } else {
+                    #[cfg(feature = "std")]
                     println!(
                         "{}[ParserWarning]{}: WORKING BLIND, ReadMore: {}https://github.com/behemehal/Ellie-Language/issues/2{}",
                         utils::terminal_colors::get_color(utils::terminal_colors::Colors::Yellow),

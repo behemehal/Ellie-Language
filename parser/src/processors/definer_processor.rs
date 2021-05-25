@@ -1,4 +1,5 @@
-use crate::alloc::string::String;
+use crate::alloc::string::{String, ToString};
+use crate::alloc::vec;
 use crate::alloc::vec::Vec;
 use crate::syntax;
 use crate::syntax::definers::Collecting;
@@ -55,7 +56,11 @@ pub fn collect(
                 }
             } else {
                 let mut emulated_collector_data = syntax::variable::VariableCollector {
+                    r#type: syntax::definers::Collecting::Generic(syntax::definers::GenericType {
+                        r#type: "usize".to_string()
+                    }),
                     data: syntax::variable::Variable {
+
                         value: data.len.clone(),
                         ..Default::default()
                     },
