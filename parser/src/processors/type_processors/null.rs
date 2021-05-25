@@ -25,8 +25,7 @@ pub fn collect(
                 } else if !matches!(&itered_data.r#type, crate::syntax::definers::Collecting::Generic(x) if x.r#type == "string")
                 {
                     errors.push(error::Error {
-                        debug_message: "./parser/src/processors/type_processors/null.rs:24"
-                            .to_string(),
+                        debug_message: "./parser/src/processors/type_processors/null.rs:27" .to_string(),
                         title: error::errorList::error_s3.title.clone(),
                         code: error::errorList::error_s3.code,
                         message: error::errorList::error_s3.message.clone(),
@@ -58,11 +57,9 @@ pub fn collect(
                             r#type: "char".to_string(),
                         },
                     );
-                } else if !matches!(&itered_data.r#type, crate::syntax::definers::Collecting::Generic(x) if x.r#type == "char")
-                {
+                } else if !matches!(&itered_data.r#type, crate::syntax::definers::Collecting::Generic(x) if x.r#type == "char")  {
                     errors.push(error::Error {
-                        debug_message: "./parser/src/processors/type_processors/null.rs:55"
-                            .to_string(),
+                        debug_message: "./parser/src/processors/type_processors/null.rs:63" .to_string(),
                         title: error::errorList::error_s3.title.clone(),
                         code: error::errorList::error_s3.code,
                         message: error::errorList::error_s3.message.clone(),
@@ -141,3 +138,4 @@ pub fn collect(
         }
     }
 }
+

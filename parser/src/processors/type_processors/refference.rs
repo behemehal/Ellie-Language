@@ -17,8 +17,7 @@ pub fn collect(
         if letter_char == "." {
             if data.on_dot {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/refference.rs:19"
-                        .to_string(),
+                    debug_message: "./parser/src/processors/type_processors/refference.rs:19" .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -54,8 +53,7 @@ pub fn collect(
                     //});
                 } else {
                     errors.push(error::Error {
-                        debug_message: "./parser/src/processors/type_processors/refference.rs:55"
-                            .to_string(),
+                        debug_message: "./parser/src/processors/type_processors/refference.rs:56" .to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -125,7 +123,7 @@ pub fn collect(
                                 if let Ok(parsed_double) = double_parse {
                                     if parsed_double.is_infinite() {
                                         errors.push(error::Error {
-                                            debug_message: "./parser/src/processors/type_processors/refference.rs:118".to_string(),
+                                            debug_message: "./parser/src/processors/type_processors/refference.rs:127".to_string(),
                                             title: error::errorList::error_s17.title.clone(),
                                             code: error::errorList::error_s17.code,
                                             message: error::errorList::error_s17.message.clone(),
@@ -163,7 +161,7 @@ pub fn collect(
                                     }
                                 } else {
                                     errors.push(error::Error {
-                                        debug_message: "./parser/src/processors/type_processors/refference.rs:156".to_string(),
+                                        debug_message: "./parser/src/processors/type_processors/refference.rs:165".to_string(),
                                         title: error::errorList::error_s16.title.clone(),
                                         code: error::errorList::error_s16.code,
                                         message: error::errorList::error_s16.message.clone(),
@@ -203,7 +201,7 @@ pub fn collect(
                                         })
                                 } else {
                                     errors.push(error::Error {
-                                        debug_message: "./parser/src/processors/type_processors/refference.rs:196".to_string(),
+                                        debug_message: "./parser/src/processors/type_processors/refference.rs:205".to_string(),
                                         title: error::errorList::error_s16.title.clone(),
                                         code: error::errorList::error_s16.code,
                                         message: error::errorList::error_s16.message.clone(),
@@ -324,3 +322,4 @@ pub fn collect(
         }
     }
 }
+
