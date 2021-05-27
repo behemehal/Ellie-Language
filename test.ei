@@ -1,1 +1,1 @@
-v test: array(i8, 7) = "tes\"t";
+v cloakTest : cloak(char) = [3, 3];

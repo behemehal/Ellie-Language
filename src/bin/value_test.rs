@@ -8,9 +8,9 @@ fn main() {
     emulated_collector_data.data.dynamic = true;
     //We should set to dynamic for catching type
     /*
-        emulated_collector_data.r#type = ellie_parser::syntax::definers::Collecting::Generic(
+        emulated_collector_data.rtype = ellie_parser::syntax::definers::Collecting::Generic(
             ellie_parser::syntax::definers::GenericType {
-                r#type: "f32".to_string()
+                rtype: "f32".to_string()
             }
         );
     */
@@ -28,12 +28,17 @@ fn main() {
         let letter_char = &char.to_string();
         let last_char = &ellie_core::utils::get_letter(code.to_string(), index, false).to_owned();
         let next_char = &ellie_core::utils::get_letter(code.to_string(), index, true).to_owned();
-        let itered = ellie_parser::processors::value_processor::collect(
+        let itered = ellie_parser::processors::value_processor::collect_value(
             &mut emulated_collector_data,
             letter_char,
             next_char.to_string(),
             last_char.to_string(),
             pos,
+<<<<<<< HEAD
+            ellie_core::defs::ParserOptions::default(),
+=======
+            ellie_core::defs::ParserOptions::default()
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
         );
 
         for error in itered.errors {

@@ -6,7 +6,7 @@ use alloc::string::{String, ToString};
 use alloc::vec;
 use alloc::vec::Vec;
 
-pub fn collect(
+pub fn collect_number(
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
@@ -20,8 +20,7 @@ pub fn collect(
         if is_num || letter_char == "x" && data.raw.starts_with('0') {
             if data.complete {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/number.rs:22"
-                        .to_string(),
+                    debug_message: "./parser/src/processors/type_processors/number.rs:22" .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -38,26 +37,38 @@ pub fn collect(
                     },
                 });
             } else {
-                if matches!(&itered_data.r#type, crate::syntax::definers::Collecting::Generic(x) if x.r#type.is_empty())
+<<<<<<< HEAD
+                if matches!(&itered_data.rtype, crate::syntax::definers::DefinerCollecting::Generic(x) if x.rtype.is_empty())
                     && itered_data.data.dynamic
                 {
                     //Make type default to u16
-                    itered_data.r#type = crate::syntax::definers::Collecting::Generic(
+                    itered_data.rtype = crate::syntax::definers::DefinerCollecting::Generic(
+=======
+                if matches!(&itered_data.r#type, crate::syntax::definers::DefinerCollecting::Generic(x) if x.r#type.is_empty())
+                    && itered_data.data.dynamic
+                {
+                    //Make type default to u16
+                    itered_data.r#type = crate::syntax::definers::DefinerCollecting::Generic(
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
                         crate::syntax::definers::GenericType {
-                            r#type: "u16".to_string(),
+                            rtype: "u16".to_string(),
                         },
                     );
                 }
 
-                if itered_data.r#type.raw_name() == "u8" {
+                if itered_data.rtype.raw_name() == "u8" {
                     data.raw = data.raw.to_string() + letter_char;
                     let try_parse = data.raw.parse::<u8>();
                     if let Ok(nm) = try_parse {
                         data.value = types::number_type::NumberSize::U8(nm);
                     } else {
                         errors.push(error::Error {
-                            debug_message: "./parser/src/processors/type_processors/number.rs:53"
+<<<<<<< HEAD
+                            debug_message: "./parser/src/processors/type_processors/number.rs:58"
                                 .to_string(),
+=======
+                            debug_message: "./parser/src/processors/type_processors/number.rs:58" .to_string(),
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
                             title: error::errorList::error_s16.title.clone(),
                             code: error::errorList::error_s16.code,
                             message: error::errorList::error_s16.message.clone(),
@@ -80,15 +91,19 @@ pub fn collect(
                             },
                         });
                     }
-                } else if itered_data.r#type.raw_name() == "u16" {
+                } else if itered_data.rtype.raw_name() == "u16" {
                     data.raw = data.raw.to_string() + letter_char;
                     let try_parse = data.raw.parse::<u16>();
                     if let Ok(nm) = try_parse {
                         data.value = types::number_type::NumberSize::U16(nm);
                     } else {
                         errors.push(error::Error {
-                            debug_message: "./parser/src/processors/type_processors/number.rs:83"
+<<<<<<< HEAD
+                            debug_message: "./parser/src/processors/type_processors/number.rs:89"
                                 .to_string(),
+=======
+                            debug_message: "./parser/src/processors/type_processors/number.rs:89" .to_string(),
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
                             title: error::errorList::error_s16.title.clone(),
                             code: error::errorList::error_s16.code,
                             message: error::errorList::error_s16.message.clone(),
@@ -111,15 +126,19 @@ pub fn collect(
                             },
                         });
                     }
-                } else if itered_data.r#type.raw_name() == "u32" {
+                } else if itered_data.rtype.raw_name() == "u32" {
                     data.raw = data.raw.to_string() + letter_char;
                     let try_parse = data.raw.parse::<u32>();
                     if let Ok(nm) = try_parse {
                         data.value = types::number_type::NumberSize::U32(nm);
                     } else {
                         errors.push(error::Error {
-                            debug_message: "./parser/src/processors/type_processors/number.rs:113"
+<<<<<<< HEAD
+                            debug_message: "./parser/src/processors/type_processors/number.rs:120"
                                 .to_string(),
+=======
+                            debug_message: "./parser/src/processors/type_processors/number.rs:120" .to_string(),
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
                             title: error::errorList::error_s16.title.clone(),
                             code: error::errorList::error_s16.code,
                             message: error::errorList::error_s16.message.clone(),
@@ -142,15 +161,19 @@ pub fn collect(
                             },
                         });
                     }
-                } else if itered_data.r#type.raw_name() == "u64" {
+                } else if itered_data.rtype.raw_name() == "u64" {
                     data.raw = data.raw.to_string() + letter_char;
                     let try_parse = data.raw.parse::<u64>();
                     if let Ok(nm) = try_parse {
                         data.value = types::number_type::NumberSize::U64(nm);
                     } else {
                         errors.push(error::Error {
-                            debug_message: "./parser/src/processors/type_processors/number.rs:143"
+<<<<<<< HEAD
+                            debug_message: "./parser/src/processors/type_processors/number.rs:151"
                                 .to_string(),
+=======
+                            debug_message: "./parser/src/processors/type_processors/number.rs:151" .to_string(),
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
                             title: error::errorList::error_s16.title.clone(),
                             code: error::errorList::error_s16.code,
                             message: error::errorList::error_s16.message.clone(),
@@ -173,15 +196,19 @@ pub fn collect(
                             },
                         });
                     }
-                } else if itered_data.r#type.raw_name() == "u128" {
+                } else if itered_data.rtype.raw_name() == "u128" {
                     data.raw = data.raw.to_string() + letter_char;
                     let try_parse = data.raw.parse::<u128>();
                     if let Ok(nm) = try_parse {
                         data.value = types::number_type::NumberSize::U128(nm);
                     } else {
                         errors.push(error::Error {
-                            debug_message: "./parser/src/processors/type_processors/number.rs:173"
+<<<<<<< HEAD
+                            debug_message: "./parser/src/processors/type_processors/number.rs:182"
                                 .to_string(),
+=======
+                            debug_message: "./parser/src/processors/type_processors/number.rs:182" .to_string(),
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
                             title: error::errorList::error_s16.title.clone(),
                             code: error::errorList::error_s16.code,
                             message: error::errorList::error_s16.message.clone(),
@@ -204,15 +231,19 @@ pub fn collect(
                             },
                         });
                     }
-                } else if itered_data.r#type.raw_name() == "usize" {
+                } else if itered_data.rtype.raw_name() == "usize" {
                     data.raw = data.raw.to_string() + letter_char;
                     let try_parse = data.raw.parse::<usize>();
                     if let Ok(nm) = try_parse {
                         data.value = types::number_type::NumberSize::Usize(nm);
                     } else {
                         errors.push(error::Error {
-                            debug_message: "./parser/src/processors/type_processors/number.rs:203"
+<<<<<<< HEAD
+                            debug_message: "./parser/src/processors/type_processors/number.rs:213"
                                 .to_string(),
+=======
+                            debug_message: "./parser/src/processors/type_processors/number.rs:213" .to_string(),
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
                             title: error::errorList::error_s16.title.clone(),
                             code: error::errorList::error_s16.code,
                             message: error::errorList::error_s16.message.clone(),
@@ -235,15 +266,19 @@ pub fn collect(
                             },
                         });
                     }
-                } else if itered_data.r#type.raw_name() == "i8" {
+                } else if itered_data.rtype.raw_name() == "i8" {
                     data.raw = data.raw.to_string() + letter_char;
                     let try_parse = data.raw.parse::<i8>();
                     if let Ok(nm) = try_parse {
                         data.value = types::number_type::NumberSize::I8(nm);
                     } else {
                         errors.push(error::Error {
-                            debug_message: "./parser/src/processors/type_processors/number.rs:233"
+<<<<<<< HEAD
+                            debug_message: "./parser/src/processors/type_processors/number.rs:244"
                                 .to_string(),
+=======
+                            debug_message: "./parser/src/processors/type_processors/number.rs:244" .to_string(),
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
                             title: error::errorList::error_s16.title.clone(),
                             code: error::errorList::error_s16.code,
                             message: error::errorList::error_s16.message.clone(),
@@ -266,15 +301,19 @@ pub fn collect(
                             },
                         });
                     }
-                } else if itered_data.r#type.raw_name() == "i16" {
+                } else if itered_data.rtype.raw_name() == "i16" {
                     data.raw = data.raw.to_string() + letter_char;
                     let try_parse = data.raw.parse::<i16>();
                     if let Ok(nm) = try_parse {
                         data.value = types::number_type::NumberSize::I16(nm);
                     } else {
                         errors.push(error::Error {
-                            debug_message: "./parser/src/processors/type_processors/number.rs:263"
+<<<<<<< HEAD
+                            debug_message: "./parser/src/processors/type_processors/number.rs:275"
                                 .to_string(),
+=======
+                            debug_message: "./parser/src/processors/type_processors/number.rs:275" .to_string(),
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
                             title: error::errorList::error_s16.title.clone(),
                             code: error::errorList::error_s16.code,
                             message: error::errorList::error_s16.message.clone(),
@@ -297,15 +336,19 @@ pub fn collect(
                             },
                         });
                     }
-                } else if itered_data.r#type.raw_name() == "i32" {
+                } else if itered_data.rtype.raw_name() == "i32" {
                     data.raw = data.raw.to_string() + letter_char;
                     let try_parse = data.raw.parse::<i32>();
                     if let Ok(nm) = try_parse {
                         data.value = types::number_type::NumberSize::I32(nm);
                     } else {
                         errors.push(error::Error {
-                            debug_message: "./parser/src/processors/type_processors/number.rs:293"
+<<<<<<< HEAD
+                            debug_message: "./parser/src/processors/type_processors/number.rs:306"
                                 .to_string(),
+=======
+                            debug_message: "./parser/src/processors/type_processors/number.rs:306" .to_string(),
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
                             title: error::errorList::error_s16.title.clone(),
                             code: error::errorList::error_s16.code,
                             message: error::errorList::error_s16.message.clone(),
@@ -328,15 +371,19 @@ pub fn collect(
                             },
                         });
                     }
-                } else if itered_data.r#type.raw_name() == "i64" {
+                } else if itered_data.rtype.raw_name() == "i64" {
                     data.raw = data.raw.to_string() + letter_char;
                     let try_parse = data.raw.parse::<i64>();
                     if let Ok(nm) = try_parse {
                         data.value = types::number_type::NumberSize::I64(nm);
                     } else {
                         errors.push(error::Error {
-                            debug_message: "./parser/src/processors/type_processors/number.rs:323"
+<<<<<<< HEAD
+                            debug_message: "./parser/src/processors/type_processors/number.rs:337"
                                 .to_string(),
+=======
+                            debug_message: "./parser/src/processors/type_processors/number.rs:337" .to_string(),
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
                             title: error::errorList::error_s16.title.clone(),
                             code: error::errorList::error_s16.code,
                             message: error::errorList::error_s16.message.clone(),
@@ -359,15 +406,19 @@ pub fn collect(
                             },
                         });
                     }
-                } else if itered_data.r#type.raw_name() == "i128" {
+                } else if itered_data.rtype.raw_name() == "i128" {
                     data.raw = data.raw.to_string() + letter_char;
                     let try_parse = data.raw.parse::<i128>();
                     if let Ok(nm) = try_parse {
                         data.value = types::number_type::NumberSize::I128(nm);
                     } else {
                         errors.push(error::Error {
-                            debug_message: "./parser/src/processors/type_processors/number.rs:353"
+<<<<<<< HEAD
+                            debug_message: "./parser/src/processors/type_processors/number.rs:368"
                                 .to_string(),
+=======
+                            debug_message: "./parser/src/processors/type_processors/number.rs:368" .to_string(),
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
                             title: error::errorList::error_s16.title.clone(),
                             code: error::errorList::error_s16.code,
                             message: error::errorList::error_s16.message.clone(),
@@ -390,15 +441,19 @@ pub fn collect(
                             },
                         });
                     }
-                } else if itered_data.r#type.raw_name() == "isize" {
+                } else if itered_data.rtype.raw_name() == "isize" {
                     data.raw = data.raw.to_string() + letter_char;
                     let try_parse = data.raw.parse::<isize>();
                     if let Ok(nm) = try_parse {
                         data.value = types::number_type::NumberSize::Isize(nm);
                     } else {
                         errors.push(error::Error {
-                            debug_message: "./parser/src/processors/type_processors/number.rs:383"
+<<<<<<< HEAD
+                            debug_message: "./parser/src/processors/type_processors/number.rs:399"
                                 .to_string(),
+=======
+                            debug_message: "./parser/src/processors/type_processors/number.rs:399" .to_string(),
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
                             title: error::errorList::error_s16.title.clone(),
                             code: error::errorList::error_s16.code,
                             message: error::errorList::error_s16.message.clone(),
@@ -421,15 +476,19 @@ pub fn collect(
                             },
                         });
                     }
-                } else if itered_data.r#type.raw_name() == "f32" {
+                } else if itered_data.rtype.raw_name() == "f32" {
                     data.raw = data.raw.to_string() + letter_char;
                     let try_parse = data.raw.parse::<f32>();
                     if let Ok(nm) = try_parse {
                         data.value = types::number_type::NumberSize::F32(nm);
                     } else {
                         errors.push(error::Error {
-                            debug_message: "./parser/src/processors/type_processors/number.rs:413"
+<<<<<<< HEAD
+                            debug_message: "./parser/src/processors/type_processors/number.rs:430"
                                 .to_string(),
+=======
+                            debug_message: "./parser/src/processors/type_processors/number.rs:430" .to_string(),
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
                             title: error::errorList::error_s16.title.clone(),
                             code: error::errorList::error_s16.code,
                             message: error::errorList::error_s16.message.clone(),
@@ -452,15 +511,19 @@ pub fn collect(
                             },
                         });
                     }
-                } else if itered_data.r#type.raw_name() == "f64" {
+                } else if itered_data.rtype.raw_name() == "f64" {
                     data.raw = data.raw.to_string() + letter_char;
                     let try_parse = data.raw.parse::<f64>();
                     if let Ok(nm) = try_parse {
                         data.value = types::number_type::NumberSize::F64(nm);
                     } else {
                         errors.push(error::Error {
-                            debug_message: "./parser/src/processors/type_processors/number.rs:443"
+<<<<<<< HEAD
+                            debug_message: "./parser/src/processors/type_processors/number.rs:461"
                                 .to_string(),
+=======
+                            debug_message: "./parser/src/processors/type_processors/number.rs:461" .to_string(),
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
                             title: error::errorList::error_s16.title.clone(),
                             code: error::errorList::error_s16.code,
                             message: error::errorList::error_s16.message.clone(),
@@ -485,8 +548,12 @@ pub fn collect(
                     }
                 } else {
                     errors.push(error::Error {
-                        debug_message: "./parser/src/processors/type_processors/number.rs:468"
+<<<<<<< HEAD
+                        debug_message: "@./parser/src/processors/type_processors/number.rs:487"
                             .to_string(),
+=======
+                        debug_message: "@./parser/src/processors/type_processors/number.rs:487".to_string(),
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
                         title: error::errorList::error_s3.title.clone(),
                         code: error::errorList::error_s3.code,
                         message: error::errorList::error_s3.message.clone(),
@@ -495,11 +562,11 @@ pub fn collect(
                             vec![
                                 error::ErrorBuildField {
                                     key: "token1".to_string(),
-                                    value: itered_data.r#type.raw_name(),
+                                    value: itered_data.rtype.raw_name(),
                                 },
                                 error::ErrorBuildField {
                                     key: "token2".to_string(),
-                                    value: data.value.to_string().to_lowercase(),
+                                    value: data.value.get_type().to_lowercase(),
                                 },
                             ],
                         ),
@@ -521,7 +588,7 @@ pub fn collect(
                     on_dot: true,
                     chain: Vec::new(),
                 });
-        } else if types::logical_type::LogicalOpearators::is_opearator(letter_char) {
+        } else if types::logical_type::LogicalOpearators::is_logical_opearator(letter_char) {
             data.complete = true;
             itered_data.data.value = types::Types::Operator(types::operator_type::OperatorType {
                 first: Box::new(itered_data.data.value.clone()),
@@ -532,7 +599,8 @@ pub fn collect(
                 operator_collect: letter_char.to_string(),
                 ..Default::default()
             });
-        } else if types::comparison_type::ComparisonOperators::is_opearator(letter_char) {
+        } else if types::comparison_type::ComparisonOperators::is_comparison_opearator(letter_char)
+        {
             data.complete = true;
             itered_data.data.value = types::Types::Operator(types::operator_type::OperatorType {
                 first: Box::new(itered_data.data.value.clone()),
@@ -543,7 +611,8 @@ pub fn collect(
                 ),
                 ..Default::default()
             });
-        } else if types::arithmetic_type::ArithmeticOperators::is_opearator(letter_char) {
+        } else if types::arithmetic_type::ArithmeticOperators::is_arithmetic_opearator(letter_char)
+        {
             data.complete = true;
             itered_data.data.value = types::Types::Operator(types::operator_type::OperatorType {
                 first: Box::new(itered_data.data.value.clone()),
@@ -558,7 +627,7 @@ pub fn collect(
             data.complete = true;
         } else {
             errors.push(error::Error {
-                debug_message: "./parser/src/processors/type_processors/number.rs:529".to_string(),
+                debug_message: "./parser/src/processors/type_processors/number.rs:560".to_string(),
                 title: error::errorList::error_s1.title.clone(),
                 code: error::errorList::error_s1.code,
                 message: error::errorList::error_s1.message.clone(),
@@ -577,3 +646,4 @@ pub fn collect(
         }
     }
 }
+

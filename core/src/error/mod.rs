@@ -8,13 +8,12 @@ pub struct Error {
     pub title: String,
     pub builded_message: String,
     pub debug_message: String,
-    pub pos: crate::defs::Cursor
+    pub pos: crate::defs::Cursor,
 }
-
 
 pub struct ErrorBuildField {
     pub key: String,
-    pub value: String
+    pub value: String,
 }
 
 impl Error {
@@ -23,7 +22,7 @@ impl Error {
         for field in fields {
             let key: String = '$'.to_string() + &field.key.to_string();
             if let Some(pos) = builded_message.find(&key) {
-                builded_message.replace_range(pos..(pos+key.len()), &field.value)
+                builded_message.replace_range(pos..(pos + key.len()), &field.value)
             } else {
                 panic!("Failed to parse error '{}'", body);
             }
@@ -41,9 +40,9 @@ impl Default for Error {
             message: "".to_string(),
             builded_message: "".to_string(),
             pos: crate::defs::Cursor {
-                range_start: crate::defs::CursorPosition(0, 0), 
-                range_end: crate::defs::CursorPosition(0, 0)
-            }
+                range_start: crate::defs::CursorPosition(0, 0),
+                range_end: crate::defs::CursorPosition(0, 0),
+            },
         }
     }
 }

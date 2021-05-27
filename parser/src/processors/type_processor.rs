@@ -4,7 +4,7 @@ use ellie_core::{defs, utils};
 
 use alloc::string::{String, ToString};
 
-pub fn collect(
+pub fn collect_type(
     parser: &mut parser::Parser,
     _letter_char: &str,
     _next_char: String,
@@ -65,7 +65,7 @@ pub fn collect(
                 ..Default::default()
             };
             repeated_condition.chains.push(condition::ConditionChain {
-                r#type: condition::ConditionType::ElseIf,
+                rtype: condition::ConditionType::ElseIf,
                 ..Default::default()
             });
             parser.current = parser::Collecting::Condition(repeated_condition);
@@ -92,7 +92,7 @@ pub fn collect(
                 ..Default::default()
             };
             repeated_condition.chains.push(condition::ConditionChain {
-                r#type: condition::ConditionType::Else,
+                rtype: condition::ConditionType::Else,
                 ..Default::default()
             });
             parser.current = parser::Collecting::Condition(repeated_condition);
@@ -102,6 +102,6 @@ pub fn collect(
             panic!("Error: {:#?}", parser.collected);
         }
     } else if keyword == "class " {
-        println!("CLASS");
+        //println!("CLASS");
     }
 }

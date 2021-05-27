@@ -7,12 +7,17 @@ use alloc::boxed::Box;
 use alloc::string::String;
 use alloc::vec::Vec;
 
-pub fn collect(
+pub fn collect_condition(
     parser: &mut parser::Parser,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     next_char: String,
     last_char: String,
+<<<<<<< HEAD
+    options: defs::ParserOptions,
+=======
+    options: defs::ParserOptions
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
 ) {
     if let parser::Collecting::Condition(ref mut data) = parser.current {
         if !data.initialized {
@@ -23,7 +28,7 @@ pub fn collect(
                 data.keyword_pos.range_end.0 = parser.pos.0; //Function naming started so we set the position
             }
         } else if !data.cloak_collected {
-            if data.cloak_itered_data.data.value.is_complete() && letter_char == "{" {
+            if data.cloak_itered_data.data.value.is_type_complete() && letter_char == "{" {
                 data.cloak_collected = true;
                 let chain_length = if data.chains.is_empty() {
                     0
@@ -42,12 +47,17 @@ pub fn collect(
                     },
                 );
             } else {
-                let collected = processors::value_processor::collect(
+                let collected = processors::value_processor::collect_value(
                     &mut data.cloak_itered_data,
                     letter_char,
                     next_char,
                     last_char,
                     parser.pos,
+<<<<<<< HEAD
+                    options,
+=======
+                    options
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
                 );
                 for i in collected.errors {
                     errors.push(i)
@@ -62,17 +72,14 @@ pub fn collect(
                     data.inside_object_count -= 1;
                 }
             } else {
+<<<<<<< HEAD
+                let child_parser = parser::Parser::new(data.inside_code_string.clone(), options);
+=======
                 let child_parser = parser::Parser::new(
                     data.inside_code_string.clone(),
-                    defs::ParserOptions {
-                        functions: true,
-                        break_on_error: false,
-                        loops: true,
-                        global_variables: true,
-                        collectives: true,
-                        variables: true,
-                    },
+                    options
                 );
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
                 parser.pos = child_parser.pos;
                 let mapped = child_parser.map();
                 for i in mapped.syntax_errors {

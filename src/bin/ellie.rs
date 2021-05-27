@@ -48,6 +48,7 @@ fn main() {
                                 functions: true,
                                 break_on_error: false,
                                 loops: true,
+                                dynamics: true,
                                 global_variables: true,
                                 collectives: true,
                                 variables: true,

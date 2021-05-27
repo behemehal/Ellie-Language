@@ -1,10 +1,12 @@
 pub mod terminal_colors;
 
+
 pub struct ReliableNameRangeResponse {
     pub reliable: bool,
     pub at: usize,
     pub found: char,
 }
+
 
 pub enum ReliableNameRanges {
     VariableName,
@@ -17,8 +19,14 @@ pub fn is_opearators(value: &str) -> bool {
     operators.contains(&value)
 }
 
+<<<<<<< HEAD
 pub fn reliable_name_range(range: ReliableNameRanges, value: String) -> ReliableNameRangeResponse {
-
+=======
+pub fn reliable_name_range(
+    range: ReliableNameRanges,
+    value: String,
+) -> ReliableNameRangeResponse {
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
     match range {
         ReliableNameRanges::VariableName => {
             let variable_range = "QWERTYUIOPASDFGHJKLIZXCVBNMqwertyuıopasdfghjklizxcvbnm0123456789";
@@ -31,9 +39,10 @@ pub fn reliable_name_range(range: ReliableNameRanges, value: String) -> Reliable
                     .nth(if let Some(e) = find { e - 1 } else { 0 })
                     .unwrap_or_default(),
             };
-        },
+        }
         ReliableNameRanges::Type => {
-            let variable_range = "QWERTYUIOPASDFGHJKLIZXCVBNMqwertyuıopasdfghjklizxcvbnm0123456789<>";
+            let variable_range =
+                "QWERTYUIOPASDFGHJKLIZXCVBNMqwertyuıopasdfghjklizxcvbnm0123456789<>";
             let find = value.split("").position(|x| !variable_range.contains(&x));
             return ReliableNameRangeResponse {
                 reliable: find == None,
@@ -43,7 +52,7 @@ pub fn reliable_name_range(range: ReliableNameRanges, value: String) -> Reliable
                     .nth(if let Some(e) = find { e - 1 } else { 0 })
                     .unwrap_or_default(),
             };
-        },
+        }
         ReliableNameRanges::FunctionName => {
             let variable_range = "QWERTYUIOPASDFGHJKLIZXCVBNMqwertyuıopasdfghjklizxcvbnm";
             let find = value.split("").position(|x| !variable_range.contains(&x));
