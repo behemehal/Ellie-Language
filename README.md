@@ -1,30 +1,16 @@
 ![icon](./picture/TextIcon/EllieTextIcon@0,33x.png)
 
+
+# EXPERIMENTAL FFI WRITE ( UNSTABLE )
+
 # Ellie
+
 Ellie language [NOT COMPLETE]
 
 Why ellie? Ellie is a scripting engine that runs on embedded and sandboxed environments.
 
 # Language Tour
 You can see [LanguageTour.md](./LanguageTour.md)
-
-## CLI usage
-
-`ellie ./test.ei`
-
-Language does not have a runtime for now, here are the tasks we need to complete before creating a runtime
-
-- Variables [X]
-- Functions [X]
-- If Else   [X]
-- Classes   [?]
-- Enums     [ ]
-- For Loops [ ]
-
-
-
-# Note
-This is a prototype
 
 # LICENSE
 
