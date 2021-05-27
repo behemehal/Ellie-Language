@@ -6,6 +6,7 @@ use serde::Serialize;
 use crate::alloc::string::String;
 use crate::alloc::vec::Vec;
 
+
 #[derive(PartialEq, Debug, Clone, Serialize)]
 pub enum ConditionType {
     If,
@@ -19,6 +20,7 @@ impl Default for ConditionType {
     }
 }
 
+
 #[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct ConditionChain {
     pub rtype: ConditionType,
@@ -26,11 +28,13 @@ pub struct ConditionChain {
     pub inside_code: Vec<Collecting>,
 }
 
+
 #[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct ConditionChainCollector {
     pub data: ConditionChain,
     pub keyword_pos: defs::Cursor,
 }
+
 
 #[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct ConditionCollector {

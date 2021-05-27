@@ -14,7 +14,11 @@ pub fn collect_operator(
     next_char: String,
     last_char: String,
     pos: defs::CursorPosition,
+<<<<<<< HEAD
     options: defs::ParserOptions,
+=======
+    options: defs::ParserOptions
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
 ) {
     if let types::Types::Operator(ref mut data) = itered_data.data.value {
         if !data.operator_collected {
@@ -28,8 +32,7 @@ pub fn collect_operator(
                     data.operator_collected = true;
                 } else {
                     errors.push(error::Error {
-                        debug_message: "./parser/src/processors/type_processors/operator.rs:29"
-                            .to_string(),
+                        debug_message: "./parser/src/processors/type_processors/operator.rs:29" .to_string(),
                         title: error::errorList::error_s13.title.clone(),
                         code: error::errorList::error_s13.code,
                         message: error::errorList::error_s13.message.clone(),
@@ -64,7 +67,11 @@ pub fn collect_operator(
                 next_char,
                 last_char,
                 defs::CursorPosition(0, 0),
+<<<<<<< HEAD
                 options,
+=======
+                options
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
             );
             if itered_child.errors.is_empty() {
                 for returned_error in itered_child.errors {
@@ -138,3 +145,4 @@ pub fn collect_operator(
         }
     }
 }
+

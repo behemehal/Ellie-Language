@@ -12,14 +12,17 @@ pub fn collect_refference(
     _next_char: String,
     last_char: String,
     pos: defs::CursorPosition,
+<<<<<<< HEAD
     _options: defs::ParserOptions,
+=======
+    _options: defs::ParserOptions
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
 ) {
     if let types::Types::Refference(ref mut data) = itered_data.data.value {
         if letter_char == "." {
             if data.on_dot {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/refference.rs:19"
-                        .to_string(),
+                    debug_message: "./parser/src/processors/type_processors/refference.rs:19" .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -55,8 +58,12 @@ pub fn collect_refference(
                     //});
                 } else {
                     errors.push(error::Error {
+<<<<<<< HEAD
                         debug_message: "./parser/src/processors/type_processors/refference.rs:56"
                             .to_string(),
+=======
+                        debug_message: "./parser/src/processors/type_processors/refference.rs:56" .to_string(),
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -82,9 +89,15 @@ pub fn collect_refference(
                             //It's a f32 or f64
 
                             if itered_data.data.dynamic {
+<<<<<<< HEAD
                                 itered_data.rtype =
                                     definers::DefinerCollecting::Generic(definers::GenericType {
                                         rtype: "f32".to_string(),
+=======
+                                itered_data.r#type =
+                                    definers::DefinerCollecting::Generic(definers::GenericType {
+                                        r#type: "f32".to_string(),
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
                                     });
                                 //  itered_data.rtype.raw_name()
                             }
@@ -325,3 +338,4 @@ pub fn collect_refference(
         }
     }
 }
+

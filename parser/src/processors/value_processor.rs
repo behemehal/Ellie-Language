@@ -17,7 +17,11 @@ pub fn collect_value(
     next_char: String,
     last_char: String,
     pos: defs::CursorPosition,
+<<<<<<< HEAD
     options: defs::ParserOptions,
+=======
+    options: defs::ParserOptions
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
 ) -> CollectorResponse {
     let mut errors: Vec<error::Error> = Vec::new();
     match &mut itered_data.data.value {
@@ -54,7 +58,11 @@ pub fn collect_value(
             next_char,
             last_char,
             pos,
+<<<<<<< HEAD
             options,
+=======
+            options
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
         ),
         types::Types::Operator(_) => type_processors::operator::collect_operator(
             itered_data,
@@ -63,7 +71,11 @@ pub fn collect_value(
             next_char,
             last_char,
             pos,
+<<<<<<< HEAD
             options,
+=======
+            options
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
         ),
         types::Types::Array(_) => type_processors::array::collect_array(
             itered_data,
@@ -72,7 +84,11 @@ pub fn collect_value(
             next_char,
             last_char,
             pos,
+<<<<<<< HEAD
             options,
+=======
+            options
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
         ),
         types::Types::Cloak(_) => type_processors::cloak::collect_cloak(
             itered_data,
@@ -81,7 +97,11 @@ pub fn collect_value(
             next_char,
             last_char,
             pos,
+<<<<<<< HEAD
             options,
+=======
+            options
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
         ),
         types::Types::ArrowFunction(_) => type_processors::arrow_function::collect_arrow(
             itered_data,
@@ -90,7 +110,11 @@ pub fn collect_value(
             next_char,
             last_char,
             pos,
+<<<<<<< HEAD
             options,
+=======
+            options
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
         ),
         types::Types::FunctionCall(_) => type_processors::function_call::collect_function_caller(
             itered_data,
@@ -99,7 +123,11 @@ pub fn collect_value(
             next_char,
             last_char,
             pos,
+<<<<<<< HEAD
             options,
+=======
+            options
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
         ),
         types::Types::Void => (),
         types::Types::VariableType(_) => type_processors::variable::collect_variable(
