@@ -217,7 +217,7 @@ pub fn collect_array(
             }
 
             let mut will_be_itered: variable::VariableCollector;
-            if let definers::DefinerCollecting::Array(array_data) = itered_data.r#type.clone() {
+            if let definers::DefinerCollecting::Array(array_data) = itered_data.rtype.clone() {
                 if data.collective.len()
                     > *array_data
                         .len
@@ -263,12 +263,12 @@ pub fn collect_array(
 
                 will_be_itered = if data.collective.is_empty() {
                     variable::VariableCollector {
-                        r#type: *array_data.r#type.clone(),
+                        rtype: *array_data.rtype.clone(),
                         ..variable::VariableCollector::default()
                     }
                 } else {
                     variable::VariableCollector {
-                        r#type: *array_data.r#type.clone(),
+                        rtype: *array_data.rtype.clone(),
                         data: variable::Variable {
                             value: *data.collective[data.collective.len() - 1].value.clone(),
                             ..Default::default()
@@ -277,16 +277,16 @@ pub fn collect_array(
                     }
                 };
             } else if let definers::DefinerCollecting::DynamicArray(array_data) =
-                itered_data.r#type.clone()
+                itered_data.rtype.clone()
             {
                 will_be_itered = if data.collective.is_empty() {
                     variable::VariableCollector {
-                        r#type: *array_data.r#type.clone(),
+                        rtype: *array_data.rtype.clone(),
                         ..variable::VariableCollector::default()
                     }
                 } else {
                     variable::VariableCollector {
-                        r#type: *array_data.r#type.clone(),
+                        rtype: *array_data.rtype.clone(),
                         data: variable::Variable {
                             value: *data.collective[data.collective.len() - 1].value.clone(),
                             ..Default::default()

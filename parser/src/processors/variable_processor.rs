@@ -174,7 +174,7 @@ pub fn collect_variable_value(
                 parser.collected.push(parser.current.clone());
                 parser.current = parser::Collecting::None;
             } else if letter_char == "=" {
-                if !variabledata.r#type.is_definer_complete() {
+                if !variabledata.rtype.is_definer_complete() {
                     errors.push(error::Error {
                         debug_message: "./parser/src/processors/variable_processor.rs:175"
                             .to_string(),
@@ -206,7 +206,7 @@ pub fn collect_variable_value(
                 }
             } else {
                 processors::definer_processor::collect_definer(
-                    &mut variabledata.r#type,
+                    &mut variabledata.rtype,
                     errors,
                     letter_char.to_string(),
                     parser.pos,

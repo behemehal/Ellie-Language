@@ -20,12 +20,12 @@ pub fn collect_null(
         if itered_data.raw_value.is_empty() {
             if letter_char == "\"" {
                 if itered_data.data.dynamic {
-                    itered_data.r#type = crate::syntax::definers::DefinerCollecting::Generic(
+                    itered_data.rtype = crate::syntax::definers::DefinerCollecting::Generic(
                         crate::syntax::definers::GenericType {
-                            r#type: "string".to_string(),
+                            rtype: "string".to_string(),
                         },
                     );
-                } else if !matches!(&itered_data.r#type, crate::syntax::definers::DefinerCollecting::Generic(x) if x.r#type == "string")
+                } else if !matches!(&itered_data.rtype, crate::syntax::definers::DefinerCollecting::Generic(x) if x.rtype == "string")
                 {
                     errors.push(error::Error {
                         debug_message: "./parser/src/processors/type_processors/null.rs:27"
@@ -38,7 +38,7 @@ pub fn collect_null(
                             vec![
                                 error::ErrorBuildField {
                                     key: "token1".to_string(),
-                                    value: itered_data.r#type.raw_name(),
+                                    value: itered_data.rtype.raw_name(),
                                 },
                                 error::ErrorBuildField {
                                     key: "token2".to_string(),
@@ -56,12 +56,12 @@ pub fn collect_null(
                     types::Types::String(types::string_type::StringType::default());
             } else if letter_char == "'" {
                 if itered_data.data.dynamic {
-                    itered_data.r#type = crate::syntax::definers::DefinerCollecting::Generic(
+                    itered_data.rtype = crate::syntax::definers::DefinerCollecting::Generic(
                         crate::syntax::definers::GenericType {
-                            r#type: "char".to_string(),
+                            rtype: "char".to_string(),
                         },
                     );
-                } else if !matches!(&itered_data.r#type, crate::syntax::definers::DefinerCollecting::Generic(x) if x.r#type == "char")
+                } else if !matches!(&itered_data.rtype, crate::syntax::definers::DefinerCollecting::Generic(x) if x.rtype == "char")
                 {
                     errors.push(error::Error {
                         debug_message: "./parser/src/processors/type_processors/null.rs:63"
@@ -74,7 +74,7 @@ pub fn collect_null(
                             vec![
                                 error::ErrorBuildField {
                                     key: "token1".to_string(),
-                                    value: itered_data.r#type.raw_name(),
+                                    value: itered_data.rtype.raw_name(),
                                 },
                                 error::ErrorBuildField {
                                     key: "token2".to_string(),
@@ -105,13 +105,13 @@ pub fn collect_null(
                 )
             } else if letter_char == "[" {
                 if itered_data.data.dynamic {
-                    itered_data.r#type = crate::syntax::definers::DefinerCollecting::DynamicArray(
+                    itered_data.rtype = crate::syntax::definers::DefinerCollecting::DynamicArray(
                         crate::syntax::definers::DynamicArrayType {
-                            r#type: Box::new(crate::syntax::definers::DefinerCollecting::Dynamic),
+                            rtype: Box::new(crate::syntax::definers::DefinerCollecting::Dynamic),
                             ..Default::default()
                         },
                     );
-                } else if !matches!(&itered_data.r#type, crate::syntax::definers::DefinerCollecting::Generic(x) if x.r#type == "string")
+                } else if !matches!(&itered_data.rtype, crate::syntax::definers::DefinerCollecting::Generic(x) if x.rtype == "string")
                 {
                     errors.push(error::Error {
                         debug_message: "./parser/src/processors/type_processors/null.rs:27"
@@ -124,7 +124,7 @@ pub fn collect_null(
                             vec![
                                 error::ErrorBuildField {
                                     key: "token1".to_string(),
-                                    value: itered_data.r#type.raw_name(),
+                                    value: itered_data.rtype.raw_name(),
                                 },
                                 error::ErrorBuildField {
                                     key: "token2".to_string(),
@@ -173,7 +173,7 @@ pub fn collect_null(
                 && itered_data.raw_value.parse::<i64>().is_ok()
             {
                 itered_data.data.value = types::Types::Number(types::number_type::NumberType {
-                    r#type: types::number_type::NumberTypes::I64,
+                    rtype: types::number_type::NumberTypes::I64,
                     raw: itered_data.raw_value.clone() + letter_char,
                     ..Default::default()
                 })

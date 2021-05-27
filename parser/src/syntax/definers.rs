@@ -18,7 +18,7 @@ pub struct FunctionType {
 #[derive(PartialEq, Debug, Clone, Serialize, Default)]
 pub struct CloakType {
     pub complete: bool,
-    pub r#type: Vec<DefinerCollecting>,
+    pub rtype: Vec<DefinerCollecting>,
     pub bracket_inserted: bool,
     pub at_comma: bool,
 }
@@ -26,7 +26,7 @@ pub struct CloakType {
 #[derive(PartialEq, Debug, Clone, Serialize, Default)]
 pub struct ArrayType {
     pub complete: bool,
-    pub r#type: Box<DefinerCollecting>,
+    pub rtype: Box<DefinerCollecting>,
     pub bracket_inserted: bool,
     pub len: crate::syntax::types::Types,
     pub at_comma: bool,
@@ -36,13 +36,13 @@ pub struct ArrayType {
 #[derive(PartialEq, Debug, Clone, Serialize, Default)]
 pub struct DynamicArrayType {
     pub complete: bool,
-    pub r#type: Box<DefinerCollecting>,
+    pub rtype: Box<DefinerCollecting>,
     pub bracket_inserted: bool,
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Default)]
 pub struct GenericType {
-    pub r#type: String,
+    pub rtype: String,
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize)]
@@ -66,7 +66,7 @@ impl DefinerCollecting {
         match self {
             DefinerCollecting::Array(data) => !data.complete,
             DefinerCollecting::DynamicArray(data) => !data.complete,
-            DefinerCollecting::Generic(data) => data.r#type.is_empty(),
+            DefinerCollecting::Generic(data) => data.rtype.is_empty(),
             DefinerCollecting::Function(data) => !data.complete,
             DefinerCollecting::Cloak(data) => !data.complete,
             DefinerCollecting::Dynamic => false,
@@ -77,7 +77,7 @@ impl DefinerCollecting {
         match self {
             DefinerCollecting::Array(data) => data.complete,
             DefinerCollecting::DynamicArray(data) => data.complete,
-            DefinerCollecting::Generic(data) => !data.r#type.is_empty(),
+            DefinerCollecting::Generic(data) => !data.rtype.is_empty(),
             DefinerCollecting::Function(data) => data.complete,
             DefinerCollecting::Cloak(data) => data.complete,
             DefinerCollecting::Dynamic => true,
@@ -88,7 +88,7 @@ impl DefinerCollecting {
         match self {
             DefinerCollecting::Array(_) => "array".to_string(),
             DefinerCollecting::DynamicArray(_) => "dynamic_array".to_string(),
-            DefinerCollecting::Generic(data) => data.r#type.clone(),
+            DefinerCollecting::Generic(data) => data.rtype.clone(),
             DefinerCollecting::Function(_) => "function".to_string(),
             DefinerCollecting::Cloak(_) => "cloak".to_string(),
             DefinerCollecting::Dynamic => "dynamic".to_string(),

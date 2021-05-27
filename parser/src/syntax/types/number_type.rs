@@ -74,6 +74,6 @@ impl Default for NumberSize {
 pub struct NumberType {
     pub value: NumberSize,
     pub raw: String,
-    pub r#type: NumberTypes,
+    pub rtype: NumberTypes,
     pub complete: bool,
 }

@@ -17,7 +17,7 @@ pub struct VariableCollector {
     pub named: bool,
     pub typed: bool,
     pub value_complete: bool,
-    pub r#type: definers::DefinerCollecting,
+    pub rtype: definers::DefinerCollecting,
     pub raw_value: *const c_char,
     pub data: Variable,
 }

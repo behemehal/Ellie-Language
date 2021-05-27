@@ -8,9 +8,9 @@ fn main() {
     emulated_collector_data.data.dynamic = true;
     //We should set to dynamic for catching type
     /*
-        emulated_collector_data.r#type = ellie_parser::syntax::definers::Collecting::Generic(
+        emulated_collector_data.rtype = ellie_parser::syntax::definers::Collecting::Generic(
             ellie_parser::syntax::definers::GenericType {
-                r#type: "f32".to_string()
+                rtype: "f32".to_string()
             }
         );
     */

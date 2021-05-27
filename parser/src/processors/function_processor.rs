@@ -190,7 +190,7 @@ pub fn collect_function(
             } else if letter_char == ","
                 && functiondata.data.parameters[last_entry - 1]
                     .data
-                    .r#type
+                    .rtype
                     .is_definer_complete()
             {
                 //If its type's comma dont stop collecting it
@@ -205,7 +205,7 @@ pub fn collect_function(
                     functiondata.data.parameters[last_entry - 1].child_brace += 1;
                 }
                 processors::definer_processor::collect_definer(
-                    &mut functiondata.data.parameters[last_entry - 1].data.r#type,
+                    &mut functiondata.data.parameters[last_entry - 1].data.rtype,
                     errors,
                     letter_char.to_string(),
                     parser.pos,

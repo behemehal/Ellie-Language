@@ -200,15 +200,15 @@ pub fn collect_cloak(
             }
 
             let mut will_be_itered: variable::VariableCollector;
-            if let definers::DefinerCollecting::Cloak(cloak_data) = itered_data.r#type.clone() {
+            if let definers::DefinerCollecting::Cloak(cloak_data) = itered_data.rtype.clone() {
                 will_be_itered = if data.collective.is_empty() {
                     variable::VariableCollector {
-                        r#type: cloak_data.r#type[0].clone(),
+                        rtype: cloak_data.rtype[0].clone(),
                         ..variable::VariableCollector::default()
                     }
                 } else {
                     variable::VariableCollector {
-                        r#type: cloak_data.r#type[data.collective.len() - 1].clone(),
+                        rtype: cloak_data.rtype[data.collective.len() - 1].clone(),
                         data: variable::Variable {
                             value: *data.collective[data.collective.len() - 1].value.clone(),
                             ..Default::default()

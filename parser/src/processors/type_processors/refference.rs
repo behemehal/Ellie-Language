@@ -82,11 +82,11 @@ pub fn collect_refference(
                             //It's a f32 or f64
 
                             if itered_data.data.dynamic {
-                                itered_data.r#type =
+                                itered_data.rtype =
                                     definers::DefinerCollecting::Generic(definers::GenericType {
-                                        r#type: "f32".to_string(),
+                                        rtype: "f32".to_string(),
                                     });
-                                //  itered_data.r#type.raw_name()
+                                //  itered_data.rtype.raw_name()
                             }
 
                             if let types::number_type::NumberSize::F32(_) = refference_value.value {
@@ -119,7 +119,7 @@ pub fn collect_refference(
                                         range_end: pos.clone().skipChar(1),
                                     },
                                 });
-                            } else if itered_data.r#type.raw_name() == "f32" {
+                            } else if itered_data.rtype.raw_name() == "f32" {
                                 let double_parse =
                                     (refference_value.raw.clone() + "." + letter_char)
                                         .parse::<f32>();
@@ -158,7 +158,7 @@ pub fn collect_refference(
                                                 raw: (refference_value.raw.clone()
                                                     + "."
                                                     + letter_char),
-                                                r#type: types::number_type::NumberTypes::F32,
+                                                rtype: types::number_type::NumberTypes::F32,
                                                 complete: false,
                                             })
                                     }
@@ -188,7 +188,7 @@ pub fn collect_refference(
                                         },
                                     });
                                 }
-                            } else if itered_data.r#type.raw_name() == "f64" {
+                            } else if itered_data.rtype.raw_name() == "f64" {
                                 let double_parse =
                                     (refference_value.raw.clone() + "." + letter_char)
                                         .parse::<f64>();
@@ -199,7 +199,7 @@ pub fn collect_refference(
                                                 parsed_double,
                                             ),
                                             raw: (refference_value.raw.clone() + "." + letter_char),
-                                            r#type: types::number_type::NumberTypes::F32,
+                                            rtype: types::number_type::NumberTypes::F32,
                                             complete: false,
                                         })
                                 } else {
@@ -242,7 +242,7 @@ pub fn collect_refference(
                                         vec![
                                             error::ErrorBuildField {
                                                 key: "token1".to_string(),
-                                                value: itered_data.r#type.raw_name(),
+                                                value: itered_data.rtype.raw_name(),
                                             },
                                             error::ErrorBuildField {
                                                 key: "token2".to_string(),

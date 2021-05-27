@@ -40,6 +40,6 @@ pub enum NumberSize {
 pub struct NumberType {
     pub value: NumberSize,
     pub raw: *const c_char,
-    pub r#type: NumberTypes,
+    pub rtype: NumberTypes,
     pub complete: bool,
 }

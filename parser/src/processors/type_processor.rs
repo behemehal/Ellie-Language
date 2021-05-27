@@ -65,7 +65,7 @@ pub fn collect_type(
                 ..Default::default()
             };
             repeated_condition.chains.push(condition::ConditionChain {
-                r#type: condition::ConditionType::ElseIf,
+                rtype: condition::ConditionType::ElseIf,
                 ..Default::default()
             });
             parser.current = parser::Collecting::Condition(repeated_condition);
@@ -92,7 +92,7 @@ pub fn collect_type(
                 ..Default::default()
             };
             repeated_condition.chains.push(condition::ConditionChain {
-                r#type: condition::ConditionType::Else,
+                rtype: condition::ConditionType::Else,
                 ..Default::default()
             });
             parser.current = parser::Collecting::Condition(repeated_condition);

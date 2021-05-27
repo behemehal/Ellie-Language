@@ -20,8 +20,8 @@ pub enum Operators {
 }
 
 impl Operators {
-    pub fn resolve_operator(r#type: Operators, value: &str) -> Result<Operators, bool> {
-        match r#type {
+    pub fn resolve_operator(rtype: Operators, value: &str) -> Result<Operators, bool> {
+        match rtype {
             Operators::ComparisonType(_) => {
                 if let Ok(e) =
                     types::comparison_type::ComparisonOperators::resolve_comparison_operator(value)

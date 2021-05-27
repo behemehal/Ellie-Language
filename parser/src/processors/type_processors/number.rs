@@ -38,18 +38,18 @@ pub fn collect_number(
                     },
                 });
             } else {
-                if matches!(&itered_data.r#type, crate::syntax::definers::DefinerCollecting::Generic(x) if x.r#type.is_empty())
+                if matches!(&itered_data.rtype, crate::syntax::definers::DefinerCollecting::Generic(x) if x.rtype.is_empty())
                     && itered_data.data.dynamic
                 {
                     //Make type default to u16
-                    itered_data.r#type = crate::syntax::definers::DefinerCollecting::Generic(
+                    itered_data.rtype = crate::syntax::definers::DefinerCollecting::Generic(
                         crate::syntax::definers::GenericType {
-                            r#type: "u16".to_string(),
+                            rtype: "u16".to_string(),
                         },
                     );
                 }
 
-                if itered_data.r#type.raw_name() == "u8" {
+                if itered_data.rtype.raw_name() == "u8" {
                     data.raw = data.raw.to_string() + letter_char;
                     let try_parse = data.raw.parse::<u8>();
                     if let Ok(nm) = try_parse {
@@ -80,7 +80,7 @@ pub fn collect_number(
                             },
                         });
                     }
-                } else if itered_data.r#type.raw_name() == "u16" {
+                } else if itered_data.rtype.raw_name() == "u16" {
                     data.raw = data.raw.to_string() + letter_char;
                     let try_parse = data.raw.parse::<u16>();
                     if let Ok(nm) = try_parse {
@@ -111,7 +111,7 @@ pub fn collect_number(
                             },
                         });
                     }
-                } else if itered_data.r#type.raw_name() == "u32" {
+                } else if itered_data.rtype.raw_name() == "u32" {
                     data.raw = data.raw.to_string() + letter_char;
                     let try_parse = data.raw.parse::<u32>();
                     if let Ok(nm) = try_parse {
@@ -142,7 +142,7 @@ pub fn collect_number(
                             },
                         });
                     }
-                } else if itered_data.r#type.raw_name() == "u64" {
+                } else if itered_data.rtype.raw_name() == "u64" {
                     data.raw = data.raw.to_string() + letter_char;
                     let try_parse = data.raw.parse::<u64>();
                     if let Ok(nm) = try_parse {
@@ -173,7 +173,7 @@ pub fn collect_number(
                             },
                         });
                     }
-                } else if itered_data.r#type.raw_name() == "u128" {
+                } else if itered_data.rtype.raw_name() == "u128" {
                     data.raw = data.raw.to_string() + letter_char;
                     let try_parse = data.raw.parse::<u128>();
                     if let Ok(nm) = try_parse {
@@ -204,7 +204,7 @@ pub fn collect_number(
                             },
                         });
                     }
-                } else if itered_data.r#type.raw_name() == "usize" {
+                } else if itered_data.rtype.raw_name() == "usize" {
                     data.raw = data.raw.to_string() + letter_char;
                     let try_parse = data.raw.parse::<usize>();
                     if let Ok(nm) = try_parse {
@@ -235,7 +235,7 @@ pub fn collect_number(
                             },
                         });
                     }
-                } else if itered_data.r#type.raw_name() == "i8" {
+                } else if itered_data.rtype.raw_name() == "i8" {
                     data.raw = data.raw.to_string() + letter_char;
                     let try_parse = data.raw.parse::<i8>();
                     if let Ok(nm) = try_parse {
@@ -266,7 +266,7 @@ pub fn collect_number(
                             },
                         });
                     }
-                } else if itered_data.r#type.raw_name() == "i16" {
+                } else if itered_data.rtype.raw_name() == "i16" {
                     data.raw = data.raw.to_string() + letter_char;
                     let try_parse = data.raw.parse::<i16>();
                     if let Ok(nm) = try_parse {
@@ -297,7 +297,7 @@ pub fn collect_number(
                             },
                         });
                     }
-                } else if itered_data.r#type.raw_name() == "i32" {
+                } else if itered_data.rtype.raw_name() == "i32" {
                     data.raw = data.raw.to_string() + letter_char;
                     let try_parse = data.raw.parse::<i32>();
                     if let Ok(nm) = try_parse {
@@ -328,7 +328,7 @@ pub fn collect_number(
                             },
                         });
                     }
-                } else if itered_data.r#type.raw_name() == "i64" {
+                } else if itered_data.rtype.raw_name() == "i64" {
                     data.raw = data.raw.to_string() + letter_char;
                     let try_parse = data.raw.parse::<i64>();
                     if let Ok(nm) = try_parse {
@@ -359,7 +359,7 @@ pub fn collect_number(
                             },
                         });
                     }
-                } else if itered_data.r#type.raw_name() == "i128" {
+                } else if itered_data.rtype.raw_name() == "i128" {
                     data.raw = data.raw.to_string() + letter_char;
                     let try_parse = data.raw.parse::<i128>();
                     if let Ok(nm) = try_parse {
@@ -390,7 +390,7 @@ pub fn collect_number(
                             },
                         });
                     }
-                } else if itered_data.r#type.raw_name() == "isize" {
+                } else if itered_data.rtype.raw_name() == "isize" {
                     data.raw = data.raw.to_string() + letter_char;
                     let try_parse = data.raw.parse::<isize>();
                     if let Ok(nm) = try_parse {
@@ -421,7 +421,7 @@ pub fn collect_number(
                             },
                         });
                     }
-                } else if itered_data.r#type.raw_name() == "f32" {
+                } else if itered_data.rtype.raw_name() == "f32" {
                     data.raw = data.raw.to_string() + letter_char;
                     let try_parse = data.raw.parse::<f32>();
                     if let Ok(nm) = try_parse {
@@ -452,7 +452,7 @@ pub fn collect_number(
                             },
                         });
                     }
-                } else if itered_data.r#type.raw_name() == "f64" {
+                } else if itered_data.rtype.raw_name() == "f64" {
                     data.raw = data.raw.to_string() + letter_char;
                     let try_parse = data.raw.parse::<f64>();
                     if let Ok(nm) = try_parse {
@@ -495,7 +495,7 @@ pub fn collect_number(
                             vec![
                                 error::ErrorBuildField {
                                     key: "token1".to_string(),
-                                    value: itered_data.r#type.raw_name(),
+                                    value: itered_data.rtype.raw_name(),
                                 },
                                 error::ErrorBuildField {
                                     key: "token2".to_string(),

@@ -12,7 +12,7 @@ pub enum ConditionType {
 
 #[repr(C)]
 pub struct ConditionChain {
-    pub r#type: ConditionType,
+    pub rtype: ConditionType,
     pub condition: types::cloak_type::CloakType,
     pub inside_code: *const Collecting,
 }

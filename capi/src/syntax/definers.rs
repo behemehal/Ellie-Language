@@ -16,7 +16,7 @@ pub struct FunctionType {
 #[repr(C)]
 pub struct CloakType {
     pub complete: bool,
-    pub r#type: *const DefinerCollecting,
+    pub rtype: *const DefinerCollecting,
     pub bracket_inserted: bool,
     pub at_comma: bool,
 }
@@ -24,7 +24,7 @@ pub struct CloakType {
 #[repr(C)]
 pub struct ArrayType {
     pub complete: bool,
-    pub r#type: Box<DefinerCollecting>,
+    pub rtype: Box<DefinerCollecting>,
     pub bracket_inserted: bool,
     pub len: types::Types,
     pub at_comma: bool,
@@ -34,13 +34,13 @@ pub struct ArrayType {
 #[repr(C)]
 pub struct DynamicArrayType {
     pub complete: bool,
-    pub r#type: Box<DefinerCollecting>,
+    pub rtype: Box<DefinerCollecting>,
     pub bracket_inserted: bool,
 }
 
 #[repr(C)]
 pub struct GenericType {
-    pub r#type: *const c_char,
+    pub rtype: *const c_char,
 }
 
 #[repr(C)]

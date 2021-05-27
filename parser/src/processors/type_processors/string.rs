@@ -16,9 +16,9 @@ pub fn collect_string(
 ) {
     if let types::Types::String(ref mut data) = itered_data.data.value {
         if itered_data.data.dynamic {
-            itered_data.r#type = crate::syntax::definers::DefinerCollecting::Generic(
+            itered_data.rtype = crate::syntax::definers::DefinerCollecting::Generic(
                 crate::syntax::definers::GenericType {
-                    r#type: "string".to_string(),
+                    rtype: "string".to_string(),
                 },
             );
         }

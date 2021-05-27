@@ -6,7 +6,7 @@ use libc::c_char;
 #[repr(C)]
 pub struct FunctionParameter {
     pub name: String,
-    pub r#type: definers::DefinerCollecting,
+    pub rtype: definers::DefinerCollecting,
 }
 
 #[repr(C)]

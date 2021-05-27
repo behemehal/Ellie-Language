@@ -26,11 +26,11 @@ pub fn collect_definer(
         DefinerCollecting::DynamicArray(ref mut data) => {
             if letter_char == "(" && !data.bracket_inserted {
                 data.bracket_inserted = true;
-            } else if letter_char == ")" && data.r#type.is_definer_complete() {
+            } else if letter_char == ")" && data.rtype.is_definer_complete() {
                 data.complete = true;
             } else {
                 collect_definer(
-                    &mut data.r#type,
+                    &mut data.rtype,
                     errors,
                     letter_char,
                     pos,
@@ -44,11 +44,11 @@ pub fn collect_definer(
             if !data.typed {
                 if letter_char == "(" && !data.bracket_inserted {
                     data.bracket_inserted = true;
-                } else if letter_char == "," && data.r#type.is_definer_complete() {
+                } else if letter_char == "," && data.rtype.is_definer_complete() {
                     data.typed = true;
                 } else {
                     collect_definer(
-                        &mut data.r#type,
+                        &mut data.rtype,
                         errors,
                         letter_char,
                         pos,
@@ -59,9 +59,9 @@ pub fn collect_definer(
                 }
             } else {
                 let mut emulated_collector_data = syntax::variable::VariableCollector {
-                    r#type: syntax::definers::DefinerCollecting::Generic(
+                    rtype: syntax::definers::DefinerCollecting::Generic(
                         syntax::definers::GenericType {
-                            r#type: "usize".to_string(),
+                            rtype: "usize".to_string(),
                         },
                     ),
                     data: syntax::variable::Variable {
@@ -89,7 +89,7 @@ pub fn collect_definer(
             }
         }
         DefinerCollecting::Generic(data) => {
-            if letter_char == "(" && data.r#type.trim() == "fn" {
+            if letter_char == "(" && data.rtype.trim() == "fn" {
                 *type_data = DefinerCollecting::Function(syntax::definers::FunctionType {
                     bracket_inserted: true,
                     params: vec![DefinerCollecting::Generic(
@@ -97,25 +97,25 @@ pub fn collect_definer(
                     )],
                     ..Default::default()
                 });
-            } else if letter_char == "(" && data.r#type == "array" {
+            } else if letter_char == "(" && data.rtype == "array" {
                 *type_data = DefinerCollecting::Array(syntax::definers::ArrayType {
                     bracket_inserted: true,
                     ..Default::default()
                 });
-            } else if letter_char == "(" && data.r#type == "cloak" {
+            } else if letter_char == "(" && data.rtype == "cloak" {
                 *type_data = DefinerCollecting::Cloak(syntax::definers::CloakType {
                     bracket_inserted: true,
-                    r#type: vec![DefinerCollecting::Generic(
+                    rtype: vec![DefinerCollecting::Generic(
                         syntax::definers::GenericType::default(),
                     )],
                     ..Default::default()
                 });
-            } else if letter_char == "(" && data.r#type == "dynamicArray" {
+            } else if letter_char == "(" && data.rtype == "dynamicArray" {
                 *type_data = DefinerCollecting::DynamicArray(syntax::definers::DynamicArrayType {
                     bracket_inserted: true,
                     ..Default::default()
                 });
-            } else if letter_char != " " && last_char == " " && data.r#type.trim() != "" {
+            } else if letter_char != " " && last_char == " " && data.rtype.trim() != "" {
                 errors.push(error::Error {
                     debug_message: "./parser/src/processors/definer_processor.rs:103".to_string(),
                     title: error::errorList::error_s1.title.clone(),
@@ -139,8 +139,8 @@ pub fn collect_definer(
                     letter_char.to_string(),
                 );
                 if current_reliability.reliable {
-                    data.r#type += &letter_char;
-                    data.r#type = utils::trim_good(data.r#type.trim().to_string());
+                    data.rtype += &letter_char;
+                    data.rtype = utils::trim_good(data.rtype.trim().to_string());
                 } else if letter_char != " " {
                     errors.push(error::Error {
                         debug_message: "./parser/src/processors/definer_processor.rs:129"
@@ -252,11 +252,11 @@ pub fn collect_definer(
             }
         }
         DefinerCollecting::Cloak(data) => {
-            let length_of_childs = data.r#type.len();
+            let length_of_childs = data.rtype.len();
             let is_complete = if length_of_childs == 0 {
                 false
             } else {
-                data.r#type[if length_of_childs == 1 {
+                data.rtype[if length_of_childs == 1 {
                     0
                 } else {
                     length_of_childs - 1
@@ -265,14 +265,14 @@ pub fn collect_definer(
             };
 
             if letter_char == "," && is_complete {
-                data.r#type.push(DefinerCollecting::Generic(
+                data.rtype.push(DefinerCollecting::Generic(
                     syntax::definers::GenericType::default(),
                 ));
             } else if letter_char == ")" && is_complete {
                 data.complete = true;
             } else {
                 collect_definer(
-                    &mut data.r#type[if length_of_childs == 1 {
+                    &mut data.rtype[if length_of_childs == 1 {
                         0
                     } else {
                         length_of_childs - 1
