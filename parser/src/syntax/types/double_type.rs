@@ -2,7 +2,7 @@ use serde::Serialize;
 
 use alloc::string::String;
 
-
+#[repr(C)]
 #[derive(PartialEq, Default, Debug, Clone, Serialize)]
 pub struct DoubleType {
     pub value: f32,

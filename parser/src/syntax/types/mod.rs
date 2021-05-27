@@ -14,10 +14,10 @@ pub mod refference_type;
 pub mod string_type;
 pub mod variable_type;
 
-use serde::Serialize;
 use enum_as_inner::EnumAsInner;
+use serde::Serialize;
 
-
+#[repr(C)]
 #[derive(PartialEq, Debug, Clone, Serialize, EnumAsInner)]
 pub enum Types {
     Number(number_type::NumberType),
@@ -37,7 +37,8 @@ pub enum Types {
 }
 
 impl Types {
-    pub fn is_string_open(&self) -> bool {
+    #[no_mangle]
+    pub extern "C" fn is_string_open(&self) -> bool {
         match &*self {
             Types::Number(_) => true,
             Types::Bool(_) => true,
@@ -76,7 +77,8 @@ impl Types {
         }
     }
 
-    pub fn is_complete(&self) -> bool {
+    #[no_mangle]
+    pub extern "C" fn is_complete(&self) -> bool {
         match &*self {
             Types::Number(_) => true, //Always complete
             Types::Bool(_) => true,   //Always complete
@@ -99,7 +101,8 @@ impl Types {
         }
     }
 
-    pub fn is_array(&self) -> bool {
+    #[no_mangle]
+    pub extern "C" fn is_array(&self) -> bool {
         match *self {
             Types::Number(_) => false,
             Types::Bool(_) => false,
@@ -118,7 +121,8 @@ impl Types {
         }
     }
 
-    pub fn is_string(&self) -> bool {
+    #[no_mangle]
+    pub extern "C" fn is_string(&self) -> bool {
         match *self {
             Types::Number(_) => false,
             Types::Bool(_) => false,
@@ -137,7 +141,8 @@ impl Types {
         }
     }
 
-    pub fn is_string_non_complete(&self) -> bool {
+    #[no_mangle]
+    pub extern "C" fn is_string_non_complete(&self) -> bool {
         //TODO Char is might be buggy
         match &*self {
             Types::Number(_) => false,
@@ -157,7 +162,8 @@ impl Types {
         }
     }
 
-    pub fn is_array_non_complete(&self) -> Option<bool> {
+    #[no_mangle]
+    pub extern "C" fn is_array_non_complete(&self) -> Option<bool> {
         match &*self {
             Types::Number(_) => None,
             Types::Bool(_) => None,
@@ -176,7 +182,8 @@ impl Types {
         }
     }
 
-    pub fn is_array_complete(&self) -> bool {
+    #[no_mangle]
+    pub extern "C" fn is_array_complete(&self) -> bool {
         match &*self {
             Types::Number(_) => false,
             Types::Bool(_) => false,
@@ -195,7 +202,8 @@ impl Types {
         }
     }
 
-    pub fn make_complete(&mut self) {
+    #[no_mangle]
+    pub extern "C" fn make_complete(&mut self) {
         match self {
             Types::Number(e) => e.complete = true,
             Types::Bool(_) => (),

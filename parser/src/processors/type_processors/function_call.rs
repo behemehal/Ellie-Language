@@ -7,14 +7,15 @@ use alloc::string::{String, ToString};
 use alloc::vec;
 use alloc::vec::Vec;
 
-pub fn collect(
+#[no_mangle]
+pub extern "C" fn collect(
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     next_char: String,
     last_char: String,
     pos: defs::CursorPosition,
-    options: defs::ParserOptions
+    options: defs::ParserOptions,
 ) {
     if let types::Types::FunctionCall(ref mut data) = itered_data.data.value {
         let mut last_param = data.params.len();
@@ -34,7 +35,8 @@ pub fn collect(
                     .push(types::function_call::FunctionCallParameter::default())
             } else {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/function_call.rs:35" .to_string(),
+                    debug_message: "./parser/src/processors/type_processors/function_call.rs:35"
+                        .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -54,7 +56,8 @@ pub fn collect(
         } else if letter_char == ")" && is_s_n {
             if data.comma {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/function_call.rs:56" .to_string(),
+                    debug_message: "./parser/src/processors/type_processors/function_call.rs:56"
+                        .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -72,7 +75,8 @@ pub fn collect(
                 });
             } else {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/function_call.rs:75" .to_string(),
+                    debug_message: "./parser/src/processors/type_processors/function_call.rs:75"
+                        .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -113,7 +117,7 @@ pub fn collect(
                 next_char,
                 last_char,
                 defs::CursorPosition(0, 0),
-                options
+                options,
             ));
 
             let _itered_entry = match itered_param_value.itered_data.data.value.clone() {
@@ -190,4 +194,3 @@ pub fn collect(
         }
     }
 }
-

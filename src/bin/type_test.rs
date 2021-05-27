@@ -23,7 +23,7 @@ fn main() {
             pos,
             next_char.to_string(),
             last_char.to_string(),
-            ellie_core::defs::ParserOptions::default()
+            ellie_core::defs::ParserOptions::default(),
         );
         pos.0 += 1;
     }

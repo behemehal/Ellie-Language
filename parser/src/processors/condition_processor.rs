@@ -7,13 +7,14 @@ use alloc::boxed::Box;
 use alloc::string::String;
 use alloc::vec::Vec;
 
-pub fn collect(
+#[no_mangle]
+pub extern "C" fn collect(
     parser: &mut parser::Parser,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     next_char: String,
     last_char: String,
-    options: defs::ParserOptions
+    options: defs::ParserOptions,
 ) {
     if let parser::Collecting::Condition(ref mut data) = parser.current {
         if !data.initialized {
@@ -49,7 +50,7 @@ pub fn collect(
                     next_char,
                     last_char,
                     parser.pos,
-                    options
+                    options,
                 );
                 for i in collected.errors {
                     errors.push(i)
@@ -64,10 +65,7 @@ pub fn collect(
                     data.inside_object_count -= 1;
                 }
             } else {
-                let child_parser = parser::Parser::new(
-                    data.inside_code_string.clone(),
-                    options
-                );
+                let child_parser = parser::Parser::new(data.inside_code_string.clone(), options);
                 parser.pos = child_parser.pos;
                 let mapped = child_parser.map();
                 for i in mapped.syntax_errors {

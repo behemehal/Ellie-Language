@@ -1,5 +1,5 @@
 use crate::processors::value_processor;
-use crate::syntax::{types, variable, definers};
+use crate::syntax::{definers, types, variable};
 use ellie_core::{defs, error, utils};
 
 use alloc::boxed::Box;
@@ -7,14 +7,15 @@ use alloc::string::{String, ToString};
 use alloc::vec;
 use alloc::vec::Vec;
 
-pub fn collect(
+#[no_mangle]
+pub extern "C" fn collect(
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     next_char: String,
     last_char: String,
     pos: defs::CursorPosition,
-    options: defs::ParserOptions
+    options: defs::ParserOptions,
 ) {
     if let types::Types::Cloak(ref mut data) = itered_data.data.value {
         let last_entry = data.clone().collective.len();
@@ -24,7 +25,8 @@ pub fn collect(
         if letter_char == "(" && !data.child_start && is_s_n {
             if !data.comma && last_entry != 0 {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/cloak.rs:25" .to_string(),
+                    debug_message: "./parser/src/processors/type_processors/cloak.rs:25"
+                        .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -61,7 +63,8 @@ pub fn collect(
         } else if letter_char == "," && !data.child_start && is_s_n {
             if data.complete {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/cloak.rs:63" .to_string(),
+                    debug_message: "./parser/src/processors/type_processors/cloak.rs:63"
+                        .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -79,7 +82,8 @@ pub fn collect(
                 });
             } else if data.comma {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/cloak.rs:82" .to_string(),
+                    debug_message: "./parser/src/processors/type_processors/cloak.rs:82"
+                        .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -108,7 +112,8 @@ pub fn collect(
         } else if letter_char == ")" && !data.child_start && is_s_n {
             if data.comma {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/cloak.rs:112" .to_string(),
+                    debug_message: "./parser/src/processors/type_processors/cloak.rs:112"
+                        .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -126,7 +131,8 @@ pub fn collect(
                 });
             } else if data.complete {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/cloak.rs:131" .to_string(),
+                    debug_message: "./parser/src/processors/type_processors/cloak.rs:131"
+                        .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -194,7 +200,7 @@ pub fn collect(
                 data.comma = false;
             }
 
-            let mut will_be_itered : variable::VariableCollector;
+            let mut will_be_itered: variable::VariableCollector;
             if let definers::DefinerCollecting::Cloak(cloak_data) = itered_data.r#type.clone() {
                 will_be_itered = if data.collective.is_empty() {
                     variable::VariableCollector {
@@ -229,7 +235,6 @@ pub fn collect(
                     utils::terminal_colors::get_color(utils::terminal_colors::Colors::Red),
                     utils::terminal_colors::get_color(utils::terminal_colors::Colors::Reset),
                 );
-
             }
 
             let itered_cloak_vector = Box::new(value_processor::collect(
@@ -238,7 +243,7 @@ pub fn collect(
                 next_char,
                 last_char,
                 defs::CursorPosition(0, 0),
-                options
+                options,
             ));
 
             if let types::Types::Cloak(ref adata) = itered_cloak_vector.itered_data.data.value {
@@ -326,4 +331,3 @@ pub fn collect(
         }
     }
 }
-

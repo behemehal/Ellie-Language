@@ -1,10 +1,10 @@
-use serde::Serialize;
 use crate::syntax::types;
+use serde::Serialize;
 
-use alloc::string::String;
 use alloc::boxed::Box;
+use alloc::string::String;
 
-
+#[repr(C)]
 #[derive(PartialEq, Debug, Clone, Serialize)]
 pub enum ComparisonOperators {
     Equal,
@@ -13,7 +13,7 @@ pub enum ComparisonOperators {
     LessThan,
     GreaterThanOrEqual,
     LessThanOrEqual,
-    Null
+    Null,
 }
 
 impl Default for ComparisonOperators {
@@ -23,24 +23,26 @@ impl Default for ComparisonOperators {
 }
 
 impl ComparisonOperators {
-    pub fn is_opearator(value: &str) -> bool {
+    #[no_mangle]
+    pub extern "C" fn is_opearator(value: &str) -> bool {
         "=!<>".contains(value)
     }
 
-    pub fn resolve_operator(value: &str) -> Result<ComparisonOperators, bool> {
+    #[no_mangle]
+    pub extern "C" fn resolve_operator(value: &str) -> Result<ComparisonOperators, bool> {
         match value {
             "==" => Ok(ComparisonOperators::Equal),
             "!=" => Ok(ComparisonOperators::NotEqual),
-            ">"  => Ok(ComparisonOperators::GreaterThan),
-            "<"  => Ok(ComparisonOperators::LessThan),
+            ">" => Ok(ComparisonOperators::GreaterThan),
+            "<" => Ok(ComparisonOperators::LessThan),
             ">=" => Ok(ComparisonOperators::GreaterThanOrEqual),
             "<=" => Ok(ComparisonOperators::GreaterThan),
-            _ => Err(true)
+            _ => Err(true),
         }
     }
 }
 
-
+#[repr(C)]
 #[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct ComparisonType {
     pub cloaked: bool,
@@ -49,5 +51,5 @@ pub struct ComparisonType {
     pub second: Box<types::Types>,
     pub operator: ComparisonOperators,
     pub operator_collect: String,
-    pub operator_collected: bool
+    pub operator_collected: bool,
 }

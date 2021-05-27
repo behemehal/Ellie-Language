@@ -5,17 +5,18 @@ use crate::syntax::{types, variable};
 use ellie_core::{defs, error, utils};
 
 use alloc::string::{String, ToString};
-use alloc::vec::Vec;
 use alloc::vec;
+use alloc::vec::Vec;
 
-pub fn collect(
+#[no_mangle]
+pub extern "C" fn collect(
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     next_char: String,
     last_char: String,
     pos: defs::CursorPosition,
-    options: defs::ParserOptions
+    options: defs::ParserOptions,
 ) {
     if let types::Types::ArrowFunction(ref mut functiondata) = itered_data.data.value {
         if !functiondata.parameter_wrote {
@@ -132,7 +133,7 @@ pub fn collect(
                         pos,
                         next_char,
                         last_char,
-                        options
+                        options,
                     );
                 }
             }
@@ -144,7 +145,8 @@ pub fn collect(
                 functiondata.pointer_typed = true;
             } else if letter_char != " " {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/arrow_function.rs:143" .to_string(),
+                    debug_message: "./parser/src/processors/type_processors/arrow_function.rs:143"
+                        .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -172,7 +174,7 @@ pub fn collect(
                     pos,
                     next_char,
                     last_char,
-                    options
+                    options,
                 );
             }
         } else if letter_char == "}" && functiondata.brace_count == 0 {
@@ -184,10 +186,8 @@ pub fn collect(
                 functiondata.brace_count -= 1;
             }
             functiondata.inside_code_string += letter_char;
-            let mut child_parser = parser::Parser::new(
-                functiondata.inside_code_string.clone(),
-                options
-            );
+            let mut child_parser =
+                parser::Parser::new(functiondata.inside_code_string.clone(), options);
             child_parser.pos = pos;
             let mapped = child_parser.map();
             for i in mapped.syntax_errors {
@@ -197,4 +197,3 @@ pub fn collect(
         }
     }
 }
-

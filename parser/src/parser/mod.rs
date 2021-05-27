@@ -3,20 +3,21 @@
 
 use serde::Serialize;
 
-use ellie_core::{defs, error, utils};
 use crate::processors;
 use crate::syntax::{condition, function, variable};
+use ellie_core::{defs, error, utils};
 
-use crate::alloc::vec::Vec;
 use crate::alloc::string::{String, ToString};
+use crate::alloc::vec::Vec;
 
+#[repr(C)]
 #[derive(Debug, Clone, PartialEq)]
 pub struct Parsed {
     pub items: Vec<Collecting>,
     pub syntax_errors: Vec<error::Error>,
 }
 
-
+#[repr(C)]
 #[derive(PartialEq, Debug, Clone, Serialize)]
 pub enum Collecting {
     Variable(variable::VariableCollector),
@@ -25,6 +26,7 @@ pub enum Collecting {
     None,
 }
 
+#[repr(C)]
 #[derive(PartialEq, Debug, Clone)]
 pub struct Parser {
     pub code: String,
@@ -37,8 +39,8 @@ pub struct Parser {
 }
 
 impl Parser {
-
-    pub fn new(code: String, options: defs::ParserOptions) -> Self {
+    #[no_mangle]
+    pub extern "C" fn new(code: String, options: defs::ParserOptions) -> Self {
         Parser {
             code,
             options,
@@ -49,9 +51,10 @@ impl Parser {
             keyword_catch: String::new(),
         }
     }
-    pub fn map(mut self) -> Parsed {
+    #[no_mangle]
+    pub extern "C" fn map(mut self) -> Parsed {
         let mut errors: Vec<error::Error> = Vec::new();
-        let parser_options = self.options.clone(); 
+        let parser_options = self.options.clone();
 
         for (index, char) in self.code.clone().chars().enumerate() {
             let letter_char = &char.to_string();
@@ -72,7 +75,7 @@ impl Parser {
                         letter_char,
                         next_char.clone(),
                         next_next_char.clone(),
-                        next_next_next_char.clone()
+                        next_next_next_char.clone(),
                     );
                 } else {
                     self.keyword_catch = String::new();
@@ -103,7 +106,7 @@ impl Parser {
                         last_char.clone(),
                         parser_options.clone(),
                     ),
-                    _ => ()
+                    _ => (),
                 }
                 self.pos.1 += 1;
             } else if last_char == "\r" || letter_char == "\n" {

@@ -5,20 +5,22 @@ use alloc::string::{String, ToString};
 use alloc::vec;
 use alloc::vec::Vec;
 
-pub fn collect(
+#[no_mangle]
+pub extern "C" fn collect(
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     _next_char: String,
     last_char: String,
     pos: defs::CursorPosition,
-    _options: defs::ParserOptions
+    _options: defs::ParserOptions,
 ) {
     if let types::Types::Refference(ref mut data) = itered_data.data.value {
         if letter_char == "." {
             if data.on_dot {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/refference.rs:19" .to_string(),
+                    debug_message: "./parser/src/processors/type_processors/refference.rs:19"
+                        .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -54,7 +56,8 @@ pub fn collect(
                     //});
                 } else {
                     errors.push(error::Error {
-                        debug_message: "./parser/src/processors/type_processors/refference.rs:56" .to_string(),
+                        debug_message: "./parser/src/processors/type_processors/refference.rs:56"
+                            .to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -323,4 +326,3 @@ pub fn collect(
         }
     }
 }
-

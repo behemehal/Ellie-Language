@@ -1,3 +1,4 @@
+#[repr(C)]
 pub enum Colors {
     Black,
     Red,
@@ -7,10 +8,11 @@ pub enum Colors {
     Magenta,
     Cyan,
     White,
-    Reset
+    Reset,
 }
 
-pub fn get_color(selected: Colors) -> String {
+#[no_mangle]
+pub extern "C" fn get_color(selected: Colors) -> String {
     let color_id = match selected {
         Colors::Black => "[30m",
         Colors::Red => "[31m",
@@ -22,7 +24,7 @@ pub fn get_color(selected: Colors) -> String {
         Colors::White => "[37m",
         Colors::Reset => "[0m",
     };
-    return format!("{}{}",'\u{001b}', color_id);
+    return format!("{}{}", '\u{001b}', color_id);
 }
 
 //pub static ref error_s1: crate::error::Error = crate::error::Error {
@@ -30,5 +32,3 @@ pub fn get_color(selected: Colors) -> String {
 //pub const RED: char = '\u{00e9}';
 //pub const RED: char = '\u{00e9}';
 //pub const RESET: String = "0m".to_string();
-
-

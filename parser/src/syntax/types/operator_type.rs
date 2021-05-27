@@ -11,7 +11,7 @@ use crate::syntax::types::logical_type::LogicalOpearators;
 use alloc::boxed::Box;
 use alloc::string::String;
 
-
+#[repr(C)]
 #[derive(PartialEq, Debug, Clone, Serialize)]
 pub enum Operators {
     ComparisonType(ComparisonOperators),
@@ -21,7 +21,8 @@ pub enum Operators {
 }
 
 impl Operators {
-    pub fn resolve_operator(r#type: Operators, value: &str) -> Result<Operators, bool> {
+    #[no_mangle]
+    pub extern "C" fn resolve_operator(r#type: Operators, value: &str) -> Result<Operators, bool> {
         match r#type {
             Operators::ComparisonType(_) => {
                 if let Ok(e) = types::comparison_type::ComparisonOperators::resolve_operator(value)
@@ -57,7 +58,7 @@ impl Default for Operators {
     }
 }
 
-
+#[repr(C)]
 #[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct OperatorType {
     pub cloaked: bool,

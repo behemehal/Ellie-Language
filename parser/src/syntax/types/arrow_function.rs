@@ -1,11 +1,11 @@
 use crate::parser::Collecting;
 use crate::syntax::{definers, function};
-use serde::Serialize;
-use alloc::vec::Vec;
 use alloc::boxed::Box;
 use alloc::string::String;
+use alloc::vec::Vec;
+use serde::Serialize;
 
-
+#[repr(C)]
 #[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct ArrowFunction {
     pub parameters: Vec<function::FunctionParameterCollector>,
@@ -13,7 +13,7 @@ pub struct ArrowFunction {
     pub inside_code: Vec<Collecting>,
 }
 
-
+#[repr(C)]
 #[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct ArrowFunctionCollector {
     pub complete: bool,

@@ -28,6 +28,6 @@ SOFTWARE.
 
 #[macro_use]
 extern crate lazy_static;
-pub mod utils;
-pub mod error;
 pub mod defs;
+pub mod error;
+pub mod utils;

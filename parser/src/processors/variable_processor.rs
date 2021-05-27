@@ -7,19 +7,21 @@ use alloc::string::{String, ToString};
 use alloc::vec;
 use alloc::vec::Vec;
 
+#[repr(C)]
 #[derive(Debug, Clone, PartialEq)]
 pub struct CollectorResponse {
     parser: parser::Parser,
     data: variable::VariableCollector,
 }
 
-pub fn collect(
+#[no_mangle]
+pub extern "C" fn collect(
     parser: &mut parser::Parser,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     next_char: String,
     last_char: String,
-    options: defs::ParserOptions
+    options: defs::ParserOptions,
 ) {
     if let parser::Collecting::Variable(ref mut variabledata) = parser.current {
         if !variabledata.named {
@@ -212,7 +214,7 @@ pub fn collect(
                     parser.pos,
                     next_char,
                     last_char,
-                    options
+                    options,
                 );
             }
         } else if letter_char == ";" {
@@ -249,7 +251,7 @@ pub fn collect(
                 next_char,
                 last_char,
                 parser.pos,
-                options
+                options,
             );
             for i in collected.errors {
                 errors.push(i)

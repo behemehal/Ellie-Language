@@ -2,6 +2,7 @@
 use core::fmt;
 use serde::Serialize;
 
+#[repr(C)]
 #[derive(PartialEq, Debug, Clone)]
 pub struct ParserOptions {
     pub functions: bool,
@@ -27,6 +28,7 @@ impl Default for ParserOptions {
     }
 }
 
+#[repr(C)]
 #[derive(PartialEq, Debug, Clone, Copy, Serialize)]
 pub struct CursorPosition(pub i64, pub i64);
 
@@ -37,17 +39,20 @@ impl Default for CursorPosition {
 }
 
 impl CursorPosition {
-    pub fn skipChar(&mut self, n: i64) -> CursorPosition {
+    #[no_mangle]
+    pub extern "C" fn skipChar(&mut self, n: i64) -> CursorPosition {
         self.1 += n;
         return self.clone();
     }
 
-    pub fn popChar(&mut self, n: i64) -> CursorPosition {
+    #[no_mangle]
+    pub extern "C" fn popChar(&mut self, n: i64) -> CursorPosition {
         self.1 -= n;
         return self.clone();
     }
 }
 
+#[repr(C)]
 #[derive(PartialEq, Debug, Clone, Copy, Serialize)]
 pub struct Cursor {
     pub range_start: CursorPosition,
@@ -63,6 +68,7 @@ impl Default for Cursor {
     }
 }
 
+#[repr(C)]
 pub struct SyntaxError {
     error: crate::error::Error,
     position: Cursor,
