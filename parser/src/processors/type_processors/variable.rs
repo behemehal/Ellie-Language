@@ -5,7 +5,6 @@ use alloc::string::{String, ToString};
 use alloc::vec;
 use alloc::vec::Vec;
 
-#[no_mangle]
 pub fn collect(
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,

@@ -29,6 +29,7 @@ mod string_tests {
                 next_char.to_string(),
                 last_char.to_string(),
                 pos,
+                ellie_core::defs::ParserOptions::default()
             );
 
             for error in itered.errors {
@@ -70,6 +71,7 @@ mod string_tests {
                 next_char.to_string(),
                 last_char.to_string(),
                 pos,
+                ellie_core::defs::ParserOptions::default()
             );
 
             for error in itered.errors {

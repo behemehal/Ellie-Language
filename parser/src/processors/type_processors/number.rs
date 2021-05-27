@@ -37,11 +37,11 @@ pub fn collect(
                     },
                 });
             } else {
-                if matches!(&itered_data.r#type, crate::syntax::definers::Collecting::Generic(x) if x.r#type.is_empty())
+                if matches!(&itered_data.r#type, crate::syntax::definers::DefinerCollecting::Generic(x) if x.r#type.is_empty())
                     && itered_data.data.dynamic
                 {
                     //Make type default to u16
-                    itered_data.r#type = crate::syntax::definers::Collecting::Generic(
+                    itered_data.r#type = crate::syntax::definers::DefinerCollecting::Generic(
                         crate::syntax::definers::GenericType {
                             r#type: "u16".to_string(),
                         },

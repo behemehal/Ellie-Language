@@ -15,6 +15,7 @@ pub fn collect(
     next_char: String,
     last_char: String,
     pos: defs::CursorPosition,
+    options: defs::ParserOptions
 ) {
     if let types::Types::ArrowFunction(ref mut functiondata) = itered_data.data.value {
         if !functiondata.parameter_wrote {
@@ -131,6 +132,7 @@ pub fn collect(
                         pos,
                         next_char,
                         last_char,
+                        options
                     );
                 }
             }
@@ -170,6 +172,7 @@ pub fn collect(
                     pos,
                     next_char,
                     last_char,
+                    options
                 );
             }
         } else if letter_char == "}" && functiondata.brace_count == 0 {
@@ -183,14 +186,7 @@ pub fn collect(
             functiondata.inside_code_string += letter_char;
             let mut child_parser = parser::Parser::new(
                 functiondata.inside_code_string.clone(),
-                defs::ParserOptions {
-                    functions: true,
-                    break_on_error: false,
-                    loops: true,
-                    global_variables: true,
-                    collectives: true,
-                    variables: true,
-                },
+                options
             );
             child_parser.pos = pos;
             let mapped = child_parser.map();

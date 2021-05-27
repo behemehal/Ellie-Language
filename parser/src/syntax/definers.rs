@@ -3,11 +3,12 @@ use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 use serde::Serialize;
 
+
 #[derive(PartialEq, Debug, Clone, Serialize, Default)]
 pub struct FunctionType {
     pub complete: bool,
-    pub params: Vec<Collecting>,
-    pub returning: Box<Collecting>,
+    pub params: Vec<DefinerCollecting>,
+    pub returning: Box<DefinerCollecting>,
     pub return_typed: bool,
     pub return_keyword: i8,
     pub parameter_collected: bool,
@@ -15,79 +16,88 @@ pub struct FunctionType {
     pub at_comma: bool,
 }
 
+
 #[derive(PartialEq, Debug, Clone, Serialize, Default)]
 pub struct CloakType {
     pub complete: bool,
-    pub r#type: Vec<Collecting>,
+    pub r#type: Vec<DefinerCollecting>,
     pub bracket_inserted: bool,
     pub at_comma: bool,
 }
 
+
 #[derive(PartialEq, Debug, Clone, Serialize, Default)]
 pub struct ArrayType {
     pub complete: bool,
-    pub r#type: Box<Collecting>,
+    pub r#type: Box<DefinerCollecting>,
     pub bracket_inserted: bool,
     pub len: crate::syntax::types::Types,
     pub at_comma: bool,
     pub typed: bool,
 }
 
+
 #[derive(PartialEq, Debug, Clone, Serialize, Default)]
 pub struct DynamicArrayType {
     pub complete: bool,
-    pub r#type: Box<Collecting>,
+    pub r#type: Box<DefinerCollecting>,
     pub bracket_inserted: bool,
 }
+
 
 #[derive(PartialEq, Debug, Clone, Serialize, Default)]
 pub struct GenericType {
     pub r#type: String,
 }
 
+
 #[derive(PartialEq, Debug, Clone, Serialize)]
-pub enum Collecting {
+pub enum DefinerCollecting {
     Array(ArrayType),
     DynamicArray(DynamicArrayType),
     Generic(GenericType),
     Function(FunctionType),
     Cloak(CloakType),
+    Dynamic
 }
 
-impl Default for Collecting {
+impl Default for DefinerCollecting {
     fn default() -> Self {
-        Collecting::Generic(GenericType::default())
+        DefinerCollecting::Generic(GenericType::default())
     }
 }
 
-impl Collecting {
+impl DefinerCollecting {
     pub fn is_type_empty(&self) -> bool {
         match self {
-            Collecting::Array(data) => !data.complete,
-            Collecting::DynamicArray(data) => !data.complete,
-            Collecting::Generic(data) => data.r#type.is_empty(),
-            Collecting::Function(data) => !data.complete,
-            Collecting::Cloak(data) => !data.complete,
+            DefinerCollecting::Array(data) => !data.complete,
+            DefinerCollecting::DynamicArray(data) => !data.complete,
+            DefinerCollecting::Generic(data) => data.r#type.is_empty(),
+            DefinerCollecting::Function(data) => !data.complete,
+            DefinerCollecting::Cloak(data) => !data.complete,
+            DefinerCollecting::Dynamic => false
         }
     }
 
     pub fn is_complete(&self) -> bool {
         match self {
-            Collecting::Array(data) => data.complete,
-            Collecting::DynamicArray(data) => data.complete,
-            Collecting::Generic(data) => !data.r#type.is_empty(),
-            Collecting::Function(data) => data.complete,
-            Collecting::Cloak(data) => data.complete,
+            DefinerCollecting::Array(data) => data.complete,
+            DefinerCollecting::DynamicArray(data) => data.complete,
+            DefinerCollecting::Generic(data) => !data.r#type.is_empty(),
+            DefinerCollecting::Function(data) => data.complete,
+            DefinerCollecting::Cloak(data) => data.complete,
+            DefinerCollecting::Dynamic => true
         }
     }
 
     pub fn raw_name(&self) -> String {
         match self {
-            Collecting::Array(_) => "array".to_string(),
-            Collecting::DynamicArray(_) => "dynamic_array".to_string(),
-            Collecting::Generic(data) => data.r#type.clone(),
-            Collecting::Function(_) => "function".to_string(),
-            Collecting::Cloak(_) => "cloak".to_string(),
+            DefinerCollecting::Array(_) => "array".to_string(),
+            DefinerCollecting::DynamicArray(_) => "dynamic_array".to_string(),
+            DefinerCollecting::Generic(data) => data.r#type.clone(),
+            DefinerCollecting::Function(_) => "function".to_string(),
+            DefinerCollecting::Cloak(_) => "cloak".to_string(),
+            DefinerCollecting::Dynamic => "dynamic".to_string()
         }
     }
 }

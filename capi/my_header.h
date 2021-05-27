@@ -21,18 +21,11 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#![no_std]
-#![allow(unused_assignments)]
-#![allow(unknown_lints)]
-#![warn(clippy::all)]
-extern crate alloc;
 
-#[cfg(feature = "std")]
-extern crate std;
+#ifndef _ELLIE_H
+#define _ELLIE_H
 
-pub mod parser;
-pub mod processors;
-pub mod syntax;
+#include <stdint.h>
+#include <stddef.h>
 
-//TODO: no-std use core::alloc::Layout; Nightly
-//TODO: no-std extern crate alloc; Nightly
+#endif /* _ELLIE_H */

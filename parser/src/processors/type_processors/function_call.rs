@@ -14,6 +14,7 @@ pub fn collect(
     next_char: String,
     last_char: String,
     pos: defs::CursorPosition,
+    options: defs::ParserOptions
 ) {
     if let types::Types::FunctionCall(ref mut data) = itered_data.data.value {
         let mut last_param = data.params.len();
@@ -112,6 +113,7 @@ pub fn collect(
                 next_char,
                 last_char,
                 defs::CursorPosition(0, 0),
+                options
             ));
 
             let _itered_entry = match itered_param_value.itered_data.data.value.clone() {

@@ -12,6 +12,7 @@ pub fn collect(
     _next_char: String,
     last_char: String,
     pos: defs::CursorPosition,
+    _options: defs::ParserOptions
 ) {
     if let types::Types::Refference(ref mut data) = itered_data.data.value {
         if letter_char == "." {
@@ -80,7 +81,7 @@ pub fn collect(
 
                             if itered_data.data.dynamic {
                                 itered_data.r#type =
-                                    definers::Collecting::Generic(definers::GenericType {
+                                    definers::DefinerCollecting::Generic(definers::GenericType {
                                         r#type: "f32".to_string(),
                                     });
                                 //  itered_data.r#type.raw_name()

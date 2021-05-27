@@ -14,6 +14,7 @@ pub fn collect(
     next_char: String,
     last_char: String,
     pos: defs::CursorPosition,
+    options: defs::ParserOptions
 ) {
     if let types::Types::Operator(ref mut data) = itered_data.data.value {
         if !data.operator_collected {
@@ -62,6 +63,7 @@ pub fn collect(
                 next_char,
                 last_char,
                 defs::CursorPosition(0, 0),
+                options
             );
             if itered_child.errors.is_empty() {
                 for returned_error in itered_child.errors {

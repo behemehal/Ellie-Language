@@ -19,6 +19,7 @@ pub fn collect(
     letter_char: &str,
     next_char: String,
     last_char: String,
+    options: defs::ParserOptions
 ) {
     if let parser::Collecting::Variable(ref mut variabledata) = parser.current {
         if !variabledata.named {
@@ -65,7 +66,7 @@ pub fn collect(
                 parser.current = parser::Collecting::None;
             } else if letter_char == "=" {
                 #[cfg(feature = "std")]
-                println!(
+                std::println!(
                     "{}[ParserWarning]{}: WORKING BLIND, ReadMore: {}https://github.com/behemehal/Ellie-Language/issues/2{}",
                     utils::terminal_colors::get_color(utils::terminal_colors::Colors::Yellow),
                     utils::terminal_colors::get_color(utils::terminal_colors::Colors::Reset),
@@ -163,7 +164,7 @@ pub fn collect(
         } else if !variabledata.typed && !variabledata.data.dynamic {
             if letter_char == ";" {
                 #[cfg(feature = "std")]
-                println!(
+                std::println!(
                     "{}[ParserWarning]{}: WORKING BLIND, ReadMore: {}https://github.com/behemehal/Ellie-Language/issues/2{}",
                     utils::terminal_colors::get_color(utils::terminal_colors::Colors::Yellow),
                     utils::terminal_colors::get_color(utils::terminal_colors::Colors::Reset),
@@ -194,7 +195,7 @@ pub fn collect(
                     });
                 } else {
                     #[cfg(feature = "std")]
-                    println!(
+                    std::println!(
                         "{}[ParserWarning]{}: WORKING BLIND, ReadMore: {}https://github.com/behemehal/Ellie-Language/issues/2{}",
                         utils::terminal_colors::get_color(utils::terminal_colors::Colors::Yellow),
                         utils::terminal_colors::get_color(utils::terminal_colors::Colors::Reset),
@@ -211,6 +212,7 @@ pub fn collect(
                     parser.pos,
                     next_char,
                     last_char,
+                    options
                 );
             }
         } else if letter_char == ";" {
@@ -247,6 +249,7 @@ pub fn collect(
                 next_char,
                 last_char,
                 parser.pos,
+                options
             );
             for i in collected.errors {
                 errors.push(i)

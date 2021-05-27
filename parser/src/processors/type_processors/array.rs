@@ -14,6 +14,7 @@ pub fn collect(
     next_char: String,
     last_char: String,
     pos: defs::CursorPosition,
+    options: defs::ParserOptions
 ) {
     if let types::Types::Array(ref mut data) = itered_data.data.value {
         /*
@@ -216,7 +217,7 @@ pub fn collect(
             }
 
             let mut will_be_itered: variable::VariableCollector;
-            if let definers::Collecting::Array(array_data) = itered_data.r#type.clone() {
+            if let definers::DefinerCollecting::Array(array_data) = itered_data.r#type.clone() {
                 if data.collective.len()
                     > *array_data
                         .len
@@ -275,7 +276,7 @@ pub fn collect(
                         ..variable::VariableCollector::default()
                     }
                 };
-            } else if let definers::Collecting::DynamicArray(array_data) =
+            } else if let definers::DefinerCollecting::DynamicArray(array_data) =
                 itered_data.r#type.clone()
             {
                 will_be_itered = if data.collective.is_empty() {
@@ -308,8 +309,8 @@ pub fn collect(
                     }
                 };
                 #[cfg(feature = "std")]
-                println!(
-                    "{}[ParserError]{}: This shouldn't have happened",
+                std::println!(
+                    "{}[ParserError:0x1]{}: This shouldn't have happened",
                     utils::terminal_colors::get_color(utils::terminal_colors::Colors::Red),
                     utils::terminal_colors::get_color(utils::terminal_colors::Colors::Reset),
                 );
@@ -321,6 +322,7 @@ pub fn collect(
                 next_char,
                 last_char,
                 defs::CursorPosition(0, 0),
+                options
             ));
 
             if let types::Types::Array(ref adata) = itered_array_vector.itered_data.data.value {

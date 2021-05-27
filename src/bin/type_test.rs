@@ -4,7 +4,7 @@ use ellie_parser;
 fn main() {
     let mut pos = ellie_core::defs::CursorPosition(0, 0);
     let mut errors: Vec<ellie_core::error::Error> = vec![];
-    let mut emulated_collector_data = ellie_parser::syntax::definers::Collecting::default();
+    let mut emulated_collector_data = ellie_parser::syntax::definers::DefinerCollecting::default();
     let code = "
         dynamicArray(i8)
     ";
@@ -23,6 +23,7 @@ fn main() {
             pos,
             next_char.to_string(),
             last_char.to_string(),
+            ellie_core::defs::ParserOptions::default()
         );
         pos.0 += 1;
     }

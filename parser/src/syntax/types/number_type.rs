@@ -1,9 +1,8 @@
-use alloc::fmt::Display;
-use alloc::fmt::Formatter;
 use alloc::string::String;
 use alloc::format;
 use serde::Serialize;
 use enum_as_inner::EnumAsInner;
+
 
 #[derive(PartialEq, Eq, Debug, Clone, Copy, Serialize)]
 pub enum NumberTypes {
@@ -28,6 +27,7 @@ impl Default for NumberTypes {
         NumberTypes::I8
     }
 }
+
 
 #[derive(PartialEq, Debug, Clone, Copy, Serialize, EnumAsInner)]
 pub enum NumberSize {
@@ -66,17 +66,12 @@ impl NumberSize {
     }
 }
 
-impl Display for NumberSize {
-    fn fmt(&self, f: &mut Formatter) -> alloc::fmt::Result {
-        write!(f, "{:?}",self)
-    }
-}
-
 impl Default for NumberSize {
     fn default() -> Self {
         NumberSize::I64(0)
     }
 }
+
 
 #[derive(PartialEq, Default, Debug, Clone, Serialize)]
 pub struct NumberType {

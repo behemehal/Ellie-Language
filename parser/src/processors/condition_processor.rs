@@ -13,6 +13,7 @@ pub fn collect(
     letter_char: &str,
     next_char: String,
     last_char: String,
+    options: defs::ParserOptions
 ) {
     if let parser::Collecting::Condition(ref mut data) = parser.current {
         if !data.initialized {
@@ -48,6 +49,7 @@ pub fn collect(
                     next_char,
                     last_char,
                     parser.pos,
+                    options
                 );
                 for i in collected.errors {
                     errors.push(i)
@@ -64,14 +66,7 @@ pub fn collect(
             } else {
                 let child_parser = parser::Parser::new(
                     data.inside_code_string.clone(),
-                    defs::ParserOptions {
-                        functions: true,
-                        break_on_error: false,
-                        loops: true,
-                        global_variables: true,
-                        collectives: true,
-                        variables: true,
-                    },
+                    options
                 );
                 parser.pos = child_parser.pos;
                 let mapped = child_parser.map();

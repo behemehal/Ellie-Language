@@ -51,6 +51,7 @@ impl Parser {
     }
     pub fn map(mut self) -> Parsed {
         let mut errors: Vec<error::Error> = Vec::new();
+        let parser_options = self.options.clone(); 
 
         for (index, char) in self.code.clone().chars().enumerate() {
             let letter_char = &char.to_string();
@@ -84,6 +85,7 @@ impl Parser {
                         letter_char,
                         next_char.clone(),
                         last_char.clone(),
+                        parser_options.clone(),
                     ),
                     Collecting::Condition(_) => processors::condition_processor::collect(
                         &mut self,
@@ -91,6 +93,7 @@ impl Parser {
                         letter_char,
                         next_char.clone(),
                         last_char.clone(),
+                        parser_options.clone(),
                     ),
                     Collecting::Function(_) => processors::function_processor::collect(
                         &mut self,
@@ -98,6 +101,7 @@ impl Parser {
                         letter_char,
                         next_char.clone(),
                         last_char.clone(),
+                        parser_options.clone(),
                     ),
                     _ => ()
                 }

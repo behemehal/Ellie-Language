@@ -14,6 +14,7 @@ pub fn collect(
     next_char: String,
     last_char: String,
     pos: defs::CursorPosition,
+    options: defs::ParserOptions
 ) {
     if let types::Types::Cloak(ref mut data) = itered_data.data.value {
         let last_entry = data.clone().collective.len();
@@ -194,7 +195,7 @@ pub fn collect(
             }
 
             let mut will_be_itered : variable::VariableCollector;
-            if let definers::Collecting::Cloak(cloak_data) = itered_data.r#type.clone() {
+            if let definers::DefinerCollecting::Cloak(cloak_data) = itered_data.r#type.clone() {
                 will_be_itered = if data.collective.is_empty() {
                     variable::VariableCollector {
                         r#type: cloak_data.r#type[0].clone(),
@@ -223,8 +224,8 @@ pub fn collect(
                     }
                 };
                 #[cfg(feature = "std")]
-                println!(
-                    "{}[ParserError]{}: This shouldn't have happened",
+                std::println!(
+                    "{}[ParserError:0x2]{}: This shouldn't have happened",
                     utils::terminal_colors::get_color(utils::terminal_colors::Colors::Red),
                     utils::terminal_colors::get_color(utils::terminal_colors::Colors::Reset),
                 );
@@ -237,6 +238,7 @@ pub fn collect(
                 next_char,
                 last_char,
                 defs::CursorPosition(0, 0),
+                options
             ));
 
             if let types::Types::Cloak(ref adata) = itered_cloak_vector.itered_data.data.value {
