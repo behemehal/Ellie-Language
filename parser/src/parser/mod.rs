@@ -70,7 +70,7 @@ impl Parser {
             if char != '\n' && char != '\r' && char != '\t' {
                 if self.current == Collecting::None {
                     self.keyword_catch += letter_char;
-                    processors::type_processor::collect(
+                    processors::type_processor::collect_type(
                         &mut self,
                         letter_char,
                         next_char.clone(),
@@ -82,7 +82,7 @@ impl Parser {
                 }
 
                 match self.current {
-                    Collecting::Variable(_) => processors::variable_processor::collect(
+                    Collecting::Variable(_) => processors::variable_processor::collect_variable_value(
                         &mut self,
                         &mut errors,
                         letter_char,
@@ -90,7 +90,7 @@ impl Parser {
                         last_char.clone(),
                         parser_options.clone(),
                     ),
-                    Collecting::Condition(_) => processors::condition_processor::collect(
+                    Collecting::Condition(_) => processors::condition_processor::collect_condition(
                         &mut self,
                         &mut errors,
                         letter_char,
@@ -98,7 +98,7 @@ impl Parser {
                         last_char.clone(),
                         parser_options.clone(),
                     ),
-                    Collecting::Function(_) => processors::function_processor::collect(
+                    Collecting::Function(_) => processors::function_processor::collect_function(
                         &mut self,
                         &mut errors,
                         letter_char,

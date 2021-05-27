@@ -13,7 +13,7 @@ pub struct CollectorResponse {
 }
 
 #[no_mangle]
-pub extern "C" fn collect(
+pub extern "C" fn collect_value(
     itered_data: &mut variable::VariableCollector,
     letter_char: &str,
     next_char: String,
@@ -23,7 +23,7 @@ pub extern "C" fn collect(
 ) -> CollectorResponse {
     let mut errors: Vec<error::Error> = Vec::new();
     match &mut itered_data.data.value {
-        types::Types::Number(_) => type_processors::number::collect(
+        types::Types::Number(_) => type_processors::number::collect_number(
             itered_data,
             &mut errors,
             letter_char,
@@ -32,7 +32,7 @@ pub extern "C" fn collect(
             pos,
         ),
         types::Types::Bool(_) => (),
-        types::Types::String(_) => type_processors::string::collect(
+        types::Types::String(_) => type_processors::string::collect_string(
             itered_data,
             &mut errors,
             letter_char,
@@ -40,7 +40,7 @@ pub extern "C" fn collect(
             last_char,
             pos,
         ),
-        types::Types::Char(_) => type_processors::char::collect(
+        types::Types::Char(_) => type_processors::char::collect_char(
             itered_data,
             &mut errors,
             letter_char,
@@ -49,7 +49,7 @@ pub extern "C" fn collect(
             pos,
         ),
         types::Types::Collective => (),
-        types::Types::Refference(_) => type_processors::refference::collect(
+        types::Types::Refference(_) => type_processors::refference::collect_refference(
             itered_data,
             &mut errors,
             letter_char,
@@ -58,7 +58,7 @@ pub extern "C" fn collect(
             pos,
             options,
         ),
-        types::Types::Operator(_) => type_processors::operator::collect(
+        types::Types::Operator(_) => type_processors::operator::collect_operator(
             itered_data,
             &mut errors,
             letter_char,
@@ -67,7 +67,7 @@ pub extern "C" fn collect(
             pos,
             options,
         ),
-        types::Types::Array(_) => type_processors::array::collect(
+        types::Types::Array(_) => type_processors::array::collect_array(
             itered_data,
             &mut errors,
             letter_char,
@@ -76,7 +76,7 @@ pub extern "C" fn collect(
             pos,
             options,
         ),
-        types::Types::Cloak(_) => type_processors::cloak::collect(
+        types::Types::Cloak(_) => type_processors::cloak::collect_cloak(
             itered_data,
             &mut errors,
             letter_char,
@@ -85,7 +85,7 @@ pub extern "C" fn collect(
             pos,
             options,
         ),
-        types::Types::ArrowFunction(_) => type_processors::arrow_function::collect(
+        types::Types::ArrowFunction(_) => type_processors::arrow_function::collect_arrow(
             itered_data,
             &mut errors,
             letter_char,
@@ -94,7 +94,7 @@ pub extern "C" fn collect(
             pos,
             options,
         ),
-        types::Types::FunctionCall(_) => type_processors::function_call::collect(
+        types::Types::FunctionCall(_) => type_processors::function_call::collect_function_caller(
             itered_data,
             &mut errors,
             letter_char,
@@ -104,7 +104,7 @@ pub extern "C" fn collect(
             options,
         ),
         types::Types::Void => (),
-        types::Types::VariableType(_) => type_processors::variable::collect(
+        types::Types::VariableType(_) => type_processors::variable::collect_variable(
             itered_data,
             &mut errors,
             letter_char,
@@ -112,7 +112,7 @@ pub extern "C" fn collect(
             last_char,
             pos,
         ),
-        types::Types::Null => type_processors::null::collect(
+        types::Types::Null => type_processors::null::collect_null(
             itered_data,
             &mut errors,
             letter_char,

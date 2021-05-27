@@ -7,7 +7,7 @@ use alloc::vec;
 use alloc::vec::Vec;
 
 #[no_mangle]
-pub extern "C" fn collect(
+pub extern "C" fn collect_number(
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
@@ -522,7 +522,7 @@ pub extern "C" fn collect(
                     on_dot: true,
                     chain: Vec::new(),
                 });
-        } else if types::logical_type::LogicalOpearators::is_opearator(letter_char) {
+        } else if types::logical_type::LogicalOpearators::is_logical_opearator(letter_char) {
             data.complete = true;
             itered_data.data.value = types::Types::Operator(types::operator_type::OperatorType {
                 first: Box::new(itered_data.data.value.clone()),
@@ -533,7 +533,7 @@ pub extern "C" fn collect(
                 operator_collect: letter_char.to_string(),
                 ..Default::default()
             });
-        } else if types::comparison_type::ComparisonOperators::is_opearator(letter_char) {
+        } else if types::comparison_type::ComparisonOperators::is_comparison_opearator(letter_char) {
             data.complete = true;
             itered_data.data.value = types::Types::Operator(types::operator_type::OperatorType {
                 first: Box::new(itered_data.data.value.clone()),
@@ -544,7 +544,7 @@ pub extern "C" fn collect(
                 ),
                 ..Default::default()
             });
-        } else if types::arithmetic_type::ArithmeticOperators::is_opearator(letter_char) {
+        } else if types::arithmetic_type::ArithmeticOperators::is_arithmetic_opearator(letter_char) {
             data.complete = true;
             itered_data.data.value = types::Types::Operator(types::operator_type::OperatorType {
                 first: Box::new(itered_data.data.value.clone()),

@@ -24,7 +24,7 @@ mod string_tests {
                 &ellie_core::utils::get_letter(code.to_string(), index, false).to_owned();
             let next_char =
                 &ellie_core::utils::get_letter(code.to_string(), index, true).to_owned();
-            let itered = ellie_parser::processors::value_processor::collect(
+            let itered = ellie_parser::processors::value_processor::collect_value(
                 &mut emulated_collector_data,
                 letter_char,
                 next_char.to_string(),
@@ -40,7 +40,7 @@ mod string_tests {
         }
         assert_eq!(syntax_errors.len(), 0);
         assert!(emulated_collector_data.data.value.is_string());
-        assert!(emulated_collector_data.data.value.is_complete());
+        assert!(emulated_collector_data.data.value.is_type_complete());
         assert!(
             matches!(emulated_collector_data.data.value, ellie_parser::syntax::types::Types::String(x) if x.value == "test")
         );
@@ -69,7 +69,7 @@ mod string_tests {
                 &ellie_core::utils::get_letter(code.to_string(), index, false).to_owned();
             let next_char =
                 &ellie_core::utils::get_letter(code.to_string(), index, true).to_owned();
-            let itered = ellie_parser::processors::value_processor::collect(
+            let itered = ellie_parser::processors::value_processor::collect_value(
                 &mut emulated_collector_data,
                 letter_char,
                 next_char.to_string(),
@@ -84,7 +84,7 @@ mod string_tests {
             emulated_collector_data = itered.itered_data;
         }
         assert_eq!(syntax_errors.len(), 0);
-        assert!(emulated_collector_data.data.value.is_complete());
+        assert!(emulated_collector_data.data.value.is_type_complete());
         assert!(
             matches!(emulated_collector_data.data.value, ellie_parser::syntax::types::Types::String(x) if x.value == "test")
         );

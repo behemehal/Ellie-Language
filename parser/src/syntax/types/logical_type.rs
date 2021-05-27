@@ -20,12 +20,12 @@ impl Default for LogicalOpearators {
 
 impl LogicalOpearators {
     #[no_mangle]
-    pub extern "C" fn is_opearator(value: &str) -> bool {
+    pub extern "C" fn is_logical_opearator(value: &str) -> bool {
         "|&".contains(value)
     }
 
     #[no_mangle]
-    pub extern "C" fn resolve_operator(value: &str) -> Result<LogicalOpearators, bool> {
+    pub extern "C" fn resolve_logical_operator(value: &str) -> Result<LogicalOpearators, bool> {
         if value == "&&" {
             Ok(LogicalOpearators::And)
         } else if value == "||" {

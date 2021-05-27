@@ -8,7 +8,7 @@ use alloc::vec;
 use alloc::vec::Vec;
 
 #[no_mangle]
-pub extern "C" fn collect(
+pub extern "C" fn collect_function_caller(
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
@@ -29,7 +29,7 @@ pub extern "C" fn collect(
             !(last_param == 0 && data.params[last_param - 1].value.is_string_non_complete());
 
         if letter_char == "," && is_s_n && !data.params[last_param - 1].value.is_array() {
-            if data.params[last_param - 1].value.is_complete() {
+            if data.params[last_param - 1].value.is_type_complete() {
                 data.comma = true;
                 data.params
                     .push(types::function_call::FunctionCallParameter::default())
@@ -111,7 +111,7 @@ pub extern "C" fn collect(
 
             data.comma = false;
 
-            let itered_param_value = Box::new(value_processor::collect(
+            let itered_param_value = Box::new(value_processor::collect_value(
                 &mut last_param_value,
                 letter_char,
                 next_char,

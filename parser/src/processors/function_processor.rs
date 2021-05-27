@@ -8,7 +8,7 @@ use crate::alloc::vec;
 use crate::alloc::vec::Vec;
 
 #[no_mangle]
-pub extern "C" fn collect(
+pub extern "C" fn collect_function(
     parser: &mut parser::Parser,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
@@ -192,7 +192,7 @@ pub extern "C" fn collect(
                 && functiondata.data.parameters[last_entry - 1]
                     .data
                     .r#type
-                    .is_complete()
+                    .is_definer_complete()
             {
                 //If its type's comma dont stop collecting it
                 functiondata
@@ -205,7 +205,7 @@ pub extern "C" fn collect(
                 } else if letter_char == "(" {
                     functiondata.data.parameters[last_entry - 1].child_brace += 1;
                 }
-                processors::definer_processor::collect(
+                processors::definer_processor::collect_definer(
                     &mut functiondata.data.parameters[last_entry - 1].data.r#type,
                     errors,
                     letter_char.to_string(),

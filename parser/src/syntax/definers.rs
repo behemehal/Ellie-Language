@@ -81,7 +81,7 @@ impl DefinerCollecting {
     }
 
     #[no_mangle]
-    pub extern "C" fn is_complete(&self) -> bool {
+    pub extern "C" fn is_definer_complete(&self) -> bool {
         match self {
             DefinerCollecting::Array(data) => data.complete,
             DefinerCollecting::DynamicArray(data) => data.complete,

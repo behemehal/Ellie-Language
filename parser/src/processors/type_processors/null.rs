@@ -8,7 +8,7 @@ use alloc::vec;
 use alloc::vec::Vec;
 
 #[no_mangle]
-pub extern "C" fn collect(
+pub extern "C" fn collect_null(
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
@@ -96,7 +96,7 @@ pub extern "C" fn collect(
             {
                 itered_data.data.value =
                     types::Types::Number(types::number_type::NumberType::default());
-                type_processors::number::collect(
+                type_processors::number::collect_number(
                     itered_data,
                     errors,
                     letter_char,

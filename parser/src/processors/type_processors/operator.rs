@@ -8,7 +8,7 @@ use alloc::vec;
 use alloc::vec::Vec;
 
 #[no_mangle]
-pub extern "C" fn collect(
+pub extern "C" fn collect_operator(
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
@@ -59,7 +59,7 @@ pub extern "C" fn collect(
             //Second
             let mut will_be_itered = data.itered_cache.clone();
             data.second_is_not_null = true;
-            let itered_child = value_processor::collect(
+            let itered_child = value_processor::collect_value(
                 &mut will_be_itered,
                 letter_char,
                 next_char,

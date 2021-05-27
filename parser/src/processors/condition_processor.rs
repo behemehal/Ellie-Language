@@ -8,7 +8,7 @@ use alloc::string::String;
 use alloc::vec::Vec;
 
 #[no_mangle]
-pub extern "C" fn collect(
+pub extern "C" fn collect_condition(
     parser: &mut parser::Parser,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
@@ -25,7 +25,7 @@ pub extern "C" fn collect(
                 data.keyword_pos.range_end.0 = parser.pos.0; //Function naming started so we set the position
             }
         } else if !data.cloak_collected {
-            if data.cloak_itered_data.data.value.is_complete() && letter_char == "{" {
+            if data.cloak_itered_data.data.value.is_type_complete() && letter_char == "{" {
                 data.cloak_collected = true;
                 let chain_length = if data.chains.is_empty() {
                     0
@@ -44,7 +44,7 @@ pub extern "C" fn collect(
                     },
                 );
             } else {
-                let collected = processors::value_processor::collect(
+                let collected = processors::value_processor::collect_value(
                     &mut data.cloak_itered_data,
                     letter_char,
                     next_char,

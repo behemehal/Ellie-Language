@@ -15,7 +15,7 @@ pub struct CollectorResponse {
 }
 
 #[no_mangle]
-pub extern "C" fn collect(
+pub extern "C" fn collect_variable_value(
     parser: &mut parser::Parser,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
@@ -176,7 +176,7 @@ pub extern "C" fn collect(
                 parser.collected.push(parser.current.clone());
                 parser.current = parser::Collecting::None;
             } else if letter_char == "=" {
-                if !variabledata.r#type.is_complete() {
+                if !variabledata.r#type.is_definer_complete() {
                     errors.push(error::Error {
                         debug_message: "./parser/src/processors/variable_processor.rs:175"
                             .to_string(),
@@ -207,7 +207,7 @@ pub extern "C" fn collect(
                     variabledata.typed = true;
                 }
             } else {
-                processors::definer_processor::collect(
+                processors::definer_processor::collect_definer(
                     &mut variabledata.r#type,
                     errors,
                     letter_char.to_string(),
@@ -219,7 +219,7 @@ pub extern "C" fn collect(
             }
         } else if letter_char == ";" {
             if let parser::Collecting::Variable(collected) = parser.current.clone() {
-                if collected.data.value.is_complete() {
+                if collected.data.value.is_type_complete() {
                     parser.collected.push(parser.current.clone());
                     parser.current = parser::Collecting::None;
                 } else {
@@ -245,7 +245,7 @@ pub extern "C" fn collect(
             }
         } else {
             let mut cd = variabledata.clone();
-            let collected = processors::value_processor::collect(
+            let collected = processors::value_processor::collect_value(
                 &mut cd,
                 letter_char,
                 next_char,

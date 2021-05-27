@@ -28,7 +28,7 @@ fn main() {
         let letter_char = &char.to_string();
         let last_char = &ellie_core::utils::get_letter(code.to_string(), index, false).to_owned();
         let next_char = &ellie_core::utils::get_letter(code.to_string(), index, true).to_owned();
-        let itered = ellie_parser::processors::value_processor::collect(
+        let itered = ellie_parser::processors::value_processor::collect_value(
             &mut emulated_collector_data,
             letter_char,
             next_char.to_string(),

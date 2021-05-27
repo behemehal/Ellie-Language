@@ -78,7 +78,7 @@ impl Types {
     }
 
     #[no_mangle]
-    pub extern "C" fn is_complete(&self) -> bool {
+    pub extern "C" fn is_type_complete(&self) -> bool {
         match &*self {
             Types::Number(_) => true, //Always complete
             Types::Bool(_) => true,   //Always complete
@@ -89,7 +89,7 @@ impl Types {
             Types::Operator(e) => {
                 e.first_filled
                     && e.operator != operator_type::Operators::Null
-                    && (e.second_is_not_null && e.second.is_complete())
+                    && (e.second_is_not_null && e.second.is_type_complete())
             }
             Types::Array(data) => data.complete,
             Types::Cloak(data) => data.complete,

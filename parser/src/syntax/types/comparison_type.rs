@@ -24,12 +24,12 @@ impl Default for ComparisonOperators {
 
 impl ComparisonOperators {
     #[no_mangle]
-    pub extern "C" fn is_opearator(value: &str) -> bool {
+    pub extern "C" fn is_comparison_opearator(value: &str) -> bool {
         "=!<>".contains(value)
     }
 
     #[no_mangle]
-    pub extern "C" fn resolve_operator(value: &str) -> Result<ComparisonOperators, bool> {
+    pub extern "C" fn resolve_comparison_operator(value: &str) -> Result<ComparisonOperators, bool> {
         match value {
             "==" => Ok(ComparisonOperators::Equal),
             "!=" => Ok(ComparisonOperators::NotEqual),

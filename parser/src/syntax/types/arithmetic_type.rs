@@ -24,12 +24,12 @@ impl Default for ArithmeticOperators {
 
 impl ArithmeticOperators {
     #[no_mangle]
-    pub extern "C" fn is_opearator(value: &str) -> bool {
+    pub extern "C" fn is_arithmetic_opearator(value: &str) -> bool {
         "+-*/%".contains(value)
     }
 
     #[no_mangle]
-    pub extern "C" fn resolve_operator(value: &str) -> Result<ArithmeticOperators, bool> {
+    pub extern "C" fn resolve_arithmetic_operator(value: &str) -> Result<ArithmeticOperators, bool> {
         match value {
             "+" => Ok(ArithmeticOperators::Addition),
             "-" => Ok(ArithmeticOperators::Subtraction),

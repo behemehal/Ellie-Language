@@ -8,7 +8,7 @@ use alloc::vec;
 use alloc::vec::Vec;
 
 #[no_mangle]
-pub extern "C" fn collect(
+pub extern "C" fn collect_array(
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
@@ -37,7 +37,7 @@ pub extern "C" fn collect(
         let last_entry = data.clone().collective.len();
         //let mut value: types::Types = types::Types::Null;
 
-        let is_s_n = last_entry == 0 || data.collective[last_entry - 1].value.is_complete();
+        let is_s_n = last_entry == 0 || data.collective[last_entry - 1].value.is_type_complete();
 
         if letter_char == "[" && !data.child_start && is_s_n {
             if !data.comma && last_entry != 0 {
@@ -186,7 +186,7 @@ pub extern "C" fn collect(
                     chain: vec![],
                 })
         } else if data.complete
-            && types::logical_type::LogicalOpearators::is_opearator(letter_char)
+            && types::logical_type::LogicalOpearators::is_logical_opearator(letter_char)
             && is_s_n
         {
             itered_data.data.value = types::Types::Operator(types::operator_type::OperatorType {
@@ -199,7 +199,7 @@ pub extern "C" fn collect(
                 ..Default::default()
             });
         } else if data.complete
-            && types::comparison_type::ComparisonOperators::is_opearator(letter_char)
+            && types::comparison_type::ComparisonOperators::is_comparison_opearator(letter_char)
             && is_s_n
         {
             itered_data.data.value = types::Types::Operator(types::operator_type::OperatorType {
@@ -317,7 +317,7 @@ pub extern "C" fn collect(
                 );
             }
 
-            let itered_array_vector = Box::new(value_processor::collect(
+            let itered_array_vector = Box::new(value_processor::collect_value(
                 &mut will_be_itered,
                 letter_char,
                 next_char,

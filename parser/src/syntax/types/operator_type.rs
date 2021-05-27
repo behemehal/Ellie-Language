@@ -25,7 +25,7 @@ impl Operators {
     pub extern "C" fn resolve_operator(r#type: Operators, value: &str) -> Result<Operators, bool> {
         match r#type {
             Operators::ComparisonType(_) => {
-                if let Ok(e) = types::comparison_type::ComparisonOperators::resolve_operator(value)
+                if let Ok(e) = types::comparison_type::ComparisonOperators::resolve_comparison_operator(value)
                 {
                     Ok(Operators::ComparisonType(e))
                 } else {
@@ -33,14 +33,14 @@ impl Operators {
                 }
             }
             Operators::LogicalType(_) => {
-                if let Ok(e) = types::logical_type::LogicalOpearators::resolve_operator(value) {
+                if let Ok(e) = types::logical_type::LogicalOpearators::resolve_logical_operator(value) {
                     Ok(Operators::LogicalType(e))
                 } else {
                     Err(true)
                 }
             }
             Operators::ArithmeticType(_) => {
-                if let Ok(e) = types::arithmetic_type::ArithmeticOperators::resolve_operator(value)
+                if let Ok(e) = types::arithmetic_type::ArithmeticOperators::resolve_arithmetic_operator(value)
                 {
                     Ok(Operators::ArithmeticType(e))
                 } else {

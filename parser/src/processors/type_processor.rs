@@ -5,7 +5,7 @@ use ellie_core::{defs, utils};
 use alloc::string::{String, ToString};
 
 #[no_mangle]
-pub extern "C" fn collect(
+pub extern "C" fn collect_type(
     parser: &mut parser::Parser,
     _letter_char: &str,
     _next_char: String,
@@ -40,8 +40,7 @@ pub extern "C" fn collect(
             },
             ..Default::default()
         });
-    } else if keyword == "fn " || keyword == "#[no_mangle]
-pub extern "C" fn" || keyword == "pri fn" {
+    } else if keyword == "fn " || keyword == "pub fn" || keyword == "pri fn" {
         parser.current = parser::Collecting::Function(function::FunctionCollector::default());
     } else if keyword == "if" {
         parser.current = parser::Collecting::Condition(condition::ConditionCollector::default());

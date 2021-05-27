@@ -14,7 +14,7 @@ cloak(i8, i32)        //a cloak that contains i8 as first parameter i32 as secon
 */
 
 #[no_mangle]
-pub extern "C" fn collect(
+pub extern "C" fn collect_definer(
     type_data: &mut DefinerCollecting,
     errors: &mut Vec<error::Error>,
     letter_char: String,
@@ -27,10 +27,10 @@ pub extern "C" fn collect(
         DefinerCollecting::DynamicArray(ref mut data) => {
             if letter_char == "(" && !data.bracket_inserted {
                 data.bracket_inserted = true;
-            } else if letter_char == ")" && data.r#type.is_complete() {
+            } else if letter_char == ")" && data.r#type.is_definer_complete() {
                 data.complete = true;
             } else {
-                collect(
+                collect_definer(
                     &mut data.r#type,
                     errors,
                     letter_char,
@@ -45,10 +45,10 @@ pub extern "C" fn collect(
             if !data.typed {
                 if letter_char == "(" && !data.bracket_inserted {
                     data.bracket_inserted = true;
-                } else if letter_char == "," && data.r#type.is_complete() {
+                } else if letter_char == "," && data.r#type.is_definer_complete() {
                     data.typed = true;
                 } else {
-                    collect(
+                    collect_definer(
                         &mut data.r#type,
                         errors,
                         letter_char,
@@ -72,7 +72,7 @@ pub extern "C" fn collect(
                     ..Default::default()
                 };
 
-                let processed_data = crate::processors::value_processor::collect(
+                let processed_data = crate::processors::value_processor::collect_value(
                     &mut emulated_collector_data,
                     &letter_char,
                     next_char,
@@ -83,7 +83,7 @@ pub extern "C" fn collect(
                 for i in processed_data.errors {
                     errors.push(i)
                 }
-                if emulated_collector_data.data.value.is_complete() {
+                if emulated_collector_data.data.value.is_type_complete() {
                     data.complete = true;
                 }
                 data.len = emulated_collector_data.data.value;
@@ -201,7 +201,7 @@ pub extern "C" fn collect(
                 } else if data.bracket_inserted {
                     data.at_comma = false;
                     let len = data.params.clone().len();
-                    collect(
+                    collect_definer(
                         &mut data.params[if len == 0 { 0 } else { len - 1 }],
                         errors,
                         letter_char,
@@ -211,7 +211,7 @@ pub extern "C" fn collect(
                         options,
                     );
 
-                    if data.params[if len == 0 { 0 } else { len - 1 }].is_complete() {
+                    if data.params[if len == 0 { 0 } else { len - 1 }].is_definer_complete() {
                         data.complete = true;
                     }
                 }
@@ -240,7 +240,7 @@ pub extern "C" fn collect(
                     data.return_keyword += 1;
                 } else {
                     data.complete = true;
-                    collect(
+                    collect_definer(
                         &mut data.returning,
                         errors,
                         letter_char,
@@ -262,7 +262,7 @@ pub extern "C" fn collect(
                 } else {
                     length_of_childs - 1
                 }]
-                .is_complete()
+                .is_definer_complete()
             };
 
             if letter_char == "," && is_complete {
@@ -272,7 +272,7 @@ pub extern "C" fn collect(
             } else if letter_char == ")" && is_complete {
                 data.complete = true;
             } else {
-                collect(
+                collect_definer(
                     &mut data.r#type[if length_of_childs == 1 {
                         0
                     } else {
