@@ -6,16 +6,12 @@ use serde::Serialize;
 use alloc::string::String;
 use alloc::vec::Vec;
 
-#[repr(C)]
-#[no_mangle]
 #[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct FunctionParameter {
     pub name: String,
     pub r#type: definers::DefinerCollecting,
 }
 
-#[repr(C)]
-#[no_mangle]
 #[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct FunctionParameterCollector {
     pub data: FunctionParameter,
@@ -28,8 +24,6 @@ pub struct FunctionParameterCollector {
     pub type_pos: defs::Cursor, //Function parameter type position fn test(parameterName : [String]) ....
 }
 
-#[repr(C)]
-#[no_mangle]
 #[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct Function {
     pub name: String,                                //Function Name string
@@ -38,8 +32,6 @@ pub struct Function {
     pub inside_code: Vec<Collecting>,
 }
 
-#[repr(C)]
-#[no_mangle]
 #[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct FunctionCollector {
     pub data: Function,

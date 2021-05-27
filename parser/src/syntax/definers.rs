@@ -3,8 +3,6 @@ use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 use serde::Serialize;
 
-#[repr(C)]
-#[no_mangle]
 #[derive(PartialEq, Debug, Clone, Serialize, Default)]
 pub struct FunctionType {
     pub complete: bool,
@@ -17,8 +15,6 @@ pub struct FunctionType {
     pub at_comma: bool,
 }
 
-#[repr(C)]
-#[no_mangle]
 #[derive(PartialEq, Debug, Clone, Serialize, Default)]
 pub struct CloakType {
     pub complete: bool,
@@ -27,8 +23,6 @@ pub struct CloakType {
     pub at_comma: bool,
 }
 
-#[repr(C)]
-#[no_mangle]
 #[derive(PartialEq, Debug, Clone, Serialize, Default)]
 pub struct ArrayType {
     pub complete: bool,
@@ -39,8 +33,6 @@ pub struct ArrayType {
     pub typed: bool,
 }
 
-#[repr(C)]
-#[no_mangle]
 #[derive(PartialEq, Debug, Clone, Serialize, Default)]
 pub struct DynamicArrayType {
     pub complete: bool,
@@ -48,15 +40,11 @@ pub struct DynamicArrayType {
     pub bracket_inserted: bool,
 }
 
-#[repr(C)]
-#[no_mangle]
 #[derive(PartialEq, Debug, Clone, Serialize, Default)]
 pub struct GenericType {
     pub r#type: String,
 }
 
-#[repr(C)]
-#[no_mangle]
 #[derive(PartialEq, Debug, Clone, Serialize)]
 pub enum DefinerCollecting {
     Array(ArrayType),
@@ -74,8 +62,7 @@ impl Default for DefinerCollecting {
 }
 
 impl DefinerCollecting {
-    #[no_mangle]
-    pub extern "C" fn is_type_empty(&self) -> bool {
+    pub fn is_type_empty(&self) -> bool {
         match self {
             DefinerCollecting::Array(data) => !data.complete,
             DefinerCollecting::DynamicArray(data) => !data.complete,
@@ -86,8 +73,7 @@ impl DefinerCollecting {
         }
     }
 
-    #[no_mangle]
-    pub extern "C" fn is_definer_complete(&self) -> bool {
+    pub fn is_definer_complete(&self) -> bool {
         match self {
             DefinerCollecting::Array(data) => data.complete,
             DefinerCollecting::DynamicArray(data) => data.complete,
@@ -98,8 +84,7 @@ impl DefinerCollecting {
         }
     }
 
-    #[no_mangle]
-    pub extern "C" fn raw_name(&self) -> String {
+    pub fn raw_name(&self) -> String {
         match self {
             DefinerCollecting::Array(_) => "array".to_string(),
             DefinerCollecting::DynamicArray(_) => "dynamic_array".to_string(),

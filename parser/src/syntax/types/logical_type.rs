@@ -4,8 +4,6 @@ use serde::Serialize;
 use alloc::boxed::Box;
 use alloc::string::String;
 
-#[repr(C)]
-#[no_mangle]
 #[derive(PartialEq, Debug, Clone, Serialize)]
 pub enum LogicalOpearators {
     And,
@@ -20,13 +18,11 @@ impl Default for LogicalOpearators {
 }
 
 impl LogicalOpearators {
-    #[no_mangle]
-    pub extern "C" fn is_logical_opearator(value: &str) -> bool {
+    pub fn is_logical_opearator(value: &str) -> bool {
         "|&".contains(value)
     }
 
-    #[no_mangle]
-    pub extern "C" fn resolve_logical_operator(value: &str) -> Result<LogicalOpearators, bool> {
+    pub fn resolve_logical_operator(value: &str) -> Result<LogicalOpearators, bool> {
         if value == "&&" {
             Ok(LogicalOpearators::And)
         } else if value == "||" {
@@ -37,8 +33,6 @@ impl LogicalOpearators {
     }
 }
 
-#[repr(C)]
-#[no_mangle]
 #[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct LogicalType {
     pub cloaked: bool,

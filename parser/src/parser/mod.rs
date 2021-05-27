@@ -10,16 +10,12 @@ use ellie_core::{defs, error, utils};
 use crate::alloc::string::{String, ToString};
 use crate::alloc::vec::Vec;
 
-#[repr(C)]
-#[no_mangle]
 #[derive(Debug, Clone, PartialEq)]
 pub struct Parsed {
     pub items: Vec<Collecting>,
     pub syntax_errors: Vec<error::Error>,
 }
 
-#[repr(C)]
-#[no_mangle]
 #[derive(PartialEq, Debug, Clone, Serialize)]
 pub enum Collecting {
     Variable(variable::VariableCollector),
@@ -28,8 +24,6 @@ pub enum Collecting {
     None,
 }
 
-#[repr(C)]
-#[no_mangle]
 #[derive(PartialEq, Debug, Clone)]
 pub struct Parser {
     pub code: String,
@@ -42,8 +36,7 @@ pub struct Parser {
 }
 
 impl Parser {
-    #[no_mangle]
-    pub extern "C" fn new(code: String, options: defs::ParserOptions) -> Self {
+    pub fn new(code: String, options: defs::ParserOptions) -> Self {
         Parser {
             code,
             options,
@@ -54,8 +47,7 @@ impl Parser {
             keyword_catch: String::new(),
         }
     }
-    #[no_mangle]
-    pub extern "C" fn map(mut self) -> Parsed {
+    pub fn map(mut self) -> Parsed {
         let mut errors: Vec<error::Error> = Vec::new();
         let parser_options = self.options.clone();
 
@@ -85,14 +77,16 @@ impl Parser {
                 }
 
                 match self.current {
-                    Collecting::Variable(_) => processors::variable_processor::collect_variable_value(
-                        &mut self,
-                        &mut errors,
-                        letter_char,
-                        next_char.clone(),
-                        last_char.clone(),
-                        parser_options.clone(),
-                    ),
+                    Collecting::Variable(_) => {
+                        processors::variable_processor::collect_variable_value(
+                            &mut self,
+                            &mut errors,
+                            letter_char,
+                            next_char.clone(),
+                            last_char.clone(),
+                            parser_options.clone(),
+                        )
+                    }
                     Collecting::Condition(_) => processors::condition_processor::collect_condition(
                         &mut self,
                         &mut errors,

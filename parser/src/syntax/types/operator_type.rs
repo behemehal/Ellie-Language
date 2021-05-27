@@ -11,8 +11,6 @@ use crate::syntax::types::logical_type::LogicalOpearators;
 use alloc::boxed::Box;
 use alloc::string::String;
 
-#[repr(C)]
-#[no_mangle]
 #[derive(PartialEq, Debug, Clone, Serialize)]
 pub enum Operators {
     ComparisonType(ComparisonOperators),
@@ -22,11 +20,11 @@ pub enum Operators {
 }
 
 impl Operators {
-    #[no_mangle]
-    pub extern "C" fn resolve_operator(r#type: Operators, value: &str) -> Result<Operators, bool> {
+    pub fn resolve_operator(r#type: Operators, value: &str) -> Result<Operators, bool> {
         match r#type {
             Operators::ComparisonType(_) => {
-                if let Ok(e) = types::comparison_type::ComparisonOperators::resolve_comparison_operator(value)
+                if let Ok(e) =
+                    types::comparison_type::ComparisonOperators::resolve_comparison_operator(value)
                 {
                     Ok(Operators::ComparisonType(e))
                 } else {
@@ -34,14 +32,17 @@ impl Operators {
                 }
             }
             Operators::LogicalType(_) => {
-                if let Ok(e) = types::logical_type::LogicalOpearators::resolve_logical_operator(value) {
+                if let Ok(e) =
+                    types::logical_type::LogicalOpearators::resolve_logical_operator(value)
+                {
                     Ok(Operators::LogicalType(e))
                 } else {
                     Err(true)
                 }
             }
             Operators::ArithmeticType(_) => {
-                if let Ok(e) = types::arithmetic_type::ArithmeticOperators::resolve_arithmetic_operator(value)
+                if let Ok(e) =
+                    types::arithmetic_type::ArithmeticOperators::resolve_arithmetic_operator(value)
                 {
                     Ok(Operators::ArithmeticType(e))
                 } else {
@@ -59,8 +60,6 @@ impl Default for Operators {
     }
 }
 
-#[repr(C)]
-#[no_mangle]
 #[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct OperatorType {
     pub cloaked: bool,

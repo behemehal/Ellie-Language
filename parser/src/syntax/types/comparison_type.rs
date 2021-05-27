@@ -4,8 +4,6 @@ use serde::Serialize;
 use alloc::boxed::Box;
 use alloc::string::String;
 
-#[repr(C)]
-#[no_mangle]
 #[derive(PartialEq, Debug, Clone, Serialize)]
 pub enum ComparisonOperators {
     Equal,
@@ -24,13 +22,11 @@ impl Default for ComparisonOperators {
 }
 
 impl ComparisonOperators {
-    #[no_mangle]
-    pub extern "C" fn is_comparison_opearator(value: &str) -> bool {
+    pub fn is_comparison_opearator(value: &str) -> bool {
         "=!<>".contains(value)
     }
 
-    #[no_mangle]
-    pub extern "C" fn resolve_comparison_operator(value: &str) -> Result<ComparisonOperators, bool> {
+    pub fn resolve_comparison_operator(value: &str) -> Result<ComparisonOperators, bool> {
         match value {
             "==" => Ok(ComparisonOperators::Equal),
             "!=" => Ok(ComparisonOperators::NotEqual),
@@ -43,8 +39,6 @@ impl ComparisonOperators {
     }
 }
 
-#[repr(C)]
-#[no_mangle]
 #[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct ComparisonType {
     pub cloaked: bool,

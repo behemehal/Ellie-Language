@@ -3,8 +3,6 @@ use alloc::string::String;
 use enum_as_inner::EnumAsInner;
 use serde::Serialize;
 
-#[repr(C)]
-#[no_mangle]
 #[derive(PartialEq, Eq, Debug, Clone, Copy, Serialize)]
 pub enum NumberTypes {
     I8,
@@ -29,8 +27,6 @@ impl Default for NumberTypes {
     }
 }
 
-#[repr(C)]
-#[no_mangle]
 #[derive(PartialEq, Debug, Clone, Copy, Serialize, EnumAsInner)]
 pub enum NumberSize {
     U8(u8),
@@ -60,8 +56,7 @@ assert_eq!(s, "Α is capital alpha; β is beta");
 */
 
 impl NumberSize {
-    #[no_mangle]
-    pub extern "C" fn get_type(&self) -> String {
+    pub fn get_type(&self) -> String {
         let mut q: String = format!("{:?}", self);
         let bracket_offset = q.find('(').unwrap_or_else(|| q.len());
         q.replace_range(bracket_offset.., "");
@@ -75,8 +70,6 @@ impl Default for NumberSize {
     }
 }
 
-#[repr(C)]
-#[no_mangle]
 #[derive(PartialEq, Default, Debug, Clone, Serialize)]
 pub struct NumberType {
     pub value: NumberSize,

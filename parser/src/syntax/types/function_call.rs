@@ -5,16 +5,12 @@ use serde::Serialize;
 use alloc::string::String;
 use alloc::vec::Vec;
 
-#[repr(C)]
-#[no_mangle]
 #[derive(PartialEq, Default, Debug, Clone, Serialize)]
 pub struct FunctionCallParameter {
     pub value: types::Types,
     pub pos: defs::Cursor,
 }
 
-#[repr(C)]
-#[no_mangle]
 #[derive(PartialEq, Default, Debug, Clone, Serialize)]
 pub struct FunctionCall {
     pub name: String,

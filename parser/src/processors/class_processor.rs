@@ -6,8 +6,7 @@ use crate::alloc::string::{String, ToString};
 use crate::alloc::vec;
 use crate::alloc::vec::Vec;
 
-#[no_mangle]
-pub extern "C" fn collect_class(
+pub fn collect_class(
     parser: &mut parser::Parser,
     errors: &mut Vec<error::Error>,
     letter_char: &str,

@@ -7,16 +7,13 @@ use alloc::string::{String, ToString};
 use alloc::vec;
 use alloc::vec::Vec;
 
-#[repr(C)]
-#[no_mangle]
 #[derive(Debug, Clone, PartialEq)]
 pub struct CollectorResponse {
     parser: parser::Parser,
     data: variable::VariableCollector,
 }
 
-#[no_mangle]
-pub extern "C" fn collect_variable_value(
+pub fn collect_variable_value(
     parser: &mut parser::Parser,
     errors: &mut Vec<error::Error>,
     letter_char: &str,

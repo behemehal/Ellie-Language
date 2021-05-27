@@ -1,5 +1,3 @@
-#[repr(C)]
-#[no_mangle]
 pub enum Colors {
     Black,
     Red,
@@ -12,8 +10,7 @@ pub enum Colors {
     Reset,
 }
 
-#[no_mangle]
-pub extern "C" fn get_color(selected: Colors) -> String {
+pub fn get_color(selected: Colors) -> String {
     let color_id = match selected {
         Colors::Black => "[30m",
         Colors::Red => "[31m",

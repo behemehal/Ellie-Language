@@ -1,8 +1,6 @@
 use serde::Serialize;
 pub mod errorList;
 
-#[repr(C)]
-#[no_mangle]
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct Error {
     pub code: u8,
@@ -13,16 +11,13 @@ pub struct Error {
     pub pos: crate::defs::Cursor,
 }
 
-#[repr(C)]
-#[no_mangle]
 pub struct ErrorBuildField {
     pub key: String,
     pub value: String,
 }
 
 impl Error {
-    #[no_mangle]
-    pub extern "C" fn build(body: String, fields: Vec<ErrorBuildField>) -> String {
+    pub fn build(body: String, fields: Vec<ErrorBuildField>) -> String {
         let mut builded_message = body.to_string();
         for field in fields {
             let key: String = '$'.to_string() + &field.key.to_string();

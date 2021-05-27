@@ -4,8 +4,7 @@ use ellie_core::{defs, utils};
 
 use alloc::string::{String, ToString};
 
-#[no_mangle]
-pub extern "C" fn collect_type(
+pub fn collect_type(
     parser: &mut parser::Parser,
     _letter_char: &str,
     _next_char: String,

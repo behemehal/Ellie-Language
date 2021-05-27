@@ -13,8 +13,7 @@ cloak(i8, i32)        //a cloak that contains i8 as first parameter i32 as secon
 
 */
 
-#[no_mangle]
-pub extern "C" fn collect_definer(
+pub fn collect_definer(
     type_data: &mut DefinerCollecting,
     errors: &mut Vec<error::Error>,
     letter_char: String,

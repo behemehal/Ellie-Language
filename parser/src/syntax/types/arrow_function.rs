@@ -5,8 +5,6 @@ use alloc::string::String;
 use alloc::vec::Vec;
 use serde::Serialize;
 
-#[repr(C)]
-#[no_mangle]
 #[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct ArrowFunction {
     pub parameters: Vec<function::FunctionParameterCollector>,
@@ -14,8 +12,6 @@ pub struct ArrowFunction {
     pub inside_code: Vec<Collecting>,
 }
 
-#[repr(C)]
-#[no_mangle]
 #[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct ArrowFunctionCollector {
     pub complete: bool,

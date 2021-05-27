@@ -5,16 +5,13 @@ use ellie_core::{defs, error};
 use alloc::string::String;
 use alloc::vec::Vec;
 
-#[repr(C)]
-#[no_mangle]
 #[derive(Debug, PartialEq)]
 pub struct CollectorResponse {
     pub itered_data: variable::VariableCollector,
     pub errors: Vec<error::Error>,
 }
 
-#[no_mangle]
-pub extern "C" fn collect_value(
+pub fn collect_value(
     itered_data: &mut variable::VariableCollector,
     letter_char: &str,
     next_char: String,

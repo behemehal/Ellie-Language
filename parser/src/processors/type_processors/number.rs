@@ -6,8 +6,7 @@ use alloc::string::{String, ToString};
 use alloc::vec;
 use alloc::vec::Vec;
 
-#[no_mangle]
-pub extern "C" fn collect_number(
+pub fn collect_number(
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
@@ -533,7 +532,8 @@ pub extern "C" fn collect_number(
                 operator_collect: letter_char.to_string(),
                 ..Default::default()
             });
-        } else if types::comparison_type::ComparisonOperators::is_comparison_opearator(letter_char) {
+        } else if types::comparison_type::ComparisonOperators::is_comparison_opearator(letter_char)
+        {
             data.complete = true;
             itered_data.data.value = types::Types::Operator(types::operator_type::OperatorType {
                 first: Box::new(itered_data.data.value.clone()),
@@ -544,7 +544,8 @@ pub extern "C" fn collect_number(
                 ),
                 ..Default::default()
             });
-        } else if types::arithmetic_type::ArithmeticOperators::is_arithmetic_opearator(letter_char) {
+        } else if types::arithmetic_type::ArithmeticOperators::is_arithmetic_opearator(letter_char)
+        {
             data.complete = true;
             itered_data.data.value = types::Types::Operator(types::operator_type::OperatorType {
                 first: Box::new(itered_data.data.value.clone()),
