@@ -1,4 +1,5 @@
 #[repr(C)]
+#[no_mangle]
 #[derive(PartialEq, Debug, Clone)]
 pub enum CallerType {
     FunctionCaller,
@@ -7,6 +8,7 @@ pub enum CallerType {
 }
 
 #[repr(C)]
+#[no_mangle]
 #[derive(PartialEq, Debug, Clone)]
 pub struct Caller {
     pub initialized: bool,

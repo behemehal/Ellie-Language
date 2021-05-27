@@ -4,6 +4,7 @@ use alloc::vec::Vec;
 use serde::Serialize;
 
 #[repr(C)]
+#[no_mangle]
 #[derive(PartialEq, Debug, Clone, Serialize, Default)]
 pub struct FunctionType {
     pub complete: bool,
@@ -17,6 +18,7 @@ pub struct FunctionType {
 }
 
 #[repr(C)]
+#[no_mangle]
 #[derive(PartialEq, Debug, Clone, Serialize, Default)]
 pub struct CloakType {
     pub complete: bool,
@@ -26,6 +28,7 @@ pub struct CloakType {
 }
 
 #[repr(C)]
+#[no_mangle]
 #[derive(PartialEq, Debug, Clone, Serialize, Default)]
 pub struct ArrayType {
     pub complete: bool,
@@ -37,6 +40,7 @@ pub struct ArrayType {
 }
 
 #[repr(C)]
+#[no_mangle]
 #[derive(PartialEq, Debug, Clone, Serialize, Default)]
 pub struct DynamicArrayType {
     pub complete: bool,
@@ -45,12 +49,14 @@ pub struct DynamicArrayType {
 }
 
 #[repr(C)]
+#[no_mangle]
 #[derive(PartialEq, Debug, Clone, Serialize, Default)]
 pub struct GenericType {
     pub r#type: String,
 }
 
 #[repr(C)]
+#[no_mangle]
 #[derive(PartialEq, Debug, Clone, Serialize)]
 pub enum DefinerCollecting {
     Array(ArrayType),

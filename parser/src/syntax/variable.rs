@@ -5,6 +5,7 @@ use serde::Serialize;
 use alloc::string::String;
 
 #[repr(C)]
+#[no_mangle]
 #[derive(PartialEq, Debug, Clone, Serialize, Default)]
 pub struct Variable {
     pub name: String,
@@ -15,6 +16,7 @@ pub struct Variable {
 }
 
 #[repr(C)]
+#[no_mangle]
 #[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct VariableCollector {
     pub initialized: bool,

@@ -6,6 +6,7 @@ use alloc::string::String;
 use alloc::vec::Vec;
 
 #[repr(C)]
+#[no_mangle]
 #[derive(Debug, PartialEq)]
 pub struct CollectorResponse {
     pub itered_data: variable::VariableCollector,

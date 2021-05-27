@@ -1,4 +1,5 @@
 #[repr(C)]
+#[no_mangle]
 pub enum Colors {
     Black,
     Red,

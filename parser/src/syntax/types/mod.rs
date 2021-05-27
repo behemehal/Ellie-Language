@@ -18,6 +18,7 @@ use enum_as_inner::EnumAsInner;
 use serde::Serialize;
 
 #[repr(C)]
+#[no_mangle]
 #[derive(PartialEq, Debug, Clone, Serialize, EnumAsInner)]
 pub enum Types {
     Number(number_type::NumberType),

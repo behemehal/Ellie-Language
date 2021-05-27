@@ -5,6 +5,7 @@ use alloc::boxed::Box;
 use alloc::vec::Vec;
 
 #[repr(C)]
+#[no_mangle]
 #[derive(PartialEq, Default, Debug, Clone, Serialize)]
 pub struct CloakEntry {
     pub value_complete: bool,
@@ -12,6 +13,7 @@ pub struct CloakEntry {
 }
 
 #[repr(C)]
+#[no_mangle]
 #[derive(PartialEq, Default, Debug, Clone, Serialize)]
 pub struct CloakType {
     pub layer_size: usize,

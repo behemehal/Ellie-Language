@@ -8,6 +8,7 @@ use alloc::vec;
 use alloc::vec::Vec;
 
 #[repr(C)]
+#[no_mangle]
 #[derive(Debug, Clone, PartialEq)]
 pub struct CollectorResponse {
     parser: parser::Parser,

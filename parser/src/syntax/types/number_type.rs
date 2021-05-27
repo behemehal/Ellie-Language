@@ -4,6 +4,7 @@ use enum_as_inner::EnumAsInner;
 use serde::Serialize;
 
 #[repr(C)]
+#[no_mangle]
 #[derive(PartialEq, Eq, Debug, Clone, Copy, Serialize)]
 pub enum NumberTypes {
     I8,
@@ -29,6 +30,7 @@ impl Default for NumberTypes {
 }
 
 #[repr(C)]
+#[no_mangle]
 #[derive(PartialEq, Debug, Clone, Copy, Serialize, EnumAsInner)]
 pub enum NumberSize {
     U8(u8),
@@ -74,6 +76,7 @@ impl Default for NumberSize {
 }
 
 #[repr(C)]
+#[no_mangle]
 #[derive(PartialEq, Default, Debug, Clone, Serialize)]
 pub struct NumberType {
     pub value: NumberSize,

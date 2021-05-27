@@ -1,6 +1,7 @@
 pub mod terminal_colors;
 
 #[repr(C)]
+#[no_mangle]
 pub struct ReliableNameRangeResponse {
     pub reliable: bool,
     pub at: usize,
@@ -8,6 +9,7 @@ pub struct ReliableNameRangeResponse {
 }
 
 #[repr(C)]
+#[no_mangle]
 pub enum ReliableNameRanges {
     VariableName,
     Type,

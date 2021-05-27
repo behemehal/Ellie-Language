@@ -7,6 +7,7 @@ use alloc::string::String;
 use alloc::vec::Vec;
 
 #[repr(C)]
+#[no_mangle]
 #[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct FunctionParameter {
     pub name: String,
@@ -14,6 +15,7 @@ pub struct FunctionParameter {
 }
 
 #[repr(C)]
+#[no_mangle]
 #[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct FunctionParameterCollector {
     pub data: FunctionParameter,
@@ -27,6 +29,7 @@ pub struct FunctionParameterCollector {
 }
 
 #[repr(C)]
+#[no_mangle]
 #[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct Function {
     pub name: String,                                //Function Name string
@@ -36,6 +39,7 @@ pub struct Function {
 }
 
 #[repr(C)]
+#[no_mangle]
 #[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct FunctionCollector {
     pub data: Function,

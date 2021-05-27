@@ -3,6 +3,7 @@ use core::fmt;
 use serde::Serialize;
 
 #[repr(C)]
+#[no_mangle]
 #[derive(PartialEq, Debug, Clone)]
 pub struct ParserOptions {
     pub functions: bool,
@@ -29,6 +30,7 @@ impl Default for ParserOptions {
 }
 
 #[repr(C)]
+#[no_mangle]
 #[derive(PartialEq, Debug, Clone, Copy, Serialize)]
 pub struct CursorPosition(pub i64, pub i64);
 
@@ -39,6 +41,7 @@ impl Default for CursorPosition {
 }
 
 impl CursorPosition {
+    
     #[no_mangle]
     pub extern "C" fn skipChar(&mut self, n: i64) -> CursorPosition {
         self.1 += n;
@@ -53,6 +56,7 @@ impl CursorPosition {
 }
 
 #[repr(C)]
+#[no_mangle]
 #[derive(PartialEq, Debug, Clone, Copy, Serialize)]
 pub struct Cursor {
     pub range_start: CursorPosition,
@@ -69,6 +73,7 @@ impl Default for Cursor {
 }
 
 #[repr(C)]
+#[no_mangle]
 pub struct SyntaxError {
     error: crate::error::Error,
     position: Cursor,

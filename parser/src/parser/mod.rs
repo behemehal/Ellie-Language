@@ -11,6 +11,7 @@ use crate::alloc::string::{String, ToString};
 use crate::alloc::vec::Vec;
 
 #[repr(C)]
+#[no_mangle]
 #[derive(Debug, Clone, PartialEq)]
 pub struct Parsed {
     pub items: Vec<Collecting>,
@@ -18,6 +19,7 @@ pub struct Parsed {
 }
 
 #[repr(C)]
+#[no_mangle]
 #[derive(PartialEq, Debug, Clone, Serialize)]
 pub enum Collecting {
     Variable(variable::VariableCollector),
@@ -27,6 +29,7 @@ pub enum Collecting {
 }
 
 #[repr(C)]
+#[no_mangle]
 #[derive(PartialEq, Debug, Clone)]
 pub struct Parser {
     pub code: String,

@@ -16,7 +16,7 @@ ellie_parser = {path = "parser", version = "0.1.0"}
 [lib]
 name = "ellie_lang"
 path = "src/lib.rs"
-crate-type = ["cdylib"]
+crate-type = ["cdylib", "staticlib", "dylib"]
 
 [[bin]]
 name = "ellie"
@@ -35,3 +35,4 @@ bench = false
 
 [build-dependencies]
 ellie_core = {path = "core", version = "0.1.0"}
+cbindgen = "*"

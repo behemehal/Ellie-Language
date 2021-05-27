@@ -5,6 +5,7 @@ use alloc::boxed::Box;
 use alloc::string::String;
 
 #[repr(C)]
+#[no_mangle]
 #[derive(PartialEq, Debug, Clone, Serialize)]
 pub enum LogicalOpearators {
     And,
@@ -37,6 +38,7 @@ impl LogicalOpearators {
 }
 
 #[repr(C)]
+#[no_mangle]
 #[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct LogicalType {
     pub cloaked: bool,

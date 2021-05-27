@@ -2,6 +2,7 @@ use serde::Serialize;
 pub mod errorList;
 
 #[repr(C)]
+#[no_mangle]
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct Error {
     pub code: u8,
@@ -13,6 +14,7 @@ pub struct Error {
 }
 
 #[repr(C)]
+#[no_mangle]
 pub struct ErrorBuildField {
     pub key: String,
     pub value: String,

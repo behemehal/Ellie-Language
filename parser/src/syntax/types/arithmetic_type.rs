@@ -5,6 +5,7 @@ use alloc::boxed::Box;
 use alloc::string::String;
 
 #[repr(C)]
+#[no_mangle]
 #[derive(PartialEq, Debug, Clone, Serialize)]
 pub enum ArithmeticOperators {
     Addition,
@@ -43,6 +44,7 @@ impl ArithmeticOperators {
 }
 
 #[repr(C)]
+#[no_mangle]
 #[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct ArithmeticType {
     pub cloaked: bool,

@@ -1,4 +1,8 @@
 {
     "editor.wordWrap": "off",
-    "editor.ruler": 180
+    "editor.ruler": 180,
+    "files.associations": {
+        "*.toml": "toml",
+        "random": "cpp"
+    }
 }
