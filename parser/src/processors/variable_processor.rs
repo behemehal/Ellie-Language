@@ -13,12 +13,13 @@ pub struct CollectorResponse {
     data: variable::VariableCollector,
 }
 
-pub fn collect(
+pub fn collect_variable_value(
     parser: &mut parser::Parser,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     next_char: String,
     last_char: String,
+    options: defs::ParserOptions,
 ) {
     if let parser::Collecting::Variable(ref mut variabledata) = parser.current {
         if !variabledata.named {
@@ -46,7 +47,7 @@ pub fn collect(
                     if variabledata.data.dynamic {
                         //TODO REMOVE THIS
                         errors.push(error::Error {
-                            debug_message: "./parser/src/processors/variable_processor.rs:47"
+                            debug_message: "./parser/src/processors/variable_processor.rs:48"
                                 .to_string(),
                             title: error::errorList::error_s11.title.clone(),
                             code: error::errorList::error_s11.code,
@@ -64,7 +65,8 @@ pub fn collect(
                 parser.collected.push(parser.current.clone());
                 parser.current = parser::Collecting::None;
             } else if letter_char == "=" {
-                println!(
+                #[cfg(feature = "std")]
+                std::println!(
                     "{}[ParserWarning]{}: WORKING BLIND, ReadMore: {}https://github.com/behemehal/Ellie-Language/issues/2{}",
                     utils::terminal_colors::get_color(utils::terminal_colors::Colors::Yellow),
                     utils::terminal_colors::get_color(utils::terminal_colors::Colors::Reset),
@@ -74,7 +76,7 @@ pub fn collect(
 
                 if !variabledata.data.dynamic {
                     errors.push(error::Error {
-                        debug_message: "./parser/src/processors/variable_processor.rs:74"
+                        debug_message: "./parser/src/processors/variable_processor.rs:76"
                             .to_string(),
                         title: error::errorList::error_s8.title.clone(),
                         code: error::errorList::error_s8.code,
@@ -87,7 +89,7 @@ pub fn collect(
                     });
                 } else if variabledata.data.name.is_empty() {
                     errors.push(error::Error {
-                        debug_message: "./parser/src/processors/variable_processor.rs:86"
+                        debug_message: "./parser/src/processors/variable_processor.rs:89"
                             .to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
@@ -115,7 +117,7 @@ pub fn collect(
                 if current_reliability.reliable {
                     if last_char == " " && !variabledata.data.name.is_empty() {
                         errors.push(error::Error {
-                            debug_message: "./parser/src/processors/variable_processor.rs:113"
+                            debug_message: "./parser/src/processors/variable_processor.rs:117"
                                 .to_string(),
                             title: error::errorList::error_s1.title.clone(),
                             code: error::errorList::error_s1.code,
@@ -140,7 +142,7 @@ pub fn collect(
                     && (last_char == " " || !variabledata.data.name.is_empty())
                 {
                     errors.push(error::Error {
-                        debug_message: "./parser/src/processors/variable_processor.rs:137"
+                        debug_message: "./parser/src/processors/variable_processor.rs:142"
                             .to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
@@ -161,7 +163,8 @@ pub fn collect(
             }
         } else if !variabledata.typed && !variabledata.data.dynamic {
             if letter_char == ";" {
-                println!(
+                #[cfg(feature = "std")]
+                std::println!(
                     "{}[ParserWarning]{}: WORKING BLIND, ReadMore: {}https://github.com/behemehal/Ellie-Language/issues/2{}",
                     utils::terminal_colors::get_color(utils::terminal_colors::Colors::Yellow),
                     utils::terminal_colors::get_color(utils::terminal_colors::Colors::Reset),
@@ -171,9 +174,9 @@ pub fn collect(
                 parser.collected.push(parser.current.clone());
                 parser.current = parser::Collecting::None;
             } else if letter_char == "=" {
-                if !variabledata.r#type.is_complete() {
+                if !variabledata.rtype.is_definer_complete() {
                     errors.push(error::Error {
-                        debug_message: "./parser/src/processors/variable_processor.rs:169"
+                        debug_message: "./parser/src/processors/variable_processor.rs:175"
                             .to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
@@ -191,7 +194,8 @@ pub fn collect(
                         },
                     });
                 } else {
-                    println!(
+                    #[cfg(feature = "std")]
+                    std::println!(
                         "{}[ParserWarning]{}: WORKING BLIND, ReadMore: {}https://github.com/behemehal/Ellie-Language/issues/2{}",
                         utils::terminal_colors::get_color(utils::terminal_colors::Colors::Yellow),
                         utils::terminal_colors::get_color(utils::terminal_colors::Colors::Reset),
@@ -201,23 +205,24 @@ pub fn collect(
                     variabledata.typed = true;
                 }
             } else {
-                processors::definer_processor::collect(
-                    &mut variabledata.r#type,
+                processors::definer_processor::collect_definer(
+                    &mut variabledata.rtype,
                     errors,
                     letter_char.to_string(),
                     parser.pos,
                     next_char,
                     last_char,
+                    options,
                 );
             }
         } else if letter_char == ";" {
             if let parser::Collecting::Variable(collected) = parser.current.clone() {
-                if collected.data.value.is_complete() {
+                if collected.data.value.is_type_complete() {
                     parser.collected.push(parser.current.clone());
                     parser.current = parser::Collecting::None;
                 } else {
                     errors.push(error::Error {
-                        debug_message: "./parser/src/processors/variable_processor.rs:212"
+                        debug_message: "./parser/src/processors/variable_processor.rs:219"
                             .to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
@@ -238,12 +243,13 @@ pub fn collect(
             }
         } else {
             let mut cd = variabledata.clone();
-            let collected = processors::value_processor::collect(
+            let collected = processors::value_processor::collect_value(
                 &mut cd,
                 letter_char,
                 next_char,
                 last_char,
                 parser.pos,
+                options,
             );
             for i in collected.errors {
                 errors.push(i)

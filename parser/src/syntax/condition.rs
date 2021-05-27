@@ -21,7 +21,7 @@ impl Default for ConditionType {
 
 #[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct ConditionChain {
-    pub r#type: ConditionType,
+    pub rtype: ConditionType,
     pub condition: types::cloak_type::CloakType,
     pub inside_code: Vec<Collecting>,
 }

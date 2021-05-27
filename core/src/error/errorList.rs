@@ -104,7 +104,7 @@ lazy_static! {
     pub static ref error_s15: crate::error::Error = crate::error::Error {
         code: 0x14,
         title: "TypeError".to_string(),
-        message: "Char type can take one charachter only".to_string(),
+        message: "Char type can take one character only".to_string(),
         ..Default::default()
     };
 
@@ -128,4 +128,12 @@ lazy_static! {
         message: "Types cannot have number properties".to_string(),
         ..Default::default()
     };
+
+    pub static ref error_s19: crate::error::Error = crate::error::Error {
+        code: 0x18,
+        title: "OverflowError".to_string(),
+        message: "Fixed size exceeded: expected '$token' elements, got '$token2' elements".to_string(),
+        ..Default::default()
+    };
+
 }

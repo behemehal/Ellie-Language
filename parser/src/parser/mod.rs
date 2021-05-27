@@ -3,19 +3,18 @@
 
 use serde::Serialize;
 
-use ellie_core::{defs, error, utils};
 use crate::processors;
 use crate::syntax::{condition, function, variable};
+use ellie_core::{defs, error, utils};
 
-use crate::alloc::vec::Vec;
 use crate::alloc::string::{String, ToString};
+use crate::alloc::vec::Vec;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Parsed {
     pub items: Vec<Collecting>,
     pub syntax_errors: Vec<error::Error>,
 }
-
 
 #[derive(PartialEq, Debug, Clone, Serialize)]
 pub enum Collecting {
@@ -37,7 +36,6 @@ pub struct Parser {
 }
 
 impl Parser {
-
     pub fn new(code: String, options: defs::ParserOptions) -> Self {
         Parser {
             code,
@@ -51,6 +49,7 @@ impl Parser {
     }
     pub fn map(mut self) -> Parsed {
         let mut errors: Vec<error::Error> = Vec::new();
+        let parser_options = self.options.clone();
 
         for (index, char) in self.code.clone().chars().enumerate() {
             let letter_char = &char.to_string();
@@ -66,40 +65,45 @@ impl Parser {
             if char != '\n' && char != '\r' && char != '\t' {
                 if self.current == Collecting::None {
                     self.keyword_catch += letter_char;
-                    processors::type_processor::collect(
+                    processors::type_processor::collect_type(
                         &mut self,
                         letter_char,
                         next_char.clone(),
                         next_next_char.clone(),
-                        next_next_next_char.clone()
+                        next_next_next_char.clone(),
                     );
                 } else {
                     self.keyword_catch = String::new();
                 }
 
                 match self.current {
-                    Collecting::Variable(_) => processors::variable_processor::collect(
+                    Collecting::Variable(_) => {
+                        processors::variable_processor::collect_variable_value(
+                            &mut self,
+                            &mut errors,
+                            letter_char,
+                            next_char.clone(),
+                            last_char.clone(),
+                            parser_options.clone(),
+                        )
+                    }
+                    Collecting::Condition(_) => processors::condition_processor::collect_condition(
                         &mut self,
                         &mut errors,
                         letter_char,
                         next_char.clone(),
                         last_char.clone(),
+                        parser_options.clone(),
                     ),
-                    Collecting::Condition(_) => processors::condition_processor::collect(
+                    Collecting::Function(_) => processors::function_processor::collect_function(
                         &mut self,
                         &mut errors,
                         letter_char,
                         next_char.clone(),
                         last_char.clone(),
+                        parser_options.clone(),
                     ),
-                    Collecting::Function(_) => processors::function_processor::collect(
-                        &mut self,
-                        &mut errors,
-                        letter_char,
-                        next_char.clone(),
-                        last_char.clone(),
-                    ),
-                    _ => ()
+                    _ => (),
                 }
                 self.pos.1 += 1;
             } else if last_char == "\r" || letter_char == "\n" {

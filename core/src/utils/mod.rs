@@ -18,7 +18,6 @@ pub fn is_opearators(value: &str) -> bool {
 }
 
 pub fn reliable_name_range(range: ReliableNameRanges, value: String) -> ReliableNameRangeResponse {
-
     match range {
         ReliableNameRanges::VariableName => {
             let variable_range = "QWERTYUIOPASDFGHJKLIZXCVBNMqwertyuıopasdfghjklizxcvbnm0123456789";
@@ -31,9 +30,10 @@ pub fn reliable_name_range(range: ReliableNameRanges, value: String) -> Reliable
                     .nth(if let Some(e) = find { e - 1 } else { 0 })
                     .unwrap_or_default(),
             };
-        },
+        }
         ReliableNameRanges::Type => {
-            let variable_range = "QWERTYUIOPASDFGHJKLIZXCVBNMqwertyuıopasdfghjklizxcvbnm0123456789<>";
+            let variable_range =
+                "QWERTYUIOPASDFGHJKLIZXCVBNMqwertyuıopasdfghjklizxcvbnm0123456789<>";
             let find = value.split("").position(|x| !variable_range.contains(&x));
             return ReliableNameRangeResponse {
                 reliable: find == None,
@@ -43,7 +43,7 @@ pub fn reliable_name_range(range: ReliableNameRanges, value: String) -> Reliable
                     .nth(if let Some(e) = find { e - 1 } else { 0 })
                     .unwrap_or_default(),
             };
-        },
+        }
         ReliableNameRanges::FunctionName => {
             let variable_range = "QWERTYUIOPASDFGHJKLIZXCVBNMqwertyuıopasdfghjklizxcvbnm";
             let find = value.split("").position(|x| !variable_range.contains(&x));

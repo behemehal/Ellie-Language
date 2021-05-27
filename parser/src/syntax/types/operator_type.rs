@@ -20,10 +20,11 @@ pub enum Operators {
 }
 
 impl Operators {
-    pub fn resolve_operator(r#type: Operators, value: &str) -> Result<Operators, bool> {
-        match r#type {
+    pub fn resolve_operator(rtype: Operators, value: &str) -> Result<Operators, bool> {
+        match rtype {
             Operators::ComparisonType(_) => {
-                if let Ok(e) = types::comparison_type::ComparisonOperators::resolve_operator(value)
+                if let Ok(e) =
+                    types::comparison_type::ComparisonOperators::resolve_comparison_operator(value)
                 {
                     Ok(Operators::ComparisonType(e))
                 } else {
@@ -31,14 +32,17 @@ impl Operators {
                 }
             }
             Operators::LogicalType(_) => {
-                if let Ok(e) = types::logical_type::LogicalOpearators::resolve_operator(value) {
+                if let Ok(e) =
+                    types::logical_type::LogicalOpearators::resolve_logical_operator(value)
+                {
                     Ok(Operators::LogicalType(e))
                 } else {
                     Err(true)
                 }
             }
             Operators::ArithmeticType(_) => {
-                if let Ok(e) = types::arithmetic_type::ArithmeticOperators::resolve_operator(value)
+                if let Ok(e) =
+                    types::arithmetic_type::ArithmeticOperators::resolve_arithmetic_operator(value)
                 {
                     Ok(Operators::ArithmeticType(e))
                 } else {

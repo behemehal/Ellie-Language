@@ -5,13 +5,14 @@ use alloc::string::{String, ToString};
 use alloc::vec;
 use alloc::vec::Vec;
 
-pub fn collect(
+pub fn collect_refference(
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     _next_char: String,
     last_char: String,
     pos: defs::CursorPosition,
+    _options: defs::ParserOptions,
 ) {
     if let types::Types::Refference(ref mut data) = itered_data.data.value {
         if letter_char == "." {
@@ -54,7 +55,7 @@ pub fn collect(
                     //});
                 } else {
                     errors.push(error::Error {
-                        debug_message: "./parser/src/processors/type_processors/refference.rs:55"
+                        debug_message: "./parser/src/processors/type_processors/refference.rs:56"
                             .to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
@@ -81,11 +82,11 @@ pub fn collect(
                             //It's a f32 or f64
 
                             if itered_data.data.dynamic {
-                                itered_data.r#type =
-                                    definers::Collecting::Generic(definers::GenericType {
-                                        r#type: "f32".to_string(),
+                                itered_data.rtype =
+                                    definers::DefinerCollecting::Generic(definers::GenericType {
+                                        rtype: "f32".to_string(),
                                     });
-                                //  itered_data.r#type.raw_name()
+                                //  itered_data.rtype.raw_name()
                             }
 
                             if let types::number_type::NumberSize::F32(_) = refference_value.value {
@@ -118,14 +119,14 @@ pub fn collect(
                                         range_end: pos.clone().skipChar(1),
                                     },
                                 });
-                            } else if itered_data.r#type.raw_name() == "f32" {
+                            } else if itered_data.rtype.raw_name() == "f32" {
                                 let double_parse =
                                     (refference_value.raw.clone() + "." + letter_char)
                                         .parse::<f32>();
                                 if let Ok(parsed_double) = double_parse {
                                     if parsed_double.is_infinite() {
                                         errors.push(error::Error {
-                                            debug_message: "./parser/src/processors/type_processors/refference.rs:118".to_string(),
+                                            debug_message: "./parser/src/processors/type_processors/refference.rs:127".to_string(),
                                             title: error::errorList::error_s17.title.clone(),
                                             code: error::errorList::error_s17.code,
                                             message: error::errorList::error_s17.message.clone(),
@@ -157,13 +158,13 @@ pub fn collect(
                                                 raw: (refference_value.raw.clone()
                                                     + "."
                                                     + letter_char),
-                                                r#type: types::number_type::NumberTypes::F32,
+                                                rtype: types::number_type::NumberTypes::F32,
                                                 complete: false,
                                             })
                                     }
                                 } else {
                                     errors.push(error::Error {
-                                        debug_message: "./parser/src/processors/type_processors/refference.rs:156".to_string(),
+                                        debug_message: "./parser/src/processors/type_processors/refference.rs:165".to_string(),
                                         title: error::errorList::error_s16.title.clone(),
                                         code: error::errorList::error_s16.code,
                                         message: error::errorList::error_s16.message.clone(),
@@ -187,7 +188,7 @@ pub fn collect(
                                         },
                                     });
                                 }
-                            } else if itered_data.r#type.raw_name() == "f64" {
+                            } else if itered_data.rtype.raw_name() == "f64" {
                                 let double_parse =
                                     (refference_value.raw.clone() + "." + letter_char)
                                         .parse::<f64>();
@@ -198,12 +199,12 @@ pub fn collect(
                                                 parsed_double,
                                             ),
                                             raw: (refference_value.raw.clone() + "." + letter_char),
-                                            r#type: types::number_type::NumberTypes::F32,
+                                            rtype: types::number_type::NumberTypes::F32,
                                             complete: false,
                                         })
                                 } else {
                                     errors.push(error::Error {
-                                        debug_message: "./parser/src/processors/type_processors/refference.rs:196".to_string(),
+                                        debug_message: "./parser/src/processors/type_processors/refference.rs:205".to_string(),
                                         title: error::errorList::error_s16.title.clone(),
                                         code: error::errorList::error_s16.code,
                                         message: error::errorList::error_s16.message.clone(),
@@ -241,7 +242,7 @@ pub fn collect(
                                         vec![
                                             error::ErrorBuildField {
                                                 key: "token1".to_string(),
-                                                value: itered_data.r#type.raw_name(),
+                                                value: itered_data.rtype.raw_name(),
                                             },
                                             error::ErrorBuildField {
                                                 key: "token2".to_string(),

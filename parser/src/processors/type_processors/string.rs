@@ -6,7 +6,7 @@ use alloc::string::{String, ToString};
 use alloc::vec;
 use alloc::vec::Vec;
 
-pub fn collect(
+pub fn collect_string(
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
@@ -16,9 +16,9 @@ pub fn collect(
 ) {
     if let types::Types::String(ref mut data) = itered_data.data.value {
         if itered_data.data.dynamic {
-            itered_data.r#type = crate::syntax::definers::Collecting::Generic(
+            itered_data.rtype = crate::syntax::definers::DefinerCollecting::Generic(
                 crate::syntax::definers::GenericType {
-                    r#type: "string".to_string(),
+                    rtype: "string".to_string(),
                 },
             );
         }
@@ -26,7 +26,7 @@ pub fn collect(
         if letter_char == "\"" && last_char != "\\" {
             if data.complete {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/string.rs:27"
+                    debug_message: "./parser/src/processors/type_processors/string.rs:28"
                         .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
@@ -65,7 +65,7 @@ pub fn collect(
             data.value += letter_char;
         } else if letter_char != " " {
             errors.push(error::Error {
-                debug_message: "./parser/src/processors/type_processors/string.rs:65".to_string(),
+                debug_message: "./parser/src/processors/type_processors/string.rs:67".to_string(),
                 title: error::errorList::error_s1.title.clone(),
                 code: error::errorList::error_s1.code,
                 message: error::errorList::error_s1.message.clone(),

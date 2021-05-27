@@ -4,16 +4,18 @@ use crate::syntax::function;
 use crate::syntax::{types, variable};
 use ellie_core::{defs, error, utils};
 
-use alloc::string::String;
+use alloc::string::{String, ToString};
+use alloc::vec;
 use alloc::vec::Vec;
 
-pub fn collect(
+pub fn collect_arrow(
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     next_char: String,
     last_char: String,
     pos: defs::CursorPosition,
+    options: defs::ParserOptions,
 ) {
     if let types::Types::ArrowFunction(ref mut functiondata) = itered_data.data.value {
         if !functiondata.parameter_wrote {
@@ -109,8 +111,8 @@ pub fn collect(
                 } else if letter_char == ","
                     && functiondata.data.parameters[last_entry - 1]
                         .data
-                        .r#type
-                        .is_complete()
+                        .rtype
+                        .is_definer_complete()
                 {
                     //If its type's comma dont stop collecting it
                     functiondata
@@ -123,13 +125,14 @@ pub fn collect(
                     } else if letter_char == "(" {
                         functiondata.data.parameters[last_entry - 1].child_brace += 1;
                     }
-                    processors::definer_processor::collect(
-                        &mut functiondata.data.parameters[last_entry - 1].data.r#type,
+                    processors::definer_processor::collect_definer(
+                        &mut functiondata.data.parameters[last_entry - 1].data.rtype,
                         errors,
                         letter_char.to_string(),
                         pos,
                         next_char,
                         last_char,
+                        options,
                     );
                 }
             }
@@ -141,7 +144,7 @@ pub fn collect(
                 functiondata.pointer_typed = true;
             } else if letter_char != " " {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/arrow_function.rs:137"
+                    debug_message: "./parser/src/processors/type_processors/arrow_function.rs:143"
                         .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
@@ -160,16 +163,17 @@ pub fn collect(
                 });
             }
         } else if !functiondata.return_typed {
-            if letter_char == "{" && functiondata.data.return_type.is_complete() {
+            if letter_char == "{" && functiondata.data.return_type.is_definer_complete() {
                 functiondata.return_typed = true;
             } else {
-                processors::definer_processor::collect(
+                processors::definer_processor::collect_definer(
                     &mut functiondata.data.return_type,
                     errors,
                     letter_char.to_string(),
                     pos,
                     next_char,
                     last_char,
+                    options,
                 );
             }
         } else if letter_char == "}" && functiondata.brace_count == 0 {
@@ -181,17 +185,8 @@ pub fn collect(
                 functiondata.brace_count -= 1;
             }
             functiondata.inside_code_string += letter_char;
-            let mut child_parser = parser::Parser::new(
-                functiondata.inside_code_string.clone(),
-                defs::ParserOptions {
-                    functions: true,
-                    break_on_error: false,
-                    loops: true,
-                    global_variables: true,
-                    collectives: true,
-                    variables: true,
-                },
-            );
+            let mut child_parser =
+                parser::Parser::new(functiondata.inside_code_string.clone(), options);
             child_parser.pos = pos;
             let mapped = child_parser.map();
             for i in mapped.syntax_errors {

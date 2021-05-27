@@ -14,9 +14,10 @@ pub mod refference_type;
 pub mod string_type;
 pub mod variable_type;
 
+use enum_as_inner::EnumAsInner;
 use serde::Serialize;
 
-#[derive(PartialEq, Debug, Clone, Serialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, EnumAsInner)]
 pub enum Types {
     Number(number_type::NumberType),
     Bool(bool_type::BoolType),
@@ -74,7 +75,7 @@ impl Types {
         }
     }
 
-    pub fn is_complete(&self) -> bool {
+    pub fn is_type_complete(&self) -> bool {
         match &*self {
             Types::Number(_) => true, //Always complete
             Types::Bool(_) => true,   //Always complete
@@ -85,7 +86,7 @@ impl Types {
             Types::Operator(e) => {
                 e.first_filled
                     && e.operator != operator_type::Operators::Null
-                    && (e.second_is_not_null && e.second.is_complete())
+                    && (e.second_is_not_null && e.second.is_type_complete())
             }
             Types::Array(data) => data.complete,
             Types::Cloak(data) => data.complete,
