@@ -17,7 +17,7 @@ fn main() {
 
     let code = "
 
-        v test: i8 = 1;
+        @(test: array(i8, 8), test2: i8) {}
     
     ";
 
@@ -34,6 +34,7 @@ fn main() {
             next_char.to_string(),
             last_char.to_string(),
             pos,
+            ellie_core::defs::ParserOptions::default()
         );
 
         for error in itered.errors {

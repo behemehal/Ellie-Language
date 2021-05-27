@@ -4,6 +4,7 @@ use serde::Serialize;
 use alloc::boxed::Box;
 use alloc::string::String;
 
+
 #[derive(PartialEq, Debug, Clone, Serialize)]
 pub enum LogicalOpearators {
     And,
@@ -32,6 +33,7 @@ impl LogicalOpearators {
         }
     }
 }
+
 
 #[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct LogicalType {

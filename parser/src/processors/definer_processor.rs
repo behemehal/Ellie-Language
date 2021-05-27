@@ -1,7 +1,8 @@
-use crate::alloc::string::String;
+use crate::alloc::string::{String, ToString};
+use crate::alloc::vec;
 use crate::alloc::vec::Vec;
 use crate::syntax;
-use crate::syntax::definers::Collecting;
+use crate::syntax::definers::DefinerCollecting;
 use ellie_core::{defs, error, utils};
 
 /*
@@ -13,19 +14,37 @@ cloak(i8, i32)        //a cloak that contains i8 as first parameter i32 as secon
 */
 
 pub fn collect(
-    type_data: &mut Collecting,
+    type_data: &mut DefinerCollecting,
     errors: &mut Vec<error::Error>,
     letter_char: String,
     pos: defs::CursorPosition,
     next_char: String,
     last_char: String,
+    options: defs::ParserOptions
 ) {
     match type_data {
-        Collecting::Array(ref mut data) => {
+        DefinerCollecting::DynamicArray(ref mut data) => {
+            if letter_char == "(" && !data.bracket_inserted {
+                data.bracket_inserted = true;
+            } else if letter_char == ")" && data.r#type.is_complete() {
+                data.complete = true;
+            } else {
+                collect(
+                    &mut data.r#type,
+                    errors,
+                    letter_char,
+                    pos,
+                    next_char,
+                    last_char,
+                    options
+                )
+            }
+        }
+        DefinerCollecting::Array(ref mut data) => {
             if !data.typed {
                 if letter_char == "(" && !data.bracket_inserted {
                     data.bracket_inserted = true;
-                } else if letter_char == "," {
+                } else if letter_char == "," && data.r#type.is_complete() {
                     data.typed = true;
                 } else {
                     collect(
@@ -35,11 +54,16 @@ pub fn collect(
                         pos,
                         next_char,
                         last_char,
+                        options
                     )
                 }
             } else {
                 let mut emulated_collector_data = syntax::variable::VariableCollector {
+                    r#type: syntax::definers::DefinerCollecting::Generic(syntax::definers::GenericType {
+                        r#type: "usize".to_string()
+                    }),
                     data: syntax::variable::Variable {
+
                         value: data.len.clone(),
                         ..Default::default()
                     },
@@ -52,37 +76,43 @@ pub fn collect(
                     next_char,
                     last_char,
                     pos,
+                    options
                 );
                 for i in processed_data.errors {
                     errors.push(i)
                 }
-                
                 if emulated_collector_data.data.value.is_complete() {
                     data.complete = true;
                 }
-                
                 data.len = emulated_collector_data.data.value;
             }
         }
-        Collecting::Generic(data) => {
-            if data.r#type.trim() == "fn" {
-                *type_data = Collecting::Function(syntax::definers::FunctionType {
-                    bracket_inserted: letter_char == "(",
-                    params: if letter_char == "(" {
-                        vec![Collecting::Generic(syntax::definers::GenericType::default())]
-                    } else {
-                        vec![]
-                    },
+        DefinerCollecting::Generic(data) => {
+            if letter_char == "(" && data.r#type.trim() == "fn" {
+                *type_data = DefinerCollecting::Function(syntax::definers::FunctionType {
+                    bracket_inserted: true,
+                    params: vec![DefinerCollecting::Generic(syntax::definers::GenericType::default())],
                     ..Default::default()
                 });
             } else if letter_char == "(" && data.r#type == "array" {
-                *type_data = Collecting::Array(syntax::definers::ArrayType {
-                    bracket_inserted: letter_char == "(",
+                *type_data = DefinerCollecting::Array(syntax::definers::ArrayType {
+                    bracket_inserted: true,
+                    ..Default::default()
+                });
+            } else if letter_char == "(" && data.r#type == "cloak" {
+                *type_data = DefinerCollecting::Cloak(syntax::definers::CloakType {
+                    bracket_inserted: true,
+                    r#type: vec![DefinerCollecting::Generic(syntax::definers::GenericType::default())],
+                    ..Default::default()
+                });
+            } else if letter_char == "(" && data.r#type == "dynamicArray" {
+                *type_data = DefinerCollecting::DynamicArray(syntax::definers::DynamicArrayType {
+                    bracket_inserted: true,
                     ..Default::default()
                 });
             } else if letter_char != " " && last_char == " " && data.r#type.trim() != "" {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_check_processor.rs:84".to_string(),
+                    debug_message: "./parser/src/processors/definer_processor.rs:103".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -108,7 +138,7 @@ pub fn collect(
                     data.r#type = utils::trim_good(data.r#type.trim().to_string());
                 } else if letter_char != " " {
                     errors.push(error::Error {
-                        debug_message: "./parser/src/processors/type_check_processor.rs:110".to_string(),
+                        debug_message: "./parser/src/processors/definer_processor.rs:129".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -127,22 +157,22 @@ pub fn collect(
                 }
             }
         }
-        Collecting::Function(data) => {
+        DefinerCollecting::Function(data) => {
             if !data.parameter_collected {
                 if letter_char == "(" && !data.bracket_inserted {
                     data.bracket_inserted = true;
                     data.params
-                        .push(Collecting::Generic(syntax::definers::GenericType::default()));
+                        .push(DefinerCollecting::Generic(syntax::definers::GenericType::default()));
                 } else if letter_char == ")" && data.bracket_inserted {
                     data.parameter_collected = true;
                 } else if letter_char == "," && !data.params.is_empty() && !data.at_comma {
                     data.params
-                        .push(Collecting::Generic(syntax::definers::GenericType::default()));
+                        .push(DefinerCollecting::Generic(syntax::definers::GenericType::default()));
                     data.at_comma = true;
                 } else if data.params.is_empty() && data.bracket_inserted {
                     //This should have been filled If everything were right
                     errors.push(error::Error {
-                        debug_message: "./parser/src/processors/type_check_processor.rs:144".to_string(),
+                        debug_message: "./parser/src/processors/definer_processor.rs:164" .to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -168,9 +198,11 @@ pub fn collect(
                         pos,
                         next_char,
                         last_char,
+                        options
                     );
 
-                    if matches!(data.params[if len == 0 { 0 } else { len - 1 }].clone(), crate::syntax::definers::Collecting::Array(x) if x.complete) || matches!(data.params[if len == 0 { 0 } else { len - 1 }].clone(), crate::syntax::definers::Collecting::Function(x) if x.complete) || matches!(data.params[if len == 0 { 0 } else { len - 1 }].clone(), crate::syntax::definers::Collecting::Cloak(x) if x.complete) || matches!(data.params[if len == 0 { 0 } else { len - 1 }].clone(), crate::syntax::definers::Collecting::Generic(_)) {
+                    if data.params[if len == 0 { 0 } else { len - 1 }].is_complete()
+                    {
                         data.complete = true;
                     }
                 }
@@ -178,7 +210,7 @@ pub fn collect(
                 if data.return_keyword != 2 {
                     if letter_char != ":" {
                         errors.push(error::Error {
-                            debug_message: "./parser/src/processors/type_check_processor.rs:180".to_string(),
+                            debug_message: "./parser/src/processors/definer_processor.rs:202" .to_string(),
                             title: error::errorList::error_s1.title.clone(),
                             code: error::errorList::error_s1.code,
                             message: error::errorList::error_s1.message.clone(),
@@ -205,11 +237,36 @@ pub fn collect(
                         pos,
                         next_char,
                         last_char,
+                        options
                     )
                 }
             }
         }
-        Collecting::Cloak(_) => {}
+        DefinerCollecting::Cloak(data) => {
+            let length_of_childs = data.r#type.len();
+            let is_complete = if length_of_childs == 0 {
+                false
+            } else {
+                data.r#type[ if length_of_childs == 1 { 0 } else { length_of_childs - 1 }].is_complete()
+            };
+
+            if letter_char == "," && is_complete {
+                data.r#type.push(DefinerCollecting::Generic(syntax::definers::GenericType::default()));
+            } else if letter_char == ")" && is_complete {
+                data.complete = true;
+            } else {
+                collect(
+                    &mut data.r#type[ if length_of_childs == 1 { 0 } else { length_of_childs - 1 }],
+                    errors,
+                    letter_char,
+                    pos,
+                    next_char,
+                    last_char,
+                    options
+                )
+            }
+        },
+        DefinerCollecting::Dynamic => {}
     }
 }
 

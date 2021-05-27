@@ -1,4 +1,5 @@
-/*
+language = "C"
+header = """/*
 MIT License
 
 Copyright (c) 2020 Behemehal
@@ -20,19 +21,12 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-*/
-#![no_std]
-#![allow(unused_assignments)]
-#![allow(unknown_lints)]
-#![warn(clippy::all)]
-extern crate alloc;
+*/"""
+include_guard = "_ELLIE_H"
+no_includes = true
+sys_includes = ["stdint.h", "stddef.h"]
+cpp_compat = true
+documentation_style = "c"
 
-#[cfg(feature = "std")]
-extern crate std;
-
-pub mod parser;
-pub mod processors;
-pub mod syntax;
-
-//TODO: no-std use core::alloc::Layout; Nightly
-//TODO: no-std extern crate alloc; Nightly
+[parse.expand]
+crates = ["core", "parser"]

@@ -8,6 +8,7 @@ pub struct ParserOptions {
     pub break_on_error: bool,
     pub loops: bool,
     pub global_variables: bool,
+    pub dynamics: bool,
     pub collectives: bool,
     pub variables: bool,
 }
@@ -19,6 +20,7 @@ impl Default for ParserOptions {
             break_on_error: false,
             loops: true,
             global_variables: true,
+            dynamics: true,
             collectives: true,
             variables: true,
         }

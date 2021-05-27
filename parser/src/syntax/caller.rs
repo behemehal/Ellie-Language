@@ -1,4 +1,4 @@
-#[repr(C)]
+
 #[derive(PartialEq, Debug, Clone)]
 pub enum CallerType {
     FunctionCaller,
@@ -6,7 +6,7 @@ pub enum CallerType {
     Unknown,
 }
 
-#[repr(C)]
+
 #[derive(PartialEq, Debug, Clone)]
 pub struct Caller {
     pub initialized: bool,

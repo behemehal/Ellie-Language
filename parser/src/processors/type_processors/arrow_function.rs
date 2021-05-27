@@ -4,8 +4,9 @@ use crate::syntax::function;
 use crate::syntax::{types, variable};
 use ellie_core::{defs, error, utils};
 
-use alloc::string::String;
+use alloc::string::{String, ToString};
 use alloc::vec::Vec;
+use alloc::vec;
 
 pub fn collect(
     itered_data: &mut variable::VariableCollector,
@@ -14,6 +15,7 @@ pub fn collect(
     next_char: String,
     last_char: String,
     pos: defs::CursorPosition,
+    options: defs::ParserOptions
 ) {
     if let types::Types::ArrowFunction(ref mut functiondata) = itered_data.data.value {
         if !functiondata.parameter_wrote {
@@ -107,9 +109,10 @@ pub fn collect(
                 {
                     functiondata.parameter_wrote = true;
                 } else if letter_char == ","
-                    && (matches!(functiondata.data.parameters[last_entry - 1].data.r#type.clone(), crate::syntax::definers::Collecting::Array(x) if x.complete)
-                        || matches!(functiondata.data.parameters[last_entry - 1].data.r#type.clone(), crate::syntax::definers::Collecting::Function(x) if x.complete)
-                        || matches!(functiondata.data.parameters[last_entry - 1].data.r#type.clone(), crate::syntax::definers::Collecting::Cloak(x) if x.complete))
+                    && functiondata.data.parameters[last_entry - 1]
+                        .data
+                        .r#type
+                        .is_complete()
                 {
                     //If its type's comma dont stop collecting it
                     functiondata
@@ -122,13 +125,14 @@ pub fn collect(
                     } else if letter_char == "(" {
                         functiondata.data.parameters[last_entry - 1].child_brace += 1;
                     }
-                    processors::type_check_processor::collect(
+                    processors::definer_processor::collect(
                         &mut functiondata.data.parameters[last_entry - 1].data.r#type,
                         errors,
                         letter_char.to_string(),
                         pos,
                         next_char,
                         last_char,
+                        options
                     );
                 }
             }
@@ -137,10 +141,10 @@ pub fn collect(
                 functiondata.pointer_typed = true;
             } else if letter_char == "{" {
                 functiondata.return_typed = true;
+                functiondata.pointer_typed = true;
             } else if letter_char != " " {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/arrow_function.rs:137"
-                        .to_string(),
+                    debug_message: "./parser/src/processors/type_processors/arrow_function.rs:143" .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -158,20 +162,17 @@ pub fn collect(
                 });
             }
         } else if !functiondata.return_typed {
-            if letter_char == "{"
-                && (matches!(*functiondata.data.return_type.clone(), crate::syntax::definers::Collecting::Array(x) if x.complete)
-                    || matches!(*functiondata.data.return_type.clone(), crate::syntax::definers::Collecting::Function(x) if x.complete)
-                    || matches!(*functiondata.data.return_type.clone(), crate::syntax::definers::Collecting::Cloak(x) if x.complete))
-            {
+            if letter_char == "{" && functiondata.data.return_type.is_complete() {
                 functiondata.return_typed = true;
             } else {
-                processors::type_check_processor::collect(
+                processors::definer_processor::collect(
                     &mut functiondata.data.return_type,
                     errors,
                     letter_char.to_string(),
                     pos,
                     next_char,
                     last_char,
+                    options
                 );
             }
         } else if letter_char == "}" && functiondata.brace_count == 0 {
@@ -185,14 +186,7 @@ pub fn collect(
             functiondata.inside_code_string += letter_char;
             let mut child_parser = parser::Parser::new(
                 functiondata.inside_code_string.clone(),
-                defs::ParserOptions {
-                    functions: true,
-                    break_on_error: false,
-                    loops: true,
-                    global_variables: true,
-                    collectives: true,
-                    variables: true,
-                },
+                options
             );
             child_parser.pos = pos;
             let mapped = child_parser.map();
@@ -203,3 +197,4 @@ pub fn collect(
         }
     }
 }
+

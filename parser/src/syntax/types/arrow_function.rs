@@ -1,16 +1,18 @@
 use crate::parser::Collecting;
 use crate::syntax::{definers, function};
 use serde::Serialize;
+use alloc::vec::Vec;
+use alloc::boxed::Box;
+use alloc::string::String;
 
-//use ellie_core::{defs};
-//use alloc::string::String;
 
 #[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct ArrowFunction {
     pub parameters: Vec<function::FunctionParameterCollector>,
-    pub return_type: Box<definers::Collecting>,
+    pub return_type: Box<definers::DefinerCollecting>,
     pub inside_code: Vec<Collecting>,
 }
+
 
 #[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct ArrowFunctionCollector {

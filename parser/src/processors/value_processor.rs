@@ -17,6 +17,7 @@ pub fn collect(
     next_char: String,
     last_char: String,
     pos: defs::CursorPosition,
+    options: defs::ParserOptions
 ) -> CollectorResponse {
     let mut errors: Vec<error::Error> = Vec::new();
     match &mut itered_data.data.value {
@@ -53,6 +54,7 @@ pub fn collect(
             next_char,
             last_char,
             pos,
+            options
         ),
         types::Types::Operator(_) => type_processors::operator::collect(
             itered_data,
@@ -61,6 +63,7 @@ pub fn collect(
             next_char,
             last_char,
             pos,
+            options
         ),
         types::Types::Array(_) => type_processors::array::collect(
             itered_data,
@@ -69,6 +72,7 @@ pub fn collect(
             next_char,
             last_char,
             pos,
+            options
         ),
         types::Types::Cloak(_) => type_processors::cloak::collect(
             itered_data,
@@ -77,6 +81,7 @@ pub fn collect(
             next_char,
             last_char,
             pos,
+            options
         ),
         types::Types::ArrowFunction(_) => type_processors::arrow_function::collect(
             itered_data,
@@ -85,6 +90,7 @@ pub fn collect(
             next_char,
             last_char,
             pos,
+            options
         ),
         types::Types::FunctionCall(_) => type_processors::function_call::collect(
             itered_data,
@@ -93,6 +99,7 @@ pub fn collect(
             next_char,
             last_char,
             pos,
+            options
         ),
         types::Types::Void => (),
         types::Types::VariableType(_) => type_processors::variable::collect(

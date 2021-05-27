@@ -40,6 +40,7 @@ impl ComparisonOperators {
     }
 }
 
+
 #[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct ComparisonType {
     pub cloaked: bool,

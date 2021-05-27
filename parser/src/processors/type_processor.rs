@@ -102,6 +102,6 @@ pub fn collect(
             panic!("Error: {:#?}", parser.collected);
         }
     } else if keyword == "class " {
-        println!("CLASS");
+        //println!("CLASS");
     }
 }

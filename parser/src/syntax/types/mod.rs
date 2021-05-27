@@ -15,8 +15,10 @@ pub mod string_type;
 pub mod variable_type;
 
 use serde::Serialize;
+use enum_as_inner::EnumAsInner;
 
-#[derive(PartialEq, Debug, Clone, Serialize)]
+
+#[derive(PartialEq, Debug, Clone, Serialize, EnumAsInner)]
 pub enum Types {
     Number(number_type::NumberType),
     Bool(bool_type::BoolType),

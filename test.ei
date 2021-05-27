@@ -1,2 +1,1 @@
-v test: i8 = 1 + 1;
-
+v cloakTest : cloak(char) = [3, 3];

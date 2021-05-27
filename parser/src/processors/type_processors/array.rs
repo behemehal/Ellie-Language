@@ -1,11 +1,11 @@
 use crate::processors::value_processor;
-use crate::syntax::{types, variable};
-use ellie_core::{error, defs};
+use crate::syntax::{definers, types, variable};
+use ellie_core::{defs, error, utils};
 
+use alloc::boxed::Box;
+use alloc::string::{String, ToString};
 use alloc::vec;
 use alloc::vec::Vec;
-use alloc::string::{String, ToString};
-use alloc::boxed::Box;
 
 pub fn collect(
     itered_data: &mut variable::VariableCollector,
@@ -14,6 +14,7 @@ pub fn collect(
     next_char: String,
     last_char: String,
     pos: defs::CursorPosition,
+    options: defs::ParserOptions
 ) {
     if let types::Types::Array(ref mut data) = itered_data.data.value {
         /*
@@ -40,7 +41,8 @@ pub fn collect(
         if letter_char == "[" && !data.child_start && is_s_n {
             if !data.comma && last_entry != 0 {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/array.rs:42".to_string(),
+                    debug_message: "./parser/src/processors/type_processors/array.rs:42"
+                        .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -77,7 +79,8 @@ pub fn collect(
         } else if letter_char == "," && !data.child_start && is_s_n {
             if data.complete {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/array.rs:79".to_string(),
+                    debug_message: "./parser/src/processors/type_processors/array.rs:79"
+                        .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -95,7 +98,8 @@ pub fn collect(
                 });
             } else if data.comma {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/array.rs:97".to_string(),
+                    debug_message: "./parser/src/processors/type_processors/array.rs:97"
+                        .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -124,7 +128,8 @@ pub fn collect(
         } else if letter_char == "]" && !data.child_start && is_s_n {
             if data.comma {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/array.rs:126".to_string(),
+                    debug_message: "./parser/src/processors/type_processors/array.rs:126"
+                        .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -142,7 +147,8 @@ pub fn collect(
                 });
             } else if data.complete {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/array.rs:144".to_string(),
+                    debug_message: "./parser/src/processors/type_processors/array.rs:144"
+                        .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -209,17 +215,106 @@ pub fn collect(
                 //TODO IS THIS SAFE ?
                 data.comma = false;
             }
-            let mut will_be_itered = if data.collective.is_empty() {
-                variable::VariableCollector::default()
-            } else {
-                variable::VariableCollector {
-                    data: variable::Variable {
-                        value: *data.collective[data.collective.len() - 1].value.clone(),
-                        ..Default::default()
-                    },
-                    ..variable::VariableCollector::default()
+
+            let mut will_be_itered: variable::VariableCollector;
+            if let definers::DefinerCollecting::Array(array_data) = itered_data.r#type.clone() {
+                if data.collective.len()
+                    > *array_data
+                        .len
+                        .as_number()
+                        .unwrap()
+                        .value
+                        .as_usize()
+                        .unwrap()
+                {
+                    //Check if array size is overflowed
+                    errors.push(error::Error {
+                        debug_message: "@./parser/src/processors/type_processors/number.rs:487"
+                            .to_string(),
+                        title: error::errorList::error_s19.title.clone(),
+                        code: error::errorList::error_s19.code,
+                        message: error::errorList::error_s19.message.clone(),
+                        builded_message: error::Error::build(
+                            error::errorList::error_s19.message.clone(),
+                            vec![
+                                error::ErrorBuildField {
+                                    key: "token".to_string(),
+                                    value: (*array_data
+                                        .len
+                                        .as_number()
+                                        .unwrap()
+                                        .value
+                                        .as_usize()
+                                        .unwrap())
+                                    .to_string(),
+                                },
+                                error::ErrorBuildField {
+                                    key: "token2".to_string(),
+                                    value: (data.collective.len()).to_string(),
+                                },
+                            ],
+                        ),
+                        pos: defs::Cursor {
+                            range_start: pos,
+                            range_end: pos.clone().skipChar(1),
+                        },
+                    });
                 }
-            };
+
+                will_be_itered = if data.collective.is_empty() {
+                    variable::VariableCollector {
+                        r#type: *array_data.r#type.clone(),
+                        ..variable::VariableCollector::default()
+                    }
+                } else {
+                    variable::VariableCollector {
+                        r#type: *array_data.r#type.clone(),
+                        data: variable::Variable {
+                            value: *data.collective[data.collective.len() - 1].value.clone(),
+                            ..Default::default()
+                        },
+                        ..variable::VariableCollector::default()
+                    }
+                };
+            } else if let definers::DefinerCollecting::DynamicArray(array_data) =
+                itered_data.r#type.clone()
+            {
+                will_be_itered = if data.collective.is_empty() {
+                    variable::VariableCollector {
+                        r#type: *array_data.r#type.clone(),
+                        ..variable::VariableCollector::default()
+                    }
+                } else {
+                    variable::VariableCollector {
+                        r#type: *array_data.r#type.clone(),
+                        data: variable::Variable {
+                            value: *data.collective[data.collective.len() - 1].value.clone(),
+                            ..Default::default()
+                        },
+                        ..variable::VariableCollector::default()
+                    }
+                };
+            } else {
+                will_be_itered = if data.collective.is_empty() {
+                    variable::VariableCollector {
+                        ..variable::VariableCollector::default()
+                    }
+                } else {
+                    variable::VariableCollector {
+                        data: variable::Variable {
+                            value: *data.collective[data.collective.len() - 1].value.clone(),
+                            ..Default::default()
+                        },
+                        ..variable::VariableCollector::default()
+                    }
+                };
+                #[cfg(feature = "std")]
+                std::println!(
+                    "{}[ParserError:0x1]{}: This shouldn't have happened",
+                    utils::terminal_colors::get_color(utils::terminal_colors::Colors::Red),
+                    utils::terminal_colors::get_color(utils::terminal_colors::Colors::Reset),
+                );
+            }
 
             let itered_array_vector = Box::new(value_processor::collect(
                 &mut will_be_itered,
@@ -227,6 +322,7 @@ pub fn collect(
                 next_char,
                 last_char,
                 defs::CursorPosition(0, 0),
+                options
             ));
 
             if let types::Types::Array(ref adata) = itered_array_vector.itered_data.data.value {
@@ -314,4 +410,3 @@ pub fn collect(
         }
     }
 }
-
