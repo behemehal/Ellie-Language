@@ -34,7 +34,7 @@ pub struct ArrayType {
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Default)]
-pub struct DynamicArrayType {
+pub struct GrowableArrayType {
     pub complete: bool,
     pub rtype: Box<DefinerCollecting>,
     pub bracket_inserted: bool,
@@ -48,7 +48,7 @@ pub struct GenericType {
 #[derive(PartialEq, Debug, Clone, Serialize)]
 pub enum DefinerCollecting {
     Array(ArrayType),
-    DynamicArray(DynamicArrayType),
+    GrowableArray(GrowableArrayType),
     Generic(GenericType),
     Function(FunctionType),
     Cloak(CloakType),
@@ -65,7 +65,7 @@ impl DefinerCollecting {
     pub fn is_type_empty(&self) -> bool {
         match self {
             DefinerCollecting::Array(data) => !data.complete,
-            DefinerCollecting::DynamicArray(data) => !data.complete,
+            DefinerCollecting::GrowableArray(data) => !data.complete,
             DefinerCollecting::Generic(data) => data.rtype.is_empty(),
             DefinerCollecting::Function(data) => !data.complete,
             DefinerCollecting::Cloak(data) => !data.complete,
@@ -76,7 +76,7 @@ impl DefinerCollecting {
     pub fn is_definer_complete(&self) -> bool {
         match self {
             DefinerCollecting::Array(data) => data.complete,
-            DefinerCollecting::DynamicArray(data) => data.complete,
+            DefinerCollecting::GrowableArray(data) => data.complete,
             DefinerCollecting::Generic(data) => !data.rtype.is_empty(),
             DefinerCollecting::Function(data) => data.complete,
             DefinerCollecting::Cloak(data) => data.complete,
@@ -87,7 +87,7 @@ impl DefinerCollecting {
     pub fn raw_name(&self) -> String {
         match self {
             DefinerCollecting::Array(_) => "array".to_string(),
-            DefinerCollecting::DynamicArray(_) => "dynamic_array".to_string(),
+            DefinerCollecting::GrowableArray(_) => "dynamic_array".to_string(),
             DefinerCollecting::Generic(data) => data.rtype.clone(),
             DefinerCollecting::Function(_) => "function".to_string(),
             DefinerCollecting::Cloak(_) => "cloak".to_string(),
