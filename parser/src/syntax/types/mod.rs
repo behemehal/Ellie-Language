@@ -16,12 +16,7 @@ pub mod variable_type;
 
 use enum_as_inner::EnumAsInner;
 use serde::Serialize;
-use enum_as_inner::EnumAsInner;
 
-<<<<<<< HEAD
-=======
-
->>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
 #[derive(PartialEq, Debug, Clone, Serialize, EnumAsInner)]
 pub enum Types {
     Number(number_type::NumberType),

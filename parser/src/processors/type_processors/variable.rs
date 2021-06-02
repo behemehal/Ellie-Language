@@ -5,11 +5,7 @@ use alloc::string::{String, ToString};
 use alloc::vec;
 use alloc::vec::Vec;
 
-<<<<<<< HEAD
 pub fn collect_variable(
-=======
-pub fn collect(
->>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,

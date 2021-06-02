@@ -14,11 +14,7 @@ pub fn collect_function_caller(
     next_char: String,
     last_char: String,
     pos: defs::CursorPosition,
-<<<<<<< HEAD
     options: defs::ParserOptions,
-=======
-    options: defs::ParserOptions
->>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
 ) {
     if let types::Types::FunctionCall(ref mut data) = itered_data.data.value {
         let mut last_param = data.params.len();
@@ -58,12 +54,8 @@ pub fn collect_function_caller(
         } else if letter_char == ")" && is_s_n {
             if data.comma {
                 errors.push(error::Error {
-<<<<<<< HEAD
                     debug_message: "./parser/src/processors/type_processors/function_call.rs:56"
                         .to_string(),
-=======
-                    debug_message: "./parser/src/processors/type_processors/function_call.rs:56" .to_string(),
->>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -81,12 +73,8 @@ pub fn collect_function_caller(
                 });
             } else {
                 errors.push(error::Error {
-<<<<<<< HEAD
                     debug_message: "./parser/src/processors/type_processors/function_call.rs:75"
                         .to_string(),
-=======
-                    debug_message: "./parser/src/processors/type_processors/function_call.rs:75" .to_string(),
->>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -127,11 +115,7 @@ pub fn collect_function_caller(
                 next_char,
                 last_char,
                 defs::CursorPosition(0, 0),
-<<<<<<< HEAD
                 options,
-=======
-                options
->>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
             ));
 
             let _itered_entry = match itered_param_value.itered_data.data.value.clone() {

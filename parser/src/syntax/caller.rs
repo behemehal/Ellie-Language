@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-=======
-
->>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
 #[derive(PartialEq, Debug, Clone)]
 pub enum CallerType {
     FunctionCaller,
@@ -9,10 +5,6 @@ pub enum CallerType {
     Unknown,
 }
 
-<<<<<<< HEAD
-=======
-
->>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
 #[derive(PartialEq, Debug, Clone)]
 pub struct Caller {
     pub initialized: bool,

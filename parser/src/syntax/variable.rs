@@ -21,11 +21,7 @@ pub struct VariableCollector {
     pub named: bool,
     pub typed: bool,
     pub value_complete: bool,
-<<<<<<< HEAD
     pub rtype: definers::DefinerCollecting,
-=======
-    pub r#type: definers::DefinerCollecting,
->>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
     pub raw_value: String,
     pub data: Variable,
 }

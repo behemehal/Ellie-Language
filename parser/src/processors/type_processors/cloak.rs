@@ -1,9 +1,5 @@
 use crate::processors::value_processor;
-<<<<<<< HEAD
 use crate::syntax::{definers, types, variable};
-=======
-use crate::syntax::{types, variable, definers};
->>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
 use ellie_core::{defs, error, utils};
 
 use alloc::boxed::Box;
@@ -18,11 +14,7 @@ pub fn collect_cloak(
     next_char: String,
     last_char: String,
     pos: defs::CursorPosition,
-<<<<<<< HEAD
     options: defs::ParserOptions,
-=======
-    options: defs::ParserOptions
->>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
 ) {
     if let types::Types::Cloak(ref mut data) = itered_data.data.value {
         let last_entry = data.clone().collective.len();
@@ -207,19 +199,11 @@ pub fn collect_cloak(
                 data.comma = false;
             }
 
-<<<<<<< HEAD
             let mut will_be_itered: variable::VariableCollector;
             if let definers::DefinerCollecting::Cloak(cloak_data) = itered_data.rtype.clone() {
                 will_be_itered = if data.collective.is_empty() {
                     variable::VariableCollector {
                         rtype: cloak_data.rtype[0].clone(),
-=======
-            let mut will_be_itered : variable::VariableCollector;
-            if let definers::DefinerCollecting::Cloak(cloak_data) = itered_data.r#type.clone() {
-                will_be_itered = if data.collective.is_empty() {
-                    variable::VariableCollector {
-                        r#type: cloak_data.r#type[0].clone(),
->>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
                         ..variable::VariableCollector::default()
                     }
                 } else {
@@ -250,10 +234,6 @@ pub fn collect_cloak(
                     utils::terminal_colors::get_color(utils::terminal_colors::Colors::Red),
                     utils::terminal_colors::get_color(utils::terminal_colors::Colors::Reset),
                 );
-<<<<<<< HEAD
-=======
-
->>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
             }
 
             let itered_cloak_vector = Box::new(value_processor::collect_value(
@@ -262,11 +242,7 @@ pub fn collect_cloak(
                 next_char,
                 last_char,
                 defs::CursorPosition(0, 0),
-<<<<<<< HEAD
                 options,
-=======
-                options
->>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
             ));
 
             if let types::Types::Cloak(ref adata) = itered_cloak_vector.itered_data.data.value {

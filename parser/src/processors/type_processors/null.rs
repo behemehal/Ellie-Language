@@ -2,16 +2,10 @@ use crate::processors::type_processors;
 use crate::syntax::{types, variable};
 use ellie_core::{defs, error};
 
-<<<<<<< HEAD
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};
 use alloc::vec;
-=======
-use alloc::string::{String, ToString};
->>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
 use alloc::vec::Vec;
-use alloc::vec;
-use alloc::boxed::Box;
 
 pub fn collect_null(
     itered_data: &mut variable::VariableCollector,
@@ -26,20 +20,12 @@ pub fn collect_null(
         if itered_data.raw_value.is_empty() {
             if letter_char == "\"" {
                 if itered_data.data.dynamic {
-<<<<<<< HEAD
                     itered_data.rtype = crate::syntax::definers::DefinerCollecting::Generic(
-=======
-                    itered_data.r#type = crate::syntax::definers::DefinerCollecting::Generic(
->>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
                         crate::syntax::definers::GenericType {
                             rtype: "string".to_string(),
                         },
                     );
-<<<<<<< HEAD
                 } else if !matches!(&itered_data.rtype, crate::syntax::definers::DefinerCollecting::Generic(x) if x.rtype == "string")
-=======
-                } else if !matches!(&itered_data.r#type, crate::syntax::definers::DefinerCollecting::Generic(x) if x.r#type == "string")
->>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
                 {
                     errors.push(error::Error {
                         debug_message: "./parser/src/processors/type_processors/null.rs:27"
@@ -70,20 +56,12 @@ pub fn collect_null(
                     types::Types::String(types::string_type::StringType::default());
             } else if letter_char == "'" {
                 if itered_data.data.dynamic {
-<<<<<<< HEAD
                     itered_data.rtype = crate::syntax::definers::DefinerCollecting::Generic(
-=======
-                    itered_data.r#type = crate::syntax::definers::DefinerCollecting::Generic(
->>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
                         crate::syntax::definers::GenericType {
                             rtype: "char".to_string(),
                         },
                     );
-<<<<<<< HEAD
                 } else if !matches!(&itered_data.rtype, crate::syntax::definers::DefinerCollecting::Generic(x) if x.rtype == "char")
-=======
-                } else if !matches!(&itered_data.r#type, crate::syntax::definers::DefinerCollecting::Generic(x) if x.r#type == "char")
->>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
                 {
                     errors.push(error::Error {
                         debug_message: "./parser/src/processors/type_processors/null.rs:63"
@@ -117,11 +95,7 @@ pub fn collect_null(
             {
                 itered_data.data.value =
                     types::Types::Number(types::number_type::NumberType::default());
-<<<<<<< HEAD
                 type_processors::number::collect_number(
-=======
-                type_processors::number::collect(
->>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
                     itered_data,
                     errors,
                     letter_char,
@@ -131,7 +105,6 @@ pub fn collect_null(
                 )
             } else if letter_char == "[" {
                 if itered_data.data.dynamic {
-<<<<<<< HEAD
                     itered_data.rtype = crate::syntax::definers::DefinerCollecting::DynamicArray(
                         crate::syntax::definers::DynamicArrayType {
                             rtype: Box::new(crate::syntax::definers::DefinerCollecting::Dynamic),
@@ -139,15 +112,6 @@ pub fn collect_null(
                         },
                     );
                 } else if !matches!(&itered_data.rtype, crate::syntax::definers::DefinerCollecting::Generic(x) if x.rtype == "string")
-=======
-                    itered_data.r#type = crate::syntax::definers::DefinerCollecting::DynamicArray(
-                        crate::syntax::definers::DynamicArrayType {
-                            r#type: Box::new(crate::syntax::definers::DefinerCollecting::Dynamic),
-                            ..Default::default()
-                        },
-                    );
-                } else if !matches!(&itered_data.r#type, crate::syntax::definers::DefinerCollecting::Generic(x) if x.r#type == "string")
->>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
                 {
                     errors.push(error::Error {
                         debug_message: "./parser/src/processors/type_processors/null.rs:27"
@@ -160,11 +124,7 @@ pub fn collect_null(
                             vec![
                                 error::ErrorBuildField {
                                     key: "token1".to_string(),
-<<<<<<< HEAD
                                     value: itered_data.rtype.raw_name(),
-=======
-                                    value: itered_data.r#type.raw_name(),
->>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
                                 },
                                 error::ErrorBuildField {
                                     key: "token2".to_string(),

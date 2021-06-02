@@ -1,13 +1,7 @@
-<<<<<<< HEAD
 use alloc::format;
 use alloc::string::String;
 use enum_as_inner::EnumAsInner;
-=======
-use alloc::string::String;
-use alloc::format;
->>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
 use serde::Serialize;
-use enum_as_inner::EnumAsInner;
 
 
 #[derive(PartialEq, Eq, Debug, Clone, Copy, Serialize)]
@@ -34,10 +28,6 @@ impl Default for NumberTypes {
     }
 }
 
-<<<<<<< HEAD
-=======
-
->>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
 #[derive(PartialEq, Debug, Clone, Copy, Serialize, EnumAsInner)]
 pub enum NumberSize {
     U8(u8),
@@ -68,11 +58,7 @@ assert_eq!(s, "Α is capital alpha; β is beta");
 
 impl NumberSize {
     pub fn get_type(&self) -> String {
-<<<<<<< HEAD
         let mut q: String = format!("{:?}", self);
-=======
-        let mut q: String = format!("{:?}",self);
->>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
         let bracket_offset = q.find('(').unwrap_or_else(|| q.len());
         q.replace_range(bracket_offset.., "");
         q

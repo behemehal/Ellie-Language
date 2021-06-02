@@ -4,14 +4,7 @@ use alloc::boxed::Box;
 use alloc::string::String;
 use alloc::vec::Vec;
 use serde::Serialize;
-use alloc::vec::Vec;
-use alloc::boxed::Box;
-use alloc::string::String;
 
-<<<<<<< HEAD
-=======
-
->>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
 #[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct ArrowFunction {
     pub parameters: Vec<function::FunctionParameterCollector>,

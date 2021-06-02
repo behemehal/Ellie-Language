@@ -5,7 +5,6 @@ use alloc::boxed::Box;
 use alloc::string::{String, ToString};
 use alloc::vec;
 use alloc::vec::Vec;
-use alloc::vec;
 
 pub fn collect_char(
     itered_data: &mut variable::VariableCollector,
