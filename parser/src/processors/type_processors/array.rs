@@ -41,7 +41,7 @@ pub fn collect_array(
         if letter_char == "[" && !data.child_start && is_s_n {
             if !data.comma && last_entry != 0 {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/array.rs:42"
+                    debug_message: "./parser/src/processors/type_processors/array.rs:0"
                         .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
@@ -79,7 +79,7 @@ pub fn collect_array(
         } else if letter_char == "," && !data.child_start && is_s_n {
             if data.complete {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/array.rs:79"
+                    debug_message: "./parser/src/processors/type_processors/array.rs:1"
                         .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
@@ -98,7 +98,7 @@ pub fn collect_array(
                 });
             } else if data.comma {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/array.rs:97"
+                    debug_message: "./parser/src/processors/type_processors/array.rs:2"
                         .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
@@ -128,7 +128,7 @@ pub fn collect_array(
         } else if letter_char == "]" && !data.child_start && is_s_n {
             if data.comma {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/array.rs:126"
+                    debug_message: "./parser/src/processors/type_processors/array.rs:3"
                         .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
@@ -147,7 +147,7 @@ pub fn collect_array(
                 });
             } else if data.complete {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/array.rs:144"
+                    debug_message: "./parser/src/processors/type_processors/array.rs:4"
                         .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
@@ -222,7 +222,7 @@ pub fn collect_array(
                 if array_data.len.as_number().is_some() && data.collective.len() > *array_data.len.as_number().unwrap().value.as_usize().unwrap() {
                     //Check if array size is overflowed
                     errors.push(error::Error {
-                        debug_message: "!./parser/src/processors/type_processors/number.rs:487"
+                        debug_message: "./parser/src/processors/type_processors/array.rs:5"
                             .to_string(),
                         title: error::errorList::error_s19.title.clone(),
                         code: error::errorList::error_s19.code,
@@ -254,7 +254,7 @@ pub fn collect_array(
                     });
                 } else if letter_char != " " {
                     errors.push(error::Error {
-                        debug_message: "!!d./parser/src/processors/type_processors/number.rs:488"
+                        debug_message: "./parser/src/processors/type_processors/array.rs:6"
                             .to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
@@ -422,3 +422,7 @@ pub fn collect_array(
         }
     }
 }
+
+
+
+

@@ -34,7 +34,7 @@ pub fn collect_function_caller(
                     .push(types::function_call::FunctionCallParameter::default())
             } else {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/function_call.rs:35"
+                    debug_message: "./parser/src/processors/type_processors/function_call.rs:0"
                         .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
@@ -55,7 +55,7 @@ pub fn collect_function_caller(
         } else if letter_char == ")" && is_s_n {
             if data.comma {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/function_call.rs:56"
+                    debug_message: "./parser/src/processors/type_processors/function_call.rs:1"
                         .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
@@ -74,7 +74,7 @@ pub fn collect_function_caller(
                 });
             } else {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/function_call.rs:75"
+                    debug_message: "./parser/src/processors/type_processors/function_call.rs:2"
                         .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
@@ -193,3 +193,7 @@ pub fn collect_function_caller(
         }
     }
 }
+
+
+
+

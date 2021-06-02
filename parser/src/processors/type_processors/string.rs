@@ -26,7 +26,7 @@ pub fn collect_string(
         if letter_char == "\"" && last_char != "\\" {
             if data.complete {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/string.rs:28"
+                    debug_message: "./parser/src/processors/type_processors/string.rs:0"
                         .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
@@ -65,7 +65,7 @@ pub fn collect_string(
             data.value += letter_char;
         } else if letter_char != " " {
             errors.push(error::Error {
-                debug_message: "./parser/src/processors/type_processors/string.rs:67".to_string(),
+                debug_message: "./parser/src/processors/type_processors/string.rs:1".to_string(),
                 title: error::errorList::error_s1.title.clone(),
                 code: error::errorList::error_s1.code,
                 message: error::errorList::error_s1.message.clone(),
@@ -84,3 +84,7 @@ pub fn collect_string(
         }
     }
 }
+
+
+
+

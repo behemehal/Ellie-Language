@@ -1,0 +1,14 @@
+name: Refactor Errors
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy NodeJS app
+        with:
+          script: |
+            node refactor.js

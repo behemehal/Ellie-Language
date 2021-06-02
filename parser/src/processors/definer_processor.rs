@@ -123,7 +123,7 @@ pub fn collect_definer(
                     });
             } else if letter_char != " " && last_char == " " && data.rtype.trim() != "" {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/definer_processor.rs:103".to_string(),
+                    debug_message: "./parser/src/processors/definer_processor.rs:0".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -149,7 +149,7 @@ pub fn collect_definer(
                     data.rtype = utils::trim_good(data.rtype.trim().to_string());
                 } else if letter_char != " " {
                     errors.push(error::Error {
-                        debug_message: "./parser/src/processors/definer_processor.rs:129"
+                        debug_message: "./parser/src/processors/definer_processor.rs:1"
                             .to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
@@ -186,7 +186,7 @@ pub fn collect_definer(
                 } else if data.params.is_empty() && data.bracket_inserted {
                     //This should have been filled If everything were right
                     errors.push(error::Error {
-                        debug_message: "./parser/src/processors/definer_processor.rs:164"
+                        debug_message: "./parser/src/processors/definer_processor.rs:2"
                             .to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
@@ -224,7 +224,7 @@ pub fn collect_definer(
                 if data.return_keyword != 2 {
                     if letter_char != ":" {
                         errors.push(error::Error {
-                            debug_message: "./parser/src/processors/definer_processor.rs:202"
+                            debug_message: "./parser/src/processors/definer_processor.rs:3"
                                 .to_string(),
                             title: error::errorList::error_s1.title.clone(),
                             code: error::errorList::error_s1.code,
@@ -295,3 +295,7 @@ pub fn collect_definer(
         DefinerCollecting::Dynamic => {}
     }
 }
+
+
+
+

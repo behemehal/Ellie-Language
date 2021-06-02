@@ -20,7 +20,7 @@ pub fn collect_number(
         if is_num || letter_char == "x" && data.raw.starts_with('0') {
             if data.complete {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/number.rs:22"
+                    debug_message: "./parser/src/processors/type_processors/number.rs:0"
                         .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
@@ -56,7 +56,7 @@ pub fn collect_number(
                         data.value = types::number_type::NumberSize::U8(nm);
                     } else {
                         errors.push(error::Error {
-                            debug_message: "./parser/src/processors/type_processors/number.rs:58"
+                            debug_message: "./parser/src/processors/type_processors/number.rs:1"
                                 .to_string(),
                             title: error::errorList::error_s16.title.clone(),
                             code: error::errorList::error_s16.code,
@@ -87,7 +87,7 @@ pub fn collect_number(
                         data.value = types::number_type::NumberSize::U16(nm);
                     } else {
                         errors.push(error::Error {
-                            debug_message: "./parser/src/processors/type_processors/number.rs:89"
+                            debug_message: "./parser/src/processors/type_processors/number.rs:2"
                                 .to_string(),
                             title: error::errorList::error_s16.title.clone(),
                             code: error::errorList::error_s16.code,
@@ -118,7 +118,7 @@ pub fn collect_number(
                         data.value = types::number_type::NumberSize::U32(nm);
                     } else {
                         errors.push(error::Error {
-                            debug_message: "./parser/src/processors/type_processors/number.rs:120"
+                            debug_message: "./parser/src/processors/type_processors/number.rs:3"
                                 .to_string(),
                             title: error::errorList::error_s16.title.clone(),
                             code: error::errorList::error_s16.code,
@@ -149,7 +149,7 @@ pub fn collect_number(
                         data.value = types::number_type::NumberSize::U64(nm);
                     } else {
                         errors.push(error::Error {
-                            debug_message: "./parser/src/processors/type_processors/number.rs:151"
+                            debug_message: "./parser/src/processors/type_processors/number.rs:4"
                                 .to_string(),
                             title: error::errorList::error_s16.title.clone(),
                             code: error::errorList::error_s16.code,
@@ -180,7 +180,7 @@ pub fn collect_number(
                         data.value = types::number_type::NumberSize::U128(nm);
                     } else {
                         errors.push(error::Error {
-                            debug_message: "./parser/src/processors/type_processors/number.rs:182"
+                            debug_message: "./parser/src/processors/type_processors/number.rs:5"
                                 .to_string(),
                             title: error::errorList::error_s16.title.clone(),
                             code: error::errorList::error_s16.code,
@@ -211,7 +211,7 @@ pub fn collect_number(
                         data.value = types::number_type::NumberSize::Usize(nm);
                     } else {
                         errors.push(error::Error {
-                            debug_message: "./parser/src/processors/type_processors/number.rs:213"
+                            debug_message: "./parser/src/processors/type_processors/number.rs:6"
                                 .to_string(),
                             title: error::errorList::error_s16.title.clone(),
                             code: error::errorList::error_s16.code,
@@ -242,7 +242,7 @@ pub fn collect_number(
                         data.value = types::number_type::NumberSize::I8(nm);
                     } else {
                         errors.push(error::Error {
-                            debug_message: "./parser/src/processors/type_processors/number.rs:244"
+                            debug_message: "./parser/src/processors/type_processors/number.rs:7"
                                 .to_string(),
                             title: error::errorList::error_s16.title.clone(),
                             code: error::errorList::error_s16.code,
@@ -273,7 +273,7 @@ pub fn collect_number(
                         data.value = types::number_type::NumberSize::I16(nm);
                     } else {
                         errors.push(error::Error {
-                            debug_message: "./parser/src/processors/type_processors/number.rs:275"
+                            debug_message: "./parser/src/processors/type_processors/number.rs:8"
                                 .to_string(),
                             title: error::errorList::error_s16.title.clone(),
                             code: error::errorList::error_s16.code,
@@ -304,7 +304,7 @@ pub fn collect_number(
                         data.value = types::number_type::NumberSize::I32(nm);
                     } else {
                         errors.push(error::Error {
-                            debug_message: "./parser/src/processors/type_processors/number.rs:306"
+                            debug_message: "./parser/src/processors/type_processors/number.rs:9"
                                 .to_string(),
                             title: error::errorList::error_s16.title.clone(),
                             code: error::errorList::error_s16.code,
@@ -335,7 +335,7 @@ pub fn collect_number(
                         data.value = types::number_type::NumberSize::I64(nm);
                     } else {
                         errors.push(error::Error {
-                            debug_message: "./parser/src/processors/type_processors/number.rs:337"
+                            debug_message: "./parser/src/processors/type_processors/number.rs:10"
                                 .to_string(),
                             title: error::errorList::error_s16.title.clone(),
                             code: error::errorList::error_s16.code,
@@ -366,7 +366,7 @@ pub fn collect_number(
                         data.value = types::number_type::NumberSize::I128(nm);
                     } else {
                         errors.push(error::Error {
-                            debug_message: "./parser/src/processors/type_processors/number.rs:368"
+                            debug_message: "./parser/src/processors/type_processors/number.rs:11"
                                 .to_string(),
                             title: error::errorList::error_s16.title.clone(),
                             code: error::errorList::error_s16.code,
@@ -397,7 +397,7 @@ pub fn collect_number(
                         data.value = types::number_type::NumberSize::Isize(nm);
                     } else {
                         errors.push(error::Error {
-                            debug_message: "./parser/src/processors/type_processors/number.rs:399"
+                            debug_message: "./parser/src/processors/type_processors/number.rs:12"
                                 .to_string(),
                             title: error::errorList::error_s16.title.clone(),
                             code: error::errorList::error_s16.code,
@@ -428,7 +428,7 @@ pub fn collect_number(
                         data.value = types::number_type::NumberSize::F32(nm);
                     } else {
                         errors.push(error::Error {
-                            debug_message: "./parser/src/processors/type_processors/number.rs:430"
+                            debug_message: "./parser/src/processors/type_processors/number.rs:13"
                                 .to_string(),
                             title: error::errorList::error_s16.title.clone(),
                             code: error::errorList::error_s16.code,
@@ -459,7 +459,7 @@ pub fn collect_number(
                         data.value = types::number_type::NumberSize::F64(nm);
                     } else {
                         errors.push(error::Error {
-                            debug_message: "./parser/src/processors/type_processors/number.rs:461"
+                            debug_message: "./parser/src/processors/type_processors/number.rs:14"
                                 .to_string(),
                             title: error::errorList::error_s16.title.clone(),
                             code: error::errorList::error_s16.code,
@@ -486,7 +486,7 @@ pub fn collect_number(
                 } else if !itered_data.rtype.raw_name().is_empty() {
                     //UNSAFE
                     errors.push(error::Error {
-                        debug_message: "==./parser/src/processors/type_processors/number.rs:488"
+                        debug_message: "./parser/src/processors/type_processors/number.rs:15"
                             .to_string(),
                         title: error::errorList::error_s3.title.clone(),
                         code: error::errorList::error_s3.code,
@@ -561,7 +561,7 @@ pub fn collect_number(
             data.complete = true;
         } else {
             errors.push(error::Error {
-                debug_message: "./parser/src/processors/type_processors/number.rs:560".to_string(),
+                debug_message: "./parser/src/processors/type_processors/number.rs:16".to_string(),
                 title: error::errorList::error_s1.title.clone(),
                 code: error::errorList::error_s1.code,
                 message: error::errorList::error_s1.message.clone(),
@@ -580,3 +580,7 @@ pub fn collect_number(
         }
     }
 }
+
+
+
+

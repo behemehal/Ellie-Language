@@ -35,7 +35,7 @@ pub fn collect_variable(
             itered_data.data.value = types::Types::Char(types::char_type::CharType::default())
         } else {
             errors.push(error::Error {
-                debug_message: "+./parser/src/processors/type_processors/variable.rs:39".to_string(),
+                debug_message: "./parser/src/processors/type_processors/variable.rs:0".to_string(),
                 title: error::errorList::error_s1.title.clone(),
                 code: error::errorList::error_s1.code,
                 message: error::errorList::error_s1.message.clone(),
@@ -63,3 +63,7 @@ pub fn collect_variable(
         }
     }
 }
+
+
+
+

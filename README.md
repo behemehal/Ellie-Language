@@ -8,6 +8,8 @@ Why ellie? Ellie is a scripting engine that runs on embedded and sandboxed envir
 # Language Tour
 You can see [LanguageTour.md](./LanguageTour.md)
 
+# Contrubiting
+
 # LICENSE
 
 ```

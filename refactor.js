@@ -1,11 +1,13 @@
-var chalk = require('chalk');
 var fs = require("fs");
 
 var log = (message, color) => {
-    console.log(`${chalk.cyan("Ellie")}: ${chalk[color || "red"](message)}`);
+    console.log(`Ellie: ${message}`);
 }
 
 var createLine = (len) => Array(len).fill("-").join("");
+
+
+let dbgLabels = [];
 
 function refactorFile(file, fileDir) {
     var lines = file.split("\r\n");
@@ -15,7 +17,7 @@ function refactorFile(file, fileDir) {
         var line = lines[i];
         if (line.includes("debug_message: \"") && fileDir != "./core/src/error/mod.rs") {
             var first = line.split("debug_message: \"")[0];
-            factoredFile += first + "debug_message: \"" + fileDir + ":" + i + "\".to_string(),\r\n"
+            factoredFile += first + "debug_message: \"" + fileDir + ":" + i + "\"" + line.split("debug_message: \"")[1].split("\"")[1] + "\r\n"
             factored = true;
         } else {
             factoredFile += line + "\n";
@@ -24,7 +26,6 @@ function refactorFile(file, fileDir) {
     if (factored) {
         log(`Factoring ${fileDir}:${i + 1}`);
         fs.writeFileSync(fileDir, factoredFile, 'utf8');
-        console.log(factoredFile);
     }
 }
 
@@ -48,9 +49,11 @@ function scanDirectory(dir, path) {
 log("Searching Errors");
 scanDirectory(fs.readdirSync("./", {withFileTypes: true}), "./").then((files) => {
     log(`Factoring ${files.length} files`);
-    
+    log(`--------------------------------`);
     for (let i = 0; i < files.length; i++) {
         refactorFile(fs.readFileSync(files[i], "utf-8"), files[i]);
     }
+    log(`--------------------------------`);
+    log(`Writing debug headers`);
 
 })
