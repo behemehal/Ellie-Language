@@ -86,7 +86,7 @@ pub fn collect_definer(
                     errors.push(i)
                 }
 
-                if emulated_collector_data.data.value.is_type_complete()  {
+                if emulated_collector_data.data.value.is_type_complete() {
                     data.complete = true;
                 }
 

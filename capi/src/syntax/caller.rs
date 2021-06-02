@@ -1,5 +1,5 @@
-use crate::syntax;
 use crate::parser;
+use crate::syntax;
 
 #[derive(PartialEq, Debug, Clone)]
 pub enum CallerType {
