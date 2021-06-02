@@ -19,7 +19,7 @@ ELLIE RAW File
 Setting parameters
 
     0 02
-    
+
     ^ ^------------  Parameter Name
    parameter
       Type

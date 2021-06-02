@@ -18,7 +18,7 @@ fn main() {
     let code = "
 
         @(test: array(i8, 8), test2: i8) {}
-    
+
     ";
 
     for (index, char) in code.chars().enumerate() {
