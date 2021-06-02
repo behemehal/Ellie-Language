@@ -1,5 +1,6 @@
 ![icon](./picture/TextIcon/EllieTextIcon@0,33x.png)
 # Ellie
+[![Refactor Errors](https://github.com/behemehal/Ellie-Language/actions/workflows/refactor.yml/badge.svg)](https://github.com/behemehal/Ellie-Language/actions/workflows/refactor.yml)
 
 Ellie language [NOT COMPLETE]
 
