@@ -19,7 +19,19 @@ pub fn collect_variable_value(
     letter_char: &str,
     next_char: String,
     last_char: String,
+<<<<<<< HEAD
+<<<<<<< HEAD
     options: defs::ParserOptions,
+=======
+<<<<<<< HEAD
+    options: defs::ParserOptions,
+=======
+    options: defs::ParserOptions
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+>>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
+=======
+    options: defs::ParserOptions,
+>>>>>>> FFI
 ) {
     if let parser::Collecting::Variable(ref mut variabledata) = parser.current {
         if !variabledata.named {
@@ -209,9 +221,15 @@ pub fn collect_variable_value(
                     variabledata.typed = true;
                 }
             } else {
-                if variabledata.data.type_pos.range_start.0 == 0 && variabledata.data.type_pos.range_start.1 == 0 && letter_char != " " {
+<<<<<<< HEAD
+=======
+                if variabledata.data.type_pos.range_start.0 == 0
+                    && variabledata.data.type_pos.range_start.1 == 0
+                    && letter_char != " "
+                {
                     variabledata.data.type_pos.range_start = parser.pos;
                 }
+>>>>>>> FFI
                 processors::definer_processor::collect_definer(
                     &mut variabledata.rtype,
                     errors,
@@ -219,11 +237,27 @@ pub fn collect_variable_value(
                     parser.pos,
                     next_char,
                     last_char,
+<<<<<<< HEAD
+<<<<<<< HEAD
                     options,
+=======
+<<<<<<< HEAD
+                    options,
+=======
+                    options
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+>>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
+=======
+                    options,
+>>>>>>> FFI
                 );
                 variabledata.data.type_pos.range_end = parser.pos;
             }
         } else if letter_char == ";" {
+<<<<<<< HEAD
+            if let parser::Collecting::Variable(collected) = parser.current.clone() {
+                if collected.data.value.is_type_complete() {
+=======
             variabledata.data.value_pos.range_end = parser.pos;
             if let parser::Collecting::Variable(ref mut collected) = parser.current {
                 if collected.data.value.is_type_complete() {
@@ -232,8 +266,7 @@ pub fn collect_variable_value(
 
                     if collected.rtype.raw_name() != collected.data.value.get_type() {
                         errors.push(error::Error {
-                            debug_message: "err"
-                                .to_string(),
+                            debug_message: "err".to_string(),
                             title: error::errorList::error_s3.title.clone(),
                             code: error::errorList::error_s3.code,
                             message: error::errorList::error_s3.message.clone(),
@@ -246,16 +279,17 @@ pub fn collect_variable_value(
                                     },
                                     error::ErrorBuildField {
                                         key: "token2".to_string(),
-                                        value: collected.data.value.get_type()
+                                        value: collected.data.value.get_type(),
                                     },
                                 ],
                             ),
-                            pos: collected.data.value_pos
+                            pos: collected.data.value_pos,
                         });
                     }
 
                     //std::println!("SET: {:#?} {:#?}", collected.rtype.raw_name(), collected.data.value.get_type(), );
 
+>>>>>>> FFI
                     parser.collected.push(parser.current.clone());
                     parser.current = parser::Collecting::None;
                 } else {
@@ -280,7 +314,10 @@ pub fn collect_variable_value(
                 }
             }
         } else {
-            if variabledata.data.value_pos.range_start.0 == 0 && variabledata.data.value_pos.range_start.1 == 0 && letter_char != " " {
+            if variabledata.data.value_pos.range_start.0 == 0
+                && variabledata.data.value_pos.range_start.1 == 0
+                && letter_char != " "
+            {
                 variabledata.data.value_pos.range_start = parser.pos;
             }
             let mut cd = variabledata.clone();
@@ -290,7 +327,19 @@ pub fn collect_variable_value(
                 next_char,
                 last_char,
                 parser.pos,
+<<<<<<< HEAD
+<<<<<<< HEAD
                 options,
+=======
+<<<<<<< HEAD
+                options,
+=======
+                options
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+>>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
+=======
+                options,
+>>>>>>> FFI
             );
             for i in collected.errors {
                 errors.push(i)

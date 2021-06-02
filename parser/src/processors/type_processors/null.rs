@@ -2,8 +2,23 @@ use crate::processors::type_processors;
 use crate::syntax::{types, variable};
 use ellie_core::{defs, error};
 
+<<<<<<< HEAD
+<<<<<<< HEAD
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};
+use alloc::vec;
+=======
+<<<<<<< HEAD
+use alloc::boxed::Box;
+use alloc::string::{String, ToString};
+use alloc::vec;
+=======
+=======
+use alloc::boxed::Box;
+>>>>>>> FFI
+use alloc::string::{String, ToString};
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+>>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
 use alloc::vec::Vec;
 
 pub fn collect_null(
@@ -19,21 +34,119 @@ pub fn collect_null(
         if itered_data.raw_value.is_empty() {
             if letter_char == "\"" {
                 if itered_data.data.dynamic {
+<<<<<<< HEAD
+<<<<<<< HEAD
                     itered_data.rtype = crate::syntax::definers::DefinerCollecting::Generic(
+=======
+<<<<<<< HEAD
+                    itered_data.rtype = crate::syntax::definers::DefinerCollecting::Generic(
+=======
+                    itered_data.r#type = crate::syntax::definers::DefinerCollecting::Generic(
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+>>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
+=======
+                    itered_data.rtype = crate::syntax::definers::DefinerCollecting::Generic(
+>>>>>>> FFI
                         crate::syntax::definers::GenericType {
                             rtype: "string".to_string(),
                         },
                     );
+<<<<<<< HEAD
+<<<<<<< HEAD
+                } else if !matches!(&itered_data.rtype, crate::syntax::definers::DefinerCollecting::Generic(x) if x.rtype == "string")
+=======
+<<<<<<< HEAD
+                } else if !matches!(&itered_data.rtype, crate::syntax::definers::DefinerCollecting::Generic(x) if x.rtype == "string")
+=======
+                } else if !matches!(&itered_data.r#type, crate::syntax::definers::DefinerCollecting::Generic(x) if x.r#type == "string")
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+>>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
+                {
+                    errors.push(error::Error {
+                        debug_message: "./parser/src/processors/type_processors/null.rs:27"
+                            .to_string(),
+                        title: error::errorList::error_s3.title.clone(),
+                        code: error::errorList::error_s3.code,
+                        message: error::errorList::error_s3.message.clone(),
+                        builded_message: error::Error::build(
+                            error::errorList::error_s3.message.clone(),
+                            vec![
+                                error::ErrorBuildField {
+                                    key: "token1".to_string(),
+                                    value: itered_data.rtype.raw_name(),
+                                },
+                                error::ErrorBuildField {
+                                    key: "token2".to_string(),
+                                    value: "string".to_string(),
+                                },
+                            ],
+                        ),
+                        pos: defs::Cursor {
+                            range_start: pos,
+                            range_end: pos.clone().skipChar(1),
+                        },
+                    });
+=======
+>>>>>>> FFI
                 }
                 itered_data.data.value =
                     types::Types::String(types::string_type::StringType::default());
             } else if letter_char == "'" {
                 if itered_data.data.dynamic {
+<<<<<<< HEAD
+<<<<<<< HEAD
                     itered_data.rtype = crate::syntax::definers::DefinerCollecting::Generic(
+=======
+<<<<<<< HEAD
+                    itered_data.rtype = crate::syntax::definers::DefinerCollecting::Generic(
+=======
+                    itered_data.r#type = crate::syntax::definers::DefinerCollecting::Generic(
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+>>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
+=======
+                    itered_data.rtype = crate::syntax::definers::DefinerCollecting::Generic(
+>>>>>>> FFI
                         crate::syntax::definers::GenericType {
                             rtype: "char".to_string(),
                         },
                     );
+<<<<<<< HEAD
+<<<<<<< HEAD
+                } else if !matches!(&itered_data.rtype, crate::syntax::definers::DefinerCollecting::Generic(x) if x.rtype == "char")
+=======
+<<<<<<< HEAD
+                } else if !matches!(&itered_data.rtype, crate::syntax::definers::DefinerCollecting::Generic(x) if x.rtype == "char")
+=======
+                } else if !matches!(&itered_data.r#type, crate::syntax::definers::DefinerCollecting::Generic(x) if x.r#type == "char")
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+>>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
+                {
+                    errors.push(error::Error {
+                        debug_message: "./parser/src/processors/type_processors/null.rs:63"
+                            .to_string(),
+                        title: error::errorList::error_s3.title.clone(),
+                        code: error::errorList::error_s3.code,
+                        message: error::errorList::error_s3.message.clone(),
+                        builded_message: error::Error::build(
+                            error::errorList::error_s3.message.clone(),
+                            vec![
+                                error::ErrorBuildField {
+                                    key: "token1".to_string(),
+                                    value: itered_data.rtype.raw_name(),
+                                },
+                                error::ErrorBuildField {
+                                    key: "token2".to_string(),
+                                    value: "char".to_string(),
+                                },
+                            ],
+                        ),
+                        pos: defs::Cursor {
+                            range_start: pos,
+                            range_end: pos.clone().skipChar(1),
+                        },
+                    });
+=======
+>>>>>>> FFI
                 }
                 itered_data.data.value = types::Types::Char(types::char_type::CharType::default());
             } else if (itered_data.raw_value.clone() + letter_char)
@@ -42,7 +155,19 @@ pub fn collect_null(
             {
                 itered_data.data.value =
                     types::Types::Number(types::number_type::NumberType::default());
+<<<<<<< HEAD
+<<<<<<< HEAD
                 type_processors::number::collect_number(
+=======
+<<<<<<< HEAD
+                type_processors::number::collect_number(
+=======
+                type_processors::number::collect(
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+>>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
+=======
+                type_processors::number::collect_number(
+>>>>>>> FFI
                     itered_data,
                     errors,
                     letter_char,
@@ -52,12 +177,71 @@ pub fn collect_null(
                 )
             } else if letter_char == "[" {
                 if itered_data.data.dynamic {
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
+                    itered_data.rtype = crate::syntax::definers::DefinerCollecting::DynamicArray(
+                        crate::syntax::definers::DynamicArrayType {
+                            rtype: Box::new(crate::syntax::definers::DefinerCollecting::Dynamic),
+                            ..Default::default()
+                        },
+                    );
+                } else if !matches!(&itered_data.rtype, crate::syntax::definers::DefinerCollecting::Generic(x) if x.rtype == "string")
+<<<<<<< HEAD
+=======
+=======
+                    itered_data.r#type = crate::syntax::definers::DefinerCollecting::DynamicArray(
+                        crate::syntax::definers::DynamicArrayType {
+                            r#type: Box::new(crate::syntax::definers::DefinerCollecting::Dynamic),
+                            ..Default::default()
+                        },
+                    );
+                } else if !matches!(&itered_data.r#type, crate::syntax::definers::DefinerCollecting::Generic(x) if x.r#type == "string")
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+>>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
+                {
+                    errors.push(error::Error {
+                        debug_message: "./parser/src/processors/type_processors/null.rs:27"
+                            .to_string(),
+                        title: error::errorList::error_s3.title.clone(),
+                        code: error::errorList::error_s3.code,
+                        message: error::errorList::error_s3.message.clone(),
+                        builded_message: error::Error::build(
+                            error::errorList::error_s3.message.clone(),
+                            vec![
+                                error::ErrorBuildField {
+                                    key: "token1".to_string(),
+<<<<<<< HEAD
+                                    value: itered_data.rtype.raw_name(),
+=======
+<<<<<<< HEAD
+                                    value: itered_data.rtype.raw_name(),
+=======
+                                    value: itered_data.r#type.raw_name(),
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+>>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
+                                },
+                                error::ErrorBuildField {
+                                    key: "token2".to_string(),
+                                    value: "string".to_string(),
+                                },
+                            ],
+                        ),
+                        pos: defs::Cursor {
+                            range_start: pos,
+                            range_end: pos.clone().skipChar(1),
+                        },
+                    });
+=======
                     itered_data.rtype = crate::syntax::definers::DefinerCollecting::GrowableArray(
                         crate::syntax::definers::GrowableArrayType {
                             rtype: Box::new(crate::syntax::definers::DefinerCollecting::Dynamic),
                             ..Default::default()
                         },
                     );
+>>>>>>> FFI
                 }
                 itered_data.data.value = types::Types::Array(types::array_type::ArrayType {
                     layer_size: 0,

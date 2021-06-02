@@ -14,12 +14,25 @@ pub mod refference_type;
 pub mod string_type;
 pub mod variable_type;
 
+<<<<<<< HEAD
 use enum_as_inner::EnumAsInner;
 use serde::Serialize;
-use alloc::string::String;
-use alloc::format;
-use ellie_core::utils;
+use enum_as_inner::EnumAsInner;
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+=======
+use alloc::format;
+use alloc::string::String;
+use ellie_core::utils;
+use enum_as_inner::EnumAsInner;
+use serde::Serialize;
+>>>>>>> FFI
+
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+>>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
 #[derive(PartialEq, Debug, Clone, Serialize, EnumAsInner)]
 pub enum Types {
     Number(number_type::NumberType),

@@ -14,7 +14,6 @@ pub mod refference_type;
 pub mod string_type;
 pub mod variable_type;
 
-
 #[repr(C)]
 pub enum Types {
     Number(number_type::NumberType),

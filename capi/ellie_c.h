@@ -24,11 +24,11 @@ SOFTWARE.
 #include <cstdarg>
 #include <cstdint>
 #include <cstdlib>
-#include <ostream>
 #include <new>
-#include <stdint.h>
-#include <stddef.h>
+#include <ostream>
 #include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
 
 enum class ArithmeticOperators {
   ARITHMETIC_OPERATORS_ADDITION,
@@ -79,8 +79,7 @@ enum class NumberTypes {
   NUMBER_TYPES_F64,
 };
 
-template<typename T = void>
-struct Box;
+template <typename T = void> struct Box;
 
 struct Types;
 

@@ -1,5 +1,5 @@
-use crate::syntax::types;
 use crate::defs;
+use crate::syntax::types;
 use libc::c_char;
 
 #[repr(C)]

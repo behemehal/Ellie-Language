@@ -5,6 +5,18 @@ use crate::syntax::{types, variable};
 use ellie_core::{defs, error, utils};
 
 use alloc::string::{String, ToString};
+<<<<<<< HEAD
+<<<<<<< HEAD
+use alloc::vec;
+=======
+<<<<<<< HEAD
+use alloc::vec;
+=======
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+>>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
+use alloc::vec::Vec;
+=======
+>>>>>>> FFI
 use alloc::vec;
 use alloc::vec::Vec;
 
@@ -15,7 +27,19 @@ pub fn collect_arrow(
     next_char: String,
     last_char: String,
     pos: defs::CursorPosition,
+<<<<<<< HEAD
+<<<<<<< HEAD
     options: defs::ParserOptions,
+=======
+<<<<<<< HEAD
+    options: defs::ParserOptions,
+=======
+    options: defs::ParserOptions
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+>>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
+=======
+    options: defs::ParserOptions,
+>>>>>>> FFI
 ) {
     if let types::Types::ArrowFunction(ref mut functiondata) = itered_data.data.value {
         if !functiondata.parameter_wrote {
@@ -132,7 +156,19 @@ pub fn collect_arrow(
                         pos,
                         next_char,
                         last_char,
+<<<<<<< HEAD
+<<<<<<< HEAD
                         options,
+=======
+<<<<<<< HEAD
+                        options,
+=======
+                        options
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+>>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
+=======
+                        options,
+>>>>>>> FFI
                     );
                 }
             }
@@ -144,8 +180,20 @@ pub fn collect_arrow(
                 functiondata.pointer_typed = true;
             } else if letter_char != " " {
                 errors.push(error::Error {
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
                     debug_message: "./parser/src/processors/type_processors/arrow_function.rs:143"
                         .to_string(),
+=======
+                    debug_message: "./parser/src/processors/type_processors/arrow_function.rs:143" .to_string(),
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+=======
+                    debug_message: "./parser/src/processors/type_processors/arrow_function.rs:143"
+                        .to_string(),
+>>>>>>> FFI
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -173,7 +221,19 @@ pub fn collect_arrow(
                     pos,
                     next_char,
                     last_char,
+<<<<<<< HEAD
+<<<<<<< HEAD
                     options,
+=======
+<<<<<<< HEAD
+                    options,
+=======
+                    options
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+>>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
+=======
+                    options,
+>>>>>>> FFI
                 );
             }
         } else if letter_char == "}" && functiondata.brace_count == 0 {
@@ -185,8 +245,25 @@ pub fn collect_arrow(
                 functiondata.brace_count -= 1;
             }
             functiondata.inside_code_string += letter_char;
+<<<<<<< HEAD
+<<<<<<< HEAD
             let mut child_parser =
                 parser::Parser::new(functiondata.inside_code_string.clone(), options);
+=======
+<<<<<<< HEAD
+            let mut child_parser =
+                parser::Parser::new(functiondata.inside_code_string.clone(), options);
+=======
+            let mut child_parser = parser::Parser::new(
+                functiondata.inside_code_string.clone(),
+                options
+            );
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+>>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
+=======
+            let mut child_parser =
+                parser::Parser::new(functiondata.inside_code_string.clone(), options);
+>>>>>>> FFI
             child_parser.pos = pos;
             let mapped = child_parser.map();
             for i in mapped.syntax_errors {

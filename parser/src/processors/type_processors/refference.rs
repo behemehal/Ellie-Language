@@ -12,7 +12,19 @@ pub fn collect_refference(
     _next_char: String,
     last_char: String,
     pos: defs::CursorPosition,
+<<<<<<< HEAD
+<<<<<<< HEAD
     _options: defs::ParserOptions,
+=======
+<<<<<<< HEAD
+    _options: defs::ParserOptions,
+=======
+    _options: defs::ParserOptions
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+>>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
+=======
+    _options: defs::ParserOptions,
+>>>>>>> FFI
 ) {
     if let types::Types::Refference(ref mut data) = itered_data.data.value {
         if letter_char == "." {
@@ -55,8 +67,20 @@ pub fn collect_refference(
                     //});
                 } else {
                     errors.push(error::Error {
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
                         debug_message: "./parser/src/processors/type_processors/refference.rs:56"
                             .to_string(),
+=======
+                        debug_message: "./parser/src/processors/type_processors/refference.rs:56" .to_string(),
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+=======
+                        debug_message: "./parser/src/processors/type_processors/refference.rs:56"
+                            .to_string(),
+>>>>>>> FFI
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -82,9 +106,27 @@ pub fn collect_refference(
                             //It's a f32 or f64
 
                             if itered_data.data.dynamic {
+<<<<<<< HEAD
+<<<<<<< HEAD
                                 itered_data.rtype =
                                     definers::DefinerCollecting::Generic(definers::GenericType {
                                         rtype: "f32".to_string(),
+=======
+<<<<<<< HEAD
+                                itered_data.rtype =
+                                    definers::DefinerCollecting::Generic(definers::GenericType {
+                                        rtype: "f32".to_string(),
+=======
+                                itered_data.r#type =
+                                    definers::DefinerCollecting::Generic(definers::GenericType {
+                                        r#type: "f32".to_string(),
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+>>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
+=======
+                                itered_data.rtype =
+                                    definers::DefinerCollecting::Generic(definers::GenericType {
+                                        rtype: "f32".to_string(),
+>>>>>>> FFI
                                     });
                                 //  itered_data.rtype.raw_name()
                             }
@@ -97,7 +139,9 @@ pub fn collect_refference(
                                     title: error::errorList::error_s18.title.clone(),
                                     code: error::errorList::error_s18.code,
                                     message: error::errorList::error_s18.message.clone(),
-                                    builded_message: error::BuildedError::build_from_string(error::errorList::error_s18.message.clone()),
+                                    builded_message: error::BuildedError::build_from_string(
+                                        error::errorList::error_s18.message.clone(),
+                                    ),
                                     pos: defs::Cursor {
                                         range_start: pos,
                                         range_end: pos.clone().skipChar(1),
@@ -113,7 +157,9 @@ pub fn collect_refference(
                                     title: error::errorList::error_s18.title.clone(),
                                     code: error::errorList::error_s18.code,
                                     message: error::errorList::error_s18.message.clone(),
-                                    builded_message: error::BuildedError::build_from_string(error::errorList::error_s18.message.clone()),
+                                    builded_message: error::BuildedError::build_from_string(
+                                        error::errorList::error_s18.message.clone(),
+                                    ),
                                     pos: defs::Cursor {
                                         range_start: pos,
                                         range_end: pos.clone().skipChar(1),
@@ -264,7 +310,9 @@ pub fn collect_refference(
                                 title: error::errorList::error_s18.title.clone(),
                                 code: error::errorList::error_s18.code,
                                 message: error::errorList::error_s18.message.clone(),
-                                builded_message: error::BuildedError::build_from_string(error::errorList::error_s18.message.clone()),
+                                builded_message: error::BuildedError::build_from_string(
+                                    error::errorList::error_s18.message.clone(),
+                                ),
                                 pos: defs::Cursor {
                                     range_start: pos,
                                     range_end: pos.clone().skipChar(1),

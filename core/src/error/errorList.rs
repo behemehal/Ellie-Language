@@ -1,6 +1,6 @@
 #![allow(warnings)]
-use std::ops::{Deref, DerefMut};
 use alloc::string::ToString;
+use std::ops::{Deref, DerefMut};
 
 lazy_static! {
     #[derive(PartialEq, Debug, Clone, Copy)]

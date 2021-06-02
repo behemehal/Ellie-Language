@@ -14,7 +14,9 @@ fn main() {
         println!("\t--version                    || -v   : Show Version");
         println!("\t--help                       || -h   : Show Help");
         println!("\t--debug                      || -d   : Show debug headers");
-        println!("\t--experimental-error-listing || -xe  : Use experimental error listing in terminal");
+        println!(
+            "\t--experimental-error-listing || -xe  : Use experimental error listing in terminal"
+        );
         println!("\t--to-raw                     || -tr  : Compiles ellie to ellie raw");
         println!("\t--raw-compiler               || -rw  : Compiles as ellie raw");
         println!("\t--show-errors                || -se  : Show syntax errors while parsing");
@@ -61,7 +63,9 @@ fn main() {
                         );
                         let mapped = parser.map();
                         if !mapped.syntax_errors.is_empty() {
-                            if env::args().any(|x| x == "-xe" || x == "--experimental-error-listing") {
+                            if env::args()
+                                .any(|x| x == "-xe" || x == "--experimental-error-listing")
+                            {
                                 for error in &ellie_core::utils::zip_errors(mapped.syntax_errors) {
                                     println!(
                                         "{}{}Error[{:#04x}]{} - {}{}{}: {}",
