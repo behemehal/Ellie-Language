@@ -34,7 +34,15 @@ fn main() {
             next_char.to_string(),
             last_char.to_string(),
             pos,
+<<<<<<< HEAD
             ellie_core::defs::ParserOptions::default(),
+=======
+<<<<<<< HEAD
+            ellie_core::defs::ParserOptions::default(),
+=======
+            ellie_core::defs::ParserOptions::default()
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+>>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
         );
 
         for error in itered.errors {

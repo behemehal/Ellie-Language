@@ -14,7 +14,15 @@ pub fn collect_operator(
     next_char: String,
     last_char: String,
     pos: defs::CursorPosition,
+<<<<<<< HEAD
     options: defs::ParserOptions,
+=======
+<<<<<<< HEAD
+    options: defs::ParserOptions,
+=======
+    options: defs::ParserOptions
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+>>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
 ) {
     if let types::Types::Operator(ref mut data) = itered_data.data.value {
         if !data.operator_collected {
@@ -63,7 +71,15 @@ pub fn collect_operator(
                 next_char,
                 last_char,
                 defs::CursorPosition(0, 0),
+<<<<<<< HEAD
                 options,
+=======
+<<<<<<< HEAD
+                options,
+=======
+                options
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+>>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
             );
             if itered_child.errors.is_empty() {
                 for returned_error in itered_child.errors {

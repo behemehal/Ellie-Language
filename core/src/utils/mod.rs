@@ -19,7 +19,17 @@ pub fn is_opearators(value: &str) -> bool {
     operators.contains(&value)
 }
 
+<<<<<<< HEAD
 pub fn reliable_name_range(range: ReliableNameRanges, value: String) -> ReliableNameRangeResponse {
+<<<<<<< HEAD
+=======
+=======
+pub fn reliable_name_range(
+    range: ReliableNameRanges,
+    value: String,
+) -> ReliableNameRangeResponse {
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+>>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
     match range {
         ReliableNameRanges::VariableName => {
             let variable_range = "QWERTYUIOPASDFGHJKLIZXCVBNMqwertyuıopasdfghjklizxcvbnm0123456789";

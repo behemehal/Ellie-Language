@@ -13,14 +13,30 @@ cloak(i8, i32)        //a cloak that contains i8 as first parameter i32 as secon
 
 */
 
+<<<<<<< HEAD
 pub fn collect_definer(
+=======
+<<<<<<< HEAD
+pub fn collect_definer(
+=======
+pub fn collect(
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+>>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
     type_data: &mut DefinerCollecting,
     errors: &mut Vec<error::Error>,
     letter_char: String,
     pos: defs::CursorPosition,
     next_char: String,
     last_char: String,
+<<<<<<< HEAD
     options: defs::ParserOptions,
+=======
+<<<<<<< HEAD
+    options: defs::ParserOptions,
+=======
+    options: defs::ParserOptions
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+>>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
 ) {
     match type_data {
         DefinerCollecting::DynamicArray(ref mut data) => {
@@ -36,7 +52,15 @@ pub fn collect_definer(
                     pos,
                     next_char,
                     last_char,
+<<<<<<< HEAD
                     options,
+=======
+<<<<<<< HEAD
+                    options,
+=======
+                    options
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+>>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
                 )
             }
         }
@@ -54,16 +78,36 @@ pub fn collect_definer(
                         pos,
                         next_char,
                         last_char,
+<<<<<<< HEAD
                         options,
+=======
+<<<<<<< HEAD
+                        options,
+=======
+                        options
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+>>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
                     )
                 }
             } else {
                 let mut emulated_collector_data = syntax::variable::VariableCollector {
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
                     rtype: syntax::definers::DefinerCollecting::Generic(
                         syntax::definers::GenericType {
                             rtype: "usize".to_string(),
                         },
                     ),
+<<<<<<< HEAD
+=======
+=======
+                    r#type: syntax::definers::DefinerCollecting::Generic(syntax::definers::GenericType {
+                        r#type: "usize".to_string()
+                    }),
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+>>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
                     data: syntax::variable::Variable {
 
                         value: data.len.clone(),
@@ -78,7 +122,15 @@ pub fn collect_definer(
                     next_char,
                     last_char,
                     pos,
+<<<<<<< HEAD
                     options,
+=======
+<<<<<<< HEAD
+                    options,
+=======
+                    options
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+>>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
                 );
                 for i in processed_data.errors {
                     errors.push(i)
@@ -90,6 +142,7 @@ pub fn collect_definer(
             }
         }
         DefinerCollecting::Generic(data) => {
+<<<<<<< HEAD
             if letter_char == "(" && data.rtype.trim() == "fn" {
                 *type_data = DefinerCollecting::Function(syntax::definers::FunctionType {
                     bracket_inserted: true,
@@ -100,9 +153,41 @@ pub fn collect_definer(
                 });
             } else if letter_char == "(" && data.rtype == "array" {
                 *type_data = DefinerCollecting::Array(syntax::definers::ArrayType {
+=======
+<<<<<<< HEAD
+            if letter_char == "(" && data.rtype.trim() == "fn" {
+                *type_data = DefinerCollecting::Function(syntax::definers::FunctionType {
+                    bracket_inserted: true,
+                    params: vec![DefinerCollecting::Generic(
+                        syntax::definers::GenericType::default(),
+                    )],
+                    ..Default::default()
+                });
+            } else if letter_char == "(" && data.rtype == "array" {
+=======
+            if letter_char == "(" && data.r#type.trim() == "fn" {
+                *type_data = DefinerCollecting::Function(syntax::definers::FunctionType {
+                    bracket_inserted: true,
+                    params: vec![DefinerCollecting::Generic(syntax::definers::GenericType::default())],
+                    ..Default::default()
+                });
+            } else if letter_char == "(" && data.r#type == "array" {
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+                *type_data = DefinerCollecting::Array(syntax::definers::ArrayType {
                     bracket_inserted: true,
                     ..Default::default()
                 });
+<<<<<<< HEAD
+            } else if letter_char == "(" && data.rtype == "cloak" {
+                *type_data = DefinerCollecting::Cloak(syntax::definers::CloakType {
+>>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
+                    bracket_inserted: true,
+                    rtype: vec![DefinerCollecting::Generic(
+                        syntax::definers::GenericType::default(),
+                    )],
+                    ..Default::default()
+                });
+<<<<<<< HEAD
             } else if letter_char == "(" && data.rtype == "cloak" {
                 *type_data = DefinerCollecting::Cloak(syntax::definers::CloakType {
                     bracket_inserted: true,
@@ -112,6 +197,18 @@ pub fn collect_definer(
                     ..Default::default()
                 });
             } else if letter_char == "(" && data.rtype == "dynamicArray" {
+=======
+            } else if letter_char == "(" && data.rtype == "dynamicArray" {
+=======
+            } else if letter_char == "(" && data.r#type == "cloak" {
+                *type_data = DefinerCollecting::Cloak(syntax::definers::CloakType {
+                    bracket_inserted: true,
+                    r#type: vec![DefinerCollecting::Generic(syntax::definers::GenericType::default())],
+                    ..Default::default()
+                });
+            } else if letter_char == "(" && data.r#type == "dynamicArray" {
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+>>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
                 *type_data = DefinerCollecting::DynamicArray(syntax::definers::DynamicArrayType {
                     bracket_inserted: true,
                     ..Default::default()
@@ -168,6 +265,7 @@ pub fn collect_definer(
             if !data.parameter_collected {
                 if letter_char == "(" && !data.bracket_inserted {
                     data.bracket_inserted = true;
+<<<<<<< HEAD
                     data.params.push(DefinerCollecting::Generic(
                         syntax::definers::GenericType::default(),
                     ));
@@ -177,6 +275,27 @@ pub fn collect_definer(
                     data.params.push(DefinerCollecting::Generic(
                         syntax::definers::GenericType::default(),
                     ));
+=======
+<<<<<<< HEAD
+                    data.params.push(DefinerCollecting::Generic(
+                        syntax::definers::GenericType::default(),
+                    ));
+                } else if letter_char == ")" && data.bracket_inserted {
+                    data.parameter_collected = true;
+                } else if letter_char == "," && !data.params.is_empty() && !data.at_comma {
+                    data.params.push(DefinerCollecting::Generic(
+                        syntax::definers::GenericType::default(),
+                    ));
+=======
+                    data.params
+                        .push(DefinerCollecting::Generic(syntax::definers::GenericType::default()));
+                } else if letter_char == ")" && data.bracket_inserted {
+                    data.parameter_collected = true;
+                } else if letter_char == "," && !data.params.is_empty() && !data.at_comma {
+                    data.params
+                        .push(DefinerCollecting::Generic(syntax::definers::GenericType::default()));
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+>>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
                     data.at_comma = true;
                 } else if data.params.is_empty() && data.bracket_inserted {
                     //This should have been filled If everything were right
@@ -208,7 +327,15 @@ pub fn collect_definer(
                         pos,
                         next_char,
                         last_char,
+<<<<<<< HEAD
                         options,
+=======
+<<<<<<< HEAD
+                        options,
+=======
+                        options
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+>>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
                     );
 
                     if data.params[if len == 0 { 0 } else { len - 1 }].is_definer_complete() {
@@ -247,13 +374,29 @@ pub fn collect_definer(
                         pos,
                         next_char,
                         last_char,
+<<<<<<< HEAD
                         options,
+=======
+<<<<<<< HEAD
+                        options,
+=======
+                        options
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+>>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
                     )
                 }
             }
         }
         DefinerCollecting::Cloak(data) => {
+<<<<<<< HEAD
             let length_of_childs = data.rtype.len();
+=======
+<<<<<<< HEAD
+            let length_of_childs = data.rtype.len();
+=======
+            let length_of_childs = data.r#type.len();
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+>>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
             let is_complete = if length_of_childs == 0 {
                 false
             } else {
@@ -266,9 +409,19 @@ pub fn collect_definer(
             };
 
             if letter_char == "," && is_complete {
+<<<<<<< HEAD
                 data.rtype.push(DefinerCollecting::Generic(
                     syntax::definers::GenericType::default(),
                 ));
+=======
+<<<<<<< HEAD
+                data.rtype.push(DefinerCollecting::Generic(
+                    syntax::definers::GenericType::default(),
+                ));
+=======
+                data.r#type.push(DefinerCollecting::Generic(syntax::definers::GenericType::default()));
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+>>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
             } else if letter_char == ")" && is_complete {
                 data.complete = true;
             } else {
@@ -283,10 +436,23 @@ pub fn collect_definer(
                     pos,
                     next_char,
                     last_char,
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
                     options,
                 )
             }
         }
+<<<<<<< HEAD
+=======
+=======
+                    options
+                )
+            }
+        },
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+>>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
         DefinerCollecting::Dynamic => {}
     }
 }

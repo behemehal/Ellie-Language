@@ -14,7 +14,15 @@ pub fn collect_array(
     next_char: String,
     last_char: String,
     pos: defs::CursorPosition,
+<<<<<<< HEAD
     options: defs::ParserOptions,
+=======
+<<<<<<< HEAD
+    options: defs::ParserOptions,
+=======
+    options: defs::ParserOptions
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+>>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
 ) {
     if let types::Types::Array(ref mut data) = itered_data.data.value {
         /*
@@ -217,7 +225,15 @@ pub fn collect_array(
             }
 
             let mut will_be_itered: variable::VariableCollector;
+<<<<<<< HEAD
             if let definers::DefinerCollecting::Array(array_data) = itered_data.rtype.clone() {
+=======
+<<<<<<< HEAD
+            if let definers::DefinerCollecting::Array(array_data) = itered_data.rtype.clone() {
+=======
+            if let definers::DefinerCollecting::Array(array_data) = itered_data.r#type.clone() {
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+>>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
                 if data.collective.len()
                     > *array_data
                         .len
@@ -260,6 +276,67 @@ pub fn collect_array(
                         },
                     });
                 }
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+
+                will_be_itered = if data.collective.is_empty() {
+                    variable::VariableCollector {
+                        r#type: *array_data.r#type.clone(),
+                        ..variable::VariableCollector::default()
+                    }
+                } else {
+                    variable::VariableCollector {
+                        r#type: *array_data.r#type.clone(),
+                        data: variable::Variable {
+                            value: *data.collective[data.collective.len() - 1].value.clone(),
+                            ..Default::default()
+                        },
+                        ..variable::VariableCollector::default()
+                    }
+                };
+            } else if let definers::DefinerCollecting::DynamicArray(array_data) =
+                itered_data.r#type.clone()
+            {
+                will_be_itered = if data.collective.is_empty() {
+                    variable::VariableCollector {
+                        r#type: *array_data.r#type.clone(),
+                        ..variable::VariableCollector::default()
+                    }
+                } else {
+                    variable::VariableCollector {
+                        r#type: *array_data.r#type.clone(),
+                        data: variable::Variable {
+                            value: *data.collective[data.collective.len() - 1].value.clone(),
+                            ..Default::default()
+                        },
+                        ..variable::VariableCollector::default()
+                    }
+                };
+            } else {
+                will_be_itered = if data.collective.is_empty() {
+                    variable::VariableCollector {
+                        ..variable::VariableCollector::default()
+                    }
+                } else {
+                    variable::VariableCollector {
+                        data: variable::Variable {
+                            value: *data.collective[data.collective.len() - 1].value.clone(),
+                            ..Default::default()
+                        },
+                        ..variable::VariableCollector::default()
+                    }
+                };
+                #[cfg(feature = "std")]
+                std::println!(
+                    "{}[ParserError:0x1]{}: This shouldn't have happened",
+                    utils::terminal_colors::get_color(utils::terminal_colors::Colors::Red),
+                    utils::terminal_colors::get_color(utils::terminal_colors::Colors::Reset),
+                );
+            }
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+>>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
 
                 will_be_itered = if data.collective.is_empty() {
                     variable::VariableCollector {
@@ -322,7 +399,15 @@ pub fn collect_array(
                 next_char,
                 last_char,
                 defs::CursorPosition(0, 0),
+<<<<<<< HEAD
                 options,
+=======
+<<<<<<< HEAD
+                options,
+=======
+                options
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+>>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
             ));
 
             if let types::Types::Array(ref adata) = itered_array_vector.itered_data.data.value {

@@ -16,7 +16,15 @@ pub fn collect_string(
 ) {
     if let types::Types::String(ref mut data) = itered_data.data.value {
         if itered_data.data.dynamic {
+<<<<<<< HEAD
             itered_data.rtype = crate::syntax::definers::DefinerCollecting::Generic(
+=======
+<<<<<<< HEAD
+            itered_data.rtype = crate::syntax::definers::DefinerCollecting::Generic(
+=======
+            itered_data.r#type = crate::syntax::definers::DefinerCollecting::Generic(
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+>>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
                 crate::syntax::definers::GenericType {
                     rtype: "string".to_string(),
                 },
@@ -26,8 +34,15 @@ pub fn collect_string(
         if letter_char == "\"" && last_char != "\\" {
             if data.complete {
                 errors.push(error::Error {
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
                     debug_message: "./parser/src/processors/type_processors/string.rs:28"
                         .to_string(),
+=======
+                    debug_message: "./parser/src/processors/type_processors/string.rs:28" .to_string(),
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),

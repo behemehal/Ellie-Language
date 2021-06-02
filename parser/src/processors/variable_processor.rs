@@ -19,7 +19,15 @@ pub fn collect_variable_value(
     letter_char: &str,
     next_char: String,
     last_char: String,
+<<<<<<< HEAD
     options: defs::ParserOptions,
+=======
+<<<<<<< HEAD
+    options: defs::ParserOptions,
+=======
+    options: defs::ParserOptions
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+>>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
 ) {
     if let parser::Collecting::Variable(ref mut variabledata) = parser.current {
         if !variabledata.named {
@@ -212,7 +220,15 @@ pub fn collect_variable_value(
                     parser.pos,
                     next_char,
                     last_char,
+<<<<<<< HEAD
                     options,
+=======
+<<<<<<< HEAD
+                    options,
+=======
+                    options
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+>>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
                 );
             }
         } else if letter_char == ";" {
@@ -249,7 +265,15 @@ pub fn collect_variable_value(
                 next_char,
                 last_char,
                 parser.pos,
+<<<<<<< HEAD
                 options,
+=======
+<<<<<<< HEAD
+                options,
+=======
+                options
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+>>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
             );
             for i in collected.errors {
                 errors.push(i)

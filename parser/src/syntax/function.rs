@@ -10,7 +10,15 @@ use alloc::vec::Vec;
 #[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct FunctionParameter {
     pub name: String,
+<<<<<<< HEAD
     pub rtype: definers::DefinerCollecting,
+=======
+<<<<<<< HEAD
+    pub rtype: definers::DefinerCollecting,
+=======
+    pub r#type: definers::DefinerCollecting,
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+>>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
 }
 
 

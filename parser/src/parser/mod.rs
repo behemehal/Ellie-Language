@@ -49,7 +49,15 @@ impl Parser {
     }
     pub fn map(mut self) -> Parsed {
         let mut errors: Vec<error::Error> = Vec::new();
+<<<<<<< HEAD
         let parser_options = self.options.clone();
+=======
+<<<<<<< HEAD
+        let parser_options = self.options.clone();
+=======
+        let parser_options = self.options.clone(); 
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+>>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
 
         for (index, char) in self.code.clone().chars().enumerate() {
             let letter_char = &char.to_string();
@@ -77,6 +85,10 @@ impl Parser {
                 }
 
                 match self.current {
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
                     Collecting::Variable(_) => {
                         processors::variable_processor::collect_variable_value(
                             &mut self,
@@ -88,6 +100,20 @@ impl Parser {
                         )
                     }
                     Collecting::Condition(_) => processors::condition_processor::collect_condition(
+<<<<<<< HEAD
+=======
+=======
+                    Collecting::Variable(_) => processors::variable_processor::collect(
+                        &mut self,
+                        &mut errors,
+                        letter_char,
+                        next_char.clone(),
+                        last_char.clone(),
+                        parser_options.clone(),
+                    ),
+                    Collecting::Condition(_) => processors::condition_processor::collect(
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+>>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
                         &mut self,
                         &mut errors,
                         letter_char,

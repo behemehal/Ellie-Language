@@ -13,7 +13,15 @@ pub fn collect_condition(
     letter_char: &str,
     next_char: String,
     last_char: String,
+<<<<<<< HEAD
     options: defs::ParserOptions,
+=======
+<<<<<<< HEAD
+    options: defs::ParserOptions,
+=======
+    options: defs::ParserOptions
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+>>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
 ) {
     if let parser::Collecting::Condition(ref mut data) = parser.current {
         if !data.initialized {
@@ -49,7 +57,15 @@ pub fn collect_condition(
                     next_char,
                     last_char,
                     parser.pos,
+<<<<<<< HEAD
                     options,
+=======
+<<<<<<< HEAD
+                    options,
+=======
+                    options
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+>>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
                 );
                 for i in collected.errors {
                     errors.push(i)
@@ -64,7 +80,18 @@ pub fn collect_condition(
                     data.inside_object_count -= 1;
                 }
             } else {
+<<<<<<< HEAD
                 let child_parser = parser::Parser::new(data.inside_code_string.clone(), options);
+=======
+<<<<<<< HEAD
+                let child_parser = parser::Parser::new(data.inside_code_string.clone(), options);
+=======
+                let child_parser = parser::Parser::new(
+                    data.inside_code_string.clone(),
+                    options
+                );
+>>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+>>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
                 parser.pos = child_parser.pos;
                 let mapped = child_parser.map();
                 for i in mapped.syntax_errors {
