@@ -9,6 +9,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-
       - name: Deploy NodeJS app
         run: node refactor.js
+      - name: Commit files
+        run: |
+          git config --local user.name ${{ secrets.COMMIT_ACCOUNT_NAME }}
+          git add .
+          git commit -m "Auto refactoring code"
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          force: true
