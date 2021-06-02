@@ -1,3 +1,6 @@
+use alloc::string::String;
+use alloc::format;
+
 pub enum Colors {
     Black,
     Red,

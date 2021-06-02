@@ -1,0 +1,45 @@
+#s: main
+V:
+    0 02
+
+F:
+
+VC:
+    0 test
+
+VF:
+    1 testFunction
+#e: main
+
+/*
+
+ELLIE RAW File
+
+
+Setting parameters
+
+    0 02
+    
+    ^ ^------------  Parameter Name
+   parameter
+      Type
+
+
+TYPES:
+
+i8
+i16
+i32
+i64
+i128
+isize
+u8
+u16
+u32
+u64
+u128
+usize
+f32
+f64
+
+*/

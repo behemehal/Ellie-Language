@@ -1,3 +1,4 @@
+use crate::alloc::format;
 use crate::alloc::string::{String, ToString};
 use crate::alloc::vec;
 use crate::alloc::vec::Vec;
@@ -23,7 +24,7 @@ pub fn collect_definer(
     options: defs::ParserOptions,
 ) {
     match type_data {
-        DefinerCollecting::DynamicArray(ref mut data) => {
+        DefinerCollecting::GrowableArray(ref mut data) => {
             if letter_char == "(" && !data.bracket_inserted {
                 data.bracket_inserted = true;
             } else if letter_char == ")" && data.rtype.is_definer_complete() {
@@ -57,6 +58,8 @@ pub fn collect_definer(
                         options,
                     )
                 }
+            } else if letter_char == ")" && data.len.is_type_complete() {
+                data.complete = true;
             } else {
                 let mut emulated_collector_data = syntax::variable::VariableCollector {
                     rtype: syntax::definers::DefinerCollecting::Generic(
@@ -82,9 +85,11 @@ pub fn collect_definer(
                 for i in processed_data.errors {
                     errors.push(i)
                 }
-                if emulated_collector_data.data.value.is_type_complete() {
+
+                if emulated_collector_data.data.value.is_type_complete()  {
                     data.complete = true;
                 }
+
                 data.len = emulated_collector_data.data.value;
             }
         }
@@ -110,11 +115,12 @@ pub fn collect_definer(
                     )],
                     ..Default::default()
                 });
-            } else if letter_char == "(" && data.rtype == "dynamicArray" {
-                *type_data = DefinerCollecting::DynamicArray(syntax::definers::DynamicArrayType {
-                    bracket_inserted: true,
-                    ..Default::default()
-                });
+            } else if letter_char == "(" && data.rtype == "growableArray" {
+                *type_data =
+                    DefinerCollecting::GrowableArray(syntax::definers::GrowableArrayType {
+                        bracket_inserted: true,
+                        ..Default::default()
+                    });
             } else if letter_char != " " && last_char == " " && data.rtype.trim() != "" {
                 errors.push(error::Error {
                     debug_message: "./parser/src/processors/definer_processor.rs:103".to_string(),

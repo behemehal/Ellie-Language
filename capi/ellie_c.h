@@ -21,231 +21,271 @@ SOFTWARE.
 #ifndef _ELLIE_H
 #define _ELLIE_H
 
-#include <stdarg.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdlib.h>
+#include <cstdarg>
+#include <cstdint>
+#include <cstdlib>
+#include <ostream>
+#include <new>
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
 
-typedef enum ArithmeticOperators {
-  Addition,
-  Subtraction,
-  Multiplication,
-  Exponentiation,
-  Division,
-  Modulus,
-  Null,
-} ArithmeticOperators;
+enum class ArithmeticOperators {
+  ARITHMETIC_OPERATORS_ADDITION,
+  ARITHMETIC_OPERATORS_SUBTRACTION,
+  ARITHMETIC_OPERATORS_MULTIPLICATION,
+  ARITHMETIC_OPERATORS_EXPONENTIATION,
+  ARITHMETIC_OPERATORS_DIVISION,
+  ARITHMETIC_OPERATORS_MODULUS,
+  ARITHMETIC_OPERATORS_NULL,
+};
 
-typedef enum ComparisonOperators {
-  Equal,
-  NotEqual,
-  GreaterThan,
-  LessThan,
-  GreaterThanOrEqual,
-  LessThanOrEqual,
-  Null,
-} ComparisonOperators;
+enum class ComparisonOperators {
+  COMPARISON_OPERATORS_EQUAL,
+  COMPARISON_OPERATORS_NOT_EQUAL,
+  COMPARISON_OPERATORS_GREATER_THAN,
+  COMPARISON_OPERATORS_LESS_THAN,
+  COMPARISON_OPERATORS_GREATER_THAN_OR_EQUAL,
+  COMPARISON_OPERATORS_LESS_THAN_OR_EQUAL,
+  COMPARISON_OPERATORS_NULL,
+};
 
-typedef enum ConditionType {
-  If,
-  ElseIf,
-  Else,
-} ConditionType;
+enum class ConditionType {
+  CONDITION_TYPE_IF,
+  CONDITION_TYPE_ELSE_IF,
+  CONDITION_TYPE_ELSE,
+};
 
-typedef enum LogicalOpearators {
-  And,
-  Or,
-  Null,
-} LogicalOpearators;
+enum class LogicalOpearators {
+  LOGICAL_OPEARATORS_AND,
+  LOGICAL_OPEARATORS_OR,
+  LOGICAL_OPEARATORS_NULL,
+};
 
-typedef enum NumberTypes {
-  I8,
-  I16,
-  I32,
-  I64,
-  I128,
-  ISize,
-  U8,
-  U16,
-  U32,
-  U64,
-  U128,
-  Usize,
-  F32,
-  F64,
-} NumberTypes;
+enum class NumberTypes {
+  NUMBER_TYPES_I8,
+  NUMBER_TYPES_I16,
+  NUMBER_TYPES_I32,
+  NUMBER_TYPES_I64,
+  NUMBER_TYPES_I128,
+  NUMBER_TYPES_I_SIZE,
+  NUMBER_TYPES_U8,
+  NUMBER_TYPES_U16,
+  NUMBER_TYPES_U32,
+  NUMBER_TYPES_U64,
+  NUMBER_TYPES_U128,
+  NUMBER_TYPES_USIZE,
+  NUMBER_TYPES_F32,
+  NUMBER_TYPES_F64,
+};
 
-typedef struct String String;
+template<typename T = void>
+struct Box;
 
-typedef enum NumberSize_Tag {
-  U8,
-  U16,
-  U32,
-  U64,
-  U128,
-  Usize,
-  I8,
-  I16,
-  I32,
-  I64,
-  I128,
-  Isize,
-  F32,
-  F64,
-} NumberSize_Tag;
+struct Types;
 
-typedef struct NumberSize {
-  NumberSize_Tag tag;
-  union {
-    struct {
-      uint8_t u8;
-    };
-    struct {
-      uint16_t u16;
-    };
-    struct {
-      uint32_t u32;
-    };
-    struct {
-      uint64_t u64;
-    };
-    struct {
-      u128 u128;
-    };
-    struct {
-      uintptr_t usize;
-    };
-    struct {
-      int8_t i8;
-    };
-    struct {
-      int16_t i16;
-    };
-    struct {
-      int32_t i32;
-    };
-    struct {
-      int64_t i64;
-    };
-    struct {
-      i128 i128;
-    };
-    struct {
-      intptr_t isize;
-    };
-    struct {
-      float f32;
-    };
-    struct {
-      double f64;
-    };
+struct NumberSize {
+  enum class Tag {
+    NUMBER_SIZE_U8,
+    NUMBER_SIZE_U16,
+    NUMBER_SIZE_U32,
+    NUMBER_SIZE_U64,
+    NUMBER_SIZE_U128,
+    NUMBER_SIZE_USIZE,
+    NUMBER_SIZE_I8,
+    NUMBER_SIZE_I16,
+    NUMBER_SIZE_I32,
+    NUMBER_SIZE_I64,
+    NUMBER_SIZE_I128,
+    NUMBER_SIZE_ISIZE,
+    NUMBER_SIZE_F32,
+    NUMBER_SIZE_F64,
   };
-} NumberSize;
 
-typedef struct NumberType {
-  struct NumberSize value;
+  struct U8_Body {
+    uint8_t _0;
+  };
+
+  struct U16_Body {
+    uint16_t _0;
+  };
+
+  struct U32_Body {
+    uint32_t _0;
+  };
+
+  struct U64_Body {
+    uint64_t _0;
+  };
+
+  struct U128_Body {
+    uintptr_t _0;
+  };
+
+  struct Usize_Body {
+    uintptr_t _0;
+  };
+
+  struct I8_Body {
+    int8_t _0;
+  };
+
+  struct I16_Body {
+    int16_t _0;
+  };
+
+  struct I32_Body {
+    int32_t _0;
+  };
+
+  struct I64_Body {
+    int64_t _0;
+  };
+
+  struct I128_Body {
+    intptr_t _0;
+  };
+
+  struct Isize_Body {
+    intptr_t _0;
+  };
+
+  struct F32_Body {
+    float _0;
+  };
+
+  struct F64_Body {
+    double _0;
+  };
+
+  Tag tag;
+  union {
+    U8_Body U8;
+    U16_Body U16;
+    U32_Body U32;
+    U64_Body U64;
+    U128_Body U128;
+    Usize_Body USIZE;
+    I8_Body I8;
+    I16_Body I16;
+    I32_Body I32;
+    I64_Body I64;
+    I128_Body I128;
+    Isize_Body ISIZE;
+    F32_Body F32;
+    F64_Body F64;
+  };
+};
+
+struct NumberType {
+  NumberSize value;
   const char *raw;
-  enum NumberTypes r#type;
+  NumberTypes rtype;
   bool complete;
-} NumberType;
+};
 
-typedef struct BoolType {
+struct BoolType {
   bool value;
-} BoolType;
+};
 
-typedef struct StringType {
+struct StringType {
   const char *value;
   bool complete;
-} StringType;
+};
 
-typedef struct CharType {
+struct CharType {
   char value;
   bool complete;
-} CharType;
+};
 
-typedef struct RefferenceType {
-  struct Types *refference;
+struct Types;
+
+struct RefferenceType {
+  Box<Types> refference;
   bool on_dot;
   const char *const *chain;
-} RefferenceType;
+};
 
-typedef enum Operators_Tag {
-  ComparisonType,
-  LogicalType,
-  ArithmeticType,
-  Null,
-} Operators_Tag;
-
-typedef struct Operators {
-  Operators_Tag tag;
-  union {
-    struct {
-      enum ComparisonOperators comparison_type;
-    };
-    struct {
-      enum LogicalOpearators logical_type;
-    };
-    struct {
-      enum ArithmeticOperators arithmetic_type;
-    };
+struct Operators {
+  enum class Tag {
+    OPERATORS_COMPARISON_TYPE,
+    OPERATORS_LOGICAL_TYPE,
+    OPERATORS_ARITHMETIC_TYPE,
+    OPERATORS_NULL,
   };
-} Operators;
 
-typedef struct OperatorType {
+  struct ComparisonType_Body {
+    ComparisonOperators _0;
+  };
+
+  struct LogicalType_Body {
+    LogicalOpearators _0;
+  };
+
+  struct ArithmeticType_Body {
+    ArithmeticOperators _0;
+  };
+
+  Tag tag;
+  union {
+    ComparisonType_Body COMPARISON_TYPE;
+    LogicalType_Body LOGICAL_TYPE;
+    ArithmeticType_Body ARITHMETIC_TYPE;
+  };
+};
+
+struct OperatorType {
   bool cloaked;
-  struct Types *first;
+  Box<Types> first;
   bool first_filled;
-  struct Types *second;
+  Box<Types> second;
   bool second_is_not_null;
-  struct VariableCollector *itered_cache;
-  struct Operators operator_;
+  Box<VariableCollector> itered_cache;
+  Operators operator_;
   const char *operator_collect;
   bool operator_collected;
-} OperatorType;
+};
 
-typedef struct CloakType {
+struct CloakType {
   bool complete;
-  const struct DefinerCollecting *r#type;
+  const DefinerCollecting *rtype;
   bool bracket_inserted;
   bool at_comma;
-} CloakType;
+};
 
-typedef struct FunctionParameter {
-  struct String name;
-  struct DefinerCollecting r#type;
-} FunctionParameter;
+struct FunctionParameter {
+  const char *name;
+  DefinerCollecting rtype;
+};
 
-typedef struct CursorPosition {
+struct CursorPosition {
   int64_t _0;
   int64_t _1;
-} CursorPosition;
+};
 
-typedef struct Cursor {
-  struct CursorPosition range_start;
-  struct CursorPosition range_end;
-} Cursor;
+struct Cursor {
+  CursorPosition range_start;
+  CursorPosition range_end;
+};
 
-typedef struct FunctionParameterCollector {
-  struct FunctionParameter data;
+struct FunctionParameterCollector {
+  FunctionParameter data;
   bool named;
-  struct Cursor name_pos;
+  Cursor name_pos;
   bool colon_expected;
   int8_t child_brace;
   const char *type_text;
   bool typed;
-  struct Cursor type_pos;
-} FunctionParameterCollector;
+  Cursor type_pos;
+};
 
-typedef struct ArrowFunction {
-  const struct FunctionParameterCollector *parameters;
-  struct DefinerCollecting *return_type;
-  const struct Collecting *inside_code;
-} ArrowFunction;
+struct ArrowFunction {
+  const FunctionParameterCollector *parameters;
+  Box<DefinerCollecting> return_type;
+  const Collecting *inside_code;
+};
 
-typedef struct ArrowFunctionCollector {
+struct ArrowFunctionCollector {
   bool complete;
   bool param_bracket_opened;
   bool parameter_wrote;
@@ -253,247 +293,285 @@ typedef struct ArrowFunctionCollector {
   const char *inside_code_string;
   bool return_typed;
   int64_t brace_count;
-  struct ArrowFunction data;
-} ArrowFunctionCollector;
+  ArrowFunction data;
+};
 
-typedef struct FunctionCallParameter {
-  struct Types value;
-  struct Cursor pos;
-} FunctionCallParameter;
+struct FunctionCallParameter {
+  Types value;
+  Cursor pos;
+};
 
-typedef struct FunctionCall {
+struct FunctionCall {
   const char *name;
-  struct Cursor name_pos;
+  Cursor name_pos;
   bool comma;
   bool complete;
-  const struct FunctionCallParameter *params;
-} FunctionCall;
+  const FunctionCallParameter *params;
+};
 
-typedef struct VariableType {
+struct VariableType {
   bool value_complete;
   const char *value;
-} VariableType;
+};
 
-typedef enum Types_Tag {
-  Number,
-  Bool,
-  String,
-  Char,
-  Collective,
-  Refference,
-  Operator,
-  Cloak,
-  Array,
-  ArrowFunction,
-  FunctionCall,
-  Void,
-  VariableType,
-  Null,
-} Types_Tag;
-
-typedef struct Types {
-  Types_Tag tag;
-  union {
-    struct {
-      struct NumberType number;
-    };
-    struct {
-      struct BoolType bool_;
-    };
-    struct {
-      struct StringType string;
-    };
-    struct {
-      struct CharType char_;
-    };
-    struct {
-      struct RefferenceType refference;
-    };
-    struct {
-      struct OperatorType operator_;
-    };
-    struct {
-      struct CloakType cloak;
-    };
-    struct {
-      struct ArrayType array;
-    };
-    struct {
-      struct ArrowFunctionCollector arrow_function;
-    };
-    struct {
-      struct FunctionCall function_call;
-    };
-    struct {
-      struct VariableType variable_type;
-    };
+struct Types {
+  enum class Tag {
+    TYPES_NUMBER,
+    TYPES_BOOL,
+    TYPES_STRING,
+    TYPES_CHAR,
+    TYPES_COLLECTIVE,
+    TYPES_REFFERENCE,
+    TYPES_OPERATOR,
+    TYPES_CLOAK,
+    TYPES_ARRAY,
+    TYPES_ARROW_FUNCTION,
+    TYPES_FUNCTION_CALL,
+    TYPES_VOID,
+    TYPES_VARIABLE_TYPE,
+    TYPES_NULL,
   };
-} Types;
 
-typedef struct ArrayType {
+  struct Number_Body {
+    NumberType _0;
+  };
+
+  struct Bool_Body {
+    BoolType _0;
+  };
+
+  struct String_Body {
+    StringType _0;
+  };
+
+  struct Char_Body {
+    CharType _0;
+  };
+
+  struct Refference_Body {
+    RefferenceType _0;
+  };
+
+  struct Operator_Body {
+    OperatorType _0;
+  };
+
+  struct Cloak_Body {
+    CloakType _0;
+  };
+
+  struct Array_Body {
+    ArrayType _0;
+  };
+
+  struct ArrowFunction_Body {
+    ArrowFunctionCollector _0;
+  };
+
+  struct FunctionCall_Body {
+    FunctionCall _0;
+  };
+
+  struct VariableType_Body {
+    VariableType _0;
+  };
+
+  Tag tag;
+  union {
+    Number_Body NUMBER;
+    Bool_Body BOOL;
+    String_Body STRING;
+    Char_Body CHAR;
+    Refference_Body REFFERENCE;
+    Operator_Body OPERATOR;
+    Cloak_Body CLOAK;
+    Array_Body ARRAY;
+    ArrowFunction_Body ARROW_FUNCTION;
+    FunctionCall_Body FUNCTION_CALL;
+    VariableType_Body VARIABLE_TYPE;
+  };
+};
+
+struct ArrayType {
   bool complete;
-  struct DefinerCollecting *r#type;
+  Box<DefinerCollecting> rtype;
   bool bracket_inserted;
-  struct Types len;
+  Types len;
   bool at_comma;
   bool typed;
-} ArrayType;
+};
 
-typedef struct DynamicArrayType {
+struct DynamicArrayType {
   bool complete;
-  struct DefinerCollecting *r#type;
+  Box<DefinerCollecting> rtype;
   bool bracket_inserted;
-} DynamicArrayType;
+};
 
-typedef struct GenericType {
-  const char *r#type;
-} GenericType;
+struct GenericType {
+  const char *rtype;
+};
 
-typedef struct FunctionType {
+struct FunctionType {
   bool complete;
-  const struct DefinerCollecting *params;
-  struct DefinerCollecting *returning;
+  const DefinerCollecting *params;
+  Box<DefinerCollecting> returning;
   bool return_typed;
   int8_t return_keyword;
   bool parameter_collected;
   bool bracket_inserted;
   bool at_comma;
-} FunctionType;
+};
 
-typedef enum DefinerCollecting_Tag {
-  Array,
-  DynamicArray,
-  Generic,
-  Function,
-  Cloak,
-  Dynamic,
-} DefinerCollecting_Tag;
-
-typedef struct DefinerCollecting {
-  DefinerCollecting_Tag tag;
-  union {
-    struct {
-      struct ArrayType array;
-    };
-    struct {
-      struct DynamicArrayType dynamic_array;
-    };
-    struct {
-      struct GenericType generic;
-    };
-    struct {
-      struct FunctionType function;
-    };
-    struct {
-      struct CloakType cloak;
-    };
+struct DefinerCollecting {
+  enum class Tag {
+    DEFINER_COLLECTING_ARRAY,
+    DEFINER_COLLECTING_DYNAMIC_ARRAY,
+    DEFINER_COLLECTING_GENERIC,
+    DEFINER_COLLECTING_FUNCTION,
+    DEFINER_COLLECTING_CLOAK,
+    DEFINER_COLLECTING_DYNAMIC,
   };
-} DefinerCollecting;
 
-typedef struct Variable {
+  struct Array_Body {
+    ArrayType _0;
+  };
+
+  struct DynamicArray_Body {
+    DynamicArrayType _0;
+  };
+
+  struct Generic_Body {
+    GenericType _0;
+  };
+
+  struct Function_Body {
+    FunctionType _0;
+  };
+
+  struct Cloak_Body {
+    CloakType _0;
+  };
+
+  Tag tag;
+  union {
+    Array_Body ARRAY;
+    GrowableArray_Body DYNAMIC_ARRAY;
+    Generic_Body GENERIC;
+    Function_Body FUNCTION;
+    Cloak_Body CLOAK;
+  };
+};
+
+struct Variable {
   const char *name;
   bool dynamic;
   bool public_;
-  struct Types value;
-  struct Cursor pos;
-} Variable;
+  Types value;
+  Cursor pos;
+};
 
-typedef struct VariableCollector {
+struct VariableCollector {
   bool initialized;
   bool named;
   bool typed;
   bool value_complete;
-  struct DefinerCollecting r#type;
+  DefinerCollecting rtype;
   const char *raw_value;
-  struct Variable data;
-} VariableCollector;
+  Variable data;
+};
 
-typedef struct Function {
-  struct String name;
-  const struct FunctionParameterCollector *parameters;
-  struct Types return_type;
-  const struct Collecting *inside_code;
-} Function;
+struct Function {
+  const char *name;
+  const FunctionParameterCollector *parameters;
+  Types return_type;
+  const Collecting *inside_code;
+};
 
-typedef struct FunctionCollector {
-  struct Function data;
+struct FunctionCollector {
+  Function data;
   bool initialized;
   bool named;
-  struct Cursor name_pos;
+  Cursor name_pos;
   bool parameter_wrote;
-  struct Cursor parameter_bracket_start_pos;
-  struct Cursor parameter_bracket_end_pos;
+  Cursor parameter_bracket_start_pos;
+  Cursor parameter_bracket_end_pos;
   const char *return_type_text;
   bool return_typed;
   bool pointer_typed;
-  struct Cursor return_pointer_position;
+  Cursor return_pointer_position;
   bool inside_object_start;
   int64_t inside_object_count;
-  struct Cursor code_bracket_start;
-  struct Cursor code_bracket_end;
+  Cursor code_bracket_start;
+  Cursor code_bracket_end;
   bool inside_code_wrote;
   const char *inside_code_string;
   bool complete;
-} FunctionCollector;
+};
 
-typedef struct ConditionChain {
-  enum ConditionType r#type;
-  struct CloakType condition;
-  const struct Collecting *inside_code;
-} ConditionChain;
+struct ConditionChain {
+  ConditionType rtype;
+  CloakType condition;
+  const Collecting *inside_code;
+};
 
-typedef struct ConditionCollector {
+struct ConditionCollector {
   bool might_be_else_if;
   const char *else_if_keyword_collector;
-  const struct ConditionChain *chains;
-  struct Cursor keyword_pos;
+  const ConditionChain *chains;
+  Cursor keyword_pos;
   bool initialized;
   const char *inside_code_string;
   bool inside_object_start;
   int64_t inside_object_count;
   bool cloak_collected;
-  struct Cursor cloak_pos;
-  struct VariableCollector cloak_itered_data;
+  Cursor cloak_pos;
+  VariableCollector cloak_itered_data;
   bool complete;
-} ConditionCollector;
+};
 
-typedef enum Collecting_Tag {
-  Variable,
-  Function,
-  Condition,
-  None,
-} Collecting_Tag;
-
-typedef struct Collecting {
-  Collecting_Tag tag;
-  union {
-    struct {
-      struct VariableCollector variable;
-    };
-    struct {
-      struct FunctionCollector function;
-    };
-    struct {
-      struct ConditionCollector condition;
-    };
+struct Collecting {
+  enum class Tag {
+    COLLECTING_VARIABLE,
+    COLLECTING_FUNCTION,
+    COLLECTING_CONDITION,
+    COLLECTING_NONE,
   };
-} Collecting;
 
-typedef struct Error {
+  struct Variable_Body {
+    VariableCollector _0;
+  };
+
+  struct Function_Body {
+    FunctionCollector _0;
+  };
+
+  struct Condition_Body {
+    ConditionCollector _0;
+  };
+
+  Tag tag;
+  union {
+    Variable_Body VARIABLE;
+    Function_Body FUNCTION;
+    Condition_Body CONDITION;
+  };
+};
+
+struct Error {
   uint8_t code;
   const char *message;
   const char *title;
   const char *builded_message;
   const char *debug_message;
-  struct Cursor pos;
-} Error;
+  Cursor pos;
+};
 
-typedef struct Parsed {
-  const struct Collecting *items;
-  const struct Error *syntax_errors;
-} Parsed;
+struct Parsed {
+  const Collecting *items;
+  const Error *syntax_errors;
+};
 
-typedef struct ParserOptions {
+struct ParserOptions {
   bool functions;
   bool break_on_error;
   bool loops;
@@ -501,16 +579,12 @@ typedef struct ParserOptions {
   bool dynamics;
   bool collectives;
   bool variables;
-} ParserOptions;
+};
 
-#ifdef __cplusplus
 extern "C" {
-#endif // __cplusplus
 
-struct Parsed parser_new(const char *test, struct ParserOptions options);
+Parsed parser_new(const char *test, ParserOptions options);
 
-#ifdef __cplusplus
 } // extern "C"
-#endif // __cplusplus
 
-#endif /* _ELLIE_H */
+#endif // _ELLIE_H

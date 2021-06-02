@@ -4,7 +4,6 @@ use ellie_core::{defs, error};
 
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};
-use alloc::vec;
 use alloc::vec::Vec;
 
 pub fn collect_null(
@@ -25,32 +24,6 @@ pub fn collect_null(
                             rtype: "string".to_string(),
                         },
                     );
-                } else if !matches!(&itered_data.rtype, crate::syntax::definers::DefinerCollecting::Generic(x) if x.rtype == "string")
-                {
-                    errors.push(error::Error {
-                        debug_message: "./parser/src/processors/type_processors/null.rs:27"
-                            .to_string(),
-                        title: error::errorList::error_s3.title.clone(),
-                        code: error::errorList::error_s3.code,
-                        message: error::errorList::error_s3.message.clone(),
-                        builded_message: error::Error::build(
-                            error::errorList::error_s3.message.clone(),
-                            vec![
-                                error::ErrorBuildField {
-                                    key: "token1".to_string(),
-                                    value: itered_data.rtype.raw_name(),
-                                },
-                                error::ErrorBuildField {
-                                    key: "token2".to_string(),
-                                    value: "string".to_string(),
-                                },
-                            ],
-                        ),
-                        pos: defs::Cursor {
-                            range_start: pos,
-                            range_end: pos.clone().skipChar(1),
-                        },
-                    });
                 }
                 itered_data.data.value =
                     types::Types::String(types::string_type::StringType::default());
@@ -61,32 +34,6 @@ pub fn collect_null(
                             rtype: "char".to_string(),
                         },
                     );
-                } else if !matches!(&itered_data.rtype, crate::syntax::definers::DefinerCollecting::Generic(x) if x.rtype == "char")
-                {
-                    errors.push(error::Error {
-                        debug_message: "./parser/src/processors/type_processors/null.rs:63"
-                            .to_string(),
-                        title: error::errorList::error_s3.title.clone(),
-                        code: error::errorList::error_s3.code,
-                        message: error::errorList::error_s3.message.clone(),
-                        builded_message: error::Error::build(
-                            error::errorList::error_s3.message.clone(),
-                            vec![
-                                error::ErrorBuildField {
-                                    key: "token1".to_string(),
-                                    value: itered_data.rtype.raw_name(),
-                                },
-                                error::ErrorBuildField {
-                                    key: "token2".to_string(),
-                                    value: "char".to_string(),
-                                },
-                            ],
-                        ),
-                        pos: defs::Cursor {
-                            range_start: pos,
-                            range_end: pos.clone().skipChar(1),
-                        },
-                    });
                 }
                 itered_data.data.value = types::Types::Char(types::char_type::CharType::default());
             } else if (itered_data.raw_value.clone() + letter_char)
@@ -105,38 +52,12 @@ pub fn collect_null(
                 )
             } else if letter_char == "[" {
                 if itered_data.data.dynamic {
-                    itered_data.rtype = crate::syntax::definers::DefinerCollecting::DynamicArray(
-                        crate::syntax::definers::DynamicArrayType {
+                    itered_data.rtype = crate::syntax::definers::DefinerCollecting::GrowableArray(
+                        crate::syntax::definers::GrowableArrayType {
                             rtype: Box::new(crate::syntax::definers::DefinerCollecting::Dynamic),
                             ..Default::default()
                         },
                     );
-                } else if !matches!(&itered_data.rtype, crate::syntax::definers::DefinerCollecting::Generic(x) if x.rtype == "string")
-                {
-                    errors.push(error::Error {
-                        debug_message: "./parser/src/processors/type_processors/null.rs:27"
-                            .to_string(),
-                        title: error::errorList::error_s3.title.clone(),
-                        code: error::errorList::error_s3.code,
-                        message: error::errorList::error_s3.message.clone(),
-                        builded_message: error::Error::build(
-                            error::errorList::error_s3.message.clone(),
-                            vec![
-                                error::ErrorBuildField {
-                                    key: "token1".to_string(),
-                                    value: itered_data.rtype.raw_name(),
-                                },
-                                error::ErrorBuildField {
-                                    key: "token2".to_string(),
-                                    value: "string".to_string(),
-                                },
-                            ],
-                        ),
-                        pos: defs::Cursor {
-                            range_start: pos,
-                            range_end: pos.clone().skipChar(1),
-                        },
-                    });
                 }
                 itered_data.data.value = types::Types::Array(types::array_type::ArrayType {
                     layer_size: 0,

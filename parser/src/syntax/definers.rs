@@ -84,6 +84,17 @@ impl DefinerCollecting {
         }
     }
 
+    pub fn is_generic(&self) -> bool {
+        match self {
+            DefinerCollecting::Array(_) => false,
+            DefinerCollecting::GrowableArray(_) => false,
+            DefinerCollecting::Generic(_) => true,
+            DefinerCollecting::Function(_) => false,
+            DefinerCollecting::Cloak(_) => false,
+            DefinerCollecting::Dynamic => true,
+        }
+    }
+
     pub fn raw_name(&self) -> String {
         match self {
             DefinerCollecting::Array(_) => "array".to_string(),

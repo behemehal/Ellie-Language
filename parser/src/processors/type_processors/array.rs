@@ -218,18 +218,11 @@ pub fn collect_array(
 
             let mut will_be_itered: variable::VariableCollector;
             if let definers::DefinerCollecting::Array(array_data) = itered_data.rtype.clone() {
-                if data.collective.len()
-                    > *array_data
-                        .len
-                        .as_number()
-                        .unwrap()
-                        .value
-                        .as_usize()
-                        .unwrap()
-                {
+
+                if array_data.len.as_number().is_some() && data.collective.len() > *array_data.len.as_number().unwrap().value.as_usize().unwrap() {
                     //Check if array size is overflowed
                     errors.push(error::Error {
-                        debug_message: "@./parser/src/processors/type_processors/number.rs:487"
+                        debug_message: "!./parser/src/processors/type_processors/number.rs:487"
                             .to_string(),
                         title: error::errorList::error_s19.title.clone(),
                         code: error::errorList::error_s19.code,
@@ -259,6 +252,27 @@ pub fn collect_array(
                             range_end: pos.clone().skipChar(1),
                         },
                     });
+                } else if letter_char != " " {
+                    errors.push(error::Error {
+                        debug_message: "!!d./parser/src/processors/type_processors/number.rs:488"
+                            .to_string(),
+                        title: error::errorList::error_s1.title.clone(),
+                        code: error::errorList::error_s1.code,
+                        message: error::errorList::error_s1.message.clone(),
+                        builded_message: error::Error::build(
+                            error::errorList::error_s1.message.clone(),
+                            vec![
+                                error::ErrorBuildField {
+                                    key: "token".to_string(),
+                                    value: letter_char.to_string(),
+                                },
+                            ],
+                        ),
+                        pos: defs::Cursor {
+                            range_start: pos,
+                            range_end: pos.clone().skipChar(1),
+                        },
+                    });
                 }
 
                 will_be_itered = if data.collective.is_empty() {
@@ -276,9 +290,7 @@ pub fn collect_array(
                         ..variable::VariableCollector::default()
                     }
                 };
-            } else if let definers::DefinerCollecting::DynamicArray(array_data) =
-                itered_data.rtype.clone()
-            {
+            } else if let definers::DefinerCollecting::GrowableArray(array_data) = itered_data.rtype.clone() {
                 will_be_itered = if data.collective.is_empty() {
                     variable::VariableCollector {
                         rtype: *array_data.rtype.clone(),

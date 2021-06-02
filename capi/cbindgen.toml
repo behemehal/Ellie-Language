@@ -1,4 +1,4 @@
-language = "C"
+language = "C++"
 header = """/*
 MIT License
 Copyright (c) 2020 Behemehal
@@ -21,4 +21,7 @@ SOFTWARE.
 include_guard = "_ELLIE_H"
 sys_includes = ["stdint.h", "stddef.h", "stdbool.h"]
 cpp_compat = true
-documentation_style = "c"
+documentation_style = "c++"
+
+[enum]
+rename_variants = "QualifiedScreamingSnakeCase"

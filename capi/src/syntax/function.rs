@@ -5,7 +5,7 @@ use libc::c_char;
 
 #[repr(C)]
 pub struct FunctionParameter {
-    pub name: String,
+    pub name: *const c_char,
     pub rtype: definers::DefinerCollecting,
 }
 
@@ -23,7 +23,7 @@ pub struct FunctionParameterCollector {
 
 #[repr(C)]
 pub struct Function {
-    pub name: String,
+    pub name: *const c_char,
     pub parameters: *const FunctionParameterCollector,
     pub return_type: types::Types,
     pub inside_code: *const Collecting,

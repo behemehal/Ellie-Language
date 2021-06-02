@@ -64,7 +64,7 @@ fn main() {
                 ellie_core::utils::terminal_colors::get_color(
                     ellie_core::utils::terminal_colors::Colors::Reset
                 ),
-                error.builded_message
+                error.builded_message.builded
             );
         }
         emulated_collector_data = itered.itered_data;

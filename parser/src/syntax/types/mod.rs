@@ -16,6 +16,9 @@ pub mod variable_type;
 
 use enum_as_inner::EnumAsInner;
 use serde::Serialize;
+use alloc::string::String;
+use alloc::format;
+use ellie_core::utils;
 
 #[derive(PartialEq, Debug, Clone, Serialize, EnumAsInner)]
 pub enum Types {
@@ -36,6 +39,13 @@ pub enum Types {
 }
 
 impl Types {
+    pub fn get_type(&self) -> String {
+        let mut q: String = format!("{:?}", self);
+        let bracket_offset = q.find('(').unwrap_or_else(|| q.len());
+        q.replace_range(bracket_offset.., "");
+        utils::lower_first_char(q)
+    }
+
     pub fn is_string_open(&self) -> bool {
         match &*self {
             Types::Number(_) => true,

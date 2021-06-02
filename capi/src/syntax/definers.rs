@@ -32,7 +32,7 @@ pub struct ArrayType {
 }
 
 #[repr(C)]
-pub struct DynamicArrayType {
+pub struct GrowableArrayType {
     pub complete: bool,
     pub rtype: Box<DefinerCollecting>,
     pub bracket_inserted: bool,
@@ -46,7 +46,7 @@ pub struct GenericType {
 #[repr(C)]
 pub enum DefinerCollecting {
     Array(ArrayType),
-    DynamicArray(DynamicArrayType),
+    GrowableArray(GrowableArrayType),
     Generic(GenericType),
     Function(FunctionType),
     Cloak(CloakType),

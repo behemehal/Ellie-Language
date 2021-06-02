@@ -1,3 +1,6 @@
+use alloc::vec::Vec;
+use alloc::string::{String, ToString};
+
 pub mod terminal_colors;
 
 pub struct ReliableNameRangeResponse {
@@ -15,6 +18,40 @@ pub enum ReliableNameRanges {
 pub fn is_opearators(value: &str) -> bool {
     let operators = "|&";
     operators.contains(&value)
+}
+
+pub fn is_errors_same(first: crate::error::Error, second: crate::error::Error) -> bool {
+    first.code == second.code && first.message == second.message && first.pos.range_start.0 == second.pos.range_start.0
+}
+
+pub fn zip_errors(errors: Vec<crate::error::Error>) -> Vec<crate::error::Error> {
+    let mut clone_errors: Vec<crate::error::Error> = errors.clone();
+    let mut zipped_errors : Vec<crate::error::Error> = Vec::new();
+
+    for i in 0..clone_errors.len() {
+        if i != 0 {
+            if is_errors_same(clone_errors[i - 1].clone(), clone_errors[i].clone()) {
+                let last_error = clone_errors.clone()[i - 1].clone();
+                clone_errors[i].pos.range_start = last_error.pos.range_start;
+
+                for field in 0..last_error.builded_message.fields.len() {
+                    clone_errors[i].builded_message.fields[field].value = last_error.builded_message.fields[field].value.clone() + " " + &clone_errors[i].builded_message.fields[field].value;
+                }
+
+                if i == errors.len() - 1 || !is_errors_same(clone_errors[i].clone(), clone_errors[i + 1].clone()) {
+                    clone_errors[i].builded_message =  crate::error::Error::build(clone_errors[i].message.clone(), clone_errors[i].builded_message.fields.clone());
+                    zipped_errors.push(clone_errors[i].clone())
+                }
+            } else {
+                zipped_errors.push(clone_errors[i].clone())
+            }
+
+        } else if errors.len() > 1 && !is_errors_same(clone_errors[0].clone(), clone_errors[1].clone()) || errors.len() == 1 {
+            zipped_errors.push(clone_errors[0].clone());
+        }
+    }
+
+    zipped_errors
 }
 
 pub fn reliable_name_range(range: ReliableNameRanges, value: String) -> ReliableNameRangeResponse {
@@ -123,4 +160,12 @@ pub fn trim_good(line: String) -> String {
         }
     }
     fixed
+}
+
+pub fn lower_first_char(line: String) -> String {
+    let mut c = line.chars();
+    match c.next() {
+        None => String::new(),
+        Some(f) => f.to_lowercase().collect::<String>() + c.as_str(),
+    }
 }

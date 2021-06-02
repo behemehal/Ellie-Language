@@ -283,7 +283,7 @@ pub fn collect_function(
                             title: error::errorList::error_s8.title.clone(),
                             code: error::errorList::error_s8.code,
                             message: error::errorList::error_s8.message.clone(),
-                            builded_message: error::errorList::error_s8.message.clone(),
+                            builded_message: error::BuildedError::default(),
                             pos: defs::Cursor {
                                 range_start: parser.pos,
                                 range_end: parser.pos.clone().skipChar(1),

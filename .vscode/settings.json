@@ -4,5 +4,6 @@
     "files.associations": {
         "*.toml": "toml",
         "random": "cpp"
-    }
+    },
+    "C_Cpp.errorSquiggles": "Disabled"
 }

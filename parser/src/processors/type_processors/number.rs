@@ -483,9 +483,10 @@ pub fn collect_number(
                             },
                         });
                     }
-                } else {
+                } else if !itered_data.rtype.raw_name().is_empty() {
+                    //UNSAFE
                     errors.push(error::Error {
-                        debug_message: "@./parser/src/processors/type_processors/number.rs:487"
+                        debug_message: "==./parser/src/processors/type_processors/number.rs:488"
                             .to_string(),
                         title: error::errorList::error_s3.title.clone(),
                         code: error::errorList::error_s3.code,

@@ -12,7 +12,7 @@
     ```
 * Data Types
 
-    - Numberic
+    - Numeric
         ```rust
             i8
             i16

@@ -1,6 +1,10 @@
 #![allow(warnings)] //TODO Remove this
 use core::fmt;
 use serde::Serialize;
+use alloc::string::{String, ToString};
+use alloc::vec::Vec;
+use alloc::format;
+use crate::alloc::borrow::ToOwned;
 
 #[derive(PartialEq, Debug, Clone)]
 pub struct ParserOptions {
@@ -81,7 +85,7 @@ impl fmt::Display for SyntaxError {
                 } else {
                     "".to_string()
                 },
-                self.error.builded_message
+                self.error.builded_message.builded
             )
             .to_string(),
         )
