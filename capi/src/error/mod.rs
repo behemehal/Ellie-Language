@@ -12,6 +12,6 @@ pub struct Error {
 
 #[repr(C)]
 pub struct ErrorBuildField {
-    pub key:  *const c_char,
-    pub value:  *const c_char,
+    pub key: *const c_char,
+    pub value: *const c_char,
 }

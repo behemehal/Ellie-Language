@@ -1,7 +1,7 @@
-use std::ffi::CString;
 use crate::syntax::{condition, function, variable};
 use crate::{defs, error, parser};
 use libc::c_char;
+use std::ffi::CString;
 
 #[repr(C)]
 pub struct Parsed {
@@ -14,8 +14,8 @@ impl Default for Parsed {
         let a: [parser::Collecting; 0] = [];
         let b: [error::Error; 0] = [];
         Parsed {
-            items:  &a as *const parser::Collecting,
-            syntax_errors:  &b as *const error::Error,
+            items: &a as *const parser::Collecting,
+            syntax_errors: &b as *const error::Error,
         }
     }
 }

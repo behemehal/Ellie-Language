@@ -7,7 +7,7 @@ pub struct Property {}
 
 #[repr(C)]
 pub struct Class {
-    name:*const c_char,
+    name: *const c_char,
     properties: *const Property,
 }
 

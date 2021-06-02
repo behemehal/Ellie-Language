@@ -209,7 +209,10 @@ pub fn collect_variable_value(
                     variabledata.typed = true;
                 }
             } else {
-                if variabledata.data.type_pos.range_start.0 == 0 && variabledata.data.type_pos.range_start.1 == 0 && letter_char != " " {
+                if variabledata.data.type_pos.range_start.0 == 0
+                    && variabledata.data.type_pos.range_start.1 == 0
+                    && letter_char != " "
+                {
                     variabledata.data.type_pos.range_start = parser.pos;
                 }
                 processors::definer_processor::collect_definer(
@@ -232,8 +235,7 @@ pub fn collect_variable_value(
 
                     if collected.rtype.raw_name() != collected.data.value.get_type() {
                         errors.push(error::Error {
-                            debug_message: "err"
-                                .to_string(),
+                            debug_message: "err".to_string(),
                             title: error::errorList::error_s3.title.clone(),
                             code: error::errorList::error_s3.code,
                             message: error::errorList::error_s3.message.clone(),
@@ -246,11 +248,11 @@ pub fn collect_variable_value(
                                     },
                                     error::ErrorBuildField {
                                         key: "token2".to_string(),
-                                        value: collected.data.value.get_type()
+                                        value: collected.data.value.get_type(),
                                     },
                                 ],
                             ),
-                            pos: collected.data.value_pos
+                            pos: collected.data.value_pos,
                         });
                     }
 
@@ -280,7 +282,10 @@ pub fn collect_variable_value(
                 }
             }
         } else {
-            if variabledata.data.value_pos.range_start.0 == 0 && variabledata.data.value_pos.range_start.1 == 0 && letter_char != " " {
+            if variabledata.data.value_pos.range_start.0 == 0
+                && variabledata.data.value_pos.range_start.1 == 0
+                && letter_char != " "
+            {
                 variabledata.data.value_pos.range_start = parser.pos;
             }
             let mut cd = variabledata.clone();

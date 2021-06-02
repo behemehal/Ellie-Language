@@ -1,7 +1,7 @@
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
-use serde::Serialize;
 use core::clone::Clone;
+use serde::Serialize;
 pub mod errorList;
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
@@ -44,7 +44,7 @@ impl Error {
             if let Some(pos) = builded_message.find(&key) {
                 used_fields.push(ErrorBuildField {
                     key: field.key.clone(),
-                    value: field.value.clone()
+                    value: field.value.clone(),
                 });
                 builded_message.replace_range(pos..(pos + key.len()), &field.value)
             } else {

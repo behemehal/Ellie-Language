@@ -30,7 +30,9 @@ pub fn collect_char(
                     title: error::errorList::error_s14.title.clone(),
                     code: error::errorList::error_s14.code,
                     message: error::errorList::error_s14.message.clone(),
-                    builded_message: error::BuildedError::build_from_string(error::errorList::error_s14.message.clone()),
+                    builded_message: error::BuildedError::build_from_string(
+                        error::errorList::error_s14.message.clone(),
+                    ),
                     pos: defs::Cursor {
                         range_start: pos.clone().popChar(1),
                         range_end: pos.clone().skipChar(1),
@@ -52,7 +54,9 @@ pub fn collect_char(
                     title: error::errorList::error_s15.title.clone(),
                     code: error::errorList::error_s15.code,
                     message: error::errorList::error_s15.message.clone(),
-                    builded_message: error::BuildedError::build_from_string(error::errorList::error_s15.message.clone()),
+                    builded_message: error::BuildedError::build_from_string(
+                        error::errorList::error_s15.message.clone(),
+                    ),
                     pos: defs::Cursor {
                         range_start: pos.clone().popChar(1),
                         range_end: pos.clone().skipChar(1),

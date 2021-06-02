@@ -1,5 +1,5 @@
-use alloc::string::String;
 use alloc::format;
+use alloc::string::String;
 
 pub enum Colors {
     Black,

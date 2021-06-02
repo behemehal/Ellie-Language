@@ -1,12 +1,11 @@
 //This is will catch operator with unknown behaviour
 
 use crate::syntax::types;
-use crate::syntax::variable;
 use crate::syntax::types::arithmetic_type::ArithmeticOperators;
 use crate::syntax::types::comparison_type::ComparisonOperators;
 use crate::syntax::types::logical_type::LogicalOpearators;
+use crate::syntax::variable;
 use libc::c_char;
-
 
 #[repr(C)]
 pub enum Operators {

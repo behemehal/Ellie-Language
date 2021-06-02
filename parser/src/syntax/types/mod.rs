@@ -14,11 +14,11 @@ pub mod refference_type;
 pub mod string_type;
 pub mod variable_type;
 
+use alloc::format;
+use alloc::string::String;
+use ellie_core::utils;
 use enum_as_inner::EnumAsInner;
 use serde::Serialize;
-use alloc::string::String;
-use alloc::format;
-use ellie_core::utils;
 
 #[derive(PartialEq, Debug, Clone, Serialize, EnumAsInner)]
 pub enum Types {
