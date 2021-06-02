@@ -1,5 +1,6 @@
 var fs = require("fs");
 var os = require("os");
+var crypto = require("crypto");
 
 var log = (message, color) => {
     console.log(`Ellie: ${message}`);
@@ -7,9 +8,13 @@ var log = (message, color) => {
 
 var createLine = (len) => Array(len).fill("-").join("");
 
+function createDebugLabel() {
+    const id = crypto.randomBytes(16).toString("hex");
+    return id
+}
 
-let dbgLabels = [];
-
+let debugLabels = "Ellie Debug Headers [DONT MODIFY DIRECTLY]" + os.EOL;
+debugLabels += "|------------------------------------|" + os.EOL;
 function refactorFile(file, fileDir) {
     var lines = file.split(os.EOL);
     var factoredFile = "";
@@ -17,11 +22,13 @@ function refactorFile(file, fileDir) {
     for (var i = 0; i < lines.length; i++) {
         var line = lines[i];
         if (line.includes("debug_message: \"") && fileDir != "./core/src/error/mod.rs") {
+            var dbgId = createDebugLabel();
+            debugLabels += "|  " + dbgId + "  :  " + fileDir + ":" + (i + 1) + os.EOL;
             var first = line.split("debug_message: \"")[0];
-            factoredFile += first + "debug_message: \"" + fileDir + ":" + i + "\"" + line.split("debug_message: \"")[1].split("\"")[1] + os.EOL
+            factoredFile += first + "debug_message: \"" + dbgId + "\"" + line.split("debug_message: \"")[1].split("\"")[1] + os.EOL
             factored = true;
         } else {
-            factoredFile += line + "\n";
+            factoredFile += line + os.EOL;
         }
     }
     if (factored) {
@@ -56,5 +63,7 @@ scanDirectory(fs.readdirSync("./", { withFileTypes: true }), "./").then((files) 
     }
     log(`--------------------------------`);
     log(`Writing debug headers`);
-
+    debugLabels += "|------------------------------------|" + os.EOL;
+    debugLabels += "END";
+    fs.writeFileSync("./DEBUG_HEADERS.eidbg", debugLabels, 'utf8');
 })
