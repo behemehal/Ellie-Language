@@ -1,8 +1,4 @@
 ![icon](./picture/TextIcon/EllieTextIcon@0,33x.png)
-
-
-# EXPERIMENTAL FFI WRITE ( UNSTABLE )
-
 # Ellie
 
 Ellie language [NOT COMPLETE]
