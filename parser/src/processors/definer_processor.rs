@@ -130,4 +130,172 @@ pub fn collect_definer(
                     builded_message: error::Error::build(
                         error::errorList::error_s1.message.clone(),
                         vec![error::ErrorBuildField {
-                            key: 
+                            key: "token".to_string(),
+                            value: letter_char,
+                        }],
+                    ),
+                    pos: defs::Cursor {
+                        range_start: pos,
+                        range_end: pos.clone().skipChar(1),
+                    },
+                });
+            } else {
+                let current_reliability = utils::reliable_name_range(
+                    utils::ReliableNameRanges::VariableName,
+                    letter_char.to_string(),
+                );
+                if current_reliability.reliable {
+                    data.rtype += &letter_char;
+                    data.rtype = utils::trim_good(data.rtype.trim().to_string());
+                } else if letter_char != " " {
+                    errors.push(error::Error {
+                        debug_message: "./parser/src/processors/definer_processor.rs:1"
+                            .to_string(),
+                        title: error::errorList::error_s1.title.clone(),
+                        code: error::errorList::error_s1.code,
+                        message: error::errorList::error_s1.message.clone(),
+                        builded_message: error::Error::build(
+                            error::errorList::error_s1.message.clone(),
+                            vec![error::ErrorBuildField {
+                                key: "token".to_string(),
+                                value: letter_char,
+                            }],
+                        ),
+                        pos: defs::Cursor {
+                            range_start: pos,
+                            range_end: pos.clone().skipChar(1),
+                        },
+                    });
+                }
+            }
+        }
+        DefinerCollecting::Function(data) => {
+            if !data.parameter_collected {
+                if letter_char == "(" && !data.bracket_inserted {
+                    data.bracket_inserted = true;
+                    data.params.push(DefinerCollecting::Generic(
+                        syntax::definers::GenericType::default(),
+                    ));
+                } else if letter_char == ")" && data.bracket_inserted {
+                    data.parameter_collected = true;
+                } else if letter_char == "," && !data.params.is_empty() && !data.at_comma {
+                    data.params.push(DefinerCollecting::Generic(
+                        syntax::definers::GenericType::default(),
+                    ));
+                    data.at_comma = true;
+                } else if data.params.is_empty() && data.bracket_inserted {
+                    //This should have been filled If everything were right
+                    errors.push(error::Error {
+                        debug_message: "./parser/src/processors/definer_processor.rs:2"
+                            .to_string(),
+                        title: error::errorList::error_s1.title.clone(),
+                        code: error::errorList::error_s1.code,
+                        message: error::errorList::error_s1.message.clone(),
+                        builded_message: error::Error::build(
+                            error::errorList::error_s1.message.clone(),
+                            vec![error::ErrorBuildField {
+                                key: "token".to_string(),
+                                value: letter_char,
+                            }],
+                        ),
+                        pos: defs::Cursor {
+                            range_start: pos,
+                            range_end: pos.clone().skipChar(1),
+                        },
+                    });
+                } else if data.bracket_inserted {
+                    data.at_comma = false;
+                    let len = data.params.clone().len();
+                    collect_definer(
+                        &mut data.params[if len == 0 { 0 } else { len - 1 }],
+                        errors,
+                        letter_char,
+                        pos,
+                        next_char,
+                        last_char,
+                        options,
+                    );
+
+                    if data.params[if len == 0 { 0 } else { len - 1 }].is_definer_complete() {
+                        data.complete = true;
+                    }
+                }
+            } else if !data.return_typed {
+                if data.return_keyword != 2 {
+                    if letter_char != ":" {
+                        errors.push(error::Error {
+                            debug_message: "./parser/src/processors/definer_processor.rs:3"
+                                .to_string(),
+                            title: error::errorList::error_s1.title.clone(),
+                            code: error::errorList::error_s1.code,
+                            message: error::errorList::error_s1.message.clone(),
+                            builded_message: error::Error::build(
+                                error::errorList::error_s1.message.clone(),
+                                vec![error::ErrorBuildField {
+                                    key: "token".to_string(),
+                                    value: letter_char,
+                                }],
+                            ),
+                            pos: defs::Cursor {
+                                range_start: pos,
+                                range_end: pos.clone().skipChar(1),
+                            },
+                        });
+                    }
+                    data.return_keyword += 1;
+                } else {
+                    data.complete = true;
+                    collect_definer(
+                        &mut data.returning,
+                        errors,
+                        letter_char,
+                        pos,
+                        next_char,
+                        last_char,
+                        options,
+                    )
+                }
+            }
+        }
+        DefinerCollecting::Cloak(data) => {
+            let length_of_childs = data.rtype.len();
+            let is_complete = if length_of_childs == 0 {
+                false
+            } else {
+                data.rtype[if length_of_childs == 1 {
+                    0
+                } else {
+                    length_of_childs - 1
+                }]
+                .is_definer_complete()
+            };
+
+            if letter_char == "," && is_complete {
+                data.rtype.push(DefinerCollecting::Generic(
+                    syntax::definers::GenericType::default(),
+                ));
+            } else if letter_char == ")" && is_complete {
+                data.complete = true;
+            } else {
+                collect_definer(
+                    &mut data.rtype[if length_of_childs == 1 {
+                        0
+                    } else {
+                        length_of_childs - 1
+                    }],
+                    errors,
+                    letter_char,
+                    pos,
+                    next_char,
+                    last_char,
+                    options,
+                )
+            }
+        }
+        DefinerCollecting::Dynamic => {}
+    }
+}
+
+
+
+
