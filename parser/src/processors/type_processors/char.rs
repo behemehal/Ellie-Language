@@ -26,7 +26,7 @@ pub fn collect_char(
         if letter_char == "'" && last_char != "\\" {
             if data.value == '\0' {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/char.rs:0".to_string(),
+                    debug_message: "a7f825e1d04edbda9118386c81d8df57".to_string(),
                     title: error::errorList::error_s14.title.clone(),
                     code: error::errorList::error_s14.code,
                     message: error::errorList::error_s14.message.clone(),
@@ -48,7 +48,7 @@ pub fn collect_char(
         } else if !data.complete {
             if data.value != '\0' {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/char.rs:1".to_string(),
+                    debug_message: "ec18ab5520fa578feadb87f5cf739bc5".to_string(),
                     title: error::errorList::error_s15.title.clone(),
                     code: error::errorList::error_s15.code,
                     message: error::errorList::error_s15.message.clone(),
@@ -63,7 +63,7 @@ pub fn collect_char(
             }
         } else if letter_char != " " {
             errors.push(error::Error {
-                debug_message: "./parser/src/processors/type_processors/char.rs:2".to_string(),
+                debug_message: "81c4c33559cd516855a3a3a65fc04cb5".to_string(),
                 title: error::errorList::error_s1.title.clone(),
                 code: error::errorList::error_s1.code,
                 message: error::errorList::error_s1.message.clone(),
@@ -82,6 +82,7 @@ pub fn collect_char(
         }
     }
 }
+
 
 
 

@@ -28,7 +28,7 @@ pub fn collect_operator(
                     data.operator_collected = true;
                 } else {
                     errors.push(error::Error {
-                        debug_message: "./parser/src/processors/type_processors/operator.rs:0"
+                        debug_message: "b092551fbe51a7124641a91a4c563516"
                             .to_string(),
                         title: error::errorList::error_s13.title.clone(),
                         code: error::errorList::error_s13.code,
@@ -138,6 +138,7 @@ pub fn collect_operator(
         }
     }
 }
+
 
 
 

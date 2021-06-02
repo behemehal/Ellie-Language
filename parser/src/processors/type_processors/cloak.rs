@@ -24,7 +24,7 @@ pub fn collect_cloak(
         if letter_char == "(" && !data.child_start && is_s_n {
             if !data.comma && last_entry != 0 {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/cloak.rs:0"
+                    debug_message: "0d32f4ac0be141d939ed5dc952029751"
                         .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
@@ -62,7 +62,7 @@ pub fn collect_cloak(
         } else if letter_char == "," && !data.child_start && is_s_n {
             if data.complete {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/cloak.rs:1"
+                    debug_message: "4eacd6743aa363671c49e1456f9d8831"
                         .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
@@ -81,7 +81,7 @@ pub fn collect_cloak(
                 });
             } else if data.comma {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/cloak.rs:2"
+                    debug_message: "868af289f29e60f8499102c8e6ae550e"
                         .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
@@ -111,7 +111,7 @@ pub fn collect_cloak(
         } else if letter_char == ")" && !data.child_start && is_s_n {
             if data.comma {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/cloak.rs:3"
+                    debug_message: "d4ea581df0c1402da3e8f35588380fe6"
                         .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
@@ -130,7 +130,7 @@ pub fn collect_cloak(
                 });
             } else if data.complete {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/cloak.rs:4"
+                    debug_message: "437d0b8c791914859532498ed1841571"
                         .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
@@ -330,6 +330,7 @@ pub fn collect_cloak(
         }
     }
 }
+
 
 
 

@@ -20,7 +20,7 @@ pub fn collect_number(
         if is_num || letter_char == "x" && data.raw.starts_with('0') {
             if data.complete {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/number.rs:0"
+                    debug_message: "11351109feef10b08d15759f0ad27a88"
                         .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
@@ -56,7 +56,7 @@ pub fn collect_number(
                         data.value = types::number_type::NumberSize::U8(nm);
                     } else {
                         errors.push(error::Error {
-                            debug_message: "./parser/src/processors/type_processors/number.rs:1"
+                            debug_message: "202ef8966c9528c20eb67bed63000205"
                                 .to_string(),
                             title: error::errorList::error_s16.title.clone(),
                             code: error::errorList::error_s16.code,
@@ -87,7 +87,7 @@ pub fn collect_number(
                         data.value = types::number_type::NumberSize::U16(nm);
                     } else {
                         errors.push(error::Error {
-                            debug_message: "./parser/src/processors/type_processors/number.rs:2"
+                            debug_message: "d6be5ca94689ba205219a0e900f9b0b0"
                                 .to_string(),
                             title: error::errorList::error_s16.title.clone(),
                             code: error::errorList::error_s16.code,
@@ -118,7 +118,7 @@ pub fn collect_number(
                         data.value = types::number_type::NumberSize::U32(nm);
                     } else {
                         errors.push(error::Error {
-                            debug_message: "./parser/src/processors/type_processors/number.rs:3"
+                            debug_message: "06204ca602c2fa33cb5f7baacb8be59b"
                                 .to_string(),
                             title: error::errorList::error_s16.title.clone(),
                             code: error::errorList::error_s16.code,
@@ -149,7 +149,7 @@ pub fn collect_number(
                         data.value = types::number_type::NumberSize::U64(nm);
                     } else {
                         errors.push(error::Error {
-                            debug_message: "./parser/src/processors/type_processors/number.rs:4"
+                            debug_message: "fb56238c11a4b84c587adc232178fe34"
                                 .to_string(),
                             title: error::errorList::error_s16.title.clone(),
                             code: error::errorList::error_s16.code,
@@ -180,7 +180,7 @@ pub fn collect_number(
                         data.value = types::number_type::NumberSize::U128(nm);
                     } else {
                         errors.push(error::Error {
-                            debug_message: "./parser/src/processors/type_processors/number.rs:5"
+                            debug_message: "a64fa0b21f9f8d32dbe2e0e70b58faf4"
                                 .to_string(),
                             title: error::errorList::error_s16.title.clone(),
                             code: error::errorList::error_s16.code,
@@ -211,7 +211,7 @@ pub fn collect_number(
                         data.value = types::number_type::NumberSize::Usize(nm);
                     } else {
                         errors.push(error::Error {
-                            debug_message: "./parser/src/processors/type_processors/number.rs:6"
+                            debug_message: "d0d987971f459aea6d0f2376e8594918"
                                 .to_string(),
                             title: error::errorList::error_s16.title.clone(),
                             code: error::errorList::error_s16.code,
@@ -242,7 +242,7 @@ pub fn collect_number(
                         data.value = types::number_type::NumberSize::I8(nm);
                     } else {
                         errors.push(error::Error {
-                            debug_message: "./parser/src/processors/type_processors/number.rs:7"
+                            debug_message: "1ab372711844e64b66b9625c31c97cc5"
                                 .to_string(),
                             title: error::errorList::error_s16.title.clone(),
                             code: error::errorList::error_s16.code,
@@ -273,7 +273,7 @@ pub fn collect_number(
                         data.value = types::number_type::NumberSize::I16(nm);
                     } else {
                         errors.push(error::Error {
-                            debug_message: "./parser/src/processors/type_processors/number.rs:8"
+                            debug_message: "4de9f83c400c3bd400c2f238e2cb3600"
                                 .to_string(),
                             title: error::errorList::error_s16.title.clone(),
                             code: error::errorList::error_s16.code,
@@ -304,7 +304,7 @@ pub fn collect_number(
                         data.value = types::number_type::NumberSize::I32(nm);
                     } else {
                         errors.push(error::Error {
-                            debug_message: "./parser/src/processors/type_processors/number.rs:9"
+                            debug_message: "c2769b16cb2de507293c9f9f162f183f"
                                 .to_string(),
                             title: error::errorList::error_s16.title.clone(),
                             code: error::errorList::error_s16.code,
@@ -335,7 +335,7 @@ pub fn collect_number(
                         data.value = types::number_type::NumberSize::I64(nm);
                     } else {
                         errors.push(error::Error {
-                            debug_message: "./parser/src/processors/type_processors/number.rs:10"
+                            debug_message: "13649bec3a2d18bffedde294c60865a9"
                                 .to_string(),
                             title: error::errorList::error_s16.title.clone(),
                             code: error::errorList::error_s16.code,
@@ -366,7 +366,7 @@ pub fn collect_number(
                         data.value = types::number_type::NumberSize::I128(nm);
                     } else {
                         errors.push(error::Error {
-                            debug_message: "./parser/src/processors/type_processors/number.rs:11"
+                            debug_message: "8d64659491b12f9d17f69d50c6ebaa47"
                                 .to_string(),
                             title: error::errorList::error_s16.title.clone(),
                             code: error::errorList::error_s16.code,
@@ -397,7 +397,7 @@ pub fn collect_number(
                         data.value = types::number_type::NumberSize::Isize(nm);
                     } else {
                         errors.push(error::Error {
-                            debug_message: "./parser/src/processors/type_processors/number.rs:12"
+                            debug_message: "27545f8bacdc70818ce033c982d9d2de"
                                 .to_string(),
                             title: error::errorList::error_s16.title.clone(),
                             code: error::errorList::error_s16.code,
@@ -428,7 +428,7 @@ pub fn collect_number(
                         data.value = types::number_type::NumberSize::F32(nm);
                     } else {
                         errors.push(error::Error {
-                            debug_message: "./parser/src/processors/type_processors/number.rs:13"
+                            debug_message: "30f8f6e480dd3c47b6277c4976330a87"
                                 .to_string(),
                             title: error::errorList::error_s16.title.clone(),
                             code: error::errorList::error_s16.code,
@@ -459,7 +459,7 @@ pub fn collect_number(
                         data.value = types::number_type::NumberSize::F64(nm);
                     } else {
                         errors.push(error::Error {
-                            debug_message: "./parser/src/processors/type_processors/number.rs:14"
+                            debug_message: "c97ef8a82fc31f19b88ffbebe4c7e22c"
                                 .to_string(),
                             title: error::errorList::error_s16.title.clone(),
                             code: error::errorList::error_s16.code,
@@ -486,7 +486,7 @@ pub fn collect_number(
                 } else if !itered_data.rtype.raw_name().is_empty() {
                     //UNSAFE
                     errors.push(error::Error {
-                        debug_message: "./parser/src/processors/type_processors/number.rs:15"
+                        debug_message: "da7fd8902eb4e1f0054b59aba9d4564e"
                             .to_string(),
                         title: error::errorList::error_s3.title.clone(),
                         code: error::errorList::error_s3.code,
@@ -561,7 +561,7 @@ pub fn collect_number(
             data.complete = true;
         } else {
             errors.push(error::Error {
-                debug_message: "./parser/src/processors/type_processors/number.rs:16".to_string(),
+                debug_message: "7c3cf2fae40c83f78d76a2b941855ced".to_string(),
                 title: error::errorList::error_s1.title.clone(),
                 code: error::errorList::error_s1.code,
                 message: error::errorList::error_s1.message.clone(),
@@ -580,6 +580,7 @@ pub fn collect_number(
         }
     }
 }
+
 
 
 

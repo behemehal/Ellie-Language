@@ -41,7 +41,7 @@ pub fn collect_array(
         if letter_char == "[" && !data.child_start && is_s_n {
             if !data.comma && last_entry != 0 {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/array.rs:0"
+                    debug_message: "c399ddcbcef415be2f86c3324409f0de"
                         .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
@@ -79,7 +79,7 @@ pub fn collect_array(
         } else if letter_char == "," && !data.child_start && is_s_n {
             if data.complete {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/array.rs:1"
+                    debug_message: "1e0fc93165b5d65e1062d085fb42d45f"
                         .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
@@ -98,7 +98,7 @@ pub fn collect_array(
                 });
             } else if data.comma {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/array.rs:2"
+                    debug_message: "b7e961b65f8d8ae2e7dfa372f98f6756"
                         .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
@@ -128,7 +128,7 @@ pub fn collect_array(
         } else if letter_char == "]" && !data.child_start && is_s_n {
             if data.comma {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/array.rs:3"
+                    debug_message: "251be258b7b53479d60d79abec64ee74"
                         .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
@@ -147,7 +147,7 @@ pub fn collect_array(
                 });
             } else if data.complete {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/array.rs:4"
+                    debug_message: "0dc3d82aab42d01539d554bdedf9af46"
                         .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
@@ -222,7 +222,7 @@ pub fn collect_array(
                 if array_data.len.as_number().is_some() && data.collective.len() > *array_data.len.as_number().unwrap().value.as_usize().unwrap() {
                     //Check if array size is overflowed
                     errors.push(error::Error {
-                        debug_message: "./parser/src/processors/type_processors/array.rs:5"
+                        debug_message: "a118e9652c6713f7f841a55446fcd129"
                             .to_string(),
                         title: error::errorList::error_s19.title.clone(),
                         code: error::errorList::error_s19.code,
@@ -254,7 +254,7 @@ pub fn collect_array(
                     });
                 } else if letter_char != " " {
                     errors.push(error::Error {
-                        debug_message: "./parser/src/processors/type_processors/array.rs:6"
+                        debug_message: "fc56d083b59e55307ad96103338af3a0"
                             .to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
@@ -422,6 +422,7 @@ pub fn collect_array(
         }
     }
 }
+
 
 
 

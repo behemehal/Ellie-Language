@@ -123,7 +123,7 @@ pub fn collect_definer(
                     });
             } else if letter_char != " " && last_char == " " && data.rtype.trim() != "" {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/definer_processor.rs:0".to_string(),
+                    debug_message: "4cdea2683338f591e34c8f81964a3b0b".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -149,7 +149,7 @@ pub fn collect_definer(
                     data.rtype = utils::trim_good(data.rtype.trim().to_string());
                 } else if letter_char != " " {
                     errors.push(error::Error {
-                        debug_message: "./parser/src/processors/definer_processor.rs:1"
+                        debug_message: "1ddaf5a1ef1671b121c5f617ad62464e"
                             .to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
@@ -186,7 +186,7 @@ pub fn collect_definer(
                 } else if data.params.is_empty() && data.bracket_inserted {
                     //This should have been filled If everything were right
                     errors.push(error::Error {
-                        debug_message: "./parser/src/processors/definer_processor.rs:2"
+                        debug_message: "622fd1fca6b0e9217161065fc9a299d2"
                             .to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
@@ -224,7 +224,7 @@ pub fn collect_definer(
                 if data.return_keyword != 2 {
                     if letter_char != ":" {
                         errors.push(error::Error {
-                            debug_message: "./parser/src/processors/definer_processor.rs:3"
+                            debug_message: "7e28b62d9c779afb5d46ea00609afca3"
                                 .to_string(),
                             title: error::errorList::error_s1.title.clone(),
                             code: error::errorList::error_s1.code,
@@ -295,6 +295,7 @@ pub fn collect_definer(
         DefinerCollecting::Dynamic => {}
     }
 }
+
 
 
 
