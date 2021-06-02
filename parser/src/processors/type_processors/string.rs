@@ -34,4 +34,57 @@ pub fn collect_string(
                     builded_message: error::Error::build(
                         error::errorList::error_s1.message.clone(),
                         vec![error::ErrorBuildField {
-                            key: 
+                            key: "token".to_string(),
+                            value: letter_char.to_string(),
+                        }],
+                    ),
+                    pos: defs::Cursor {
+                        range_start: pos,
+                        range_end: pos.clone().skipChar(1),
+                    },
+                });
+            } else {
+                data.complete = true;
+            }
+        } else if letter_char == "." && data.complete {
+            // String prototype
+            itered_data.data.value =
+                types::Types::Refference(types::refference_type::RefferenceType {
+                    refference: Box::new(itered_data.data.value.clone()),
+                    on_dot: true,
+                    chain: Vec::new(),
+                });
+        } else if utils::is_opearators(letter_char) {
+            //itered_data.data.value = types::Types::Operators(types::OperatorType {
+            //    first: Box::new(itered_data.data.value.clone()),
+            //    operator_collect: letter_char.to_string(),
+            //    collecting_operator: true,
+            //    ..Default::default()
+            //});
+        } else if !data.complete {
+            data.value += letter_char;
+        } else if letter_char != " " {
+            errors.push(error::Error {
+                debug_message: "./parser/src/processors/type_processors/string.rs:1".to_string(),
+                title: error::errorList::error_s1.title.clone(),
+                code: error::errorList::error_s1.code,
+                message: error::errorList::error_s1.message.clone(),
+                builded_message: error::Error::build(
+                    error::errorList::error_s1.message.clone(),
+                    vec![error::ErrorBuildField {
+                        key: "token".to_string(),
+                        value: letter_char.to_string(),
+                    }],
+                ),
+                pos: defs::Cursor {
+                    range_start: pos,
+                    range_end: pos.clone().skipChar(1),
+                },
+            });
+        }
+    }
+}
+
+
+
+

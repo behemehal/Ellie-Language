@@ -42,4 +42,28 @@ pub fn collect_variable(
                 builded_message: error::Error::build(
                     error::errorList::error_s1.message.clone(),
                     vec![error::ErrorBuildField {
-                        key: 
+                        key: "token".to_string(),
+                        value: current_reliability.found.to_string(),
+                    }],
+                ),
+                pos: defs::Cursor {
+                    range_start: defs::CursorPosition(
+                        pos.0,
+                        (pos.1 - itered_data.raw_value.len() as i64)
+                            + current_reliability.at as i64,
+                    ),
+                    range_end: defs::CursorPosition(
+                        pos.0,
+                        ((pos.1 - itered_data.raw_value.len() as i64)
+                            + current_reliability.at as i64)
+                            + 1,
+                    ),
+                },
+            });
+        }
+    }
+}
+
+
+
+
