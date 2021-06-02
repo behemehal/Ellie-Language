@@ -11,7 +11,6 @@ use crate::syntax::types::logical_type::LogicalOpearators;
 use alloc::boxed::Box;
 use alloc::string::String;
 
-
 #[derive(PartialEq, Debug, Clone, Serialize)]
 pub enum Operators {
     ComparisonType(ComparisonOperators),
@@ -60,7 +59,6 @@ impl Default for Operators {
         Operators::Null
     }
 }
-
 
 #[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct OperatorType {

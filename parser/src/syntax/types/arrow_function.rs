@@ -1,5 +1,6 @@
 use crate::parser::Collecting;
 use crate::syntax::{definers, function};
+<<<<<<< HEAD
 use alloc::boxed::Box;
 use alloc::string::String;
 use alloc::vec::Vec;
@@ -12,6 +13,12 @@ use alloc::string::String;
 =======
 <<<<<<< HEAD
 =======
+=======
+use alloc::boxed::Box;
+use alloc::string::String;
+use alloc::vec::Vec;
+use serde::Serialize;
+>>>>>>> FFI
 
 >>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
 >>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
@@ -21,7 +28,6 @@ pub struct ArrowFunction {
     pub return_type: Box<definers::DefinerCollecting>,
     pub inside_code: Vec<Collecting>,
 }
-
 
 #[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct ArrowFunctionCollector {

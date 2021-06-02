@@ -18,6 +18,7 @@ pub fn collect_value(
     last_char: String,
     pos: defs::CursorPosition,
 <<<<<<< HEAD
+<<<<<<< HEAD
     options: defs::ParserOptions,
 =======
 <<<<<<< HEAD
@@ -26,6 +27,9 @@ pub fn collect_value(
     options: defs::ParserOptions
 >>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
 >>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
+=======
+    options: defs::ParserOptions,
+>>>>>>> FFI
 ) -> CollectorResponse {
     let mut errors: Vec<error::Error> = Vec::new();
     match &mut itered_data.data.value {
@@ -63,6 +67,7 @@ pub fn collect_value(
             last_char,
             pos,
 <<<<<<< HEAD
+<<<<<<< HEAD
             options,
 =======
 <<<<<<< HEAD
@@ -71,6 +76,9 @@ pub fn collect_value(
             options
 >>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
 >>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
+=======
+            options,
+>>>>>>> FFI
         ),
         types::Types::Operator(_) => type_processors::operator::collect_operator(
             itered_data,
@@ -80,6 +88,7 @@ pub fn collect_value(
             last_char,
             pos,
 <<<<<<< HEAD
+<<<<<<< HEAD
             options,
 =======
 <<<<<<< HEAD
@@ -88,6 +97,9 @@ pub fn collect_value(
             options
 >>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
 >>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
+=======
+            options,
+>>>>>>> FFI
         ),
         types::Types::Array(_) => type_processors::array::collect_array(
             itered_data,
@@ -97,6 +109,7 @@ pub fn collect_value(
             last_char,
             pos,
 <<<<<<< HEAD
+<<<<<<< HEAD
             options,
 =======
 <<<<<<< HEAD
@@ -105,6 +118,9 @@ pub fn collect_value(
             options
 >>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
 >>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
+=======
+            options,
+>>>>>>> FFI
         ),
         types::Types::Cloak(_) => type_processors::cloak::collect_cloak(
             itered_data,
@@ -114,6 +130,7 @@ pub fn collect_value(
             last_char,
             pos,
 <<<<<<< HEAD
+<<<<<<< HEAD
             options,
 =======
 <<<<<<< HEAD
@@ -122,6 +139,9 @@ pub fn collect_value(
             options
 >>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
 >>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
+=======
+            options,
+>>>>>>> FFI
         ),
         types::Types::ArrowFunction(_) => type_processors::arrow_function::collect_arrow(
             itered_data,
@@ -131,6 +151,7 @@ pub fn collect_value(
             last_char,
             pos,
 <<<<<<< HEAD
+<<<<<<< HEAD
             options,
 =======
 <<<<<<< HEAD
@@ -139,6 +160,9 @@ pub fn collect_value(
             options
 >>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
 >>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
+=======
+            options,
+>>>>>>> FFI
         ),
         types::Types::FunctionCall(_) => type_processors::function_call::collect_function_caller(
             itered_data,
@@ -148,6 +172,7 @@ pub fn collect_value(
             last_char,
             pos,
 <<<<<<< HEAD
+<<<<<<< HEAD
             options,
 =======
 <<<<<<< HEAD
@@ -156,6 +181,9 @@ pub fn collect_value(
             options
 >>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
 >>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
+=======
+            options,
+>>>>>>> FFI
         ),
         types::Types::Void => (),
         types::Types::VariableType(_) => type_processors::variable::collect_variable(

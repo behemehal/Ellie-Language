@@ -3,6 +3,7 @@ use crate::syntax::{types, variable};
 use ellie_core::{defs, error};
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};
 use alloc::vec;
@@ -12,12 +13,13 @@ use alloc::boxed::Box;
 use alloc::string::{String, ToString};
 use alloc::vec;
 =======
+=======
+use alloc::boxed::Box;
+>>>>>>> FFI
 use alloc::string::{String, ToString};
 >>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
 >>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
 use alloc::vec::Vec;
-use alloc::vec;
-use alloc::boxed::Box;
 
 pub fn collect_null(
     itered_data: &mut variable::VariableCollector,
@@ -33,6 +35,7 @@ pub fn collect_null(
             if letter_char == "\"" {
                 if itered_data.data.dynamic {
 <<<<<<< HEAD
+<<<<<<< HEAD
                     itered_data.rtype = crate::syntax::definers::DefinerCollecting::Generic(
 =======
 <<<<<<< HEAD
@@ -41,10 +44,14 @@ pub fn collect_null(
                     itered_data.r#type = crate::syntax::definers::DefinerCollecting::Generic(
 >>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
 >>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
+=======
+                    itered_data.rtype = crate::syntax::definers::DefinerCollecting::Generic(
+>>>>>>> FFI
                         crate::syntax::definers::GenericType {
                             rtype: "string".to_string(),
                         },
                     );
+<<<<<<< HEAD
 <<<<<<< HEAD
                 } else if !matches!(&itered_data.rtype, crate::syntax::definers::DefinerCollecting::Generic(x) if x.rtype == "string")
 =======
@@ -79,11 +86,14 @@ pub fn collect_null(
                             range_end: pos.clone().skipChar(1),
                         },
                     });
+=======
+>>>>>>> FFI
                 }
                 itered_data.data.value =
                     types::Types::String(types::string_type::StringType::default());
             } else if letter_char == "'" {
                 if itered_data.data.dynamic {
+<<<<<<< HEAD
 <<<<<<< HEAD
                     itered_data.rtype = crate::syntax::definers::DefinerCollecting::Generic(
 =======
@@ -93,10 +103,14 @@ pub fn collect_null(
                     itered_data.r#type = crate::syntax::definers::DefinerCollecting::Generic(
 >>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
 >>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
+=======
+                    itered_data.rtype = crate::syntax::definers::DefinerCollecting::Generic(
+>>>>>>> FFI
                         crate::syntax::definers::GenericType {
                             rtype: "char".to_string(),
                         },
                     );
+<<<<<<< HEAD
 <<<<<<< HEAD
                 } else if !matches!(&itered_data.rtype, crate::syntax::definers::DefinerCollecting::Generic(x) if x.rtype == "char")
 =======
@@ -131,6 +145,8 @@ pub fn collect_null(
                             range_end: pos.clone().skipChar(1),
                         },
                     });
+=======
+>>>>>>> FFI
                 }
                 itered_data.data.value = types::Types::Char(types::char_type::CharType::default());
             } else if (itered_data.raw_value.clone() + letter_char)
@@ -140,6 +156,7 @@ pub fn collect_null(
                 itered_data.data.value =
                     types::Types::Number(types::number_type::NumberType::default());
 <<<<<<< HEAD
+<<<<<<< HEAD
                 type_processors::number::collect_number(
 =======
 <<<<<<< HEAD
@@ -148,6 +165,9 @@ pub fn collect_null(
                 type_processors::number::collect(
 >>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
 >>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
+=======
+                type_processors::number::collect_number(
+>>>>>>> FFI
                     itered_data,
                     errors,
                     letter_char,
@@ -157,6 +177,7 @@ pub fn collect_null(
                 )
             } else if letter_char == "[" {
                 if itered_data.data.dynamic {
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -213,6 +234,14 @@ pub fn collect_null(
                             range_end: pos.clone().skipChar(1),
                         },
                     });
+=======
+                    itered_data.rtype = crate::syntax::definers::DefinerCollecting::GrowableArray(
+                        crate::syntax::definers::GrowableArrayType {
+                            rtype: Box::new(crate::syntax::definers::DefinerCollecting::Dynamic),
+                            ..Default::default()
+                        },
+                    );
+>>>>>>> FFI
                 }
                 itered_data.data.value = types::Types::Array(types::array_type::ArrayType {
                     layer_size: 0,

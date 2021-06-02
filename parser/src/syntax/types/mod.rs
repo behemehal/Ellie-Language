@@ -14,6 +14,7 @@ pub mod refference_type;
 pub mod string_type;
 pub mod variable_type;
 
+<<<<<<< HEAD
 use enum_as_inner::EnumAsInner;
 use serde::Serialize;
 use enum_as_inner::EnumAsInner;
@@ -22,6 +23,13 @@ use enum_as_inner::EnumAsInner;
 =======
 <<<<<<< HEAD
 =======
+=======
+use alloc::format;
+use alloc::string::String;
+use ellie_core::utils;
+use enum_as_inner::EnumAsInner;
+use serde::Serialize;
+>>>>>>> FFI
 
 >>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
 >>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
@@ -44,6 +52,13 @@ pub enum Types {
 }
 
 impl Types {
+    pub fn get_type(&self) -> String {
+        let mut q: String = format!("{:?}", self);
+        let bracket_offset = q.find('(').unwrap_or_else(|| q.len());
+        q.replace_range(bracket_offset.., "");
+        utils::lower_first_char(q)
+    }
+
     pub fn is_string_open(&self) -> bool {
         match &*self {
             Types::Number(_) => true,

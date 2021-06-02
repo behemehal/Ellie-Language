@@ -5,14 +5,21 @@ use std::env;
 use std::{fs, io::Read};
 
 fn main() {
-    if env::args().any(|x| x == "-v") || env::args().any(|x| x == "--version") {
+    if env::args().any(|x| x == "-v" || x == "--version") {
         const VERSION: &str = env!("CARGO_PKG_VERSION");
-        println!("v{}", VERSION);
-    } else if env::args().any(|x| x == "-h") || env::args().any(|x| x == "--help") {
+        println!("Ellie v{} - Code: HotWire", VERSION);
+    } else if env::args().any(|x| x == "-h" || x == "--help") {
         println!("Usage: ellie [options] [file path]");
         println!("Options:");
-        println!("\t--version        || -v  : Show Version");
-        println!("\t--help           || -h  : Show Help");
+        println!("\t--version                    || -v   : Show Version");
+        println!("\t--help                       || -h   : Show Help");
+        println!("\t--debug                      || -d   : Show debug headers");
+        println!(
+            "\t--experimental-error-listing || -xe  : Use experimental error listing in terminal"
+        );
+        println!("\t--to-raw                     || -tr  : Compiles ellie to ellie raw");
+        println!("\t--raw-compiler               || -rw  : Compiles as ellie raw");
+        println!("\t--show-errors                || -se  : Show syntax errors while parsing");
     } else {
         let args = env::args()
             .collect::<Vec<String>>()
@@ -26,7 +33,7 @@ fn main() {
                 .into_iter()
                 .filter(|x| x.contains('.'))
                 .collect::<Vec<String>>();
-            let debug_arg = env::args().any(|x| x == "--debug");
+            let debug_arg = env::args().any(|x| x == "--debug" || x == "-d");
             //let map_errors_arg = env::args().any(|x| x == "--map-errors");
             let file_arg_check = file_args.first();
             if file_arg_check != None {
@@ -56,73 +63,135 @@ fn main() {
                         );
                         let mapped = parser.map();
                         if !mapped.syntax_errors.is_empty() {
-                            //let serialized = serde_json::to_string(&mapped.syntax_errors).unwrap();
-                            //println!("serialized = {}", serialized);
-                            for error in &mapped.syntax_errors {
-                                println!(
-                                    "{}{}Error[{:#04x}]{} - {}{}{}: {}",
-                                    if debug_arg {
-                                        format!(
-                                            "{}[{}]{} ",
-                                            utils::terminal_colors::get_color(
-                                                utils::terminal_colors::Colors::Yellow
-                                            ),
-                                            error.debug_message,
-                                            utils::terminal_colors::get_color(
-                                                utils::terminal_colors::Colors::Reset
+                            if env::args()
+                                .any(|x| x == "-xe" || x == "--experimental-error-listing")
+                            {
+                                for error in &ellie_core::utils::zip_errors(mapped.syntax_errors) {
+                                    println!(
+                                        "{}{}Error[{:#04x}]{} - {}{}{}: {}",
+                                        if debug_arg {
+                                            format!(
+                                                "{}[{}]{} ",
+                                                utils::terminal_colors::get_color(
+                                                    utils::terminal_colors::Colors::Yellow
+                                                ),
+                                                error.debug_message,
+                                                utils::terminal_colors::get_color(
+                                                    utils::terminal_colors::Colors::Reset
+                                                )
                                             )
+                                        } else {
+                                            "".to_string()
+                                        },
+                                        utils::terminal_colors::get_color(
+                                            utils::terminal_colors::Colors::Red
+                                        ),
+                                        &error.code,
+                                        utils::terminal_colors::get_color(
+                                            utils::terminal_colors::Colors::Reset
+                                        ),
+                                        utils::terminal_colors::get_color(
+                                            utils::terminal_colors::Colors::Cyan
+                                        ),
+                                        error.title,
+                                        utils::terminal_colors::get_color(
+                                            utils::terminal_colors::Colors::Reset
+                                        ),
+                                        error.builded_message.builded
+                                    );
+                                    println!(
+                                        "{}:{}:{}",
+                                        file_arg.clone(),
+                                        error.pos.range_start.0 + 1,
+                                        error.pos.range_start.1 + 1
+                                    );
+                                    println!(
+                                        "{}\n{}{}{}",
+                                        utils::get_line(
+                                            code.clone(),
+                                            error.pos.range_start.0 as usize
+                                        ),
+                                        utils::terminal_colors::get_color(
+                                            utils::terminal_colors::Colors::Red
+                                        ),
+                                        utils::arrow(
+                                            (error.pos.range_start.1 + 1) as usize,
+                                            ((error.pos.range_end.1) - (error.pos.range_start.1))
+                                                as usize
+                                        ),
+                                        utils::terminal_colors::get_color(
+                                            utils::terminal_colors::Colors::Reset
                                         )
-                                    } else {
-                                        "".to_string()
-                                    },
-                                    utils::terminal_colors::get_color(
-                                        utils::terminal_colors::Colors::Red
-                                    ),
-                                    &error.code,
-                                    utils::terminal_colors::get_color(
-                                        utils::terminal_colors::Colors::Reset
-                                    ),
-                                    utils::terminal_colors::get_color(
-                                        utils::terminal_colors::Colors::Cyan
-                                    ),
-                                    error.title,
-                                    utils::terminal_colors::get_color(
-                                        utils::terminal_colors::Colors::Reset
-                                    ),
-                                    error.builded_message
-                                );
-                                println!(
-                                    "{}:{}:{}",
-                                    file_arg.clone(),
-                                    error.pos.range_start.0 + 1,
-                                    error.pos.range_start.1 + 1
-                                );
-                                println!(
-                                    "{}\n{}{}{}",
-                                    utils::get_line(code.clone(), error.pos.range_start.0 as usize),
-                                    utils::terminal_colors::get_color(
-                                        utils::terminal_colors::Colors::Red
-                                    ),
-                                    utils::arrow(
-                                        (error.pos.range_start.1 + 1) as usize,
-                                        ((error.pos.range_end.1) - (error.pos.range_start.1))
-                                            as usize
-                                    ),
-                                    utils::terminal_colors::get_color(
-                                        utils::terminal_colors::Colors::Reset
-                                    )
-                                );
+                                    );
+                                }
+                            } else {
+                                for error in &mapped.syntax_errors {
+                                    println!(
+                                        "{}{}Error[{:#04x}]{} - {}{}{}: {}",
+                                        if debug_arg {
+                                            format!(
+                                                "{}[{}]{} ",
+                                                utils::terminal_colors::get_color(
+                                                    utils::terminal_colors::Colors::Yellow
+                                                ),
+                                                error.debug_message,
+                                                utils::terminal_colors::get_color(
+                                                    utils::terminal_colors::Colors::Reset
+                                                )
+                                            )
+                                        } else {
+                                            "".to_string()
+                                        },
+                                        utils::terminal_colors::get_color(
+                                            utils::terminal_colors::Colors::Red
+                                        ),
+                                        &error.code,
+                                        utils::terminal_colors::get_color(
+                                            utils::terminal_colors::Colors::Reset
+                                        ),
+                                        utils::terminal_colors::get_color(
+                                            utils::terminal_colors::Colors::Cyan
+                                        ),
+                                        error.title,
+                                        utils::terminal_colors::get_color(
+                                            utils::terminal_colors::Colors::Reset
+                                        ),
+                                        error.builded_message.builded
+                                    );
+                                    println!(
+                                        "{}:{}:{}",
+                                        file_arg.clone(),
+                                        error.pos.range_start.0 + 1,
+                                        error.pos.range_start.1 + 1
+                                    );
+                                    println!(
+                                        "{}\n{}{}{}",
+                                        utils::get_line(
+                                            code.clone(),
+                                            error.pos.range_start.0 as usize
+                                        ),
+                                        utils::terminal_colors::get_color(
+                                            utils::terminal_colors::Colors::Red
+                                        ),
+                                        utils::arrow(
+                                            (error.pos.range_start.1 + 1) as usize,
+                                            ((error.pos.range_end.1) - (error.pos.range_start.1))
+                                                as usize
+                                        ),
+                                        utils::terminal_colors::get_color(
+                                            utils::terminal_colors::Colors::Reset
+                                        )
+                                    );
+                                }
                             }
-                        } else if env::args().any(|x| x == "-rw")
-                            || env::args().any(|x| x == "--raw-compile")
-                        {
+                        } else if env::args().any(|x| x == "-rw" || x == "--raw-compile") {
                             //let mut wraw = File::create("compiled.wraw").expect("Unable to create file");
                             //let serialized = serde_json::to_string(&point).unwrap();
                             //for i in &syntax.clone().items {
                             //    write!(wraw, "{:?}", i);
                             //}
                             println!("Pre-compiled raw generation not supported yet {:#?}", code);
-                        } else {
+                        } else if !env::args().any(|x| x == "-se" || x == "--show-errors") {
                             print!("Collected: {:#?}", mapped);
                         }
                     }

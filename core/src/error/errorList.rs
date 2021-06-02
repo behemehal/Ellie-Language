@@ -1,4 +1,5 @@
 #![allow(warnings)]
+use alloc::string::ToString;
 use std::ops::{Deref, DerefMut};
 
 lazy_static! {

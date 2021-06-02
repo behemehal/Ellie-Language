@@ -15,6 +15,7 @@ pub fn collect_operator(
     last_char: String,
     pos: defs::CursorPosition,
 <<<<<<< HEAD
+<<<<<<< HEAD
     options: defs::ParserOptions,
 =======
 <<<<<<< HEAD
@@ -23,6 +24,9 @@ pub fn collect_operator(
     options: defs::ParserOptions
 >>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
 >>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
+=======
+    options: defs::ParserOptions,
+>>>>>>> FFI
 ) {
     if let types::Types::Operator(ref mut data) = itered_data.data.value {
         if !data.operator_collected {
@@ -36,7 +40,8 @@ pub fn collect_operator(
                     data.operator_collected = true;
                 } else {
                     errors.push(error::Error {
-                        debug_message: "./parser/src/processors/type_processors/operator.rs:29" .to_string(),
+                        debug_message: "./parser/src/processors/type_processors/operator.rs:29"
+                            .to_string(),
                         title: error::errorList::error_s13.title.clone(),
                         code: error::errorList::error_s13.code,
                         message: error::errorList::error_s13.message.clone(),
@@ -72,6 +77,7 @@ pub fn collect_operator(
                 last_char,
                 defs::CursorPosition(0, 0),
 <<<<<<< HEAD
+<<<<<<< HEAD
                 options,
 =======
 <<<<<<< HEAD
@@ -80,6 +86,9 @@ pub fn collect_operator(
                 options
 >>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
 >>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
+=======
+                options,
+>>>>>>> FFI
             );
             if itered_child.errors.is_empty() {
                 for returned_error in itered_child.errors {
@@ -153,4 +162,3 @@ pub fn collect_operator(
         }
     }
 }
-

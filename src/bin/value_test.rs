@@ -18,7 +18,7 @@ fn main() {
     let code = "
 
         @(test: array(i8, 8), test2: i8) {}
-    
+
     ";
 
     for (index, char) in code.chars().enumerate() {
@@ -35,6 +35,7 @@ fn main() {
             last_char.to_string(),
             pos,
 <<<<<<< HEAD
+<<<<<<< HEAD
             ellie_core::defs::ParserOptions::default(),
 =======
 <<<<<<< HEAD
@@ -43,6 +44,9 @@ fn main() {
             ellie_core::defs::ParserOptions::default()
 >>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
 >>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
+=======
+            ellie_core::defs::ParserOptions::default(),
+>>>>>>> FFI
         );
 
         for error in itered.errors {
@@ -72,7 +76,7 @@ fn main() {
                 ellie_core::utils::terminal_colors::get_color(
                     ellie_core::utils::terminal_colors::Colors::Reset
                 ),
-                error.builded_message
+                error.builded_message.builded
             );
         }
         emulated_collector_data = itered.itered_data;

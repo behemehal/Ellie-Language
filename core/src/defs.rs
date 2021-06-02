@@ -1,4 +1,8 @@
 #![allow(warnings)] //TODO Remove this
+use crate::alloc::borrow::ToOwned;
+use alloc::format;
+use alloc::string::{String, ToString};
+use alloc::vec::Vec;
 use core::fmt;
 use serde::Serialize;
 
@@ -81,7 +85,7 @@ impl fmt::Display for SyntaxError {
                 } else {
                     "".to_string()
                 },
-                self.error.builded_message
+                self.error.builded_message.builded
             )
             .to_string(),
         )

@@ -1,10 +1,13 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
 
 >>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
 >>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
+=======
+>>>>>>> FFI
 #[derive(PartialEq, Debug, Clone)]
 pub enum CallerType {
     FunctionCaller,
@@ -13,12 +16,15 @@ pub enum CallerType {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
 
 >>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
 >>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
+=======
+>>>>>>> FFI
 #[derive(PartialEq, Debug, Clone)]
 pub struct Caller {
     pub initialized: bool,

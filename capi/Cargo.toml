@@ -1,0 +1,17 @@
+[package]
+name = "ellie_c"
+version = "0.1.0"
+authors = ["Ahmetcan Aksu <ahmetcanco@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+ellie_core = {path = "../core", version = "0.1.0"}
+ellie_parser = {path = "../parser", version = "0.1.0"}
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+libc = "0.2.14"

@@ -14,6 +14,7 @@ pub fn collect_function(
     next_char: String,
     last_char: String,
 <<<<<<< HEAD
+<<<<<<< HEAD
     options: defs::ParserOptions,
 =======
 <<<<<<< HEAD
@@ -22,6 +23,9 @@ pub fn collect_function(
     options: defs::ParserOptions
 >>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
 >>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
+=======
+    options: defs::ParserOptions,
+>>>>>>> FFI
 ) {
     if let parser::Collecting::Function(ref mut functiondata) = parser.current {
         if !functiondata.initialized {
@@ -67,6 +71,7 @@ pub fn collect_function(
                     if last_char == " " && !functiondata.data.name.is_empty() {
                         errors.push(error::Error {
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
@@ -75,6 +80,10 @@ pub fn collect_function(
 =======
                             debug_message: "./parser/src/processors/function_processor.rs:59" .to_string(),
 >>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+=======
+                            debug_message: "./parser/src/processors/function_processor.rs:59"
+                                .to_string(),
+>>>>>>> FFI
                             title: error::errorList::error_s1.title.clone(),
                             code: error::errorList::error_s1.code,
                             message: error::errorList::error_s1.message.clone(),
@@ -96,6 +105,7 @@ pub fn collect_function(
                 } else if letter_char != " " {
                     errors.push(error::Error {
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
@@ -104,6 +114,10 @@ pub fn collect_function(
 =======
                         debug_message: "./parser/src/processors/function_processor.rs:81" .to_string(),
 >>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+=======
+                        debug_message: "./parser/src/processors/function_processor.rs:81"
+                            .to_string(),
+>>>>>>> FFI
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -234,6 +248,7 @@ pub fn collect_function(
                     next_char,
                     last_char,
 <<<<<<< HEAD
+<<<<<<< HEAD
                     options,
 =======
 <<<<<<< HEAD
@@ -242,6 +257,9 @@ pub fn collect_function(
                     options
 >>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
 >>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
+=======
+                    options,
+>>>>>>> FFI
                 );
             }
         } else if !functiondata.return_typed {
@@ -259,6 +277,7 @@ pub fn collect_function(
                 } else if letter_char != " " {
                     errors.push(error::Error {
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
@@ -267,6 +286,10 @@ pub fn collect_function(
 =======
                         debug_message: "./parser/src/processors/function_processor.rs:228" .to_string(),
 >>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+=======
+                        debug_message: "./parser/src/processors/function_processor.rs:228"
+                            .to_string(),
+>>>>>>> FFI
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -293,6 +316,7 @@ pub fn collect_function(
                     if last_char == " " && !functiondata.return_type_text.is_empty() {
                         errors.push(error::Error {
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
@@ -301,6 +325,10 @@ pub fn collect_function(
 =======
                             debug_message: "./parser/src/processors/function_processor.rs:255" .to_string(),
 >>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+=======
+                            debug_message: "./parser/src/processors/function_processor.rs:255"
+                                .to_string(),
+>>>>>>> FFI
                             title: error::errorList::error_s1.title.clone(),
                             code: error::errorList::error_s1.code,
                             message: error::errorList::error_s1.message.clone(),
@@ -323,6 +351,7 @@ pub fn collect_function(
                     if functiondata.return_type_text.is_empty() {
                         errors.push(error::Error {
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
@@ -331,10 +360,14 @@ pub fn collect_function(
 =======
                             debug_message: "./parser/src/processors/function_processor.rs:278" .to_string(),
 >>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+=======
+                            debug_message: "./parser/src/processors/function_processor.rs:278"
+                                .to_string(),
+>>>>>>> FFI
                             title: error::errorList::error_s8.title.clone(),
                             code: error::errorList::error_s8.code,
                             message: error::errorList::error_s8.message.clone(),
-                            builded_message: error::errorList::error_s8.message.clone(),
+                            builded_message: error::BuildedError::default(),
                             pos: defs::Cursor {
                                 range_start: parser.pos,
                                 range_end: parser.pos.clone().skipChar(1),
@@ -350,6 +383,7 @@ pub fn collect_function(
                 } else if letter_char != " " {
                     errors.push(error::Error {
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
@@ -358,6 +392,10 @@ pub fn collect_function(
 =======
                         debug_message: "./parser/src/processors/function_processor.rs:298" .to_string(),
 >>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
+=======
+                        debug_message: "./parser/src/processors/function_processor.rs:298"
+                            .to_string(),
+>>>>>>> FFI
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -405,6 +443,7 @@ pub fn collect_function(
                 }
             } else {
 <<<<<<< HEAD
+<<<<<<< HEAD
                 let child_parser =
                     parser::Parser::new(functiondata.inside_code_string.clone(), options);
 =======
@@ -418,6 +457,10 @@ pub fn collect_function(
                 );
 >>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
 >>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
+=======
+                let child_parser =
+                    parser::Parser::new(functiondata.inside_code_string.clone(), options);
+>>>>>>> FFI
                 parser.pos = child_parser.pos;
                 let mapped = child_parser.map();
                 for i in mapped.syntax_errors {
@@ -432,4 +475,3 @@ pub fn collect_function(
         }
     }
 }
-

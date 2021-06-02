@@ -20,6 +20,7 @@ pub fn collect_variable_value(
     next_char: String,
     last_char: String,
 <<<<<<< HEAD
+<<<<<<< HEAD
     options: defs::ParserOptions,
 =======
 <<<<<<< HEAD
@@ -28,6 +29,9 @@ pub fn collect_variable_value(
     options: defs::ParserOptions
 >>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
 >>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
+=======
+    options: defs::ParserOptions,
+>>>>>>> FFI
 ) {
     if let parser::Collecting::Variable(ref mut variabledata) = parser.current {
         if !variabledata.named {
@@ -60,7 +64,9 @@ pub fn collect_variable_value(
                             title: error::errorList::error_s11.title.clone(),
                             code: error::errorList::error_s11.code,
                             message: error::errorList::error_s11.message.clone(),
-                            builded_message: error::errorList::error_s11.message.clone(),
+                            builded_message: error::BuildedError::build_from_string(
+                                error::errorList::error_s11.message.clone(),
+                            ),
                             pos: defs::Cursor {
                                 range_start: parser.pos.clone().skipChar(1),
                                 range_end: parser.pos.clone().skipChar(2),
@@ -75,7 +81,7 @@ pub fn collect_variable_value(
             } else if letter_char == "=" {
                 #[cfg(feature = "std")]
                 std::println!(
-                    "{}[ParserWarning]{}: WORKING BLIND, ReadMore: {}https://github.com/behemehal/Ellie-Language/issues/2{}",
+                    "{}[ParserWarning]{}: WORKING BLIND, Read more: {}https://github.com/behemehal/Ellie-Language/issues/2{}",
                     utils::terminal_colors::get_color(utils::terminal_colors::Colors::Yellow),
                     utils::terminal_colors::get_color(utils::terminal_colors::Colors::Reset),
                     utils::terminal_colors::get_color(utils::terminal_colors::Colors::Cyan),
@@ -89,7 +95,9 @@ pub fn collect_variable_value(
                         title: error::errorList::error_s8.title.clone(),
                         code: error::errorList::error_s8.code,
                         message: error::errorList::error_s8.message.clone(),
-                        builded_message: error::errorList::error_s8.message.clone(),
+                        builded_message: error::BuildedError::build_from_string(
+                            error::errorList::error_s8.message.clone(),
+                        ),
                         pos: defs::Cursor {
                             range_start: parser.pos,
                             range_end: parser.pos.clone().skipChar(1),
@@ -173,7 +181,7 @@ pub fn collect_variable_value(
             if letter_char == ";" {
                 #[cfg(feature = "std")]
                 std::println!(
-                    "{}[ParserWarning]{}: WORKING BLIND, ReadMore: {}https://github.com/behemehal/Ellie-Language/issues/2{}",
+                    "{}[ParserWarning]{}: WORKING BLIND, Read more: {}https://github.com/behemehal/Ellie-Language/issues/2{}",
                     utils::terminal_colors::get_color(utils::terminal_colors::Colors::Yellow),
                     utils::terminal_colors::get_color(utils::terminal_colors::Colors::Reset),
                     utils::terminal_colors::get_color(utils::terminal_colors::Colors::Cyan),
@@ -204,7 +212,7 @@ pub fn collect_variable_value(
                 } else {
                     #[cfg(feature = "std")]
                     std::println!(
-                        "{}[ParserWarning]{}: WORKING BLIND, ReadMore: {}https://github.com/behemehal/Ellie-Language/issues/2{}",
+                        "{}[ParserWarning]{}: WORKING BLIND, Read more: {}https://github.com/behemehal/Ellie-Language/issues/2{}",
                         utils::terminal_colors::get_color(utils::terminal_colors::Colors::Yellow),
                         utils::terminal_colors::get_color(utils::terminal_colors::Colors::Reset),
                         utils::terminal_colors::get_color(utils::terminal_colors::Colors::Cyan),
@@ -213,6 +221,15 @@ pub fn collect_variable_value(
                     variabledata.typed = true;
                 }
             } else {
+<<<<<<< HEAD
+=======
+                if variabledata.data.type_pos.range_start.0 == 0
+                    && variabledata.data.type_pos.range_start.1 == 0
+                    && letter_char != " "
+                {
+                    variabledata.data.type_pos.range_start = parser.pos;
+                }
+>>>>>>> FFI
                 processors::definer_processor::collect_definer(
                     &mut variabledata.rtype,
                     errors,
@@ -220,6 +237,7 @@ pub fn collect_variable_value(
                     parser.pos,
                     next_char,
                     last_char,
+<<<<<<< HEAD
 <<<<<<< HEAD
                     options,
 =======
@@ -229,11 +247,49 @@ pub fn collect_variable_value(
                     options
 >>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
 >>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
+=======
+                    options,
+>>>>>>> FFI
                 );
+                variabledata.data.type_pos.range_end = parser.pos;
             }
         } else if letter_char == ";" {
+<<<<<<< HEAD
             if let parser::Collecting::Variable(collected) = parser.current.clone() {
                 if collected.data.value.is_type_complete() {
+=======
+            variabledata.data.value_pos.range_end = parser.pos;
+            if let parser::Collecting::Variable(ref mut collected) = parser.current {
+                if collected.data.value.is_type_complete() {
+                    collected.data.pos.range_end = parser.pos;
+                    collected.data.value_pos.range_end = parser.pos;
+
+                    if collected.rtype.raw_name() != collected.data.value.get_type() {
+                        errors.push(error::Error {
+                            debug_message: "err".to_string(),
+                            title: error::errorList::error_s3.title.clone(),
+                            code: error::errorList::error_s3.code,
+                            message: error::errorList::error_s3.message.clone(),
+                            builded_message: error::Error::build(
+                                error::errorList::error_s3.message.clone(),
+                                vec![
+                                    error::ErrorBuildField {
+                                        key: "token1".to_string(),
+                                        value: collected.rtype.raw_name(),
+                                    },
+                                    error::ErrorBuildField {
+                                        key: "token2".to_string(),
+                                        value: collected.data.value.get_type(),
+                                    },
+                                ],
+                            ),
+                            pos: collected.data.value_pos,
+                        });
+                    }
+
+                    //std::println!("SET: {:#?} {:#?}", collected.rtype.raw_name(), collected.data.value.get_type(), );
+
+>>>>>>> FFI
                     parser.collected.push(parser.current.clone());
                     parser.current = parser::Collecting::None;
                 } else {
@@ -251,13 +307,19 @@ pub fn collect_variable_value(
                             }],
                         ),
                         pos: defs::Cursor {
-                            range_start: parser.pos.clone().skipChar(1),
-                            range_end: parser.pos.clone().skipChar(2),
+                            range_start: parser.pos,
+                            range_end: parser.pos.clone().skipChar(1),
                         },
                     });
                 }
             }
         } else {
+            if variabledata.data.value_pos.range_start.0 == 0
+                && variabledata.data.value_pos.range_start.1 == 0
+                && letter_char != " "
+            {
+                variabledata.data.value_pos.range_start = parser.pos;
+            }
             let mut cd = variabledata.clone();
             let collected = processors::value_processor::collect_value(
                 &mut cd,
@@ -265,6 +327,7 @@ pub fn collect_variable_value(
                 next_char,
                 last_char,
                 parser.pos,
+<<<<<<< HEAD
 <<<<<<< HEAD
                 options,
 =======
@@ -274,10 +337,14 @@ pub fn collect_variable_value(
                 options
 >>>>>>> cc9fcde44426e37e6f25176d90bb7b1900459e53
 >>>>>>> 538bf62052a58de02e9b66352faed443e69c3ea2
+=======
+                options,
+>>>>>>> FFI
             );
             for i in collected.errors {
                 errors.push(i)
             }
+            variabledata.data.value_pos.range_end = parser.pos;
             parser.current = parser::Collecting::Variable(collected.itered_data);
         }
     }

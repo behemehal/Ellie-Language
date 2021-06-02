@@ -6,7 +6,7 @@ fn main() {
     let mut errors: Vec<ellie_core::error::Error> = vec![];
     let mut emulated_collector_data = ellie_parser::syntax::definers::DefinerCollecting::default();
     let code = "
-        dynamicArray(i8)
+        growableArray(i8)
     ";
 
     for (index, char) in code.chars().enumerate() {
@@ -23,7 +23,7 @@ fn main() {
             pos,
             next_char.to_string(),
             last_char.to_string(),
-            ellie_core::defs::ParserOptions::default()
+            ellie_core::defs::ParserOptions::default(),
         );
         pos.0 += 1;
     }
@@ -54,7 +54,7 @@ fn main() {
             ellie_core::utils::terminal_colors::get_color(
                 ellie_core::utils::terminal_colors::Colors::Reset
             ),
-            error.builded_message,
+            error.builded_message.builded,
             error.pos.range_start.0,
             error.pos.range_end.0
         );
