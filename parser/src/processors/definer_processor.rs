@@ -1,4 +1,3 @@
-use crate::alloc::format;
 use crate::alloc::string::{String, ToString};
 use crate::alloc::vec;
 use crate::alloc::vec::Vec;
