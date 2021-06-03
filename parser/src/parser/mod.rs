@@ -4,7 +4,7 @@
 use serde::Serialize;
 
 use crate::processors;
-use crate::syntax::{condition, function, variable};
+use crate::syntax::{class, condition, function, variable};
 use ellie_core::{defs, error, utils};
 
 use crate::alloc::string::{String, ToString};
@@ -21,6 +21,7 @@ pub enum Collecting {
     Variable(variable::VariableCollector),
     Function(function::FunctionCollector),
     Condition(condition::ConditionCollector),
+    Class(class::ClassCollector),
     None,
 }
 
@@ -96,6 +97,14 @@ impl Parser {
                         parser_options.clone(),
                     ),
                     Collecting::Function(_) => processors::function_processor::collect_function(
+                        &mut self,
+                        &mut errors,
+                        letter_char,
+                        next_char.clone(),
+                        last_char.clone(),
+                        parser_options.clone(),
+                    ),
+                    Collecting::Class(_) => processors::class_processor::collect_class(
                         &mut self,
                         &mut errors,
                         letter_char,
