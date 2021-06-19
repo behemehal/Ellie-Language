@@ -59,9 +59,7 @@ pub fn collect_arrow(
                                 .is_empty()
                         {
                             errors.push(error::Error {
-                                debug_message:
-                                    "./parser/src/processors/type_processors/arrow_function.rs:59"
-                                        .to_string(),
+                                debug_message:"".to_string(),
                                 title: error::errorList::error_s1.title.clone(),
                                 code: error::errorList::error_s1.code,
                                 message: error::errorList::error_s1.message.clone(),
@@ -84,9 +82,7 @@ pub fn collect_arrow(
                         functiondata.parameter_wrote = true;
                     } else if letter_char != " " {
                         errors.push(error::Error {
-                            debug_message:
-                                "./parser/src/processors/type_processors/arrow_function.rs:82"
-                                    .to_string(),
+                            debug_message:"".to_string(),
                             title: error::errorList::error_s1.title.clone(),
                             code: error::errorList::error_s1.code,
                             message: error::errorList::error_s1.message.clone(),
