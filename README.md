@@ -1,6 +1,6 @@
 ![icon](./picture/TextIcon/EllieTextIcon@0,33x.png)
 # Ellie
-[![Refactor Errors](https://github.com/behemehal/Ellie-Language/actions/workflows/refactor.yml/badge.svg)](https://github.com/behemehal/Ellie-Language/actions/workflows/refactor.yml) [![Build Status](https://travis-ci.com/behemehal/Ellie-VSCode.svg?token=mAtoxQCZoW6u6EP8sHms&branch=master)](https://travis-ci.com/behemehal/Ellie-VSCode)
+[![Refactor Errors](https://github.com/behemehal/Ellie-Language/actions/workflows/refactor.yml/badge.svg)](https://github.com/behemehal/Ellie-Language/actions/workflows/refactor.yml) [![Build Status](https://travis-ci.com/behemehal/Ellie-Language.svg?branch=main)](https://travis-ci.com/behemehal/Ellie-Language)
 
 Ellie language
 
