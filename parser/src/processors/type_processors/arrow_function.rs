@@ -191,4 +191,3 @@ pub fn collect_arrow(
         }
     }
 }
-

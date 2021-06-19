@@ -36,9 +36,7 @@ fn main() {
                 .collect::<Vec<String>>();
             let debug_arg = env::args().any(|x| x == "--debug" || x == "-d");
 
-            if debug_arg {
-                
-            }
+            if debug_arg {}
 
             //let map_errors_arg = env::args().any(|x| x == "--map-errors");
             let file_arg_check = file_args.first();
@@ -75,9 +73,7 @@ fn main() {
                                 .any(|x| x == "-xe" || x == "--experimental-error-listing")
                             {
                                 for error in &ellie_core::utils::zip_errors(mapped.syntax_errors) {
-                                    if env::args()
-                                        .any(|x| x == "-je" || x == "--json-errors")
-                                    {
+                                    if env::args().any(|x| x == "-je" || x == "--json-errors") {
                                         println!("{:#?}", serde_json::to_string(error).unwrap());
                                     } else {
                                         println!(
@@ -141,9 +137,7 @@ fn main() {
                                 }
                             } else {
                                 for error in &mapped.syntax_errors {
-                                    if env::args()
-                                        .any(|x| x == "-je" || x == "--json-errors")
-                                    {
+                                    if env::args().any(|x| x == "-je" || x == "--json-errors") {
                                         println!("{:#?}", serde_json::to_string(error).unwrap());
                                     } else {
                                         println!(

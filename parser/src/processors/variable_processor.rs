@@ -315,12 +315,3 @@ pub fn collect_variable_value(
         }
     }
 }
-
-
-
-
-
-
-
-
-

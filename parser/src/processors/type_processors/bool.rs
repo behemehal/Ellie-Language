@@ -122,7 +122,3 @@ pub fn collect_bool(
         }
     }
 }
-
-
-
-

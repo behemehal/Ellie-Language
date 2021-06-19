@@ -3,7 +3,7 @@
 
 class Chunker<T> {
     co Chunker(chunkCount, items);
-    pri v chunkCount : isize;
+    pri v chunkCount : integer;
     pri v items : array(T); //This is a dynamic array
     fn chunks() > array(array(T)) {
         v chunks : array(array(T));

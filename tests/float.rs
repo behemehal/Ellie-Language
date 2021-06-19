@@ -1,5 +1,3 @@
-
-
 #[cfg(test)]
 mod float_tests {
 
@@ -86,7 +84,6 @@ mod float_tests {
         assert!(emulated_collector_data.data.value.is_float());
         assert!(emulated_collector_data.data.value.is_type_complete());
     }
-
 
     #[test]
     fn dot_start_float_prototype_collected() {

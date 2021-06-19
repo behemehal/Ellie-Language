@@ -227,4 +227,3 @@ pub fn collect_float(
         }
     }
 }
-

@@ -1,1 +1,1 @@
-v test: operator = true.istrue;
+v test: variableType = true.istrue;

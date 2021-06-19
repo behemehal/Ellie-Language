@@ -301,12 +301,3 @@ pub fn collect_function(
         }
     }
 }
-
-
-
-
-
-
-
-
-

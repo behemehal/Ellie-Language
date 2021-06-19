@@ -1,6 +1,3 @@
-//TODO: no-std use crate::alloc::string::{String, ToString};
-//TODO: no-std use crate::alloc::vec::Vec;
-
 use serde::Serialize;
 
 use crate::processors;

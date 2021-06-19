@@ -25,10 +25,10 @@ function refactorFile(file, fileDir) {
             var dbgId = createDebugLabel();
             debugLabels += "|  " + dbgId + "  :  " + fileDir + ":" + (i + 1) + os.EOL;
             var first = line.split("debug_message: \"")[0];
-            factoredFile += first + "debug_message: \"" + dbgId + "\"" + line.split("debug_message: \"")[1].split("\"")[1] + (lines.length - 1 == i ? "" : os.EOL)
+            factoredFile += first + "debug_message: \"" + dbgId + "\"" + line.split("debug_message: \"")[1].split("\"")[1] + ((lines.length - 1) == i ? "" : os.EOL)
             factored = true;
         } else {
-            factoredFile += line + os.EOL;
+            factoredFile += line + ((lines.length - 1) == i ? "" : os.EOL);
         }
     }
     if (factored) {

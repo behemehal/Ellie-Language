@@ -7,7 +7,7 @@ class Array<Type> {
 
     fn enumerate() -> Array<Enumerate> {
         v elements : Array<Enumerate> = [];
-        v index : usize = 0;
+        v index : integer = 0;
         for data in this.elements {
             elements.push(
                 Enumerate {

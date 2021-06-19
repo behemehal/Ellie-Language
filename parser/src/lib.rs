@@ -33,6 +33,3 @@ extern crate std;
 pub mod parser;
 pub mod processors;
 pub mod syntax;
-
-//TODO: no-std use core::alloc::Layout; Nightly
-//TODO: no-std extern crate alloc; Nightly
