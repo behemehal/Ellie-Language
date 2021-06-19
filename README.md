@@ -1,8 +1,8 @@
 ![icon](./picture/TextIcon/EllieTextIcon@0,33x.png)
 # Ellie
-[![Refactor Errors](https://github.com/behemehal/Ellie-Language/actions/workflows/refactor.yml/badge.svg)](https://github.com/behemehal/Ellie-Language/actions/workflows/refactor.yml)
+[![Refactor Errors](https://github.com/behemehal/Ellie-Language/actions/workflows/refactor.yml/badge.svg)](https://github.com/behemehal/Ellie-Language/actions/workflows/refactor.yml) [![Build Status](https://travis-ci.com/behemehal/Ellie-VSCode.svg?token=mAtoxQCZoW6u6EP8sHms&branch=master)](https://travis-ci.com/behemehal/Ellie-VSCode)
 
-Ellie language [NOT COMPLETE]
+Ellie language
 
 Why ellie? Ellie is a scripting engine that runs on embedded and sandboxed environments.
 
@@ -36,3 +36,4 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
+This project is dedicated to the meaning of my life 
