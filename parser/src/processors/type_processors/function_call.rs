@@ -34,7 +34,7 @@ pub fn collect_function_caller(
                     .push(types::function_call::FunctionCallParameter::default())
             } else {
                 errors.push(error::Error {
-                    debug_message: "acf1aa6edb808aea7c9a32141bb6b8d6"
+                    debug_message: "65bc4bb4f3a1a79b237664f1afec85ca"
                         .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
@@ -55,7 +55,7 @@ pub fn collect_function_caller(
         } else if letter_char == ")" && is_s_n {
             if data.comma {
                 errors.push(error::Error {
-                    debug_message: "09b536162618c6ac83c4a2159741fbf6"
+                    debug_message: "487f4a790dcc1dc898b7047c716ef7c0"
                         .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
@@ -74,7 +74,7 @@ pub fn collect_function_caller(
                 });
             } else {
                 errors.push(error::Error {
-                    debug_message: "94f30443a5cca3f2559503d379e54e59"
+                    debug_message: "70cfcc725ea9e8368c056abe1b7f7b6d"
                         .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
@@ -197,3 +197,4 @@ pub fn collect_function_caller(
         }
     }
 }
+

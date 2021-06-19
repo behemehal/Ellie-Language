@@ -25,7 +25,7 @@ pub fn collect_float(
                 data.at_point = true;
             } else {
                 errors.push(error::Error {
-                    debug_message: "b3cc25df8557e65086638a8d3e5ebce0".to_string(),
+                    debug_message: "46cecbb9ed34a193e12d5a8be8da41d5".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -49,7 +49,7 @@ pub fn collect_float(
             if f32_parse.is_ok() && data.collect().len() < 9 {
                 if f32_parse.clone().unwrap().is_infinite() {
                     errors.push(error::Error {
-                        debug_message: "c1c2ce92242ebe8ab0c4622abeafde61".to_string(),
+                        debug_message: "40c5a08725924f837e3f439fbd8a811e".to_string(),
                         title: error::errorList::error_s17.title.clone(),
                         code: error::errorList::error_s17.code,
                         message: error::errorList::error_s17.message.clone(),
@@ -75,7 +75,7 @@ pub fn collect_float(
             } else if let Ok(flt) = data.collect().parse::<f64>() {
                 if flt.is_infinite() {
                     errors.push(error::Error {
-                        debug_message: "43d47300ab6511115ef1383cfcf9cb84".to_string(),
+                        debug_message: "1915eb169d5a7ab93d1c9d1af6e40f5c".to_string(),
                         title: error::errorList::error_s17.title.clone(),
                         code: error::errorList::error_s17.code,
                         message: error::errorList::error_s17.message.clone(),
@@ -100,7 +100,7 @@ pub fn collect_float(
                 }
             } else {
                 errors.push(error::Error {
-                    debug_message: "83a2391c7430da8ba60345d13ec6c06c".to_string(),
+                    debug_message: "b4799ee4bb45c0091d9e122c07bfadf9".to_string(),
                     title: error::errorList::error_s17.title.clone(),
                     code: error::errorList::error_s17.code,
                     message: error::errorList::error_s17.message.clone(),
@@ -208,7 +208,7 @@ pub fn collect_float(
             data.complete = true;
         } else {
             errors.push(error::Error {
-                debug_message: "68df12c069eab9561215fe563388fedb".to_string(),
+                debug_message: "c8ec62e317e127e0af0661e780b649d7".to_string(),
                 title: error::errorList::error_s1.title.clone(),
                 code: error::errorList::error_s1.code,
                 message: error::errorList::error_s1.message.clone(),
@@ -227,3 +227,4 @@ pub fn collect_float(
         }
     }
 }
+
