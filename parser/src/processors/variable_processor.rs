@@ -26,7 +26,7 @@ pub fn collect_variable_value(
             if letter_char == ":" {
                 if variabledata.data.name.is_empty() {
                     errors.push(error::Error {
-                        debug_message: "e2b7db512d6d3802b8192b736239bf0c"
+                        debug_message: "e4b018f82001dea815eff22e92e3d317"
                             .to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
@@ -47,7 +47,7 @@ pub fn collect_variable_value(
                     if variabledata.data.dynamic {
                         //TODO REMOVE THIS
                         errors.push(error::Error {
-                            debug_message: "9556d21bbef5c0d7a0863e5cf1fd0a9e"
+                            debug_message: "9318f4b4f3836e39d25c361c1f00a408"
                                 .to_string(),
                             title: error::errorList::error_s11.title.clone(),
                             code: error::errorList::error_s11.code,
@@ -78,7 +78,7 @@ pub fn collect_variable_value(
 
                 if !variabledata.data.dynamic {
                     errors.push(error::Error {
-                        debug_message: "44bcf70e8e297896f6850b3d62dba97f"
+                        debug_message: "8fdde29b1c98b02425986e47c1a2054e"
                             .to_string(),
                         title: error::errorList::error_s8.title.clone(),
                         code: error::errorList::error_s8.code,
@@ -93,7 +93,7 @@ pub fn collect_variable_value(
                     });
                 } else if variabledata.data.name.is_empty() {
                     errors.push(error::Error {
-                        debug_message: "73279dfa4bb187ca8c42f48bc4cd95c4"
+                        debug_message: "23cf06a9591d53c7f47ab718d173f728"
                             .to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
@@ -121,7 +121,7 @@ pub fn collect_variable_value(
                 if current_reliability.reliable {
                     if last_char == " " && !variabledata.data.name.is_empty() {
                         errors.push(error::Error {
-                            debug_message: "00abf5545d2f089ca47899251de22a2e"
+                            debug_message: "f0e4b2b2ff4e5ddd28d181dc7d0f7e14"
                                 .to_string(),
                             title: error::errorList::error_s1.title.clone(),
                             code: error::errorList::error_s1.code,
@@ -146,7 +146,7 @@ pub fn collect_variable_value(
                     && (last_char == " " || !variabledata.data.name.is_empty())
                 {
                     errors.push(error::Error {
-                        debug_message: "06fc978c390e552b678eb3c0b29b9e0e"
+                        debug_message: "6ea4a34162e65dae6d99462ecb95c5fa"
                             .to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
@@ -180,7 +180,7 @@ pub fn collect_variable_value(
             } else if letter_char == "=" {
                 if !variabledata.data.rtype.is_definer_complete() {
                     errors.push(error::Error {
-                        debug_message: "57b0c03670bda2d42a364d1380bf97e6"
+                        debug_message: "36397cc63b8e7c4c4c4966099880ea62"
                             .to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
@@ -249,7 +249,7 @@ pub fn collect_variable_value(
                         }
 
                         errors.push(error::Error {
-                            debug_message: "7047e122b063916e8fad46e3394ed1b6"
+                            debug_message: "8c5961d0a0dd31d08e04143a6055749c"
                                 .to_string(),
                             title: error::errorList::error_s3.title.clone(),
                             code: error::errorList::error_s3.code,
@@ -275,7 +275,7 @@ pub fn collect_variable_value(
                 } else {
                     std::println!("{:#?}", collected);
                     errors.push(error::Error {
-                        debug_message: "1956fe42665d967b58bdd830385c2e9f"
+                        debug_message: "13f9ca2d8c52ea2631cb6a6f693489fd"
                             .to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
@@ -315,6 +315,7 @@ pub fn collect_variable_value(
         }
     }
 }
+
 
 
 

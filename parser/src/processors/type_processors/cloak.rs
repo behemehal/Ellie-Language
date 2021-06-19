@@ -24,7 +24,7 @@ pub fn collect_cloak(
         if letter_char == "(" && !data.child_start && is_s_n {
             if !data.comma && last_entry != 0 {
                 errors.push(error::Error {
-                    debug_message: "56021e695cbeb20d43b2480c91a2a56e".to_string(),
+                    debug_message: "a28e948ef249f2669c074da88685d421".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -61,7 +61,7 @@ pub fn collect_cloak(
         } else if letter_char == "," && !data.child_start && is_s_n {
             if data.complete {
                 errors.push(error::Error {
-                    debug_message: "df4f2259d447136897698430e7500491".to_string(),
+                    debug_message: "f7e3251038f3a5eb4b1db7871ea8ce29".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -79,7 +79,7 @@ pub fn collect_cloak(
                 });
             } else if data.comma {
                 errors.push(error::Error {
-                    debug_message: "89802731bc9b397ef09d547e3e2ebbc9".to_string(),
+                    debug_message: "52670a43cc2c4d2a626eb3e808ad196c".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -108,7 +108,7 @@ pub fn collect_cloak(
         } else if letter_char == ")" && !data.child_start && is_s_n {
             if data.comma {
                 errors.push(error::Error {
-                    debug_message: "25daba89fd02f860332805376c4484ad".to_string(),
+                    debug_message: "70ad8f05f3f519dae3bfd204986d98c3".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -126,7 +126,7 @@ pub fn collect_cloak(
                 });
             } else if data.complete {
                 errors.push(error::Error {
-                    debug_message: "95655ebeb89d6bf31fa1503c07982a30".to_string(),
+                    debug_message: "747bfb5c36a303de88f2b2587d672ad6".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -388,4 +388,5 @@ pub fn collect_cloak(
         }
     }
 }
+
 
