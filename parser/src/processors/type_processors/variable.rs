@@ -47,7 +47,7 @@ pub fn collect_variable(
             itered_data.data.value = types::Types::Char(types::char_type::CharType::default())
         } else {
             errors.push(error::Error {
-                debug_message: "cf055258126e88c9917f6b3c76363c88".to_string(),
+                debug_message: "ef626ba77fcb7d0890a84f7593f7db8b".to_string(),
                 title: error::errorList::error_s1.title.clone(),
                 code: error::errorList::error_s1.code,
                 message: error::errorList::error_s1.message.clone(),
@@ -75,6 +75,7 @@ pub fn collect_variable(
         }
     }
 }
+
 
 
 

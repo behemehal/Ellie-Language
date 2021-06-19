@@ -18,7 +18,7 @@ pub fn collect_refference(
         if letter_char == "." {
             if data.on_dot {
                 errors.push(error::Error {
-                    debug_message: "2c834c75327708617d3a2918b3d97a96".to_string(),
+                    debug_message: "72beced35ff9a621fffa851b388a1a25".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -54,7 +54,7 @@ pub fn collect_refference(
                     //});
                 } else {
                     errors.push(error::Error {
-                        debug_message: "cfc87f3b2ef361ba9dfdededcd03f3ce".to_string(),
+                        debug_message: "99fb68e24647471dd0ae5c87bc1f357c".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -86,7 +86,7 @@ pub fn collect_refference(
                     }
                 } else {
                     errors.push(error::Error {
-                        debug_message: "4d6c2b0eaeb4b3eb6cc8306f19a24f2c"
+                        debug_message: "a00bf04fee11559e6162ca35220bc203"
                             .to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
@@ -108,4 +108,5 @@ pub fn collect_refference(
         }
     }
 }
+
 
