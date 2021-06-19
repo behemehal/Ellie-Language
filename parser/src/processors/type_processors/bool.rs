@@ -116,7 +116,7 @@ pub fn collect_bool(
             )
         } else if letter_char != " " {
             errors.push(error::Error {
-                debug_message: "f18c34e26bdfbb139f1b74d4c3d5d67a".to_string(),
+                debug_message: "2ba9fae09c9268d65d64ccff8e8bc2dc".to_string(),
                 title: error::errorList::error_s1.title.clone(),
                 code: error::errorList::error_s1.code,
                 message: error::errorList::error_s1.message.clone(),

@@ -59,7 +59,7 @@ pub fn collect_arrow(
                                 .is_empty()
                         {
                             errors.push(error::Error {
-                                debug_message: "c019b2de7431ef08a01e60cf4bae68b5".to_string(),
+                                debug_message: "0640858beb573ee846393c049a6c590d".to_string(),
                                 title: error::errorList::error_s1.title.clone(),
                                 code: error::errorList::error_s1.code,
                                 message: error::errorList::error_s1.message.clone(),
@@ -82,7 +82,7 @@ pub fn collect_arrow(
                         functiondata.parameter_wrote = true;
                     } else if letter_char != " " {
                         errors.push(error::Error {
-                            debug_message: "28bab3ac8c93cb682d20fd45d5a77714".to_string(),
+                            debug_message: "7e472162c7c61b155831bec5c4a8125a".to_string(),
                             title: error::errorList::error_s1.title.clone(),
                             code: error::errorList::error_s1.code,
                             message: error::errorList::error_s1.message.clone(),
@@ -140,7 +140,7 @@ pub fn collect_arrow(
                 functiondata.pointer_typed = true;
             } else if letter_char != " " {
                 errors.push(error::Error {
-                    debug_message: "aa40941ef3725d26eb2367e183faa95d".to_string(),
+                    debug_message: "647a209fa522a1ebfb1895c4afa93005".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),

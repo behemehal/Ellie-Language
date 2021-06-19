@@ -18,7 +18,7 @@ pub fn collect_refference(
         if letter_char == "." {
             if data.on_dot {
                 errors.push(error::Error {
-                    debug_message: "0b3b20fe4b0792e0e7aa8ff3aacd8c3c".to_string(),
+                    debug_message: "1c37314828bf33e4941ec5ff4ddf3fcc".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -54,7 +54,7 @@ pub fn collect_refference(
                     //});
                 } else {
                     errors.push(error::Error {
-                        debug_message: "46f84b411bc6752b25f999099914a044".to_string(),
+                        debug_message: "a3777976f422ed842947640f5cd5ade6".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -86,7 +86,7 @@ pub fn collect_refference(
                     }
                 } else {
                     errors.push(error::Error {
-                        debug_message: "a2d01c602784302eceb9b3faa848c445"
+                        debug_message: "21493b1410a41fd28970ff9c07f75d24"
                             .to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
