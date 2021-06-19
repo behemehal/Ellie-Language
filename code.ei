@@ -1,21 +1,21 @@
-v numFun : fn(i8, i32)::i8 = @(firstPar: i8, secondPar: i32) > i8 => 1;
+v numFun : fn(integer, integer)::integer = @(firstPar: integer, secondPar: integer) > integer => 1;
 
-v numFunExtended : fn(i8, i32)::i8 = @(firstPar: i8, secondPar: i32) > i8 : {
+v numFunExtended : fn(integer, integer)::integer = @(firstPar: integer, secondPar: integer) {
     return 1;
 };
 
-v num : i8 = 1;
+v num : integer = 1;
 
 v charVar : char = 't';
 
-pub v firstPar : i8;
-v arrayOfNumbers : array(i8, 8) = [1, 2, 3, 4, 5, 6, 7, 8];
+pub v firstPar : integer;
+v arrayOfNumbers : array(integer, 8) = [1, 2, 3, 4, 5, 6, 7, 8];
 
 v stringVar = "test";
 
 class test {
 
-    co test(parameter: i8) { //Construct module
+    co test(parameter: integer) { //Construct module
         self.firstPar = 3;
         self.secondPar = 4;
         self.thirdPar = 5;
@@ -25,6 +25,6 @@ class test {
     pub v secondPar : i16;
     pri v thirdPar : i64;
 
-    set fourthPar = @(parameter: i8) => firstPar = parameter + 3;
-    get fourthPar = @() > i8 => firstPar + 3;
+    set fourthPar = @(parameter: integer) => firstPar = parameter + 3;
+    get fourthPar = @() > integer => firstPar + 3;
 }

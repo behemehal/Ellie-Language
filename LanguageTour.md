@@ -52,7 +52,7 @@
         ```
     - Arrow Functions
         ```ellie
-            v callingAwesomeness : fn(string, integer)::string = @(name, count) {
+            v callingAwesomeness : fn(string, integer)::string = @(name: string, count: integer) > integer {
                 v awesomenes : string;
                 for (element, count) {
                     awesomenes += "ellie";
