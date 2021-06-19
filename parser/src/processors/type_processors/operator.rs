@@ -39,7 +39,7 @@ pub fn collect_operator(
                         data.operator_collected = true;
                     } else {
                         errors.push(error::Error {
-                            debug_message: "806c3556d9dbc9218b7db9000de815db".to_string(),
+                            debug_message: "9e60b3c3ee46f577fa2786136121eb62".to_string(),
                             title: error::errorList::error_s13.title.clone(),
                             code: error::errorList::error_s13.code,
                             message: error::errorList::error_s13.message.clone(),
@@ -67,7 +67,7 @@ pub fn collect_operator(
                 data.operator_collect += letter_char;
             } else {
                 errors.push(error::Error {
-                    debug_message: "df5aa87d81b848a14b3c56b844ce16f4".to_string(),
+                    debug_message: "77c91542d3e4c47a0801787c6c2d96c8".to_string(),
                     title: error::errorList::error_s13.title.clone(),
                     code: error::errorList::error_s13.code,
                     message: error::errorList::error_s13.message.clone(),
