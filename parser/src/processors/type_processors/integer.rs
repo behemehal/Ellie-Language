@@ -22,7 +22,7 @@ pub fn collect_integer(
         if is_num || letter_char == "x" && data.raw.starts_with('0') {
             if data.complete {
                 errors.push(error::Error {
-                    debug_message: "a5f80fbc288cd556eeecb9773ce4e112".to_string(),
+                    debug_message: "2576193a72f6e28c1f51c50adec420a0".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -73,7 +73,7 @@ pub fn collect_integer(
                     data.rtype = types::integer_type::IntegerTypes::ISize;
                 } else {
                     errors.push(error::Error {
-                        debug_message: "14dace79de27b31c7531c7245f43e356".to_string(),
+                        debug_message: "9212886a76714baf4cdaaf5e23447490".to_string(),
                         title: error::errorList::error_s16.title.clone(),
                         code: error::errorList::error_s16.code,
                         message: error::errorList::error_s16.message.clone(),
@@ -196,7 +196,7 @@ pub fn collect_integer(
             data.complete = true;
         } else {
             errors.push(error::Error {
-                debug_message: "0c125b2c34131947edcfc3471dc55367".to_string(),
+                debug_message: "3ccbc9a21564c5c8a1c56bf6cb82f66b".to_string(),
                 title: error::errorList::error_s1.title.clone(),
                 code: error::errorList::error_s1.code,
                 message: error::errorList::error_s1.message.clone(),
@@ -215,5 +215,6 @@ pub fn collect_integer(
         }
     }
 }
+
 
 

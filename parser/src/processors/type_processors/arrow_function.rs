@@ -140,7 +140,7 @@ pub fn collect_arrow(
                 functiondata.pointer_typed = true;
             } else if letter_char != " " {
                 errors.push(error::Error {
-                    debug_message: "0389f615178ea982cb89ca75b15d9879"
+                    debug_message: "4574eb9baba373456ed23a0f4b1b0264"
                         .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
@@ -192,6 +192,7 @@ pub fn collect_arrow(
         }
     }
 }
+
 
 
 

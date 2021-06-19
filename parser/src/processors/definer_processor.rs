@@ -87,7 +87,7 @@ pub fn collect_definer(
 
                 if !emulated_collector_data.data.value.is_integer() && letter_char != " " {
                     errors.push(error::Error {
-                        debug_message: "b03a45b8c042a3dbde2075af625a0e0d".to_string(),
+                        debug_message: "6435bf990b06adfa32b5d07559558287".to_string(),
                         title: error::errorList::error_s20.title.clone(),
                         code: error::errorList::error_s20.code,
                         message: error::errorList::error_s20.message.clone(),
@@ -140,7 +140,7 @@ pub fn collect_definer(
                     });
             } else if letter_char != " " && last_char == " " && data.rtype.trim() != "" {
                 errors.push(error::Error {
-                    debug_message: "f23711198e6be90c116469dc01028a60".to_string(),
+                    debug_message: "2b4c0fc8d542545ad86e1b1ad3a44fdd".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -166,7 +166,7 @@ pub fn collect_definer(
                     data.rtype = utils::trim_good(data.rtype.trim().to_string());
                 } else if letter_char != " " {
                     errors.push(error::Error {
-                        debug_message: "c0436aec96f6bce33c11da7840d28a48".to_string(),
+                        debug_message: "5d8ed98811c6d6915f55ea9cd6965cf1".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -202,7 +202,7 @@ pub fn collect_definer(
                 } else if data.params.is_empty() && data.bracket_inserted {
                     //This should have been filled If everything were right
                     errors.push(error::Error {
-                        debug_message: "6f08be7facdf21dbbc9fdcda3adf7f63".to_string(),
+                        debug_message: "bf30d85a72e5fa7ebe7fef6fac598747".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -239,7 +239,7 @@ pub fn collect_definer(
                 if data.return_keyword != 2 {
                     if letter_char != ":" {
                         errors.push(error::Error {
-                            debug_message: "3538e39c8a609c2619f2f145f86a8fcc".to_string(),
+                            debug_message: "d701956224461ef03dd71f9737c8f9ed".to_string(),
                             title: error::errorList::error_s1.title.clone(),
                             code: error::errorList::error_s1.code,
                             message: error::errorList::error_s1.message.clone(),
@@ -309,5 +309,6 @@ pub fn collect_definer(
         DefinerCollecting::Dynamic => {}
     }
 }
+
 
 

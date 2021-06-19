@@ -103,7 +103,7 @@ pub fn collect_bool(
             )
         } else {
             errors.push(error::Error {
-                debug_message: "2319a017915ced080cc5222cbbb9b93a".to_string(),
+                debug_message: "3a7cf28ef3123217a417816bdcd8037c".to_string(),
                 title: error::errorList::error_s1.title.clone(),
                 code: error::errorList::error_s1.code,
                 message: error::errorList::error_s1.message.clone(),
@@ -122,5 +122,6 @@ pub fn collect_bool(
         }
     }
 }
+
 
 
