@@ -309,6 +309,3 @@ pub fn collect_definer(
         DefinerCollecting::Dynamic => {}
     }
 }
-
-
-

@@ -388,6 +388,3 @@ pub fn collect_cloak(
         }
     }
 }
-
-
-

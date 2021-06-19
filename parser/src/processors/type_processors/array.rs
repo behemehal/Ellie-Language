@@ -475,6 +475,3 @@ pub fn collect_array(
         }
     }
 }
-
-
-

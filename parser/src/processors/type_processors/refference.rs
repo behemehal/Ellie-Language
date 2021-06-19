@@ -108,6 +108,3 @@ pub fn collect_refference(
         }
     }
 }
-
-
-

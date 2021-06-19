@@ -197,11 +197,3 @@ pub fn collect_function_caller(
         }
     }
 }
-
-
-
-
-
-
-
-

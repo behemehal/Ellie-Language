@@ -82,11 +82,3 @@ pub fn collect_char(
         }
     }
 }
-
-
-
-
-
-
-
-

@@ -215,6 +215,3 @@ pub fn collect_integer(
         }
     }
 }
-
-
-

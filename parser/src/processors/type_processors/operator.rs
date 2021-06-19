@@ -181,6 +181,3 @@ pub fn collect_operator(
         }
     }
 }
-
-
-

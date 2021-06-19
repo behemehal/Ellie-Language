@@ -75,11 +75,3 @@ pub fn collect_variable(
         }
     }
 }
-
-
-
-
-
-
-
-
