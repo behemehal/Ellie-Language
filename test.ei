@@ -1,1 +1,1 @@
-v test: variableType = true.istrue;
+d test = false == true;

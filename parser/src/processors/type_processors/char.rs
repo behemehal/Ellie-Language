@@ -1,3 +1,4 @@
+use crate::processors::type_processors;
 use crate::syntax::{types, variable};
 use ellie_core::{defs, error};
 
@@ -10,9 +11,10 @@ pub fn collect_char(
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
-    _next_char: String,
+    next_char: String,
     last_char: String,
     pos: defs::CursorPosition,
+    options: defs::ParserOptions,
 ) {
     if let types::Types::Char(ref mut data) = itered_data.data.value {
         if itered_data.data.dynamic {
@@ -30,7 +32,9 @@ pub fn collect_char(
                     title: error::errorList::error_s14.title.clone(),
                     code: error::errorList::error_s14.code,
                     message: error::errorList::error_s14.message.clone(),
-                    builded_message: error::BuildedError::build_from_string(error::errorList::error_s14.message.clone()),
+                    builded_message: error::BuildedError::build_from_string(
+                        error::errorList::error_s14.message.clone(),
+                    ),
                     pos: defs::Cursor {
                         range_start: pos.clone().popChar(1),
                         range_end: pos.clone().skipChar(1),
@@ -38,13 +42,6 @@ pub fn collect_char(
                 });
             }
             data.complete = true;
-        } else if letter_char == "." && data.complete {
-            itered_data.data.value =
-                types::Types::Refference(types::refference_type::RefferenceType {
-                    refference: Box::new(itered_data.data.value.clone()),
-                    on_dot: true,
-                    chain: Vec::new(),
-                });
         } else if !data.complete {
             if data.value != '\0' {
                 errors.push(error::Error {
@@ -52,7 +49,9 @@ pub fn collect_char(
                     title: error::errorList::error_s15.title.clone(),
                     code: error::errorList::error_s15.code,
                     message: error::errorList::error_s15.message.clone(),
-                    builded_message: error::BuildedError::build_from_string(error::errorList::error_s15.message.clone()),
+                    builded_message: error::BuildedError::build_from_string(
+                        error::errorList::error_s15.message.clone(),
+                    ),
                     pos: defs::Cursor {
                         range_start: pos.clone().popChar(1),
                         range_end: pos.clone().skipChar(1),
@@ -61,6 +60,93 @@ pub fn collect_char(
             } else {
                 data.value = letter_char.chars().next().unwrap();
             }
+        } else if letter_char == "." {
+            itered_data.data.value =
+                types::Types::Refference(types::refference_type::RefferenceType {
+                    refference: Box::new(itered_data.data.value.clone()),
+                    chain: Vec::new(),
+                    on_dot: false,
+                });
+            type_processors::refference::collect_refference(
+                itered_data,
+                errors,
+                letter_char,
+                next_char,
+                last_char,
+                pos,
+                options,
+            )
+        } else if types::logical_type::LogicalOpearators::is_logical_opearator(letter_char) {
+            data.complete = true;
+            itered_data.data.value =
+                types::Types::Operator(types::operator_type::OperatorTypeCollector {
+                    data: types::operator_type::OperatorType {
+                        first: Box::new(itered_data.data.value.clone()),
+                        operator: types::operator_type::Operators::LogicalType(
+                            types::logical_type::LogicalOpearators::Null,
+                        ),
+                        ..Default::default()
+                    },
+                    first_filled: true,
+                    ..Default::default()
+                });
+            type_processors::operator::collect_operator(
+                itered_data,
+                errors,
+                letter_char,
+                next_char,
+                last_char,
+                pos,
+                options,
+            )
+        } else if types::comparison_type::ComparisonOperators::is_comparison_opearator(letter_char)
+        {
+            data.complete = true;
+            itered_data.data.value =
+                types::Types::Operator(types::operator_type::OperatorTypeCollector {
+                    data: types::operator_type::OperatorType {
+                        first: Box::new(itered_data.data.value.clone()),
+                        operator: types::operator_type::Operators::ComparisonType(
+                            types::comparison_type::ComparisonOperators::Null,
+                        ),
+                        ..Default::default()
+                    },
+                    first_filled: true,
+                    ..Default::default()
+                });
+            type_processors::operator::collect_operator(
+                itered_data,
+                errors,
+                letter_char,
+                next_char,
+                last_char,
+                pos,
+                options,
+            )
+        } else if types::arithmetic_type::ArithmeticOperators::is_arithmetic_opearator(letter_char)
+        {
+            data.complete = true;
+            itered_data.data.value =
+                types::Types::Operator(types::operator_type::OperatorTypeCollector {
+                    data: types::operator_type::OperatorType {
+                        first: Box::new(itered_data.data.value.clone()),
+                        operator: types::operator_type::Operators::ArithmeticType(
+                            types::arithmetic_type::ArithmeticOperators::Null,
+                        ),
+                        ..Default::default()
+                    },
+                    first_filled: true,
+                    ..Default::default()
+                });
+            type_processors::operator::collect_operator(
+                itered_data,
+                errors,
+                letter_char,
+                next_char,
+                last_char,
+                pos,
+                options,
+            )
         } else if letter_char != " " {
             errors.push(error::Error {
                 debug_message: "bbb40ee6c8be4258c5d9d3c5365cc1db".to_string(),

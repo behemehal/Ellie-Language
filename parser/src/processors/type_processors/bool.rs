@@ -17,7 +17,20 @@ pub fn collect_bool(
     options: defs::ParserOptions,
 ) {
     if let types::Types::Bool(ref mut data) = itered_data.data.value {
-        if letter_char == "." {
+        if itered_data.data.dynamic {
+            itered_data.data.rtype = crate::syntax::definers::DefinerCollecting::Generic(
+                crate::syntax::definers::GenericType {
+                    rtype: "bool".to_string(),
+                },
+            );
+        }
+
+        if data.raw != "true" && data.raw != "false" {
+            data.raw += letter_char;
+            if data.raw == "true" || data.raw == "false" {
+                data.value = data.raw.parse::<bool>().unwrap();
+            }
+        } else if letter_char == "." {
             itered_data.data.value =
                 types::Types::Refference(types::refference_type::RefferenceType {
                     refference: Box::new(itered_data.data.value.clone()),
@@ -101,7 +114,7 @@ pub fn collect_bool(
                 pos,
                 options,
             )
-        } else {
+        } else if letter_char != " " {
             errors.push(error::Error {
                 debug_message: "43430692cea5363de6ef632850565288".to_string(),
                 title: error::errorList::error_s1.title.clone(),
@@ -111,7 +124,7 @@ pub fn collect_bool(
                     error::errorList::error_s1.message.clone(),
                     vec![error::ErrorBuildField {
                         key: "token".to_string(),
-                        value: data.value.to_string(),
+                        value: (data.raw).to_string(),
                     }],
                 ),
                 pos: defs::Cursor {

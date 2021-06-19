@@ -233,6 +233,8 @@ pub fn collect_variable_value(
                     if collected.data.rtype.raw_name() != collected.data.value.get_type() {
                         //We should resolve inner value
 
+                        std::println!("{:#?} {:#?}", collected.data.rtype.raw_name(), collected.data.value.get_type());
+
                         if collected.data.dynamic {
                             #[cfg(feature = "std")]
                             std::println!(

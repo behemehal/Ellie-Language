@@ -64,6 +64,7 @@ pub fn collect_value(
             next_char,
             last_char,
             pos,
+            options
         ),
         types::Types::Collective => (),
         types::Types::Refference(_) => type_processors::refference::collect_refference(

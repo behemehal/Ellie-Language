@@ -1,4 +1,3 @@
-#![macro_use]
 pub mod arithmetic_type;
 pub mod array_type;
 pub mod arrow_function;
@@ -21,44 +20,6 @@ use serde::Serialize;
 use alloc::string::String;
 use alloc::format;
 use ellie_core::utils;
-
-#[macro_export(local_inner_macros)]
-macro_rules! get_number_from_type {
-    ($a: expr) => {
-        {
-            match $a {
-                Types::U8(e) => Some(e.value),
-                Types::U16(e) => Some(e.value),
-                Types::U32(e) => Some(e.value),
-                Types::U64(e) => Some(e.value),
-                Types::U128(e) => Some(e.value),
-                Types::Usize(e) => Some(e.value),
-                Types::I8(e) => Some(e.value),
-                Types::I16(e) => Some(e.value),
-                Types::I32(e) => Some(e.value),
-                Types::I64(e) => Some(e.value),
-                Types::I128(e) => Some(e.value),
-                Types::Isize(e) => Some(e.value),
-                Types::F32(e) => Some(e.value),
-                Types::F64(e) => Some(e.value),
-                Types::Bool(_) => None,
-                Types::String(_) => None,
-                Types::Char(_) => None,
-                Types::Collective => None,
-                Types::Refference(_) => None,
-                Types::Operator(_) => None,
-                Types::Array(a) => None,
-                Types::Cloak(_) => None,
-                Types::ArrowFunction(_) => None,
-                Types::FunctionCall(_) => None,
-                Types::VariableType(_) => None,
-                Types::Void => None,
-                Types::Null => None,
-            }
-        }
-    }
-
-}
 
 #[derive(PartialEq, Debug, Clone, Serialize, EnumAsInner)]
 pub enum Types {
@@ -121,7 +82,7 @@ impl Types {
             }
             Types::ArrowFunction(_) => false,
             Types::FunctionCall(_) => false,
-            Types::VariableType(_) => true,
+            Types::VariableType(_) => false,
             Types::Void => true,
             Types::Null => true,
         }
@@ -165,7 +126,7 @@ impl Types {
             Types::Cloak(_) => false,
             Types::ArrowFunction(_) => false,
             Types::FunctionCall(_) => false,
-            Types::VariableType(_) => true,
+            Types::VariableType(_) => false,
             Types::Void => false,
             Types::Null => false,
         }
@@ -176,7 +137,7 @@ impl Types {
             Types::Integer(_) => true, //Always complete
             Types::Float(_) => false, //Always complete
             Types::Bool(_) => false,
-            Types::String(_) => true,
+            Types::String(_) => false,
             Types::Char(_) => false,
             Types::Collective => false,
             Types::Refference(_) => false,
@@ -185,7 +146,7 @@ impl Types {
             Types::Cloak(_) => false,
             Types::ArrowFunction(_) => false,
             Types::FunctionCall(_) => false,
-            Types::VariableType(_) => true,
+            Types::VariableType(_) => false,
             Types::Void => false,
             Types::Null => false,
         }
@@ -196,7 +157,7 @@ impl Types {
             Types::Integer(_) => false, //Always complete
             Types::Float(_) => true, //Always complete
             Types::Bool(_) => false,
-            Types::String(_) => true,
+            Types::String(_) => false,
             Types::Char(_) => false,
             Types::Collective => false,
             Types::Refference(_) => false,
@@ -205,7 +166,27 @@ impl Types {
             Types::Cloak(_) => false,
             Types::ArrowFunction(_) => false,
             Types::FunctionCall(_) => false,
-            Types::VariableType(_) => true,
+            Types::VariableType(_) => false,
+            Types::Void => false,
+            Types::Null => false,
+        }
+    }
+
+    pub fn is_bool(&self) -> bool {
+        match *self {
+            Types::Integer(_) => false, //Always complete
+            Types::Float(_) => false, //Always complete
+            Types::Bool(_) => true,
+            Types::String(_) => false,
+            Types::Char(_) => false,
+            Types::Collective => false,
+            Types::Refference(_) => false,
+            Types::Operator(_) => false,
+            Types::Array(_) => false,
+            Types::Cloak(_) => false,
+            Types::ArrowFunction(_) => false,
+            Types::FunctionCall(_) => false,
+            Types::VariableType(_) => false,
             Types::Void => false,
             Types::Null => false,
         }
