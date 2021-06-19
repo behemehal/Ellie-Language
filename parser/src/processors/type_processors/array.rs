@@ -41,7 +41,7 @@ pub fn collect_array(
         if letter_char == "[" && !data.child_start && is_s_n {
             if !data.comma && last_entry != 0 {
                 errors.push(error::Error {
-                    debug_message: "579db7fb818d4ee0f59a0ac61d5fa6a4".to_string(),
+                    debug_message: "3ea0ae8ddcfb090c2141db338fea28ba".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -78,7 +78,7 @@ pub fn collect_array(
         } else if letter_char == "," && !data.child_start && is_s_n {
             if data.complete {
                 errors.push(error::Error {
-                    debug_message: "b99adb27ab4a9e67cb25a24110a69c77".to_string(),
+                    debug_message: "82ea336686f1200823c7b48ad49cc8a0".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -96,7 +96,7 @@ pub fn collect_array(
                 });
             } else if data.comma {
                 errors.push(error::Error {
-                    debug_message: "5af5394c59a7ddd9f796d1b59572abf6".to_string(),
+                    debug_message: "07782d4c6b025d007c8309afe847fd67".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -125,7 +125,7 @@ pub fn collect_array(
         } else if letter_char == "]" && !data.child_start && is_s_n {
             if data.comma {
                 errors.push(error::Error {
-                    debug_message: "51ccf484fdaf2e1e0947b7604a0e4d9d".to_string(),
+                    debug_message: "22f5a8ac6cd98303e61327e1d8969564".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -143,7 +143,7 @@ pub fn collect_array(
                 });
             } else if data.complete {
                 errors.push(error::Error {
-                    debug_message: "9656e89bfe70f0a7530c12e5a1f22196".to_string(),
+                    debug_message: "a94193906ff8253b7a5ddaf4bd21f404".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -274,7 +274,7 @@ pub fn collect_array(
                 if data.collective.len() > *array_data.len.value.as_usize().unwrap() {
                     //Check if array size is overflowed
                     errors.push(error::Error {
-                        debug_message: "6e843eaf3da381214917b8c6d78610ff".to_string(),
+                        debug_message: "7beed2ee7155736de03c1b894427d67b".to_string(),
                         title: error::errorList::error_s19.title.clone(),
                         code: error::errorList::error_s19.code,
                         message: error::errorList::error_s19.message.clone(),
@@ -298,7 +298,7 @@ pub fn collect_array(
                     });
                 } else if letter_char != " " {
                     errors.push(error::Error {
-                        debug_message: "64b512434f8ef4c4bdcd72e8f136b55c".to_string(),
+                        debug_message: "4a940c1c264999297f91c15188f0cf61".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -475,3 +475,4 @@ pub fn collect_array(
         }
     }
 }
+

@@ -26,7 +26,7 @@ pub fn collect_string(
         if letter_char == "\"" && last_char != "\\" {
             if data.complete {
                 errors.push(error::Error {
-                    debug_message: "b278a67189dc1087606aeb133fe9973c".to_string(),
+                    debug_message: "2401bffb0da8baf3666d35b63ea9de47".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -137,7 +137,7 @@ pub fn collect_string(
         
         } else if letter_char != " " {
             errors.push(error::Error {
-                debug_message: "a0ea6e511f3ad56c876b60f889bfa53d".to_string(),
+                debug_message: "a508426a176f03970e4d76b1e16c1008".to_string(),
                 title: error::errorList::error_s1.title.clone(),
                 code: error::errorList::error_s1.code,
                 message: error::errorList::error_s1.message.clone(),
@@ -156,3 +156,4 @@ pub fn collect_string(
         }
     }
 }
+

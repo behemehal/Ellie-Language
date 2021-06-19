@@ -34,7 +34,7 @@ pub fn collect_function(
                 functiondata.named = true;
             } else if last_char == " " && letter_char != " " && !functiondata.data.name.is_empty() {
                 errors.push(error::Error {
-                    debug_message: "7130893764abddde11734a3a7bf7b508".to_string(),
+                    debug_message: "cacc1be9de064dbc765217e22b5bf888".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -58,7 +58,7 @@ pub fn collect_function(
                 if current_reliability.reliable {
                     if last_char == " " && !functiondata.data.name.is_empty() {
                         errors.push(error::Error {
-                            debug_message: "87f0e24c948fe2555b3c25a7b9bdc374"
+                            debug_message: "6ef965934d6155b89b693057b4c42b3a"
                                 .to_string(),
                             title: error::errorList::error_s1.title.clone(),
                             code: error::errorList::error_s1.code,
@@ -80,7 +80,7 @@ pub fn collect_function(
                     }
                 } else if letter_char != " " {
                     errors.push(error::Error {
-                        debug_message: "9b7cd4d6e180678948967ee1f53e07db"
+                        debug_message: "96a0e07a22f1c6ade361e0ed8fa92a20"
                             .to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
@@ -227,7 +227,7 @@ pub fn collect_function(
                     functiondata.pointer_typed = true
                 } else if letter_char != " " {
                     errors.push(error::Error {
-                        debug_message: "7f5f63c9cf05f15eefa2f175789737d4"
+                        debug_message: "a24b6afe0a595f907c62c342b090f637"
                             .to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
@@ -261,7 +261,7 @@ pub fn collect_function(
                 }
             } else if letter_char != " " {
                 errors.push(error::Error {
-                    debug_message: "9bd645a4a234bcd33a649c9be7507db0".to_string(),
+                    debug_message: "d6a9efea2f29ffa628572d0781fbdd28".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -305,6 +305,7 @@ pub fn collect_function(
         }
     }
 }
+
 
 
 

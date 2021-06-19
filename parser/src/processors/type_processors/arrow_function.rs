@@ -144,7 +144,7 @@ pub fn collect_arrow(
                 functiondata.pointer_typed = true;
             } else if letter_char != " " {
                 errors.push(error::Error {
-                    debug_message: "77b031fbf18f604d05d9fdd94857c809"
+                    debug_message: "0ba969baf8ceed18515c33cee49873d3"
                         .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
@@ -196,6 +196,7 @@ pub fn collect_arrow(
         }
     }
 }
+
 
 
 
