@@ -83,7 +83,7 @@ dependencies = [
 
 [[package]]
 name = "ellie_engine"
-version = "1.7.5"
+version = "2.0.0"
 dependencies = [
  "cbindgen",
  "ellie_core",

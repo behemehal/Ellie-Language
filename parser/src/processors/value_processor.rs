@@ -21,15 +21,33 @@ pub fn collect_value(
 ) -> CollectorResponse {
     let mut errors: Vec<error::Error> = Vec::new();
     match &mut itered_data.data.value {
-        types::Types::Number(_) => type_processors::number::collect_number(
+        types::Types::Integer(_) => type_processors::integer::collect_integer(
             itered_data,
             &mut errors,
             letter_char,
             next_char,
             last_char,
             pos,
+            options
         ),
-        types::Types::Bool(_) => (),
+        types::Types::Float(_) => type_processors::float::collect_float(
+            itered_data,
+            &mut errors,
+            letter_char,
+            next_char,
+            last_char,
+            pos,
+            options
+        ),
+        types::Types::Bool(_) => type_processors::bool::collect_bool(
+            itered_data,
+            &mut errors,
+            letter_char,
+            next_char,
+            last_char,
+            pos,
+            options
+        ),
         types::Types::String(_) => type_processors::string::collect_string(
             itered_data,
             &mut errors,
@@ -37,6 +55,7 @@ pub fn collect_value(
             next_char,
             last_char,
             pos,
+            options
         ),
         types::Types::Char(_) => type_processors::char::collect_char(
             itered_data,
@@ -109,6 +128,7 @@ pub fn collect_value(
             next_char,
             last_char,
             pos,
+            options,
         ),
         types::Types::Null => type_processors::null::collect_null(
             itered_data,
@@ -117,6 +137,7 @@ pub fn collect_value(
             next_char,
             last_char,
             pos,
+            options
         ),
     }
     CollectorResponse {

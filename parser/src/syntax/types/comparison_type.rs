@@ -1,6 +1,7 @@
 use crate::syntax::types;
 use serde::Serialize;
 
+use alloc::vec::Vec;
 use alloc::boxed::Box;
 use alloc::string::String;
 
@@ -23,7 +24,9 @@ impl Default for ComparisonOperators {
 
 impl ComparisonOperators {
     pub fn is_comparison_opearator(value: &str) -> bool {
-        "=!<>".contains(value)
+        let v : Vec<char> = "=!<>".chars().collect();
+        let q : Vec<char> = value.chars().filter(|x| !v.contains(x)).collect();
+        q.is_empty()
     }
 
     pub fn resolve_comparison_operator(value: &str) -> Result<ComparisonOperators, bool> {

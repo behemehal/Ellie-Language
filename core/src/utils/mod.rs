@@ -35,7 +35,9 @@ pub fn zip_errors(errors: Vec<crate::error::Error>) -> Vec<crate::error::Error> 
                 clone_errors[i].pos.range_start = last_error.pos.range_start;
 
                 for field in 0..last_error.builded_message.fields.len() {
-                    clone_errors[i].builded_message.fields[field].value = last_error.builded_message.fields[field].value.clone() + " " + &clone_errors[i].builded_message.fields[field].value;
+                    if last_error.builded_message.fields[field].value != clone_errors[i].builded_message.fields[field].value {
+                        clone_errors[i].builded_message.fields[field].value = last_error.builded_message.fields[field].value.clone() + " " + &clone_errors[i].builded_message.fields[field].value;
+                    }
                 }
 
                 if i == errors.len() - 1 || !is_errors_same(clone_errors[i].clone(), clone_errors[i + 1].clone()) {

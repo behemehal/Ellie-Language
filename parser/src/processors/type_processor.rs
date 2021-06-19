@@ -1,19 +1,22 @@
 use crate::parser;
-use crate::syntax::{condition, function, variable};
-use ellie_core::{defs, utils};
+use crate::syntax::{class, condition, function, variable};
+use ellie_core::{defs, utils, error};
 
 use alloc::string::{String, ToString};
+use alloc::vec::Vec;
 
 pub fn collect_type(
     parser: &mut parser::Parser,
+    _errors: &mut Vec<error::Error>,
     _letter_char: &str,
     _next_char: String,
     _next_next_char: String,
     _next_next_next_char: String,
+    options: defs::ParserOptions,
 ) {
     let keyword = utils::trim_good(parser.keyword_catch.trim_start().to_string()); //one step next
 
-    if keyword == "v " || keyword == "pub v " || keyword == "pri v " {
+    if (keyword == "v " || keyword == "pub v " || keyword == "pri v ") && options.variables {
         parser.current = parser::Collecting::Variable(variable::VariableCollector {
             initialized: true,
             data: variable::Variable {
@@ -26,7 +29,8 @@ pub fn collect_type(
             },
             ..Default::default()
         });
-    } else if keyword == "d " || keyword == "pub d" || keyword == "pri d" {
+    } else if (keyword == "d " || keyword == "pub d" || keyword == "pri d") && options.dynamics && options.variables
+    {
         parser.current = parser::Collecting::Variable(variable::VariableCollector {
             initialized: true,
             data: variable::Variable {
@@ -39,7 +43,7 @@ pub fn collect_type(
             },
             ..Default::default()
         });
-    } else if keyword == "fn " || keyword == "pub fn" || keyword == "pri fn" {
+    } else if (keyword == "fn " || keyword == "pub fn" || keyword == "pri fn") && options.functions {
         parser.current = parser::Collecting::Function(function::FunctionCollector::default());
     } else if keyword == "if" {
         parser.current = parser::Collecting::Condition(condition::ConditionCollector::default());
@@ -102,6 +106,7 @@ pub fn collect_type(
             panic!("Error: {:#?}", parser.collected);
         }
     } else if keyword == "class " {
-        //println!("CLASS");
+        parser.current = parser::Collecting::Class(class::ClassCollector::default());
     }
+
 }

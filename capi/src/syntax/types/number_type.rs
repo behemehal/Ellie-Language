@@ -19,7 +19,7 @@ pub enum NumberTypes {
 }
 
 #[repr(C)]
-pub enum NumberSize {
+pub enum IntegerSize {
     U8(u8),
     U16(u16),
     U32(u32),
@@ -38,7 +38,7 @@ pub enum NumberSize {
 
 #[repr(C)]
 pub struct NumberType {
-    pub value: NumberSize,
+    pub value: IntegerSize,
     pub raw: *const c_char,
     pub rtype: NumberTypes,
     pub complete: bool,

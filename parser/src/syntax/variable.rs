@@ -13,6 +13,7 @@ pub struct Variable {
     pub pos: defs::Cursor,
     pub value_pos: defs::Cursor,
     pub type_pos: defs::Cursor,
+    pub rtype: definers::DefinerCollecting,
 }
 
 #[derive(PartialEq, Debug, Clone, Default, Serialize)]
@@ -21,7 +22,6 @@ pub struct VariableCollector {
     pub named: bool,
     pub typed: bool,
     pub value_complete: bool,
-    pub rtype: definers::DefinerCollecting,
     pub raw_value: String,
     pub data: Variable,
 }

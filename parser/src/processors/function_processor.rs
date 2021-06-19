@@ -1,6 +1,6 @@
 use crate::parser;
 use crate::processors;
-use crate::syntax::{function, types};
+use crate::syntax::function;
 use ellie_core::{defs, error, utils};
 
 use crate::alloc::string::{String, ToString};
@@ -19,22 +19,22 @@ pub fn collect_function(
         if !functiondata.initialized {
             if last_char == " " && letter_char != " " {
                 functiondata.initialized = true;
-                functiondata.name_pos.range_start.0 = parser.pos.0; //Function naming started so we set the position
-                functiondata.name_pos.range_start.1 = parser.pos.1; //Function naming started so we set the position
+                functiondata.data.name_pos.range_start.0 = parser.pos.0; //Function naming started so we set the position
+                functiondata.data.name_pos.range_start.1 = parser.pos.1; //Function naming started so we set the position
                 functiondata.data.name += letter_char;
             }
         } else if !functiondata.named {
             if letter_char == "(" {
-                functiondata.name_pos.range_end.0 = parser.pos.0; // function naming ended
-                functiondata.name_pos.range_end.1 = parser.pos.1; // function naming ended
-                functiondata.parameter_bracket_start_pos.range_start.0 = parser.pos.0; //parameter start
-                functiondata.parameter_bracket_start_pos.range_start.1 = parser.pos.1; //parameter start
-                functiondata.parameter_bracket_start_pos.range_end.0 = parser.pos.skipChar(1).0; //parameter start
-                functiondata.parameter_bracket_start_pos.range_end.1 = parser.pos.skipChar(1).1; //parameter start
+                functiondata.data.name_pos.range_end.0 = parser.pos.0; // function naming ended
+                functiondata.data.name_pos.range_end.1 = parser.pos.1; // function naming ended
+                functiondata.data.parameter_bracket_start_pos.range_start.0 = parser.pos.0; //parameter start
+                functiondata.data.parameter_bracket_start_pos.range_start.1 = parser.pos.1; //parameter start
+                functiondata.data.parameter_bracket_start_pos.range_end.0 = parser.pos.skipChar(1).0; //parameter start
+                functiondata.data.parameter_bracket_start_pos.range_end.1 = parser.pos.skipChar(1).1; //parameter start
                 functiondata.named = true;
             } else if last_char == " " && letter_char != " " && !functiondata.data.name.is_empty() {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/function_processor.rs:0".to_string(),
+                    debug_message: "7130893764abddde11734a3a7bf7b508".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -58,7 +58,7 @@ pub fn collect_function(
                 if current_reliability.reliable {
                     if last_char == " " && !functiondata.data.name.is_empty() {
                         errors.push(error::Error {
-                            debug_message: "./parser/src/processors/function_processor.rs:1"
+                            debug_message: "87f0e24c948fe2555b3c25a7b9bdc374"
                                 .to_string(),
                             title: error::errorList::error_s1.title.clone(),
                             code: error::errorList::error_s1.code,
@@ -80,7 +80,7 @@ pub fn collect_function(
                     }
                 } else if letter_char != " " {
                     errors.push(error::Error {
-                        debug_message: "./parser/src/processors/function_processor.rs:2"
+                        debug_message: "9b7cd4d6e180678948967ee1f53e07db"
                             .to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
@@ -218,17 +218,16 @@ pub fn collect_function(
             if letter_char == "{" {
                 //Skipped return type it's void
                 functiondata.return_typed = true;
-                functiondata.data.return_type = types::Types::Void;
                 functiondata.inside_code_wrote = true;
-                functiondata.code_bracket_start.range_start.0 = parser.pos.0; //Bracket start
-                functiondata.code_bracket_start.range_start.1 = parser.pos.1;
+                functiondata.data.code_bracket_start.range_start.0 = parser.pos.0; //Bracket start
+                functiondata.data.code_bracket_start.range_start.1 = parser.pos.1;
             //Bracket start
             } else if !functiondata.pointer_typed {
                 if letter_char == ">" {
                     functiondata.pointer_typed = true
                 } else if letter_char != " " {
                     errors.push(error::Error {
-                        debug_message: "./parser/src/processors/function_processor.rs:3"
+                        debug_message: "7f5f63c9cf05f15eefa2f175789737d4"
                             .to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
@@ -247,78 +246,22 @@ pub fn collect_function(
                     });
                 }
             } else if functiondata.pointer_typed && !functiondata.return_typed {
-                let current_reliability = utils::reliable_name_range(
-                    utils::ReliableNameRanges::VariableName,
-                    letter_char.to_string(),
-                );
-
-                if current_reliability.reliable {
-                    if last_char == " " && !functiondata.return_type_text.is_empty() {
-                        errors.push(error::Error {
-                            debug_message: "./parser/src/processors/function_processor.rs:4"
-                                .to_string(),
-                            title: error::errorList::error_s1.title.clone(),
-                            code: error::errorList::error_s1.code,
-                            message: error::errorList::error_s1.message.clone(),
-                            builded_message: error::Error::build(
-                                error::errorList::error_s1.message.clone(),
-                                vec![error::ErrorBuildField {
-                                    key: "token".to_string(),
-                                    value: letter_char.to_string(),
-                                }],
-                            ),
-                            pos: defs::Cursor {
-                                range_start: parser.pos,
-                                range_end: parser.pos.clone().skipChar(1),
-                            },
-                        });
-                    } else {
-                        functiondata.return_type_text += letter_char;
-                    }
-                } else if letter_char == "{" {
-                    if functiondata.return_type_text.is_empty() {
-                        errors.push(error::Error {
-                            debug_message: "./parser/src/processors/function_processor.rs:5"
-                                .to_string(),
-                            title: error::errorList::error_s8.title.clone(),
-                            code: error::errorList::error_s8.code,
-                            message: error::errorList::error_s8.message.clone(),
-                            builded_message: error::BuildedError::default(),
-                            pos: defs::Cursor {
-                                range_start: parser.pos,
-                                range_end: parser.pos.clone().skipChar(1),
-                            },
-                        });
-                    } else {
-                        functiondata.return_typed = true;
-                        functiondata.data.return_type = types::Types::Void;
-                        functiondata.inside_code_wrote = true;
-                        functiondata.code_bracket_start.range_start.0 = parser.pos.0; //Bracket start
-                        functiondata.code_bracket_start.range_start.1 = parser.pos.1;
-                    }
-                } else if letter_char != " " {
-                    errors.push(error::Error {
-                        debug_message: "./parser/src/processors/function_processor.rs:6"
-                            .to_string(),
-                        title: error::errorList::error_s1.title.clone(),
-                        code: error::errorList::error_s1.code,
-                        message: error::errorList::error_s1.message.clone(),
-                        builded_message: error::Error::build(
-                            error::errorList::error_s1.message.clone(),
-                            vec![error::ErrorBuildField {
-                                key: "token".to_string(),
-                                value: letter_char.to_string(),
-                            }],
-                        ),
-                        pos: defs::Cursor {
-                            range_start: parser.pos,
-                            range_end: parser.pos.clone().skipChar(1),
-                        },
-                    });
+                if letter_char == "{" && functiondata.data.return_type.is_definer_complete() {
+                    functiondata.return_typed = true;
+                } else {
+                    processors::definer_processor::collect_definer(
+                        &mut functiondata.data.return_type,
+                        errors,
+                        letter_char.to_string(),
+                        parser.pos,
+                        next_char,
+                        last_char,
+                        options,
+                    );
                 }
             } else if letter_char != " " {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/function_processor.rs:7".to_string(),
+                    debug_message: "9bd645a4a234bcd33a649c9be7507db0".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -362,6 +305,7 @@ pub fn collect_function(
         }
     }
 }
+
 
 
 

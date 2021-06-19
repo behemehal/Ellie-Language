@@ -26,7 +26,7 @@ pub fn collect_variable_value(
             if letter_char == ":" {
                 if variabledata.data.name.is_empty() {
                     errors.push(error::Error {
-                        debug_message: "./parser/src/processors/variable_processor.rs:0"
+                        debug_message: "230fc6a68358620eb096f0e0cc69036c"
                             .to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
@@ -47,7 +47,7 @@ pub fn collect_variable_value(
                     if variabledata.data.dynamic {
                         //TODO REMOVE THIS
                         errors.push(error::Error {
-                            debug_message: "./parser/src/processors/variable_processor.rs:1"
+                            debug_message: "be0d4986844c78190f84b23f893bcb8a"
                                 .to_string(),
                             title: error::errorList::error_s11.title.clone(),
                             code: error::errorList::error_s11.code,
@@ -78,7 +78,7 @@ pub fn collect_variable_value(
 
                 if !variabledata.data.dynamic {
                     errors.push(error::Error {
-                        debug_message: "./parser/src/processors/variable_processor.rs:2"
+                        debug_message: "570cb25f49da7a8bdb28b331ce78b9c3"
                             .to_string(),
                         title: error::errorList::error_s8.title.clone(),
                         code: error::errorList::error_s8.code,
@@ -93,7 +93,7 @@ pub fn collect_variable_value(
                     });
                 } else if variabledata.data.name.is_empty() {
                     errors.push(error::Error {
-                        debug_message: "./parser/src/processors/variable_processor.rs:3"
+                        debug_message: "d367c41b1d0367d981c89170b05d1ec1"
                             .to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
@@ -121,7 +121,7 @@ pub fn collect_variable_value(
                 if current_reliability.reliable {
                     if last_char == " " && !variabledata.data.name.is_empty() {
                         errors.push(error::Error {
-                            debug_message: "./parser/src/processors/variable_processor.rs:4"
+                            debug_message: "6ae4df29c1e921f452838f4ceac73698"
                                 .to_string(),
                             title: error::errorList::error_s1.title.clone(),
                             code: error::errorList::error_s1.code,
@@ -146,7 +146,7 @@ pub fn collect_variable_value(
                     && (last_char == " " || !variabledata.data.name.is_empty())
                 {
                     errors.push(error::Error {
-                        debug_message: "./parser/src/processors/variable_processor.rs:5"
+                        debug_message: "172e939d7299dfb37adc7149cfde348d"
                             .to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
@@ -178,9 +178,9 @@ pub fn collect_variable_value(
                 parser.collected.push(parser.current.clone());
                 parser.current = parser::Collecting::None;
             } else if letter_char == "=" {
-                if !variabledata.rtype.is_definer_complete() {
+                if !variabledata.data.rtype.is_definer_complete() {
                     errors.push(error::Error {
-                        debug_message: "./parser/src/processors/variable_processor.rs:6"
+                        debug_message: "4efcd23df31918facb67a137fe83af8a"
                             .to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
@@ -213,7 +213,7 @@ pub fn collect_variable_value(
                     variabledata.data.type_pos.range_start = parser.pos;
                 }
                 processors::definer_processor::collect_definer(
-                    &mut variabledata.rtype,
+                    &mut variabledata.data.rtype,
                     errors,
                     letter_char.to_string(),
                     parser.pos,
@@ -230,9 +230,26 @@ pub fn collect_variable_value(
                     collected.data.pos.range_end = parser.pos;
                     collected.data.value_pos.range_end = parser.pos;
 
-                    if collected.rtype.raw_name() != collected.data.value.get_type() {
+                    if collected.data.rtype.raw_name() != collected.data.value.get_type() {
+                        //We should resolve inner value
+
+                        if collected.data.dynamic {
+                            #[cfg(feature = "std")]
+                            std::println!(
+                                "{}[ParserError]{}: This is a error please report at: {}https://github.com/behemehal/Ellie-Language/issues/new?title=ParserError-{}+Dynamic+Variable+Not+Handled+Correctly&labels=bug,parser{}",
+                                utils::terminal_colors::get_color(utils::terminal_colors::Colors::Red),
+                                utils::terminal_colors::get_color(utils::terminal_colors::Colors::Reset),
+                                utils::terminal_colors::get_color(utils::terminal_colors::Colors::Cyan),
+                                collected.data.value.get_type(),
+                                utils::terminal_colors::get_color(utils::terminal_colors::Colors::Reset),
+                            );
+                            
+                            #[cfg(feature = "std")]
+                            std::process::exit(0);
+                        }
+
                         errors.push(error::Error {
-                            debug_message: "./parser/src/processors/variable_processor.rs:7"
+                            debug_message: "e406a57e295fad7845e369ab1a618f79"
                                 .to_string(),
                             title: error::errorList::error_s3.title.clone(),
                             code: error::errorList::error_s3.code,
@@ -242,7 +259,7 @@ pub fn collect_variable_value(
                                 vec![
                                     error::ErrorBuildField {
                                         key: "token1".to_string(),
-                                        value: collected.rtype.raw_name(),
+                                        value: collected.data.rtype.raw_name(),
                                     },
                                     error::ErrorBuildField {
                                         key: "token2".to_string(),
@@ -253,14 +270,12 @@ pub fn collect_variable_value(
                             pos: collected.data.value_pos
                         });
                     }
-
-                    //std::println!("SET: {:#?} {:#?}", collected.rtype.raw_name(), collected.data.value.get_type(), );
-
                     parser.collected.push(parser.current.clone());
                     parser.current = parser::Collecting::None;
                 } else {
+                    std::println!("{:#?}", collected);
                     errors.push(error::Error {
-                        debug_message: "./parser/src/processors/variable_processor.rs:8"
+                        debug_message: "4550f37874175424049c26203f492eb0"
                             .to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
@@ -300,6 +315,7 @@ pub fn collect_variable_value(
         }
     }
 }
+
 
 
 

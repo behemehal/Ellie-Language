@@ -4,30 +4,17 @@
   * Dynamic Variable 
     ```ellie
       d test = 123;
-      //Ellie's default integer type is u16
     ```
   * Type Set Variable
     ```ellie
-        v test : i16 = 123;
+        v test : integer = 123;
     ```
 * Data Types
 
     - Numeric
         ```rust
-            i8
-            i16
-            i32
-            i64
-            i128
-            isize
-            u8
-            u16
-            u32
-            u64
-            u128
-            usize
-            f32
-            f64
+            integer
+            float
         ```
     - String
         ```ellie
@@ -55,7 +42,7 @@
         
         **Not complete**
         ```ellie
-            v letters : collective(i16, char) = {
+            v letters : collective(integer, char) = {
                 1 :'e',
                 2 :'l',
                 3 :'l',
@@ -65,7 +52,7 @@
         ```
     - Arrow Functions
         ```ellie
-            v callingAwesomeness : fn(string, i32)::i8 = @(name: String, count: i8) > string {
+            v callingAwesomeness : fn(string, integer)::string = @(name, count) {
                 v awesomenes : string;
                 for (element, count) {
                     awesomenes += "ellie";
@@ -76,7 +63,7 @@
     - boolean
 * Functions
   ```ellie
-    fn callingAwesomeness (name: String, count: i8) > string {
+    fn callingAwesomeness (name: String, count: integer) > string {
         v awesomenes : string;
         //iter count times write to variable i
         for (d i, count) {
@@ -128,7 +115,7 @@
 * Enum
     ```ellie
         pub enum Test {
-            withValue(i8),
+            withValue(integer),
             noValue
         }
 
@@ -172,12 +159,12 @@
 
     //Assignment
 
-    v Addition : i16 = 1;
-    v Subtraction : i16 = 2;
-    v Multiplication : i16 = 2;
-    v Exponentiation : i16 = 2;
-    v Division : i16 = 4;
-    v Modulus : i16 = 5;
+    v Addition : integer = 1;
+    v Subtraction : integer = 2;
+    v Multiplication : integer = 2;
+    v Exponentiation : integer = 2;
+    v Division : integer = 4;
+    v Modulus : integer = 5;
 
     Addition += 1;
     Subtraction -= 1;

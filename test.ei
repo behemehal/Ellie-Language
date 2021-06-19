@@ -1,1 +1,1 @@
-v categories : array(9, 9) = "[1,2,3,4";
+v test: operator = true.istrue;

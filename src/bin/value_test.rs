@@ -6,18 +6,9 @@ fn main() {
     let pos = ellie_core::defs::CursorPosition(0, 0);
     let mut emulated_collector_data = ellie_parser::syntax::variable::VariableCollector::default();
     emulated_collector_data.data.dynamic = true;
-    //We should set to dynamic for catching type
-    /*
-        emulated_collector_data.rtype = ellie_parser::syntax::definers::Collecting::Generic(
-            ellie_parser::syntax::definers::GenericType {
-                rtype: "f32".to_string()
-            }
-        );
-    */
-
     let code = "
 
-        @(test: array(i8, 8), test2: i8) {}
+    \".2\"
     
     ";
 

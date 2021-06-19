@@ -1,4 +1,4 @@
-use crate::processors::value_processor;
+use crate::processors::{type_processors, value_processor};
 use crate::syntax::{definers, types, variable};
 use ellie_core::{defs, error, utils};
 
@@ -41,8 +41,7 @@ pub fn collect_array(
         if letter_char == "[" && !data.child_start && is_s_n {
             if !data.comma && last_entry != 0 {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/array.rs:0"
-                        .to_string(),
+                    debug_message: "579db7fb818d4ee0f59a0ac61d5fa6a4".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -79,8 +78,7 @@ pub fn collect_array(
         } else if letter_char == "," && !data.child_start && is_s_n {
             if data.complete {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/array.rs:1"
-                        .to_string(),
+                    debug_message: "b99adb27ab4a9e67cb25a24110a69c77".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -98,8 +96,7 @@ pub fn collect_array(
                 });
             } else if data.comma {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/array.rs:2"
-                        .to_string(),
+                    debug_message: "5af5394c59a7ddd9f796d1b59572abf6".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -128,8 +125,7 @@ pub fn collect_array(
         } else if letter_char == "]" && !data.child_start && is_s_n {
             if data.comma {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/array.rs:3"
-                        .to_string(),
+                    debug_message: "51ccf484fdaf2e1e0947b7604a0e4d9d".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -147,8 +143,7 @@ pub fn collect_array(
                 });
             } else if data.complete {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/array.rs:4"
-                        .to_string(),
+                    debug_message: "9656e89bfe70f0a7530c12e5a1f22196".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -181,35 +176,93 @@ pub fn collect_array(
             itered_data.data.value =
                 types::Types::Refference(types::refference_type::RefferenceType {
                     refference: Box::new(itered_data.data.value.clone()),
-                    on_dot: true,
-                    chain: vec![],
-                })
+                    chain: Vec::new(),
+                    on_dot: false,
+                });
+            type_processors::refference::collect_refference(
+                itered_data,
+                errors,
+                letter_char,
+                next_char,
+                last_char,
+                pos,
+                options,
+            )
         } else if data.complete
             && types::logical_type::LogicalOpearators::is_logical_opearator(letter_char)
             && is_s_n
         {
-            itered_data.data.value = types::Types::Operator(types::operator_type::OperatorType {
-                first: Box::new(types::Types::Array(data.clone())),
-                first_filled: true,
-                operator: types::operator_type::Operators::LogicalType(
-                    types::logical_type::LogicalOpearators::Null,
-                ),
-                operator_collect: letter_char.to_string(),
-                ..Default::default()
-            });
+            itered_data.data.value =
+                types::Types::Operator(types::operator_type::OperatorTypeCollector {
+                    data: types::operator_type::OperatorType {
+                        first: Box::new(itered_data.data.value.clone()),
+                        operator: types::operator_type::Operators::LogicalType(
+                            types::logical_type::LogicalOpearators::Null,
+                        ),
+                        ..Default::default()
+                    },
+                    first_filled: true,
+                    ..Default::default()
+                });
+            type_processors::operator::collect_operator(
+                itered_data,
+                errors,
+                letter_char,
+                next_char,
+                last_char,
+                pos,
+                options,
+            )
         } else if data.complete
             && types::comparison_type::ComparisonOperators::is_comparison_opearator(letter_char)
             && is_s_n
         {
-            itered_data.data.value = types::Types::Operator(types::operator_type::OperatorType {
-                first: Box::new(types::Types::Array(data.clone())),
-                first_filled: true,
-                operator: types::operator_type::Operators::ComparisonType(
-                    types::comparison_type::ComparisonOperators::Null,
-                ),
-                operator_collect: letter_char.to_string(),
-                ..Default::default()
-            });
+            itered_data.data.value =
+                types::Types::Operator(types::operator_type::OperatorTypeCollector {
+                    data: types::operator_type::OperatorType {
+                        first: Box::new(itered_data.data.value.clone()),
+                        operator: types::operator_type::Operators::ComparisonType(
+                            types::comparison_type::ComparisonOperators::Null,
+                        ),
+                        ..Default::default()
+                    },
+                    first_filled: true,
+                    ..Default::default()
+                });
+            type_processors::operator::collect_operator(
+                itered_data,
+                errors,
+                letter_char,
+                next_char,
+                last_char,
+                pos,
+                options,
+            )
+        } else if data.complete
+            && types::arithmetic_type::ArithmeticOperators::is_arithmetic_opearator(letter_char)
+            && is_s_n
+        {
+            itered_data.data.value =
+                types::Types::Operator(types::operator_type::OperatorTypeCollector {
+                    data: types::operator_type::OperatorType {
+                        first: Box::new(itered_data.data.value.clone()),
+                        operator: types::operator_type::Operators::ArithmeticType(
+                            types::arithmetic_type::ArithmeticOperators::Null,
+                        ),
+                        ..Default::default()
+                    },
+                    first_filled: true,
+                    ..Default::default()
+                });
+            type_processors::operator::collect_operator(
+                itered_data,
+                errors,
+                letter_char,
+                next_char,
+                last_char,
+                pos,
+                options,
+            )
         } else {
             if letter_char != " " {
                 //TODO IS THIS SAFE ?
@@ -217,13 +270,11 @@ pub fn collect_array(
             }
 
             let mut will_be_itered: variable::VariableCollector;
-            if let definers::DefinerCollecting::Array(array_data) = itered_data.rtype.clone() {
-
-                if array_data.len.as_number().is_some() && data.collective.len() > *array_data.len.as_number().unwrap().value.as_usize().unwrap() {
+            if let definers::DefinerCollecting::Array(array_data) = itered_data.data.rtype.clone() {
+                if data.collective.len() > *array_data.len.value.as_usize().unwrap() {
                     //Check if array size is overflowed
                     errors.push(error::Error {
-                        debug_message: "./parser/src/processors/type_processors/array.rs:5"
-                            .to_string(),
+                        debug_message: "6e843eaf3da381214917b8c6d78610ff".to_string(),
                         title: error::errorList::error_s19.title.clone(),
                         code: error::errorList::error_s19.code,
                         message: error::errorList::error_s19.message.clone(),
@@ -232,18 +283,11 @@ pub fn collect_array(
                             vec![
                                 error::ErrorBuildField {
                                     key: "token".to_string(),
-                                    value: (*array_data
-                                        .len
-                                        .as_number()
-                                        .unwrap()
-                                        .value
-                                        .as_usize()
-                                        .unwrap())
-                                    .to_string(),
+                                    value: array_data.len.value.as_usize().unwrap().to_string(),
                                 },
                                 error::ErrorBuildField {
                                     key: "token2".to_string(),
-                                    value: (data.collective.len()).to_string(),
+                                    value: data.collective.len().to_string(),
                                 },
                             ],
                         ),
@@ -254,19 +298,16 @@ pub fn collect_array(
                     });
                 } else if letter_char != " " {
                     errors.push(error::Error {
-                        debug_message: "./parser/src/processors/type_processors/array.rs:6"
-                            .to_string(),
+                        debug_message: "64b512434f8ef4c4bdcd72e8f136b55c".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
                         builded_message: error::Error::build(
                             error::errorList::error_s1.message.clone(),
-                            vec![
-                                error::ErrorBuildField {
-                                    key: "token".to_string(),
-                                    value: letter_char.to_string(),
-                                },
-                            ],
+                            vec![error::ErrorBuildField {
+                                key: "token".to_string(),
+                                value: letter_char.to_string(),
+                            }],
                         ),
                         pos: defs::Cursor {
                             range_start: pos,
@@ -277,30 +318,38 @@ pub fn collect_array(
 
                 will_be_itered = if data.collective.is_empty() {
                     variable::VariableCollector {
-                        rtype: *array_data.rtype.clone(),
+                        data: variable::Variable {
+                            rtype: *array_data.rtype.clone(),
+                            ..Default::default()
+                        },
                         ..variable::VariableCollector::default()
                     }
                 } else {
                     variable::VariableCollector {
-                        rtype: *array_data.rtype.clone(),
                         data: variable::Variable {
                             value: *data.collective[data.collective.len() - 1].value.clone(),
+                            rtype: *array_data.rtype.clone(),
                             ..Default::default()
                         },
                         ..variable::VariableCollector::default()
                     }
                 };
-            } else if let definers::DefinerCollecting::GrowableArray(array_data) = itered_data.rtype.clone() {
+            } else if let definers::DefinerCollecting::GrowableArray(array_data) =
+                itered_data.data.rtype.clone()
+            {
                 will_be_itered = if data.collective.is_empty() {
                     variable::VariableCollector {
-                        rtype: *array_data.rtype.clone(),
+                        data: variable::Variable {
+                            rtype: *array_data.rtype.clone(),
+                            ..Default::default()
+                        },
                         ..variable::VariableCollector::default()
                     }
                 } else {
                     variable::VariableCollector {
-                        rtype: *array_data.rtype.clone(),
                         data: variable::Variable {
                             value: *data.collective[data.collective.len() - 1].value.clone(),
+                            rtype: *array_data.rtype.clone(),
                             ..Default::default()
                         },
                         ..variable::VariableCollector::default()
@@ -344,9 +393,13 @@ pub fn collect_array(
             }
 
             let itered_entry = match itered_array_vector.itered_data.data.value {
-                types::Types::Number(match_data) => types::array_type::ArrayEntry {
+                types::Types::Integer(match_data) => types::array_type::ArrayEntry {
                     value_complete: match_data.complete,
-                    value: Box::new(types::Types::Number(match_data)),
+                    value: Box::new(types::Types::Integer(match_data)),
+                },
+                types::Types::Float(match_data) => types::array_type::ArrayEntry {
+                    value_complete: true,
+                    value: Box::new(types::Types::Float(match_data)),
                 },
                 types::Types::Operator(match_data) => types::array_type::ArrayEntry {
                     value_complete: false,
@@ -422,7 +475,3 @@ pub fn collect_array(
         }
     }
 }
-
-
-
-

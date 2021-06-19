@@ -144,7 +144,7 @@ pub fn collect_arrow(
                 functiondata.pointer_typed = true;
             } else if letter_char != " " {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/arrow_function.rs:0"
+                    debug_message: "77b031fbf18f604d05d9fdd94857c809"
                         .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
@@ -196,6 +196,7 @@ pub fn collect_arrow(
         }
     }
 }
+
 
 
 

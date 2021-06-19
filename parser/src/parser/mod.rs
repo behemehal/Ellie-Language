@@ -68,10 +68,12 @@ impl Parser {
                     self.keyword_catch += letter_char;
                     processors::type_processor::collect_type(
                         &mut self,
+                        &mut errors,
                         letter_char,
                         next_char.clone(),
                         next_next_char.clone(),
                         next_next_next_char.clone(),
+                        parser_options.clone(),
                     );
                 } else {
                     self.keyword_catch = String::new();

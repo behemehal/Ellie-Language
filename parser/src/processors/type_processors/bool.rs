@@ -1,13 +1,13 @@
-use crate::syntax::{definers, types, variable};
+#![allow(clippy::unnecessary_unwrap)]
 use crate::processors::type_processors;
-use ellie_core::{defs, error};
-
+use crate::syntax::{types, variable};
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};
 use alloc::vec;
 use alloc::vec::Vec;
+use ellie_core::{defs, error};
 
-pub fn collect_string(
+pub fn collect_bool(
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
@@ -16,38 +16,8 @@ pub fn collect_string(
     pos: defs::CursorPosition,
     options: defs::ParserOptions,
 ) {
-    if let types::Types::String(ref mut data) = itered_data.data.value {
-        if itered_data.data.dynamic {
-            itered_data.data.rtype = definers::DefinerCollecting::Generic(definers::GenericType {
-                rtype: "string".to_string(),
-            });
-        }
-
-        if letter_char == "\"" && last_char != "\\" {
-            if data.complete {
-                errors.push(error::Error {
-                    debug_message: "b278a67189dc1087606aeb133fe9973c".to_string(),
-                    title: error::errorList::error_s1.title.clone(),
-                    code: error::errorList::error_s1.code,
-                    message: error::errorList::error_s1.message.clone(),
-                    builded_message: error::Error::build(
-                        error::errorList::error_s1.message.clone(),
-                        vec![error::ErrorBuildField {
-                            key: "token".to_string(),
-                            value: letter_char.to_string(),
-                        }],
-                    ),
-                    pos: defs::Cursor {
-                        range_start: pos,
-                        range_end: pos.clone().skipChar(1),
-                    },
-                });
-            } else {
-                data.complete = true;
-            }
-        } else if !data.complete {
-            data.value += letter_char;
-        } else if letter_char == "." {
+    if let types::Types::Bool(ref mut data) = itered_data.data.value {
+        if letter_char == "." {
             itered_data.data.value =
                 types::Types::Refference(types::refference_type::RefferenceType {
                     refference: Box::new(itered_data.data.value.clone()),
@@ -64,7 +34,6 @@ pub fn collect_string(
                 options,
             )
         } else if types::logical_type::LogicalOpearators::is_logical_opearator(letter_char) {
-            data.complete = true;
             itered_data.data.value =
                 types::Types::Operator(types::operator_type::OperatorTypeCollector {
                     data: types::operator_type::OperatorType {
@@ -88,7 +57,6 @@ pub fn collect_string(
             )
         } else if types::comparison_type::ComparisonOperators::is_comparison_opearator(letter_char)
         {
-            data.complete = true;
             itered_data.data.value =
                 types::Types::Operator(types::operator_type::OperatorTypeCollector {
                     data: types::operator_type::OperatorType {
@@ -112,7 +80,6 @@ pub fn collect_string(
             )
         } else if types::arithmetic_type::ArithmeticOperators::is_arithmetic_opearator(letter_char)
         {
-            data.complete = true;
             itered_data.data.value =
                 types::Types::Operator(types::operator_type::OperatorTypeCollector {
                     data: types::operator_type::OperatorType {
@@ -134,10 +101,9 @@ pub fn collect_string(
                 pos,
                 options,
             )
-        
-        } else if letter_char != " " {
+        } else {
             errors.push(error::Error {
-                debug_message: "a0ea6e511f3ad56c876b60f889bfa53d".to_string(),
+                debug_message: "............".to_string(),
                 title: error::errorList::error_s1.title.clone(),
                 code: error::errorList::error_s1.code,
                 message: error::errorList::error_s1.message.clone(),
@@ -145,7 +111,7 @@ pub fn collect_string(
                     error::errorList::error_s1.message.clone(),
                     vec![error::ErrorBuildField {
                         key: "token".to_string(),
-                        value: letter_char.to_string(),
+                        value: data.value.to_string(),
                     }],
                 ),
                 pos: defs::Cursor {

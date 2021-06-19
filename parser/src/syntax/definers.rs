@@ -28,7 +28,7 @@ pub struct ArrayType {
     pub complete: bool,
     pub rtype: Box<DefinerCollecting>,
     pub bracket_inserted: bool,
-    pub len: crate::syntax::types::Types,
+    pub len: crate::syntax::types::integer_type::IntegerType,
     pub at_comma: bool,
     pub typed: bool,
 }

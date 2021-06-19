@@ -16,43 +16,73 @@ pub fn collect_operator(
     pos: defs::CursorPosition,
     options: defs::ParserOptions,
 ) {
+    //TODO SUPPORT first operator parse
     if let types::Types::Operator(ref mut data) = itered_data.data.value {
         if !data.operator_collected {
             //Operator
-            let is_opearator = types::operator_type::Operators::resolve_operator(
-                data.operator.clone(),
-                &(data.operator_collect.clone() + letter_char),
-            );
-            if is_opearator.is_err() {
-                if letter_char == " " {
+
+            if letter_char == " "
+                || (types::operator_type::Operators::might_be_operator(
+                    data.data.operator.clone(),
+                    &data.operator_collect,
+                ) && !types::operator_type::Operators::might_be_operator(
+                    data.data.operator.clone(),
+                    &(data.operator_collect.clone() + letter_char),
+                ))
+            {
+                let is_opearator = types::operator_type::Operators::resolve_operator(
+                    data.data.operator.clone(),
+                    &data.operator_collect,
+                );
+                if is_opearator.is_err() {
+                    if letter_char == " " {
+                        data.operator_collected = true;
+                    } else {
+                        errors.push(error::Error {
+                            debug_message: "ecbbc53fec7ec1388bcf2a826d64d4ed".to_string(),
+                            title: error::errorList::error_s13.title.clone(),
+                            code: error::errorList::error_s13.code,
+                            message: error::errorList::error_s13.message.clone(),
+                            builded_message: error::Error::build(
+                                error::errorList::error_s13.message.clone(),
+                                vec![error::ErrorBuildField {
+                                    key: "token".to_string(),
+                                    value: letter_char.to_string(),
+                                }],
+                            ),
+                            pos: defs::Cursor {
+                                range_start: pos,
+                                range_end: pos.clone().skipChar(1),
+                            },
+                        });
+                    }
+                } else if let Ok(parsed_operator) = is_opearator {
+                    data.data.operator = parsed_operator;
                     data.operator_collected = true;
-                } else {
-                    errors.push(error::Error {
-                        debug_message: "./parser/src/processors/type_processors/operator.rs:0"
-                            .to_string(),
-                        title: error::errorList::error_s13.title.clone(),
-                        code: error::errorList::error_s13.code,
-                        message: error::errorList::error_s13.message.clone(),
-                        builded_message: error::Error::build(
-                            error::errorList::error_s13.message.clone(),
-                            vec![error::ErrorBuildField {
-                                key: "token".to_string(),
-                                value: letter_char.to_string(),
-                            }],
-                        ),
-                        pos: defs::Cursor {
-                            range_start: pos,
-                            range_end: pos.clone().skipChar(1),
-                        },
-                    });
                 }
-            } else if let Ok(parsed_operator) = is_opearator {
+            } else if types::operator_type::Operators::might_be_operator(
+                data.data.operator.clone(),
+                &(data.operator_collect.clone() + letter_char),
+            ) {
                 data.operator_collect += letter_char;
-                if let types::operator_type::Operators::ComparisonType(_) = data.operator {
-                    data.operator = parsed_operator;
-                } else {
-                    data.operator = parsed_operator;
-                }
+            } else {
+                errors.push(error::Error {
+                    debug_message: "qeebc53fec7ec1388bcf2a826d64d4ed".to_string(),
+                    title: error::errorList::error_s13.title.clone(),
+                    code: error::errorList::error_s13.code,
+                    message: error::errorList::error_s13.message.clone(),
+                    builded_message: error::Error::build(
+                        error::errorList::error_s13.message.clone(),
+                        vec![error::ErrorBuildField {
+                            key: "token".to_string(),
+                            value: letter_char.to_string(),
+                        }],
+                    ),
+                    pos: defs::Cursor {
+                        range_start: pos,
+                        range_end: pos.clone().skipChar(1),
+                    },
+                });
             }
         } else {
             //Second
@@ -76,69 +106,78 @@ pub fn collect_operator(
                     errors.push(edited);
                 }
             }
+
             if let types::Types::Operator(child_operator) =
                 itered_child.itered_data.data.value.clone()
             {
-                if child_operator.operator == data.operator {
+                if child_operator.data.operator == data.data.operator {
                     itered_data.data.value =
-                        types::Types::Operator(types::operator_type::OperatorType {
-                            cloaked: child_operator.cloaked,
-                            first: Box::new(types::Types::Operator(
-                                types::operator_type::OperatorType {
-                                    cloaked: data.cloaked,
-                                    first: data.first.clone(),
-                                    first_filled: true,
-                                    second: child_operator.first,
-                                    operator: data.operator.clone(),
-                                    operator_collect: data.operator_collect.clone(),
-                                    operator_collected: true,
-                                    ..Default::default()
-                                },
-                            )),
+                        types::Types::Operator(types::operator_type::OperatorTypeCollector {
+                            data: types::operator_type::OperatorType {
+                                cloaked: child_operator.cloaked,
+                                first: Box::new(types::Types::Operator(
+                                    types::operator_type::OperatorTypeCollector {
+                                        data: types::operator_type::OperatorType {
+                                            first: data.data.first.clone(),
+                                            second: child_operator.data.first,
+                                            operator: data.data.operator.clone(),
+                                            cloaked: data.cloaked,
+                                        },
+                                        first_filled: true,
+                                        operator_collect: data.operator_collect.clone(),
+                                        operator_collected: true,
+                                        ..Default::default()
+                                    },
+                                )),
+                                operator: child_operator.data.operator,
+                                ..Default::default()
+                            },
+ 
                             first_filled: true,
-                            operator: child_operator.operator,
+                            
                             operator_collect: child_operator.operator_collect,
                             ..Default::default()
                         })
                 } else {
-                    match data.operator.clone() {
+                    match data.data.operator.clone() {
                         types::operator_type::Operators::ComparisonType(_) => {
-                            if child_operator.second == Box::new(types::Types::Null) {}
+                            if child_operator.data.second == Box::new(types::Types::Null) {}
                             itered_data.data.value =
-                                types::Types::Operator(types::operator_type::OperatorType {
-                                    cloaked: data.cloaked,
-                                    first: Box::new(types::Types::Operator(
-                                        types::operator_type::OperatorType {
-                                            first_filled: true,
-                                            cloaked: data.cloaked,
-                                            first: data.first.clone(),
-                                            second: child_operator.first.clone(),
-                                            operator: data.operator.clone(),
-                                            operator_collect: data.operator_collect.clone(),
-                                            operator_collected: true,
-                                            ..Default::default()
-                                        },
-                                    )),
+                                types::Types::Operator(types::operator_type::OperatorTypeCollector {
+                                    data: types::operator_type::OperatorType {
+                                        first: Box::new(types::Types::Operator(
+                                            types::operator_type::OperatorTypeCollector {
+                                                first_filled: true,
+                                                data: types::operator_type::OperatorType {
+                                                    cloaked: data.cloaked,
+                                                    first: data.data.first.clone(),
+                                                    second: child_operator.data.first.clone(),
+                                                    operator: data.data.operator.clone(),
+                                                },
+                                                operator_collect: data.operator_collect.clone(),
+                                                operator_collected: true,
+                                                ..Default::default()
+                                            },
+                                        )),
+                                        cloaked: data.cloaked,
+                                        operator: child_operator.data.operator,
+                                        ..Default::default()
+                                    },
                                     first_filled: true,
-                                    operator: child_operator.operator,
                                     operator_collect: child_operator.operator_collect,
                                     ..Default::default()
                                 })
                         }
                         _ => {
-                            data.second = Box::new(itered_child.itered_data.data.value.clone());
+                            data.data.second = Box::new(itered_child.itered_data.data.value.clone());
                             data.itered_cache = Box::new(itered_child.itered_data);
                         }
                     }
                 }
             } else {
                 data.itered_cache = Box::new(itered_child.itered_data.clone());
-                data.second = Box::new(itered_child.itered_data.data.value);
+                data.data.second = Box::new(itered_child.itered_data.data.value);
             }
         }
     }
 }
-
-
-
-

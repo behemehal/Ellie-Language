@@ -1,5 +1,5 @@
 use crate::processors::type_processors;
-use crate::syntax::{types, variable};
+use crate::syntax::{types, variable, definers};
 use ellie_core::{defs, error};
 
 use alloc::boxed::Box;
@@ -13,14 +13,22 @@ pub fn collect_null(
     next_char: String,
     last_char: String,
     pos: defs::CursorPosition,
+    options: defs::ParserOptions,
 ) {
     if let types::Types::Null = itered_data.data.value {
         //let is_num = itered_data.raw_value.parse::<usize>().is_ok();
         if itered_data.raw_value.is_empty() {
-            if letter_char == "\"" {
+            if letter_char == "." {
+                itered_data.data.value =
+                types::Types::Float(types::float_type::FloatTypeCollector {
+                    base: "0".to_string(),
+                    at_point: true,
+                    ..Default::default()
+                });
+            } else if letter_char == "\"" {
                 if itered_data.data.dynamic {
-                    itered_data.rtype = crate::syntax::definers::DefinerCollecting::Generic(
-                        crate::syntax::definers::GenericType {
+                    itered_data.data.rtype = definers::DefinerCollecting::Generic(
+                        definers::GenericType {
                             rtype: "string".to_string(),
                         },
                     );
@@ -29,8 +37,8 @@ pub fn collect_null(
                     types::Types::String(types::string_type::StringType::default());
             } else if letter_char == "'" {
                 if itered_data.data.dynamic {
-                    itered_data.rtype = crate::syntax::definers::DefinerCollecting::Generic(
-                        crate::syntax::definers::GenericType {
+                    itered_data.data.rtype = definers::DefinerCollecting::Generic(
+                        definers::GenericType {
                             rtype: "char".to_string(),
                         },
                     );
@@ -40,20 +48,21 @@ pub fn collect_null(
                 .parse::<i64>()
                 .is_ok()
             {
-                itered_data.data.value =
-                    types::Types::Number(types::number_type::NumberType::default());
-                type_processors::number::collect_number(
+                // Default integer
+                itered_data.data.value = types::Types::Integer(types::integer_type::IntegerType::default());
+                type_processors::integer::collect_integer(
                     itered_data,
                     errors,
                     letter_char,
                     next_char,
                     last_char,
                     pos,
+                    options,
                 )
             } else if letter_char == "[" {
                 if itered_data.data.dynamic {
-                    itered_data.rtype = crate::syntax::definers::DefinerCollecting::GrowableArray(
-                        crate::syntax::definers::GrowableArrayType {
+                    itered_data.data.rtype = definers::DefinerCollecting::GrowableArray(
+                        definers::GrowableArrayType {
                             rtype: Box::new(crate::syntax::definers::DefinerCollecting::Dynamic),
                             ..Default::default()
                         },
@@ -90,14 +99,8 @@ pub fn collect_null(
                     });
             }
         } else if letter_char != " " {
-            if (next_char == ";" || next_char == " ")
-                && itered_data.raw_value.parse::<i64>().is_ok()
-            {
-                itered_data.data.value = types::Types::Number(types::number_type::NumberType {
-                    rtype: types::number_type::NumberTypes::I64,
-                    raw: itered_data.raw_value.clone() + letter_char,
-                    ..Default::default()
-                })
+            if (next_char == ";" || next_char == " ") && itered_data.raw_value.parse::<i64>().is_ok() {
+                panic!("This should have been happened XC11");
             }
             itered_data.raw_value += &letter_char;
         }

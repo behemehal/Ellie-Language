@@ -112,7 +112,7 @@ lazy_static! {
     pub static ref error_s16: crate::error::Error = crate::error::Error {
         code: 0x15,
         title: "OverflowError".to_string(),
-        message: "The value '$val' cannot fit to type '$type'".to_string(),
+        message: "The value '$val' cannot fit to integer".to_string(),
         ..Default::default()
     };
 
@@ -134,6 +134,13 @@ lazy_static! {
         code: 0x18,
         title: "OverflowError".to_string(),
         message: "Fixed size exceeded: expected '$token' elements, got '$token2' elements".to_string(),
+        ..Default::default()
+    };
+
+    pub static ref error_s20: crate::error::Error = crate::error::Error {
+        code: 0x19,
+        title: "TypeError".to_string(),
+        message: "Fixed size required".to_string(),
         ..Default::default()
     };
 

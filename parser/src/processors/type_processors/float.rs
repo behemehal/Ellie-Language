@@ -1,13 +1,13 @@
-use crate::syntax::{definers, types, variable};
+#![allow(clippy::unnecessary_unwrap)]
 use crate::processors::type_processors;
-use ellie_core::{defs, error};
-
+use crate::syntax::{types, variable};
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};
 use alloc::vec;
 use alloc::vec::Vec;
+use ellie_core::{defs, error};
 
-pub fn collect_string(
+pub fn collect_float(
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
@@ -16,25 +16,24 @@ pub fn collect_string(
     pos: defs::CursorPosition,
     options: defs::ParserOptions,
 ) {
-    if let types::Types::String(ref mut data) = itered_data.data.value {
-        if itered_data.data.dynamic {
-            itered_data.data.rtype = definers::DefinerCollecting::Generic(definers::GenericType {
-                rtype: "string".to_string(),
-            });
-        }
-
-        if letter_char == "\"" && last_char != "\\" {
-            if data.complete {
+    if let types::Types::Float(ref mut data) = itered_data.data.value {
+        if !data.at_point {
+            //[1].111
+            if letter_char.parse::<i8>().is_ok() {
+                data.base += letter_char;
+            } else if letter_char == "." {
+                data.at_point = true;
+            } else {
                 errors.push(error::Error {
-                    debug_message: "b278a67189dc1087606aeb133fe9973c".to_string(),
+                    debug_message: "............".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
                     builded_message: error::Error::build(
                         error::errorList::error_s1.message.clone(),
                         vec![error::ErrorBuildField {
-                            key: "token".to_string(),
-                            value: letter_char.to_string(),
+                            key: "val".to_string(),
+                            value: data.data.raw.clone(),
                         }],
                     ),
                     pos: defs::Cursor {
@@ -42,11 +41,82 @@ pub fn collect_string(
                         range_end: pos.clone().skipChar(1),
                     },
                 });
-            } else {
-                data.complete = true;
             }
-        } else if !data.complete {
-            data.value += letter_char;
+        } else if letter_char.parse::<i8>().is_ok() {
+            data.point += letter_char;
+            let f32_parse = data.collect().parse::<f32>();
+
+            if f32_parse.is_ok() && data.collect().len() < 9 {
+                if f32_parse.clone().unwrap().is_infinite() {
+                    errors.push(error::Error {
+                        debug_message: "ae4b3dbbbaed470a884cc9bca505d614".to_string(),
+                        title: error::errorList::error_s17.title.clone(),
+                        code: error::errorList::error_s17.code,
+                        message: error::errorList::error_s17.message.clone(),
+                        builded_message: error::Error::build(
+                            error::errorList::error_s17.message.clone(),
+                            vec![error::ErrorBuildField {
+                                key: "val".to_string(),
+                                value: (data.point.clone() + letter_char),
+                            }],
+                        ),
+                        pos: defs::Cursor {
+                            range_start: pos
+                                .clone()
+                                .popChar((data.point.clone() + "." + letter_char).len() as i64),
+                            range_end: pos.clone().skipChar(1),
+                        },
+                    });
+                } else {
+                    data.data.value = types::float_type::FloatSize::F32(f32_parse.unwrap());
+                    data.data.rtype = types::float_type::FloatTypes::F32;
+                    data.complete = true;
+                }
+            } else if let Ok(flt) = data.collect().parse::<f64>() {
+                if flt.is_infinite() {
+                    errors.push(error::Error {
+                        debug_message: "ae4b3dbbbaed470a884cc9bca505d614".to_string(),
+                        title: error::errorList::error_s17.title.clone(),
+                        code: error::errorList::error_s17.code,
+                        message: error::errorList::error_s17.message.clone(),
+                        builded_message: error::Error::build(
+                            error::errorList::error_s17.message.clone(),
+                            vec![error::ErrorBuildField {
+                                key: "val".to_string(),
+                                value: (data.point.clone() + letter_char),
+                            }],
+                        ),
+                        pos: defs::Cursor {
+                            range_start: pos
+                                .clone()
+                                .popChar((data.point.clone() + "." + letter_char).len() as i64),
+                            range_end: pos.clone().skipChar(1),
+                        },
+                    });
+                } else {
+                    data.data.value = types::float_type::FloatSize::F64(flt);
+                    data.data.rtype = types::float_type::FloatTypes::F64;
+                    data.complete = true;
+                }
+            } else {
+                errors.push(error::Error {
+                    debug_message: "............".to_string(),
+                    title: error::errorList::error_s17.title.clone(),
+                    code: error::errorList::error_s17.code,
+                    message: error::errorList::error_s17.message.clone(),
+                    builded_message: error::Error::build(
+                        error::errorList::error_s17.message.clone(),
+                        vec![error::ErrorBuildField {
+                            key: "val".to_string(),
+                            value: data.data.raw.clone(),
+                        }],
+                    ),
+                    pos: defs::Cursor {
+                        range_start: pos,
+                        range_end: pos.clone().skipChar(1),
+                    },
+                });
+            }
         } else if letter_char == "." {
             itered_data.data.value =
                 types::Types::Refference(types::refference_type::RefferenceType {
@@ -134,18 +204,19 @@ pub fn collect_string(
                 pos,
                 options,
             )
-        
-        } else if letter_char != " " {
+        } else if letter_char == " " {
+            data.complete = true;
+        } else {
             errors.push(error::Error {
-                debug_message: "a0ea6e511f3ad56c876b60f889bfa53d".to_string(),
+                debug_message: "............".to_string(),
                 title: error::errorList::error_s1.title.clone(),
                 code: error::errorList::error_s1.code,
                 message: error::errorList::error_s1.message.clone(),
                 builded_message: error::Error::build(
                     error::errorList::error_s1.message.clone(),
                     vec![error::ErrorBuildField {
-                        key: "token".to_string(),
-                        value: letter_char.to_string(),
+                        key: "val".to_string(),
+                        value: data.data.raw.clone(),
                     }],
                 ),
                 pos: defs::Cursor {

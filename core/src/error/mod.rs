@@ -39,7 +39,7 @@ impl Error {
     pub fn build(body: String, fields: Vec<ErrorBuildField>) -> BuildedError {
         let mut builded_message = body.to_string();
         let mut used_fields = Vec::new();
-        for field in fields {
+        for field in fields.clone() {
             let key: String = '$'.to_string() + &field.key.to_string();
             if let Some(pos) = builded_message.find(&key) {
                 used_fields.push(ErrorBuildField {
@@ -48,7 +48,7 @@ impl Error {
                 });
                 builded_message.replace_range(pos..(pos + key.len()), &field.value)
             } else {
-                panic!("Failed to parse error '{}'", body);
+                panic!("Failed to parse error {}, {:#?}", body, fields.clone());
             }
         }
         BuildedError {

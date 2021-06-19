@@ -20,6 +20,26 @@ pub enum Operators {
 }
 
 impl Operators {
+
+    pub fn is_opeartor(value: &str) -> bool {
+        types::comparison_type::ComparisonOperators::is_comparison_opearator(value) || types::logical_type::LogicalOpearators::is_logical_opearator(value) || types::arithmetic_type::ArithmeticOperators::is_arithmetic_opearator(value)
+    }
+
+    pub fn might_be_operator(rtype: Operators, value: &str) -> bool {
+        match rtype {
+            Operators::ComparisonType(_) => {
+                types::comparison_type::ComparisonOperators::is_comparison_opearator(value)
+            }
+            Operators::LogicalType(_) => {
+                types::logical_type::LogicalOpearators::is_logical_opearator(value)
+            }
+            Operators::ArithmeticType(_) => {
+                types::arithmetic_type::ArithmeticOperators::is_arithmetic_opearator(value)
+            }
+            _ => false,
+        }
+    }
+
     pub fn resolve_operator(rtype: Operators, value: &str) -> Result<Operators, bool> {
         match rtype {
             Operators::ComparisonType(_) => {
@@ -64,11 +84,17 @@ impl Default for Operators {
 pub struct OperatorType {
     pub cloaked: bool,
     pub first: Box<types::Types>,
-    pub first_filled: bool,
     pub second: Box<types::Types>,
+    pub operator: Operators,
+}
+
+#[derive(PartialEq, Debug, Clone, Default, Serialize)]
+pub struct OperatorTypeCollector {
+    pub data: OperatorType,
+    pub cloaked: bool,
+    pub first_filled: bool,
     pub second_is_not_null: bool,
     pub itered_cache: Box<variable::VariableCollector>,
-    pub operator: Operators,
     pub operator_collect: String,
     pub operator_collected: bool,
 }

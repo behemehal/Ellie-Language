@@ -25,7 +25,7 @@ pub fn collect_function_caller(
         }
 
         let is_s_n =
-            !(last_param == 0 && data.params[last_param - 1].value.is_string_non_complete());
+            !(last_param == 0 && matches!(&data.params[last_param - 1].value, types::Types::String(x) if x.complete));
 
         if letter_char == "," && is_s_n && !data.params[last_param - 1].value.is_array() {
             if data.params[last_param - 1].value.is_type_complete() {
@@ -34,7 +34,7 @@ pub fn collect_function_caller(
                     .push(types::function_call::FunctionCallParameter::default())
             } else {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/function_call.rs:0"
+                    debug_message: "b390efb1bf4a33eff3a06ba85ed1a0d0"
                         .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
@@ -55,7 +55,7 @@ pub fn collect_function_caller(
         } else if letter_char == ")" && is_s_n {
             if data.comma {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/function_call.rs:1"
+                    debug_message: "6da63c3b5d2f68653c5c957769d50239"
                         .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
@@ -74,7 +74,7 @@ pub fn collect_function_caller(
                 });
             } else {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/function_call.rs:2"
+                    debug_message: "b364daa51467d6c45a5dbcff79baa72d"
                         .to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
@@ -120,9 +120,13 @@ pub fn collect_function_caller(
             ));
 
             let _itered_entry = match itered_param_value.itered_data.data.value.clone() {
-                types::Types::Number(match_data) => types::array_type::ArrayEntry {
+                types::Types::Integer(match_data) => types::array_type::ArrayEntry {
                     value_complete: match_data.complete,
-                    value: Box::new(types::Types::Number(match_data)),
+                    value: Box::new(types::Types::Integer(match_data)),
+                },
+                types::Types::Float(match_data) => types::array_type::ArrayEntry {
+                    value_complete: match_data.complete,
+                    value: Box::new(types::Types::Float(match_data)),
                 },
                 types::Types::Operator(match_data) => types::array_type::ArrayEntry {
                     value_complete: false,
@@ -193,6 +197,7 @@ pub fn collect_function_caller(
         }
     }
 }
+
 
 
 

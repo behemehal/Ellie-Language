@@ -57,17 +57,17 @@ pub fn collect_definer(
                         options,
                     )
                 }
-            } else if letter_char == ")" && data.len.is_type_complete() {
+            } else if letter_char == ")" && data.len.complete {
                 data.complete = true;
             } else {
                 let mut emulated_collector_data = syntax::variable::VariableCollector {
-                    rtype: syntax::definers::DefinerCollecting::Generic(
-                        syntax::definers::GenericType {
-                            rtype: "usize".to_string(),
-                        },
-                    ),
                     data: syntax::variable::Variable {
-                        value: data.len.clone(),
+                        value: syntax::types::Types::Integer(data.len.clone()),
+                        rtype: syntax::definers::DefinerCollecting::Generic(
+                            syntax::definers::GenericType {
+                                rtype: "usize".to_string(),
+                            },
+                        ),
                         ..Default::default()
                     },
                     ..Default::default()
@@ -85,11 +85,29 @@ pub fn collect_definer(
                     errors.push(i)
                 }
 
-                if emulated_collector_data.data.value.is_type_complete()  {
+                if !emulated_collector_data.data.value.is_integer() && letter_char != " " {
+                    errors.push(error::Error {
+                        debug_message: "570cb25f49da7a8bdb28b331ce78b9c3".to_string(),
+                        title: error::errorList::error_s20.title.clone(),
+                        code: error::errorList::error_s20.code,
+                        message: error::errorList::error_s20.message.clone(),
+                        builded_message: error::BuildedError::build_from_string(
+                            error::errorList::error_s20.message.clone(),
+                        ),
+                        pos: defs::Cursor {
+                            range_start: pos,
+                            range_end: pos.clone().skipChar(1),
+                        },
+                    });
+                }
+
+                if emulated_collector_data.data.value.is_type_complete() {
                     data.complete = true;
                 }
 
-                data.len = emulated_collector_data.data.value;
+                if let syntax::types::Types::Integer(e) = emulated_collector_data.data.value {
+                    data.len = e;
+                }
             }
         }
         DefinerCollecting::Generic(data) => {
@@ -122,7 +140,7 @@ pub fn collect_definer(
                     });
             } else if letter_char != " " && last_char == " " && data.rtype.trim() != "" {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/definer_processor.rs:0".to_string(),
+                    debug_message: "5dfee242d5d665ec2c2d80fe4eb35941".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -148,8 +166,7 @@ pub fn collect_definer(
                     data.rtype = utils::trim_good(data.rtype.trim().to_string());
                 } else if letter_char != " " {
                     errors.push(error::Error {
-                        debug_message: "./parser/src/processors/definer_processor.rs:1"
-                            .to_string(),
+                        debug_message: "47c2d29244734e697b16212a7c442996".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -185,8 +202,7 @@ pub fn collect_definer(
                 } else if data.params.is_empty() && data.bracket_inserted {
                     //This should have been filled If everything were right
                     errors.push(error::Error {
-                        debug_message: "./parser/src/processors/definer_processor.rs:2"
-                            .to_string(),
+                        debug_message: "c4d4200d2cf5e8670c22541753a0c54b".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -223,8 +239,7 @@ pub fn collect_definer(
                 if data.return_keyword != 2 {
                     if letter_char != ":" {
                         errors.push(error::Error {
-                            debug_message: "./parser/src/processors/definer_processor.rs:3"
-                                .to_string(),
+                            debug_message: "6d4195fefa99a304a2afce3b3d38d93a".to_string(),
                             title: error::errorList::error_s1.title.clone(),
                             code: error::errorList::error_s1.code,
                             message: error::errorList::error_s1.message.clone(),
@@ -294,7 +309,3 @@ pub fn collect_definer(
         DefinerCollecting::Dynamic => {}
     }
 }
-
-
-
-

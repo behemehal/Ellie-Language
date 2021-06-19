@@ -16,7 +16,7 @@ pub fn collect_char(
 ) {
     if let types::Types::Char(ref mut data) = itered_data.data.value {
         if itered_data.data.dynamic {
-            itered_data.rtype = crate::syntax::definers::DefinerCollecting::Generic(
+            itered_data.data.rtype = crate::syntax::definers::DefinerCollecting::Generic(
                 crate::syntax::definers::GenericType {
                     rtype: "char".to_string(),
                 },
@@ -26,7 +26,7 @@ pub fn collect_char(
         if letter_char == "'" && last_char != "\\" {
             if data.value == '\0' {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/char.rs:0".to_string(),
+                    debug_message: "dc9cd10041ccbff3e436991f8bdd6317".to_string(),
                     title: error::errorList::error_s14.title.clone(),
                     code: error::errorList::error_s14.code,
                     message: error::errorList::error_s14.message.clone(),
@@ -48,7 +48,7 @@ pub fn collect_char(
         } else if !data.complete {
             if data.value != '\0' {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/char.rs:1".to_string(),
+                    debug_message: "eb3adce0a41303b51e264a0df169c25d".to_string(),
                     title: error::errorList::error_s15.title.clone(),
                     code: error::errorList::error_s15.code,
                     message: error::errorList::error_s15.message.clone(),
@@ -63,7 +63,7 @@ pub fn collect_char(
             }
         } else if letter_char != " " {
             errors.push(error::Error {
-                debug_message: "./parser/src/processors/type_processors/char.rs:2".to_string(),
+                debug_message: "b4f06b62685b9bfffeeae1bd17423f1d".to_string(),
                 title: error::errorList::error_s1.title.clone(),
                 code: error::errorList::error_s1.code,
                 message: error::errorList::error_s1.message.clone(),
@@ -82,6 +82,7 @@ pub fn collect_char(
         }
     }
 }
+
 
 
 

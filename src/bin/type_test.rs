@@ -6,7 +6,7 @@ fn main() {
     let mut errors: Vec<ellie_core::error::Error> = vec![];
     let mut emulated_collector_data = ellie_parser::syntax::definers::DefinerCollecting::default();
     let code = "
-        growableArray(i8)
+        array(16,test)
     ";
 
     for (index, char) in code.chars().enumerate() {

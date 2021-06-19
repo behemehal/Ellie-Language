@@ -8,7 +8,7 @@ pub mod comparison_type;
 pub mod double_type;
 pub mod function_call;
 pub mod logical_type;
-pub mod number_type;
+pub mod integer_type;
 pub mod operator_type;
 pub mod refference_type;
 pub mod string_type;
@@ -17,7 +17,7 @@ pub mod variable_type;
 
 #[repr(C)]
 pub enum Types {
-    Number(number_type::NumberType),
+    Number(integer_type::NumberType),
     Bool(bool_type::BoolType),
     String(string_type::StringType),
     Char(char_type::CharType),

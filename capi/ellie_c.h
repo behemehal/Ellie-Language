@@ -63,20 +63,20 @@ enum class LogicalOpearators {
 };
 
 enum class NumberTypes {
-  NUMBER_TYPES_I8,
-  NUMBER_TYPES_I16,
-  NUMBER_TYPES_I32,
-  NUMBER_TYPES_I64,
-  NUMBER_TYPES_I128,
-  NUMBER_TYPES_I_SIZE,
-  NUMBER_TYPES_U8,
-  NUMBER_TYPES_U16,
-  NUMBER_TYPES_U32,
-  NUMBER_TYPES_U64,
-  NUMBER_TYPES_U128,
-  NUMBER_TYPES_USIZE,
-  NUMBER_TYPES_F32,
-  NUMBER_TYPES_F64,
+  integer_typeS_I8,
+  integer_typeS_I16,
+  integer_typeS_I32,
+  integer_typeS_I64,
+  integer_typeS_I128,
+  integer_typeS_I_SIZE,
+  integer_typeS_U8,
+  integer_typeS_U16,
+  integer_typeS_U32,
+  integer_typeS_U64,
+  integer_typeS_U128,
+  integer_typeS_USIZE,
+  integer_typeS_F32,
+  integer_typeS_F64,
 };
 
 template<typename T = void>
@@ -84,7 +84,7 @@ struct Box;
 
 struct Types;
 
-struct NumberSize {
+struct IntegerSize {
   enum class Tag {
     NUMBER_SIZE_U8,
     NUMBER_SIZE_U16,
@@ -178,7 +178,7 @@ struct NumberSize {
 };
 
 struct NumberType {
-  NumberSize value;
+  IntegerSize value;
   const char *raw;
   NumberTypes rtype;
   bool complete;

@@ -1,4 +1,4 @@
-use crate::processors::value_processor;
+use crate::processors::{type_processors, value_processor};
 use crate::syntax::{definers, types, variable};
 use ellie_core::{defs, error, utils};
 
@@ -24,8 +24,7 @@ pub fn collect_cloak(
         if letter_char == "(" && !data.child_start && is_s_n {
             if !data.comma && last_entry != 0 {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/cloak.rs:0"
-                        .to_string(),
+                    debug_message: "648cc3ab899bcefa76954c2b7dfa9463".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -62,8 +61,7 @@ pub fn collect_cloak(
         } else if letter_char == "," && !data.child_start && is_s_n {
             if data.complete {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/cloak.rs:1"
-                        .to_string(),
+                    debug_message: "94042d191350316be49bb132dd5ded37".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -81,8 +79,7 @@ pub fn collect_cloak(
                 });
             } else if data.comma {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/cloak.rs:2"
-                        .to_string(),
+                    debug_message: "1f4cb0e838ddf238406850a15740f858".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -111,8 +108,7 @@ pub fn collect_cloak(
         } else if letter_char == ")" && !data.child_start && is_s_n {
             if data.comma {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/cloak.rs:3"
-                        .to_string(),
+                    debug_message: "203b8bdf603826b1358d2cf91b4b6d42".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -130,8 +126,7 @@ pub fn collect_cloak(
                 });
             } else if data.complete {
                 errors.push(error::Error {
-                    debug_message: "./parser/src/processors/type_processors/cloak.rs:4"
-                        .to_string(),
+                    debug_message: "7e8c4fcb7170120036f901c34187af31".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -164,35 +159,91 @@ pub fn collect_cloak(
             itered_data.data.value =
                 types::Types::Refference(types::refference_type::RefferenceType {
                     refference: Box::new(itered_data.data.value.clone()),
-                    on_dot: true,
-                    chain: vec![],
-                })
+                    chain: Vec::new(),
+                    on_dot: false,
+                });
+            type_processors::refference::collect_refference(
+                itered_data,
+                errors,
+                letter_char,
+                next_char,
+                last_char,
+                pos,
+                options,
+            )
         } else if data.complete
             && types::logical_type::LogicalOpearators::is_logical_opearator(letter_char)
             && is_s_n
         {
-            itered_data.data.value = types::Types::Operator(types::operator_type::OperatorType {
-                first: Box::new(types::Types::Cloak(data.clone())),
-                first_filled: true,
-                operator: types::operator_type::Operators::LogicalType(
-                    types::logical_type::LogicalOpearators::Null,
-                ),
-                operator_collect: letter_char.to_string(),
-                ..Default::default()
-            });
+            itered_data.data.value =
+                types::Types::Operator(types::operator_type::OperatorTypeCollector {
+                    data: types::operator_type::OperatorType {
+                        first: Box::new(itered_data.data.value.clone()),
+                        operator: types::operator_type::Operators::LogicalType(
+                            types::logical_type::LogicalOpearators::Null,
+                        ),
+                        ..Default::default()
+                    },
+                    first_filled: true,
+                    ..Default::default()
+                });
+            type_processors::operator::collect_operator(
+                itered_data,
+                errors,
+                letter_char,
+                next_char,
+                last_char,
+                pos,
+                options,
+            )
         } else if data.complete
             && types::comparison_type::ComparisonOperators::is_comparison_opearator(letter_char)
             && is_s_n
         {
-            itered_data.data.value = types::Types::Operator(types::operator_type::OperatorType {
-                first: Box::new(types::Types::Cloak(data.clone())),
+            itered_data.data.value = types::Types::Operator(types::operator_type::OperatorTypeCollector {
+                data: types::operator_type::OperatorType {
+                    first: Box::new(itered_data.data.value.clone()),
+                    operator: types::operator_type::Operators::ComparisonType(
+                        types::comparison_type::ComparisonOperators::Null,
+                    ),
+                    ..Default::default()
+                },
                 first_filled: true,
-                operator: types::operator_type::Operators::ComparisonType(
-                    types::comparison_type::ComparisonOperators::Null,
-                ),
-                operator_collect: letter_char.to_string(),
                 ..Default::default()
             });
+            type_processors::operator::collect_operator(
+                itered_data,
+                errors,
+                letter_char,
+                next_char,
+                last_char,
+                pos,
+                options,
+            )
+        } else if data.complete
+            && types::arithmetic_type::ArithmeticOperators::is_arithmetic_opearator(letter_char)
+            && is_s_n
+        {
+            itered_data.data.value = types::Types::Operator(types::operator_type::OperatorTypeCollector {
+                data: types::operator_type::OperatorType {
+                    first: Box::new(itered_data.data.value.clone()),
+                    operator: types::operator_type::Operators::ArithmeticType(
+                        types::arithmetic_type::ArithmeticOperators::Null,
+                    ),
+                    ..Default::default()
+                },
+                first_filled: true,
+                ..Default::default()
+            });
+            type_processors::operator::collect_operator(
+                itered_data,
+                errors,
+                letter_char,
+                next_char,
+                last_char,
+                pos,
+                options,
+            )
         } else {
             if letter_char != " " {
                 //TODO IS THIS SAFE ?
@@ -200,17 +251,20 @@ pub fn collect_cloak(
             }
 
             let mut will_be_itered: variable::VariableCollector;
-            if let definers::DefinerCollecting::Cloak(cloak_data) = itered_data.rtype.clone() {
+            if let definers::DefinerCollecting::Cloak(cloak_data) = itered_data.data.rtype.clone() {
                 will_be_itered = if data.collective.is_empty() {
                     variable::VariableCollector {
-                        rtype: cloak_data.rtype[0].clone(),
+                        data: variable::Variable {
+                            rtype: cloak_data.rtype[0].clone(),
+                            ..Default::default()
+                        },
                         ..variable::VariableCollector::default()
                     }
                 } else {
                     variable::VariableCollector {
-                        rtype: cloak_data.rtype[data.collective.len() - 1].clone(),
                         data: variable::Variable {
                             value: *data.collective[data.collective.len() - 1].value.clone(),
+                            rtype: cloak_data.rtype[data.collective.len() - 1].clone(),
                             ..Default::default()
                         },
                         ..variable::VariableCollector::default()
@@ -252,9 +306,13 @@ pub fn collect_cloak(
             }
 
             let itered_entry = match itered_cloak_vector.itered_data.data.value {
-                types::Types::Number(match_data) => types::cloak_type::CloakEntry {
+                types::Types::Integer(match_data) => types::cloak_type::CloakEntry {
                     value_complete: match_data.complete,
-                    value: Box::new(types::Types::Number(match_data)),
+                    value: Box::new(types::Types::Integer(match_data)),
+                },
+                types::Types::Float(match_data) => types::cloak_type::CloakEntry {
+                    value_complete: match_data.complete,
+                    value: Box::new(types::Types::Float(match_data)),
                 },
                 types::Types::Operator(match_data) => types::cloak_type::CloakEntry {
                     value_complete: false,
@@ -330,7 +388,3 @@ pub fn collect_cloak(
         }
     }
 }
-
-
-
-
