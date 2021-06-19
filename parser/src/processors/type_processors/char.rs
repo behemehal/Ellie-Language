@@ -28,7 +28,7 @@ pub fn collect_char(
         if letter_char == "'" && last_char != "\\" {
             if data.value == '\0' {
                 errors.push(error::Error {
-                    debug_message: "e8447397d736f3750bfef82ccd2c4fb5".to_string(),
+                    debug_message: "88ade2c04da9f28d9589f7d5537a1669".to_string(),
                     title: error::errorList::error_s14.title.clone(),
                     code: error::errorList::error_s14.code,
                     message: error::errorList::error_s14.message.clone(),
@@ -45,7 +45,7 @@ pub fn collect_char(
         } else if !data.complete {
             if data.value != '\0' {
                 errors.push(error::Error {
-                    debug_message: "3ec076b332848e1d454368a09d8f9859".to_string(),
+                    debug_message: "6e48f995c41c442e9917cfff307bb397".to_string(),
                     title: error::errorList::error_s15.title.clone(),
                     code: error::errorList::error_s15.code,
                     message: error::errorList::error_s15.message.clone(),
@@ -149,7 +149,7 @@ pub fn collect_char(
             )
         } else if letter_char != " " {
             errors.push(error::Error {
-                debug_message: "bbb40ee6c8be4258c5d9d3c5365cc1db".to_string(),
+                debug_message: "59e447366e1e3aa264eb6d5d09d58378".to_string(),
                 title: error::errorList::error_s1.title.clone(),
                 code: error::errorList::error_s1.code,
                 message: error::errorList::error_s1.message.clone(),

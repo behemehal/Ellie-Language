@@ -138,7 +138,7 @@ pub fn collect_variable(
             data.value += letter_char;
         } else {
             errors.push(error::Error {
-                debug_message: "7baee1d46e0a8eafa10dfe8b9504ce42".to_string(),
+                debug_message: "89188df58ece432784533a24363093f1".to_string(),
                 title: error::errorList::error_s1.title.clone(),
                 code: error::errorList::error_s1.code,
                 message: error::errorList::error_s1.message.clone(),
