@@ -86,8 +86,7 @@ pub fn collect_refference(
                     }
                 } else {
                     errors.push(error::Error {
-                        debug_message: "21493b1410a41fd28970ff9c07f75d24"
-                            .to_string(),
+                        debug_message: "21493b1410a41fd28970ff9c07f75d24".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),

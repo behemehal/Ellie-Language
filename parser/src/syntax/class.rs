@@ -19,7 +19,7 @@ pub struct Class {
     pub properties: Vec<variable::Variable>,
     //pub getters: Vec<types::arrow_function::ArrowFunctionCollector>,
     //pub setters: Vec<types::arrow_function::ArrowFunctionCollector>,
-    pub methods: Vec<function::Function>
+    pub methods: Vec<function::Function>,
 }
 
 #[derive(PartialEq, Debug, Clone, Default, Serialize)]

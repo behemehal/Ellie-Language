@@ -26,8 +26,7 @@ pub fn collect_variable_value(
             if letter_char == ":" {
                 if variabledata.data.name.is_empty() {
                     errors.push(error::Error {
-                        debug_message: "8deec300228f83d2f22897444bff4c09"
-                            .to_string(),
+                        debug_message: "8deec300228f83d2f22897444bff4c09".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -47,8 +46,7 @@ pub fn collect_variable_value(
                     if variabledata.data.dynamic {
                         //TODO REMOVE THIS
                         errors.push(error::Error {
-                            debug_message: "671a3779c93e77cf8bd33df0ec47a1d6"
-                                .to_string(),
+                            debug_message: "671a3779c93e77cf8bd33df0ec47a1d6".to_string(),
                             title: error::errorList::error_s11.title.clone(),
                             code: error::errorList::error_s11.code,
                             message: error::errorList::error_s11.message.clone(),
@@ -78,8 +76,7 @@ pub fn collect_variable_value(
 
                 if !variabledata.data.dynamic {
                     errors.push(error::Error {
-                        debug_message: "f727c817516207091c2b68626f9503c9"
-                            .to_string(),
+                        debug_message: "f727c817516207091c2b68626f9503c9".to_string(),
                         title: error::errorList::error_s8.title.clone(),
                         code: error::errorList::error_s8.code,
                         message: error::errorList::error_s8.message.clone(),
@@ -93,8 +90,7 @@ pub fn collect_variable_value(
                     });
                 } else if variabledata.data.name.is_empty() {
                     errors.push(error::Error {
-                        debug_message: "95594c470493c1ee1b7c66b959a031da"
-                            .to_string(),
+                        debug_message: "95594c470493c1ee1b7c66b959a031da".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -121,8 +117,7 @@ pub fn collect_variable_value(
                 if current_reliability.reliable {
                     if last_char == " " && !variabledata.data.name.is_empty() {
                         errors.push(error::Error {
-                            debug_message: "b4f608033ff741acf32dc5dc7ec07cb0"
-                                .to_string(),
+                            debug_message: "b4f608033ff741acf32dc5dc7ec07cb0".to_string(),
                             title: error::errorList::error_s1.title.clone(),
                             code: error::errorList::error_s1.code,
                             message: error::errorList::error_s1.message.clone(),
@@ -146,8 +141,7 @@ pub fn collect_variable_value(
                     && (last_char == " " || !variabledata.data.name.is_empty())
                 {
                     errors.push(error::Error {
-                        debug_message: "84e2913a8bf76629c71e1984d462c415"
-                            .to_string(),
+                        debug_message: "84e2913a8bf76629c71e1984d462c415".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -180,8 +174,7 @@ pub fn collect_variable_value(
             } else if letter_char == "=" {
                 if !variabledata.data.rtype.is_definer_complete() {
                     errors.push(error::Error {
-                        debug_message: "951f4b24b5b4cf904678c5cec9c983a2"
-                            .to_string(),
+                        debug_message: "951f4b24b5b4cf904678c5cec9c983a2".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -209,7 +202,10 @@ pub fn collect_variable_value(
                     variabledata.typed = true;
                 }
             } else {
-                if variabledata.data.type_pos.range_start.0 == 0 && variabledata.data.type_pos.range_start.1 == 0 && letter_char != " " {
+                if variabledata.data.type_pos.range_start.0 == 0
+                    && variabledata.data.type_pos.range_start.1 == 0
+                    && letter_char != " "
+                {
                     variabledata.data.type_pos.range_start = parser.pos;
                 }
                 processors::definer_processor::collect_definer(
@@ -242,14 +238,13 @@ pub fn collect_variable_value(
                                 collected.data.value.get_type(),
                                 utils::terminal_colors::get_color(utils::terminal_colors::Colors::Reset),
                             );
-                            
+
                             #[cfg(feature = "std")]
                             std::process::exit(0);
                         }
 
                         errors.push(error::Error {
-                            debug_message: "9b461a57eb898c4b8a24db4807b89cf0"
-                                .to_string(),
+                            debug_message: "9b461a57eb898c4b8a24db4807b89cf0".to_string(),
                             title: error::errorList::error_s3.title.clone(),
                             code: error::errorList::error_s3.code,
                             message: error::errorList::error_s3.message.clone(),
@@ -262,19 +257,18 @@ pub fn collect_variable_value(
                                     },
                                     error::ErrorBuildField {
                                         key: "token2".to_string(),
-                                        value: collected.data.value.get_type()
+                                        value: collected.data.value.get_type(),
                                     },
                                 ],
                             ),
-                            pos: collected.data.value_pos
+                            pos: collected.data.value_pos,
                         });
                     }
                     parser.collected.push(parser.current.clone());
                     parser.current = parser::Collecting::None;
                 } else {
                     errors.push(error::Error {
-                        debug_message: "84a3055191cc6a0bbcdfedc4eb11ff5c"
-                            .to_string(),
+                        debug_message: "84a3055191cc6a0bbcdfedc4eb11ff5c".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -293,7 +287,10 @@ pub fn collect_variable_value(
                 }
             }
         } else {
-            if variabledata.data.value_pos.range_start.0 == 0 && variabledata.data.value_pos.range_start.1 == 0 && letter_char != " " {
+            if variabledata.data.value_pos.range_start.0 == 0
+                && variabledata.data.value_pos.range_start.1 == 0
+                && letter_char != " "
+            {
                 variabledata.data.value_pos.range_start = parser.pos;
             }
             let mut cd = variabledata.clone();

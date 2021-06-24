@@ -96,11 +96,12 @@ pub fn collect_integer(
             data.complete = true;
             if next_char.parse::<i8>().is_ok() {
                 //Float
-                itered_data.data.value = types::Types::Float(types::float_type::FloatTypeCollector {
-                    base: data.raw.clone(),
-                    at_point: true,
-                    ..Default::default()
-                });
+                itered_data.data.value =
+                    types::Types::Float(types::float_type::FloatTypeCollector {
+                        base: data.raw.clone(),
+                        at_point: true,
+                        ..Default::default()
+                    });
             } else {
                 itered_data.data.value =
                     types::Types::Refference(types::refference_type::RefferenceType {

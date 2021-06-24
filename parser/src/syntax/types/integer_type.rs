@@ -47,42 +47,18 @@ pub enum IntegerSize {
 impl IntegerSize {
     pub fn greater_than(&self, raw: isize) -> bool {
         match *self {
-            IntegerSize::U8(e) => {
-                e < raw as u8
-            }
-            IntegerSize::U16(e) => {
-                e < raw as u16
-            }
-            IntegerSize::U32(e) => {
-                e < raw as u32
-            }
-            IntegerSize::U64(e) => {
-                e < raw as u64
-            }
-            IntegerSize::U128(e) => {
-                e < raw as u128
-            }
-            IntegerSize::Usize(e) => {
-                e < raw as usize
-            }
-            IntegerSize::I8(e) => {
-                e < raw as i8
-            }
-            IntegerSize::I16(e) => {
-                e < raw as i16
-            }
-            IntegerSize::I32(e) => {
-                e < raw as i32
-            }
-            IntegerSize::I64(e) => {
-                e < raw as i64
-            }
-            IntegerSize::I128(e) => {
-                e < raw as i128
-            }
-            IntegerSize::Isize(e) => {
-                e < raw as isize
-            }
+            IntegerSize::U8(e) => e < raw as u8,
+            IntegerSize::U16(e) => e < raw as u16,
+            IntegerSize::U32(e) => e < raw as u32,
+            IntegerSize::U64(e) => e < raw as u64,
+            IntegerSize::U128(e) => e < raw as u128,
+            IntegerSize::Usize(e) => e < raw as usize,
+            IntegerSize::I8(e) => e < raw as i8,
+            IntegerSize::I16(e) => e < raw as i16,
+            IntegerSize::I32(e) => e < raw as i32,
+            IntegerSize::I64(e) => e < raw as i64,
+            IntegerSize::I128(e) => e < raw as i128,
+            IntegerSize::Isize(e) => e < raw as isize,
         }
     }
 
@@ -156,7 +132,7 @@ impl IntegerType {
         } else if TypeId::of::<T>() == TypeId::of::<u8>() {
             IntegerType {
                 value: IntegerSize::U8(*(&raw as &dyn Any).downcast_ref::<u8>().unwrap()),
-                raw:(*(&raw as &dyn Any).downcast_ref::<String>().unwrap()).clone(),
+                raw: (*(&raw as &dyn Any).downcast_ref::<String>().unwrap()).clone(),
                 ..Default::default()
             }
         } else if TypeId::of::<T>() == TypeId::of::<u16>() {

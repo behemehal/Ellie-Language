@@ -273,7 +273,11 @@ pub fn collect_array(
             if let definers::DefinerCollecting::Array(array_data) = itered_data.data.rtype.clone() {
                 //panic!("{:#?}", array_data.len.value);
                 //if data.collective.len() > *array_data.len.value.as_usize().unwrap() {
-                if array_data.len.value.greater_than(data.collective.len() as isize) {
+                if array_data
+                    .len
+                    .value
+                    .greater_than(data.collective.len() as isize)
+                {
                     //Check if array size is overflowed
                     errors.push(error::Error {
                         debug_message: "795bb1c6a4152ccff694e59251246e03".to_string(),
@@ -299,7 +303,6 @@ pub fn collect_array(
                         },
                     });
                 }
-
 
                 will_be_itered = if data.collective.is_empty() {
                     variable::VariableCollector {

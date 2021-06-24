@@ -1,13 +1,13 @@
 pub mod array;
 pub mod arrow_function;
+pub mod bool;
 pub mod char;
 pub mod cloak;
+pub mod float;
 pub mod function_call;
+pub mod integer;
 pub mod null;
 pub mod operator;
 pub mod refference;
 pub mod string;
 pub mod variable;
-pub mod integer;
-pub mod float;
-pub mod bool;
