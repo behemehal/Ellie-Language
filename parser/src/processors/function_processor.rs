@@ -29,8 +29,10 @@ pub fn collect_function(
                 functiondata.data.name_pos.range_end.1 = parser.pos.1; // function naming ended
                 functiondata.data.parameter_bracket_start_pos.range_start.0 = parser.pos.0; //parameter start
                 functiondata.data.parameter_bracket_start_pos.range_start.1 = parser.pos.1; //parameter start
-                functiondata.data.parameter_bracket_start_pos.range_end.0 = parser.pos.skipChar(1).0; //parameter start
-                functiondata.data.parameter_bracket_start_pos.range_end.1 = parser.pos.skipChar(1).1; //parameter start
+                functiondata.data.parameter_bracket_start_pos.range_end.0 =
+                    parser.pos.skipChar(1).0; //parameter start
+                functiondata.data.parameter_bracket_start_pos.range_end.1 =
+                    parser.pos.skipChar(1).1; //parameter start
                 functiondata.named = true;
             } else if last_char == " " && letter_char != " " && !functiondata.data.name.is_empty() {
                 errors.push(error::Error {
@@ -58,8 +60,7 @@ pub fn collect_function(
                 if current_reliability.reliable {
                     if last_char == " " && !functiondata.data.name.is_empty() {
                         errors.push(error::Error {
-                            debug_message: "45c4f72422cb7988c0d331ccc2bf75d0"
-                                .to_string(),
+                            debug_message: "45c4f72422cb7988c0d331ccc2bf75d0".to_string(),
                             title: error::errorList::error_s1.title.clone(),
                             code: error::errorList::error_s1.code,
                             message: error::errorList::error_s1.message.clone(),
@@ -80,8 +81,7 @@ pub fn collect_function(
                     }
                 } else if letter_char != " " {
                     errors.push(error::Error {
-                        debug_message: "bc9e21687a10a9c4ead45e8f22e14563"
-                            .to_string(),
+                        debug_message: "bc9e21687a10a9c4ead45e8f22e14563".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -138,7 +138,7 @@ pub fn collect_function(
                             .is_empty()
                     {
                         errors.push(error::Error {
-                            debug_message:"".to_string(),
+                            debug_message: "".to_string(),
                             title: error::errorList::error_s1.title.clone(),
                             code: error::errorList::error_s1.code,
                             message: error::errorList::error_s1.message.clone(),
@@ -161,7 +161,7 @@ pub fn collect_function(
                     functiondata.parameter_wrote = true;
                 } else if letter_char != " " {
                     errors.push(error::Error {
-                        debug_message:"".to_string(),
+                        debug_message: "".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -223,8 +223,7 @@ pub fn collect_function(
                     functiondata.pointer_typed = true
                 } else if letter_char != " " {
                     errors.push(error::Error {
-                        debug_message: "8e517b1a5311c8e095d8f9f9110e1c9c"
-                            .to_string(),
+                        debug_message: "8e517b1a5311c8e095d8f9f9110e1c9c".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),

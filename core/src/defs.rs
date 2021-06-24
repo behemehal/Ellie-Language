@@ -1,15 +1,15 @@
 #![allow(warnings)] //TODO Remove this
-use core::fmt;
-use serde::Serialize;
+use crate::alloc::borrow::ToOwned;
+use alloc::format;
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
-use alloc::format;
-use crate::alloc::borrow::ToOwned;
+use core::fmt;
+use serde::Serialize;
 
 #[derive(PartialEq, Debug, Clone)]
 pub enum ParserType {
     RawParser,
-    ClassParser
+    ClassParser,
 }
 
 impl Default for ParserType {
@@ -30,7 +30,7 @@ pub struct ParserOptions {
     pub collectives: bool,
     pub variables: bool,
     pub constants: bool,
-    pub parser_type: ParserType
+    pub parser_type: ParserType,
 }
 
 impl Default for ParserOptions {
@@ -46,7 +46,7 @@ impl Default for ParserOptions {
             collectives: true,
             variables: true,
             constants: true,
-            parser_type: ParserType::RawParser
+            parser_type: ParserType::RawParser,
         }
     }
 }

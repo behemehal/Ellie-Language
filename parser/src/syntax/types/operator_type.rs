@@ -20,9 +20,10 @@ pub enum Operators {
 }
 
 impl Operators {
-
     pub fn is_opeartor(value: &str) -> bool {
-        types::comparison_type::ComparisonOperators::is_comparison_opearator(value) || types::logical_type::LogicalOpearators::is_logical_opearator(value) || types::arithmetic_type::ArithmeticOperators::is_arithmetic_opearator(value)
+        types::comparison_type::ComparisonOperators::is_comparison_opearator(value)
+            || types::logical_type::LogicalOpearators::is_logical_opearator(value)
+            || types::arithmetic_type::ArithmeticOperators::is_arithmetic_opearator(value)
     }
 
     pub fn might_be_operator(rtype: Operators, value: &str) -> bool {

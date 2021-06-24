@@ -28,7 +28,7 @@ pub fn collect_value(
             next_char,
             last_char,
             pos,
-            options
+            options,
         ),
         types::Types::Float(_) => type_processors::float::collect_float(
             itered_data,
@@ -37,7 +37,7 @@ pub fn collect_value(
             next_char,
             last_char,
             pos,
-            options
+            options,
         ),
         types::Types::Bool(_) => type_processors::bool::collect_bool(
             itered_data,
@@ -46,7 +46,7 @@ pub fn collect_value(
             next_char,
             last_char,
             pos,
-            options
+            options,
         ),
         types::Types::String(_) => type_processors::string::collect_string(
             itered_data,
@@ -55,7 +55,7 @@ pub fn collect_value(
             next_char,
             last_char,
             pos,
-            options
+            options,
         ),
         types::Types::Char(_) => type_processors::char::collect_char(
             itered_data,
@@ -64,7 +64,7 @@ pub fn collect_value(
             next_char,
             last_char,
             pos,
-            options
+            options,
         ),
         types::Types::Collective => (),
         types::Types::Refference(_) => type_processors::refference::collect_refference(
@@ -138,7 +138,7 @@ pub fn collect_value(
             next_char,
             last_char,
             pos,
-            options
+            options,
         ),
     }
     CollectorResponse {
