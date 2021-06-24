@@ -144,22 +144,30 @@ pub fn draw_error(line: String, pos: crate::defs::CursorPosition) -> String {
     let mut draw = String::new();
 
     for (index, c) in line.chars().enumerate() {
-
         if index >= pos.1 {
             draw += &format!(
                 "{}{}{}",
-                crate::utils::terminal_colors::get_color(crate::utils::terminal_colors::Colors::Red),
+                crate::utils::terminal_colors::get_color(
+                    crate::utils::terminal_colors::Colors::Red
+                ),
                 c,
-                crate::utils::terminal_colors::get_color(crate::utils::terminal_colors::Colors::Reset),
-
-            ).to_string();
+                crate::utils::terminal_colors::get_color(
+                    crate::utils::terminal_colors::Colors::Reset
+                ),
+            )
+            .to_string();
         } else {
             draw += &format!(
                 "{}{}{}",
-                crate::utils::terminal_colors::get_color(crate::utils::terminal_colors::Colors::White),
+                crate::utils::terminal_colors::get_color(
+                    crate::utils::terminal_colors::Colors::White
+                ),
                 c,
-                crate::utils::terminal_colors::get_color(crate::utils::terminal_colors::Colors::Reset),
-            ).to_string();
+                crate::utils::terminal_colors::get_color(
+                    crate::utils::terminal_colors::Colors::Reset
+                ),
+            )
+            .to_string();
         }
     }
     draw

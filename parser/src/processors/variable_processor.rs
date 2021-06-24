@@ -226,7 +226,8 @@ pub fn collect_variable_value(
                     collected.data.pos.range_end = parser.pos;
                     collected.data.value_pos.range_end = parser.pos;
 
-                    if collected.data.rtype.raw_name() != collected.data.value.get_type() { //&& errors.is_empty()
+                    if collected.data.rtype.raw_name() != collected.data.value.get_type() {
+                        //&& errors.is_empty()
                         //We should resolve inner value
                         if collected.data.dynamic {
                             #[cfg(feature = "std")]

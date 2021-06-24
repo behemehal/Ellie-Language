@@ -132,13 +132,7 @@ fn main() {
                                                 pos.push(error.pos.range_end)
                                             }
 
-                                            println!(
-                                                "{}",
-                                                utils::get_lines(
-                                                    code.clone(),
-                                                    pos
-                                                )
-                                            )
+                                            println!("{}", utils::get_lines(code.clone(), pos))
                                         } else {
                                             println!(
                                                 "{}{}Error[{:#04x}]{} - {}{}{}: {}",
