@@ -1,6 +1,6 @@
 use crate::parser;
-use crate::syntax::{class, condition, function, variable, ret, constructor};
-use ellie_core::{defs, utils, error};
+use crate::syntax::{class, condition, constructor, function, ret, variable};
+use ellie_core::{defs, error, utils};
 
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
@@ -43,7 +43,9 @@ pub fn collect_type(
             },
             ..Default::default()
         });
-    } else if (keyword == "d " || keyword == "pub d " || keyword == "pri d ") && options.dynamics && options.variables
+    } else if (keyword == "d " || keyword == "pub d " || keyword == "pri d ")
+        && options.dynamics
+        && options.variables
     {
         parser.current = parser::Collecting::Variable(variable::VariableCollector {
             initialized: true,
@@ -58,7 +60,8 @@ pub fn collect_type(
             },
             ..Default::default()
         });
-    } else if (keyword == "fn " || keyword == "pub fn" || keyword == "pri fn") && options.functions {
+    } else if (keyword == "fn " || keyword == "pub fn" || keyword == "pri fn") && options.functions
+    {
         parser.current = parser::Collecting::Function(function::FunctionCollector {
             data: function::Function {
                 public: keyword == "pub fn ",
@@ -67,7 +70,8 @@ pub fn collect_type(
             ..Default::default()
         });
     } else if keyword == "co " && options.parser_type == defs::ParserType::ClassParser {
-        parser.current = parser::Collecting::Constructor(constructor::ConstructorCollector::default());
+        parser.current =
+            parser::Collecting::Constructor(constructor::ConstructorCollector::default());
     } else if keyword == "if" && options.parser_type == defs::ParserType::RawParser {
         parser.current = parser::Collecting::Condition(condition::ConditionCollector::default());
     } else if keyword == "else if" && options.parser_type == defs::ParserType::RawParser {
@@ -139,5 +143,4 @@ pub fn collect_type(
             ..Default::default()
         });
     }
-
 }

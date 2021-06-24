@@ -3,9 +3,9 @@ use crate::syntax::definers;
 use ellie_core::defs;
 use serde::Serialize;
 
+use alloc::boxed::Box;
 use alloc::string::String;
 use alloc::vec::Vec;
-use alloc::boxed::Box;
 
 #[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct FunctionParameter {
@@ -27,24 +27,24 @@ pub struct FunctionParameterCollector {
 
 #[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct Function {
-    pub name: String,                                //Function Name string
-    pub parameters: Vec<FunctionParameterCollector>, //Parameter vector
-    pub return_type: Box<definers::DefinerCollecting>,                   //Return type from enum
+    pub name: String,                                  //Function Name string
+    pub parameters: Vec<FunctionParameterCollector>,   //Parameter vector
+    pub return_type: Box<definers::DefinerCollecting>, //Return type from enum
     pub public: bool,
     pub inside_code: Vec<Collecting>,
     pub name_pos: defs::Cursor,           //Name position fn [test] ......
     pub code_bracket_start: defs::Cursor, //Bracket start fn test() > String [{]
     pub code_bracket_end: defs::Cursor,   //Bracket start fn test() > String { ... [}]
     pub parameter_bracket_start_pos: defs::Cursor, //Bracket start [(] )
-    pub parameter_bracket_end_pos: defs::Cursor,   //Bracket end ( [)]
+    pub parameter_bracket_end_pos: defs::Cursor, //Bracket end ( [)]
 }
 
 #[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct FunctionCollector {
     pub data: Function,
     pub initialized: bool,
-    pub named: bool,                               //Function named
-    pub parameter_wrote: bool,                     //Parameter type complete
+    pub named: bool,              //Function named
+    pub parameter_wrote: bool,    //Parameter type complete
     pub return_type_text: String, //Collected return type text will be matched with syntax::types::Types
     pub return_typed: bool,       //Function return typed
     pub pointer_typed: bool,

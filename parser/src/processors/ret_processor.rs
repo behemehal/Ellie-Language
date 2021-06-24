@@ -4,7 +4,7 @@ use crate::syntax::variable;
 use ellie_core::{defs, error};
 
 use alloc::boxed::Box;
-use alloc::string::{String};
+use alloc::string::String;
 use alloc::vec::Vec;
 
 pub fn collect_ret(

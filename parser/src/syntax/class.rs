@@ -1,7 +1,7 @@
-use alloc::vec::Vec;
-use alloc::string::String;
-use crate::syntax::{types, variable, function, constructor};
 use crate::parser::Collecting;
+use crate::syntax::{constructor, function, types, variable};
+use alloc::string::String;
+use alloc::vec::Vec;
 use ellie_core::defs;
 use serde::Serialize;
 
@@ -19,7 +19,7 @@ pub struct Class {
     pub properties: Vec<variable::Variable>,
     //pub getters: Vec<types::arrow_function::ArrowFunctionCollector>,
     //pub setters: Vec<types::arrow_function::ArrowFunctionCollector>,
-    pub methods: Vec<function::Function>
+    pub methods: Vec<function::Function>,
 }
 
 #[derive(PartialEq, Debug, Clone, Default, Serialize)]

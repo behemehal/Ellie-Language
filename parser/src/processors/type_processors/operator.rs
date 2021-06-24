@@ -132,9 +132,9 @@ pub fn collect_operator(
                                 operator: child_operator.data.operator,
                                 ..Default::default()
                             },
- 
+
                             first_filled: true,
-                            
+
                             operator_collect: child_operator.operator_collect,
                             ..Default::default()
                         })
@@ -142,8 +142,8 @@ pub fn collect_operator(
                     match data.data.operator.clone() {
                         types::operator_type::Operators::ComparisonType(_) => {
                             if child_operator.data.second == Box::new(types::Types::Null) {}
-                            itered_data.data.value =
-                                types::Types::Operator(types::operator_type::OperatorTypeCollector {
+                            itered_data.data.value = types::Types::Operator(
+                                types::operator_type::OperatorTypeCollector {
                                     data: types::operator_type::OperatorType {
                                         first: Box::new(types::Types::Operator(
                                             types::operator_type::OperatorTypeCollector {
@@ -166,10 +166,12 @@ pub fn collect_operator(
                                     first_filled: true,
                                     operator_collect: child_operator.operator_collect,
                                     ..Default::default()
-                                })
+                                },
+                            )
                         }
                         _ => {
-                            data.data.second = Box::new(itered_child.itered_data.data.value.clone());
+                            data.data.second =
+                                Box::new(itered_child.itered_data.data.value.clone());
                             data.itered_cache = Box::new(itered_child.itered_data);
                         }
                     }

@@ -6,20 +6,20 @@ pub mod char_type;
 pub mod cloak_type;
 pub mod comparison_type;
 pub mod double_type;
+pub mod float_type;
 pub mod function_call;
+pub mod integer_type;
 pub mod logical_type;
 pub mod operator_type;
 pub mod refference_type;
 pub mod string_type;
 pub mod variable_type;
-pub mod integer_type;
-pub mod float_type;
 
+use alloc::format;
+use alloc::string::String;
+use ellie_core::utils;
 use enum_as_inner::EnumAsInner;
 use serde::Serialize;
-use alloc::string::String;
-use alloc::format;
-use ellie_core::utils;
 
 #[derive(PartialEq, Debug, Clone, Serialize, EnumAsInner)]
 pub enum Types {
@@ -51,7 +51,7 @@ impl Types {
     pub fn is_string_open(&self) -> bool {
         match &*self {
             Types::Integer(_) => true, //Always complete
-            Types::Float(_) => true, //Always complete
+            Types::Float(_) => true,   //Always complete
             Types::Bool(_) => true,
             Types::String(data) => !data.complete,
             Types::Char(data) => !data.complete,
@@ -115,7 +115,7 @@ impl Types {
     pub fn is_array(&self) -> bool {
         match *self {
             Types::Integer(_) => false, //Always complete
-            Types::Float(_) => false, //Always complete
+            Types::Float(_) => false,   //Always complete
             Types::Bool(_) => false,
             Types::String(_) => false,
             Types::Char(_) => false,
@@ -135,7 +135,7 @@ impl Types {
     pub fn is_integer(&self) -> bool {
         match *self {
             Types::Integer(_) => true, //Always complete
-            Types::Float(_) => false, //Always complete
+            Types::Float(_) => false,  //Always complete
             Types::Bool(_) => false,
             Types::String(_) => false,
             Types::Char(_) => false,
@@ -155,7 +155,7 @@ impl Types {
     pub fn is_float(&self) -> bool {
         match *self {
             Types::Integer(_) => false, //Always complete
-            Types::Float(_) => true, //Always complete
+            Types::Float(_) => true,    //Always complete
             Types::Bool(_) => false,
             Types::String(_) => false,
             Types::Char(_) => false,
@@ -175,7 +175,7 @@ impl Types {
     pub fn is_bool(&self) -> bool {
         match *self {
             Types::Integer(_) => false, //Always complete
-            Types::Float(_) => false, //Always complete
+            Types::Float(_) => false,   //Always complete
             Types::Bool(_) => true,
             Types::String(_) => false,
             Types::Char(_) => false,
@@ -195,7 +195,7 @@ impl Types {
     pub fn is_string(&self) -> bool {
         match *self {
             Types::Integer(_) => false, //Always complete
-            Types::Float(_) => false, //Always complete
+            Types::Float(_) => false,   //Always complete
             Types::Bool(_) => false,
             Types::String(_) => true,
             Types::Char(_) => false,

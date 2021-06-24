@@ -1,5 +1,5 @@
-use crate::syntax::{definers, types, variable};
 use crate::processors::type_processors;
+use crate::syntax::{definers, types, variable};
 use ellie_core::{defs, error};
 
 use alloc::boxed::Box;
@@ -134,7 +134,6 @@ pub fn collect_string(
                 pos,
                 options,
             )
-        
         } else if letter_char != " " {
             errors.push(error::Error {
                 debug_message: "355b9eb2b4c7f94e04334bf097806f7a".to_string(),

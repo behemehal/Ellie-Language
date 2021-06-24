@@ -1,7 +1,7 @@
 use serde::Serialize;
 
 use crate::processors;
-use crate::syntax::{class, condition, function, variable, ret, constructor};
+use crate::syntax::{class, condition, constructor, function, ret, variable};
 use ellie_core::{defs, error, utils};
 
 use crate::alloc::string::{String, ToString};
@@ -123,14 +123,16 @@ impl Parser {
                         last_char.clone(),
                         parser_options.clone(),
                     ),
-                    Collecting::Constructor(_) => processors::constructor_processor::collect_constructor(
-                        &mut self,
-                        &mut errors,
-                        letter_char,
-                        next_char.clone(),
-                        last_char.clone(),
-                        parser_options.clone(),
-                    ),
+                    Collecting::Constructor(_) => {
+                        processors::constructor_processor::collect_constructor(
+                            &mut self,
+                            &mut errors,
+                            letter_char,
+                            next_char.clone(),
+                            last_char.clone(),
+                            parser_options.clone(),
+                        )
+                    }
                     _ => (),
                 }
                 self.pos.1 += 1;

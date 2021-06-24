@@ -186,7 +186,7 @@ pub fn collect_constructor(
                     utils::terminal_colors::get_color(utils::terminal_colors::Colors::Cyan),
                     utils::terminal_colors::get_color(utils::terminal_colors::Colors::Reset),
                 );
-                
+
                 #[cfg(feature = "std")]
                 std::process::exit(0);
                 constructordata.parameter_wrote = true;
@@ -210,7 +210,10 @@ pub fn collect_constructor(
                 });
             }
         } else if !constructordata.inside_code_wrote {
-            if letter_char == ";" && !constructordata.code_brace_open && constructordata.brace_count == 0{
+            if letter_char == ";"
+                && !constructordata.code_brace_open
+                && constructordata.brace_count == 0
+            {
                 parser.collected.push(parser.current.clone());
                 parser.current = parser::Collecting::None;
             } else if letter_char == "}" && constructordata.brace_count == 0 {
