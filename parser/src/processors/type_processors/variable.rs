@@ -164,14 +164,8 @@ pub fn collect_variable(
                     }],
                 ),
                 pos: defs::Cursor {
-                    range_start: defs::CursorPosition(
-                        pos.0,
-                        (pos.1 - itered_data.raw_value.len()) + current_reliability.at,
-                    ),
-                    range_end: defs::CursorPosition(
-                        pos.0,
-                        ((pos.1 - itered_data.raw_value.len()) + current_reliability.at) + 1,
-                    ),
+                    range_start: pos,
+                    range_end: pos.clone().skipChar(1),
                 },
             });
         }

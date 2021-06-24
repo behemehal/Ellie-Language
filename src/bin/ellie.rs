@@ -7,7 +7,7 @@ use std::{fs, io::Read};
 fn main() {
     if env::args().any(|x| x == "-v" || x == "--version") {
         const VERSION: &str = env!("CARGO_PKG_VERSION");
-        println!("Ellie v{} - Code: Assertion", VERSION);
+        println!("Ellie v{} - Code: Millennium", VERSION);
     } else if env::args().any(|x| x == "-h" || x == "--help") {
         println!("Usage: ellie [options] [file path]");
         println!("Options:");
@@ -66,7 +66,7 @@ fn main() {
                                 collectives: true,
                                 variables: true,
                                 constants: true,
-                                parser_type: ellie_core::defs::ParserType::RawParser
+                                parser_type: ellie_core::defs::ParserType::RawParser,
                             },
                         );
                         let mapped = parser.map();
@@ -78,63 +78,139 @@ fn main() {
                                     if env::args().any(|x| x == "-je" || x == "--json-errors") {
                                         println!("{:#?}", serde_json::to_string(error).unwrap());
                                     } else {
-                                        println!(
-                                            "{}{}Error[{:#04x}]{} - {}{}{}: {}",
-                                            if debug_arg {
-                                                format!(
-                                                    "{}[{}]{} ",
-                                                    utils::terminal_colors::get_color(
-                                                        utils::terminal_colors::Colors::Yellow
-                                                    ),
-                                                    error.debug_message,
-                                                    utils::terminal_colors::get_color(
-                                                        utils::terminal_colors::Colors::Reset
+                                        if error.pos.range_start.0 != error.pos.range_end.0 {
+                                            std::println!(
+                                                "{}[Experimental]{}: Multiline error listing",
+                                                utils::terminal_colors::get_color(
+                                                    utils::terminal_colors::Colors::Magenta
+                                                ),
+                                                utils::terminal_colors::get_color(
+                                                    utils::terminal_colors::Colors::Reset
+                                                ),
+                                            );
+                                            println!(
+                                                "{}{}Error[{:#04x}]{} - {}{}{}: {}",
+                                                if debug_arg {
+                                                    format!(
+                                                        "{}[{}]{} ",
+                                                        utils::terminal_colors::get_color(
+                                                            utils::terminal_colors::Colors::Yellow
+                                                        ),
+                                                        error.debug_message,
+                                                        utils::terminal_colors::get_color(
+                                                            utils::terminal_colors::Colors::Reset
+                                                        )
                                                     )
+                                                } else {
+                                                    "".to_string()
+                                                },
+                                                utils::terminal_colors::get_color(
+                                                    utils::terminal_colors::Colors::Red
+                                                ),
+                                                &error.code,
+                                                utils::terminal_colors::get_color(
+                                                    utils::terminal_colors::Colors::Reset
+                                                ),
+                                                utils::terminal_colors::get_color(
+                                                    utils::terminal_colors::Colors::Cyan
+                                                ),
+                                                error.title,
+                                                utils::terminal_colors::get_color(
+                                                    utils::terminal_colors::Colors::Reset
+                                                ),
+                                                error.builded_message.builded
+                                            );
+                                            println!(
+                                                "{}:[{},{}]:0",
+                                                file_arg.clone(),
+                                                error.pos.range_start.0 + 1,
+                                                error.pos.range_end.0 + 1
+                                            );
+                                            let mut pos = vec![error.pos.range_start];
+
+                                            for _ in 1..error.pos.range_end.0 + 1 {
+                                                pos.push(error.pos.range_end)
+                                            }
+
+                                            println!(
+                                                "{}",
+                                                utils::get_lines(
+                                                    code.clone(),
+                                                    pos
                                                 )
-                                            } else {
-                                                "".to_string()
-                                            },
-                                            utils::terminal_colors::get_color(
-                                                utils::terminal_colors::Colors::Red
-                                            ),
-                                            &error.code,
-                                            utils::terminal_colors::get_color(
-                                                utils::terminal_colors::Colors::Reset
-                                            ),
-                                            utils::terminal_colors::get_color(
-                                                utils::terminal_colors::Colors::Cyan
-                                            ),
-                                            error.title,
-                                            utils::terminal_colors::get_color(
-                                                utils::terminal_colors::Colors::Reset
-                                            ),
-                                            error.builded_message.builded
-                                        );
-                                        println!(
-                                            "{}:{}:{}",
-                                            file_arg.clone(),
-                                            error.pos.range_start.0 + 1,
-                                            error.pos.range_start.1 + 1
-                                        );
-                                        println!(
-                                            "{}\n{}{}{}",
-                                            utils::get_line(
-                                                code.clone(),
-                                                error.pos.range_start.0 as usize
-                                            ),
-                                            utils::terminal_colors::get_color(
-                                                utils::terminal_colors::Colors::Red
-                                            ),
-                                            utils::arrow(
-                                                (error.pos.range_start.1 + 1) as usize,
-                                                ((error.pos.range_end.1)
-                                                    - (error.pos.range_start.1))
-                                                    as usize
-                                            ),
-                                            utils::terminal_colors::get_color(
-                                                utils::terminal_colors::Colors::Reset
                                             )
-                                        );
+                                        } else {
+                                            println!(
+                                                "{}{}Error[{:#04x}]{} - {}{}{}: {}",
+                                                if debug_arg {
+                                                    format!(
+                                                        "{}[{}]{} ",
+                                                        utils::terminal_colors::get_color(
+                                                            utils::terminal_colors::Colors::Yellow
+                                                        ),
+                                                        error.debug_message,
+                                                        utils::terminal_colors::get_color(
+                                                            utils::terminal_colors::Colors::Reset
+                                                        )
+                                                    )
+                                                } else {
+                                                    "".to_string()
+                                                },
+                                                utils::terminal_colors::get_color(
+                                                    utils::terminal_colors::Colors::Red
+                                                ),
+                                                &error.code,
+                                                utils::terminal_colors::get_color(
+                                                    utils::terminal_colors::Colors::Reset
+                                                ),
+                                                utils::terminal_colors::get_color(
+                                                    utils::terminal_colors::Colors::Cyan
+                                                ),
+                                                error.title,
+                                                utils::terminal_colors::get_color(
+                                                    utils::terminal_colors::Colors::Reset
+                                                ),
+                                                error.builded_message.builded
+                                            );
+                                            println!(
+                                                "{}:{}:{}",
+                                                file_arg.clone(),
+                                                error.pos.range_start.0 + 1,
+                                                error.pos.range_start.1 + 1
+                                            );
+                                            println!(
+                                                "{}\n{}{}{}",
+                                                utils::get_line(
+                                                    code.clone(),
+                                                    error.pos.range_start.0 as usize
+                                                ),
+                                                utils::terminal_colors::get_color(
+                                                    utils::terminal_colors::Colors::Red
+                                                ),
+                                                utils::arrow(
+                                                    (error.pos.range_start.1 + 1) as usize,
+                                                    if error.pos.range_end.1
+                                                        > error.pos.range_start.1
+                                                    {
+                                                        ((error.pos.range_end.1)
+                                                            - (error.pos.range_start.1))
+                                                            as usize
+                                                    } else {
+                                                        std::println!(
+                                                            "{}[ParserWarning]{}: Multiline error show is not supported: {}https://github.com/behemehal/Ellie-Language/issues/17{}",
+                                                            utils::terminal_colors::get_color(utils::terminal_colors::Colors::Red),
+                                                            utils::terminal_colors::get_color(utils::terminal_colors::Colors::Reset),
+                                                            utils::terminal_colors::get_color(utils::terminal_colors::Colors::Cyan),
+                                                            utils::terminal_colors::get_color(utils::terminal_colors::Colors::Reset),
+                                                        );
+                                                        error.pos.range_start.1 as usize
+                                                    }
+                                                ),
+                                                utils::terminal_colors::get_color(
+                                                    utils::terminal_colors::Colors::Reset
+                                                )
+                                            );
+                                        }
                                     }
                                 }
                             } else {
@@ -191,9 +267,20 @@ fn main() {
                                             ),
                                             utils::arrow(
                                                 (error.pos.range_start.1 + 1) as usize,
-                                                ((error.pos.range_end.1)
-                                                    - (error.pos.range_start.1))
-                                                    as usize
+                                                if error.pos.range_end.1 > error.pos.range_start.1 {
+                                                    ((error.pos.range_end.1)
+                                                        - (error.pos.range_start.1))
+                                                        as usize
+                                                } else {
+                                                    std::println!(
+                                                        "{}[ParserWarning]{}: Multiline error show is not supported, you may want to use --experimental-error-listing : {}https://github.com/behemehal/Ellie-Language/issues/17{}",
+                                                        utils::terminal_colors::get_color(utils::terminal_colors::Colors::Red),
+                                                        utils::terminal_colors::get_color(utils::terminal_colors::Colors::Reset),
+                                                        utils::terminal_colors::get_color(utils::terminal_colors::Colors::Cyan),
+                                                        utils::terminal_colors::get_color(utils::terminal_colors::Colors::Reset),
+                                                    );
+                                                    error.pos.range_start.1 as usize
+                                                }
                                             ),
                                             utils::terminal_colors::get_color(
                                                 utils::terminal_colors::Colors::Reset

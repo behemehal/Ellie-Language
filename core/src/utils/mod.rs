@@ -1,5 +1,7 @@
-use alloc::vec::Vec;
+use alloc::format;
 use alloc::string::{String, ToString};
+use alloc::vec::Vec;
+use core::ops::Range;
 
 pub mod terminal_colors;
 
@@ -21,12 +23,15 @@ pub fn is_opearators(value: &str) -> bool {
 }
 
 pub fn is_errors_same(first: crate::error::Error, second: crate::error::Error) -> bool {
-    first.code == second.code && first.message == second.message && first.pos.range_start.0 == second.pos.range_start.0
+    first.code == second.code
+        && first.message == second.message
+        && first.pos.range_start.0 == second.pos.range_start.0
+        && first.pos.range_start.1 == second.pos.range_start.1
 }
 
 pub fn zip_errors(errors: Vec<crate::error::Error>) -> Vec<crate::error::Error> {
     let mut clone_errors: Vec<crate::error::Error> = errors.clone();
-    let mut zipped_errors : Vec<crate::error::Error> = Vec::new();
+    let mut zipped_errors: Vec<crate::error::Error> = Vec::new();
 
     for i in 0..clone_errors.len() {
         if i != 0 {
@@ -35,20 +40,32 @@ pub fn zip_errors(errors: Vec<crate::error::Error>) -> Vec<crate::error::Error> 
                 clone_errors[i].pos.range_start = last_error.pos.range_start;
 
                 for field in 0..last_error.builded_message.fields.len() {
-                    if last_error.builded_message.fields[field].value != clone_errors[i].builded_message.fields[field].value {
-                        clone_errors[i].builded_message.fields[field].value = last_error.builded_message.fields[field].value.clone() + " " + &clone_errors[i].builded_message.fields[field].value;
+                    if last_error.builded_message.fields[field].value
+                        != clone_errors[i].builded_message.fields[field].value
+                    {
+                        clone_errors[i].builded_message.fields[field].value =
+                            last_error.builded_message.fields[field].value.clone()
+                                + " "
+                                + &clone_errors[i].builded_message.fields[field].value;
                     }
                 }
 
-                if i == errors.len() - 1 || !is_errors_same(clone_errors[i].clone(), clone_errors[i + 1].clone()) {
-                    clone_errors[i].builded_message =  crate::error::Error::build(clone_errors[i].message.clone(), clone_errors[i].builded_message.fields.clone());
+                if i == errors.len() - 1
+                    || !is_errors_same(clone_errors[i].clone(), clone_errors[i + 1].clone())
+                {
+                    clone_errors[i].builded_message = crate::error::Error::build(
+                        clone_errors[i].message.clone(),
+                        clone_errors[i].builded_message.fields.clone(),
+                    );
                     zipped_errors.push(clone_errors[i].clone())
                 }
             } else {
                 zipped_errors.push(clone_errors[i].clone())
             }
-
-        } else if errors.len() > 1 && !is_errors_same(clone_errors[0].clone(), clone_errors[1].clone()) || errors.len() == 1 {
+        } else if errors.len() > 1
+            && !is_errors_same(clone_errors[0].clone(), clone_errors[1].clone())
+            || errors.len() == 1
+        {
             zipped_errors.push(clone_errors[0].clone());
         }
     }
@@ -121,6 +138,51 @@ pub fn get_letter(letter: String, index: usize, turn: bool) -> String {
             sliced[0].to_string()
         }
     }
+}
+
+pub fn draw_error(line: String, pos: crate::defs::CursorPosition) -> String {
+    let mut draw = String::new();
+
+    for (index, c) in line.chars().enumerate() {
+
+        if index >= pos.1 {
+            draw += &format!(
+                "{}{}{}",
+                crate::utils::terminal_colors::get_color(crate::utils::terminal_colors::Colors::Red),
+                c,
+                crate::utils::terminal_colors::get_color(crate::utils::terminal_colors::Colors::Reset),
+
+            ).to_string();
+        } else {
+            draw += &format!(
+                "{}{}{}",
+                crate::utils::terminal_colors::get_color(crate::utils::terminal_colors::Colors::White),
+                c,
+                crate::utils::terminal_colors::get_color(crate::utils::terminal_colors::Colors::Reset),
+            ).to_string();
+        }
+    }
+    draw
+}
+
+pub fn get_lines(code: String, lines: Vec<crate::defs::CursorPosition>) -> String {
+    let v: Vec<&str> = code.split('\n').collect();
+    let mut render = String::new();
+    for i in 0..lines.len() {
+        let line = lines[i];
+        let t = format!(
+            "{}{}{} {}|{} {}\n",
+            terminal_colors::get_color(terminal_colors::Colors::Magenta),
+            i + 1,
+            terminal_colors::get_color(terminal_colors::Colors::Reset),
+            terminal_colors::get_color(terminal_colors::Colors::Yellow),
+            terminal_colors::get_color(terminal_colors::Colors::Reset),
+            draw_error(v[i].to_string(), line),
+        );
+        render += &t;
+    }
+    render
+    //v[line].to_string()
 }
 
 pub fn get_line(code: String, line: usize) -> String {

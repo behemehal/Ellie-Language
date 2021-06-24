@@ -177,19 +177,6 @@ pub fn collect_constructor(
                 }
             } else if letter_char == "(" {
                 constructordata.parameter_brace_open = true;
-            } else if letter_char == "{" {
-                #[cfg(feature = "std")]
-                std::println!(
-                    "{}[ParserError]{}: Constructor body is not supported yet: {}https://github.com/behemehal/Ellie-Language/issues/{}",
-                    utils::terminal_colors::get_color(utils::terminal_colors::Colors::Red),
-                    utils::terminal_colors::get_color(utils::terminal_colors::Colors::Reset),
-                    utils::terminal_colors::get_color(utils::terminal_colors::Colors::Cyan),
-                    utils::terminal_colors::get_color(utils::terminal_colors::Colors::Reset),
-                );
-                
-                #[cfg(feature = "std")]
-                std::process::exit(0);
-                constructordata.parameter_wrote = true;
             } else {
                 errors.push(error::Error {
                     debug_message: "".to_string(),

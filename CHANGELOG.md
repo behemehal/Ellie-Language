@@ -9,3 +9,4 @@
     - Constants added
     - Bug fix & performance improvements
     - Benchmarks added
+    - Experimental error listing

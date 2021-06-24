@@ -1,6 +1,6 @@
 use alloc::vec::Vec;
 use alloc::string::String;
-use crate::syntax::{types, variable, function, constructor};
+use crate::syntax::{variable, function, constructor};
 use crate::parser::Collecting;
 use ellie_core::defs;
 use serde::Serialize;
