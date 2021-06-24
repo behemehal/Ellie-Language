@@ -11,7 +11,7 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
 
 ellie_core = {path = "core", version = "0.1.0"}
-ellie_parser = {path = "parser", version = "0.1.0"}
+ellie_parser = {path = "parser", version = "0.3.0"}
 
 [lib]
 name = "ellie_lang"
@@ -32,6 +32,13 @@ name = "type_test"
 test = false
 bench = false
 
+[[bench]]
+name = "benches"
+harness = false
+
 [build-dependencies]
 ellie_core = {path = "core", version = "0.1.0"}
 cbindgen = "*"
+
+[dev-dependencies]
+criterion = "0.3"

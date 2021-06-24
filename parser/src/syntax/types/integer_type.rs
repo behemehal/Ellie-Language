@@ -1,3 +1,4 @@
+use alloc::fmt::Debug;
 use alloc::format;
 use alloc::string::String;
 use core::any::Any;
@@ -44,11 +45,59 @@ pub enum IntegerSize {
 }
 
 impl IntegerSize {
+    pub fn greater_than(&self, raw: isize) -> bool {
+        match *self {
+            IntegerSize::U8(e) => {
+                e < raw as u8
+            }
+            IntegerSize::U16(e) => {
+                e < raw as u16
+            }
+            IntegerSize::U32(e) => {
+                e < raw as u32
+            }
+            IntegerSize::U64(e) => {
+                e < raw as u64
+            }
+            IntegerSize::U128(e) => {
+                e < raw as u128
+            }
+            IntegerSize::Usize(e) => {
+                e < raw as usize
+            }
+            IntegerSize::I8(e) => {
+                e < raw as i8
+            }
+            IntegerSize::I16(e) => {
+                e < raw as i16
+            }
+            IntegerSize::I32(e) => {
+                e < raw as i32
+            }
+            IntegerSize::I64(e) => {
+                e < raw as i64
+            }
+            IntegerSize::I128(e) => {
+                e < raw as i128
+            }
+            IntegerSize::Isize(e) => {
+                e < raw as isize
+            }
+        }
+    }
+
     pub fn get_type(&self) -> String {
         let mut q: String = format!("{:?}", self);
         let bracket_offset = q.find('(').unwrap_or_else(|| q.len());
         q.replace_range(bracket_offset.., "");
         q
+    }
+
+    pub fn get_val(&self) -> String {
+        let mut q: String = format!("{:?}", self);
+        let bracket_open_offset = q.find('(').unwrap_or_else(|| q.len());
+        q.replace_range(..bracket_open_offset + 1, "");
+        q.replace(")", "")
     }
 }
 

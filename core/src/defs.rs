@@ -7,6 +7,18 @@ use alloc::format;
 use crate::alloc::borrow::ToOwned;
 
 #[derive(PartialEq, Debug, Clone)]
+pub enum ParserType {
+    RawParser,
+    ClassParser
+}
+
+impl Default for ParserType {
+    fn default() -> Self {
+        ParserType::RawParser
+    }
+}
+
+#[derive(PartialEq, Debug, Clone)]
 pub struct ParserOptions {
     pub functions: bool,
     pub break_on_error: bool,
@@ -17,6 +29,8 @@ pub struct ParserOptions {
     pub dynamics: bool,
     pub collectives: bool,
     pub variables: bool,
+    pub constants: bool,
+    pub parser_type: ParserType
 }
 
 impl Default for ParserOptions {
@@ -31,12 +45,14 @@ impl Default for ParserOptions {
             dynamics: true,
             collectives: true,
             variables: true,
+            constants: true,
+            parser_type: ParserType::RawParser
         }
     }
 }
 
 #[derive(PartialEq, Debug, Clone, Copy, Serialize)]
-pub struct CursorPosition(pub i64, pub i64);
+pub struct CursorPosition(pub usize, pub usize);
 
 impl Default for CursorPosition {
     fn default() -> Self {
@@ -45,12 +61,12 @@ impl Default for CursorPosition {
 }
 
 impl CursorPosition {
-    pub fn skipChar(&mut self, n: i64) -> CursorPosition {
+    pub fn skipChar(&mut self, n: usize) -> CursorPosition {
         self.1 += n;
         return self.clone();
     }
 
-    pub fn popChar(&mut self, n: i64) -> CursorPosition {
+    pub fn popChar(&mut self, n: usize) -> CursorPosition {
         self.1 -= n;
         return self.clone();
     }

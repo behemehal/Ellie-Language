@@ -271,7 +271,9 @@ pub fn collect_array(
 
             let mut will_be_itered: variable::VariableCollector;
             if let definers::DefinerCollecting::Array(array_data) = itered_data.data.rtype.clone() {
-                if data.collective.len() > *array_data.len.value.as_usize().unwrap() {
+                //panic!("{:#?}", array_data.len.value);
+                //if data.collective.len() > *array_data.len.value.as_usize().unwrap() {
+                if array_data.len.value.greater_than(data.collective.len() as isize) {
                     //Check if array size is overflowed
                     errors.push(error::Error {
                         debug_message: "795bb1c6a4152ccff694e59251246e03".to_string(),
@@ -283,7 +285,7 @@ pub fn collect_array(
                             vec![
                                 error::ErrorBuildField {
                                     key: "token".to_string(),
-                                    value: array_data.len.value.as_usize().unwrap().to_string(),
+                                    value: array_data.len.value.get_val(),
                                 },
                                 error::ErrorBuildField {
                                     key: "token2".to_string(),
@@ -296,25 +298,8 @@ pub fn collect_array(
                             range_end: pos.clone().skipChar(1),
                         },
                     });
-                } else if letter_char != " " {
-                    errors.push(error::Error {
-                        debug_message: "bfb9d699600e6af467663dde344054b4".to_string(),
-                        title: error::errorList::error_s1.title.clone(),
-                        code: error::errorList::error_s1.code,
-                        message: error::errorList::error_s1.message.clone(),
-                        builded_message: error::Error::build(
-                            error::errorList::error_s1.message.clone(),
-                            vec![error::ErrorBuildField {
-                                key: "token".to_string(),
-                                value: letter_char.to_string(),
-                            }],
-                        ),
-                        pos: defs::Cursor {
-                            range_start: pos,
-                            range_end: pos.clone().skipChar(1),
-                        },
-                    });
                 }
+
 
                 will_be_itered = if data.collective.is_empty() {
                     variable::VariableCollector {

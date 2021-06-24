@@ -20,7 +20,7 @@ pub fn collect_integer(
         let is_num = letter_char.parse::<isize>().is_ok();
 
         if is_num || letter_char == "x" && data.raw.starts_with('0') {
-            if data.complete {
+            if data.complete && last_char.parse::<isize>().is_err() {
                 errors.push(error::Error {
                     debug_message: "d1a82bb43679c9166163a25da84e90c6".to_string(),
                     title: error::errorList::error_s1.title.clone(),
@@ -90,8 +90,7 @@ pub fn collect_integer(
                         },
                     });
                 }
-
-                //data.complete = true;
+                data.complete = true;
             }
         } else if letter_char == "." {
             data.complete = true;
@@ -192,9 +191,9 @@ pub fn collect_integer(
                 pos,
                 options,
             )
-        } else if letter_char == " " {
+        } else if letter_char == " " && !data.raw.is_empty() {
             data.complete = true;
-        } else {
+        } else if letter_char != " " {
             errors.push(error::Error {
                 debug_message: "bec55aafceb1a5602a3a16d2ec83abcd".to_string(),
                 title: error::errorList::error_s1.title.clone(),

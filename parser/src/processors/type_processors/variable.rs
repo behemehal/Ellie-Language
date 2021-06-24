@@ -134,6 +134,20 @@ pub fn collect_variable(
                 pos,
                 options,
             )
+        } else if letter_char == "(" {
+            itered_data.data.value =
+                types::Types::FunctionCall(types::function_call::FunctionCallCollector {
+                    data: types::function_call::FunctionCall {
+                        name: data.value.clone(),
+                        name_pos: ellie_core::defs::Cursor {
+                            range_start: pos.clone().popChar(data.value.clone().len()),
+                            range_end: pos,
+                        },
+                        ..Default::default()
+                    },
+                    name_collected: true,
+                    ..Default::default()
+                });
         } else if current_reliability.reliable {
             data.value += letter_char;
         } else {
@@ -152,14 +166,11 @@ pub fn collect_variable(
                 pos: defs::Cursor {
                     range_start: defs::CursorPosition(
                         pos.0,
-                        (pos.1 - itered_data.raw_value.len() as i64)
-                            + current_reliability.at as i64,
+                        (pos.1 - itered_data.raw_value.len()) + current_reliability.at,
                     ),
                     range_end: defs::CursorPosition(
                         pos.0,
-                        ((pos.1 - itered_data.raw_value.len() as i64)
-                            + current_reliability.at as i64)
-                            + 1,
+                        ((pos.1 - itered_data.raw_value.len()) + current_reliability.at) + 1,
                     ),
                 },
             });

@@ -1,1 +1,7 @@
-d test = false == true;
+class Test {
+    co Test(TEst) {
+        v test : string = "ahmet";
+    }
+    
+    v test : string = "ahmet";
+}

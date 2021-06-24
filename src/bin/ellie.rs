@@ -65,6 +65,8 @@ fn main() {
                                 global_variables: true,
                                 collectives: true,
                                 variables: true,
+                                constants: true,
+                                parser_type: ellie_core::defs::ParserType::RawParser
                             },
                         );
                         let mapped = parser.map();

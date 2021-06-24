@@ -8,6 +8,7 @@ use alloc::string::String;
 pub struct Variable {
     pub name: String,
     pub dynamic: bool,
+    pub constant: bool,
     pub public: bool,
     pub value: crate::syntax::types::Types,
     pub pos: defs::Cursor,

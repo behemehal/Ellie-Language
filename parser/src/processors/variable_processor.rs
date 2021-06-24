@@ -223,7 +223,7 @@ pub fn collect_variable_value(
                 );
                 variabledata.data.type_pos.range_end = parser.pos;
             }
-        } else if letter_char == ";" {
+        } else if letter_char == ";" && variabledata.data.value.is_type_complete() {
             variabledata.data.value_pos.range_end = parser.pos;
             if let parser::Collecting::Variable(ref mut collected) = parser.current {
                 if collected.data.value.is_type_complete() {
@@ -275,7 +275,6 @@ pub fn collect_variable_value(
                     parser.collected.push(parser.current.clone());
                     parser.current = parser::Collecting::None;
                 } else {
-                    std::println!("{:#?}", collected);
                     errors.push(error::Error {
                         debug_message: "84a3055191cc6a0bbcdfedc4eb11ff5c"
                             .to_string(),

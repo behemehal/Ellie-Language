@@ -4,3 +4,5 @@ pub mod function;
 pub mod types;
 pub mod variable;
 pub mod class;
+pub mod ret;
+pub mod constructor;

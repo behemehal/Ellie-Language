@@ -3,13 +3,13 @@
 
 class Chunker<T> {
     co Chunker(chunkCount, items);
-    pri v chunkCount : integer;
-    pri v items : array(T); //This is a dynamic array
+    pri v chunkCount : int;
+    pri v items : dynamicArray(T); //This is a dynamic array
     fn chunks() > array(array(T)) {
-        v chunks : array(array(T));
-        v temp : array(T);
+        v chunks : dynamicArray(dynamicArray(T));
+        v temp : dynamicArray(T);
         //iter 0 to given items length, write to variable i
-        foreach (d i, 0, this.items.len) {
+        foreach (i, 0, this.items.len) {
             if temp.len == this.chunkCount { //if we reached given cut size
                 chunks.push(tempList); //Push chunk to main array
                 tempList.empty(); //Clear temp array
@@ -19,14 +19,14 @@ class Chunker<T> {
         }
         if tempList.len != 0 { //If temp array isn't empty push remaining chunk to main array
             chunks.push(tempList);
-            tempList.empty(); //Clear temp array
+            tempList.clean(); //Clear temp array
         }
-        return chunks; //Return main array
+        ret chunks; //Return main array
     }
 }
 
 //Usage:
-v categories : array(9, i8) = [
+v categories : dynamicArray(int) = [
      1,
      2,
      3,
@@ -38,5 +38,5 @@ v categories : array(9, i8) = [
      9
 ];
 
-v chunker: Chunker = new Chunker<array(9, i8)>(3, categories);
-v chunked : array(array(3, i8)) = chunker.chunks();
+v chunker: Chunker = new Chunker(3, categories);
+v chunked : dynamicArray(dynamicArray(int)) = chunker.chunks();

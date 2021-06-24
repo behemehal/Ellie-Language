@@ -63,7 +63,7 @@ pub fn collect_float(
                         pos: defs::Cursor {
                             range_start: pos
                                 .clone()
-                                .popChar((data.point.clone() + "." + letter_char).len() as i64),
+                                .popChar((data.point.clone() + "." + letter_char).len()),
                             range_end: pos.clone().skipChar(1),
                         },
                     });
@@ -89,7 +89,7 @@ pub fn collect_float(
                         pos: defs::Cursor {
                             range_start: pos
                                 .clone()
-                                .popChar((data.point.clone() + "." + letter_char).len() as i64),
+                                .popChar((data.point.clone() + "." + letter_char).len()),
                             range_end: pos.clone().skipChar(1),
                         },
                     });

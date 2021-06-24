@@ -34,7 +34,7 @@ pub enum Types {
     Cloak(cloak_type::CloakType),
     Array(array_type::ArrayType),
     ArrowFunction(arrow_function::ArrowFunctionCollector),
-    FunctionCall(function_call::FunctionCall),
+    FunctionCall(function_call::FunctionCallCollector),
     Void,
     VariableType(variable_type::VariableType),
     Null,
@@ -90,9 +90,9 @@ impl Types {
 
     pub fn is_type_complete(&self) -> bool {
         match &*self {
-            Types::Integer(_) => true, //Always complete
-            Types::Float(e) => e.complete, //Always complete
-            Types::Bool(_) => true,   //Always complete
+            Types::Integer(e) => e.complete,
+            Types::Float(e) => e.complete,
+            Types::Bool(_) => true,
             Types::String(data) => data.complete,
             Types::Char(data) => data.complete,
             Types::Collective => false,

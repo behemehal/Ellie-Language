@@ -1,6 +1,6 @@
-use crate::processors::value_processor;
-use crate::syntax::{types, variable};
-use ellie_core::{defs, error};
+use crate::processors::{type_processors, value_processor};
+use crate::syntax::{definers, types, variable};
+use ellie_core::{defs, error, utils};
 
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};
@@ -16,184 +16,366 @@ pub fn collect_function_caller(
     pos: defs::CursorPosition,
     options: defs::ParserOptions,
 ) {
-    if let types::Types::FunctionCall(ref mut data) = itered_data.data.value {
-        let mut last_param = data.params.len();
-        if last_param == 0 {
-            data.params
-                .push(types::function_call::FunctionCallParameter::default());
-            last_param = data.params.len();
+    if let types::Types::FunctionCall(ref mut functioncalldata) = itered_data.data.value {
+        if itered_data.data.dynamic {
+            itered_data.data.rtype = definers::DefinerCollecting::Generic(definers::GenericType {
+                rtype: "functionCall".to_string(),
+            });
         }
 
-        let is_s_n =
-            !(last_param == 0 && matches!(&data.params[last_param - 1].value, types::Types::String(x) if x.complete));
+        if !functioncalldata.name_collected {
+            let current_reliability = utils::reliable_name_range(
+                utils::ReliableNameRanges::VariableName,
+                letter_char.to_string(),
+            );
 
-        if letter_char == "," && is_s_n && !data.params[last_param - 1].value.is_array() {
-            if data.params[last_param - 1].value.is_type_complete() {
-                data.comma = true;
-                data.params
-                    .push(types::function_call::FunctionCallParameter::default())
-            } else {
-                errors.push(error::Error {
-                    debug_message: "cdb73abf70dd25635e60c75f301e47b7"
-                        .to_string(),
-                    title: error::errorList::error_s1.title.clone(),
-                    code: error::errorList::error_s1.code,
-                    message: error::errorList::error_s1.message.clone(),
-                    builded_message: error::Error::build(
-                        error::errorList::error_s1.message.clone(),
-                        vec![error::ErrorBuildField {
-                            key: "token".to_string(),
-                            value: letter_char.to_string(),
-                        }],
-                    ),
-                    pos: defs::Cursor {
-                        range_start: pos.clone().skipChar(1),
-                        range_end: pos.clone().skipChar(2),
-                    },
-                });
-            }
-        } else if letter_char == ")" && is_s_n {
-            if data.comma {
-                errors.push(error::Error {
-                    debug_message: "db537285ab2a1efd705cc75ee2b83806"
-                        .to_string(),
-                    title: error::errorList::error_s1.title.clone(),
-                    code: error::errorList::error_s1.code,
-                    message: error::errorList::error_s1.message.clone(),
-                    builded_message: error::Error::build(
-                        error::errorList::error_s1.message.clone(),
-                        vec![error::ErrorBuildField {
-                            key: "token".to_string(),
-                            value: letter_char.to_string(),
-                        }],
-                    ),
-                    pos: defs::Cursor {
-                        range_start: pos.clone().skipChar(1),
-                        range_end: pos.clone().skipChar(2),
-                    },
-                });
-            } else {
-                errors.push(error::Error {
-                    debug_message: "d976fe3ffbf632769487dbb44bb729ae"
-                        .to_string(),
-                    title: error::errorList::error_s1.title.clone(),
-                    code: error::errorList::error_s1.code,
-                    message: error::errorList::error_s1.message.clone(),
-                    builded_message: error::Error::build(
-                        error::errorList::error_s1.message.clone(),
-                        vec![error::ErrorBuildField {
-                            key: "token".to_string(),
-                            value: letter_char.to_string(),
-                        }],
-                    ),
-                    pos: defs::Cursor {
-                        range_start: pos.clone().skipChar(1),
-                        range_end: pos.clone().skipChar(2),
-                    },
-                });
-                /* TODO: Figure out what is this
-                if data.params[last_param - 1].value.is_complete() || true {
-                    //W?
-                    data.complete = true
+            if current_reliability.reliable
+                && (last_char != " " && !functioncalldata.data.name.is_empty())
+            {
+                functioncalldata.data.name += letter_char;
+            } else if letter_char == "(" {
+                if functioncalldata.data.name.is_empty() {
+                    errors.push(error::Error {
+                        debug_message: "6e2c6597b903a107262c073e59c22017".to_string(),
+                        title: error::errorList::error_s1.title.clone(),
+                        code: error::errorList::error_s1.code,
+                        message: error::errorList::error_s1.message.clone(),
+                        builded_message: error::Error::build(
+                            error::errorList::error_s1.message.clone(),
+                            vec![error::ErrorBuildField {
+                                key: "token".to_string(),
+                                value: letter_char.to_string(),
+                            }],
+                        ),
+                        pos: defs::Cursor {
+                            range_start: pos,
+                            range_end: pos.clone().skipChar(1),
+                        },
+                    });
                 } else {
+                    functioncalldata.name_collected = true;
                 }
-                */
+            } else if letter_char != " " {
+                errors.push(error::Error {
+                    debug_message: "6e2c6597b903a107262c073e59c22017".to_string(),
+                    title: error::errorList::error_s1.title.clone(),
+                    code: error::errorList::error_s1.code,
+                    message: error::errorList::error_s1.message.clone(),
+                    builded_message: error::Error::build(
+                        error::errorList::error_s1.message.clone(),
+                        vec![error::ErrorBuildField {
+                            key: "token".to_string(),
+                            value: letter_char.to_string(),
+                        }],
+                    ),
+                    pos: defs::Cursor {
+                        range_start: pos,
+                        range_end: pos.clone().skipChar(1),
+                    },
+                });
             }
-        } else {
-            let mut last_param_value = variable::VariableCollector {
-                data: variable::Variable {
-                    value: data.params[last_param - 1].value.clone(),
-                    ..Default::default()
-                },
-                ..variable::VariableCollector::default()
-            };
+        } else if !functioncalldata.complete {
+            let last_entry = functioncalldata.data.params.clone().len();
+            let is_s_n = last_entry == 0
+                || functioncalldata.data.params[last_entry - 1]
+                    .value
+                    .is_type_complete();
 
-            data.comma = false;
+            if letter_char == "," && is_s_n && last_entry != 0 {
+                if functioncalldata.complete {
+                    errors.push(error::Error {
+                        debug_message: "3d5fbbf22c8bf93045da675387a15c55".to_string(),
+                        title: error::errorList::error_s1.title.clone(),
+                        code: error::errorList::error_s1.code,
+                        message: error::errorList::error_s1.message.clone(),
+                        builded_message: error::Error::build(
+                            error::errorList::error_s1.message.clone(),
+                            vec![error::ErrorBuildField {
+                                key: "token".to_string(),
+                                value: letter_char.to_string(),
+                            }],
+                        ),
+                        pos: defs::Cursor {
+                            range_start: pos,
+                            range_end: pos.clone().skipChar(1),
+                        },
+                    });
+                } else if functioncalldata.comma {
+                    errors.push(error::Error {
+                        debug_message: "5103abecffb13b1dc89e94321b38eccc".to_string(),
+                        title: error::errorList::error_s1.title.clone(),
+                        code: error::errorList::error_s1.code,
+                        message: error::errorList::error_s1.message.clone(),
+                        builded_message: error::Error::build(
+                            error::errorList::error_s1.message.clone(),
+                            vec![error::ErrorBuildField {
+                                key: "token".to_string(),
+                                value: letter_char.to_string(),
+                            }],
+                        ),
+                        pos: defs::Cursor {
+                            range_start: pos,
+                            range_end: pos.clone().skipChar(1),
+                        },
+                    });
+                } else {
+                    if last_entry != 0 {
+                        functioncalldata.data.params[last_entry - 1]
+                            .value
+                            .make_complete();
+                    }
+                    functioncalldata.comma = true;
+                    functioncalldata
+                        .data
+                        .params
+                        .push(types::function_call::FunctionCallParameter::default());
+                }
+            } else if letter_char == ")" && is_s_n {
+                functioncalldata.complete = true;
+            } else {
+                if letter_char != " " {
+                    //TODO IS THIS SAFE ?
+                    functioncalldata.comma = false;
+                }
 
-            let itered_param_value = Box::new(value_processor::collect_value(
-                &mut last_param_value,
+                //TODO FIX THIS with function after resolving complete
+                let mut will_be_itered: variable::VariableCollector;
+                if let definers::DefinerCollecting::Cloak(cloak_data) =
+                    itered_data.data.rtype.clone()
+                {
+                    will_be_itered = if functioncalldata.data.params.is_empty() {
+                        variable::VariableCollector {
+                            data: variable::Variable {
+                                rtype: cloak_data.rtype[0].clone(),
+                                ..Default::default()
+                            },
+                            ..variable::VariableCollector::default()
+                        }
+                    } else {
+                        variable::VariableCollector {
+                            data: variable::Variable {
+                                value: functioncalldata.data.params
+                                    [functioncalldata.data.params.len() - 1]
+                                    .value
+                                    .clone(),
+                                rtype: cloak_data.rtype[functioncalldata.data.params.len() - 1]
+                                    .clone(),
+                                ..Default::default()
+                            },
+                            ..variable::VariableCollector::default()
+                        }
+                    };
+                } else {
+                    will_be_itered = if functioncalldata.data.params.is_empty() {
+                        variable::VariableCollector::default()
+                    } else {
+                        variable::VariableCollector {
+                            data: variable::Variable {
+                                value: functioncalldata.data.params
+                                    [functioncalldata.data.params.len() - 1]
+                                    .value
+                                    .clone(),
+                                ..Default::default()
+                            },
+                            ..variable::VariableCollector::default()
+                        }
+                    };
+                    #[cfg(feature = "std")]
+                    std::println!(
+                        "{}[ParserError:0x2]{}: This shouldn't have happened",
+                        utils::terminal_colors::get_color(utils::terminal_colors::Colors::Red),
+                        utils::terminal_colors::get_color(utils::terminal_colors::Colors::Reset),
+                    );
+                }
+
+                let itered_fcall_vector = Box::new(value_processor::collect_value(
+                    &mut will_be_itered,
+                    letter_char,
+                    next_char,
+                    last_char,
+                    defs::CursorPosition(0, 0),
+                    options,
+                ));
+
+                let itered_entry = match itered_fcall_vector.itered_data.data.value {
+                    types::Types::Integer(match_data) => {
+                        types::function_call::FunctionCallParameter {
+                            value: types::Types::Integer(match_data),
+                            ..Default::default()
+                        }
+                    }
+                    types::Types::Float(match_data) => {
+                        types::function_call::FunctionCallParameter {
+                            value: types::Types::Float(match_data),
+                            ..Default::default()
+                        }
+                    }
+                    types::Types::Operator(match_data) => {
+                        types::function_call::FunctionCallParameter {
+                            value: types::Types::Operator(match_data),
+                            ..Default::default()
+                        }
+                    }
+                    types::Types::Bool(match_data) => types::function_call::FunctionCallParameter {
+                        value: types::Types::Bool(match_data),
+                        ..Default::default()
+                    },
+                    types::Types::String(match_data) => {
+                        types::function_call::FunctionCallParameter {
+                            value: types::Types::String(match_data),
+                            ..Default::default()
+                        }
+                    }
+                    types::Types::Char(match_data) => types::function_call::FunctionCallParameter {
+                        value: types::Types::Char(match_data),
+                        ..Default::default()
+                    },
+                    types::Types::Collective => types::function_call::FunctionCallParameter {
+                        value: types::Types::Null,
+                        ..Default::default()
+                    },
+                    types::Types::Refference(_) => types::function_call::FunctionCallParameter {
+                        value: types::Types::Null,
+                        ..Default::default()
+                    },
+                    types::Types::Array(match_data) => {
+                        types::function_call::FunctionCallParameter {
+                            value: types::Types::Array(match_data),
+                            ..Default::default()
+                        }
+                    }
+                    types::Types::Cloak(match_data) => {
+                        types::function_call::FunctionCallParameter {
+                            value: types::Types::Cloak(match_data),
+                            ..Default::default()
+                        }
+                    }
+                    types::Types::ArrowFunction(match_data) => {
+                        types::function_call::FunctionCallParameter {
+                            value: types::Types::ArrowFunction(match_data),
+                            ..Default::default()
+                        }
+                    }
+                    types::Types::FunctionCall(_) => types::function_call::FunctionCallParameter {
+                        value: types::Types::Null,
+                        ..Default::default()
+                    },
+                    types::Types::Void => types::function_call::FunctionCallParameter {
+                        value: types::Types::Null,
+                        ..Default::default()
+                    },
+                    types::Types::VariableType(match_data) => {
+                        types::function_call::FunctionCallParameter {
+                            value: types::Types::VariableType(match_data),
+                            ..Default::default()
+                        }
+                    }
+                    types::Types::Null => types::function_call::FunctionCallParameter {
+                        value: types::Types::Null,
+                        ..Default::default()
+                    },
+                };
+                if !itered_fcall_vector.errors.is_empty() {
+                    for returned_error in itered_fcall_vector.errors {
+                        //errors.extend(itered_array_vector.errors);
+                        let mut edited = returned_error;
+                        edited.pos.range_start.0 += pos.0;
+                        edited.pos.range_start.1 += pos.1;
+                        edited.pos.range_end.0 += pos.0;
+                        edited.pos.range_end.1 += pos.1;
+                        errors.push(edited);
+                    }
+                }
+                if functioncalldata.data.params.is_empty() {
+                    functioncalldata.data.params.push(itered_entry);
+                } else {
+                    functioncalldata.data.params[last_entry - 1] = itered_entry;
+                }
+            }
+        } else if letter_char == "." {
+            itered_data.data.value =
+                types::Types::Refference(types::refference_type::RefferenceType {
+                    refference: Box::new(itered_data.data.value.clone()),
+                    chain: Vec::new(),
+                    on_dot: false,
+                });
+            type_processors::refference::collect_refference(
+                itered_data,
+                errors,
                 letter_char,
                 next_char,
                 last_char,
-                defs::CursorPosition(0, 0),
+                pos,
                 options,
-            ));
-
-            let _itered_entry = match itered_param_value.itered_data.data.value.clone() {
-                types::Types::Integer(match_data) => types::array_type::ArrayEntry {
-                    value_complete: match_data.complete,
-                    value: Box::new(types::Types::Integer(match_data)),
-                },
-                types::Types::Float(match_data) => types::array_type::ArrayEntry {
-                    value_complete: match_data.complete,
-                    value: Box::new(types::Types::Float(match_data)),
-                },
-                types::Types::Operator(match_data) => types::array_type::ArrayEntry {
-                    value_complete: false,
-                    value: Box::new(types::Types::Operator(match_data)),
-                },
-                types::Types::Bool(match_data) => types::array_type::ArrayEntry {
-                    value_complete: true,
-                    value: Box::new(types::Types::Bool(match_data)),
-                },
-                types::Types::String(match_data) => types::array_type::ArrayEntry {
-                    value_complete: match_data.complete,
-                    value: Box::new(types::Types::String(match_data)),
-                },
-                types::Types::Char(match_data) => types::array_type::ArrayEntry {
-                    value_complete: match_data.complete,
-                    value: Box::new(types::Types::Char(match_data)),
-                },
-                types::Types::Collective => types::array_type::ArrayEntry {
-                    value_complete: true,
-                    value: Box::new(types::Types::Null),
-                },
-                types::Types::Refference(_) => types::array_type::ArrayEntry {
-                    value_complete: true,
-                    value: Box::new(types::Types::Null),
-                },
-                types::Types::Array(match_data) => types::array_type::ArrayEntry {
-                    value_complete: false,
-                    value: Box::new(types::Types::Array(match_data)),
-                },
-                types::Types::Cloak(match_data) => types::array_type::ArrayEntry {
-                    value_complete: false,
-                    value: Box::new(types::Types::Cloak(match_data)),
-                },
-                types::Types::ArrowFunction(match_data) => types::array_type::ArrayEntry {
-                    value_complete: true,
-                    value: Box::new(types::Types::ArrowFunction(match_data)),
-                },
-                types::Types::FunctionCall(_) => types::array_type::ArrayEntry {
-                    value_complete: true,
-                    value: Box::new(types::Types::Null),
-                },
-                types::Types::Void => types::array_type::ArrayEntry {
-                    value_complete: true,
-                    value: Box::new(types::Types::Null),
-                },
-                types::Types::VariableType(match_data) => types::array_type::ArrayEntry {
-                    value_complete: true,
-                    value: Box::new(types::Types::VariableType(match_data)),
-                },
-                types::Types::Null => types::array_type::ArrayEntry {
-                    value_complete: true,
-                    value: Box::new(types::Types::Null),
-                },
-            };
-
-            if itered_param_value.errors.is_empty() {
-                for returned_error in itered_param_value.errors {
-                    //errors.extend(itered_array_vector.errors);
-                    let mut edited = returned_error;
-                    edited.pos.range_start.0 += pos.0;
-                    edited.pos.range_start.1 += pos.1;
-                    edited.pos.range_end.0 += pos.0;
-                    edited.pos.range_end.1 += pos.1;
-                    errors.push(edited);
-                }
-            }
-            data.params[last_param - 1].value = itered_param_value.itered_data.data.value;
+            )
+        } else if types::logical_type::LogicalOpearators::is_logical_opearator(letter_char) {
+            itered_data.data.value =
+                types::Types::Operator(types::operator_type::OperatorTypeCollector {
+                    data: types::operator_type::OperatorType {
+                        first: Box::new(itered_data.data.value.clone()),
+                        operator: types::operator_type::Operators::LogicalType(
+                            types::logical_type::LogicalOpearators::Null,
+                        ),
+                        ..Default::default()
+                    },
+                    first_filled: true,
+                    ..Default::default()
+                });
+            type_processors::operator::collect_operator(
+                itered_data,
+                errors,
+                letter_char,
+                next_char,
+                last_char,
+                pos,
+                options,
+            )
+        } else if types::comparison_type::ComparisonOperators::is_comparison_opearator(letter_char)
+        {
+            itered_data.data.value =
+                types::Types::Operator(types::operator_type::OperatorTypeCollector {
+                    data: types::operator_type::OperatorType {
+                        first: Box::new(itered_data.data.value.clone()),
+                        operator: types::operator_type::Operators::ComparisonType(
+                            types::comparison_type::ComparisonOperators::Null,
+                        ),
+                        ..Default::default()
+                    },
+                    first_filled: true,
+                    ..Default::default()
+                });
+            type_processors::operator::collect_operator(
+                itered_data,
+                errors,
+                letter_char,
+                next_char,
+                last_char,
+                pos,
+                options,
+            )
+        } else if types::arithmetic_type::ArithmeticOperators::is_arithmetic_opearator(letter_char)
+        {
+            itered_data.data.value =
+                types::Types::Operator(types::operator_type::OperatorTypeCollector {
+                    data: types::operator_type::OperatorType {
+                        first: Box::new(itered_data.data.value.clone()),
+                        operator: types::operator_type::Operators::ArithmeticType(
+                            types::arithmetic_type::ArithmeticOperators::Null,
+                        ),
+                        ..Default::default()
+                    },
+                    first_filled: true,
+                    ..Default::default()
+                });
+            type_processors::operator::collect_operator(
+                itered_data,
+                errors,
+                letter_char,
+                next_char,
+                last_char,
+                pos,
+                options,
+            )
         }
     }
 }

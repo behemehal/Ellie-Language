@@ -7,7 +7,11 @@
     ```
   * Type Set Variable
     ```ellie
-        v test : integer = 123;
+        v test : int = 123;
+    ```
+  * Constants
+    ```ellie
+        c test : int = 123;
     ```
 * Data Types
 
@@ -42,7 +46,7 @@
         
         **Not complete**
         ```ellie
-            v letters : collective(integer, char) = {
+            v letters : collective(int, char) = {
                 1 :'e',
                 2 :'l',
                 3 :'l',
@@ -52,7 +56,7 @@
         ```
     - Arrow Functions
         ```ellie
-            v callingAwesomeness : fn(string, integer)::string = @(name: string, count: integer) > integer {
+            v callingAwesomeness : fn(string, int)::string = @(name: string, count: int) > string {
                 v awesomenes : string;
                 for (element, count) {
                     awesomenes += "ellie";
@@ -63,7 +67,7 @@
     - boolean
 * Functions
   ```ellie
-    fn callingAwesomeness (name: String, count: integer) > string {
+    fn callingAwesomeness (name: String, count: int) > string {
         v awesomenes : string;
         //iter count times write to variable i
         for (d i, count) {
@@ -112,7 +116,7 @@
 
         }
     ```
-* Enum
+* Enum (NOT COMPLETE > 2.1.0)
     ```ellie
         pub enum Test {
             withValue(integer),
@@ -125,7 +129,7 @@
           
         }
     ```
-* For Loops
+* For Loops (NOT COMPLETE > 2.1.0)
     ```ellie
         v reversedEllie : string;
         for (character, ellie_chars.reverse()) { //Array.reverse is standard-library function

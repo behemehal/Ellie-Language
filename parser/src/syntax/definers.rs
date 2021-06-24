@@ -98,7 +98,7 @@ impl DefinerCollecting {
     pub fn raw_name(&self) -> String {
         match self {
             DefinerCollecting::Array(_) => "array".to_string(),
-            DefinerCollecting::GrowableArray(_) => "dynamic_array".to_string(),
+            DefinerCollecting::GrowableArray(_) => "dynamicArray".to_string(),
             DefinerCollecting::Generic(data) => data.rtype.clone(),
             DefinerCollecting::Function(_) => "function".to_string(),
             DefinerCollecting::Cloak(_) => "cloak".to_string(),
