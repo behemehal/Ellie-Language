@@ -18,9 +18,5 @@ pub fn collect_class(
     last_char: String,
     _options: defs::ParserOptions,
 ) {
-    if let parser::Collecting::Class(ref mut classdata) = parser.current {
-        
-        
-
-    }
+    if let parser::Collecting::Class(ref mut classdata) = parser.current {}
 }

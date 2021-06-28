@@ -8,7 +8,6 @@ pub fn is_errors_same(first: error::Error, second: error::Error) -> bool {
         && first.pos.range_start.1 == second.pos.range_start.1
 }
 
-
 pub fn zip_errors(errors: Vec<error::Error>) -> Vec<error::Error> {
     let mut clone_errors: Vec<error::Error> = errors.clone();
     let mut zipped_errors: Vec<error::Error> = Vec::new();
@@ -57,22 +56,22 @@ pub fn draw_error(line: String, pos: defs::CursorPosition) -> String {
     let mut draw = String::new();
 
     for (index, c) in line.chars().enumerate() {
-
         if index >= pos.1 {
             draw += &format!(
                 "{}{}{}",
                 terminal_colors::get_color(terminal_colors::Colors::Red),
                 c,
                 terminal_colors::get_color(terminal_colors::Colors::Reset),
-
-            ).to_string();
+            )
+            .to_string();
         } else {
             draw += &format!(
                 "{}{}{}",
                 terminal_colors::get_color(terminal_colors::Colors::White),
                 c,
                 terminal_colors::get_color(terminal_colors::Colors::Reset),
-            ).to_string();
+            )
+            .to_string();
         }
     }
     draw

@@ -64,7 +64,11 @@ pub fn collect_condition(
                     data.inside_object_count -= 1;
                 }
             } else {
-                let child_parser = parser::Parser::new(data.inside_code_string.clone(), parser.scope.clone() + "/condition", options);
+                let child_parser = parser::Parser::new(
+                    data.inside_code_string.clone(),
+                    parser.scope.clone() + "/condition",
+                    options,
+                );
                 parser.pos = child_parser.pos;
                 let mapped = child_parser.map();
                 for i in mapped.syntax_errors {

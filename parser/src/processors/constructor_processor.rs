@@ -2,10 +2,10 @@ use crate::parser;
 use crate::syntax::constructor;
 use ellie_core::{defs, error, utils};
 
+use crate::alloc::boxed::Box;
 use crate::alloc::string::{String, ToString};
 use crate::alloc::vec;
 use crate::alloc::vec::Vec;
-use crate::alloc::boxed::Box;
 
 pub fn collect_constructor(
     parser: &mut parser::Parser,
