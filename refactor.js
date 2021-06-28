@@ -22,7 +22,7 @@ function whichLineEnding(source) {
 
 var cargoconf = fs.readFileSync("./Cargo.toml", "utf8");
 var ellidbg = fs.readFileSync("./DEBUG_HEADERS.eidbg", "utf8");
-var version = cargoconf.split(whichLineEnding(cargoconf)).find(x => x.split("=")[0].trim() == "version").split("=")[1].trim().replaceAll("\"", "");
+var version = cargoconf.split(whichLineEnding(cargoconf)).find(x => x.split("=")[0].trim() == "version").split("=")[1].trim().replace(new RegExp("\"", "g"), "");
 var dbgversion = ellidbg.split(whichLineEnding(ellidbg))[0].split(":")[1];
 var changeHeaders = dbgversion.split(".")[0] != version.split(".")[0] || dbgversion.split(".")[1] != version.split(".")[1]
 
@@ -49,7 +49,7 @@ function refactorFile(file, fileDir) {
     }
     if (factored) {
         log(`Factoring ${fileDir}:${i + 1}`);
-        //fs.writeFileSync(fileDir, factoredFile, 'utf8');
+        fs.writeFileSync(fileDir, factoredFile, 'utf8');
     }
 }
 
