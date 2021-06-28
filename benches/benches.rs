@@ -29,7 +29,11 @@ fn variable_benchmark(c: &mut Criterion) {
             classes: true,
             dynamics: true,
             global_variables: true,
-            line_ending: if env::consts::OS == "windows" { "\\r\\n".to_string() } else { "\\n".to_string() },
+            line_ending: if env::consts::OS == "windows" {
+                "\\r\\n".to_string()
+            } else {
+                "\\n".to_string()
+            },
             collectives: true,
             variables: true,
             constants: true,

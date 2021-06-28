@@ -64,7 +64,11 @@ fn main() {
                                 classes: true,
                                 dynamics: true,
                                 global_variables: true,
-                                line_ending: if env::consts::OS == "windows" { "\\r\\n".to_string() } else { "\\n".to_string() },
+                                line_ending: if env::consts::OS == "windows" {
+                                    "\\r\\n".to_string()
+                                } else {
+                                    "\\n".to_string()
+                                },
                                 collectives: true,
                                 variables: true,
                                 constants: true,
@@ -76,7 +80,9 @@ fn main() {
                             if env::args()
                                 .any(|x| x == "-xe" || x == "--experimental-error-listing")
                             {
-                                for error in &ellie_lang::cli_utils::zip_errors(mapped.syntax_errors) {
+                                for error in
+                                    &ellie_lang::cli_utils::zip_errors(mapped.syntax_errors)
+                                {
                                     if env::args().any(|x| x == "-je" || x == "--json-errors") {
                                         println!("{:#?}", serde_json::to_string(error).unwrap());
                                     } else {
@@ -136,10 +142,7 @@ fn main() {
 
                                             println!(
                                                 "{}",
-                                                ellie_lang::cli_utils::get_lines(
-                                                    code.clone(),
-                                                    pos
-                                                )
+                                                ellie_lang::cli_utils::get_lines(code.clone(), pos)
                                             )
                                         } else {
                                             println!(
@@ -184,7 +187,13 @@ fn main() {
                                                 error.pos.range_start.0 + 1,
                                                 error.pos.range_start.1 + 1
                                             );
-                                            let line : Vec<&str> = code.split(if env::consts::OS == "windows" { "\\r\\n" } else { "\\n" }).collect();
+                                            let line: Vec<&str> = code
+                                                .split(if env::consts::OS == "windows" {
+                                                    "\\r\\n"
+                                                } else {
+                                                    "\\n"
+                                                })
+                                                .collect();
                                             println!(
                                                 "{}\n{}{}{}",
                                                 ellie_lang::cli_utils::get_line(
@@ -203,8 +212,8 @@ fn main() {
                                                             - (error.pos.range_start.1))
                                                             as usize
                                                     } else {
-                                                        
-                                                        error.pos.range_start.1 as usize - (line[error.pos.range_start.1]).len()
+                                                        error.pos.range_start.1 as usize
+                                                            - (line[error.pos.range_start.1]).len()
                                                     }
                                                 ),
                                                 ellie_lang::terminal_colors::get_color(
