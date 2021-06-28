@@ -1,7 +1,6 @@
 use crate::parser::Collecting;
 use crate::syntax::{definers, function};
 use alloc::boxed::Box;
-use alloc::string::String;
 use alloc::vec::Vec;
 use serde::Serialize;
 
@@ -18,8 +17,8 @@ pub struct ArrowFunctionCollector {
     pub param_bracket_opened: bool,
     pub parameter_wrote: bool,
     pub pointer_typed: bool,
-    pub inside_code_string: String,
     pub return_typed: bool,
-    pub brace_count: i64,
+    pub brace_count: usize,
     pub data: ArrowFunction,
+    pub code: Box<crate::parser::Parser>,
 }

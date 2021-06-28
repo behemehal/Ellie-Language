@@ -1,12 +1,24 @@
 #![allow(warnings)] //TODO Remove this
-use core::fmt;
-use serde::Serialize;
+use crate::alloc::borrow::ToOwned;
+use alloc::format;
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
-use alloc::format;
-use crate::alloc::borrow::ToOwned;
+use core::fmt;
+use serde::Serialize;
 
-#[derive(PartialEq, Debug, Clone)]
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub enum ParserType {
+    RawParser,
+    ClassParser,
+}
+
+impl Default for ParserType {
+    fn default() -> Self {
+        ParserType::RawParser
+    }
+}
+
+#[derive(PartialEq, Debug, Clone, Serialize)]
 pub struct ParserOptions {
     pub functions: bool,
     pub break_on_error: bool,
@@ -14,9 +26,12 @@ pub struct ParserOptions {
     pub classes: bool,
     pub conditions: bool,
     pub global_variables: bool,
+    pub line_ending: String,
     pub dynamics: bool,
     pub collectives: bool,
     pub variables: bool,
+    pub constants: bool,
+    pub parser_type: ParserType,
 }
 
 impl Default for ParserOptions {
@@ -28,15 +43,18 @@ impl Default for ParserOptions {
             conditions: true,
             classes: true,
             global_variables: true,
+            line_ending: "\\r\\n".to_string(),
             dynamics: true,
             collectives: true,
             variables: true,
+            constants: true,
+            parser_type: ParserType::RawParser,
         }
     }
 }
 
 #[derive(PartialEq, Debug, Clone, Copy, Serialize)]
-pub struct CursorPosition(pub i64, pub i64);
+pub struct CursorPosition(pub usize, pub usize);
 
 impl Default for CursorPosition {
     fn default() -> Self {
@@ -45,12 +63,12 @@ impl Default for CursorPosition {
 }
 
 impl CursorPosition {
-    pub fn skipChar(&mut self, n: i64) -> CursorPosition {
+    pub fn skipChar(&mut self, n: usize) -> CursorPosition {
         self.1 += n;
         return self.clone();
     }
 
-    pub fn popChar(&mut self, n: i64) -> CursorPosition {
+    pub fn popChar(&mut self, n: usize) -> CursorPosition {
         self.1 -= n;
         return self.clone();
     }

@@ -1,32 +1,37 @@
-use alloc::vec::Vec;
+use crate::syntax::{constructor, function, variable};
 use alloc::string::String;
-use crate::syntax::{types, variable, function};
+use alloc::vec::Vec;
 use ellie_core::defs;
 use serde::Serialize;
+use std::boxed::Box;
 
 #[derive(PartialEq, Debug, Clone, Default, Serialize)]
-pub struct ExtendClass {
-    position: defs::Cursor,
-    name: String,
+pub struct GenericDefining {
+    pub name: String,
+    pub pos: defs::Cursor,
 }
 
 #[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct Class {
     pub name: String,
-    pub constructor: function::Function,
-    pub extends: Vec<ClassCollector>,
-    pub properties: Vec<variable::VariableCollector>,
-    pub getters: Vec<types::arrow_function::ArrowFunctionCollector>,
-    pub setters: Vec<types::arrow_function::ArrowFunctionCollector>,
-    pub methods: Vec<function::FunctionCollector>
+    pub constructor: constructor::Constructor,
+    pub generic_definings: Vec<GenericDefining>,
+    pub properties: Vec<variable::Variable>,
+    //pub getters: Vec<types::arrow_function::ArrowFunctionCollector>,
+    //pub setters: Vec<types::arrow_function::ArrowFunctionCollector>,
+    pub methods: Vec<function::Function>,
+    pub name_pos: defs::Cursor,
 }
 
 #[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct ClassCollector {
-    pub name_pos: defs::Cursor,
+    pub generic_definings_collected: bool,
+    pub brace_count: usize,
     pub name_collected: bool,
-    pub extends_collected: bool,
-    pub extend_collect: String,
+    pub inside_code_string: String,
+    pub generic_brace_open: bool,
+    pub has_code: bool,
     pub at_comma: bool,
-    pub data: Class
+    pub data: Class,
+    pub code: Box<crate::parser::Parser>,
 }

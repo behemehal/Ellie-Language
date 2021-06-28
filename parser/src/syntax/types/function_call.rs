@@ -15,7 +15,13 @@ pub struct FunctionCallParameter {
 pub struct FunctionCall {
     pub name: String,
     pub name_pos: defs::Cursor,
+    pub params: Vec<FunctionCallParameter>,
+}
+
+#[derive(PartialEq, Default, Debug, Clone, Serialize)]
+pub struct FunctionCallCollector {
+    pub data: FunctionCall,
+    pub name_collected: bool,
     pub comma: bool,
     pub complete: bool,
-    pub params: Vec<FunctionCallParameter>,
 }

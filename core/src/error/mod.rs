@@ -1,12 +1,13 @@
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
-use serde::Serialize;
 use core::clone::Clone;
+use serde::Serialize;
 pub mod errorList;
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct Error {
     pub code: u8,
+    pub scope: String,
     pub message: String,
     pub title: String,
     pub builded_message: BuildedError,
@@ -44,7 +45,7 @@ impl Error {
             if let Some(pos) = builded_message.find(&key) {
                 used_fields.push(ErrorBuildField {
                     key: field.key.clone(),
-                    value: field.value.clone()
+                    value: field.value.clone(),
                 });
                 builded_message.replace_range(pos..(pos + key.len()), &field.value)
             } else {
@@ -63,6 +64,7 @@ impl Default for Error {
         Error {
             debug_message: "".to_string(),
             code: 0x00,
+            scope: "".to_string(),
             title: "".to_string(),
             message: "".to_string(),
             builded_message: BuildedError::default(),

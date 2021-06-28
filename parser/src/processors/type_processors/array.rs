@@ -1,6 +1,6 @@
 use crate::processors::{type_processors, value_processor};
 use crate::syntax::{definers, types, variable};
-use ellie_core::{defs, error, utils};
+use ellie_core::{defs, error};
 
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};
@@ -41,6 +41,7 @@ pub fn collect_array(
         if letter_char == "[" && !data.child_start && is_s_n {
             if !data.comma && last_entry != 0 {
                 errors.push(error::Error {
+                    scope: "array_processor".to_string(),
                     debug_message: "6e2c6597b903a107262c073e59c22017".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
@@ -78,6 +79,7 @@ pub fn collect_array(
         } else if letter_char == "," && !data.child_start && is_s_n {
             if data.complete {
                 errors.push(error::Error {
+                    scope: "array_processor".to_string(),
                     debug_message: "deaa9791b66a3ac03d71c15404adc6f4".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
@@ -96,6 +98,7 @@ pub fn collect_array(
                 });
             } else if data.comma {
                 errors.push(error::Error {
+                    scope: "array_processor".to_string(),
                     debug_message: "e655f36888bd2e00f05bdd7d6727d171".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
@@ -125,6 +128,7 @@ pub fn collect_array(
         } else if letter_char == "]" && !data.child_start && is_s_n {
             if data.comma {
                 errors.push(error::Error {
+                    scope: "array_processor".to_string(),
                     debug_message: "500f5ae4f895a5eae9456e3b7b367865".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
@@ -143,6 +147,7 @@ pub fn collect_array(
                 });
             } else if data.complete {
                 errors.push(error::Error {
+                    scope: "array_processor".to_string(),
                     debug_message: "37c53aef7bd88606a187d5b1c1b1157f".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
@@ -271,9 +276,16 @@ pub fn collect_array(
 
             let mut will_be_itered: variable::VariableCollector;
             if let definers::DefinerCollecting::Array(array_data) = itered_data.data.rtype.clone() {
-                if data.collective.len() > *array_data.len.value.as_usize().unwrap() {
+                //panic!("{:#?}", array_data.len.value);
+                //if data.collective.len() > *array_data.len.value.as_usize().unwrap() {
+                if array_data
+                    .len
+                    .value
+                    .greater_than(data.collective.len() as isize)
+                {
                     //Check if array size is overflowed
                     errors.push(error::Error {
+                        scope: "array_processor".to_string(),
                         debug_message: "795bb1c6a4152ccff694e59251246e03".to_string(),
                         title: error::errorList::error_s19.title.clone(),
                         code: error::errorList::error_s19.code,
@@ -283,31 +295,13 @@ pub fn collect_array(
                             vec![
                                 error::ErrorBuildField {
                                     key: "token".to_string(),
-                                    value: array_data.len.value.as_usize().unwrap().to_string(),
+                                    value: array_data.len.value.get_val(),
                                 },
                                 error::ErrorBuildField {
                                     key: "token2".to_string(),
                                     value: data.collective.len().to_string(),
                                 },
                             ],
-                        ),
-                        pos: defs::Cursor {
-                            range_start: pos,
-                            range_end: pos.clone().skipChar(1),
-                        },
-                    });
-                } else if letter_char != " " {
-                    errors.push(error::Error {
-                        debug_message: "bfb9d699600e6af467663dde344054b4".to_string(),
-                        title: error::errorList::error_s1.title.clone(),
-                        code: error::errorList::error_s1.code,
-                        message: error::errorList::error_s1.message.clone(),
-                        builded_message: error::Error::build(
-                            error::errorList::error_s1.message.clone(),
-                            vec![error::ErrorBuildField {
-                                key: "token".to_string(),
-                                value: letter_char.to_string(),
-                            }],
                         ),
                         pos: defs::Cursor {
                             range_start: pos,
@@ -370,11 +364,7 @@ pub fn collect_array(
                     }
                 };
                 #[cfg(feature = "std")]
-                std::println!(
-                    "{}[ParserError:0x1]{}: This shouldn't have happened",
-                    utils::terminal_colors::get_color(utils::terminal_colors::Colors::Red),
-                    utils::terminal_colors::get_color(utils::terminal_colors::Colors::Reset),
-                );
+                std::println!("[ParserError:0x1]: This shouldn't have happened");
             }
 
             let itered_array_vector = Box::new(value_processor::collect_value(

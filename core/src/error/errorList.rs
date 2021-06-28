@@ -1,6 +1,6 @@
 #![allow(warnings)]
-use std::ops::{Deref, DerefMut};
 use alloc::string::ToString;
+use std::ops::{Deref, DerefMut};
 
 lazy_static! {
     #[derive(PartialEq, Debug, Clone, Copy)]
@@ -70,7 +70,7 @@ lazy_static! {
     pub static ref error_s10: crate::error::Error = crate::error::Error {
         code: 0x09,
         title: "TypeError".to_string(),
-        message: "Duplicate parameter found".to_string(),
+        message: "Duplicate parameter".to_string(),
         ..Default::default()
     };
 

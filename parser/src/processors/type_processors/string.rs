@@ -1,5 +1,5 @@
-use crate::syntax::{definers, types, variable};
 use crate::processors::type_processors;
+use crate::syntax::{definers, types, variable};
 use ellie_core::{defs, error};
 
 use alloc::boxed::Box;
@@ -26,6 +26,7 @@ pub fn collect_string(
         if letter_char == "\"" && last_char != "\\" {
             if data.complete {
                 errors.push(error::Error {
+                    scope: "string_processor".to_string(),
                     debug_message: "208a32d29523f06a5f07edeed73b6cbf".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
@@ -134,9 +135,9 @@ pub fn collect_string(
                 pos,
                 options,
             )
-        
         } else if letter_char != " " {
             errors.push(error::Error {
+                scope: "string_processor".to_string(),
                 debug_message: "355b9eb2b4c7f94e04334bf097806f7a".to_string(),
                 title: error::errorList::error_s1.title.clone(),
                 code: error::errorList::error_s1.code,

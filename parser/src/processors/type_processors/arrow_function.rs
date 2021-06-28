@@ -1,7 +1,7 @@
 use crate::parser;
 use crate::processors;
 use crate::syntax::function;
-use crate::syntax::{types, variable};
+use crate::syntax::{definers, types, variable};
 use ellie_core::{defs, error, utils};
 
 use alloc::string::{String, ToString};
@@ -18,6 +18,11 @@ pub fn collect_arrow(
     options: defs::ParserOptions,
 ) {
     if let types::Types::ArrowFunction(ref mut functiondata) = itered_data.data.value {
+        if itered_data.data.dynamic {
+            itered_data.data.rtype =
+                definers::DefinerCollecting::Function(definers::FunctionType::default());
+        }
+
         if !functiondata.parameter_wrote {
             if letter_char == "(" && !functiondata.param_bracket_opened {
                 functiondata.param_bracket_opened = true;
@@ -59,6 +64,7 @@ pub fn collect_arrow(
                                 .is_empty()
                         {
                             errors.push(error::Error {
+                                scope: "arrow_function".to_string(),
                                 debug_message: "0640858beb573ee846393c049a6c590d".to_string(),
                                 title: error::errorList::error_s1.title.clone(),
                                 code: error::errorList::error_s1.code,
@@ -82,6 +88,7 @@ pub fn collect_arrow(
                         functiondata.parameter_wrote = true;
                     } else if letter_char != " " {
                         errors.push(error::Error {
+                            scope: "arrow_function".to_string(),
                             debug_message: "7e472162c7c61b155831bec5c4a8125a".to_string(),
                             title: error::errorList::error_s1.title.clone(),
                             code: error::errorList::error_s1.code,
@@ -140,6 +147,7 @@ pub fn collect_arrow(
                 functiondata.pointer_typed = true;
             } else if letter_char != " " {
                 errors.push(error::Error {
+                    scope: "arrow_function".to_string(),
                     debug_message: "647a209fa522a1ebfb1895c4afa93005".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
@@ -176,18 +184,31 @@ pub fn collect_arrow(
         } else {
             if letter_char == "{" {
                 functiondata.brace_count += 1;
-            } else if letter_char == "}" && functiondata.brace_count > 0 {
+            } else if letter_char == "}" && functiondata.brace_count != 0 {
                 functiondata.brace_count -= 1;
             }
-            functiondata.inside_code_string += letter_char;
-            let mut child_parser =
-                parser::Parser::new(functiondata.inside_code_string.clone(), options);
-            child_parser.pos = pos;
-            let mapped = child_parser.map();
-            for i in mapped.syntax_errors {
-                errors.push(i)
+
+            let mut child_parser = functiondata.code.clone();
+            child_parser.options = options.clone();
+            child_parser.options.parser_type = defs::ParserType::ClassParser;
+            let mut child_parser_errors: Vec<error::Error> = Vec::new();
+            parser::iterator::iter(
+                &mut child_parser,
+                &mut child_parser_errors,
+                letter_char,
+                next_char,
+                last_char,
+            );
+
+            for i in child_parser_errors {
+                let mut edited = i;
+                edited.pos.range_start.0 += pos.0;
+                edited.pos.range_start.1 += pos.1;
+                edited.pos.range_end.0 += pos.0;
+                edited.pos.range_end.1 += pos.1;
+                errors.push(edited);
             }
-            functiondata.data.inside_code = mapped.items;
+            functiondata.code = child_parser;
         }
     }
 }

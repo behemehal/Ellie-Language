@@ -116,6 +116,7 @@ pub fn collect_bool(
             )
         } else if letter_char != " " {
             errors.push(error::Error {
+                scope: "bool_function".to_string(),
                 debug_message: "2ba9fae09c9268d65d64ccff8e8bc2dc".to_string(),
                 title: error::errorList::error_s1.title.clone(),
                 code: error::errorList::error_s1.code,

@@ -39,6 +39,7 @@ pub fn collect_operator(
                         data.operator_collected = true;
                     } else {
                         errors.push(error::Error {
+                            scope: "operator_processor".to_string(),
                             debug_message: "68698f20be301a2166faa75f4e003856".to_string(),
                             title: error::errorList::error_s13.title.clone(),
                             code: error::errorList::error_s13.code,
@@ -67,6 +68,7 @@ pub fn collect_operator(
                 data.operator_collect += letter_char;
             } else {
                 errors.push(error::Error {
+                    scope: "operator_processor".to_string(),
                     debug_message: "52a4b152a07053ab89ad2f1565d9bfb7".to_string(),
                     title: error::errorList::error_s13.title.clone(),
                     code: error::errorList::error_s13.code,
@@ -132,9 +134,9 @@ pub fn collect_operator(
                                 operator: child_operator.data.operator,
                                 ..Default::default()
                             },
- 
+
                             first_filled: true,
-                            
+
                             operator_collect: child_operator.operator_collect,
                             ..Default::default()
                         })
@@ -142,8 +144,8 @@ pub fn collect_operator(
                     match data.data.operator.clone() {
                         types::operator_type::Operators::ComparisonType(_) => {
                             if child_operator.data.second == Box::new(types::Types::Null) {}
-                            itered_data.data.value =
-                                types::Types::Operator(types::operator_type::OperatorTypeCollector {
+                            itered_data.data.value = types::Types::Operator(
+                                types::operator_type::OperatorTypeCollector {
                                     data: types::operator_type::OperatorType {
                                         first: Box::new(types::Types::Operator(
                                             types::operator_type::OperatorTypeCollector {
@@ -166,10 +168,12 @@ pub fn collect_operator(
                                     first_filled: true,
                                     operator_collect: child_operator.operator_collect,
                                     ..Default::default()
-                                })
+                                },
+                            )
                         }
                         _ => {
-                            data.data.second = Box::new(itered_child.itered_data.data.value.clone());
+                            data.data.second =
+                                Box::new(itered_child.itered_data.data.value.clone());
                             data.itered_cache = Box::new(itered_child.itered_data);
                         }
                     }
