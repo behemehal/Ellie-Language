@@ -9,7 +9,7 @@ fn main() {
     let code = "
 
     \'t\' == \'t\'
-    
+
     ";
 
     for (index, char) in code.chars().enumerate() {
