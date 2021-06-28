@@ -1,7 +1,7 @@
 use crate::parser;
 use crate::processors;
 use crate::syntax::function;
-use crate::syntax::{types, variable, definers};
+use crate::syntax::{definers, types, variable};
 use ellie_core::{defs, error, utils};
 
 use alloc::string::{String, ToString};
@@ -19,9 +19,10 @@ pub fn collect_arrow(
 ) {
     if let types::Types::ArrowFunction(ref mut functiondata) = itered_data.data.value {
         if itered_data.data.dynamic {
-            itered_data.data.rtype = definers::DefinerCollecting::Function(definers::FunctionType::default());
+            itered_data.data.rtype =
+                definers::DefinerCollecting::Function(definers::FunctionType::default());
         }
-        
+
         if !functiondata.parameter_wrote {
             if letter_char == "(" && !functiondata.param_bracket_opened {
                 functiondata.param_bracket_opened = true;

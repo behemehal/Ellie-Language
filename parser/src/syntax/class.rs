@@ -1,9 +1,9 @@
-use std::boxed::Box;
 use crate::syntax::{constructor, function, variable};
 use alloc::string::String;
 use alloc::vec::Vec;
 use ellie_core::defs;
 use serde::Serialize;
+use std::boxed::Box;
 
 #[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct GenericDefining {

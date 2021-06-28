@@ -115,18 +115,17 @@ pub fn collect_class(
         } else if !classdata.has_code && letter_char == "{" {
             classdata.has_code = true;
         } else if classdata.brace_count == 0 && letter_char == "}" {
-
             for i in classdata.code.collected.clone() {
                 match i {
                     parser::Collecting::Variable(e) => {
                         classdata.data.properties.push(e.data);
-                    },
+                    }
                     parser::Collecting::Function(e) => {
                         classdata.data.methods.push(e.data);
-                    },
+                    }
                     parser::Collecting::Constructor(e) => {
                         classdata.data.constructor = e.data;
-                    },
+                    }
                     _ => {}
                 };
             }

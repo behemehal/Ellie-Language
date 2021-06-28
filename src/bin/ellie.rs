@@ -141,7 +141,10 @@ fn main() {
 
                                             println!(
                                                 "{}",
-                                                ellie_lang::cli_utils::get_lines(code.clone(), error.pos)
+                                                ellie_lang::cli_utils::get_lines(
+                                                    code.clone(),
+                                                    error.pos
+                                                )
                                             )
                                         } else {
                                             println!(
