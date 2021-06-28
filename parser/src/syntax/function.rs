@@ -39,18 +39,17 @@ pub struct Function {
 pub struct FunctionCollector {
     pub data: Function,
     pub initialized: bool,
-    pub named: bool,              //Function named
-    pub parameter_wrote: bool,    //Parameter type complete
-    pub return_typed: bool,       //Function return typed
+    pub named: bool,                //Function named
+    pub parameter_wrote: bool,      //Parameter type complete
+    pub return_typed: bool,         //Function return typed
     pub return_pointer_typed: bool, // > typed
     pub brace_count: usize,
-    pub code: Box<crate::parser::Parser>
+    pub code: Box<crate::parser::Parser>,
 }
 
 impl FunctionCollector {
-
     pub fn has_dedup(&self) -> bool {
-        let mut existent_names : Vec<String> = Vec::with_capacity(self.data.parameters.len());
+        let mut existent_names: Vec<String> = Vec::with_capacity(self.data.parameters.len());
         let mut duplicate = false;
         for i in &self.data.parameters {
             if existent_names.contains(&i.data.name) {
@@ -61,6 +60,5 @@ impl FunctionCollector {
             }
         }
         duplicate
-    } 
-
+    }
 }

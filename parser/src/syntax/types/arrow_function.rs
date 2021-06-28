@@ -21,5 +21,5 @@ pub struct ArrowFunctionCollector {
     pub return_typed: bool,
     pub brace_count: usize,
     pub data: ArrowFunction,
-    pub code: Box<crate::parser::Parser>
+    pub code: Box<crate::parser::Parser>,
 }

@@ -67,7 +67,8 @@ pub fn collect_type(
             },
             ..Default::default()
         });
-    } else if keyword == "co "{ // && options.parser_type == defs::ParserType::ClassParser 
+    } else if keyword == "co " {
+        // && options.parser_type == defs::ParserType::ClassParser
         parser.current =
             parser::Collecting::Constructor(constructor::ConstructorCollector::default());
     } else if keyword == "if" && options.parser_type == defs::ParserType::RawParser {

@@ -2,9 +2,9 @@ use crate::parser::Collecting;
 use ellie_core::defs;
 use serde::Serialize;
 
+use alloc::boxed::Box;
 use alloc::string::String;
 use alloc::vec::Vec;
-use alloc::boxed::Box;
 
 #[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct ConstructorParameter {
@@ -18,7 +18,7 @@ pub struct Constructor {
     pub parameters: Vec<ConstructorParameter>, //Parameter vector
     pub inside_code: Vec<Collecting>,
     pub name_pos: defs::Cursor, //Name position fn [test] ......
-    pub parameters_pos: defs::Cursor
+    pub parameters_pos: defs::Cursor,
 }
 
 #[derive(PartialEq, Debug, Clone, Default, Serialize)]
@@ -30,7 +30,7 @@ pub struct ConstructorCollector {
     pub brace_count: usize,
     pub has_code: bool,
     pub at_comma: bool,
-    pub code: Box<crate::parser::Parser>
+    pub code: Box<crate::parser::Parser>,
 }
 
 impl ConstructorCollector {
@@ -38,9 +38,9 @@ impl ConstructorCollector {
         if self.data.parameters.is_empty() {
             true
         } else {
-            !self.data.parameters[self.data.parameters.len() - 1].name.is_empty()
+            !self.data.parameters[self.data.parameters.len() - 1]
+                .name
+                .is_empty()
         }
     }
-
-
 }
