@@ -1,7 +1,7 @@
-class Test {
-    co Test(TEst) {
-        v test : string = "ahmet";
+class test<E> {
+
+    co test() {
+
     }
 
-    v test : string = "ahmet";
-}
+};

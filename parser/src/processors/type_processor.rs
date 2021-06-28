@@ -10,8 +10,6 @@ pub fn collect_type(
     _errors: &mut Vec<error::Error>,
     _letter_char: &str,
     _next_char: String,
-    _next_next_char: String,
-    _next_next_next_char: String,
     options: defs::ParserOptions,
 ) {
     let keyword = utils::trim_good(parser.keyword_catch.trim_start().to_string()); //one step next
@@ -69,7 +67,7 @@ pub fn collect_type(
             },
             ..Default::default()
         });
-    } else if keyword == "co " && options.parser_type == defs::ParserType::ClassParser {
+    } else if keyword == "co "{ // && options.parser_type == defs::ParserType::ClassParser 
         parser.current =
             parser::Collecting::Constructor(constructor::ConstructorCollector::default());
     } else if keyword == "if" && options.parser_type == defs::ParserType::RawParser {

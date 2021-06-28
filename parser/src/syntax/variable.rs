@@ -15,6 +15,7 @@ pub struct Variable {
     pub value_pos: defs::Cursor,
     pub type_pos: defs::Cursor,
     pub rtype: definers::DefinerCollecting,
+    pub hash: String
 }
 
 #[derive(PartialEq, Debug, Clone, Default, Serialize)]

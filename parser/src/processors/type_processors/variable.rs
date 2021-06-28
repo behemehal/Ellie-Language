@@ -152,6 +152,7 @@ pub fn collect_variable(
             data.value += letter_char;
         } else {
             errors.push(error::Error {
+                scope: "variable_processor".to_string(),
                 debug_message: "810442f9fcea51975d4e23cc870acc26".to_string(),
                 title: error::errorList::error_s1.title.clone(),
                 code: error::errorList::error_s1.code,

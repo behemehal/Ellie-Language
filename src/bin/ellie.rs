@@ -55,6 +55,7 @@ fn main() {
                     } else if let Ok(code) = code_string {
                         let parser = parser::Parser::new(
                             code.clone(),
+                            "core".to_string(),
                             ellie_core::defs::ParserOptions {
                                 functions: true,
                                 break_on_error: false,
@@ -63,6 +64,7 @@ fn main() {
                                 classes: true,
                                 dynamics: true,
                                 global_variables: true,
+                                line_ending: if env::consts::OS == "windows" { "\\r\\n".to_string() } else { "\\n".to_string() },
                                 collectives: true,
                                 variables: true,
                                 constants: true,
@@ -74,18 +76,18 @@ fn main() {
                             if env::args()
                                 .any(|x| x == "-xe" || x == "--experimental-error-listing")
                             {
-                                for error in &ellie_core::utils::zip_errors(mapped.syntax_errors) {
+                                for error in &ellie_lang::cli_utils::zip_errors(mapped.syntax_errors) {
                                     if env::args().any(|x| x == "-je" || x == "--json-errors") {
                                         println!("{:#?}", serde_json::to_string(error).unwrap());
                                     } else {
                                         if error.pos.range_start.0 != error.pos.range_end.0 {
                                             std::println!(
                                                 "{}[Experimental]{}: Multiline error listing",
-                                                utils::terminal_colors::get_color(
-                                                    utils::terminal_colors::Colors::Magenta
+                                                ellie_lang::terminal_colors::get_color(
+                                                    ellie_lang::terminal_colors::Colors::Magenta
                                                 ),
-                                                utils::terminal_colors::get_color(
-                                                    utils::terminal_colors::Colors::Reset
+                                                ellie_lang::terminal_colors::get_color(
+                                                    ellie_lang::terminal_colors::Colors::Reset
                                                 ),
                                             );
                                             println!(
@@ -93,30 +95,30 @@ fn main() {
                                                 if debug_arg {
                                                     format!(
                                                         "{}[{}]{} ",
-                                                        utils::terminal_colors::get_color(
-                                                            utils::terminal_colors::Colors::Yellow
+                                                        ellie_lang::terminal_colors::get_color(
+                                                            ellie_lang::terminal_colors::Colors::Yellow
                                                         ),
                                                         error.debug_message,
-                                                        utils::terminal_colors::get_color(
-                                                            utils::terminal_colors::Colors::Reset
+                                                        ellie_lang::terminal_colors::get_color(
+                                                            ellie_lang::terminal_colors::Colors::Reset
                                                         )
                                                     )
                                                 } else {
                                                     "".to_string()
                                                 },
-                                                utils::terminal_colors::get_color(
-                                                    utils::terminal_colors::Colors::Red
+                                                ellie_lang::terminal_colors::get_color(
+                                                    ellie_lang::terminal_colors::Colors::Red
                                                 ),
                                                 &error.code,
-                                                utils::terminal_colors::get_color(
-                                                    utils::terminal_colors::Colors::Reset
+                                                ellie_lang::terminal_colors::get_color(
+                                                    ellie_lang::terminal_colors::Colors::Reset
                                                 ),
-                                                utils::terminal_colors::get_color(
-                                                    utils::terminal_colors::Colors::Cyan
+                                                ellie_lang::terminal_colors::get_color(
+                                                    ellie_lang::terminal_colors::Colors::Cyan
                                                 ),
                                                 error.title,
-                                                utils::terminal_colors::get_color(
-                                                    utils::terminal_colors::Colors::Reset
+                                                ellie_lang::terminal_colors::get_color(
+                                                    ellie_lang::terminal_colors::Colors::Reset
                                                 ),
                                                 error.builded_message.builded
                                             );
@@ -134,7 +136,7 @@ fn main() {
 
                                             println!(
                                                 "{}",
-                                                utils::get_lines(
+                                                ellie_lang::cli_utils::get_lines(
                                                     code.clone(),
                                                     pos
                                                 )
@@ -144,31 +146,35 @@ fn main() {
                                                 "{}{}Error[{:#04x}]{} - {}{}{}: {}",
                                                 if debug_arg {
                                                     format!(
-                                                        "{}[{}]{} ",
-                                                        utils::terminal_colors::get_color(
-                                                            utils::terminal_colors::Colors::Yellow
+                                                        "{}({}) {}[{}]{} ",
+                                                        ellie_lang::terminal_colors::get_color(
+                                                            ellie_lang::terminal_colors::Colors::Magenta
+                                                        ),
+                                                        error.scope,
+                                                        ellie_lang::terminal_colors::get_color(
+                                                            ellie_lang::terminal_colors::Colors::Yellow
                                                         ),
                                                         error.debug_message,
-                                                        utils::terminal_colors::get_color(
-                                                            utils::terminal_colors::Colors::Reset
+                                                        ellie_lang::terminal_colors::get_color(
+                                                            ellie_lang::terminal_colors::Colors::Reset
                                                         )
                                                     )
                                                 } else {
                                                     "".to_string()
                                                 },
-                                                utils::terminal_colors::get_color(
-                                                    utils::terminal_colors::Colors::Red
+                                                ellie_lang::terminal_colors::get_color(
+                                                    ellie_lang::terminal_colors::Colors::Red
                                                 ),
                                                 &error.code,
-                                                utils::terminal_colors::get_color(
-                                                    utils::terminal_colors::Colors::Reset
+                                                ellie_lang::terminal_colors::get_color(
+                                                    ellie_lang::terminal_colors::Colors::Reset
                                                 ),
-                                                utils::terminal_colors::get_color(
-                                                    utils::terminal_colors::Colors::Cyan
+                                                ellie_lang::terminal_colors::get_color(
+                                                    ellie_lang::terminal_colors::Colors::Cyan
                                                 ),
                                                 error.title,
-                                                utils::terminal_colors::get_color(
-                                                    utils::terminal_colors::Colors::Reset
+                                                ellie_lang::terminal_colors::get_color(
+                                                    ellie_lang::terminal_colors::Colors::Reset
                                                 ),
                                                 error.builded_message.builded
                                             );
@@ -178,16 +184,17 @@ fn main() {
                                                 error.pos.range_start.0 + 1,
                                                 error.pos.range_start.1 + 1
                                             );
+                                            let line : Vec<&str> = code.split(if env::consts::OS == "windows" { "\\r\\n" } else { "\\n" }).collect();
                                             println!(
                                                 "{}\n{}{}{}",
-                                                utils::get_line(
+                                                ellie_lang::cli_utils::get_line(
                                                     code.clone(),
                                                     error.pos.range_start.0 as usize
                                                 ),
-                                                utils::terminal_colors::get_color(
-                                                    utils::terminal_colors::Colors::Red
+                                                ellie_lang::terminal_colors::get_color(
+                                                    ellie_lang::terminal_colors::Colors::Red
                                                 ),
-                                                utils::arrow(
+                                                ellie_lang::cli_utils::arrow(
                                                     (error.pos.range_start.1 + 1) as usize,
                                                     if error.pos.range_end.1
                                                         > error.pos.range_start.1
@@ -196,18 +203,12 @@ fn main() {
                                                             - (error.pos.range_start.1))
                                                             as usize
                                                     } else {
-                                                        std::println!(
-                                                            "{}[ParserWarning]{}: Multiline error show is not supported: {}https://github.com/behemehal/Ellie-Language/issues/17{}",
-                                                            utils::terminal_colors::get_color(utils::terminal_colors::Colors::Red),
-                                                            utils::terminal_colors::get_color(utils::terminal_colors::Colors::Reset),
-                                                            utils::terminal_colors::get_color(utils::terminal_colors::Colors::Cyan),
-                                                            utils::terminal_colors::get_color(utils::terminal_colors::Colors::Reset),
-                                                        );
-                                                        error.pos.range_start.1 as usize
+                                                        
+                                                        error.pos.range_start.1 as usize - (line[error.pos.range_start.1]).len()
                                                     }
                                                 ),
-                                                utils::terminal_colors::get_color(
-                                                    utils::terminal_colors::Colors::Reset
+                                                ellie_lang::terminal_colors::get_color(
+                                                    ellie_lang::terminal_colors::Colors::Reset
                                                 )
                                             );
                                         }
@@ -223,30 +224,30 @@ fn main() {
                                             if debug_arg {
                                                 format!(
                                                     "{}[{}]{} ",
-                                                    utils::terminal_colors::get_color(
-                                                        utils::terminal_colors::Colors::Yellow
+                                                    ellie_lang::terminal_colors::get_color(
+                                                        ellie_lang::terminal_colors::Colors::Yellow
                                                     ),
                                                     error.debug_message,
-                                                    utils::terminal_colors::get_color(
-                                                        utils::terminal_colors::Colors::Reset
+                                                    ellie_lang::terminal_colors::get_color(
+                                                        ellie_lang::terminal_colors::Colors::Reset
                                                     )
                                                 )
                                             } else {
                                                 "".to_string()
                                             },
-                                            utils::terminal_colors::get_color(
-                                                utils::terminal_colors::Colors::Red
+                                            ellie_lang::terminal_colors::get_color(
+                                                ellie_lang::terminal_colors::Colors::Red
                                             ),
                                             &error.code,
-                                            utils::terminal_colors::get_color(
-                                                utils::terminal_colors::Colors::Reset
+                                            ellie_lang::terminal_colors::get_color(
+                                                ellie_lang::terminal_colors::Colors::Reset
                                             ),
-                                            utils::terminal_colors::get_color(
-                                                utils::terminal_colors::Colors::Cyan
+                                            ellie_lang::terminal_colors::get_color(
+                                                ellie_lang::terminal_colors::Colors::Cyan
                                             ),
                                             error.title,
-                                            utils::terminal_colors::get_color(
-                                                utils::terminal_colors::Colors::Reset
+                                            ellie_lang::terminal_colors::get_color(
+                                                ellie_lang::terminal_colors::Colors::Reset
                                             ),
                                             error.builded_message.builded
                                         );
@@ -258,14 +259,14 @@ fn main() {
                                         );
                                         println!(
                                             "{}\n{}{}{}",
-                                            utils::get_line(
+                                            ellie_lang::cli_utils::get_line(
                                                 code.clone(),
                                                 error.pos.range_start.0 as usize
                                             ),
-                                            utils::terminal_colors::get_color(
-                                                utils::terminal_colors::Colors::Red
+                                            ellie_lang::terminal_colors::get_color(
+                                                ellie_lang::terminal_colors::Colors::Red
                                             ),
-                                            utils::arrow(
+                                            ellie_lang::cli_utils::arrow(
                                                 (error.pos.range_start.1 + 1) as usize,
                                                 if error.pos.range_end.1 > error.pos.range_start.1 {
                                                     ((error.pos.range_end.1)
@@ -274,16 +275,16 @@ fn main() {
                                                 } else {
                                                     std::println!(
                                                         "{}[ParserWarning]{}: Multiline error show is not supported, you may want to use --experimental-error-listing : {}https://github.com/behemehal/Ellie-Language/issues/17{}",
-                                                        utils::terminal_colors::get_color(utils::terminal_colors::Colors::Red),
-                                                        utils::terminal_colors::get_color(utils::terminal_colors::Colors::Reset),
-                                                        utils::terminal_colors::get_color(utils::terminal_colors::Colors::Cyan),
-                                                        utils::terminal_colors::get_color(utils::terminal_colors::Colors::Reset),
+                                                        ellie_lang::terminal_colors::get_color(ellie_lang::terminal_colors::Colors::Red),
+                                                        ellie_lang::terminal_colors::get_color(ellie_lang::terminal_colors::Colors::Reset),
+                                                        ellie_lang::terminal_colors::get_color(ellie_lang::terminal_colors::Colors::Cyan),
+                                                        ellie_lang::terminal_colors::get_color(ellie_lang::terminal_colors::Colors::Reset),
                                                     );
                                                     error.pos.range_start.1 as usize
                                                 }
                                             ),
-                                            utils::terminal_colors::get_color(
-                                                utils::terminal_colors::Colors::Reset
+                                            ellie_lang::terminal_colors::get_color(
+                                                ellie_lang::terminal_colors::Colors::Reset
                                             )
                                         );
                                     }

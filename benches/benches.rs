@@ -1,5 +1,6 @@
 use criterion::{criterion_group, criterion_main, Criterion};
 use ellie_parser::parser;
+use std::env;
 
 fn variable_benchmark(c: &mut Criterion) {
     let parser = parser::Parser::new(
@@ -19,6 +20,7 @@ fn variable_benchmark(c: &mut Criterion) {
             ];
         "
         .to_string(),
+        "core".to_string(),
         ellie_core::defs::ParserOptions {
             functions: true,
             break_on_error: false,
@@ -27,6 +29,7 @@ fn variable_benchmark(c: &mut Criterion) {
             classes: true,
             dynamics: true,
             global_variables: true,
+            line_ending: if env::consts::OS == "windows" { "\\r\\n".to_string() } else { "\\n".to_string() },
             collectives: true,
             variables: true,
             constants: true,

@@ -18,8 +18,8 @@ pub struct ArrowFunctionCollector {
     pub param_bracket_opened: bool,
     pub parameter_wrote: bool,
     pub pointer_typed: bool,
-    pub inside_code_string: String,
     pub return_typed: bool,
-    pub brace_count: i64,
+    pub brace_count: usize,
     pub data: ArrowFunction,
+    pub code: Box<crate::parser::Parser>
 }

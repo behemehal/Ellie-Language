@@ -1,11 +1,11 @@
-use crate::parser;
-use crate::processors;
-use crate::syntax::function;
-use ellie_core::{defs, error, utils};
-
+use crate::alloc::boxed::Box;
 use crate::alloc::string::{String, ToString};
 use crate::alloc::vec;
 use crate::alloc::vec::Vec;
+use crate::parser;
+use crate::processors;
+use crate::syntax::{definers, function};
+use ellie_core::{defs, error, utils};
 
 pub fn collect_function(
     parser: &mut parser::Parser,
@@ -16,27 +16,28 @@ pub fn collect_function(
     options: defs::ParserOptions,
 ) {
     if let parser::Collecting::Function(ref mut functiondata) = parser.current {
-        if !functiondata.initialized {
-            if last_char == " " && letter_char != " " {
-                functiondata.initialized = true;
-                functiondata.data.name_pos.range_start.0 = parser.pos.0; //Function naming started so we set the position
-                functiondata.data.name_pos.range_start.1 = parser.pos.1; //Function naming started so we set the position
+        let current_reliability = utils::reliable_name_range(
+            utils::ReliableNameRanges::VariableName,
+            letter_char.to_string(),
+        );
+
+        if !functiondata.named {
+            if current_reliability.reliable
+                && (last_char != " " || functiondata.data.name.is_empty())
+            {
+                if functiondata.data.name.is_empty() {
+                    functiondata.data.name_pos.range_start = parser.pos;
+                }
+
                 functiondata.data.name += letter_char;
-            }
-        } else if !functiondata.named {
-            if letter_char == "(" {
-                functiondata.data.name_pos.range_end.0 = parser.pos.0; // function naming ended
-                functiondata.data.name_pos.range_end.1 = parser.pos.1; // function naming ended
-                functiondata.data.parameter_bracket_start_pos.range_start.0 = parser.pos.0; //parameter start
-                functiondata.data.parameter_bracket_start_pos.range_start.1 = parser.pos.1; //parameter start
-                functiondata.data.parameter_bracket_start_pos.range_end.0 =
-                    parser.pos.skipChar(1).0; //parameter start
-                functiondata.data.parameter_bracket_start_pos.range_end.1 =
-                    parser.pos.skipChar(1).1; //parameter start
+                functiondata.data.name_pos.range_end = parser.pos;
+            } else if letter_char == "(" {
                 functiondata.named = true;
-            } else if last_char == " " && letter_char != " " && !functiondata.data.name.is_empty() {
+                functiondata.data.parameters_pos.range_start = parser.pos;
+            } else if letter_char != " " {
                 errors.push(error::Error {
-                    debug_message: "7f1cad2b0625de5bf9eaf4d7b492a77e".to_string(),
+                    scope: parser.scope.clone() + "/function_processor",
+                    debug_message: "9841eff3bfeba5c42edc6ec6bd6168be".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -52,116 +53,51 @@ pub fn collect_function(
                         range_end: parser.pos.clone().skipChar(1),
                     },
                 });
-            } else {
-                let current_reliability = utils::reliable_name_range(
-                    utils::ReliableNameRanges::VariableName,
-                    letter_char.to_string(),
-                );
-                if current_reliability.reliable {
-                    if last_char == " " && !functiondata.data.name.is_empty() {
-                        errors.push(error::Error {
-                            debug_message: "45c4f72422cb7988c0d331ccc2bf75d0".to_string(),
-                            title: error::errorList::error_s1.title.clone(),
-                            code: error::errorList::error_s1.code,
-                            message: error::errorList::error_s1.message.clone(),
-                            builded_message: error::Error::build(
-                                error::errorList::error_s1.message.clone(),
-                                vec![error::ErrorBuildField {
-                                    key: "token".to_string(),
-                                    value: letter_char.to_string(),
-                                }],
-                            ),
-                            pos: defs::Cursor {
-                                range_start: parser.pos,
-                                range_end: parser.pos.clone().skipChar(1),
-                            },
-                        });
-                    } else {
-                        functiondata.data.name += letter_char;
-                    }
-                } else if letter_char != " " {
-                    errors.push(error::Error {
-                        debug_message: "bc9e21687a10a9c4ead45e8f22e14563".to_string(),
-                        title: error::errorList::error_s1.title.clone(),
-                        code: error::errorList::error_s1.code,
-                        message: error::errorList::error_s1.message.clone(),
-                        builded_message: error::Error::build(
-                            error::errorList::error_s1.message.clone(),
-                            vec![error::ErrorBuildField {
-                                key: "token".to_string(),
-                                value: letter_char.to_string(),
-                            }],
-                        ),
-                        pos: defs::Cursor {
-                            range_start: parser.pos,
-                            range_end: parser.pos.clone().skipChar(1),
-                        },
-                    });
-                }
-                //user naming the function
             }
         } else if !functiondata.parameter_wrote {
             let mut last_entry = functiondata.data.parameters.len();
-            let typing_name = if last_entry == 0 {
-                true
-            } else {
-                !functiondata.data.parameters[last_entry - 1].named
-            };
 
-            let current_reliability = utils::reliable_name_range(
-                utils::ReliableNameRanges::VariableName,
-                letter_char.to_string(),
-            );
+            if last_entry == 0 {
+                functiondata
+                    .data
+                    .parameters
+                    .push(function::FunctionParameterCollector::default());
+                last_entry = 1;
+            }
 
-            if typing_name {
+            if !functiondata.data.parameters[last_entry - 1].named {
                 if current_reliability.reliable
                     && (last_char != " "
-                        || last_entry == 0
                         || functiondata.data.parameters[last_entry - 1]
                             .data
                             .name
                             .is_empty())
                 {
-                    if last_entry == 0 {
-                        functiondata
-                            .data
-                            .parameters
-                            .push(function::FunctionParameterCollector::default());
-                        last_entry = 1;
-                    }
-                    functiondata.data.parameters[last_entry - 1].data.name += letter_char
-                } else if letter_char == ":" {
-                    if last_entry == 0
-                        || functiondata.data.parameters[last_entry - 1]
-                            .data
-                            .name
-                            .is_empty()
+                    if functiondata.data.parameters[last_entry - 1]
+                        .data
+                        .name
+                        .is_empty()
                     {
-                        errors.push(error::Error {
-                            debug_message: "".to_string(),
-                            title: error::errorList::error_s1.title.clone(),
-                            code: error::errorList::error_s1.code,
-                            message: error::errorList::error_s1.message.clone(),
-                            builded_message: error::Error::build(
-                                error::errorList::error_s1.message.clone(),
-                                vec![error::ErrorBuildField {
-                                    key: "token".to_string(),
-                                    value: letter_char.to_string(),
-                                }],
-                            ),
-                            pos: defs::Cursor {
-                                range_start: parser.pos,
-                                range_end: parser.pos.clone().skipChar(1),
-                            },
-                        });
-                    } else {
-                        functiondata.data.parameters[last_entry - 1].named = true;
+                        functiondata.data.parameters[last_entry - 1]
+                            .data
+                            .pos
+                            .range_start = parser.pos;
                     }
-                } else if letter_char == ")" && last_entry == 0 {
-                    functiondata.parameter_wrote = true;
+                    functiondata.data.parameters[last_entry - 1].data.name += letter_char;
+                } else if letter_char == ":" {
+                    functiondata.data.parameters[last_entry - 1].named = true;
+                } else if letter_char == ")"
+                    && functiondata.data.parameters[last_entry - 1]
+                        .data
+                        .name
+                        .is_empty()
+                {
+                    functiondata.data.parameters = vec![];
+                    functiondata.parameter_wrote = true
                 } else if letter_char != " " {
                     errors.push(error::Error {
-                        debug_message: "".to_string(),
+                        scope: parser.scope.clone() + "/function_processor",
+                        debug_message: "9841eff3bfeba5c42edc6ec6bd6168be".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -182,6 +118,19 @@ pub fn collect_function(
                 && (last_entry == 0
                     || functiondata.data.parameters[last_entry - 1].child_brace == 0)
             {
+                if functiondata.has_dedup() {
+                    errors.push(error::Error {
+                        scope: parser.scope.clone() + "/function_processor",
+                        debug_message: "9841eff3bfeba5c42edc6ec6bd6168be".to_string(),
+                        title: error::errorList::error_s10.title.clone(),
+                        code: error::errorList::error_s10.code,
+                        message: error::errorList::error_s10.message.clone(),
+                        builded_message: error::BuildedError::build_from_string(
+                            error::errorList::error_s10.message.clone(),
+                        ),
+                        pos: functiondata.data.parameters[last_entry - 1].data.pos,
+                    });
+                }
                 functiondata.parameter_wrote = true;
             } else if letter_char == ","
                 && functiondata.data.parameters[last_entry - 1]
@@ -190,6 +139,19 @@ pub fn collect_function(
                     .is_definer_complete()
             {
                 //If its type's comma dont stop collecting it
+                if functiondata.has_dedup() {
+                    errors.push(error::Error {
+                        scope: parser.scope.clone() + "/function_processor",
+                        debug_message: "9841eff3bfeba5c42edc6ec6bd6168be".to_string(),
+                        title: error::errorList::error_s10.title.clone(),
+                        code: error::errorList::error_s10.code,
+                        message: error::errorList::error_s10.message.clone(),
+                        builded_message: error::BuildedError::build_from_string(
+                            error::errorList::error_s10.message.clone(),
+                        ),
+                        pos: functiondata.data.parameters[last_entry - 1].data.pos,
+                    });
+                }
                 functiondata
                     .data
                     .parameters
@@ -200,6 +162,10 @@ pub fn collect_function(
                 } else if letter_char == "(" {
                     functiondata.data.parameters[last_entry - 1].child_brace += 1;
                 }
+                functiondata.data.parameters[last_entry - 1]
+                    .data
+                    .pos
+                    .range_end = parser.pos.clone().skipChar(1);
                 processors::definer_processor::collect_definer(
                     &mut functiondata.data.parameters[last_entry - 1].data.rtype,
                     errors,
@@ -211,19 +177,20 @@ pub fn collect_function(
                 );
             }
         } else if !functiondata.return_typed {
-            if letter_char == "{" {
-                //Skipped return type it's void
-                functiondata.return_typed = true;
-                functiondata.inside_code_wrote = true;
-                functiondata.data.code_bracket_start.range_start.0 = parser.pos.0; //Bracket start
-                functiondata.data.code_bracket_start.range_start.1 = parser.pos.1;
-            //Bracket start
-            } else if !functiondata.pointer_typed {
+            if !functiondata.return_pointer_typed {
                 if letter_char == ">" {
-                    functiondata.pointer_typed = true
+                    functiondata.return_pointer_typed = true;
+                } else if letter_char == "{" {
+                    functiondata.data.return_type = Box::new(definers::DefinerCollecting::Generic(
+                        definers::GenericType {
+                            rtype: "void".to_string(),
+                        },
+                    ));
+                    functiondata.return_typed = true;
                 } else if letter_char != " " {
                     errors.push(error::Error {
-                        debug_message: "8e517b1a5311c8e095d8f9f9110e1c9c".to_string(),
+                        scope: parser.scope.clone() + "/function_processor",
+                        debug_message: "9841eff3bfeba5c42edc6ec6bd6168be".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -240,63 +207,51 @@ pub fn collect_function(
                         },
                     });
                 }
-            } else if functiondata.pointer_typed && !functiondata.return_typed {
-                if letter_char == "{" && functiondata.data.return_type.is_definer_complete() {
-                    functiondata.return_typed = true;
-                } else {
-                    processors::definer_processor::collect_definer(
-                        &mut functiondata.data.return_type,
-                        errors,
-                        letter_char.to_string(),
-                        parser.pos,
-                        next_char,
-                        last_char,
-                        options,
-                    );
-                }
-            } else if letter_char != " " {
-                errors.push(error::Error {
-                    debug_message: "9841eff3bfeba5c42edc6ec6bd6168be".to_string(),
-                    title: error::errorList::error_s1.title.clone(),
-                    code: error::errorList::error_s1.code,
-                    message: error::errorList::error_s1.message.clone(),
-                    builded_message: error::Error::build(
-                        error::errorList::error_s1.message.clone(),
-                        vec![error::ErrorBuildField {
-                            key: "token".to_string(),
-                            value: letter_char.to_string(),
-                        }],
-                    ),
-                    pos: defs::Cursor {
-                        range_start: parser.pos,
-                        range_end: parser.pos.clone().skipChar(1),
-                    },
-                });
-            }
-        } else if letter_char == "{" {
-            functiondata.inside_object_start = true;
-            functiondata.inside_object_count += 1;
-        } else if letter_char == "}" {
-            if functiondata.inside_object_start {
-                if functiondata.inside_object_count == 0 {
-                    functiondata.inside_object_start = true;
-                } else {
-                    functiondata.inside_object_count -= 1;
-                }
+            } else if letter_char == "{" && functiondata.data.return_type.is_definer_complete() {
+                functiondata.return_typed = true;
             } else {
-                let child_parser =
-                    parser::Parser::new(functiondata.inside_code_string.clone(), options);
-                parser.pos = child_parser.pos;
-                let mapped = child_parser.map();
-                for i in mapped.syntax_errors {
-                    errors.push(i)
-                }
-                functiondata.data.inside_code = mapped.items;
-                parser.collected.push(parser.current.clone());
-                parser.current = parser::Collecting::None;
+                processors::definer_processor::collect_definer(
+                    &mut functiondata.data.return_type,
+                    errors,
+                    letter_char.to_string(),
+                    parser.pos,
+                    next_char.clone(),
+                    last_char.clone(),
+                    options,
+                );
             }
+        } else if functiondata.brace_count == 0 && letter_char == "}" {
+            functiondata.data.inside_code = functiondata.code.collected.clone();
+            functiondata.code = Box::new(parser::Parser::default()); //Empty the cache
+            parser.collected.push(parser.current.clone());
+            parser.current = parser::Collecting::None;
         } else {
-            functiondata.inside_code_string += letter_char;
+            if letter_char == "{" {
+                functiondata.brace_count += 1;
+            } else if letter_char == "}" && functiondata.brace_count != 0 {
+                functiondata.brace_count -= 1;
+            }
+
+            let mut child_parser = functiondata.code.clone();
+            child_parser.options = parser.options.clone();
+            let mut child_parser_errors: Vec<error::Error> = Vec::new();
+            parser::iterator::iter(
+                &mut child_parser,
+                &mut child_parser_errors,
+                letter_char,
+                next_char,
+                last_char,
+            );
+
+            for i in child_parser_errors {
+                let mut edited = i;
+                edited.pos.range_start.0 += parser.pos.0;
+                edited.pos.range_start.1 += parser.pos.1;
+                edited.pos.range_end.0 += parser.pos.0;
+                edited.pos.range_end.1 += parser.pos.1;
+                errors.push(edited);
+            }
+            functiondata.code = child_parser;
         }
     }
 }

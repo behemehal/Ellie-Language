@@ -36,6 +36,7 @@ pub fn collect_function_caller(
             } else if letter_char == "(" {
                 if functioncalldata.data.name.is_empty() {
                     errors.push(error::Error {
+                        scope: "function_call_processor".to_string(),
                         debug_message: "6e2c6597b903a107262c073e59c22017".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
@@ -57,6 +58,7 @@ pub fn collect_function_caller(
                 }
             } else if letter_char != " " {
                 errors.push(error::Error {
+                    scope: "function_call_processor".to_string(),
                     debug_message: "6e2c6597b903a107262c073e59c22017".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
@@ -84,6 +86,7 @@ pub fn collect_function_caller(
             if letter_char == "," && is_s_n && last_entry != 0 {
                 if functioncalldata.complete {
                     errors.push(error::Error {
+                        scope: "function_call_processor".to_string(),
                         debug_message: "3d5fbbf22c8bf93045da675387a15c55".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
@@ -102,6 +105,7 @@ pub fn collect_function_caller(
                     });
                 } else if functioncalldata.comma {
                     errors.push(error::Error {
+                        scope: "function_call_processor".to_string(),
                         debug_message: "5103abecffb13b1dc89e94321b38eccc".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
@@ -182,9 +186,7 @@ pub fn collect_function_caller(
                     };
                     #[cfg(feature = "std")]
                     std::println!(
-                        "{}[ParserError:0x2]{}: This shouldn't have happened",
-                        utils::terminal_colors::get_color(utils::terminal_colors::Colors::Red),
-                        utils::terminal_colors::get_color(utils::terminal_colors::Colors::Reset),
+                        "[ParserError:0x2]: This shouldn't have happened"
                     );
                 }
 

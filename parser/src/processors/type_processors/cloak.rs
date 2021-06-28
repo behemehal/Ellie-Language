@@ -24,6 +24,7 @@ pub fn collect_cloak(
         if letter_char == "(" && !data.child_start && is_s_n {
             if !data.comma && last_entry != 0 {
                 errors.push(error::Error {
+                    scope: "cloak_processor".to_string(),
                     debug_message: "f15b5f68d8e7988612e84fd6200240f0".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
@@ -61,6 +62,7 @@ pub fn collect_cloak(
         } else if letter_char == "," && !data.child_start && is_s_n {
             if data.complete {
                 errors.push(error::Error {
+                    scope: "cloak_processor".to_string(),
                     debug_message: "3d5fbbf22c8bf93045da675387a15c55".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
@@ -79,6 +81,7 @@ pub fn collect_cloak(
                 });
             } else if data.comma {
                 errors.push(error::Error {
+                    scope: "cloak_processor".to_string(),
                     debug_message: "5103abecffb13b1dc89e94321b38eccc".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
@@ -108,6 +111,7 @@ pub fn collect_cloak(
         } else if letter_char == ")" && !data.child_start && is_s_n {
             if data.comma {
                 errors.push(error::Error {
+                    scope: "cloak_processor".to_string(),
                     debug_message: "780a9cfa0dd52d216f815676d78889c7".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
@@ -126,6 +130,7 @@ pub fn collect_cloak(
                 });
             } else if data.complete {
                 errors.push(error::Error {
+                    scope: "cloak_processor".to_string(),
                     debug_message: "f28611baf06d2024a4db5ef386614a24".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
@@ -285,11 +290,7 @@ pub fn collect_cloak(
                     }
                 };
                 #[cfg(feature = "std")]
-                std::println!(
-                    "{}[ParserError:0x2]{}: This shouldn't have happened",
-                    utils::terminal_colors::get_color(utils::terminal_colors::Colors::Red),
-                    utils::terminal_colors::get_color(utils::terminal_colors::Colors::Reset),
-                );
+                std::println!("[ParserError:0x2]: This shouldn't have happened");
             }
 
             let itered_cloak_vector = Box::new(value_processor::collect_value(
