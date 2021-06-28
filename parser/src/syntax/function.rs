@@ -43,6 +43,7 @@ pub struct FunctionCollector {
     pub parameter_wrote: bool,      //Parameter type complete
     pub return_typed: bool,         //Function return typed
     pub return_pointer_typed: bool, // > typed
+    pub at_comma: bool,
     pub brace_count: usize,
     pub code: Box<crate::parser::Parser>,
 }

@@ -1,4 +1,3 @@
-use ellie_core::utils;
 use ellie_parser::parser;
 use fs::File;
 use std::env;
@@ -129,20 +128,20 @@ fn main() {
                                                 error.builded_message.builded
                                             );
                                             println!(
-                                                "{}:[{},{}]:0",
+                                                "{}:[{} ~ {}]:?",
                                                 file_arg.clone(),
                                                 error.pos.range_start.0 + 1,
                                                 error.pos.range_end.0 + 1
                                             );
                                             let mut pos = vec![error.pos.range_start];
 
-                                            for _ in 1..error.pos.range_end.0 + 1 {
+                                            for _ in 1..error.pos.range_end.0 {
                                                 pos.push(error.pos.range_end)
                                             }
 
                                             println!(
                                                 "{}",
-                                                ellie_lang::cli_utils::get_lines(code.clone(), pos)
+                                                ellie_lang::cli_utils::get_lines(code.clone(), error.pos)
                                             )
                                         } else {
                                             println!(

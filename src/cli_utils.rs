@@ -56,7 +56,7 @@ pub fn draw_error(line: String, pos: defs::CursorPosition) -> String {
     let mut draw = String::new();
 
     for (index, c) in line.chars().enumerate() {
-        if index >= pos.1 {
+        if index >= pos.1 - 1 {
             draw += &format!(
                 "{}{}{}",
                 terminal_colors::get_color(terminal_colors::Colors::Red),
@@ -77,10 +77,30 @@ pub fn draw_error(line: String, pos: defs::CursorPosition) -> String {
     draw
 }
 
-pub fn get_lines(code: String, lines: Vec<defs::CursorPosition>) -> String {
+pub fn get_lines(code: String, lines: defs::Cursor) -> String {
     let v: Vec<&str> = code.split('\n').collect();
     let mut render = String::new();
-    for i in 0..lines.len() {
+    for i in lines.range_start.0..lines.range_end.0 + 1 {
+        let t = format!(
+            "{}{}{} {}|{} {}\n",
+            terminal_colors::get_color(terminal_colors::Colors::Magenta),
+            i + 1,
+            terminal_colors::get_color(terminal_colors::Colors::Reset),
+            terminal_colors::get_color(terminal_colors::Colors::Yellow),
+            terminal_colors::get_color(terminal_colors::Colors::Reset),
+            draw_error(
+                v[i].to_string(),
+                if lines.range_start.0 == i {
+                    lines.range_start
+                } else {
+                    lines.range_end
+                }
+            ),
+        );
+        render += &t;
+    }
+
+    /*for i in lines...lines.len() {
         let line = lines[i];
         let t = format!(
             "{}{}{} {}|{} {}\n",
@@ -93,6 +113,7 @@ pub fn get_lines(code: String, lines: Vec<defs::CursorPosition>) -> String {
         );
         render += &t;
     }
+    */
     render
     //v[line].to_string()
 }

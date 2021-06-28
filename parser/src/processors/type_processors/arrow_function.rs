@@ -1,7 +1,7 @@
 use crate::parser;
 use crate::processors;
 use crate::syntax::function;
-use crate::syntax::{types, variable};
+use crate::syntax::{types, variable, definers};
 use ellie_core::{defs, error, utils};
 
 use alloc::string::{String, ToString};
@@ -18,6 +18,10 @@ pub fn collect_arrow(
     options: defs::ParserOptions,
 ) {
     if let types::Types::ArrowFunction(ref mut functiondata) = itered_data.data.value {
+        if itered_data.data.dynamic {
+            itered_data.data.rtype = definers::DefinerCollecting::Function(definers::FunctionType::default());
+        }
+        
         if !functiondata.parameter_wrote {
             if letter_char == "(" && !functiondata.param_bracket_opened {
                 functiondata.param_bracket_opened = true;
@@ -185,6 +189,7 @@ pub fn collect_arrow(
 
             let mut child_parser = functiondata.code.clone();
             child_parser.options = options.clone();
+            child_parser.options.parser_type = defs::ParserType::ClassParser;
             let mut child_parser_errors: Vec<error::Error> = Vec::new();
             parser::iterator::iter(
                 &mut child_parser,

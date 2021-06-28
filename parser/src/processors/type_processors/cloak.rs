@@ -1,6 +1,6 @@
 use crate::processors::{type_processors, value_processor};
 use crate::syntax::{definers, types, variable};
-use ellie_core::{defs, error, utils};
+use ellie_core::{defs, error};
 
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};

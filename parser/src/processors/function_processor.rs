@@ -31,7 +31,7 @@ pub fn collect_function(
 
                 functiondata.data.name += letter_char;
                 functiondata.data.name_pos.range_end = parser.pos;
-            } else if letter_char == "(" {
+            } else if letter_char == "(" && !functiondata.data.name.is_empty() {
                 functiondata.named = true;
                 functiondata.data.parameters_pos.range_start = parser.pos;
             } else if letter_char != " " {
@@ -234,6 +234,7 @@ pub fn collect_function(
 
             let mut child_parser = functiondata.code.clone();
             child_parser.options = parser.options.clone();
+            child_parser.options.parser_type = defs::ParserType::ClassParser;
             let mut child_parser_errors: Vec<error::Error> = Vec::new();
             parser::iterator::iter(
                 &mut child_parser,

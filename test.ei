@@ -1,7 +1,11 @@
-class test<E> {
+v test : array(char, 9) = [
+    1,
+    2,
+    3,
+    4,
+];
 
-    co test() {
 
-    }
-
+v test : fn(string, string)::string = @(test: string, test: string) > String {
+    v q : string = "test";
 };

@@ -1,4 +1,4 @@
-use crate::parser::Collecting;
+use std::boxed::Box;
 use crate::syntax::{constructor, function, variable};
 use alloc::string::String;
 use alloc::vec::Vec;
@@ -20,18 +20,18 @@ pub struct Class {
     //pub getters: Vec<types::arrow_function::ArrowFunctionCollector>,
     //pub setters: Vec<types::arrow_function::ArrowFunctionCollector>,
     pub methods: Vec<function::Function>,
+    pub name_pos: defs::Cursor,
 }
 
 #[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct ClassCollector {
-    pub name_pos: defs::Cursor,
     pub generic_definings_collected: bool,
     pub brace_count: usize,
     pub name_collected: bool,
-    pub collecting_code: bool,
     pub inside_code_string: String,
     pub generic_brace_open: bool,
+    pub has_code: bool,
     pub at_comma: bool,
     pub data: Class,
-    pub inside_code: Vec<Collecting>,
+    pub code: Box<crate::parser::Parser>,
 }

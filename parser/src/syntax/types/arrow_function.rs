@@ -1,7 +1,6 @@
 use crate::parser::Collecting;
 use crate::syntax::{definers, function};
 use alloc::boxed::Box;
-use alloc::string::String;
 use alloc::vec::Vec;
 use serde::Serialize;
 
