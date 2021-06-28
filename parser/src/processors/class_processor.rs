@@ -39,7 +39,7 @@ pub fn collect_class(
             } else if letter_char != " " {
                 errors.push(error::Error {
                     scope: parser.scope.clone() + "/class_processor",
-                    debug_message: "9841eff3bfeba5c42edc6ec6bd6168be".to_string(),
+                    debug_message: "ef295a034f83b83800bcd96c2aa192e2".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -95,7 +95,7 @@ pub fn collect_class(
             } else if letter_char != " " {
                 errors.push(error::Error {
                     scope: parser.scope.clone() + "/class_processor",
-                    debug_message: "9841eff3bfeba5c42edc6ec6bd6168be".to_string(),
+                    debug_message: "8192a6244de9aa4ffd4aa4405e1e696e".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),

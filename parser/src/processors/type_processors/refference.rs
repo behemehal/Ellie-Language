@@ -19,7 +19,7 @@ pub fn collect_refference(
             if data.on_dot {
                 errors.push(error::Error {
                     scope: "refference_processor".to_string(),
-                    debug_message: "1c37314828bf33e4941ec5ff4ddf3fcc".to_string(),
+                    debug_message: "4cfb82e8313eb19eb2714fc060b82550".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -56,7 +56,7 @@ pub fn collect_refference(
                 } else {
                     errors.push(error::Error {
                         scope: "refference_processor".to_string(),
-                        debug_message: "a3777976f422ed842947640f5cd5ade6".to_string(),
+                        debug_message: "42215035e33848753fecb288e82e20e8".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -89,7 +89,7 @@ pub fn collect_refference(
                 } else {
                     errors.push(error::Error {
                         scope: "refference_processor".to_string(),
-                        debug_message: "21493b1410a41fd28970ff9c07f75d24".to_string(),
+                        debug_message: "86673a33a103d8649814e46f5c71ec0f".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),

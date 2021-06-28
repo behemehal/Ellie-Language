@@ -29,7 +29,7 @@ pub fn collect_char(
             if data.value == '\0' {
                 errors.push(error::Error {
                     scope: "char_function".to_string(),
-                    debug_message: "1cb90619dec9407c0fdd4ddc9995efd3".to_string(),
+                    debug_message: "f420b217a9bc2cf7470e6cabbe7c716e".to_string(),
                     title: error::errorList::error_s14.title.clone(),
                     code: error::errorList::error_s14.code,
                     message: error::errorList::error_s14.message.clone(),
@@ -47,7 +47,7 @@ pub fn collect_char(
             if data.value != '\0' {
                 errors.push(error::Error {
                     scope: "char_function".to_string(),
-                    debug_message: "1c9ec1c46fe342fb37582e2169b3310d".to_string(),
+                    debug_message: "cd8c0a5cb1ed06ca927131ba23b9279f".to_string(),
                     title: error::errorList::error_s15.title.clone(),
                     code: error::errorList::error_s15.code,
                     message: error::errorList::error_s15.message.clone(),
@@ -152,7 +152,7 @@ pub fn collect_char(
         } else if letter_char != " " {
             errors.push(error::Error {
                 scope: "char_function".to_string(),
-                debug_message: "e9dc88dba6ac27de98c9767b07e710de".to_string(),
+                debug_message: "c2db1b414c9dee5d9818981b7bf9d6c2".to_string(),
                 title: error::errorList::error_s1.title.clone(),
                 code: error::errorList::error_s1.code,
                 message: error::errorList::error_s1.message.clone(),

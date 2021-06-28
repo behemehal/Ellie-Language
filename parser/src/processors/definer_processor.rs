@@ -88,7 +88,7 @@ pub fn collect_definer(
                 if !emulated_collector_data.data.value.is_integer() && letter_char != " " {
                     errors.push(error::Error {
                         scope: "definer_processor".to_string(),
-                        debug_message: "1d1a10786154e2c0488beb3418be97b7".to_string(),
+                        debug_message: "fa57fbf494b41f4f0494466015a81552".to_string(),
                         title: error::errorList::error_s20.title.clone(),
                         code: error::errorList::error_s20.code,
                         message: error::errorList::error_s20.message.clone(),
@@ -142,7 +142,7 @@ pub fn collect_definer(
             } else if letter_char != " " && last_char == " " && data.rtype.trim() != "" {
                 errors.push(error::Error {
                     scope: "definer_processor".to_string(),
-                    debug_message: "1114e33900fd949e5c86b42db3a7f4d3".to_string(),
+                    debug_message: "700312010d036bf0e3737e03c5b5484d".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -169,7 +169,7 @@ pub fn collect_definer(
                 } else if letter_char != " " {
                     errors.push(error::Error {
                         scope: "definer_processor".to_string(),
-                        debug_message: "f8a386a7eb797dc1b057ed7b0db17088".to_string(),
+                        debug_message: "134fc65c7af5d238a4033495b58b41d5".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -206,7 +206,7 @@ pub fn collect_definer(
                     //This should have been filled If everything were right
                     errors.push(error::Error {
                         scope: "definer_processor".to_string(),
-                        debug_message: "22a2bcac64f6f56eaee43c817d1bca5b".to_string(),
+                        debug_message: "c3e537170bca78b6cdd58e805c2001d9".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -244,7 +244,7 @@ pub fn collect_definer(
                     if letter_char != ":" {
                         errors.push(error::Error {
                             scope: "definer_processor".to_string(),
-                            debug_message: "60d06eaea534c8a2a8f074906be77e77".to_string(),
+                            debug_message: "dc106db017d955926be0c3391304f5f2".to_string(),
                             title: error::errorList::error_s1.title.clone(),
                             code: error::errorList::error_s1.code,
                             message: error::errorList::error_s1.message.clone(),

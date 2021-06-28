@@ -27,7 +27,7 @@ pub fn collect_string(
             if data.complete {
                 errors.push(error::Error {
                     scope: "string_processor".to_string(),
-                    debug_message: "208a32d29523f06a5f07edeed73b6cbf".to_string(),
+                    debug_message: "6a96b020915411804e110a3943a5033d".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -138,7 +138,7 @@ pub fn collect_string(
         } else if letter_char != " " {
             errors.push(error::Error {
                 scope: "string_processor".to_string(),
-                debug_message: "355b9eb2b4c7f94e04334bf097806f7a".to_string(),
+                debug_message: "c1727d10a3315cf193391a64fc5a5ac2".to_string(),
                 title: error::errorList::error_s1.title.clone(),
                 code: error::errorList::error_s1.code,
                 message: error::errorList::error_s1.message.clone(),
