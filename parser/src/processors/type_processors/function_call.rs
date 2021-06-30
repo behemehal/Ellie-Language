@@ -30,7 +30,8 @@ pub fn collect_function_caller(
             );
 
             if current_reliability.reliable
-                && (last_char != " " && !functioncalldata.data.name.is_empty())
+                && ((last_char != " " && last_char != "\n")
+                    && !functioncalldata.data.name.is_empty())
             {
                 functioncalldata.data.name += letter_char;
             } else if letter_char == "(" {
@@ -234,8 +235,8 @@ pub fn collect_function_caller(
                         value: types::Types::Null,
                         ..Default::default()
                     },
-                    types::Types::Refference(_) => types::function_call::FunctionCallParameter {
-                        value: types::Types::Null,
+                    types::Types::Refference(match_data) => types::function_call::FunctionCallParameter {
+                        value: types::Types::Refference(match_data),
                         ..Default::default()
                     },
                     types::Types::Array(match_data) => {
@@ -256,12 +257,16 @@ pub fn collect_function_caller(
                             ..Default::default()
                         }
                     }
-                    types::Types::FunctionCall(_) => types::function_call::FunctionCallParameter {
-                        value: types::Types::Null,
+                    types::Types::FunctionCall(match_data) => types::function_call::FunctionCallParameter {
+                        value: types::Types::FunctionCall(match_data),
+                        ..Default::default()
+                    },
+                    types::Types::ClassCall(match_data) => types::function_call::FunctionCallParameter {
+                        value:types::Types::ClassCall(match_data),
                         ..Default::default()
                     },
                     types::Types::Void => types::function_call::FunctionCallParameter {
-                        value: types::Types::Null,
+                        value: types::Types::Void,
                         ..Default::default()
                     },
                     types::Types::VariableType(match_data) => {

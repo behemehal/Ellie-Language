@@ -11,7 +11,7 @@ pub fn collect_constructor(
     parser: &mut parser::Parser,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
-    next_char: String,
+    _next_char: String,
     last_char: String,
     _options: defs::ParserOptions,
 ) {
@@ -23,14 +23,14 @@ pub fn collect_constructor(
 
         if !constructordata.named {
             if current_reliability.reliable
-                && (last_char != " " || constructordata.data.name.is_empty())
+                && ((last_char != " " && last_char != "\n") || constructordata.data.name.is_empty())
             {
                 if constructordata.data.name.is_empty() {
                     constructordata.data.name_pos.range_start = parser.pos;
                 }
 
                 constructordata.data.name += letter_char;
-                constructordata.data.name_pos.range_end = parser.pos;
+                constructordata.data.name_pos.range_end = parser.pos.clone().skipChar(1);
             } else if letter_char == "(" {
                 constructordata.named = true;
                 constructordata.data.parameters_pos.range_start = parser.pos;
@@ -67,7 +67,7 @@ pub fn collect_constructor(
             }
 
             if current_reliability.reliable
-                && (last_char != " "
+                && ((last_char != " " && last_char != "\n")
                     || constructordata.data.parameters[last_entry - 1]
                         .name
                         .is_empty())
@@ -137,8 +137,6 @@ pub fn collect_constructor(
                 });
             }
         } else if constructordata.brace_count == 0 && letter_char == "}" {
-            constructordata.data.inside_code = constructordata.code.collected.clone();
-            constructordata.code = Box::new(parser::Parser::default()); //Empty the cache
             parser.collected.push(parser.current.clone());
             parser.current = parser::Collecting::None;
         } else {
@@ -148,26 +146,12 @@ pub fn collect_constructor(
                 constructordata.brace_count -= 1;
             }
 
-            let mut child_parser = constructordata.code.clone();
-            child_parser.options = parser.options.clone();
-            let mut child_parser_errors: Vec<error::Error> = Vec::new();
-            parser::iterator::iter(
-                &mut child_parser,
-                &mut child_parser_errors,
-                letter_char,
-                next_char,
-                last_char,
-            );
-
-            for i in child_parser_errors {
-                let mut edited = i;
-                edited.pos.range_start.0 += parser.pos.0;
-                edited.pos.range_start.1 += parser.pos.1;
-                edited.pos.range_end.0 += parser.pos.0;
-                edited.pos.range_end.1 += parser.pos.1;
-                errors.push(edited);
-            }
-            constructordata.code = child_parser;
+            let code_letter = if last_char.clone() == "\n" || last_char.clone() == "\r" {
+                last_char + letter_char //Make sure we get the lines correctly
+            } else {
+                letter_char.to_string()
+            };
+            constructordata.code += &code_letter;
         }
     }
 }

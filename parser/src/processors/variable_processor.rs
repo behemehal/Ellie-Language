@@ -61,6 +61,25 @@ pub fn collect_variable_value(
                             },
                         });
                     }
+
+                    if utils::is_reserved(&variabledata.data.name) {
+                        errors.push(error::Error {
+                            scope: parser.scope.clone() + "/function_processor",
+                            debug_message: "8192a6244de9aa4ffd4aa4405e1e696e".to_string(),
+                            title: error::errorList::error_s21.title.clone(),
+                            code: error::errorList::error_s21.code,
+                            message: error::errorList::error_s21.message.clone(),
+                            builded_message: error::Error::build(
+                                error::errorList::error_s21.message.clone(),
+                                vec![error::ErrorBuildField {
+                                    key: "token".to_string(),
+                                    value: variabledata.data.name.clone(),
+                                }],
+                            ),
+                            pos: variabledata.data.name_pos,
+                        });
+                    }
+
                     variabledata.named = true;
                 }
             } else if letter_char == ";" && variabledata.data.dynamic {
@@ -107,6 +126,23 @@ pub fn collect_variable_value(
                         },
                     });
                 } else {
+                    if utils::is_reserved(&variabledata.data.name) {
+                        errors.push(error::Error {
+                            scope: parser.scope.clone() + "/function_processor",
+                            debug_message: "8192a6244de9aa4ffd4aa4405e1e696e".to_string(),
+                            title: error::errorList::error_s21.title.clone(),
+                            code: error::errorList::error_s21.code,
+                            message: error::errorList::error_s21.message.clone(),
+                            builded_message: error::Error::build(
+                                error::errorList::error_s21.message.clone(),
+                                vec![error::ErrorBuildField {
+                                    key: "token".to_string(),
+                                    value: variabledata.data.name.clone(),
+                                }],
+                            ),
+                            pos: variabledata.data.name_pos,
+                        });
+                    }
                     variabledata.named = true;
                 }
             } else {
@@ -115,7 +151,8 @@ pub fn collect_variable_value(
                     letter_char.to_string(),
                 );
                 if current_reliability.reliable {
-                    if last_char == " " && !variabledata.data.name.is_empty() {
+                    if (last_char == " " || last_char == "\n") && !variabledata.data.name.is_empty()
+                    {
                         errors.push(error::Error {
                             scope: parser.scope.clone() + "/variable_processor",
                             debug_message: "dec49838632cf5e0fc6477e251656003".to_string(),
@@ -135,11 +172,16 @@ pub fn collect_variable_value(
                             },
                         });
                     } else {
+                        if variabledata.data.name.is_empty() {
+                            variabledata.data.name_pos.range_start = parser.pos;
+                        }
+                        variabledata.data.name_pos.range_end = parser.pos.clone().skipChar(1);
                         variabledata.data.name = variabledata.data.name.clone() + letter_char;
                     }
                 } else if letter_char != " "
                     && (letter_char != ":" || letter_char != "=" || letter_char != ";")
-                    && (last_char == " " || !variabledata.data.name.is_empty())
+                    && ((last_char == " " || last_char == "\n")
+                        || !variabledata.data.name.is_empty())
                 {
                     errors.push(error::Error {
                         scope: parser.scope.clone() + "/variable_processor",

@@ -4,7 +4,7 @@ use crate::syntax::{condition, types};
 use ellie_core::{defs, error};
 
 use alloc::boxed::Box;
-use alloc::string::String;
+use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 
 pub fn collect_condition(
@@ -19,9 +19,10 @@ pub fn collect_condition(
         if !data.initialized {
             if last_char == "i" && letter_char == "f" {
                 data.initialized = true;
-                data.cloak_pos.range_start.0 = parser.pos.0; //Function naming started so we set the position
-                data.keyword_pos.range_start.0 = parser.pos.0 - 1; //Function naming started so we set the position
-                data.keyword_pos.range_end.0 = parser.pos.0; //Function naming started so we set the position
+                //TODO BROKEN 
+                //data.cloak_pos.range_start.0 = parser.pos.0; //Function naming started so we set the position
+                //data.keyword_pos.range_start.0 = parser.pos.0 - 1; //Function naming started so we set the position
+                //data.keyword_pos.range_end.0 = parser.pos.0; //Function naming started so we set the position
             }
         } else if !data.cloak_collected {
             if data.cloak_itered_data.data.value.is_type_complete() && letter_char == "{" {
@@ -80,7 +81,12 @@ pub fn collect_condition(
                 parser.current = parser::Collecting::None;
             }
         } else {
-            data.inside_code_string += letter_char;
+            let code_letter = if last_char.clone() == "\n" || last_char.clone() == "\r" {
+                last_char + letter_char //Make sure we get the lines correctly
+            } else {
+                letter_char.to_string()
+            };
+            data.inside_code_string += &code_letter;
         }
     }
 }

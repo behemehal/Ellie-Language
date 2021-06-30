@@ -45,7 +45,7 @@ pub struct FunctionCollector {
     pub return_pointer_typed: bool, // > typed
     pub at_comma: bool,
     pub brace_count: usize,
-    pub code: Box<crate::parser::Parser>,
+    pub code: String,
 }
 
 impl FunctionCollector {

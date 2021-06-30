@@ -144,4 +144,17 @@ lazy_static! {
         ..Default::default()
     };
 
+    pub static ref error_s21: crate::error::Error = crate::error::Error {
+        code: 0x20,
+        title: "SyntaxError".to_string(),
+        message: "Reserved keyword '$token'".to_string(),
+        ..Default::default()
+    };
+
+    pub static ref error_s22: crate::error::Error = crate::error::Error {
+        code: 0x21,
+        title: "SyntaxError".to_string(),
+        message: "Constructor name should be same as class name".to_string(),
+        ..Default::default()
+    };
 }

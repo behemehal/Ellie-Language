@@ -431,6 +431,10 @@ pub fn collect_array(
                     value_complete: true,
                     value: Box::new(types::Types::Null),
                 },
+                types::Types::ClassCall(_) => types::array_type::ArrayEntry {
+                    value_complete: true,
+                    value: Box::new(types::Types::Null),
+                },
                 types::Types::Void => types::array_type::ArrayEntry {
                     value_complete: true,
                     value: Box::new(types::Types::Null),

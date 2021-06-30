@@ -32,6 +32,7 @@ pub struct ParserOptions {
     pub variables: bool,
     pub constants: bool,
     pub parser_type: ParserType,
+    pub allow_import: bool
 }
 
 impl Default for ParserOptions {
@@ -49,6 +50,7 @@ impl Default for ParserOptions {
             variables: true,
             constants: true,
             parser_type: ParserType::RawParser,
+            allow_import: true
         }
     }
 }

@@ -1,4 +1,4 @@
-use crate::syntax::{constructor, function, variable};
+use crate::syntax::{constructor, function, variable, import};
 use alloc::string::String;
 use alloc::vec::Vec;
 use ellie_core::defs;
@@ -34,4 +34,20 @@ pub struct ClassCollector {
     pub at_comma: bool,
     pub data: Class,
     pub code: Box<crate::parser::Parser>,
+}
+
+impl ClassCollector {
+    pub fn has_dedup(&self) -> bool {
+        let mut existent_names: Vec<String> = Vec::with_capacity(self.data.generic_definings.len());
+        let mut duplicate = false;
+        for i in &self.data.generic_definings {
+            if existent_names.contains(&i.name) {
+                duplicate = true;
+                break;
+            } else {
+                existent_names.push(i.name.clone())
+            }
+        }
+        duplicate
+    }
 }

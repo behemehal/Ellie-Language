@@ -10,7 +10,6 @@ i8                    //generic type
 array(array(i8), 5)   //i8 5 sized array
 fn(i16, i32)::i8      //a function that takes i16 and i32 as parameter and returns i8 as result
 cloak(i8, i32)        //a cloak that contains i8 as first parameter i32 as second
-
 */
 
 pub fn collect_definer(
@@ -139,7 +138,10 @@ pub fn collect_definer(
                         bracket_inserted: true,
                         ..Default::default()
                     });
-            } else if letter_char != " " && last_char == " " && data.rtype.trim() != "" {
+            } else if letter_char != " "
+                && (last_char == " " || last_char == "\n")
+                && data.rtype.trim() != ""
+            {
                 errors.push(error::Error {
                     scope: "definer_processor".to_string(),
                     debug_message: "700312010d036bf0e3737e03c5b5484d".to_string(),

@@ -1,8 +1,9 @@
 use serde::Serialize;
 
 pub mod iterator;
+pub mod scope;
 
-use crate::syntax::{class, condition, constructor, function, ret, variable};
+use crate::syntax::{class, condition, constructor, function, ret, variable, import};
 use ellie_core::{defs, error, utils};
 
 use crate::alloc::string::{String, ToString};
@@ -22,6 +23,7 @@ pub enum Collecting {
     Class(class::ClassCollector),
     Ret(ret::Ret),
     Constructor(constructor::ConstructorCollector),
+    Import(import::Import),
     Getter,
     Setter,
     None,
@@ -66,7 +68,8 @@ impl Parser {
             current: Collecting::None,
             keyword_catch: String::new(),
         }
-    }
+    }   
+
     pub fn map(mut self) -> Parsed {
         let mut errors: Vec<error::Error> = Vec::new();
 

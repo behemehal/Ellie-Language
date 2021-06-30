@@ -23,15 +23,31 @@ pub fn collect_function(
 
         if !functiondata.named {
             if current_reliability.reliable
-                && (last_char != " " || functiondata.data.name.is_empty())
+                && ((last_char != " " && last_char != "\n") || functiondata.data.name.is_empty())
             {
                 if functiondata.data.name.is_empty() {
                     functiondata.data.name_pos.range_start = parser.pos;
                 }
-
                 functiondata.data.name += letter_char;
-                functiondata.data.name_pos.range_end = parser.pos;
+                functiondata.data.name_pos.range_end = parser.pos.clone().skipChar(1);
             } else if letter_char == "(" && !functiondata.data.name.is_empty() {
+                if utils::is_reserved(&functiondata.data.name) {
+                    errors.push(error::Error {
+                        scope: parser.scope.clone() + "/function_processor",
+                        debug_message: "8192a6244de9aa4ffd4aa4405e1e696e".to_string(),
+                        title: error::errorList::error_s21.title.clone(),
+                        code: error::errorList::error_s21.code,
+                        message: error::errorList::error_s21.message.clone(),
+                        builded_message: error::Error::build(
+                            error::errorList::error_s21.message.clone(),
+                            vec![error::ErrorBuildField {
+                                key: "token".to_string(),
+                                value: functiondata.data.name.clone()
+                            }],
+                        ),
+                        pos: functiondata.data.name_pos
+                    });
+                }
                 functiondata.named = true;
                 functiondata.data.parameters_pos.range_start = parser.pos;
             } else if letter_char != " " {
@@ -67,7 +83,7 @@ pub fn collect_function(
 
             if !functiondata.data.parameters[last_entry - 1].named {
                 if current_reliability.reliable
-                    && (last_char != " "
+                    && ((last_char != " " && last_char != "\n")
                         || functiondata.data.parameters[last_entry - 1]
                             .data
                             .name
@@ -221,8 +237,8 @@ pub fn collect_function(
                 );
             }
         } else if functiondata.brace_count == 0 && letter_char == "}" {
-            functiondata.data.inside_code = functiondata.code.collected.clone();
-            functiondata.code = Box::new(parser::Parser::default()); //Empty the cache
+            //functiondata.data.inside_code = functiondata.code.collected.clone();
+            //functiondata.code = Box::new(parser::Parser::default()); //Empty the cache
             parser.collected.push(parser.current.clone());
             parser.current = parser::Collecting::None;
         } else {
@@ -232,27 +248,12 @@ pub fn collect_function(
                 functiondata.brace_count -= 1;
             }
 
-            let mut child_parser = functiondata.code.clone();
-            child_parser.options = parser.options.clone();
-            child_parser.options.parser_type = defs::ParserType::ClassParser;
-            let mut child_parser_errors: Vec<error::Error> = Vec::new();
-            parser::iterator::iter(
-                &mut child_parser,
-                &mut child_parser_errors,
-                letter_char,
-                next_char,
-                last_char,
-            );
-
-            for i in child_parser_errors {
-                let mut edited = i;
-                edited.pos.range_start.0 += parser.pos.0;
-                edited.pos.range_start.1 += parser.pos.1;
-                edited.pos.range_end.0 += parser.pos.0;
-                edited.pos.range_end.1 += parser.pos.1;
-                errors.push(edited);
-            }
-            functiondata.code = child_parser;
+            let code_letter = if last_char.clone() == "\n" || last_char.clone() == "\r" {
+                last_char + letter_char //Make sure we get the lines correctly
+            } else {
+                letter_char.to_string()
+            };
+            functiondata.code += &code_letter;
         }
     }
 }

@@ -72,6 +72,7 @@ fn main() {
                                 variables: true,
                                 constants: true,
                                 parser_type: ellie_core::defs::ParserType::RawParser,
+                                allow_import: true,
                             },
                         );
                         let mapped = parser.map();

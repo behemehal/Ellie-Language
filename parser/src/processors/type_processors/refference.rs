@@ -42,7 +42,7 @@ pub fn collect_refference(
             if data.on_dot {
                 data.on_dot = false;
             }
-            if last_char == " "
+            if (last_char == " " || last_char == "\n")
                 && !data.chain.is_empty()
                 && !data.chain[data.chain.len() - 1].is_empty()
             {

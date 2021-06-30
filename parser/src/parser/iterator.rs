@@ -13,7 +13,12 @@ pub fn iter(
     last_char: String,
 ) {
     if parser.current == parser::Collecting::None {
-        parser.keyword_catch += letter_char;
+        if !parser.keyword_catch.is_empty() && parser.pos.1 == 0 {
+            parser.keyword_catch = String::new();
+        } else {
+            parser.keyword_catch += letter_char;
+        }
+
         processors::type_processor::collect_type(
             parser,
             errors,
@@ -69,6 +74,16 @@ pub fn iter(
         ),
         parser::Collecting::Constructor(_) => {
             processors::constructor_processor::collect_constructor(
+                parser,
+                errors,
+                letter_char,
+                next_char.clone(),
+                last_char.clone(),
+                parser.options.clone(),
+            )
+        },
+        parser::Collecting::Import(_) => {
+            processors::import_processor::collect_import(
                 parser,
                 errors,
                 letter_char,

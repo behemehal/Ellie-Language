@@ -357,6 +357,10 @@ pub fn collect_cloak(
                     value_complete: true,
                     value: Box::new(types::Types::Null),
                 },
+                types::Types::ClassCall(_) => types::cloak_type::CloakEntry {
+                    value_complete: true,
+                    value: Box::new(types::Types::Null),
+                },
                 types::Types::Void => types::cloak_type::CloakEntry {
                     value_complete: true,
                     value: Box::new(types::Types::Null),

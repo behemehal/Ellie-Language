@@ -24,16 +24,51 @@ pub fn collect_class(
         );
 
         if !classdata.name_collected {
-            if current_reliability.reliable && (last_char != " " || classdata.data.name.is_empty())
+            if current_reliability.reliable
+                && ((last_char != " " && last_char != "\n") || classdata.data.name.is_empty())
             {
                 if classdata.data.name.is_empty() {
                     classdata.data.name_pos.range_start = parser.pos;
                 }
                 classdata.data.name += letter_char;
-                classdata.data.name_pos.range_end = parser.pos;
+                classdata.data.name_pos.range_end = parser.pos.clone().skipChar(1);
             } else if letter_char == "<" && !classdata.data.name.is_empty() {
+                if utils::is_reserved(&classdata.data.name) {
+                    errors.push(error::Error {
+                        scope: parser.scope.clone() + "/class_processor",
+                        debug_message: "8192a6244de9aa4ffd4aa4405e1e696e".to_string(),
+                        title: error::errorList::error_s21.title.clone(),
+                        code: error::errorList::error_s21.code,
+                        message: error::errorList::error_s21.message.clone(),
+                        builded_message: error::Error::build(
+                            error::errorList::error_s21.message.clone(),
+                            vec![error::ErrorBuildField {
+                                key: "token".to_string(),
+                                value: classdata.data.name.clone()
+                            }],
+                        ),
+                        pos: classdata.data.name_pos
+                    });
+                }
                 classdata.name_collected = true;
             } else if letter_char == "{" && !classdata.data.name.is_empty() {
+                if utils::is_reserved(&classdata.data.name) {
+                    errors.push(error::Error {
+                        scope: parser.scope.clone() + "/class_processor",
+                        debug_message: "8192a6244de9aa4ffd4aa4405e1e696e".to_string(),
+                        title: error::errorList::error_s21.title.clone(),
+                        code: error::errorList::error_s21.code,
+                        message: error::errorList::error_s21.message.clone(),
+                        builded_message: error::Error::build(
+                            error::errorList::error_s21.message.clone(),
+                            vec![error::ErrorBuildField {
+                                key: "token".to_string(),
+                                value: classdata.data.name.clone()
+                            }],
+                        ),
+                        pos: classdata.data.name_pos
+                    });
+                }
                 classdata.name_collected = true;
                 classdata.generic_definings_collected = true;
             } else if letter_char != " " {
@@ -69,7 +104,7 @@ pub fn collect_class(
             }
 
             if current_reliability.reliable
-                && (last_char != " "
+                && ((last_char != " " && last_char != "\n")
                     || classdata.data.generic_definings[last_entry - 1]
                         .name
                         .is_empty())
@@ -83,10 +118,39 @@ pub fn collect_class(
                         .range_start = parser.pos;
                 }
                 classdata.at_comma = false;
+                classdata.data.generic_definings[last_entry - 1]
+                    .pos
+                    .range_end = parser.pos.clone().skipChar(1);
                 classdata.data.generic_definings[last_entry - 1].name += letter_char;
             } else if letter_char == ">" && !classdata.at_comma {
+                if classdata.has_dedup() {
+                    errors.push(error::Error {
+                        scope: parser.scope.clone() + "/class_processor",
+                        debug_message: "506e72829cc00b1d518496eacb2f3aa4".to_string(),
+                        title: error::errorList::error_s10.title.clone(),
+                        code: error::errorList::error_s10.code,
+                        message: error::errorList::error_s10.message.clone(),
+                        builded_message: error::BuildedError::build_from_string(
+                            error::errorList::error_s10.message.clone(),
+                        ),
+                        pos: classdata.data.generic_definings[last_entry - 1].pos,
+                    });
+                }
                 classdata.generic_definings_collected = true;
             } else if letter_char == "," && !classdata.at_comma {
+                if classdata.has_dedup() {
+                    errors.push(error::Error {
+                        scope: parser.scope.clone() + "/class_processor",
+                        debug_message: "506e72829cc00b1d518496eacb2f3aa4".to_string(),
+                        title: error::errorList::error_s10.title.clone(),
+                        code: error::errorList::error_s10.code,
+                        message: error::errorList::error_s10.message.clone(),
+                        builded_message: error::BuildedError::build_from_string(
+                            error::errorList::error_s10.message.clone(),
+                        ),
+                        pos: classdata.data.generic_definings[last_entry - 1].pos,
+                    });
+                }
                 classdata.at_comma = true;
                 classdata
                     .data
@@ -124,6 +188,19 @@ pub fn collect_class(
                         classdata.data.methods.push(e.data);
                     }
                     parser::Collecting::Constructor(e) => {
+                        if e.data.name != classdata.data.name {
+                            errors.push(error::Error {
+                                scope: parser.scope.clone() + "/class_processor",
+                                debug_message: "replace".to_string(),
+                                title: error::errorList::error_s22.title.clone(),
+                                code: error::errorList::error_s22.code,
+                                message: error::errorList::error_s22.message.clone(),
+                                builded_message: error::BuildedError::build_from_string(
+                                    error::errorList::error_s22.message.clone(),
+                                ),
+                                pos: e.data.name_pos,
+                            });
+                        }
                         classdata.data.constructor = e.data;
                     }
                     _ => {}
@@ -145,6 +222,7 @@ pub fn collect_class(
             let mut child_parser = classdata.code.clone();
             child_parser.options = parser.options.clone();
             child_parser.options.parser_type = defs::ParserType::ClassParser;
+            child_parser.pos = parser.pos;
             let mut child_parser_errors: Vec<error::Error> = Vec::new();
             parser::iterator::iter(
                 &mut child_parser,

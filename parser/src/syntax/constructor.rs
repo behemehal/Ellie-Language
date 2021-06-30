@@ -30,7 +30,7 @@ pub struct ConstructorCollector {
     pub brace_count: usize,
     pub has_code: bool,
     pub at_comma: bool,
-    pub code: Box<crate::parser::Parser>,
+    pub code: String,
 }
 
 impl ConstructorCollector {

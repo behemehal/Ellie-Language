@@ -140,7 +140,8 @@ pub fn collect_variable(
                     data: types::function_call::FunctionCall {
                         name: data.value.clone(),
                         name_pos: ellie_core::defs::Cursor {
-                            range_start: pos.clone().popChar(data.value.clone().len()),
+                            //TODO: FIX THIS!
+                            range_start: pos.clone(), //.popChar(data.value.clone().len()),
                             range_end: pos,
                         },
                         ..Default::default()
@@ -150,7 +151,7 @@ pub fn collect_variable(
                 });
         } else if current_reliability.reliable {
             data.value += letter_char;
-        } else {
+        } else if letter_char != " " {
             errors.push(error::Error {
                 scope: "variable_processor".to_string(),
                 debug_message: "a7f3bb2ff5b6347dae9262fb25307692".to_string(),

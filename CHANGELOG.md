@@ -1,15 +1,25 @@
 # Changelog
 
 # v2.0.0
-
-    - Performance improved
-    - integer, float type introduced
+    - Parser
+      * Performance improved
+      * integer, float type introduced
 
 # v2.1.0
+    - Parser
+      * Class introduced
+      * Ret introduced
+      * Constants added
+      * Bug fix & performance improvements
+    - Engine
+      * Benchmarks added
+    - CLI
+      * Experimental error listing
 
-    - Class introduced
-    - Ret introduced
-    - Constants added
-    - Bug fix & performance improvements
-    - Benchmarks added
-    - Experimental error listing
+# v2.2.0
+    - Parser: 
+      * Bug fixes
+      * Code execution order
+      * Class call
+      * Scope management
+      * Reserved keywords protection

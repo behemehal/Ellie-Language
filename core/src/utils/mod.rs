@@ -18,6 +18,10 @@ pub fn is_opearators(value: &str) -> bool {
     operators.contains(&value)
 }
 
+pub fn is_reserved(value: &str) -> bool {
+    value == "fn" || value == "class" || value == "if" || value == "else" || value == "v" || value == "c" || value == "d" || value == "con" || value == "get" || value == "set"
+}
+
 pub fn reliable_name_range(range: ReliableNameRanges, value: String) -> ReliableNameRangeResponse {
     match range {
         ReliableNameRanges::VariableName => {
@@ -62,7 +66,7 @@ pub fn reliable_name_range(range: ReliableNameRanges, value: String) -> Reliable
 
 pub fn get_letter(letter: String, index: usize, turn: bool) -> String {
     if turn {
-        // Bir sonraki karakter
+        // Next char
         if index == letter.len() {
             "".to_string()
         } else {

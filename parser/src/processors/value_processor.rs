@@ -121,6 +121,15 @@ pub fn collect_value(
             pos,
             options,
         ),
+        types::Types::ClassCall(_) => type_processors::class_call::collect_class_call(
+            itered_data,
+            &mut errors,
+            letter_char,
+            next_char,
+            last_char,
+            pos,
+            options,
+        ),
         types::Types::Void => (),
         types::Types::VariableType(_) => type_processors::variable::collect_variable(
             itered_data,
@@ -140,6 +149,7 @@ pub fn collect_value(
             pos,
             options,
         ),
+        
     }
     CollectorResponse {
         itered_data: itered_data.clone(),

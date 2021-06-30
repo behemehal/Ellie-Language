@@ -18,10 +18,8 @@ pub fn collect_arrow(
     options: defs::ParserOptions,
 ) {
     if let types::Types::ArrowFunction(ref mut functiondata) = itered_data.data.value {
-        if itered_data.data.dynamic {
-            itered_data.data.rtype =
-                definers::DefinerCollecting::Function(definers::FunctionType::default());
-        }
+        itered_data.data.rtype =
+            definers::DefinerCollecting::Function(definers::FunctionType::default());
 
         if !functiondata.parameter_wrote {
             if letter_char == "(" && !functiondata.param_bracket_opened {
@@ -41,7 +39,7 @@ pub fn collect_arrow(
 
                 if typing_name {
                     if current_reliability.reliable
-                        && (last_char != " "
+                        && ((last_char != " " && last_char != "\n")
                             || last_entry == 0
                             || functiondata.data.parameters[last_entry - 1]
                                 .data
@@ -188,27 +186,12 @@ pub fn collect_arrow(
                 functiondata.brace_count -= 1;
             }
 
-            let mut child_parser = functiondata.code.clone();
-            child_parser.options = options.clone();
-            child_parser.options.parser_type = defs::ParserType::ClassParser;
-            let mut child_parser_errors: Vec<error::Error> = Vec::new();
-            parser::iterator::iter(
-                &mut child_parser,
-                &mut child_parser_errors,
-                letter_char,
-                next_char,
-                last_char,
-            );
-
-            for i in child_parser_errors {
-                let mut edited = i;
-                edited.pos.range_start.0 += pos.0;
-                edited.pos.range_start.1 += pos.1;
-                edited.pos.range_end.0 += pos.0;
-                edited.pos.range_end.1 += pos.1;
-                errors.push(edited);
-            }
-            functiondata.code = child_parser;
+            let code_letter = if last_char.clone() == "\n" || last_char.clone() == "\r" {
+                last_char + letter_char //Make sure we get the lines correctly
+            } else {
+                letter_char.to_string()
+            };
+            functiondata.code += &code_letter;
         }
     }
 }

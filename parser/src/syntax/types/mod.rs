@@ -3,6 +3,7 @@ pub mod array_type;
 pub mod arrow_function;
 pub mod bool_type;
 pub mod char_type;
+pub mod class_call;
 pub mod cloak_type;
 pub mod comparison_type;
 pub mod double_type;
@@ -34,6 +35,7 @@ pub enum Types {
     Cloak(cloak_type::CloakType),
     Array(array_type::ArrayType),
     ArrowFunction(arrow_function::ArrowFunctionCollector),
+    ClassCall(class_call::ClassCallCollector),
     FunctionCall(function_call::FunctionCallCollector),
     Void,
     VariableType(variable_type::VariableType),
@@ -82,6 +84,7 @@ impl Types {
             }
             Types::ArrowFunction(_) => false,
             Types::FunctionCall(_) => false,
+            Types::ClassCall(_) => false,
             Types::VariableType(_) => false,
             Types::Void => true,
             Types::Null => true,
@@ -106,6 +109,7 @@ impl Types {
             Types::Cloak(data) => data.complete,
             Types::ArrowFunction(data) => data.complete,
             Types::FunctionCall(data) => data.complete,
+            Types::ClassCall(_) => true,
             Types::VariableType(_) => true,
             Types::Void => false,
             Types::Null => true,
@@ -126,6 +130,7 @@ impl Types {
             Types::Cloak(_) => false,
             Types::ArrowFunction(_) => false,
             Types::FunctionCall(_) => false,
+            Types::ClassCall(_) => false,
             Types::VariableType(_) => false,
             Types::Void => false,
             Types::Null => false,
@@ -146,6 +151,7 @@ impl Types {
             Types::Cloak(_) => false,
             Types::ArrowFunction(_) => false,
             Types::FunctionCall(_) => false,
+            Types::ClassCall(_) => false,
             Types::VariableType(_) => false,
             Types::Void => false,
             Types::Null => false,
@@ -166,6 +172,7 @@ impl Types {
             Types::Cloak(_) => false,
             Types::ArrowFunction(_) => false,
             Types::FunctionCall(_) => false,
+            Types::ClassCall(_) => false,
             Types::VariableType(_) => false,
             Types::Void => false,
             Types::Null => false,
@@ -186,6 +193,7 @@ impl Types {
             Types::Cloak(_) => false,
             Types::ArrowFunction(_) => false,
             Types::FunctionCall(_) => false,
+            Types::ClassCall(_) => false,
             Types::VariableType(_) => false,
             Types::Void => false,
             Types::Null => false,
@@ -206,6 +214,7 @@ impl Types {
             Types::Cloak(_) => false,
             Types::ArrowFunction(_) => false,
             Types::FunctionCall(_) => false,
+            Types::ClassCall(_) => false,
             Types::VariableType(_) => true,
             Types::Void => false,
             Types::Null => false,
@@ -226,6 +235,7 @@ impl Types {
             Types::Cloak(e) => e.complete = true,
             Types::ArrowFunction(e) => e.complete = true,
             Types::FunctionCall(_) => (),
+            Types::ClassCall(_) => (),
             Types::VariableType(_) => (),
             Types::Void => (),
             Types::Null => (),
