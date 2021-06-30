@@ -149,7 +149,6 @@ pub fn collect_value(
             pos,
             options,
         ),
-        
     }
     CollectorResponse {
         itered_data: itered_data.clone(),

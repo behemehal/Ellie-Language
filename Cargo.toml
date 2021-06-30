@@ -10,8 +10,8 @@ lazy_static = { version = "1.4.0", features = ["spin_no_std"]}
 serde = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
 
-ellie_core = {path = "core", version = "0.2.0"}
-ellie_parser = {path = "parser", version = "0.3.0"}
+ellie_core = {path = "core", version = "0.3.0"}
+ellie_parser = {path = "parser", version = "0.5.0"}
 
 [lib]
 name = "ellie_lang"
@@ -37,7 +37,7 @@ name = "benches"
 harness = false
 
 [build-dependencies]
-ellie_core = {path = "core", version = "0.2.0"}
+ellie_core = {path = "core", version = "0.3.0"}
 cbindgen = "*"
 
 [dev-dependencies]

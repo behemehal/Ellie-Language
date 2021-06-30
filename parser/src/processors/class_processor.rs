@@ -44,10 +44,10 @@ pub fn collect_class(
                             error::errorList::error_s21.message.clone(),
                             vec![error::ErrorBuildField {
                                 key: "token".to_string(),
-                                value: classdata.data.name.clone()
+                                value: classdata.data.name.clone(),
                             }],
                         ),
-                        pos: classdata.data.name_pos
+                        pos: classdata.data.name_pos,
                     });
                 }
                 classdata.name_collected = true;
@@ -63,10 +63,10 @@ pub fn collect_class(
                             error::errorList::error_s21.message.clone(),
                             vec![error::ErrorBuildField {
                                 key: "token".to_string(),
-                                value: classdata.data.name.clone()
+                                value: classdata.data.name.clone(),
                             }],
                         ),
-                        pos: classdata.data.name_pos
+                        pos: classdata.data.name_pos,
                     });
                 }
                 classdata.name_collected = true;

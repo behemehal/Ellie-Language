@@ -19,7 +19,7 @@ pub fn collect_condition(
         if !data.initialized {
             if last_char == "i" && letter_char == "f" {
                 data.initialized = true;
-                //TODO BROKEN 
+                //TODO BROKEN
                 //data.cloak_pos.range_start.0 = parser.pos.0; //Function naming started so we set the position
                 //data.keyword_pos.range_start.0 = parser.pos.0 - 1; //Function naming started so we set the position
                 //data.keyword_pos.range_end.0 = parser.pos.0; //Function naming started so we set the position

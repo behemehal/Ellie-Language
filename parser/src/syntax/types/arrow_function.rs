@@ -1,8 +1,8 @@
 use crate::parser::Collecting;
 use crate::syntax::{definers, function};
 use alloc::boxed::Box;
-use alloc::vec::Vec;
 use alloc::string::String;
+use alloc::vec::Vec;
 use serde::Serialize;
 
 #[derive(PartialEq, Debug, Clone, Default, Serialize)]

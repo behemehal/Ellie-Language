@@ -42,10 +42,10 @@ pub fn collect_function(
                             error::errorList::error_s21.message.clone(),
                             vec![error::ErrorBuildField {
                                 key: "token".to_string(),
-                                value: functiondata.data.name.clone()
+                                value: functiondata.data.name.clone(),
                             }],
                         ),
-                        pos: functiondata.data.name_pos
+                        pos: functiondata.data.name_pos,
                     });
                 }
                 functiondata.named = true;

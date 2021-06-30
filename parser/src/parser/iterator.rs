@@ -81,17 +81,15 @@ pub fn iter(
                 last_char.clone(),
                 parser.options.clone(),
             )
-        },
-        parser::Collecting::Import(_) => {
-            processors::import_processor::collect_import(
-                parser,
-                errors,
-                letter_char,
-                next_char.clone(),
-                last_char.clone(),
-                parser.options.clone(),
-            )
         }
+        parser::Collecting::Import(_) => processors::import_processor::collect_import(
+            parser,
+            errors,
+            letter_char,
+            next_char.clone(),
+            last_char.clone(),
+            parser.options.clone(),
+        ),
         _ => (),
     };
 }

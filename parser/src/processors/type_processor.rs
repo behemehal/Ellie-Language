@@ -1,5 +1,5 @@
 use crate::parser;
-use crate::syntax::{class, condition, constructor, function, ret, variable, import};
+use crate::syntax::{class, condition, constructor, function, import, ret, variable};
 use ellie_core::{defs, error, utils};
 
 use alloc::string::{String, ToString};
@@ -14,9 +14,11 @@ pub fn collect_type(
 ) {
     let keyword = utils::trim_good(parser.keyword_catch.trim_start().to_string()); //one step next
 
-    if (keyword == "import " || keyword == "pub import " || keyword == "pri import") && options.allow_import {
+    if (keyword == "import " || keyword == "pub import " || keyword == "pri import")
+        && options.allow_import
+    {
         parser.current = parser::Collecting::Import(import::Import {
-            public:  keyword == "pub import ",
+            public: keyword == "pub import ",
             pos: defs::Cursor {
                 range_start: parser.pos,
                 ..Default::default()

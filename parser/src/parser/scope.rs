@@ -30,7 +30,7 @@ impl Default for Scope {
             scope_name: String::new(),
             scope_type: ScopeTypes::default(),
             scope_data: parser::Parser::default(),
-            inner_scope: None
+            inner_scope: None,
         }
     }
 }
@@ -40,9 +40,7 @@ impl Scope {
     //
     //}
 
-    pub fn resolve_item(name: String) {
-        
-    }
+    pub fn resolve_item(name: String) {}
 
     pub fn mount_scope(&mut self, scope: Scope) {
         self.inner_scope = Some(Box::new(scope));

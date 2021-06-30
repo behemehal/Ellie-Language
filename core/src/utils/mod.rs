@@ -19,7 +19,16 @@ pub fn is_opearators(value: &str) -> bool {
 }
 
 pub fn is_reserved(value: &str) -> bool {
-    value == "fn" || value == "class" || value == "if" || value == "else" || value == "v" || value == "c" || value == "d" || value == "con" || value == "get" || value == "set"
+    value == "fn"
+        || value == "class"
+        || value == "if"
+        || value == "else"
+        || value == "v"
+        || value == "c"
+        || value == "d"
+        || value == "con"
+        || value == "get"
+        || value == "set"
 }
 
 pub fn reliable_name_range(range: ReliableNameRanges, value: String) -> ReliableNameRangeResponse {

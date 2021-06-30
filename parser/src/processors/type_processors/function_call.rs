@@ -235,10 +235,12 @@ pub fn collect_function_caller(
                         value: types::Types::Null,
                         ..Default::default()
                     },
-                    types::Types::Refference(match_data) => types::function_call::FunctionCallParameter {
-                        value: types::Types::Refference(match_data),
-                        ..Default::default()
-                    },
+                    types::Types::Refference(match_data) => {
+                        types::function_call::FunctionCallParameter {
+                            value: types::Types::Refference(match_data),
+                            ..Default::default()
+                        }
+                    }
                     types::Types::Array(match_data) => {
                         types::function_call::FunctionCallParameter {
                             value: types::Types::Array(match_data),
@@ -257,14 +259,18 @@ pub fn collect_function_caller(
                             ..Default::default()
                         }
                     }
-                    types::Types::FunctionCall(match_data) => types::function_call::FunctionCallParameter {
-                        value: types::Types::FunctionCall(match_data),
-                        ..Default::default()
-                    },
-                    types::Types::ClassCall(match_data) => types::function_call::FunctionCallParameter {
-                        value:types::Types::ClassCall(match_data),
-                        ..Default::default()
-                    },
+                    types::Types::FunctionCall(match_data) => {
+                        types::function_call::FunctionCallParameter {
+                            value: types::Types::FunctionCall(match_data),
+                            ..Default::default()
+                        }
+                    }
+                    types::Types::ClassCall(match_data) => {
+                        types::function_call::FunctionCallParameter {
+                            value: types::Types::ClassCall(match_data),
+                            ..Default::default()
+                        }
+                    }
                     types::Types::Void => types::function_call::FunctionCallParameter {
                         value: types::Types::Void,
                         ..Default::default()
