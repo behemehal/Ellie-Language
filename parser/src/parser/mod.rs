@@ -3,7 +3,7 @@ use serde::Serialize;
 pub mod iterator;
 pub mod scope;
 
-use crate::syntax::{class, condition, constructor, forloop, function, import, ret, variable};
+use crate::syntax::{class, condition, constructor, forloop, function, import, ret, variable, caller};
 use ellie_core::{defs, error, utils};
 
 use crate::alloc::string::{String, ToString};
@@ -24,6 +24,7 @@ pub enum Collecting {
     Class(class::ClassCollector),
     Ret(ret::Ret),
     Constructor(constructor::ConstructorCollector),
+    Caller(caller::Caller),
     Import(import::Import),
     Getter,
     Setter,
@@ -39,7 +40,9 @@ pub struct Parser {
     pub pos: defs::CursorPosition,
     pub ignore_line: bool,
     pub current: Collecting,
+    keyword_pos: defs::Cursor,
     pub keyword_catch: String,
+    pub keyword_cache: variable::VariableCollector
 }
 
 impl Default for Parser {
@@ -50,9 +53,11 @@ impl Default for Parser {
             options: defs::ParserOptions::default(),
             collected: Vec::new(),
             pos: defs::CursorPosition(0, 0),
+            keyword_pos: defs::Cursor::default(),
             ignore_line: false,
             current: Collecting::None,
             keyword_catch: String::new(),
+            keyword_cache: variable::VariableCollector::default()
         }
     }
 }
@@ -65,9 +70,11 @@ impl Parser {
             options,
             collected: Vec::new(),
             pos: defs::CursorPosition(0, 0),
+            keyword_pos: defs::Cursor::default(),
             ignore_line: false,
             current: Collecting::None,
             keyword_catch: String::new(),
+            keyword_cache: variable::VariableCollector::default()
         }
     }
 

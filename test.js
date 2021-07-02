@@ -1,9 +1,5 @@
-function st() {
-    te()
+function test() {
+
 }
 
-function var() {
-    st()
-}
-
-function() 
+test ()

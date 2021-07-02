@@ -186,7 +186,7 @@ pub fn collect_function_caller(
                         }
                     };
                     #[cfg(feature = "std")]
-                    std::println!("[ParserError:0x3]: This shouldn't have happened");
+                    std::println!("[ParserError:0x9]: This shouldn't have happened");
                 }
 
                 let itered_fcall_vector = Box::new(value_processor::collect_value(

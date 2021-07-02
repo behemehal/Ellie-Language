@@ -157,4 +157,11 @@ lazy_static! {
         message: "Constructor name should be same as class name".to_string(),
         ..Default::default()
     };
+
+    pub static ref error_s23: crate::error::Error = crate::error::Error {
+        code: 0x22,
+        title: "SyntaxError".to_string(),
+        message: "'$token' is not recognized (Possible unimplemented method)".to_string(),
+        ..Default::default()
+    };
 }

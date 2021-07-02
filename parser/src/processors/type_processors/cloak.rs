@@ -278,6 +278,7 @@ pub fn collect_cloak(
                     }
                 };
             } else {
+                
                 will_be_itered = if data.collective.is_empty() {
                     variable::VariableCollector::default()
                 } else {

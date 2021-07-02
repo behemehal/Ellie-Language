@@ -1,4 +1,4 @@
-use crate::syntax::definers;
+use crate::syntax::{definers, types};
 use ellie_core::defs;
 use serde::Serialize;
 
@@ -10,7 +10,7 @@ pub struct Variable {
     pub dynamic: bool,
     pub constant: bool,
     pub public: bool,
-    pub value: crate::syntax::types::Types,
+    pub value: types::Types,
     pub pos: defs::Cursor,
     pub name_pos: defs::Cursor,
     pub value_pos: defs::Cursor,

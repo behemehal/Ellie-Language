@@ -276,8 +276,6 @@ pub fn collect_array(
 
             let mut will_be_itered: variable::VariableCollector;
             if let definers::DefinerCollecting::Array(array_data) = itered_data.data.rtype.clone() {
-                //panic!("{:#?}", array_data.len.value);
-                //if data.collective.len() > *array_data.len.value.as_usize().unwrap() {
                 if array_data
                     .len
                     .value

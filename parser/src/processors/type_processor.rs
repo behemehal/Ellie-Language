@@ -1,5 +1,5 @@
 use crate::parser;
-use crate::syntax::{class, condition, constructor, function, import, ret, variable};
+use crate::syntax::{class, condition, constructor, function, import, ret, types, variable, caller};
 use ellie_core::{defs, error, utils};
 
 use alloc::string::{String, ToString};
@@ -8,7 +8,8 @@ use alloc::vec::Vec;
 pub fn collect_type(
     parser: &mut parser::Parser,
     _errors: &mut Vec<error::Error>,
-    _letter_char: &str,
+    letter_char: &str,
+    last_char: String,
     _next_char: String,
     options: defs::ParserOptions,
 ) {
@@ -25,6 +26,7 @@ pub fn collect_type(
             },
             ..Default::default()
         });
+        parser.keyword_cache = variable::VariableCollector::default();
     } else if (keyword == "c " || keyword == "pub c " || keyword == "pri c ") && options.constants {
         parser.current = parser::Collecting::Variable(variable::VariableCollector {
             initialized: true,
@@ -39,6 +41,7 @@ pub fn collect_type(
             },
             ..Default::default()
         });
+        parser.keyword_cache = variable::VariableCollector::default();
     } else if (keyword == "v " || keyword == "pub v " || keyword == "pri v ") && options.variables {
         parser.current = parser::Collecting::Variable(variable::VariableCollector {
             initialized: true,
@@ -52,6 +55,7 @@ pub fn collect_type(
             },
             ..Default::default()
         });
+        parser.keyword_cache = variable::VariableCollector::default();
     } else if (keyword == "d " || keyword == "pub d " || keyword == "pri d ")
         && options.dynamics
         && options.variables
@@ -69,6 +73,7 @@ pub fn collect_type(
             },
             ..Default::default()
         });
+        parser.keyword_cache = variable::VariableCollector::default();
     } else if (keyword == "fn " || keyword == "pub fn" || keyword == "pri fn") && options.functions
     {
         parser.current = parser::Collecting::Function(function::FunctionCollector {
@@ -78,12 +83,14 @@ pub fn collect_type(
             },
             ..Default::default()
         });
-    } else if keyword == "co " {
-        // && options.parser_type == defs::ParserType::ClassParser
+        parser.keyword_cache = variable::VariableCollector::default();
+    } else if keyword == "co " && options.parser_type == defs::ParserType::ClassParser {
         parser.current =
             parser::Collecting::Constructor(constructor::ConstructorCollector::default());
+        parser.keyword_cache = variable::VariableCollector::default();
     } else if keyword == "if" && options.parser_type == defs::ParserType::RawParser {
         parser.current = parser::Collecting::Condition(condition::ConditionCollector::default());
+        parser.keyword_cache = variable::VariableCollector::default();
     } else if keyword == "else if" && options.parser_type == defs::ParserType::RawParser {
         let collected_length = parser.collected.clone().len();
         if collected_length == 0 {
@@ -111,6 +118,7 @@ pub fn collect_type(
             });
             parser.current = parser::Collecting::Condition(repeated_condition);
             parser.collected.remove(collected_length - 1);
+            parser.keyword_cache = variable::VariableCollector::default();
         } else {
             //User used else statement without if
             panic!("Error: {:#?}", parser.collected);
@@ -138,12 +146,14 @@ pub fn collect_type(
             });
             parser.current = parser::Collecting::Condition(repeated_condition);
             parser.collected.remove(collected_length - 1);
+            parser.keyword_cache = variable::VariableCollector::default();
         } else {
             //User used else statement without if
             panic!("Error: {:#?}", parser.collected);
         }
     } else if keyword == "class " && options.parser_type == defs::ParserType::RawParser {
         parser.current = parser::Collecting::Class(class::ClassCollector::default());
+        parser.keyword_cache = variable::VariableCollector::default();
     } else if keyword == "ret " && options.parser_type == defs::ParserType::RawParser {
         parser.current = parser::Collecting::Ret(ret::Ret {
             keyword_pos: defs::Cursor {
@@ -151,6 +161,29 @@ pub fn collect_type(
                 range_end: parser.pos.skipChar(1),
             },
             ..Default::default()
+        });
+        parser.keyword_cache = variable::VariableCollector::default();
+    } else if letter_char == "(" && keyword.trim() != "(" {
+        parser.current = parser::Collecting::Caller(caller::Caller {
+            value: types::Types::FunctionCall(types::function_call::FunctionCallCollector {
+                data: types::function_call::FunctionCall {
+                    name: keyword.clone(),
+                    name_pos: defs::Cursor {
+                        range_start: if keyword.clone().trim().len() > parser.pos.1 {
+                            parser.pos
+                        } else {
+                            parser.pos.clone().popChar(keyword.clone().trim().len())
+                        },
+                        range_end: parser.pos,
+                    },
+                    ..Default::default()
+                },
+                ..Default::default()
+            }),
+            pos: defs::Cursor {
+                range_start: parser.pos,
+                ..Default::default()
+            },
         });
     }
 }

@@ -2,8 +2,9 @@ use crate::parser;
 use crate::processors;
 use ellie_core::error;
 
-use crate::alloc::string::String;
+use crate::alloc::string::{String, ToString};
 use crate::alloc::vec::Vec;
+use crate::alloc::vec;
 
 pub fn iter(
     parser: &mut parser::Parser,
@@ -14,8 +15,31 @@ pub fn iter(
 ) {
     if parser.current == parser::Collecting::None {
         if !parser.keyword_catch.is_empty() && parser.pos.1 == 0 {
+            if !parser.keyword_catch.is_empty() {
+                errors.push(error::Error {
+                    scope: parser.scope.clone() + "/variable_processor",
+                    debug_message: "replace".to_string(),
+                    title: error::errorList::error_s23.title.clone(),
+                    code: error::errorList::error_s23.code,
+                    message: error::errorList::error_s23.message.clone(),
+                    builded_message: error::Error::build(
+                        error::errorList::error_s23.message.clone(),
+                        vec![
+                            error::ErrorBuildField {
+                                key: "token".to_string(),
+                                value: parser.keyword_catch.clone(),
+                            },
+                        ],
+                    ),
+                    pos: parser.keyword_pos,
+                });
+            }
             parser.keyword_catch = String::new();
         } else {
+            if parser.keyword_catch.is_empty() {
+                parser.keyword_pos.range_start = parser.pos;
+            }
+            parser.keyword_pos.range_end = parser.pos.clone().skipChar(1);
             parser.keyword_catch += letter_char;
         }
 
@@ -23,6 +47,7 @@ pub fn iter(
             parser,
             errors,
             letter_char,
+            last_char.clone(),
             next_char.clone(),
             parser.options.clone(),
         );
@@ -83,6 +108,14 @@ pub fn iter(
             )
         }
         parser::Collecting::Import(_) => processors::import_processor::collect_import(
+            parser,
+            errors,
+            letter_char,
+            next_char.clone(),
+            last_char.clone(),
+            parser.options.clone(),
+        ),
+        parser::Collecting::Caller(_) => processors::caller_processor::collect_caller(
             parser,
             errors,
             letter_char,
