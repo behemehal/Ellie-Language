@@ -18,8 +18,7 @@ pub fn collect_arrow(
     options: defs::ParserOptions,
 ) {
     if let types::Types::ArrowFunction(ref mut functiondata) = itered_data.data.value {
-        itered_data.data.rtype =
-            definers::DefinerCollecting::Function(definers::FunctionType::default());
+        itered_data.data.rtype = definers::DefinerCollecting::Function(definers::FunctionType::default());
 
         if !functiondata.parameter_wrote {
             if letter_char == "(" && !functiondata.param_bracket_opened {

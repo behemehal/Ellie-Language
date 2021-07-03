@@ -163,7 +163,7 @@ pub fn collect_type(
             ..Default::default()
         });
         parser.keyword_cache = variable::VariableCollector::default();
-    } else if letter_char == "(" && keyword.trim() != "(" {
+    } else if letter_char == "(" && keyword.trim() != "(" && !keyword.trim().is_empty(){
         parser.current = parser::Collecting::Caller(caller::Caller {
             value: types::Types::FunctionCall(types::function_call::FunctionCallCollector {
                 data: types::function_call::FunctionCall {
