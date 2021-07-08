@@ -25,7 +25,35 @@ pub fn collect_variable(
 
         if !variabledata.value_complete {
             if current_reliability.reliable {
-                variabledata.value += letter_char;
+                if last_char == " " && !variabledata.value.is_empty() {
+                    errors.push(error::Error {
+                        scope: "variable_processor".to_string(),
+                        debug_message: "replace".to_string(),
+                        title: error::errorList::error_s1.title.clone(),
+                        code: error::errorList::error_s1.code,
+                        message: error::errorList::error_s1.message.clone(),
+                        builded_message: error::Error::build(
+                            error::errorList::error_s1.message.clone(),
+                            vec![error::ErrorBuildField {
+                                key: "token".to_string(),
+                                value: current_reliability.found.to_string(),
+                            }],
+                        ),
+                        pos: defs::Cursor {
+                            range_start: parser.pos,
+                            range_end: parser.pos.clone().skipChar(1),
+                        },
+                    });
+                } else {
+                    variabledata.value += letter_char;
+                }
+
+                if variabledata.value == "true" || variabledata.value == "false" {
+                    itered_data.data.value = types::Types::Bool(types::bool_type::BoolType {
+                        value: variabledata.value == "true",
+                        raw: variabledata.value.clone(),
+                    });
+                }
             } else if !variabledata.value.is_empty() {
                 if letter_char == ";" {
                     variabledata.value_complete = true;

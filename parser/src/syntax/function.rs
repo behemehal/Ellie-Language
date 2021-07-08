@@ -12,6 +12,8 @@ pub struct FunctionParameter {
     pub name: String,
     pub rtype: definers::DefinerCollecting,
     pub pos: defs::Cursor,
+    pub name_pos: defs::Cursor,
+    pub type_pos: defs::Cursor,
 }
 
 #[derive(PartialEq, Debug, Clone, Default, Serialize, Hash)]
@@ -26,13 +28,14 @@ pub struct FunctionParameterCollector {
 pub struct Function {
     pub name: String,                                  //Function Name string
     pub parameters: Vec<FunctionParameterCollector>,   //Parameter vector
-    pub return_type: Box<definers::DefinerCollecting>, //Return type from enum
+    pub return_type: definers::DefinerCollecting, //Return type from enum
     pub public: bool,
     pub inside_code: Vec<Collecting>,
     pub name_pos: defs::Cursor,           //Name position fn [test] ......
     pub code_bracket_start: defs::Cursor, //Bracket start fn test() > String [{]
     pub code_bracket_end: defs::Cursor,   //Bracket start fn test() > String { ... [}]
     pub parameters_pos: defs::Cursor,
+    pub return_pos: defs::Cursor
 }
 
 #[derive(PartialEq, Debug, Clone, Default, Serialize, Hash)]

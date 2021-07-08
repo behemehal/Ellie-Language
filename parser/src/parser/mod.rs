@@ -412,6 +412,19 @@ impl Parser {
         }
     }
 
+    pub fn type_exists(&self, name: String) -> bool {
+        let mut found = false;
+        for item in self.collected.clone() {
+            if let Collecting::Class(ref e) = item {
+                if e.data.name == name {
+                    found = e.data.name == name;
+                    break;
+                }
+            }
+        }
+        found
+    }
+
     pub fn check_keyword(&self, name: String) -> NameCheckResponse {
         let mut found = false;
         let mut found_item: Collecting = Collecting::None;
