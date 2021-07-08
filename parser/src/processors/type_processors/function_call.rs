@@ -211,151 +211,151 @@ pub fn collect_function_caller(
                         types::function_call::FunctionCallParameter {
                             value: types::Types::Integer(match_data),
                             pos: if last_entry == 0 {
-                                defs::Cursor::default()   
+                                defs::Cursor::default()
                             } else {
                                 functioncalldata.data.params[last_entry - 1].pos
-                            }
+                            },
                         }
                     }
                     types::Types::Float(match_data) => {
                         types::function_call::FunctionCallParameter {
                             value: types::Types::Float(match_data),
                             pos: if last_entry == 0 {
-                                defs::Cursor::default()   
+                                defs::Cursor::default()
                             } else {
                                 functioncalldata.data.params[last_entry - 1].pos
-                            }
+                            },
                         }
                     }
                     types::Types::Operator(match_data) => {
                         types::function_call::FunctionCallParameter {
                             value: types::Types::Operator(match_data),
                             pos: if last_entry == 0 {
-                                defs::Cursor::default()   
+                                defs::Cursor::default()
                             } else {
                                 functioncalldata.data.params[last_entry - 1].pos
-                            }
+                            },
                         }
                     }
                     types::Types::Bool(match_data) => types::function_call::FunctionCallParameter {
                         value: types::Types::Bool(match_data),
                         pos: if last_entry == 0 {
-                            defs::Cursor::default()   
+                            defs::Cursor::default()
                         } else {
                             functioncalldata.data.params[last_entry - 1].pos
-                        }
+                        },
                     },
                     types::Types::String(match_data) => {
                         types::function_call::FunctionCallParameter {
                             value: types::Types::String(match_data),
                             pos: if last_entry == 0 {
-                                defs::Cursor::default()   
+                                defs::Cursor::default()
                             } else {
                                 functioncalldata.data.params[last_entry - 1].pos
-                            }
+                            },
                         }
                     }
                     types::Types::Char(match_data) => types::function_call::FunctionCallParameter {
                         value: types::Types::Char(match_data),
                         pos: if last_entry == 0 {
-                            defs::Cursor::default()   
+                            defs::Cursor::default()
                         } else {
                             functioncalldata.data.params[last_entry - 1].pos
-                        }
+                        },
                     },
                     types::Types::Collective => types::function_call::FunctionCallParameter {
                         value: types::Types::Null,
                         pos: if last_entry == 0 {
-                            defs::Cursor::default()   
+                            defs::Cursor::default()
                         } else {
                             functioncalldata.data.params[last_entry - 1].pos
-                        }
+                        },
                     },
                     types::Types::Refference(match_data) => {
                         types::function_call::FunctionCallParameter {
                             value: types::Types::Refference(match_data),
                             pos: if last_entry == 0 {
-                                defs::Cursor::default()   
+                                defs::Cursor::default()
                             } else {
                                 functioncalldata.data.params[last_entry - 1].pos
-                            }
+                            },
                         }
                     }
                     types::Types::Array(match_data) => {
                         types::function_call::FunctionCallParameter {
                             value: types::Types::Array(match_data),
                             pos: if last_entry == 0 {
-                                defs::Cursor::default()   
+                                defs::Cursor::default()
                             } else {
                                 functioncalldata.data.params[last_entry - 1].pos
-                            }
+                            },
                         }
                     }
                     types::Types::Cloak(match_data) => {
                         types::function_call::FunctionCallParameter {
                             value: types::Types::Cloak(match_data),
                             pos: if last_entry == 0 {
-                                defs::Cursor::default()   
+                                defs::Cursor::default()
                             } else {
                                 functioncalldata.data.params[last_entry - 1].pos
-                            }
+                            },
                         }
                     }
                     types::Types::ArrowFunction(match_data) => {
                         types::function_call::FunctionCallParameter {
                             value: types::Types::ArrowFunction(match_data),
                             pos: if last_entry == 0 {
-                                defs::Cursor::default()   
+                                defs::Cursor::default()
                             } else {
                                 functioncalldata.data.params[last_entry - 1].pos
-                            }
+                            },
                         }
                     }
                     types::Types::FunctionCall(match_data) => {
                         types::function_call::FunctionCallParameter {
                             value: types::Types::FunctionCall(match_data),
                             pos: if last_entry == 0 {
-                                defs::Cursor::default()   
+                                defs::Cursor::default()
                             } else {
                                 functioncalldata.data.params[last_entry - 1].pos
-                            }
+                            },
                         }
                     }
                     types::Types::ClassCall(match_data) => {
                         types::function_call::FunctionCallParameter {
                             value: types::Types::ClassCall(match_data),
                             pos: if last_entry == 0 {
-                                defs::Cursor::default()   
+                                defs::Cursor::default()
                             } else {
                                 functioncalldata.data.params[last_entry - 1].pos
-                            }
+                            },
                         }
                     }
                     types::Types::Void => types::function_call::FunctionCallParameter {
                         value: types::Types::Void,
                         pos: if last_entry == 0 {
-                            defs::Cursor::default()   
+                            defs::Cursor::default()
                         } else {
                             functioncalldata.data.params[last_entry - 1].pos
-                        }
+                        },
                     },
                     types::Types::VariableType(match_data) => {
                         types::function_call::FunctionCallParameter {
                             value: types::Types::VariableType(match_data),
                             pos: if last_entry == 0 {
-                                defs::Cursor::default()   
+                                defs::Cursor::default()
                             } else {
                                 functioncalldata.data.params[last_entry - 1].pos
-                            }
+                            },
                         }
                     }
                     types::Types::Null => types::function_call::FunctionCallParameter {
                         value: types::Types::Null,
                         pos: if last_entry == 0 {
-                            defs::Cursor::default()   
+                            defs::Cursor::default()
                         } else {
                             functioncalldata.data.params[last_entry - 1].pos
-                        }
+                        },
                     },
                 };
 
