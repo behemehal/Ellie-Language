@@ -1,9 +1,8 @@
-use crate::alloc::boxed::Box;
 use crate::alloc::string::{String, ToString};
-use crate::parser;
-use crate::syntax::{class, condition, constructor, function, import, ret, variable};
+use core::hash::Hash;
+use serde::Serialize;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Hash)]
 pub enum ScopeTypes {
     File,
     System,
@@ -16,21 +15,15 @@ impl Default for ScopeTypes {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Hash)]
 pub struct Scope {
-    scope_name: String,
-    scope_data: parser::Parser,
-    inner_scope: Option<Box<Scope>>,
-    scope_type: ScopeTypes,
+    pub scope_name: String,
 }
 
 impl Default for Scope {
     fn default() -> Self {
         Scope {
-            scope_name: String::new(),
-            scope_type: ScopeTypes::default(),
-            scope_data: parser::Parser::default(),
-            inner_scope: None,
+            scope_name: "core".to_string(),
         }
     }
 }
@@ -40,9 +33,12 @@ impl Scope {
     //
     //}
 
-    pub fn resolve_item(name: String) {}
-
-    pub fn mount_scope(&mut self, scope: Scope) {
-        self.inner_scope = Some(Box::new(scope));
-    }
+    //pub fn mount_scope(&mut self, scope_data: parser::Parser, scope_type: ScopeTypes, scope_name: String) -> Scope {
+    //    Scope {
+    //        scope_name: self.scope_name.clone() + "/" + &scope_name,
+    //        scope_type,
+    //        scope_data,
+    //        upper_scope: Some(Box::new(self.clone()))
+    //    }
+    //}
 }

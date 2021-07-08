@@ -11,7 +11,6 @@ pub fn is_errors_same(first: error::Error, second: error::Error) -> bool {
 pub fn zip_errors(errors: Vec<error::Error>) -> Vec<error::Error> {
     let mut clone_errors: Vec<error::Error> = errors.clone();
     let mut zipped_errors: Vec<error::Error> = Vec::new();
-
     for i in 0..clone_errors.len() {
         if i != 0 {
             if is_errors_same(clone_errors[i - 1].clone(), clone_errors[i].clone()) {

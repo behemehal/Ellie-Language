@@ -19,14 +19,15 @@ pub fn collect_variable_value(
     letter_char: &str,
     next_char: String,
     last_char: String,
-    options: defs::ParserOptions,
+    _options: defs::ParserOptions,
 ) {
+    let parser_clone = parser.clone();
     if let parser::Collecting::Variable(ref mut variabledata) = parser.current {
         if !variabledata.named {
             if letter_char == ":" {
                 if variabledata.data.name.is_empty() {
                     errors.push(error::Error {
-                        scope: parser.scope.clone() + "/variable_processor",
+                        scope: parser.scope.scope_name.clone(),
                         debug_message: "d8f6d56e50c48758e2067473d5b044e9".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
@@ -47,7 +48,7 @@ pub fn collect_variable_value(
                     if variabledata.data.dynamic {
                         //TODO REMOVE THIS
                         errors.push(error::Error {
-                            scope: parser.scope.clone() + "/variable_processor",
+                            scope: parser.scope.scope_name.clone(),
                             debug_message: "ec07ec2e0a5c98fd6f0154c053b223da".to_string(),
                             title: error::errorList::error_s11.title.clone(),
                             code: error::errorList::error_s11.code,
@@ -64,7 +65,7 @@ pub fn collect_variable_value(
 
                     if utils::is_reserved(&variabledata.data.name) {
                         errors.push(error::Error {
-                            scope: parser.scope.clone() + "/function_processor",
+                            scope: parser.scope.scope_name.clone(),
                             debug_message: "8192a6244de9aa4ffd4aa4405e1e696e".to_string(),
                             title: error::errorList::error_s21.title.clone(),
                             code: error::errorList::error_s21.code,
@@ -93,7 +94,7 @@ pub fn collect_variable_value(
 
                 if !variabledata.data.dynamic {
                     errors.push(error::Error {
-                        scope: parser.scope.clone() + "/variable_processor",
+                        scope: parser.scope.scope_name.clone(),
                         debug_message: "b0bb5d383a6cfa14202444bb6efdcbb0".to_string(),
                         title: error::errorList::error_s8.title.clone(),
                         code: error::errorList::error_s8.code,
@@ -108,7 +109,7 @@ pub fn collect_variable_value(
                     });
                 } else if variabledata.data.name.is_empty() {
                     errors.push(error::Error {
-                        scope: parser.scope.clone() + "/variable_processor",
+                        scope: parser.scope.scope_name.clone(),
                         debug_message: "9eb56ec5b364817c2ff4c39e9a0a80ee".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
@@ -128,7 +129,7 @@ pub fn collect_variable_value(
                 } else {
                     if utils::is_reserved(&variabledata.data.name) {
                         errors.push(error::Error {
-                            scope: parser.scope.clone() + "/function_processor",
+                            scope: parser.scope.scope_name.clone(),
                             debug_message: "8192a6244de9aa4ffd4aa4405e1e696e".to_string(),
                             title: error::errorList::error_s21.title.clone(),
                             code: error::errorList::error_s21.code,
@@ -154,7 +155,7 @@ pub fn collect_variable_value(
                     if (last_char == " " || last_char == "\n") && !variabledata.data.name.is_empty()
                     {
                         errors.push(error::Error {
-                            scope: parser.scope.clone() + "/variable_processor",
+                            scope: parser.scope.scope_name.clone(),
                             debug_message: "dec49838632cf5e0fc6477e251656003".to_string(),
                             title: error::errorList::error_s1.title.clone(),
                             code: error::errorList::error_s1.code,
@@ -184,7 +185,7 @@ pub fn collect_variable_value(
                         || !variabledata.data.name.is_empty())
                 {
                     errors.push(error::Error {
-                        scope: parser.scope.clone() + "/variable_processor",
+                        scope: parser.scope.scope_name.clone(),
                         debug_message: "054b0818b7f836c05d2647f89e76899f".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
@@ -214,7 +215,7 @@ pub fn collect_variable_value(
             } else if letter_char == "=" {
                 if !variabledata.data.rtype.is_definer_complete() {
                     errors.push(error::Error {
-                        scope: parser.scope.clone() + "/variable_processor",
+                        scope: parser.scope.scope_name.clone(),
                         debug_message: "acad86a361c6da68b60d67a8fcd3947e".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
@@ -246,13 +247,12 @@ pub fn collect_variable_value(
                     variabledata.data.type_pos.range_start = parser.pos;
                 }
                 processors::definer_processor::collect_definer(
+                    parser_clone,
                     &mut variabledata.data.rtype,
                     errors,
                     letter_char.to_string(),
-                    parser.pos,
                     next_char,
                     last_char,
-                    options,
                 );
                 variabledata.data.type_pos.range_end = parser.pos;
             }
@@ -278,7 +278,7 @@ pub fn collect_variable_value(
                         }
 
                         errors.push(error::Error {
-                            scope: parser.scope.clone() + "/variable_processor",
+                            scope: parser.scope.scope_name.clone(),
                             debug_message: "5ebdb98933991ba25b33f369986807a2".to_string(),
                             title: error::errorList::error_s3.title.clone(),
                             code: error::errorList::error_s3.code,
@@ -303,7 +303,7 @@ pub fn collect_variable_value(
                     parser.current = parser::Collecting::None;
                 } else {
                     errors.push(error::Error {
-                        scope: parser.scope.clone() + "/variable_processor",
+                        scope: parser.scope.scope_name.clone(),
                         debug_message: "f2276f727552adff776092e1f8220a59".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
@@ -331,12 +331,11 @@ pub fn collect_variable_value(
             }
             let mut cd = variabledata.clone();
             let collected = processors::value_processor::collect_value(
+                parser_clone,
                 &mut cd,
                 letter_char,
                 next_char,
                 last_char,
-                parser.pos,
-                options,
             );
             for i in collected.errors {
                 errors.push(i)

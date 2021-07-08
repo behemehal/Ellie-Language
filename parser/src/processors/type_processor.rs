@@ -1,16 +1,20 @@
 use crate::parser;
-use crate::syntax::{class, condition, constructor, function, import, ret, types, variable, caller};
+use crate::syntax::{
+    caller, class, condition, constructor, function, import, ret, types, variable,
+};
 use ellie_core::{defs, error, utils};
 
+use alloc::boxed::Box;
 use alloc::string::{String, ToString};
+use alloc::vec;
 use alloc::vec::Vec;
 
 pub fn collect_type(
     parser: &mut parser::Parser,
-    _errors: &mut Vec<error::Error>,
+    errors: &mut Vec<error::Error>,
     letter_char: &str,
-    last_char: String,
-    _next_char: String,
+    _last_char: String,
+    next_char: String,
     options: defs::ParserOptions,
 ) {
     let keyword = utils::trim_good(parser.keyword_catch.trim_start().to_string()); //one step next
@@ -18,6 +22,13 @@ pub fn collect_type(
     if (keyword == "import " || keyword == "pub import " || keyword == "pri import")
         && options.allow_import
     {
+        if keyword == "pri import" {
+            #[cfg(feature = "std")]
+            std::println!(
+                "[ParserInfo] imports are private in default, but use it anyway its your choice"
+            )
+        }
+
         parser.current = parser::Collecting::Import(import::Import {
             public: keyword == "pub import ",
             pos: defs::Cursor {
@@ -126,7 +137,21 @@ pub fn collect_type(
     } else if keyword == "else {" && options.parser_type == defs::ParserType::RawParser {
         let collected_length = parser.collected.clone().len();
         if collected_length == 0 {
-            panic!("Error");
+            errors.push(error::Error {
+                scope: "definer_processor".to_string(),
+                debug_message: "700312010d036bf0e3737e03c5b5484d".to_string(),
+                title: error::errorList::error_s1.title.clone(),
+                code: error::errorList::error_s1.code,
+                message: error::errorList::error_s1.message.clone(),
+                builded_message: error::Error::build(
+                    error::errorList::error_s1.message.clone(),
+                    vec![error::ErrorBuildField {
+                        key: "token".to_string(),
+                        value: keyword,
+                    }],
+                ),
+                pos: parser.keyword_pos,
+            });
         } else if let parser::Collecting::Condition(value) =
             &mut parser.collected[collected_length - 1]
         {
@@ -163,21 +188,38 @@ pub fn collect_type(
             ..Default::default()
         });
         parser.keyword_cache = variable::VariableCollector::default();
-    } else if letter_char == "(" && keyword.trim() != "(" && !keyword.trim().is_empty(){
+    } else if letter_char == "(" && keyword.trim() != "(" && !keyword.trim().is_empty() {
         parser.current = parser::Collecting::Caller(caller::Caller {
             value: types::Types::FunctionCall(types::function_call::FunctionCallCollector {
                 data: types::function_call::FunctionCall {
-                    name: keyword.clone(),
+                    name: keyword.clone().replace("(", ""),
                     name_pos: defs::Cursor {
-                        range_start: if keyword.clone().trim().len() > parser.pos.1 {
+                        range_start: if keyword.clone().trim().len() - 1 > parser.pos.1 {
                             parser.pos
                         } else {
-                            parser.pos.clone().popChar(keyword.clone().trim().len())
+                            parser.pos.clone().popChar(keyword.clone().trim().len() - 1)
                         },
                         range_end: parser.pos,
                     },
                     ..Default::default()
                 },
+                ..Default::default()
+            }),
+            pos: defs::Cursor {
+                range_start: parser.pos,
+                ..Default::default()
+            },
+        });
+    } else if next_char == "." && keyword.trim() != "" {
+        parser.current = parser::Collecting::Caller(caller::Caller {
+            value: types::Types::Refference(types::refference_type::RefferenceType {
+                refference: Box::new(types::Types::VariableType(
+                    types::variable_type::VariableType {
+                        value: keyword.clone(),
+                        value_complete: true,
+                    },
+                )),
+                on_dot: true,
                 ..Default::default()
             }),
             pos: defs::Cursor {

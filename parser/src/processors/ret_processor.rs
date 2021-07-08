@@ -13,8 +13,9 @@ pub fn collect_ret(
     letter_char: &str,
     next_char: String,
     last_char: String,
-    options: defs::ParserOptions,
+    _options: defs::ParserOptions,
 ) {
+    let parser_clone = parser.clone();
     if let parser::Collecting::Ret(ref mut data) = parser.current {
         if letter_char == ";" && data.value.is_type_complete() {
             parser.collected.push(parser.current.clone());
@@ -28,12 +29,11 @@ pub fn collect_ret(
                 ..variable::VariableCollector::default()
             };
             let itered_ret_vector = Box::new(value_processor::collect_value(
+                parser_clone.clone(),
                 &mut will_be_itered,
                 letter_char,
                 next_char,
                 last_char,
-                defs::CursorPosition(0, 0),
-                options,
             ));
             if !itered_ret_vector.errors.is_empty() {
                 for returned_error in itered_ret_vector.errors {

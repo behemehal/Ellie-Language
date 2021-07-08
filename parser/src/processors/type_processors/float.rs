@@ -1,4 +1,5 @@
 #![allow(clippy::unnecessary_unwrap)]
+use crate::parser;
 use crate::processors::type_processors;
 use crate::syntax::{types, variable};
 use alloc::boxed::Box;
@@ -8,13 +9,12 @@ use alloc::vec::Vec;
 use ellie_core::{defs, error};
 
 pub fn collect_float(
+    parser: parser::Parser,
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     next_char: String,
     last_char: String,
-    pos: defs::CursorPosition,
-    options: defs::ParserOptions,
 ) {
     if let types::Types::Float(ref mut data) = itered_data.data.value {
         if !data.at_point {
@@ -38,8 +38,8 @@ pub fn collect_float(
                         }],
                     ),
                     pos: defs::Cursor {
-                        range_start: pos,
-                        range_end: pos.clone().skipChar(1),
+                        range_start: parser.pos,
+                        range_end: parser.pos.clone().skipChar(1),
                     },
                 });
             }
@@ -63,10 +63,11 @@ pub fn collect_float(
                             }],
                         ),
                         pos: defs::Cursor {
-                            range_start: pos
+                            range_start: parser
+                                .pos
                                 .clone()
                                 .popChar((data.point.clone() + "." + letter_char).len()),
-                            range_end: pos.clone().skipChar(1),
+                            range_end: parser.pos.clone().skipChar(1),
                         },
                     });
                 } else {
@@ -90,10 +91,11 @@ pub fn collect_float(
                             }],
                         ),
                         pos: defs::Cursor {
-                            range_start: pos
+                            range_start: parser
+                                .pos
                                 .clone()
                                 .popChar((data.point.clone() + "." + letter_char).len()),
-                            range_end: pos.clone().skipChar(1),
+                            range_end: parser.pos.clone().skipChar(1),
                         },
                     });
                 } else {
@@ -116,8 +118,8 @@ pub fn collect_float(
                         }],
                     ),
                     pos: defs::Cursor {
-                        range_start: pos,
-                        range_end: pos.clone().skipChar(1),
+                        range_start: parser.pos,
+                        range_end: parser.pos.clone().skipChar(1),
                     },
                 });
             }
@@ -129,13 +131,12 @@ pub fn collect_float(
                     on_dot: false,
                 });
             type_processors::refference::collect_refference(
+                parser,
                 itered_data,
                 errors,
                 letter_char,
                 next_char,
                 last_char,
-                pos,
-                options,
             )
         } else if types::logical_type::LogicalOpearators::is_logical_opearator(letter_char) {
             data.complete = true;
@@ -152,13 +153,12 @@ pub fn collect_float(
                     ..Default::default()
                 });
             type_processors::operator::collect_operator(
+                parser,
                 itered_data,
                 errors,
                 letter_char,
                 next_char,
                 last_char,
-                pos,
-                options,
             )
         } else if types::comparison_type::ComparisonOperators::is_comparison_opearator(letter_char)
         {
@@ -176,13 +176,12 @@ pub fn collect_float(
                     ..Default::default()
                 });
             type_processors::operator::collect_operator(
+                parser,
                 itered_data,
                 errors,
                 letter_char,
                 next_char,
                 last_char,
-                pos,
-                options,
             )
         } else if types::arithmetic_type::ArithmeticOperators::is_arithmetic_opearator(letter_char)
         {
@@ -200,13 +199,12 @@ pub fn collect_float(
                     ..Default::default()
                 });
             type_processors::operator::collect_operator(
+                parser,
                 itered_data,
                 errors,
                 letter_char,
                 next_char,
                 last_char,
-                pos,
-                options,
             )
         } else if letter_char == " " {
             data.complete = true;
@@ -225,8 +223,8 @@ pub fn collect_float(
                     }],
                 ),
                 pos: defs::Cursor {
-                    range_start: pos,
-                    range_end: pos.clone().skipChar(1),
+                    range_start: parser.pos,
+                    range_end: parser.pos.clone().skipChar(1),
                 },
             });
         }

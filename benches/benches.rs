@@ -20,7 +20,6 @@ fn variable_benchmark(c: &mut Criterion) {
             ];
         "
         .to_string(),
-        "core".to_string(),
         ellie_core::defs::ParserOptions {
             functions: true,
             break_on_error: false,

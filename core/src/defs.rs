@@ -4,9 +4,10 @@ use alloc::format;
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 use core::fmt;
+use core::hash::Hash;
 use serde::Serialize;
 
-#[derive(PartialEq, Debug, Clone, Serialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Hash)]
 pub enum ParserType {
     RawParser,
     ClassParser,
@@ -18,7 +19,7 @@ impl Default for ParserType {
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Hash)]
 pub struct ParserOptions {
     pub functions: bool,
     pub break_on_error: bool,
@@ -55,7 +56,7 @@ impl Default for ParserOptions {
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Copy, Serialize)]
+#[derive(PartialEq, Debug, Clone, Copy, Serialize, Hash)]
 pub struct CursorPosition(pub usize, pub usize);
 
 impl Default for CursorPosition {
@@ -74,12 +75,22 @@ impl CursorPosition {
         self.1 -= n;
         return self.clone();
     }
+
+    pub fn is_zero(&self) -> bool {
+        self.0 == 0 && self.1 == 0
+    }
 }
 
-#[derive(PartialEq, Debug, Clone, Copy, Serialize)]
+#[derive(PartialEq, Debug, Clone, Copy, Serialize, Hash)]
 pub struct Cursor {
     pub range_start: CursorPosition,
     pub range_end: CursorPosition,
+}
+
+impl Cursor {
+    pub fn is_zero(&self) -> bool {
+        self.range_start.is_zero() && self.range_end.is_zero()
+    }
 }
 
 impl Default for Cursor {

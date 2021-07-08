@@ -9,16 +9,16 @@ use alloc::vec;
 use alloc::vec::Vec;
 
 pub fn collect_arrow(
+    parser: parser::Parser,
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     next_char: String,
     last_char: String,
-    pos: defs::CursorPosition,
-    options: defs::ParserOptions,
 ) {
     if let types::Types::ArrowFunction(ref mut functiondata) = itered_data.data.value {
-        itered_data.data.rtype = definers::DefinerCollecting::Function(definers::FunctionType::default());
+        itered_data.data.rtype =
+            definers::DefinerCollecting::Function(definers::FunctionType::default());
 
         if !functiondata.parameter_wrote {
             if letter_char == "(" && !functiondata.param_bracket_opened {
@@ -74,8 +74,8 @@ pub fn collect_arrow(
                                     }],
                                 ),
                                 pos: defs::Cursor {
-                                    range_start: pos,
-                                    range_end: pos.clone().skipChar(1),
+                                    range_start: parser.pos,
+                                    range_end: parser.pos.clone().skipChar(1),
                                 },
                             });
                         } else {
@@ -98,8 +98,8 @@ pub fn collect_arrow(
                                 }],
                             ),
                             pos: defs::Cursor {
-                                range_start: pos,
-                                range_end: pos.clone().skipChar(1),
+                                range_start: parser.pos,
+                                range_end: parser.pos.clone().skipChar(1),
                             },
                         });
                     }
@@ -126,13 +126,12 @@ pub fn collect_arrow(
                         functiondata.data.parameters[last_entry - 1].child_brace += 1;
                     }
                     processors::definer_processor::collect_definer(
+                        parser.clone(),
                         &mut functiondata.data.parameters[last_entry - 1].data.rtype,
                         errors,
                         letter_char.to_string(),
-                        pos,
                         next_char,
                         last_char,
-                        options,
                     );
                 }
             }
@@ -157,8 +156,8 @@ pub fn collect_arrow(
                         }],
                     ),
                     pos: defs::Cursor {
-                        range_start: pos,
-                        range_end: pos.clone().skipChar(1),
+                        range_start: parser.pos,
+                        range_end: parser.pos.clone().skipChar(1),
                     },
                 });
             }
@@ -167,13 +166,12 @@ pub fn collect_arrow(
                 functiondata.return_typed = true;
             } else {
                 processors::definer_processor::collect_definer(
+                    parser.clone(),
                     &mut functiondata.data.return_type,
                     errors,
                     letter_char.to_string(),
-                    pos,
                     next_char,
                     last_char,
-                    options,
                 );
             }
         } else if letter_char == "}" && functiondata.brace_count == 0 {

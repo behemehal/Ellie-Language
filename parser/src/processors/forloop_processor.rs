@@ -1,19 +1,15 @@
-use crate::alloc::boxed::Box;
-use crate::alloc::string::{String, ToString};
-use crate::alloc::vec;
+use crate::alloc::string::String;
 use crate::alloc::vec::Vec;
 use crate::parser;
-use crate::processors;
-use crate::syntax::{definers, function};
-use ellie_core::{defs, error, utils};
+use ellie_core::{defs, error};
 
 pub fn collect_for(
     parser: &mut parser::Parser,
-    errors: &mut Vec<error::Error>,
-    letter_char: &str,
-    next_char: String,
-    last_char: String,
-    options: defs::ParserOptions,
+    _errors: &mut Vec<error::Error>,
+    _letter_char: &str,
+    _next_char: String,
+    _last_char: String,
+    _options: defs::ParserOptions,
 ) {
-    if let parser::Collecting::Forloop(ref mut forloopdata) = parser.current {}
+    if let parser::Collecting::Forloop(ref mut _forloopdata) = parser.current {}
 }

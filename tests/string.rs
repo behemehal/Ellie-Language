@@ -3,7 +3,7 @@ mod string_tests {
 
     #[test]
     fn string_collected_with_no_error() {
-        let pos = ellie_core::defs::CursorPosition(0, 0);
+        let emulated_parser = ellie_parser::parser::Parser::default();
         let mut emulated_collector_data =
             ellie_parser::syntax::variable::VariableCollector::default();
         let mut syntax_errors = vec![];
@@ -25,12 +25,11 @@ mod string_tests {
             let next_char =
                 &ellie_core::utils::get_letter(code.to_string(), index, true).to_owned();
             let itered = ellie_parser::processors::value_processor::collect_value(
+                emulated_parser.clone(),
                 &mut emulated_collector_data,
                 letter_char,
                 next_char.to_string(),
                 last_char.to_string(),
-                pos,
-                ellie_core::defs::ParserOptions::default(),
             );
 
             for error in itered.errors {
@@ -48,7 +47,7 @@ mod string_tests {
 
     #[test]
     fn string_prototype_collected() {
-        let pos = ellie_core::defs::CursorPosition(0, 0);
+        let emulated_parser = ellie_parser::parser::Parser::default();
         let mut emulated_collector_data =
             ellie_parser::syntax::variable::VariableCollector::default();
         let mut syntax_errors = vec![];
@@ -70,12 +69,11 @@ mod string_tests {
             let next_char =
                 &ellie_core::utils::get_letter(code.to_string(), index, true).to_owned();
             let itered = ellie_parser::processors::value_processor::collect_value(
+                emulated_parser.clone(),
                 &mut emulated_collector_data,
                 letter_char,
                 next_char.to_string(),
                 last_char.to_string(),
-                pos,
-                ellie_core::defs::ParserOptions::default(),
             );
 
             for error in itered.errors {
@@ -90,7 +88,7 @@ mod string_tests {
 
     #[test]
     fn string_operators_collected() {
-        let pos = ellie_core::defs::CursorPosition(0, 0);
+        let emulated_parser = ellie_parser::parser::Parser::default();
         let mut emulated_collector_data =
             ellie_parser::syntax::variable::VariableCollector::default();
         let mut syntax_errors = vec![];
@@ -112,12 +110,11 @@ mod string_tests {
             let next_char =
                 &ellie_core::utils::get_letter(code.to_string(), index, true).to_owned();
             let itered = ellie_parser::processors::value_processor::collect_value(
+                emulated_parser.clone(),
                 &mut emulated_collector_data,
                 letter_char,
                 next_char.to_string(),
                 last_char.to_string(),
-                pos,
-                ellie_core::defs::ParserOptions::default(),
             );
 
             for error in itered.errors {

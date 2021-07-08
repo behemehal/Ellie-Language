@@ -5,7 +5,7 @@ use alloc::boxed::Box;
 use alloc::string::String;
 use alloc::vec::Vec;
 
-#[derive(PartialEq, Debug, Clone, Serialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Hash)]
 pub enum ComparisonOperators {
     Equal,
     NotEqual,
@@ -23,10 +23,19 @@ impl Default for ComparisonOperators {
 }
 
 impl ComparisonOperators {
-    pub fn is_comparison_opearator(value: &str) -> bool {
+    pub fn _is_comparison_opearator(value: &str) -> bool {
         let v: Vec<char> = "=!<>".chars().collect();
         let q: Vec<char> = value.chars().filter(|x| !v.contains(x)).collect();
         q.is_empty()
+    }
+
+    pub fn is_comparison_opearator(value: &str) -> bool {
+        value == "=="
+            || value == "!="
+            || value == "> "
+            || value == "< "
+            || value == ">="
+            || value == "<="
     }
 
     pub fn resolve_comparison_operator(value: &str) -> Result<ComparisonOperators, bool> {
@@ -42,7 +51,7 @@ impl ComparisonOperators {
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Default, Serialize)]
+#[derive(PartialEq, Debug, Clone, Default, Serialize, Hash)]
 pub struct ComparisonType {
     pub cloaked: bool,
     pub first: Box<types::Types>,

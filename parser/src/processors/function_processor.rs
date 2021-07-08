@@ -13,8 +13,9 @@ pub fn collect_function(
     letter_char: &str,
     next_char: String,
     last_char: String,
-    options: defs::ParserOptions,
+    _options: defs::ParserOptions,
 ) {
+    let parser_clone = parser.clone();
     if let parser::Collecting::Function(ref mut functiondata) = parser.current {
         let current_reliability = utils::reliable_name_range(
             utils::ReliableNameRanges::VariableName,
@@ -33,7 +34,7 @@ pub fn collect_function(
             } else if letter_char == "(" && !functiondata.data.name.is_empty() {
                 if utils::is_reserved(&functiondata.data.name) {
                     errors.push(error::Error {
-                        scope: parser.scope.clone() + "/function_processor",
+                        scope: parser.scope.scope_name.clone(),
                         debug_message: "8192a6244de9aa4ffd4aa4405e1e696e".to_string(),
                         title: error::errorList::error_s21.title.clone(),
                         code: error::errorList::error_s21.code,
@@ -52,7 +53,7 @@ pub fn collect_function(
                 functiondata.data.parameters_pos.range_start = parser.pos;
             } else if letter_char != " " {
                 errors.push(error::Error {
-                    scope: parser.scope.clone() + "/function_processor",
+                    scope: parser.scope.scope_name.clone(),
                     debug_message: "da061dc5bd1e528fdaf4bf4c57478b61".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
@@ -112,7 +113,7 @@ pub fn collect_function(
                     functiondata.parameter_wrote = true
                 } else if letter_char != " " {
                     errors.push(error::Error {
-                        scope: parser.scope.clone() + "/function_processor",
+                        scope: parser.scope.scope_name.clone(),
                         debug_message: "78a362ab0571e53fe32fe427e2bc7832".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
@@ -136,7 +137,7 @@ pub fn collect_function(
             {
                 if functiondata.has_dedup() {
                     errors.push(error::Error {
-                        scope: parser.scope.clone() + "/function_processor",
+                        scope: parser.scope.scope_name.clone(),
                         debug_message: "506e72829cc00b1d518496eacb2f3aa4".to_string(),
                         title: error::errorList::error_s10.title.clone(),
                         code: error::errorList::error_s10.code,
@@ -157,7 +158,7 @@ pub fn collect_function(
                 //If its type's comma dont stop collecting it
                 if functiondata.has_dedup() {
                     errors.push(error::Error {
-                        scope: parser.scope.clone() + "/function_processor",
+                        scope: parser.scope.scope_name.clone(),
                         debug_message: "e3ed995ff6d87f0e0ea4a808be9dfa9c".to_string(),
                         title: error::errorList::error_s10.title.clone(),
                         code: error::errorList::error_s10.code,
@@ -183,13 +184,12 @@ pub fn collect_function(
                     .pos
                     .range_end = parser.pos.clone().skipChar(1);
                 processors::definer_processor::collect_definer(
+                    parser_clone,
                     &mut functiondata.data.parameters[last_entry - 1].data.rtype,
                     errors,
                     letter_char.to_string(),
-                    parser.pos,
                     next_char,
                     last_char,
-                    options,
                 );
             }
         } else if !functiondata.return_typed {
@@ -205,7 +205,7 @@ pub fn collect_function(
                     functiondata.return_typed = true;
                 } else if letter_char != " " {
                     errors.push(error::Error {
-                        scope: parser.scope.clone() + "/function_processor",
+                        scope: parser.scope.scope_name.clone(),
                         debug_message: "23918ca7264c85b2bab2ceeb4821b894".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
@@ -227,20 +227,38 @@ pub fn collect_function(
                 functiondata.return_typed = true;
             } else {
                 processors::definer_processor::collect_definer(
+                    parser_clone,
                     &mut functiondata.data.return_type,
                     errors,
                     letter_char.to_string(),
-                    parser.pos,
                     next_char.clone(),
                     last_char.clone(),
-                    options,
                 );
             }
         } else if functiondata.brace_count == 0 && letter_char == "}" {
             //functiondata.data.inside_code = functiondata.code.collected.clone();
             //functiondata.code = Box::new(parser::Parser::default()); //Empty the cache
-            parser.collected.push(parser.current.clone());
-            parser.current = parser::Collecting::None;
+            let fn_exists = parser_clone.check_keyword(functiondata.data.name.clone());
+            if fn_exists.found {
+                errors.push(error::Error {
+                    scope: parser.scope.scope_name.clone(),
+                    debug_message: "replace".to_string(),
+                    title: error::errorList::error_s24.title.clone(),
+                    code: error::errorList::error_s24.code,
+                    message: error::errorList::error_s24.message.clone(),
+                    builded_message: error::Error::build(
+                        error::errorList::error_s24.message.clone(),
+                        vec![error::ErrorBuildField {
+                            key: "token".to_string(),
+                            value: functiondata.data.name.clone(),
+                        }],
+                    ),
+                    pos: functiondata.data.name_pos,
+                });
+            } else {
+                parser.collected.push(parser.current.clone());
+                parser.current = parser::Collecting::None;
+            }
         } else {
             if letter_char == "{" {
                 functiondata.brace_count += 1;

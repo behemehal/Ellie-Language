@@ -4,13 +4,13 @@ use serde::Serialize;
 use alloc::boxed::Box;
 use alloc::vec::Vec;
 
-#[derive(PartialEq, Default, Debug, Clone, Serialize)]
+#[derive(PartialEq, Default, Debug, Clone, Serialize, Hash)]
 pub struct ArrayEntry {
     pub value_complete: bool,
     pub value: Box<types::Types>,
 }
 
-#[derive(PartialEq, Default, Debug, Clone, Serialize)]
+#[derive(PartialEq, Default, Debug, Clone, Serialize, Hash)]
 pub struct ArrayType {
     pub layer_size: usize,
     pub complete: bool,

@@ -2,10 +2,11 @@ use alloc::format;
 use alloc::string::{String, ToString};
 use core::any::Any;
 use core::any::TypeId;
+use core::hash::{Hash, Hasher};
 use enum_as_inner::EnumAsInner;
 use serde::Serialize;
 
-#[derive(PartialEq, Eq, Debug, Clone, Copy, Serialize)]
+#[derive(PartialEq, Eq, Debug, Clone, Copy, Serialize, Hash)]
 pub enum FloatTypes {
     F32,
     F64,
@@ -23,6 +24,12 @@ pub enum FloatSize {
     F64(f64),
 }
 
+impl Hash for FloatSize {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.hash(state);
+    }
+}
+
 impl FloatSize {
     pub fn get_type(&self) -> String {
         let mut q: String = format!("{:?}", self);
@@ -38,14 +45,14 @@ impl Default for FloatSize {
     }
 }
 
-#[derive(PartialEq, Default, Debug, Clone, Serialize)]
+#[derive(PartialEq, Default, Debug, Clone, Serialize, Hash)]
 pub struct FloatType {
     pub value: FloatSize,
     pub rtype: FloatTypes,
     pub raw: String,
 }
 
-#[derive(PartialEq, Default, Debug, Clone, Serialize)]
+#[derive(PartialEq, Default, Debug, Clone, Serialize, Hash)]
 pub struct FloatTypeCollector {
     pub data: FloatType,
     pub base: String,

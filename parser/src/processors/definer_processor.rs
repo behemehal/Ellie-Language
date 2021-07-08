@@ -1,6 +1,7 @@
 use crate::alloc::string::{String, ToString};
 use crate::alloc::vec;
 use crate::alloc::vec::Vec;
+use crate::parser;
 use crate::syntax;
 use crate::syntax::definers::DefinerCollecting;
 use ellie_core::{defs, error, utils};
@@ -13,13 +14,12 @@ cloak(i8, i32)        //a cloak that contains i8 as first parameter i32 as secon
 */
 
 pub fn collect_definer(
+    parser: parser::Parser,
     type_data: &mut DefinerCollecting,
     errors: &mut Vec<error::Error>,
     letter_char: String,
-    pos: defs::CursorPosition,
     next_char: String,
     last_char: String,
-    options: defs::ParserOptions,
 ) {
     match type_data {
         DefinerCollecting::GrowableArray(ref mut data) => {
@@ -29,13 +29,12 @@ pub fn collect_definer(
                 data.complete = true;
             } else {
                 collect_definer(
+                    parser,
                     &mut data.rtype,
                     errors,
                     letter_char,
-                    pos,
                     next_char,
                     last_char,
-                    options,
                 )
             }
         }
@@ -47,13 +46,12 @@ pub fn collect_definer(
                     data.typed = true;
                 } else {
                     collect_definer(
+                        parser,
                         &mut data.rtype,
                         errors,
                         letter_char,
-                        pos,
                         next_char,
                         last_char,
-                        options,
                     )
                 }
             } else if letter_char == ")" && data.len.complete {
@@ -73,12 +71,11 @@ pub fn collect_definer(
                 };
 
                 let processed_data = crate::processors::value_processor::collect_value(
+                    parser.clone(),
                     &mut emulated_collector_data,
                     &letter_char,
                     next_char,
                     last_char,
-                    pos,
-                    options,
                 );
                 for i in processed_data.errors {
                     errors.push(i)
@@ -95,8 +92,8 @@ pub fn collect_definer(
                             error::errorList::error_s20.message.clone(),
                         ),
                         pos: defs::Cursor {
-                            range_start: pos,
-                            range_end: pos.clone().skipChar(1),
+                            range_start: parser.pos,
+                            range_end: parser.pos.clone().skipChar(1),
                         },
                     });
                 }
@@ -156,8 +153,8 @@ pub fn collect_definer(
                         }],
                     ),
                     pos: defs::Cursor {
-                        range_start: pos,
-                        range_end: pos.clone().skipChar(1),
+                        range_start: parser.pos,
+                        range_end: parser.pos.clone().skipChar(1),
                     },
                 });
             } else {
@@ -183,8 +180,8 @@ pub fn collect_definer(
                             }],
                         ),
                         pos: defs::Cursor {
-                            range_start: pos,
-                            range_end: pos.clone().skipChar(1),
+                            range_start: parser.pos,
+                            range_end: parser.pos.clone().skipChar(1),
                         },
                     });
                 }
@@ -220,21 +217,20 @@ pub fn collect_definer(
                             }],
                         ),
                         pos: defs::Cursor {
-                            range_start: pos,
-                            range_end: pos.clone().skipChar(1),
+                            range_start: parser.pos,
+                            range_end: parser.pos.clone().skipChar(1),
                         },
                     });
                 } else if data.bracket_inserted {
                     data.at_comma = false;
                     let len = data.params.clone().len();
                     collect_definer(
+                        parser,
                         &mut data.params[if len == 0 { 0 } else { len - 1 }],
                         errors,
                         letter_char,
-                        pos,
                         next_char,
                         last_char,
-                        options,
                     );
 
                     if data.params[if len == 0 { 0 } else { len - 1 }].is_definer_complete() {
@@ -258,8 +254,8 @@ pub fn collect_definer(
                                 }],
                             ),
                             pos: defs::Cursor {
-                                range_start: pos,
-                                range_end: pos.clone().skipChar(1),
+                                range_start: parser.pos,
+                                range_end: parser.pos.clone().skipChar(1),
                             },
                         });
                     }
@@ -267,13 +263,12 @@ pub fn collect_definer(
                 } else {
                     data.complete = true;
                     collect_definer(
+                        parser,
                         &mut data.returning,
                         errors,
                         letter_char,
-                        pos,
                         next_char,
                         last_char,
-                        options,
                     )
                 }
             }
@@ -299,6 +294,7 @@ pub fn collect_definer(
                 data.complete = true;
             } else {
                 collect_definer(
+                    parser,
                     &mut data.rtype[if length_of_childs == 1 {
                         0
                     } else {
@@ -306,10 +302,8 @@ pub fn collect_definer(
                     }],
                     errors,
                     letter_char,
-                    pos,
                     next_char,
                     last_char,
-                    options,
                 )
             }
         }

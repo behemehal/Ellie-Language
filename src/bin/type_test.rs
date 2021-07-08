@@ -4,6 +4,7 @@ use ellie_parser;
 fn main() {
     let mut pos = ellie_core::defs::CursorPosition(0, 0);
     let mut errors: Vec<ellie_core::error::Error> = vec![];
+    let emulated_parser = ellie_parser::parser::Parser::default();
     let mut emulated_collector_data = ellie_parser::syntax::definers::DefinerCollecting::default();
     let code = "
         array(16,test)
@@ -17,13 +18,12 @@ fn main() {
         let last_char = &ellie_core::utils::get_letter(code.to_string(), index, false).to_owned();
         let next_char = &ellie_core::utils::get_letter(code.to_string(), index, true).to_owned();
         ellie_parser::processors::definer_processor::collect_definer(
+            emulated_parser.clone(),
             &mut emulated_collector_data,
             &mut errors,
             letter_char.to_string(),
-            pos,
             next_char.to_string(),
             last_char.to_string(),
-            ellie_core::defs::ParserOptions::default(),
         );
         pos.0 += 1;
     }

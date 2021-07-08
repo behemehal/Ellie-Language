@@ -1,3 +1,4 @@
+use crate::parser;
 use crate::syntax::{types, variable};
 use ellie_core::{defs, error, utils};
 
@@ -9,13 +10,12 @@ use alloc::vec;
 use alloc::vec::Vec;
 
 pub fn collect_variable(
+    parser: parser::Parser,
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     next_char: String,
     last_char: String,
-    pos: defs::CursorPosition,
-    options: defs::ParserOptions,
 ) {
     if let types::Types::VariableType(ref mut variabledata) = itered_data.data.value {
         let current_reliability = utils::reliable_name_range(
@@ -38,15 +38,16 @@ pub fn collect_variable(
                             chain: Vec::new(),
                         });
                     type_processors::refference::collect_refference(
+                        parser.clone(),
                         itered_data,
                         errors,
                         letter_char,
                         next_char,
                         last_char,
-                        pos,
-                        options,
                     )
-                } else if types::logical_type::LogicalOpearators::is_logical_opearator((letter_char.to_string()).as_str()) {
+                } else if types::logical_type::LogicalOpearators::is_logical_opearator(
+                    (letter_char.to_string() + &next_char).as_str(),
+                ) {
                     variabledata.value_complete = true;
                     itered_data.data.value =
                         types::Types::Operator(types::operator_type::OperatorTypeCollector {
@@ -61,16 +62,16 @@ pub fn collect_variable(
                             ..Default::default()
                         });
                     type_processors::operator::collect_operator(
+                        parser.clone(),
                         itered_data,
                         errors,
                         letter_char,
                         next_char,
                         last_char,
-                        pos,
-                        options,
                     )
-                } else if types::comparison_type::ComparisonOperators::is_comparison_opearator((letter_char.to_string()).as_str())
-                {
+                } else if types::comparison_type::ComparisonOperators::is_comparison_opearator(
+                    (letter_char.to_string() + &next_char).as_str(),
+                ) {
                     variabledata.value_complete = true;
                     itered_data.data.value =
                         types::Types::Operator(types::operator_type::OperatorTypeCollector {
@@ -86,16 +87,16 @@ pub fn collect_variable(
                             ..Default::default()
                         });
                     type_processors::operator::collect_operator(
+                        parser.clone(),
                         itered_data,
                         errors,
                         letter_char,
                         next_char,
                         last_char,
-                        pos,
-                        options,
                     )
-                } else if types::arithmetic_type::ArithmeticOperators::is_arithmetic_opearator((letter_char.to_string()).as_str())
-                {
+                } else if types::arithmetic_type::ArithmeticOperators::is_arithmetic_opearator(
+                    (letter_char.to_string() + &next_char).as_str(),
+                ) {
                     variabledata.value_complete = true;
                     itered_data.data.value =
                         types::Types::Operator(types::operator_type::OperatorTypeCollector {
@@ -111,13 +112,12 @@ pub fn collect_variable(
                             ..Default::default()
                         });
                     type_processors::operator::collect_operator(
+                        parser.clone(),
                         itered_data,
                         errors,
                         letter_char,
                         next_char,
                         last_char,
-                        pos,
-                        options,
                     )
                 } else if letter_char != " " {
                     errors.push(error::Error {
@@ -134,8 +134,8 @@ pub fn collect_variable(
                             }],
                         ),
                         pos: defs::Cursor {
-                            range_start: pos,
-                            range_end: pos.clone().skipChar(1),
+                            range_start: parser.pos,
+                            range_end: parser.pos.clone().skipChar(1),
                         },
                     });
                 }
@@ -154,8 +154,8 @@ pub fn collect_variable(
                         }],
                     ),
                     pos: defs::Cursor {
-                        range_start: pos,
-                        range_end: pos.clone().skipChar(1),
+                        range_start: parser.pos,
+                        range_end: parser.pos.clone().skipChar(1),
                     },
                 });
             }

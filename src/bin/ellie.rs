@@ -20,6 +20,7 @@ fn main() {
         println!("\t--raw-compiler               || -rw  : Compiles as ellie raw");
         println!("\t--show-errors                || -se  : Linter code for errors");
         println!("\t--json-errors                || -je  : Linter code for errors as json");
+        println!("\t--parser-ws                  || -pw  : Visualize parsing process");
     } else {
         let args = env::args()
             .collect::<Vec<String>>()
@@ -35,7 +36,28 @@ fn main() {
                 .collect::<Vec<String>>();
             let debug_arg = env::args().any(|x| x == "--debug" || x == "-d");
 
-            if debug_arg {}
+            let _com = ellie_core::com::Com {
+                on_message: &|message| {
+                    std::println!(
+                        "{}{}{} | {}COM{}: {}",
+                        ellie_lang::terminal_colors::get_color(
+                            ellie_lang::terminal_colors::Colors::Magenta
+                        ),
+                        message.code,
+                        ellie_lang::terminal_colors::get_color(
+                            ellie_lang::terminal_colors::Colors::Reset
+                        ),
+                        ellie_lang::terminal_colors::get_color(
+                            ellie_lang::terminal_colors::Colors::Yellow
+                        ),
+                        ellie_lang::terminal_colors::get_color(
+                            ellie_lang::terminal_colors::Colors::Reset
+                        ),
+                        message.payload
+                    );
+                    //if env::args().any(|x| x == "-pw" || x == "--parser-ws") {}
+                },
+            };
 
             //let map_errors_arg = env::args().any(|x| x == "--map-errors");
             let file_arg_check = file_args.first();
@@ -54,7 +76,6 @@ fn main() {
                     } else if let Ok(code) = code_string {
                         let parser = parser::Parser::new(
                             code.clone(),
-                            "core".to_string(),
                             ellie_core::defs::ParserOptions {
                                 functions: true,
                                 break_on_error: false,

@@ -49,7 +49,7 @@ lazy_static! {
     pub static ref error_s7: crate::error::Error = crate::error::Error {
         code: 0x06,
         title: "RefferenceError".to_string(),
-        message: "Insufficent parameters supplied, Function requires '$token' parameters found '$token2' length of parameters".to_string(),
+        message: "$name requires '$token' parameters, found '$token2' length of parameters".to_string(),
         ..Default::default()
     };
 
@@ -161,7 +161,21 @@ lazy_static! {
     pub static ref error_s23: crate::error::Error = crate::error::Error {
         code: 0x22,
         title: "SyntaxError".to_string(),
-        message: "'$token' is not recognized (Possible unimplemented method)".to_string(),
+        message: "'$token' is not recognized as a command (Possible unimplemented)".to_string(),
+        ..Default::default()
+    };
+
+    pub static ref error_s24: crate::error::Error = crate::error::Error {
+        code: 0x23,
+        title: "RefferenceError".to_string(),
+        message: "'$token' is already defined".to_string(),
+        ..Default::default()
+    };
+
+    pub static ref error_s25: crate::error::Error = crate::error::Error {
+        code: 0x24,
+        title: "TypeError".to_string(),
+        message: "'$token' is not a function".to_string(),
         ..Default::default()
     };
 

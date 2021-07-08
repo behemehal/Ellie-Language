@@ -3,8 +3,9 @@ use ellie_core::defs;
 use serde::Serialize;
 
 use alloc::string::String;
+use core::hash::Hash;
 
-#[derive(PartialEq, Debug, Clone, Serialize, Default)]
+#[derive(PartialEq, Debug, Clone, Serialize, Default, Hash)]
 pub struct Variable {
     pub name: String,
     pub dynamic: bool,
@@ -19,7 +20,7 @@ pub struct Variable {
     pub hash: String,
 }
 
-#[derive(PartialEq, Debug, Clone, Default, Serialize)]
+#[derive(PartialEq, Debug, Clone, Default, Serialize, Hash)]
 pub struct VariableCollector {
     pub initialized: bool,
     pub named: bool,

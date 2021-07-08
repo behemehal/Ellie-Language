@@ -5,13 +5,13 @@ use ellie_core::defs;
 use serde::Serialize;
 use std::boxed::Box;
 
-#[derive(PartialEq, Debug, Clone, Default, Serialize)]
+#[derive(PartialEq, Debug, Clone, Default, Serialize, Hash)]
 pub struct GenericDefining {
     pub name: String,
     pub pos: defs::Cursor,
 }
 
-#[derive(PartialEq, Debug, Clone, Default, Serialize)]
+#[derive(PartialEq, Debug, Clone, Default, Serialize, Hash)]
 pub struct Class {
     pub name: String,
     pub constructor: constructor::Constructor,
@@ -23,7 +23,7 @@ pub struct Class {
     pub name_pos: defs::Cursor,
 }
 
-#[derive(PartialEq, Debug, Clone, Default, Serialize)]
+#[derive(PartialEq, Debug, Clone, Default, Serialize, Hash)]
 pub struct ClassCollector {
     pub generic_definings_collected: bool,
     pub brace_count: usize,

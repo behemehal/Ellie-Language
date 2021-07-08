@@ -1,11 +1,8 @@
-use crate::alloc::boxed::Box;
 use crate::alloc::string::{String, ToString};
 use crate::alloc::vec;
 use crate::alloc::vec::Vec;
 use crate::parser;
-use crate::processors;
-use crate::syntax::{definers, function};
-use ellie_core::{defs, error, utils};
+use ellie_core::{defs, error};
 
 pub fn collect_import(
     parser: &mut parser::Parser,
@@ -27,7 +24,7 @@ pub fn collect_import(
             }
         } else if letter_char != " " {
             errors.push(error::Error {
-                scope: parser.scope.clone() + "/import_processor",
+                scope: parser.scope.scope_name.clone(),
                 debug_message: "replace".to_string(),
                 title: error::errorList::error_s1.title.clone(),
                 code: error::errorList::error_s1.code,

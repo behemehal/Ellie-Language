@@ -35,7 +35,7 @@ pub fn collect_class(
             } else if letter_char == "<" && !classdata.data.name.is_empty() {
                 if utils::is_reserved(&classdata.data.name) {
                     errors.push(error::Error {
-                        scope: parser.scope.clone() + "/class_processor",
+                        scope: parser.scope.scope_name.clone(),
                         debug_message: "8192a6244de9aa4ffd4aa4405e1e696e".to_string(),
                         title: error::errorList::error_s21.title.clone(),
                         code: error::errorList::error_s21.code,
@@ -54,7 +54,7 @@ pub fn collect_class(
             } else if letter_char == "{" && !classdata.data.name.is_empty() {
                 if utils::is_reserved(&classdata.data.name) {
                     errors.push(error::Error {
-                        scope: parser.scope.clone() + "/class_processor",
+                        scope: parser.scope.scope_name.clone(),
                         debug_message: "8192a6244de9aa4ffd4aa4405e1e696e".to_string(),
                         title: error::errorList::error_s21.title.clone(),
                         code: error::errorList::error_s21.code,
@@ -73,7 +73,7 @@ pub fn collect_class(
                 classdata.generic_definings_collected = true;
             } else if letter_char != " " {
                 errors.push(error::Error {
-                    scope: parser.scope.clone() + "/class_processor",
+                    scope: parser.scope.scope_name.clone(),
                     debug_message: "ef295a034f83b83800bcd96c2aa192e2".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
@@ -125,7 +125,7 @@ pub fn collect_class(
             } else if letter_char == ">" && !classdata.at_comma {
                 if classdata.has_dedup() {
                     errors.push(error::Error {
-                        scope: parser.scope.clone() + "/class_processor",
+                        scope: parser.scope.scope_name.clone(),
                         debug_message: "506e72829cc00b1d518496eacb2f3aa4".to_string(),
                         title: error::errorList::error_s10.title.clone(),
                         code: error::errorList::error_s10.code,
@@ -140,7 +140,7 @@ pub fn collect_class(
             } else if letter_char == "," && !classdata.at_comma {
                 if classdata.has_dedup() {
                     errors.push(error::Error {
-                        scope: parser.scope.clone() + "/class_processor",
+                        scope: parser.scope.scope_name.clone(),
                         debug_message: "506e72829cc00b1d518496eacb2f3aa4".to_string(),
                         title: error::errorList::error_s10.title.clone(),
                         code: error::errorList::error_s10.code,
@@ -158,7 +158,7 @@ pub fn collect_class(
                     .push(class::GenericDefining::default());
             } else if letter_char != " " {
                 errors.push(error::Error {
-                    scope: parser.scope.clone() + "/class_processor",
+                    scope: parser.scope.scope_name.clone(),
                     debug_message: "8192a6244de9aa4ffd4aa4405e1e696e".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
@@ -190,7 +190,7 @@ pub fn collect_class(
                     parser::Collecting::Constructor(e) => {
                         if e.data.name != classdata.data.name {
                             errors.push(error::Error {
-                                scope: parser.scope.clone() + "/class_processor",
+                                scope: parser.scope.scope_name.clone(),
                                 debug_message: "replace".to_string(),
                                 title: error::errorList::error_s22.title.clone(),
                                 code: error::errorList::error_s22.code,

@@ -1,3 +1,4 @@
+use crate::parser;
 use crate::processors::{type_processors, value_processor};
 use crate::syntax::{definers, types, variable};
 use ellie_core::{defs, error};
@@ -8,13 +9,12 @@ use alloc::vec;
 use alloc::vec::Vec;
 
 pub fn collect_cloak(
+    parser: parser::Parser,
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     next_char: String,
     last_char: String,
-    pos: defs::CursorPosition,
-    options: defs::ParserOptions,
 ) {
     if let types::Types::Cloak(ref mut data) = itered_data.data.value {
         let last_entry = data.clone().collective.len();
@@ -37,8 +37,8 @@ pub fn collect_cloak(
                         }],
                     ),
                     pos: defs::Cursor {
-                        range_start: pos,
-                        range_end: pos.clone().skipChar(1),
+                        range_start: parser.pos,
+                        range_end: parser.pos.clone().skipChar(1),
                     },
                 });
             } else {
@@ -75,8 +75,8 @@ pub fn collect_cloak(
                         }],
                     ),
                     pos: defs::Cursor {
-                        range_start: pos,
-                        range_end: pos.clone().skipChar(1),
+                        range_start: parser.pos,
+                        range_end: parser.pos.clone().skipChar(1),
                     },
                 });
             } else if data.comma {
@@ -94,8 +94,8 @@ pub fn collect_cloak(
                         }],
                     ),
                     pos: defs::Cursor {
-                        range_start: pos,
-                        range_end: pos.clone().skipChar(1),
+                        range_start: parser.pos,
+                        range_end: parser.pos.clone().skipChar(1),
                     },
                 });
             } else {
@@ -124,8 +124,8 @@ pub fn collect_cloak(
                         }],
                     ),
                     pos: defs::Cursor {
-                        range_start: pos,
-                        range_end: pos.clone().skipChar(1),
+                        range_start: parser.pos,
+                        range_end: parser.pos.clone().skipChar(1),
                     },
                 });
             } else if data.complete {
@@ -143,8 +143,8 @@ pub fn collect_cloak(
                         }],
                     ),
                     pos: defs::Cursor {
-                        range_start: pos,
-                        range_end: pos.clone().skipChar(1),
+                        range_start: parser.pos,
+                        range_end: parser.pos.clone().skipChar(1),
                     },
                 });
             } else {
@@ -168,13 +168,12 @@ pub fn collect_cloak(
                     on_dot: false,
                 });
             type_processors::refference::collect_refference(
+                parser.clone(),
                 itered_data,
                 errors,
                 letter_char,
                 next_char,
                 last_char,
-                pos,
-                options,
             )
         } else if data.complete
             && types::logical_type::LogicalOpearators::is_logical_opearator(letter_char)
@@ -193,13 +192,12 @@ pub fn collect_cloak(
                     ..Default::default()
                 });
             type_processors::operator::collect_operator(
+                parser.clone(),
                 itered_data,
                 errors,
                 letter_char,
                 next_char,
                 last_char,
-                pos,
-                options,
             )
         } else if data.complete
             && types::comparison_type::ComparisonOperators::is_comparison_opearator(letter_char)
@@ -218,13 +216,12 @@ pub fn collect_cloak(
                     ..Default::default()
                 });
             type_processors::operator::collect_operator(
+                parser.clone(),
                 itered_data,
                 errors,
                 letter_char,
                 next_char,
                 last_char,
-                pos,
-                options,
             )
         } else if data.complete
             && types::arithmetic_type::ArithmeticOperators::is_arithmetic_opearator(letter_char)
@@ -243,13 +240,12 @@ pub fn collect_cloak(
                     ..Default::default()
                 });
             type_processors::operator::collect_operator(
+                parser,
                 itered_data,
                 errors,
                 letter_char,
                 next_char,
                 last_char,
-                pos,
-                options,
             )
         } else {
             if letter_char != " " {
@@ -278,7 +274,6 @@ pub fn collect_cloak(
                     }
                 };
             } else {
-                
                 will_be_itered = if data.collective.is_empty() {
                     variable::VariableCollector::default()
                 } else {
@@ -295,12 +290,11 @@ pub fn collect_cloak(
             }
 
             let itered_cloak_vector = Box::new(value_processor::collect_value(
+                parser.clone(),
                 &mut will_be_itered,
                 letter_char,
                 next_char,
                 last_char,
-                defs::CursorPosition(0, 0),
-                options,
             ));
 
             if let types::Types::Cloak(ref adata) = itered_cloak_vector.itered_data.data.value {
@@ -380,10 +374,10 @@ pub fn collect_cloak(
                 for returned_error in itered_cloak_vector.errors {
                     //errors.extend(itered_array_vector.errors);
                     let mut edited = returned_error;
-                    edited.pos.range_start.0 += pos.0;
-                    edited.pos.range_start.1 += pos.1;
-                    edited.pos.range_end.0 += pos.0;
-                    edited.pos.range_end.1 += pos.1;
+                    edited.pos.range_start.0 += parser.clone().pos.0;
+                    edited.pos.range_start.1 += parser.clone().pos.1;
+                    edited.pos.range_end.0 += parser.clone().pos.0;
+                    edited.pos.range_end.1 += parser.clone().pos.1;
                     errors.push(edited);
                 }
             }

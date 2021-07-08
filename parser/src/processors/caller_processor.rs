@@ -1,11 +1,9 @@
 use crate::parser;
 use crate::processors;
-use crate::syntax::{caller, types, variable};
-use ellie_core::{defs, error, utils};
-
-use alloc::string::{String, ToString};
-use alloc::vec;
+use crate::syntax::variable;
+use alloc::string::String;
 use alloc::vec::Vec;
+use ellie_core::{defs, error};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct CollectorResponse {
@@ -19,8 +17,9 @@ pub fn collect_caller(
     letter_char: &str,
     next_char: String,
     last_char: String,
-    options: defs::ParserOptions,
+    _options: defs::ParserOptions,
 ) {
+    let parser_clone = parser.clone();
     if let parser::Collecting::Caller(ref mut callerdata) = parser.current {
         if letter_char == ";" && callerdata.value.is_type_complete() {
             parser.collected.push(parser.current.clone());
@@ -34,16 +33,15 @@ pub fn collect_caller(
                 },
                 ..Default::default()
             };
-    
+
             let collected = processors::value_processor::collect_value(
+                parser_clone,
                 &mut emulated_collector_data,
                 letter_char,
                 next_char,
                 last_char,
-                parser.pos,
-                options,
             );
-    
+
             for i in collected.errors {
                 errors.push(i)
             }

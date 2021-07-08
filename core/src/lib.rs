@@ -33,6 +33,7 @@ extern crate std;
 
 #[macro_use]
 extern crate lazy_static;
+pub mod com;
 pub mod defs;
 pub mod error;
 pub mod utils;

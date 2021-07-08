@@ -7,14 +7,14 @@ use alloc::boxed::Box;
 use alloc::string::String;
 use alloc::vec::Vec;
 
-#[derive(PartialEq, Debug, Clone, Default, Serialize)]
+#[derive(PartialEq, Debug, Clone, Default, Serialize, Hash)]
 pub struct FunctionParameter {
     pub name: String,
     pub rtype: definers::DefinerCollecting,
     pub pos: defs::Cursor,
 }
 
-#[derive(PartialEq, Debug, Clone, Default, Serialize)]
+#[derive(PartialEq, Debug, Clone, Default, Serialize, Hash)]
 pub struct FunctionParameterCollector {
     pub data: FunctionParameter,
     pub named: bool,
@@ -22,7 +22,7 @@ pub struct FunctionParameterCollector {
     pub child_brace: usize,
 }
 
-#[derive(PartialEq, Debug, Clone, Default, Serialize)]
+#[derive(PartialEq, Debug, Clone, Default, Serialize, Hash)]
 pub struct Function {
     pub name: String,                                  //Function Name string
     pub parameters: Vec<FunctionParameterCollector>,   //Parameter vector
@@ -35,7 +35,7 @@ pub struct Function {
     pub parameters_pos: defs::Cursor,
 }
 
-#[derive(PartialEq, Debug, Clone, Default, Serialize)]
+#[derive(PartialEq, Debug, Clone, Default, Serialize, Hash)]
 pub struct FunctionCollector {
     pub data: Function,
     pub initialized: bool,

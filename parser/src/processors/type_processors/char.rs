@@ -1,3 +1,4 @@
+use crate::parser;
 use crate::processors::type_processors;
 use crate::syntax::{types, variable};
 use ellie_core::{defs, error};
@@ -8,13 +9,12 @@ use alloc::vec;
 use alloc::vec::Vec;
 
 pub fn collect_char(
+    parser: parser::Parser,
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     next_char: String,
     last_char: String,
-    pos: defs::CursorPosition,
-    options: defs::ParserOptions,
 ) {
     if let types::Types::Char(ref mut data) = itered_data.data.value {
         if itered_data.data.dynamic {
@@ -37,8 +37,8 @@ pub fn collect_char(
                         error::errorList::error_s14.message.clone(),
                     ),
                     pos: defs::Cursor {
-                        range_start: pos.clone().popChar(1),
-                        range_end: pos.clone().skipChar(1),
+                        range_start: parser.pos.clone().popChar(1),
+                        range_end: parser.pos.clone().skipChar(1),
                     },
                 });
             }
@@ -55,8 +55,8 @@ pub fn collect_char(
                         error::errorList::error_s15.message.clone(),
                     ),
                     pos: defs::Cursor {
-                        range_start: pos.clone().popChar(1),
-                        range_end: pos.clone().skipChar(1),
+                        range_start: parser.pos.clone().popChar(1),
+                        range_end: parser.pos.clone().skipChar(1),
                     },
                 });
             } else {
@@ -70,13 +70,12 @@ pub fn collect_char(
                     on_dot: false,
                 });
             type_processors::refference::collect_refference(
+                parser.clone(),
                 itered_data,
                 errors,
                 letter_char,
                 next_char,
                 last_char,
-                pos,
-                options,
             )
         } else if types::logical_type::LogicalOpearators::is_logical_opearator(letter_char) {
             data.complete = true;
@@ -93,13 +92,12 @@ pub fn collect_char(
                     ..Default::default()
                 });
             type_processors::operator::collect_operator(
+                parser.clone(),
                 itered_data,
                 errors,
                 letter_char,
                 next_char,
                 last_char,
-                pos,
-                options,
             )
         } else if types::comparison_type::ComparisonOperators::is_comparison_opearator(letter_char)
         {
@@ -117,13 +115,12 @@ pub fn collect_char(
                     ..Default::default()
                 });
             type_processors::operator::collect_operator(
+                parser.clone(),
                 itered_data,
                 errors,
                 letter_char,
                 next_char,
                 last_char,
-                pos,
-                options,
             )
         } else if types::arithmetic_type::ArithmeticOperators::is_arithmetic_opearator(letter_char)
         {
@@ -141,13 +138,12 @@ pub fn collect_char(
                     ..Default::default()
                 });
             type_processors::operator::collect_operator(
+                parser.clone(),
                 itered_data,
                 errors,
                 letter_char,
                 next_char,
                 last_char,
-                pos,
-                options,
             )
         } else if letter_char != " " {
             errors.push(error::Error {
@@ -164,8 +160,8 @@ pub fn collect_char(
                     }],
                 ),
                 pos: defs::Cursor {
-                    range_start: pos,
-                    range_end: pos.clone().skipChar(1),
+                    range_start: parser.pos,
+                    range_end: parser.pos.clone().skipChar(1),
                 },
             });
         }

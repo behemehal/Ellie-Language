@@ -1,3 +1,4 @@
+use crate::parser;
 use crate::processors::{type_processors, value_processor};
 use crate::syntax::{definers, types, variable};
 use ellie_core::{defs, error};
@@ -8,33 +9,15 @@ use alloc::vec;
 use alloc::vec::Vec;
 
 pub fn collect_array(
+    parser: parser::Parser,
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     next_char: String,
     last_char: String,
-    pos: defs::CursorPosition,
-    options: defs::ParserOptions,
 ) {
     if let types::Types::Array(ref mut data) = itered_data.data.value {
-        /*
-            Don't look right to it, it's dangerously complicated
-            Here is the story,
-
-            I assume you as a person that doesn't have a programming experience. In a loop you can process a data
-            and if a same data applied you can use the same function to process the data, This program uses millions of same pattern,
-            I experienced this a million times, Created programs that runs through loops processing big data. But this time I got stuck at this
-            function. It took almost 2 months, Thank god I got it.
-
-            A Weird way to stop a letter,
-
-            Sincerely
-
-            Ahmetcan Aksu 🦀
-        */
-
         let last_entry = data.clone().collective.len();
-        //let mut value: types::Types = types::Types::Null;
 
         let is_s_n = last_entry == 0 || data.collective[last_entry - 1].value.is_type_complete();
 
@@ -54,8 +37,8 @@ pub fn collect_array(
                         }],
                     ),
                     pos: defs::Cursor {
-                        range_start: pos,
-                        range_end: pos.clone().skipChar(1),
+                        range_start: parser.pos,
+                        range_end: parser.pos.clone().skipChar(1),
                     },
                 });
             } else {
@@ -92,8 +75,8 @@ pub fn collect_array(
                         }],
                     ),
                     pos: defs::Cursor {
-                        range_start: pos,
-                        range_end: pos.clone().skipChar(1),
+                        range_start: parser.pos,
+                        range_end: parser.pos.clone().skipChar(1),
                     },
                 });
             } else if data.comma {
@@ -111,8 +94,8 @@ pub fn collect_array(
                         }],
                     ),
                     pos: defs::Cursor {
-                        range_start: pos,
-                        range_end: pos.clone().skipChar(1),
+                        range_start: parser.pos,
+                        range_end: parser.pos.clone().skipChar(1),
                     },
                 });
             } else {
@@ -141,8 +124,8 @@ pub fn collect_array(
                         }],
                     ),
                     pos: defs::Cursor {
-                        range_start: pos,
-                        range_end: pos.clone().skipChar(1),
+                        range_start: parser.pos,
+                        range_end: parser.pos.clone().skipChar(1),
                     },
                 });
             } else if data.complete {
@@ -160,8 +143,8 @@ pub fn collect_array(
                         }],
                     ),
                     pos: defs::Cursor {
-                        range_start: pos,
-                        range_end: pos.clone().skipChar(1),
+                        range_start: parser.pos,
+                        range_end: parser.pos.clone().skipChar(1),
                     },
                 });
             } else {
@@ -185,13 +168,12 @@ pub fn collect_array(
                     on_dot: false,
                 });
             type_processors::refference::collect_refference(
+                parser.clone(),
                 itered_data,
                 errors,
                 letter_char,
                 next_char,
                 last_char,
-                pos,
-                options,
             )
         } else if data.complete
             && types::logical_type::LogicalOpearators::is_logical_opearator(letter_char)
@@ -210,13 +192,12 @@ pub fn collect_array(
                     ..Default::default()
                 });
             type_processors::operator::collect_operator(
+                parser.clone(),
                 itered_data,
                 errors,
                 letter_char,
                 next_char,
                 last_char,
-                pos,
-                options,
             )
         } else if data.complete
             && types::comparison_type::ComparisonOperators::is_comparison_opearator(letter_char)
@@ -235,13 +216,12 @@ pub fn collect_array(
                     ..Default::default()
                 });
             type_processors::operator::collect_operator(
+                parser.clone(),
                 itered_data,
                 errors,
                 letter_char,
                 next_char,
                 last_char,
-                pos,
-                options,
             )
         } else if data.complete
             && types::arithmetic_type::ArithmeticOperators::is_arithmetic_opearator(letter_char)
@@ -260,13 +240,12 @@ pub fn collect_array(
                     ..Default::default()
                 });
             type_processors::operator::collect_operator(
+                parser.clone(),
                 itered_data,
                 errors,
                 letter_char,
                 next_char,
                 last_char,
-                pos,
-                options,
             )
         } else {
             if letter_char != " " {
@@ -302,8 +281,8 @@ pub fn collect_array(
                             ],
                         ),
                         pos: defs::Cursor {
-                            range_start: pos,
-                            range_end: pos.clone().skipChar(1),
+                            range_start: parser.pos,
+                            range_end: parser.pos.clone().skipChar(1),
                         },
                     });
                 }
@@ -366,12 +345,11 @@ pub fn collect_array(
             }
 
             let itered_array_vector = Box::new(value_processor::collect_value(
+                parser.clone(),
                 &mut will_be_itered,
                 letter_char,
                 next_char,
                 last_char,
-                defs::CursorPosition(0, 0),
-                options,
             ));
 
             if let types::Types::Array(ref adata) = itered_array_vector.itered_data.data.value {
@@ -451,10 +429,10 @@ pub fn collect_array(
                 for returned_error in itered_array_vector.errors {
                     //errors.extend(itered_array_vector.errors);
                     let mut edited = returned_error;
-                    edited.pos.range_start.0 += pos.0;
-                    edited.pos.range_start.1 += pos.1;
-                    edited.pos.range_end.0 += pos.0;
-                    edited.pos.range_end.1 += pos.1;
+                    edited.pos.range_start.0 += parser.pos.0;
+                    edited.pos.range_start.1 += parser.pos.1;
+                    edited.pos.range_end.0 += parser.pos.0;
+                    edited.pos.range_end.1 += parser.pos.1;
                     errors.push(edited);
                 }
             }

@@ -1,11 +1,9 @@
-use crate::parser;
-use crate::syntax::constructor;
-use ellie_core::{defs, error, utils};
-
-use crate::alloc::boxed::Box;
 use crate::alloc::string::{String, ToString};
 use crate::alloc::vec;
 use crate::alloc::vec::Vec;
+use crate::parser;
+use crate::syntax::constructor;
+use ellie_core::{defs, error, utils};
 
 pub fn collect_constructor(
     parser: &mut parser::Parser,
@@ -36,7 +34,7 @@ pub fn collect_constructor(
                 constructordata.data.parameters_pos.range_start = parser.pos;
             } else if letter_char != " " {
                 errors.push(error::Error {
-                    scope: parser.scope.clone() + "/constructor_processor",
+                    scope: parser.scope.scope_name.clone(),
                     debug_message: "3c12fc0f11ea48d54df7bdda48d153d8".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
@@ -92,7 +90,7 @@ pub fn collect_constructor(
                     .push(constructor::ConstructorParameter::default());
             } else if letter_char != " " {
                 errors.push(error::Error {
-                    scope: parser.scope.clone() + "/constructor_processor",
+                    scope: parser.scope.scope_name.clone(),
                     debug_message: "8d58d0b635da2a74375e0a0ab8eb16d6".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
@@ -118,7 +116,7 @@ pub fn collect_constructor(
                 parser.current = parser::Collecting::None;
             } else if letter_char != " " {
                 errors.push(error::Error {
-                    scope: parser.scope.clone() + "/constructor_processor",
+                    scope: parser.scope.scope_name.clone(),
                     debug_message: "257893788177a46fbce517635547ab65".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,

@@ -5,14 +5,14 @@ use alloc::string::String;
 use alloc::vec::Vec;
 use serde::Serialize;
 
-#[derive(PartialEq, Debug, Clone, Default, Serialize)]
+#[derive(PartialEq, Debug, Clone, Default, Serialize, Hash)]
 pub struct ArrowFunction {
     pub parameters: Vec<function::FunctionParameterCollector>,
     pub return_type: Box<definers::DefinerCollecting>,
     pub inside_code: Vec<Collecting>,
 }
 
-#[derive(PartialEq, Debug, Clone, Default, Serialize)]
+#[derive(PartialEq, Debug, Clone, Default, Serialize, Hash)]
 pub struct ArrowFunctionCollector {
     pub complete: bool,
     pub param_bracket_opened: bool,

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.gstatic.com" rel="preconnect">
+    <link href="https://fonts.googleapis.com" rel="preconnect">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300&amp;display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.12.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/themes/default/style.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/jstree.min.js"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <title>Ellie Panel</title>
+</head>
+
+
+<body>
+    <div class="header">
+        <p>
+            Ellie Debugger
+        </p>
+    </div>
+    <div class="panel">
+        <div class="panelView">
+            <div id="jstree_demo_div">
+            </div>
+        </div>
+        <div class="divider">
+            <span class="material-icons">drag_indicator</span>
+        </div>
+        <div class="panelDetails">
+        </div>
+
+    </div>
+
+
+    <script defer>
+        document.querySelector(".divider").ondrag = (t) => {
+            console.log(t)
+        }
+        $('#jstree').jstree({
+            "core": {
+                "animation": 0,
+                "check_callback": true,
+                "themes": {
+                    "stripes": true
+                },
+                'data': {
+                    'url': function (node) {
+                        return node.id === '#' ?
+                            'ajax_demo_roots.json' : 'ajax_demo_children.json';
+                    },
+                    'data': function (node) {
+                        return {
+                            'id': node.id
+                        };
+                    }
+                }
+            },
+            "types": {
+                "#": {
+                    "max_children": 1,
+                    "max_depth": 4,
+                    "valid_children": ["root"]
+                },
+                "root": {
+                    "icon": "/static/3.3.11/assets/images/tree_icon.png",
+                    "valid_children": ["default"]
+                },
+                "default": {
+                    "valid_children": ["default", "file"]
+                },
+                "file": {
+                    "icon": "glyphicon glyphicon-file",
+                    "valid_children": []
+                }
+            },
+            "plugins": [
+                "contextmenu", "dnd", "search",
+                "state", "types", "wholerow"
+            ]
+        });
+    </script>
+</body>
+
+</html>

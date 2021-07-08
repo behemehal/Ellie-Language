@@ -15,6 +15,7 @@ pub fn collect_condition(
     last_char: String,
     options: defs::ParserOptions,
 ) {
+    let parser_clone = parser.clone();
     if let parser::Collecting::Condition(ref mut data) = parser.current {
         if !data.initialized {
             if last_char == "i" && letter_char == "f" {
@@ -45,12 +46,11 @@ pub fn collect_condition(
                 );
             } else {
                 let collected = processors::value_processor::collect_value(
+                    parser_clone,
                     &mut data.cloak_itered_data,
                     letter_char,
                     next_char,
                     last_char,
-                    parser.pos,
-                    options,
                 );
                 for i in collected.errors {
                     errors.push(i)
@@ -65,12 +65,10 @@ pub fn collect_condition(
                     data.inside_object_count -= 1;
                 }
             } else {
-                let child_parser = parser::Parser::new(
-                    data.inside_code_string.clone(),
-                    parser.scope.clone() + "/condition",
-                    options,
-                );
-                parser.pos = child_parser.pos;
+                let mut child_parser =
+                    parser::Parser::new(data.inside_code_string.clone(), options);
+                //child_parser.scope = Box::new(parser.scope.mount_scope(child_parser.clone(), parser::scope::ScopeTypes::Inner, "condition".to_string()));
+                child_parser.pos = parser.pos;
                 let mapped = child_parser.map();
                 for i in mapped.syntax_errors {
                     errors.push(i)
