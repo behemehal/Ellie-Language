@@ -68,6 +68,7 @@ fn main() {
                 let file_read = File::open(&file_arg.clone());
                 if file_read.is_err() {
                     println!("File not found ~{}", &file_arg.clone());
+                    std::process::exit(1);
                 } else if let Ok(mut file) = file_read {
                     file.read_to_end(&mut file_content).expect("Unable to read");
                     let code_string = String::from_utf8(file_content);
@@ -121,7 +122,11 @@ fn main() {
                                                 "{}{}Error[{:#04x}]{} - {}{}{}: {}",
                                                 if debug_arg {
                                                     format!(
-                                                        "{}[{}]{} ",
+                                                        "{}({}) {}[{}]{} ",
+                                                        ellie_lang::terminal_colors::get_color(
+                                                            ellie_lang::terminal_colors::Colors::Magenta
+                                                        ),
+                                                        error.scope,
                                                         ellie_lang::terminal_colors::get_color(
                                                             ellie_lang::terminal_colors::Colors::Yellow
                                                         ),
@@ -323,20 +328,18 @@ fn main() {
                                     }
                                 }
                             }
+                            std::process::exit(1);
                         } else if env::args().any(|x| x == "-rw" || x == "--raw-compile") {
-                            //let mut wraw = File::create("compiled.wraw").expect("Unable to create file");
-                            //let serialized = serde_json::to_string(&point).unwrap();
-                            //for i in &syntax.clone().items {
-                            //    write!(wraw, "{:?}", i);
-                            //}
                             println!("Pre-compiled raw generation not supported yet {:#?}", code);
                         } else if !env::args().any(|x| x == "-se" || x == "--show-errors") {
                             print!("Collected: {:#?}", mapped);
+                            std::process::exit(0);
                         }
                     }
                 }
             } else {
                 println!("No file present\n-h for help");
+                std::process::exit(1);
             }
         }
     }

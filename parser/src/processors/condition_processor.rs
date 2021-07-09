@@ -67,7 +67,6 @@ pub fn collect_condition(
             } else {
                 let mut child_parser =
                     parser::Parser::new(data.inside_code_string.clone(), options);
-                //child_parser.scope = Box::new(parser.scope.mount_scope(child_parser.clone(), parser::scope::ScopeTypes::Inner, "condition".to_string()));
                 child_parser.pos = parser.pos;
                 let mapped = child_parser.map();
                 for i in mapped.syntax_errors {

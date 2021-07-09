@@ -1,9 +1,4 @@
-#![allow(warnings)] //TODO Remove this
-use crate::alloc::borrow::ToOwned;
-use alloc::format;
 use alloc::string::{String, ToString};
-use alloc::vec::Vec;
-use core::fmt;
 use core::hash::Hash;
 use serde::Serialize;
 
@@ -66,14 +61,16 @@ impl Default for CursorPosition {
 }
 
 impl CursorPosition {
-    pub fn skipChar(&mut self, n: usize) -> CursorPosition {
-        self.1 += n;
-        return self.clone();
+    pub fn skip_char(&mut self, n: usize) -> CursorPosition {
+        let mut clone = self.clone();
+        clone.1 += n;
+        clone
     }
 
-    pub fn popChar(&mut self, n: usize) -> CursorPosition {
-        self.1 -= n;
-        return self.clone();
+    pub fn pop_char(&mut self, n: usize) -> CursorPosition {
+        let mut clone = *self;
+        clone.1 -= n;
+        clone
     }
 
     pub fn is_zero(&self) -> bool {
@@ -99,30 +96,5 @@ impl Default for Cursor {
             range_start: CursorPosition::default(),
             range_end: CursorPosition::default(),
         }
-    }
-}
-
-pub struct SyntaxError {
-    error: crate::error::Error,
-    position: Cursor,
-    fields: Vec<crate::error::ErrorBuildField>,
-    debugText: String,
-}
-
-impl fmt::Display for SyntaxError {
-    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        // We need to remove "-" from the number output.
-        formatter.write_str(
-            &format!(
-                "{} {}",
-                if self.debugText != "" {
-                    "[".to_owned() + &self.debugText + "]"
-                } else {
-                    "".to_string()
-                },
-                self.error.builded_message.builded
-            )
-            .to_string(),
-        )
     }
 }

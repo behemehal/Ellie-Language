@@ -186,4 +186,10 @@ lazy_static! {
         ..Default::default()
     };
 
+    pub static ref error_s27: crate::error::Error = crate::error::Error {
+        code: 0x26,
+        title: "TypeError".to_string(),
+        message: "Cannot apply data to generic type".to_string(),
+        ..Default::default()
+    };
 }

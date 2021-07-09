@@ -57,6 +57,7 @@ pub struct Parser {
     pub code: String,
     pub options: defs::ParserOptions,
     pub collected: Vec<Collecting>,
+    pub generic_variables: Vec<class::GenericDefining>,
     pub pos: defs::CursorPosition,
     pub on_comment: bool,
     pub on_line_comment: bool,
@@ -74,6 +75,7 @@ impl Default for Parser {
             code: "".to_string(),
             options: defs::ParserOptions::default(),
             collected: Vec::new(),
+            generic_variables: Vec::new(),
             pos: defs::CursorPosition(0, 0),
             keyword_pos: defs::Cursor::default(),
             ignore_line: false,
@@ -93,6 +95,7 @@ impl Parser {
             code,
             options,
             collected: Vec::new(),
+            generic_variables: Vec::new(),
             pos: defs::CursorPosition(0, 0),
             keyword_pos: defs::Cursor::default(),
             ignore_line: false,
@@ -138,7 +141,8 @@ impl Parser {
                 self.pos.1 = 0;
             }
         }
-        if self.current != Collecting::None {
+        if self.current != Collecting::None || !self.keyword_catch.is_empty() {
+            std::println!("{:#?}", self.pos);
             errors.push(error::Error {
                 scope: "definer_processor".to_string(),
                 debug_message: "replace".to_string(),
@@ -150,7 +154,7 @@ impl Parser {
                 ),
                 pos: defs::Cursor {
                     range_start: defs::CursorPosition::default(),
-                    range_end: self.pos,
+                    range_end: self.pos.skip_char(1),
                 },
             });
         }
@@ -438,6 +442,17 @@ impl Parser {
         } else {
             Some(errors)
         }
+    }
+
+    pub fn generic_type_exists(&self, name: String) -> bool {
+        let mut found = false;
+        for item in self.generic_variables.clone() {
+            if item.name == name {
+                found = true;
+                break;
+            }
+        }
+        found
     }
 
     pub fn type_exists(&self, name: String) -> bool {

@@ -31,7 +31,7 @@ pub fn collect_class(
                     classdata.data.name_pos.range_start = parser.pos;
                 }
                 classdata.data.name += letter_char;
-                classdata.data.name_pos.range_end = parser.pos.clone().skipChar(1);
+                classdata.data.name_pos.range_end = parser.pos.clone().skip_char(1);
             } else if letter_char == "<" && !classdata.data.name.is_empty() {
                 if utils::is_reserved(&classdata.data.name) {
                     errors.push(error::Error {
@@ -87,7 +87,7 @@ pub fn collect_class(
                     ),
                     pos: defs::Cursor {
                         range_start: parser.pos,
-                        range_end: parser.pos.clone().skipChar(1),
+                        range_end: parser.pos.clone().skip_char(1),
                     },
                 });
             }
@@ -120,7 +120,7 @@ pub fn collect_class(
                 classdata.at_comma = false;
                 classdata.data.generic_definings[last_entry - 1]
                     .pos
-                    .range_end = parser.pos.clone().skipChar(1);
+                    .range_end = parser.pos.clone().skip_char(1);
                 classdata.data.generic_definings[last_entry - 1].name += letter_char;
             } else if letter_char == ">" && !classdata.at_comma {
                 if classdata.has_dedup() {
@@ -172,12 +172,33 @@ pub fn collect_class(
                     ),
                     pos: defs::Cursor {
                         range_start: parser.pos,
-                        range_end: parser.pos.clone().skipChar(1),
+                        range_end: parser.pos.clone().skip_char(1),
                     },
                 });
             }
-        } else if !classdata.has_code && letter_char == "{" {
-            classdata.has_code = true;
+        } else if !classdata.has_code {
+            if letter_char == "{" {
+                classdata.has_code = true;
+            } else if letter_char != " " {
+                errors.push(error::Error {
+                    scope: parser.scope.scope_name.clone(),
+                    debug_message: "ef295a034f83b83800bcd96c2aa192e2".to_string(),
+                    title: error::errorList::error_s1.title.clone(),
+                    code: error::errorList::error_s1.code,
+                    message: error::errorList::error_s1.message.clone(),
+                    builded_message: error::Error::build(
+                        error::errorList::error_s1.message.clone(),
+                        vec![error::ErrorBuildField {
+                            key: "token".to_string(),
+                            value: letter_char.to_string(),
+                        }],
+                    ),
+                    pos: defs::Cursor {
+                        range_start: parser.pos,
+                        range_end: parser.pos.clone().skip_char(1),
+                    },
+                });
+            }
         } else if classdata.brace_count == 0 && letter_char == "}" {
             for i in classdata.code.collected.clone() {
                 match i {
@@ -206,9 +227,6 @@ pub fn collect_class(
                     _ => {}
                 };
             }
-
-            //classdata.data.inside_code = classdata.code.collected.clone();
-
             classdata.code = Box::new(parser::Parser::default()); //Empty the cache
             parser.collected.push(parser.current.clone());
             parser.current = parser::Collecting::None;
@@ -218,11 +236,12 @@ pub fn collect_class(
             } else if letter_char == "}" && classdata.brace_count != 0 {
                 classdata.brace_count -= 1;
             }
-
             let mut child_parser = classdata.code.clone();
             child_parser.options = parser.options.clone();
             child_parser.options.parser_type = defs::ParserType::ClassParser;
+            child_parser.generic_variables = classdata.data.generic_definings.clone();
             child_parser.pos = parser.pos;
+            child_parser.scope.scope_name = "core/class_processor".to_string();
             let mut child_parser_errors: Vec<error::Error> = Vec::new();
             parser::iterator::iter(
                 &mut child_parser,
@@ -233,12 +252,7 @@ pub fn collect_class(
             );
 
             for i in child_parser_errors {
-                let mut edited = i;
-                edited.pos.range_start.0 += parser.pos.0;
-                edited.pos.range_start.1 += parser.pos.1;
-                edited.pos.range_end.0 += parser.pos.0;
-                edited.pos.range_end.1 += parser.pos.1;
-                errors.push(edited);
+                errors.push(i);
             }
             classdata.code = child_parser;
         }

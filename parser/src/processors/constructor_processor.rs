@@ -28,7 +28,7 @@ pub fn collect_constructor(
                 }
 
                 constructordata.data.name += letter_char;
-                constructordata.data.name_pos.range_end = parser.pos.clone().skipChar(1);
+                constructordata.data.name_pos.range_end = parser.pos.clone().skip_char(1);
             } else if letter_char == "(" {
                 constructordata.named = true;
                 constructordata.data.parameters_pos.range_start = parser.pos;
@@ -48,7 +48,7 @@ pub fn collect_constructor(
                     ),
                     pos: defs::Cursor {
                         range_start: parser.pos,
-                        range_end: parser.pos.clone().skipChar(1),
+                        range_end: parser.pos.clone().skip_char(1),
                     },
                 });
             }
@@ -104,7 +104,7 @@ pub fn collect_constructor(
                     ),
                     pos: defs::Cursor {
                         range_start: parser.pos,
-                        range_end: parser.pos.clone().skipChar(1),
+                        range_end: parser.pos.clone().skip_char(1),
                     },
                 });
             }
@@ -130,7 +130,7 @@ pub fn collect_constructor(
                     ),
                     pos: defs::Cursor {
                         range_start: parser.pos,
-                        range_end: parser.pos.clone().skipChar(1),
+                        range_end: parser.pos.clone().skip_char(1),
                     },
                 });
             }

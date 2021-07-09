@@ -41,7 +41,7 @@ pub fn collect_variable_value(
                         ),
                         pos: defs::Cursor {
                             range_start: parser.pos,
-                            range_end: parser.pos.clone().skipChar(1),
+                            range_end: parser.pos.clone().skip_char(1),
                         },
                     });
                 } else {
@@ -57,8 +57,8 @@ pub fn collect_variable_value(
                                 error::errorList::error_s11.message.clone(),
                             ),
                             pos: defs::Cursor {
-                                range_start: parser.pos.clone().skipChar(1),
-                                range_end: parser.pos.clone().skipChar(2),
+                                range_start: parser.pos.clone().skip_char(1),
+                                range_end: parser.pos.clone().skip_char(2),
                             },
                         });
                     }
@@ -99,7 +99,7 @@ pub fn collect_variable_value(
                         ),
                         pos: defs::Cursor {
                             range_start: parser.pos,
-                            range_end: parser.pos.clone().skipChar(1),
+                            range_end: parser.pos.clone().skip_char(1),
                         },
                     });
                 } else if variabledata.data.name.is_empty() {
@@ -118,7 +118,7 @@ pub fn collect_variable_value(
                         ),
                         pos: defs::Cursor {
                             range_start: parser.pos,
-                            range_end: parser.pos.clone().skipChar(1),
+                            range_end: parser.pos.clone().skip_char(1),
                         },
                     });
                 } else {
@@ -139,10 +139,12 @@ pub fn collect_variable_value(
                             pos: variabledata.data.name_pos,
                         });
                     }
-                    if !parser_clone.type_exists(variabledata.data.rtype.raw_name()) {
+                    if !parser_clone.type_exists(variabledata.data.rtype.raw_name())
+                        && !parser_clone.generic_type_exists(variabledata.data.rtype.raw_name())
+                    {
                         errors.push(error::Error {
                             scope: parser.scope.scope_name.clone(),
-                            debug_message: "replace".to_string(),
+                            debug_message: "replace2".to_string(),
                             title: error::errorList::error_s6.title.clone(),
                             code: error::errorList::error_s6.code,
                             message: error::errorList::error_s6.message.clone(),
@@ -181,14 +183,14 @@ pub fn collect_variable_value(
                             ),
                             pos: defs::Cursor {
                                 range_start: parser.pos,
-                                range_end: parser.pos.clone().skipChar(1),
+                                range_end: parser.pos.clone().skip_char(1),
                             },
                         });
                     } else {
                         if variabledata.data.name.is_empty() {
                             variabledata.data.name_pos.range_start = parser.pos;
                         }
-                        variabledata.data.name_pos.range_end = parser.pos.clone().skipChar(1);
+                        variabledata.data.name_pos.range_end = parser.pos.clone().skip_char(1);
                         variabledata.data.name = variabledata.data.name.clone() + letter_char;
                     }
                 } else if letter_char != " "
@@ -211,17 +213,19 @@ pub fn collect_variable_value(
                         ),
                         pos: defs::Cursor {
                             range_start: parser.pos,
-                            range_end: parser.pos.clone().skipChar(1),
+                            range_end: parser.pos.clone().skip_char(1),
                         },
                     });
                 }
             }
         } else if !variabledata.typed && !variabledata.data.dynamic {
             if letter_char == ";" {
-                if !parser_clone.type_exists(variabledata.data.rtype.raw_name()) {
+                if !parser_clone.type_exists(variabledata.data.rtype.raw_name())
+                    && !parser_clone.generic_type_exists(variabledata.data.rtype.raw_name())
+                {
                     errors.push(error::Error {
                         scope: parser.scope.scope_name.clone(),
-                        debug_message: "replace".to_string(),
+                        debug_message: "replace3".to_string(),
                         title: error::errorList::error_s6.title.clone(),
                         code: error::errorList::error_s6.code,
                         message: error::errorList::error_s6.message.clone(),
@@ -254,11 +258,13 @@ pub fn collect_variable_value(
                         ),
                         pos: defs::Cursor {
                             range_start: parser.pos,
-                            range_end: parser.pos.clone().skipChar(1),
+                            range_end: parser.pos.clone().skip_char(1),
                         },
                     });
                 } else {
-                    if !parser_clone.type_exists(variabledata.data.rtype.raw_name()) {
+                    if !parser_clone.type_exists(variabledata.data.rtype.raw_name())
+                        && !parser_clone.generic_type_exists(variabledata.data.rtype.raw_name())
+                    {
                         errors.push(error::Error {
                             scope: parser.scope.scope_name.clone(),
                             debug_message: "replace".to_string(),
@@ -300,10 +306,11 @@ pub fn collect_variable_value(
                 if collected.data.value.is_type_complete() {
                     collected.data.pos.range_end = parser.pos;
                     collected.data.value_pos.range_end = parser.pos;
+
                     let resolved_type_name =
                         parser_clone.resolve_variable(collected.data.value.clone());
+
                     if collected.data.rtype.raw_name() != resolved_type_name {
-                        //&& errors.is_empty()
                         //We should resolve inner value
                         if collected.data.dynamic {
                             #[cfg(feature = "std")]
@@ -313,30 +320,44 @@ pub fn collect_variable_value(
                             );
 
                             #[cfg(feature = "std")]
-                            std::process::exit(0);
+                            std::process::exit(1);
                         }
 
-                        errors.push(error::Error {
-                            scope: parser.scope.scope_name.clone(),
-                            debug_message: "5ebdb98933991ba25b33f369986807a2".to_string(),
-                            title: error::errorList::error_s3.title.clone(),
-                            code: error::errorList::error_s3.code,
-                            message: error::errorList::error_s3.message.clone(),
-                            builded_message: error::Error::build(
-                                error::errorList::error_s3.message.clone(),
-                                vec![
-                                    error::ErrorBuildField {
-                                        key: "token1".to_string(),
-                                        value: collected.data.rtype.raw_name(),
-                                    },
-                                    error::ErrorBuildField {
-                                        key: "token2".to_string(),
-                                        value: resolved_type_name,
-                                    },
-                                ],
-                            ),
-                            pos: collected.data.value_pos,
-                        });
+                        if parser_clone.generic_type_exists(collected.data.rtype.raw_name()) {
+                            errors.push(error::Error {
+                                scope: parser.scope.scope_name.clone(),
+                                debug_message: "5ebdb98933991ba25b33f369986807a2".to_string(),
+                                title: error::errorList::error_s27.title.clone(),
+                                code: error::errorList::error_s27.code,
+                                message: error::errorList::error_s27.message.clone(),
+                                builded_message: error::BuildedError::build_from_string(
+                                    error::errorList::error_s27.message.clone(),
+                                ),
+                                pos: collected.data.value_pos,
+                            });
+                        }
+                            errors.push(error::Error {
+                                scope: parser.scope.scope_name.clone(),
+                                debug_message: "5ebdb98933991ba25b33f369986807a2".to_string(),
+                                title: error::errorList::error_s3.title.clone(),
+                                code: error::errorList::error_s3.code,
+                                message: error::errorList::error_s3.message.clone(),
+                                builded_message: error::Error::build(
+                                    error::errorList::error_s3.message.clone(),
+                                    vec![
+                                        error::ErrorBuildField {
+                                            key: "token1".to_string(),
+                                            value: collected.data.rtype.raw_name(),
+                                        },
+                                        error::ErrorBuildField {
+                                            key: "token2".to_string(),
+                                            value: resolved_type_name,
+                                        },
+                                    ],
+                                ),
+                                pos: collected.data.value_pos,
+                            });
+                        
                     }
                     parser.collected.push(parser.current.clone());
                     parser.current = parser::Collecting::None;
@@ -356,7 +377,7 @@ pub fn collect_variable_value(
                         ),
                         pos: defs::Cursor {
                             range_start: parser.pos,
-                            range_end: parser.pos.clone().skipChar(1),
+                            range_end: parser.pos.clone().skip_char(1),
                         },
                     });
                 }

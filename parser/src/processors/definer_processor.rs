@@ -93,7 +93,7 @@ pub fn collect_definer(
                         ),
                         pos: defs::Cursor {
                             range_start: parser.pos,
-                            range_end: parser.pos.clone().skipChar(1),
+                            range_end: parser.pos.clone().skip_char(1),
                         },
                     });
                 }
@@ -154,7 +154,7 @@ pub fn collect_definer(
                     ),
                     pos: defs::Cursor {
                         range_start: parser.pos,
-                        range_end: parser.pos.clone().skipChar(1),
+                        range_end: parser.pos.clone().skip_char(1),
                     },
                 });
             } else {
@@ -181,7 +181,7 @@ pub fn collect_definer(
                         ),
                         pos: defs::Cursor {
                             range_start: parser.pos,
-                            range_end: parser.pos.clone().skipChar(1),
+                            range_end: parser.pos.clone().skip_char(1),
                         },
                     });
                 }
@@ -218,7 +218,7 @@ pub fn collect_definer(
                         ),
                         pos: defs::Cursor {
                             range_start: parser.pos,
-                            range_end: parser.pos.clone().skipChar(1),
+                            range_end: parser.pos.clone().skip_char(1),
                         },
                     });
                 } else if data.bracket_inserted {
@@ -255,7 +255,7 @@ pub fn collect_definer(
                             ),
                             pos: defs::Cursor {
                                 range_start: parser.pos,
-                                range_end: parser.pos.clone().skipChar(1),
+                                range_end: parser.pos.clone().skip_char(1),
                             },
                         });
                     }

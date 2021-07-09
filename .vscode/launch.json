@@ -15,41 +15,8 @@
           "kind": "bin"
         }
       },
-      "args": [".\\test.ei", "--debug"],
+      "args": [".\\test_dir\\test.ei", "--debug"],
       "cwd": "${workspaceFolder}"
     },
-    {
-      "type": "lldb",
-      "request": "launch",
-      "name": "Debug executable test",
-      "cargo": {
-        "args": ["build", "--bin=test", "--package=ellie_engine"],
-        "filter": {
-          "name": "test",
-          "kind": "bin"
-        }
-      },
-      "args": [],
-      "cwd": "${workspaceFolder}"
-    },
-    {
-      "type": "lldb",
-      "request": "launch",
-      "name": "Debug unit tests in executable 'ellie_engine'",
-      "cargo": {
-        "args": [
-          "test",
-          "--no-run",
-          "--bin=ellie_engine",
-          "--package=ellie_engine"
-        ],
-        "filter": {
-          "name": "ellie_engine",
-          "kind": "bin"
-        }
-      },
-      "args": [],
-      "cwd": "${workspaceFolder}"
-    }
   ]
 }

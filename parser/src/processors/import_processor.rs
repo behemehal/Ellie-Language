@@ -38,7 +38,7 @@ pub fn collect_import(
                 ),
                 pos: defs::Cursor {
                     range_start: parser.pos,
-                    range_end: parser.pos.clone().skipChar(1),
+                    range_end: parser.pos.clone().skip_char(1),
                 },
             });
         }

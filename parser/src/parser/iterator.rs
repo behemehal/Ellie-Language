@@ -37,7 +37,7 @@ pub fn iter(
             if parser.keyword_catch.is_empty() {
                 parser.keyword_pos.range_start = parser.pos;
             }
-            parser.keyword_pos.range_end = parser.pos.clone().skipChar(1);
+            parser.keyword_pos.range_end = parser.pos.clone().skip_char(1);
             parser.keyword_catch += letter_char;
         }
 

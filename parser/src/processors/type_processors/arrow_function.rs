@@ -79,7 +79,7 @@ pub fn collect_arrow(
                         functiondata.data.parameters[last_entry - 1]
                             .data
                             .name_pos
-                            .range_end = parser.pos.clone().skipChar(1);
+                            .range_end = parser.pos.clone().skip_char(1);
                         functiondata.data.parameters[last_entry - 1].data.name += letter_char
                     } else if letter_char == ":" {
                         if last_entry == 0
@@ -103,7 +103,7 @@ pub fn collect_arrow(
                                 ),
                                 pos: defs::Cursor {
                                     range_start: parser.pos,
-                                    range_end: parser.pos.clone().skipChar(1),
+                                    range_end: parser.pos.clone().skip_char(1),
                                 },
                             });
                         } else {
@@ -127,7 +127,7 @@ pub fn collect_arrow(
                             ),
                             pos: defs::Cursor {
                                 range_start: parser.pos,
-                                range_end: parser.pos.clone().skipChar(1),
+                                range_end: parser.pos.clone().skip_char(1),
                             },
                         });
                     }
@@ -294,7 +294,7 @@ pub fn collect_arrow(
                     functiondata.data.parameters[last_entry - 1]
                         .data
                         .pos
-                        .range_end = parser.pos.clone().skipChar(1);
+                        .range_end = parser.pos.clone().skip_char(1);
                     if functiondata.data.parameters[last_entry - 1]
                         .data
                         .type_pos
@@ -310,7 +310,7 @@ pub fn collect_arrow(
                     functiondata.data.parameters[last_entry - 1]
                         .data
                         .type_pos
-                        .range_end = parser.pos.clone().skipChar(1);
+                        .range_end = parser.pos.clone().skip_char(1);
                     processors::definer_processor::collect_definer(
                         parser.clone(),
                         &mut functiondata.data.parameters[last_entry - 1].data.rtype,
@@ -369,7 +369,7 @@ pub fn collect_arrow(
                     ),
                     pos: defs::Cursor {
                         range_start: parser.pos,
-                        range_end: parser.pos.clone().skipChar(1),
+                        range_end: parser.pos.clone().skip_char(1),
                     },
                 });
             }

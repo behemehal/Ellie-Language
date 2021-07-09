@@ -37,8 +37,8 @@ pub fn collect_char(
                         error::errorList::error_s14.message.clone(),
                     ),
                     pos: defs::Cursor {
-                        range_start: parser.pos.clone().popChar(1),
-                        range_end: parser.pos.clone().skipChar(1),
+                        range_start: parser.pos.clone().pop_char(1),
+                        range_end: parser.pos.clone().skip_char(1),
                     },
                 });
             }
@@ -55,8 +55,8 @@ pub fn collect_char(
                         error::errorList::error_s15.message.clone(),
                     ),
                     pos: defs::Cursor {
-                        range_start: parser.pos.clone().popChar(1),
-                        range_end: parser.pos.clone().skipChar(1),
+                        range_start: parser.pos.clone().pop_char(1),
+                        range_end: parser.pos.clone().skip_char(1),
                     },
                 });
             } else {
@@ -161,7 +161,7 @@ pub fn collect_char(
                 ),
                 pos: defs::Cursor {
                     range_start: parser.pos,
-                    range_end: parser.pos.clone().skipChar(1),
+                    range_end: parser.pos.clone().skip_char(1),
                 },
             });
         }
