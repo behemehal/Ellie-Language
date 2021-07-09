@@ -87,11 +87,6 @@ pub fn collect_variable_value(
                 parser.collected.push(parser.current.clone());
                 parser.current = parser::Collecting::None;
             } else if letter_char == "=" {
-                #[cfg(feature = "std")]
-                std::println!(
-                    "[ParserWarning]: WORKING BLIND, Read more: https://github.com/behemehal/Ellie-Language/issues/2",
-                );
-
                 if !variabledata.data.dynamic {
                     errors.push(error::Error {
                         scope: parser.scope.scope_name.clone(),
@@ -142,6 +137,23 @@ pub fn collect_variable_value(
                                 }],
                             ),
                             pos: variabledata.data.name_pos,
+                        });
+                    }
+                    if !parser_clone.type_exists(variabledata.data.rtype.raw_name()) {
+                        errors.push(error::Error {
+                            scope: parser.scope.scope_name.clone(),
+                            debug_message: "replace".to_string(),
+                            title: error::errorList::error_s6.title.clone(),
+                            code: error::errorList::error_s6.code,
+                            message: error::errorList::error_s6.message.clone(),
+                            builded_message: error::Error::build(
+                                error::errorList::error_s6.message.clone(),
+                                vec![error::ErrorBuildField {
+                                    key: "token".to_string(),
+                                    value: variabledata.data.rtype.raw_name(),
+                                }],
+                            ),
+                            pos: variabledata.data.type_pos,
                         });
                     }
                     variabledata.named = true;
@@ -206,10 +218,23 @@ pub fn collect_variable_value(
             }
         } else if !variabledata.typed && !variabledata.data.dynamic {
             if letter_char == ";" {
-                #[cfg(feature = "std")]
-                std::println!(
-                    "[ParserWarning]: WORKING BLIND, Read more: https://github.com/behemehal/Ellie-Language/issues/2",
-                );
+                if !parser_clone.type_exists(variabledata.data.rtype.raw_name()) {
+                    errors.push(error::Error {
+                        scope: parser.scope.scope_name.clone(),
+                        debug_message: "replace".to_string(),
+                        title: error::errorList::error_s6.title.clone(),
+                        code: error::errorList::error_s6.code,
+                        message: error::errorList::error_s6.message.clone(),
+                        builded_message: error::Error::build(
+                            error::errorList::error_s6.message.clone(),
+                            vec![error::ErrorBuildField {
+                                key: "token".to_string(),
+                                value: variabledata.data.rtype.raw_name(),
+                            }],
+                        ),
+                        pos: variabledata.data.type_pos,
+                    });
+                }
                 parser.collected.push(parser.current.clone());
                 parser.current = parser::Collecting::None;
             } else if letter_char == "=" {
@@ -233,10 +258,23 @@ pub fn collect_variable_value(
                         },
                     });
                 } else {
-                    #[cfg(feature = "std")]
-                    std::println!(
-                        "[ParserWarning]: WORKING BLIND, Read more: https://github.com/behemehal/Ellie-Language/issues/2"
-                    );
+                    if !parser_clone.type_exists(variabledata.data.rtype.raw_name()) {
+                        errors.push(error::Error {
+                            scope: parser.scope.scope_name.clone(),
+                            debug_message: "replace".to_string(),
+                            title: error::errorList::error_s6.title.clone(),
+                            code: error::errorList::error_s6.code,
+                            message: error::errorList::error_s6.message.clone(),
+                            builded_message: error::Error::build(
+                                error::errorList::error_s6.message.clone(),
+                                vec![error::ErrorBuildField {
+                                    key: "token".to_string(),
+                                    value: variabledata.data.rtype.raw_name(),
+                                }],
+                            ),
+                            pos: variabledata.data.type_pos,
+                        });
+                    }
                     variabledata.typed = true;
                 }
             } else {
