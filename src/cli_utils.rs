@@ -55,7 +55,7 @@ pub fn draw_error(line: String, pos: defs::CursorPosition) -> String {
     let mut draw = String::new();
 
     for (index, c) in line.chars().enumerate() {
-        if index >= pos.1 - 1 {
+        if index >= (if pos.1 != 0 { pos.1 - 1 } else { pos.1 }) {
             draw += &format!(
                 "{}{}{}",
                 terminal_colors::get_color(terminal_colors::Colors::Red),
@@ -76,15 +76,24 @@ pub fn draw_error(line: String, pos: defs::CursorPosition) -> String {
     draw
 }
 
+fn generate_blank(size: usize) -> String {
+    let mut blank: String = String::new();
+    for _ in 0..size + 1 {
+        blank += &" ".to_string();
+    }
+    blank
+}
+
 pub fn get_lines(code: String, lines: defs::Cursor) -> String {
     let v: Vec<&str> = code.split('\n').collect();
     let mut render = String::new();
     for i in lines.range_start.0..lines.range_end.0 + 1 {
         let t = format!(
-            "{}{}{} {}|{} {}\n",
+            "{}{}{}{}{}|{} {}\n",
             terminal_colors::get_color(terminal_colors::Colors::Magenta),
             i + 1,
             terminal_colors::get_color(terminal_colors::Colors::Reset),
+            generate_blank(v.len().to_string().len() - (i + 1).to_string().len()),
             terminal_colors::get_color(terminal_colors::Colors::Yellow),
             terminal_colors::get_color(terminal_colors::Colors::Reset),
             draw_error(
@@ -98,23 +107,7 @@ pub fn get_lines(code: String, lines: defs::Cursor) -> String {
         );
         render += &t;
     }
-
-    /*for i in lines...lines.len() {
-        let line = lines[i];
-        let t = format!(
-            "{}{}{} {}|{} {}\n",
-            terminal_colors::get_color(terminal_colors::Colors::Magenta),
-            i + 1,
-            terminal_colors::get_color(terminal_colors::Colors::Reset),
-            terminal_colors::get_color(terminal_colors::Colors::Yellow),
-            terminal_colors::get_color(terminal_colors::Colors::Reset),
-            draw_error(v[i].to_string(), line),
-        );
-        render += &t;
-    }
-    */
     render
-    //v[line].to_string()
 }
 
 pub fn get_line(code: String, line: usize) -> String {

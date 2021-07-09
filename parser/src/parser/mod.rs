@@ -120,7 +120,6 @@ impl Parser {
                 && (letter_char != "/" || next_char != "/")
                 && !self.on_line_comment
             {
-                std::println!("test: {:#?}", letter_char);
                 iterator::iter(
                     &mut self,
                     &mut errors,
@@ -138,6 +137,22 @@ impl Parser {
                 self.on_line_comment = false;
                 self.pos.1 = 0;
             }
+        }
+        if self.current != Collecting::None {
+            errors.push(error::Error {
+                scope: "definer_processor".to_string(),
+                debug_message: "replace".to_string(),
+                title: error::errorList::error_s26.title.clone(),
+                code: error::errorList::error_s26.code,
+                message: error::errorList::error_s26.message.clone(),
+                builded_message: error::BuildedError::build_from_string(
+                    error::errorList::error_s26.message.clone(),
+                ),
+                pos: defs::Cursor {
+                    range_start: defs::CursorPosition::default(),
+                    range_end: self.pos,
+                },
+            });
         }
         Parsed {
             items: self.collected.clone(),

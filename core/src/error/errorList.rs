@@ -179,4 +179,11 @@ lazy_static! {
         ..Default::default()
     };
 
+    pub static ref error_s26: crate::error::Error = crate::error::Error {
+        code: 0x25,
+        title: "SyntaxError".to_string(),
+        message: "Unexpected ending".to_string(),
+        ..Default::default()
+    };
+
 }
