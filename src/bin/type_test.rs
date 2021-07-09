@@ -7,7 +7,7 @@ fn main() {
     let emulated_parser = ellie_parser::parser::Parser::default();
     let mut emulated_collector_data = ellie_parser::syntax::definers::DefinerCollecting::default();
     let code = "
-        array(16,test)
+    fn(integer, integer)::integer
     ";
 
     for (index, char) in code.chars().enumerate() {

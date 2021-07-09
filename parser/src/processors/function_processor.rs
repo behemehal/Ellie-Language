@@ -1,4 +1,3 @@
-use crate::alloc::boxed::Box;
 use crate::alloc::string::{String, ToString};
 use crate::alloc::vec;
 use crate::alloc::vec::Vec;
@@ -192,7 +191,6 @@ pub fn collect_function(
                     .rtype
                     .is_definer_complete()
             {
-                //If its type's comma dont stop collecting it
                 if functiondata.has_dedup() {
                     errors.push(error::Error {
                         scope: parser.scope.scope_name.clone(),
@@ -206,6 +204,28 @@ pub fn collect_function(
                         pos: functiondata.data.parameters[last_entry - 1].data.name_pos,
                     });
                 }
+                if let definers::DefinerCollecting::Generic(name) =
+                    &functiondata.data.parameters[last_entry - 1].data.rtype
+                {
+                    if !parser_clone.type_exists(name.rtype.clone()) {
+                        errors.push(error::Error {
+                            scope: parser.scope.scope_name.clone(),
+                            debug_message: "replace".to_string(),
+                            title: error::errorList::error_s6.title.clone(),
+                            code: error::errorList::error_s6.code,
+                            message: error::errorList::error_s6.message.clone(),
+                            builded_message: error::Error::build(
+                                error::errorList::error_s6.message.clone(),
+                                vec![error::ErrorBuildField {
+                                    key: "token".to_string(),
+                                    value: name.rtype.clone(),
+                                }],
+                            ),
+                            pos: functiondata.data.parameters[last_entry - 1].data.type_pos,
+                        });
+                    }
+                }
+                //If its type's comma dont stop collecting it
                 functiondata
                     .data
                     .parameters

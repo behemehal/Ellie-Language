@@ -159,11 +159,7 @@ impl Parser {
                 std::println!("Not implemented for: types {:#?}", target);
                 "".to_string()
             }
-            types::Types::ArrowFunction(_) => {
-                #[cfg(feature = "std")]
-                std::println!("Not implemented for: types {:#?}", target);
-                "".to_string()
-            }
+            types::Types::ArrowFunction(_) => "function".to_string(),
             types::Types::ClassCall(_) => {
                 #[cfg(feature = "std")]
                 std::println!("Not implemented for: types {:#?}", target);

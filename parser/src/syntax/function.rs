@@ -2,8 +2,6 @@ use crate::parser::Collecting;
 use crate::syntax::definers;
 use ellie_core::defs;
 use serde::Serialize;
-
-use alloc::boxed::Box;
 use alloc::string::String;
 use alloc::vec::Vec;
 

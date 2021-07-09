@@ -262,8 +262,8 @@ pub fn collect_variable_value(
                 if collected.data.value.is_type_complete() {
                     collected.data.pos.range_end = parser.pos;
                     collected.data.value_pos.range_end = parser.pos;
-
-                    if collected.data.rtype.raw_name() != collected.data.value.get_type() {
+                    let resolved_type_name =  parser_clone.resolve_variable(collected.data.value.clone());
+                    if collected.data.rtype.raw_name() != resolved_type_name {
                         //&& errors.is_empty()
                         //We should resolve inner value
                         if collected.data.dynamic {
@@ -292,7 +292,7 @@ pub fn collect_variable_value(
                                     },
                                     error::ErrorBuildField {
                                         key: "token2".to_string(),
-                                        value: collected.data.value.get_type(),
+                                        value: resolved_type_name,
                                     },
                                 ],
                             ),
