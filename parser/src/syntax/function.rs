@@ -1,9 +1,9 @@
 use crate::parser::Collecting;
 use crate::syntax::definers;
-use ellie_core::defs;
-use serde::Serialize;
 use alloc::string::String;
 use alloc::vec::Vec;
+use ellie_core::defs;
+use serde::Serialize;
 
 #[derive(PartialEq, Debug, Clone, Default, Serialize, Hash)]
 pub struct FunctionParameter {

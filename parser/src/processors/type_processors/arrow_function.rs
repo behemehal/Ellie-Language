@@ -344,7 +344,7 @@ pub fn collect_arrow(
                                 },
                                 error::ErrorBuildField {
                                     key: "token2".to_string(),
-                                    value: "void".to_string()
+                                    value: "void".to_string(),
                                 },
                             ],
                         ),

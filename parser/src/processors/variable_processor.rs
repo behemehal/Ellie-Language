@@ -262,7 +262,8 @@ pub fn collect_variable_value(
                 if collected.data.value.is_type_complete() {
                     collected.data.pos.range_end = parser.pos;
                     collected.data.value_pos.range_end = parser.pos;
-                    let resolved_type_name =  parser_clone.resolve_variable(collected.data.value.clone());
+                    let resolved_type_name =
+                        parser_clone.resolve_variable(collected.data.value.clone());
                     if collected.data.rtype.raw_name() != resolved_type_name {
                         //&& errors.is_empty()
                         //We should resolve inner value
