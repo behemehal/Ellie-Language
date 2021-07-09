@@ -39,7 +39,7 @@ pub fn collect_function_caller(
                 if functioncalldata.data.name.is_empty() {
                     errors.push(error::Error {
                         scope: "function_call_processor".to_string(),
-                        debug_message: "6661c88f6e819d2cbf2b778d34fe8818".to_string(),
+                        debug_message: "c456b3b31970e127f9a2b823c3dfdb3c".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -61,7 +61,7 @@ pub fn collect_function_caller(
             } else if letter_char != " " {
                 errors.push(error::Error {
                     scope: "function_call_processor".to_string(),
-                    debug_message: "18e427de941f78f0ee0ebdcab32ac3ce".to_string(),
+                    debug_message: "a2fdc7684a3617e95e7324b24d4da27a".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -89,7 +89,7 @@ pub fn collect_function_caller(
                 if functioncalldata.complete {
                     errors.push(error::Error {
                         scope: "function_call_processor".to_string(),
-                        debug_message: "1b1c7ea8a3921ee700450a84a61457ef".to_string(),
+                        debug_message: "6b50fc5cbefae45f6b9c80878c7f4381".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -108,7 +108,7 @@ pub fn collect_function_caller(
                 } else if functioncalldata.comma {
                     errors.push(error::Error {
                         scope: "function_call_processor".to_string(),
-                        debug_message: "38afe27dfd4ac59af86d8cd950f1c18f".to_string(),
+                        debug_message: "6140233c2550b6459bf2354b290818c4".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),

@@ -25,7 +25,7 @@ pub fn collect_import(
         } else if letter_char != " " {
             errors.push(error::Error {
                 scope: parser.scope.scope_name.clone(),
-                debug_message: "replace".to_string(),
+                debug_message: "59bc5156eed94e34105cd2c5ee1d935e".to_string(),
                 title: error::errorList::error_s1.title.clone(),
                 code: error::errorList::error_s1.code,
                 message: error::errorList::error_s1.message.clone(),

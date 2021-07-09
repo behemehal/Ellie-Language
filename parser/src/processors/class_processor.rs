@@ -36,7 +36,7 @@ pub fn collect_class(
                 if utils::is_reserved(&classdata.data.name) {
                     errors.push(error::Error {
                         scope: parser.scope.scope_name.clone(),
-                        debug_message: "8192a6244de9aa4ffd4aa4405e1e696e".to_string(),
+                        debug_message: "ee8c0768f61310d159b3785cb657ae43".to_string(),
                         title: error::errorList::error_s21.title.clone(),
                         code: error::errorList::error_s21.code,
                         message: error::errorList::error_s21.message.clone(),
@@ -55,7 +55,7 @@ pub fn collect_class(
                 if utils::is_reserved(&classdata.data.name) {
                     errors.push(error::Error {
                         scope: parser.scope.scope_name.clone(),
-                        debug_message: "8192a6244de9aa4ffd4aa4405e1e696e".to_string(),
+                        debug_message: "1f66cf23c68016d655ba4b309d7fea60".to_string(),
                         title: error::errorList::error_s21.title.clone(),
                         code: error::errorList::error_s21.code,
                         message: error::errorList::error_s21.message.clone(),
@@ -74,7 +74,7 @@ pub fn collect_class(
             } else if letter_char != " " {
                 errors.push(error::Error {
                     scope: parser.scope.scope_name.clone(),
-                    debug_message: "ef295a034f83b83800bcd96c2aa192e2".to_string(),
+                    debug_message: "86ed63a7f357ee51ac4a7c2bfdea50e5".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -126,7 +126,7 @@ pub fn collect_class(
                 if classdata.has_dedup() {
                     errors.push(error::Error {
                         scope: parser.scope.scope_name.clone(),
-                        debug_message: "506e72829cc00b1d518496eacb2f3aa4".to_string(),
+                        debug_message: "c18920fe8afe08de96aa1adc98ff0186".to_string(),
                         title: error::errorList::error_s10.title.clone(),
                         code: error::errorList::error_s10.code,
                         message: error::errorList::error_s10.message.clone(),
@@ -141,7 +141,7 @@ pub fn collect_class(
                 if classdata.has_dedup() {
                     errors.push(error::Error {
                         scope: parser.scope.scope_name.clone(),
-                        debug_message: "506e72829cc00b1d518496eacb2f3aa4".to_string(),
+                        debug_message: "261a354e4f2db511a5cc4fa074673c8b".to_string(),
                         title: error::errorList::error_s10.title.clone(),
                         code: error::errorList::error_s10.code,
                         message: error::errorList::error_s10.message.clone(),
@@ -159,7 +159,7 @@ pub fn collect_class(
             } else if letter_char != " " {
                 errors.push(error::Error {
                     scope: parser.scope.scope_name.clone(),
-                    debug_message: "8192a6244de9aa4ffd4aa4405e1e696e".to_string(),
+                    debug_message: "5b962c35ada4801ee19eea806c71e57f".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -182,7 +182,7 @@ pub fn collect_class(
             } else if letter_char != " " {
                 errors.push(error::Error {
                     scope: parser.scope.scope_name.clone(),
-                    debug_message: "ef295a034f83b83800bcd96c2aa192e2".to_string(),
+                    debug_message: "e2a853dcdacefd3b4f4656a72d717b06".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -212,7 +212,7 @@ pub fn collect_class(
                         if e.data.name != classdata.data.name {
                             errors.push(error::Error {
                                 scope: parser.scope.scope_name.clone(),
-                                debug_message: "replace".to_string(),
+                                debug_message: "61b04e57f0d624727aec61b65696b864".to_string(),
                                 title: error::errorList::error_s22.title.clone(),
                                 code: error::errorList::error_s22.code,
                                 message: error::errorList::error_s22.message.clone(),

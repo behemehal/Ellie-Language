@@ -22,12 +22,14 @@ function whichLineEnding(source) {
 
 var cargoconf = fs.readFileSync("./Cargo.toml", "utf8");
 var ellidbg = fs.readFileSync("./DEBUG_HEADERS.eidbg", "utf8");
+var dbgEol = whichLineEnding(ellidbg);
 var version = cargoconf.split(whichLineEnding(cargoconf)).find(x => x.split("=")[0].trim() == "version").split("=")[1].trim().replace(new RegExp("\"", "g"), "");
-var dbgversion = ellidbg.split(whichLineEnding(ellidbg))[0].split(":")[1];
+var dbg = ellidbg.split(dbgEol)[0].split(":")[1];
+var dbgversion = dbg.split("+")[0];
+var dbgMutation = Number(dbg.split("+")[1]);
 var changeHeaders = dbgversion.split(".")[0] != version.split(".")[0] || dbgversion.split(".")[1] != version.split(".")[1]
 
-
-let debugLabels = ":" + version + os.EOL;
+let debugLabels = ":" + version + "+" + (changeHeaders ? 0 : dbgMutation + 1) + os.EOL;
 debugLabels += "Ellie Debug Headers [DONT MODIFY DIRECTLY]" + os.EOL;
 debugLabels += "|------------------------------------|" + os.EOL;
 function refactorFile(file, fileDir) {
@@ -72,7 +74,9 @@ function scanDirectory(dir, path) {
 
 log("Searching Errors");
 if (!changeHeaders) {
-    log(`Factoring not required`);
+    log(`Factoring not required, mutating over`);
+    ellidbg.split(dbgEol).slice(3).forEach((x) => debugLabels += x + dbgEol);
+    fs.writeFileSync("./DEBUG_HEADERS.eidbg", debugLabels, 'utf8');
 } else {
     scanDirectory(fs.readdirSync("./", { withFileTypes: true }), "./").then((files) => {
         log(`Factoring ${files.length} files`);

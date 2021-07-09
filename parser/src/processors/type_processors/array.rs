@@ -25,7 +25,7 @@ pub fn collect_array(
             if !data.comma && last_entry != 0 {
                 errors.push(error::Error {
                     scope: "array_processor".to_string(),
-                    debug_message: "3801cd6cb74ce144b80c03b054978fc4".to_string(),
+                    debug_message: "99691b5a06b29b18b528647ce2aa5f71".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -63,7 +63,7 @@ pub fn collect_array(
             if data.complete {
                 errors.push(error::Error {
                     scope: "array_processor".to_string(),
-                    debug_message: "08c94d4374d69d2adaf186280e325e99".to_string(),
+                    debug_message: "17e01f718353315080146a2e32dc9ddf".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -82,7 +82,7 @@ pub fn collect_array(
             } else if data.comma {
                 errors.push(error::Error {
                     scope: "array_processor".to_string(),
-                    debug_message: "7c8d9e052c8848cd3bb6aff62bc5716c".to_string(),
+                    debug_message: "970622506222dd32126240d8ade96694".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -112,7 +112,7 @@ pub fn collect_array(
             if data.comma {
                 errors.push(error::Error {
                     scope: "array_processor".to_string(),
-                    debug_message: "3dc3a14f6e8ac2da9e89e863f3ff93f2".to_string(),
+                    debug_message: "fe54c9f329df2c2b59a880764efef346".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -131,7 +131,7 @@ pub fn collect_array(
             } else if data.complete {
                 errors.push(error::Error {
                     scope: "array_processor".to_string(),
-                    debug_message: "47fd9f85d185d2074275af0db221f7bb".to_string(),
+                    debug_message: "2623645d4565555a0388e8b92f6a292a".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -263,7 +263,7 @@ pub fn collect_array(
                     //Check if array size is overflowed
                     errors.push(error::Error {
                         scope: "array_processor".to_string(),
-                        debug_message: "49f34da1703c77ad110d6c203912ae5d".to_string(),
+                        debug_message: "e3841b6fa3b42b6090e25bc94c969593".to_string(),
                         title: error::errorList::error_s19.title.clone(),
                         code: error::errorList::error_s19.code,
                         message: error::errorList::error_s19.message.clone(),

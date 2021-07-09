@@ -113,7 +113,7 @@ pub fn collect_bool(
         } else if letter_char != " " {
             errors.push(error::Error {
                 scope: "bool_function".to_string(),
-                debug_message: "9c764396253f1478040d192ff8996479".to_string(),
+                debug_message: "97e7961e2c166bb3f512ab8a043e7eb8".to_string(),
                 title: error::errorList::error_s1.title.clone(),
                 code: error::errorList::error_s1.code,
                 message: error::errorList::error_s1.message.clone(),
