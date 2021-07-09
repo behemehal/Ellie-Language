@@ -58,6 +58,8 @@ pub struct Parser {
     pub options: defs::ParserOptions,
     pub collected: Vec<Collecting>,
     pub pos: defs::CursorPosition,
+    pub on_comment: bool,
+    pub on_line_comment: bool,
     pub ignore_line: bool,
     pub current: Collecting,
     pub keyword_pos: defs::Cursor,
@@ -75,6 +77,8 @@ impl Default for Parser {
             pos: defs::CursorPosition(0, 0),
             keyword_pos: defs::Cursor::default(),
             ignore_line: false,
+            on_comment: false,
+            on_line_comment: false,
             current: Collecting::None,
             keyword_catch: String::new(),
             keyword_cache: variable::VariableCollector::default(),
@@ -92,6 +96,8 @@ impl Parser {
             pos: defs::CursorPosition(0, 0),
             keyword_pos: defs::Cursor::default(),
             ignore_line: false,
+            on_comment: false,
+            on_line_comment: false,
             current: Collecting::None,
             keyword_catch: String::new(),
             keyword_cache: variable::VariableCollector::default(),
@@ -108,7 +114,13 @@ impl Parser {
             let next_char =
                 &utils::get_letter(self.code.clone().to_string(), index, true).to_string();
 
-            if char != '\n' && char != '\r' && char != '\t' {
+            if char != '\n'
+                && char != '\r'
+                && char != '\t'
+                && (letter_char != "/" || next_char != "/")
+                && !self.on_line_comment
+            {
+                std::println!("test: {:#?}", letter_char);
                 iterator::iter(
                     &mut self,
                     &mut errors,
@@ -117,8 +129,13 @@ impl Parser {
                     last_char.to_string(),
                 );
                 self.pos.1 += 1;
+            } else if letter_char == "/" || next_char == "/" {
+                if !self.on_comment && !self.on_line_comment {
+                    self.on_line_comment = true
+                }
             } else if last_char == "\r" || letter_char == "\n" {
                 self.pos.0 += 1;
+                self.on_line_comment = false;
                 self.pos.1 = 0;
             }
         }
