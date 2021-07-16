@@ -18,7 +18,6 @@ pub fn collect_type(
     options: defs::ParserOptions,
 ) {
     let keyword = utils::trim_good(parser.keyword_catch.trim_start().to_string()); //one step next
-    
 
     if keyword == "*\\" && parser.on_comment && !parser.on_line_comment {
         parser.on_comment = false;
@@ -192,7 +191,10 @@ pub fn collect_type(
                         range_start: if keyword.clone().trim().len() - 1 > parser.pos.1 {
                             parser.pos
                         } else {
-                            parser.pos.clone().pop_char(keyword.clone().trim().len() - 1)
+                            parser
+                                .pos
+                                .clone()
+                                .pop_char(keyword.clone().trim().len() - 1)
                         },
                         range_end: parser.pos,
                     },

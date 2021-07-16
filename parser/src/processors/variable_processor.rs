@@ -336,28 +336,27 @@ pub fn collect_variable_value(
                                 pos: collected.data.value_pos,
                             });
                         }
-                            errors.push(error::Error {
-                                scope: parser.scope.scope_name.clone(),
-                                debug_message: "b51085f82309a0a4207c3600e2d6a7c4".to_string(),
-                                title: error::errorList::error_s3.title.clone(),
-                                code: error::errorList::error_s3.code,
-                                message: error::errorList::error_s3.message.clone(),
-                                builded_message: error::Error::build(
-                                    error::errorList::error_s3.message.clone(),
-                                    vec![
-                                        error::ErrorBuildField {
-                                            key: "token1".to_string(),
-                                            value: collected.data.rtype.raw_name(),
-                                        },
-                                        error::ErrorBuildField {
-                                            key: "token2".to_string(),
-                                            value: resolved_type_name,
-                                        },
-                                    ],
-                                ),
-                                pos: collected.data.value_pos,
-                            });
-                        
+                        errors.push(error::Error {
+                            scope: parser.scope.scope_name.clone(),
+                            debug_message: "b51085f82309a0a4207c3600e2d6a7c4".to_string(),
+                            title: error::errorList::error_s3.title.clone(),
+                            code: error::errorList::error_s3.code,
+                            message: error::errorList::error_s3.message.clone(),
+                            builded_message: error::Error::build(
+                                error::errorList::error_s3.message.clone(),
+                                vec![
+                                    error::ErrorBuildField {
+                                        key: "token1".to_string(),
+                                        value: collected.data.rtype.raw_name(),
+                                    },
+                                    error::ErrorBuildField {
+                                        key: "token2".to_string(),
+                                        value: resolved_type_name,
+                                    },
+                                ],
+                            ),
+                            pos: collected.data.value_pos,
+                        });
                     }
                     parser.collected.push(parser.current.clone());
                     parser.current = parser::Collecting::None;

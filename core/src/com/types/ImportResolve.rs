@@ -1,9 +1,9 @@
 use alloc::string::String;
 
 pub struct Request {
-    pub name: String
+    pub name: String,
 }
 
 pub struct Response {
-    pub code: String
+    pub code: String,
 }

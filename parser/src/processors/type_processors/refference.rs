@@ -1,9 +1,9 @@
 use crate::parser;
 use crate::syntax::{types, variable};
-use ellie_core::{error, defs, utils};
 use alloc::string::{String, ToString};
-use alloc::vec::Vec;
 use alloc::vec;
+use alloc::vec::Vec;
+use ellie_core::{defs, error, utils};
 
 pub fn collect_refference(
     parser: parser::Parser,

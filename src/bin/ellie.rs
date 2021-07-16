@@ -73,8 +73,7 @@ fn main() {
                                 );
                                 if e == "string" {
                                     let mut ellie_library_content = Vec::new();
-                                    let mut ellie_library =
-                                        File::open("./lib/string.ei").unwrap();
+                                    let mut ellie_library = File::open("./lib/string.ei").unwrap();
                                     ellie_library
                                         .read_to_end(&mut ellie_library_content)
                                         .expect("Unable to read");
@@ -102,7 +101,8 @@ fn main() {
                                             parser_type: ellie_core::defs::ParserType::RawParser,
                                             allow_import: true,
                                         },
-                                    ).map();
+                                    )
+                                    .map();
 
                                     if child_parser.syntax_errors.len() != 0 {
                                         println!(
@@ -127,11 +127,9 @@ fn main() {
                                         );
                                         parser::ResolvedImport {
                                             found: true,
-                                            file_content: child_parser.parsed
+                                            file_content: child_parser.parsed,
                                         }
                                     }
-
-                                    
                                 } else {
                                     parser::ResolvedImport::default()
                                 }

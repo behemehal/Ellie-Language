@@ -14,7 +14,6 @@ impl Future<T> {
 }
 */
 
-
 pub mod types;
 
 pub struct Message {

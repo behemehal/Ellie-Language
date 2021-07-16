@@ -65,8 +65,11 @@ pub fn collect_condition(
                     data.inside_object_count -= 1;
                 }
             } else {
-                let mut child_parser =
-                    parser::Parser::new(data.inside_code_string.clone(), |_| parser::ResolvedImport::default(), options);
+                let mut child_parser = parser::Parser::new(
+                    data.inside_code_string.clone(),
+                    |_| parser::ResolvedImport::default(),
+                    options,
+                );
                 child_parser.pos = parser.pos;
                 let mapped = child_parser.map();
                 for i in mapped.syntax_errors {

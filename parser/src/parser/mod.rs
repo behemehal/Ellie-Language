@@ -1,5 +1,5 @@
 use enum_as_inner::EnumAsInner;
-use serde::ser::{Serialize, Serializer, SerializeStruct};
+use serde::ser::{Serialize, SerializeStruct, Serializer};
 use serde::Serialize as Serd;
 
 pub mod iterator;
