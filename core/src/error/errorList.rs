@@ -192,4 +192,11 @@ lazy_static! {
         message: "Cannot apply data to generic type".to_string(),
         ..Default::default()
     };
+
+    pub static ref error_s28: crate::error::Error = crate::error::Error {
+        code: 0x27,
+        title: "ImportError".to_string(),
+        message: "Cannot resolve '$token' module".to_string(),
+        ..Default::default()
+    };
 }

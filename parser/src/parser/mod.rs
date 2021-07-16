@@ -1,5 +1,6 @@
 use enum_as_inner::EnumAsInner;
-use serde::Serialize;
+use serde::ser::{Serialize, Serializer, SerializeStruct};
+use serde::Serialize as Serd;
 
 pub mod iterator;
 pub mod scope;
@@ -15,14 +16,19 @@ use crate::alloc::string::{String, ToString};
 use crate::alloc::vec;
 use crate::alloc::vec::Vec;
 use core::hash::Hash;
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct Parsed {
+    pub name: String,
+    pub items: Vec<Collecting>,
+}
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct Parsed {
-    pub items: Vec<Collecting>,
+pub struct ParserResponse {
+    pub parsed: Parsed,
     pub syntax_errors: Vec<error::Error>,
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Hash)]
+#[derive(PartialEq, Debug, Clone, Serd, Hash)]
 pub enum Collecting {
     Variable(variable::VariableCollector),
     Function(function::FunctionCollector),
@@ -51,9 +57,10 @@ pub struct NameCheckResponse {
     pub found_type: NameCheckResponseType,
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Hash)]
+#[derive(PartialEq, Debug, Clone, Hash)]
 pub struct Parser {
     pub scope: Box<scope::Scope>,
+    pub resolver: fn(String) -> ResolvedImport,
     pub code: String,
     pub options: defs::ParserOptions,
     pub collected: Vec<Collecting>,
@@ -68,10 +75,35 @@ pub struct Parser {
     pub keyword_cache: variable::VariableCollector,
 }
 
+impl Serialize for Parser {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        // 3 is the number of fields in the struct.
+        let mut state = serializer.serialize_struct("Color", 3)?;
+        state.serialize_field("scope", &self.scope)?;
+        state.serialize_field("code", &self.code)?;
+        state.serialize_field("options", &self.options)?;
+        state.serialize_field("collected", &self.collected)?;
+        state.serialize_field("generic_variables", &self.generic_variables)?;
+        state.serialize_field("pos", &self.pos)?;
+        state.serialize_field("on_comment", &self.on_comment)?;
+        state.serialize_field("on_line_comment", &self.on_line_comment)?;
+        state.serialize_field("ignore_line", &self.ignore_line)?;
+        state.serialize_field("current", &self.current)?;
+        state.serialize_field("keyword_pos", &self.keyword_pos)?;
+        state.serialize_field("keyword_catch", &self.keyword_catch)?;
+        state.serialize_field("keyword_cache", &self.keyword_cache)?;
+        state.end()
+    }
+}
+
 impl Default for Parser {
     fn default() -> Self {
         Parser {
             scope: Box::new(scope::Scope::default()),
+            resolver: |e| ResolvedImport::default(),
             code: "".to_string(),
             options: defs::ParserOptions::default(),
             collected: Vec::new(),
@@ -88,10 +120,21 @@ impl Default for Parser {
     }
 }
 
+#[derive(Default)]
+pub struct ResolvedImport {
+    pub found: bool,
+    pub file_content: Parsed,
+}
+
 impl Parser {
-    pub fn new(code: String, options: defs::ParserOptions) -> Self {
+    pub fn new(
+        code: String,
+        resolve_import: fn(String) -> ResolvedImport,
+        options: defs::ParserOptions,
+    ) -> Self {
         Parser {
             scope: Box::new(scope::Scope::default()),
+            resolver: resolve_import,
             code,
             options,
             collected: Vec::new(),
@@ -107,7 +150,12 @@ impl Parser {
         }
     }
 
-    pub fn map(mut self) -> Parsed {
+    pub fn read_module(mut self, code: String) -> ParserResponse {
+        self.code = code;
+        self.map()
+    }
+
+    pub fn map(mut self) -> ParserResponse {
         let mut errors: Vec<error::Error> = Vec::new();
 
         for (index, char) in self.code.clone().chars().enumerate() {
@@ -142,7 +190,6 @@ impl Parser {
             }
         }
         if self.current != Collecting::None || !self.keyword_catch.is_empty() {
-            std::println!("{:#?}", self.pos);
             errors.push(error::Error {
                 scope: "definer_processor".to_string(),
                 debug_message: "ab51e953611e1db4afa538f4e21be62d".to_string(),
@@ -158,8 +205,11 @@ impl Parser {
                 },
             });
         }
-        Parsed {
-            items: self.collected.clone(),
+        ParserResponse {
+            parsed: Parsed {
+                name: self.scope.scope_name,
+                items: self.collected.clone(),
+            },
             syntax_errors: errors,
         }
     }
@@ -272,7 +322,9 @@ impl Parser {
                                             if resolved_type != e.rtype {
                                                 errors.push(error::Error {
                                                     scope: self.scope.scope_name.clone(),
-                                                    debug_message: "d4824ea474c0c2675d16029f0708f38f".to_string(),
+                                                    debug_message:
+                                                        "d4824ea474c0c2675d16029f0708f38f"
+                                                            .to_string(),
                                                     title: error::errorList::error_s3.title.clone(),
                                                     code: error::errorList::error_s3.code,
                                                     message: error::errorList::error_s3
@@ -380,7 +432,8 @@ impl Parser {
                                         if resolved_type != e.rtype {
                                             errors.push(error::Error {
                                                 scope: self.scope.scope_name.clone(),
-                                                debug_message: "4077439e268e9ddea6e44f101221ef38".to_string(),
+                                                debug_message: "4077439e268e9ddea6e44f101221ef38"
+                                                    .to_string(),
                                                 title: error::errorList::error_s3.title.clone(),
                                                 code: error::errorList::error_s3.code,
                                                 message: error::errorList::error_s3.message.clone(),

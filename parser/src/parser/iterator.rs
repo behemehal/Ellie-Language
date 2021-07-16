@@ -15,23 +15,21 @@ pub fn iter(
 ) {
     if parser.current == parser::Collecting::None {
         if !parser.keyword_catch.is_empty() && parser.pos.1 == 0 {
-            if !parser.keyword_catch.is_empty() {
-                errors.push(error::Error {
-                    scope: parser.scope.scope_name.clone(),
-                    debug_message: "replace".to_string(),
-                    title: error::errorList::error_s23.title.clone(),
-                    code: error::errorList::error_s23.code,
-                    message: error::errorList::error_s23.message.clone(),
-                    builded_message: error::Error::build(
-                        error::errorList::error_s23.message.clone(),
-                        vec![error::ErrorBuildField {
-                            key: "token".to_string(),
-                            value: parser.keyword_catch.clone(),
-                        }],
-                    ),
-                    pos: parser.keyword_pos,
-                });
-            }
+            errors.push(error::Error {
+                scope: parser.scope.scope_name.clone(),
+                debug_message: "replace".to_string(),
+                title: error::errorList::error_s23.title.clone(),
+                code: error::errorList::error_s23.code,
+                message: error::errorList::error_s23.message.clone(),
+                builded_message: error::Error::build(
+                    error::errorList::error_s23.message.clone(),
+                    vec![error::ErrorBuildField {
+                        key: "token".to_string(),
+                        value: parser.keyword_catch.clone(),
+                    }],
+                ),
+                pos: parser.keyword_pos,
+            });
             parser.keyword_catch = String::new();
         } else {
             if parser.keyword_catch.is_empty() {

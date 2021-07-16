@@ -18,12 +18,14 @@ pub fn collect_type(
     options: defs::ParserOptions,
 ) {
     let keyword = utils::trim_good(parser.keyword_catch.trim_start().to_string()); //one step next
+    
+
     if keyword == "*\\" && parser.on_comment && !parser.on_line_comment {
         parser.on_comment = false;
     } else if keyword == "/*" && !parser.on_comment && !parser.on_line_comment {
         parser.on_comment = true;
     } else if parser.on_comment {
-    } else if (keyword == "import " || keyword == "pub import " || keyword == "pri import")
+    } else if (keyword == "import " || keyword == "pub import " || keyword == "pri import ")
         && options.allow_import
     {
         if keyword == "pri import" {

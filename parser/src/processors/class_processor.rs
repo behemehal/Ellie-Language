@@ -70,6 +70,7 @@ pub fn collect_class(
                     });
                 }
                 classdata.name_collected = true;
+                classdata.has_code = true;
                 classdata.generic_definings_collected = true;
             } else if letter_char != " " {
                 errors.push(error::Error {

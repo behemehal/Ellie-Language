@@ -18,7 +18,7 @@ package-lock.json
 LICENSE
 .npmignore
 .vscode
-.target
+target
 ellie-lang-0.0.3.vsix
 .travis.yml
 .jshintrc

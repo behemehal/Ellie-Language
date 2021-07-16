@@ -7,3 +7,4 @@ data.json
 Cargo.lock
 target
 test_dir
+raw

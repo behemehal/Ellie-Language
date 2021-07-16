@@ -20,6 +20,7 @@ fn variable_benchmark(c: &mut Criterion) {
             ];
         "
         .to_string(),
+        |_| ellie_parser::parser::ResolvedImport::default(),
         ellie_core::defs::ParserOptions {
             functions: true,
             break_on_error: false,

@@ -15,7 +15,7 @@
           "kind": "bin"
         }
       },
-      "args": [".\\test_dir\\test.ei", "--debug"],
+      "args": [".\\lib\\ellie.ei", "--debug"],
       "cwd": "${workspaceFolder}"
     },
   ]

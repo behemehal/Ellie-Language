@@ -66,14 +66,14 @@ pub fn collect_condition(
                 }
             } else {
                 let mut child_parser =
-                    parser::Parser::new(data.inside_code_string.clone(), options);
+                    parser::Parser::new(data.inside_code_string.clone(), |_| parser::ResolvedImport::default(), options);
                 child_parser.pos = parser.pos;
                 let mapped = child_parser.map();
                 for i in mapped.syntax_errors {
                     errors.push(i)
                 }
                 let chains_length = data.chains.clone().len() - 1;
-                data.chains[chains_length].inside_code = mapped.items;
+                data.chains[chains_length].inside_code = mapped.parsed.items;
                 parser.collected.push(parser.current.clone());
                 parser.current = parser::Collecting::None;
             }

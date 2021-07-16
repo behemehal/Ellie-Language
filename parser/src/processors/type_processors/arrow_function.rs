@@ -325,32 +325,41 @@ pub fn collect_arrow(
             if letter_char == ">" {
                 functiondata.pointer_typed = true;
             } else if letter_char == "{" {
-                if itered_data.data.dynamic {}
-                if let definers::DefinerCollecting::Function(function) =
+                if itered_data.data.dynamic {
+                } else if let definers::DefinerCollecting::Function(function) =
                     itered_data.data.rtype.clone()
                 {
-                    errors.push(error::Error {
-                        scope: parser.scope.scope_name.clone(),
-                        debug_message: "439e2cae2a7d181728d2c43856ff4569".to_string(),
-                        title: error::errorList::error_s3.title.clone(),
-                        code: error::errorList::error_s3.code,
-                        message: error::errorList::error_s3.message.clone(),
-                        builded_message: error::Error::build(
-                            error::errorList::error_s3.message.clone(),
-                            vec![
-                                error::ErrorBuildField {
-                                    key: "token1".to_string(),
-                                    value: function.returning.raw_name(),
-                                },
-                                error::ErrorBuildField {
-                                    key: "token2".to_string(),
-                                    value: "void".to_string(),
-                                },
-                            ],
-                        ),
-                        pos: itered_data.data.type_pos,
-                    });
+                    let fndata_type = if functiondata.data.return_type.raw_name() == "" {
+                        "void".to_string()
+                    } else {
+                        functiondata.data.return_type.raw_name()
+                    };
+
+                    if *function.returning.raw_name() != fndata_type {
+                        errors.push(error::Error {
+                            scope: parser.scope.scope_name.clone(),
+                            debug_message: "439e2cae2a7d181728d2c43856ff4569".to_string(),
+                            title: error::errorList::error_s3.title.clone(),
+                            code: error::errorList::error_s3.code,
+                            message: error::errorList::error_s3.message.clone(),
+                            builded_message: error::Error::build(
+                                error::errorList::error_s3.message.clone(),
+                                vec![
+                                    error::ErrorBuildField {
+                                        key: "token1".to_string(),
+                                        value: function.returning.raw_name(),
+                                    },
+                                    error::ErrorBuildField {
+                                        key: "token2".to_string(),
+                                        value: fndata_type,
+                                    },
+                                ],
+                            ),
+                            pos: itered_data.data.type_pos,
+                        });
+                    }
                 }
+
                 functiondata.return_typed = true;
                 functiondata.pointer_typed = true;
             } else if letter_char != " " {

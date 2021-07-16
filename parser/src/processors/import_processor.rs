@@ -17,6 +17,31 @@ pub fn collect_import(
             importdata.pos.range_end = parser.pos;
             importdata.path_pos.range_end = parser.pos;
             if letter_char == ";" {
+                let response = (parser.resolver)(importdata.path.clone());
+                if !response.found {
+                    errors.push(error::Error {
+                        scope: parser.scope.scope_name.clone(),
+                        debug_message: "59bc5156eed94e34105cd2c5ee1d935e".to_string(),
+                        title: error::errorList::error_s28.title.clone(),
+                        code: error::errorList::error_s28.code,
+                        message: error::errorList::error_s28.message.clone(),
+                        builded_message: error::Error::build(
+                            error::errorList::error_s28.message.clone(),
+                            vec![error::ErrorBuildField {
+                                key: "token".to_string(),
+                                value: importdata.path.clone(),
+                            }],
+                        ),
+                        pos: defs::Cursor {
+                            range_start: parser.pos,
+                            range_end: parser.pos.clone().skip_char(1),
+                        },
+                    });
+                } else {
+                    for item in response.file_content.items {
+                        parser.collected.push(item);
+                    }
+                }
                 parser.collected.push(parser.current.clone());
                 parser.current = parser::Collecting::None;
             } else if letter_char != " " {

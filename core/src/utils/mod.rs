@@ -26,7 +26,8 @@ pub fn is_reserved(value: &str) -> bool {
         || value == "v"
         || value == "c"
         || value == "d"
-        || value == "con"
+        || value == "co"
+        || value == "import"
         || value == "get"
         || value == "set"
 }
