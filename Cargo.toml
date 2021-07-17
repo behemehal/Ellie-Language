@@ -12,7 +12,6 @@ serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
 
 ellie_core = {path = "core", version = "0.3.0"}
 ellie_parser = {path = "parser", version = "0.5.0"}
-ellie_raw = {path = "raw", version = "0.1.0"}
 
 [lib]
 name = "ellie_lang"

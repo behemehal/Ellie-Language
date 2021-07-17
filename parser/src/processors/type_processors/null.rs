@@ -1,7 +1,7 @@
 use crate::parser;
 use crate::processors::type_processors;
 use crate::syntax::{definers, types, variable};
-use ellie_core::error;
+use ellie_core::{defs, error};
 
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};
@@ -93,6 +93,10 @@ pub fn collect_null(
                     types::Types::VariableType(types::variable_type::VariableType {
                         value_complete: false,
                         value: itered_data.raw_value.clone() + letter_char,
+                        pos: defs::Cursor {
+                            range_start: parser.pos,
+                            ..Default::default()
+                        },
                     });
             }
         } else if letter_char != " " {

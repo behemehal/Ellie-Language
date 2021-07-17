@@ -230,7 +230,6 @@ dependencies = [
  "criterion",
  "ellie_core",
  "ellie_parser",
- "ellie_raw",
  "lazy_static",
  "serde",
  "serde_json",
@@ -247,14 +246,6 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_yaml",
-]
-
-[[package]]
-name = "ellie_raw"
-version = "0.1.0"
-dependencies = [
- "ellie_core",
- "ellie_parser",
 ]
 
 [[package]]

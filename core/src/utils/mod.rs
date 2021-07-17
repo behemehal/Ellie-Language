@@ -30,6 +30,7 @@ pub fn is_reserved(value: &str) -> bool {
         || value == "import"
         || value == "get"
         || value == "set"
+        || value == "new"
 }
 
 pub fn reliable_name_range(range: ReliableNameRanges, value: String) -> ReliableNameRangeResponse {

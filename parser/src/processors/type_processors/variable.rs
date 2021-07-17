@@ -45,7 +45,11 @@ pub fn collect_variable(
                         },
                     });
                 } else {
+                    if variabledata.value.is_empty() {
+                        variabledata.pos.range_start = parser.pos;
+                    }
                     variabledata.value += letter_char;
+                    variabledata.pos.range_end = parser.pos;
                 }
 
                 if variabledata.value == "true" || variabledata.value == "false" {
@@ -53,6 +57,12 @@ pub fn collect_variable(
                         value: variabledata.value == "true",
                         raw: variabledata.value.clone(),
                     });
+                } else if variabledata.value == "new" && next_char == " " {
+                    itered_data.data.value =
+                        types::Types::ClassCall(types::class_call::ClassCallCollector {
+                            keyword_collected: true,
+                            ..Default::default()
+                        });
                 }
             } else if !variabledata.value.is_empty() {
                 if letter_char == ";" {
@@ -66,6 +76,27 @@ pub fn collect_variable(
                             chain: Vec::new(),
                         });
                     type_processors::refference::collect_refference(
+                        parser.clone(),
+                        itered_data,
+                        errors,
+                        letter_char,
+                        next_char,
+                        last_char,
+                    )
+                } else if letter_char == "(" {
+                    itered_data.data.value =
+                        types::Types::FunctionCall(types::function_call::FunctionCallCollector {
+                            data: types::function_call::FunctionCall {
+                                name: variabledata.value.clone(),
+                                name_pos: defs::Cursor {
+                                    range_start: variabledata.pos.range_start,
+                                    range_end: variabledata.pos.range_end.clone().skip_char(1),
+                                },
+                                ..Default::default()
+                            },
+                            ..Default::default()
+                        });
+                    type_processors::function_call::collect_function_caller(
                         parser.clone(),
                         itered_data,
                         errors,

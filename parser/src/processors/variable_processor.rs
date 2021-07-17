@@ -310,7 +310,10 @@ pub fn collect_variable_value(
                     let resolved_type_name =
                         parser_clone.resolve_variable(collected.data.value.clone());
 
-                    if collected.data.rtype.raw_name() != resolved_type_name {
+                    //nen means cannot resolve type
+                    if collected.data.rtype.raw_name() != resolved_type_name
+                        && resolved_type_name != "nen"
+                    {
                         //We should resolve inner value
                         if collected.data.dynamic {
                             #[cfg(feature = "std")]

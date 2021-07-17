@@ -1,19 +1,45 @@
 use crate::syntax::types;
+use ellie_core::defs;
 use serde::Serialize;
 
 use alloc::boxed::Box;
 use alloc::string::String;
 use alloc::vec::Vec;
 
+#[derive(PartialEq, Default, Debug, Clone, Serialize, Hash)]
+pub struct GetterChain {
+    pub value: String,
+}
+
+#[derive(PartialEq, Default, Debug, Clone, Serialize, Hash)]
+pub struct SetterChain {
+    pub name: String,
+    pub value: types::Types,
+    pub name_set: bool,
+}
+
+#[derive(PartialEq, Debug, Clone, Serialize, Hash)]
 pub enum ChainType {
-    Getter,
-    Setter,
-    FunctionCall,
+    Getter(GetterChain),
+    Setter(SetterChain),
+    FunctionCall(types::function_call::FunctionCallCollector),
+}
+
+#[derive(PartialEq, Default, Debug, Clone, Serialize, Hash)]
+pub struct Chain {
+    pub pos: defs::Cursor,
+    pub value: ChainType,
+}
+
+impl Default for ChainType {
+    fn default() -> Self {
+        ChainType::Getter(GetterChain::default())
+    }
 }
 
 #[derive(PartialEq, Default, Debug, Clone, Serialize, Hash)]
 pub struct RefferenceType {
     pub refference: Box<types::Types>,
     pub on_dot: bool,
-    pub chain: Vec<String>,
+    pub chain: Vec<Chain>,
 }

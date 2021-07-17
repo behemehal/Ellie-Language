@@ -22,7 +22,4 @@
     SOFTWARE.
 */
 
-import string;
-import void;
-import int;
-import char;
+class void {}

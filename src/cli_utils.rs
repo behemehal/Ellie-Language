@@ -1,11 +1,86 @@
 use crate::terminal_colors;
+
 use ellie_core::{defs, error};
+use ellie_parser::{self, parser};
+use std::{env, fs::File, io::Read};
 
 pub fn is_errors_same(first: error::Error, second: error::Error) -> bool {
     first.code == second.code
         && first.message == second.message
         && first.pos.range_start.0 == second.pos.range_start.0
         && first.pos.range_start.1 == second.pos.range_start.1
+}
+
+pub fn system_module_resolver(lib_name: String) -> Option<ellie_parser::parser::Parsed> {
+    let core_resolver = |e| {
+        println!(
+            "{}[ParserInfo]{}: Import Request '{}{}{}'",
+            crate::terminal_colors::get_color(crate::terminal_colors::Colors::Cyan),
+            crate::terminal_colors::get_color(crate::terminal_colors::Colors::Reset),
+            crate::terminal_colors::get_color(crate::terminal_colors::Colors::Yellow),
+            e,
+            crate::terminal_colors::get_color(crate::terminal_colors::Colors::Reset),
+        );
+        if e == "ellie" || e == "string" || e == "void" {
+            if let Some(e) = crate::cli_utils::system_module_resolver(e) {
+                parser::ResolvedImport {
+                    found: true,
+                    file_content: e,
+                }
+            } else {
+                parser::ResolvedImport::default()
+            }
+        } else {
+            parser::ResolvedImport::default()
+        }
+    };
+
+    let mut ellie_library_content = Vec::new();
+    let mut ellie_library = File::open("./lib/".to_string() + &(lib_name + ".ei")).unwrap();
+    ellie_library
+        .read_to_end(&mut ellie_library_content)
+        .expect("Unable to read");
+    let ellie_code_string = String::from_utf8(ellie_library_content).unwrap();
+    let child_parser: ellie_parser::parser::ParserResponse = ellie_parser::parser::Parser::new(
+        ellie_code_string,
+        core_resolver,
+        ellie_core::defs::ParserOptions {
+            functions: true,
+            break_on_error: false,
+            loops: true,
+            conditions: true,
+            classes: true,
+            dynamics: true,
+            global_variables: true,
+            line_ending: if env::consts::OS == "windows" {
+                "\\r\\n".to_string()
+            } else {
+                "\\n".to_string()
+            },
+            collectives: true,
+            variables: true,
+            constants: true,
+            parser_type: ellie_core::defs::ParserType::RawParser,
+            allow_import: true,
+        },
+    )
+    .map();
+
+    if child_parser.syntax_errors.len() != 0 {
+        println!(
+            "{}[ParserInfo]{}: Import Failed",
+            crate::terminal_colors::get_color(crate::terminal_colors::Colors::Red),
+            crate::terminal_colors::get_color(crate::terminal_colors::Colors::Reset),
+        );
+        None
+    } else {
+        println!(
+            "{}[ParserInfo]{}: Import Sucess",
+            crate::terminal_colors::get_color(crate::terminal_colors::Colors::Green),
+            crate::terminal_colors::get_color(crate::terminal_colors::Colors::Reset),
+        );
+        Some(child_parser.parsed)
+    }
 }
 
 pub fn zip_errors(errors: Vec<error::Error>) -> Vec<error::Error> {

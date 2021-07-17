@@ -13,15 +13,18 @@ pub fn collect_type(
     parser: &mut parser::Parser,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
-    _last_char: String,
+    last_char: String,
     next_char: String,
     options: defs::ParserOptions,
 ) {
     let keyword = utils::trim_good(parser.keyword_catch.trim_start().to_string()); //one step next
 
-    if keyword == "*\\" && parser.on_comment && !parser.on_line_comment {
+    if letter_char == "*" && last_char == "/" {
+        //&& parser.on_comment && !parser.on_line_comment
+        panic!("Comment closed: {:#?}", parser.on_comment);
         parser.on_comment = false;
     } else if keyword == "/*" && !parser.on_comment && !parser.on_line_comment {
+        std::println!("comment");
         parser.on_comment = true;
     } else if parser.on_comment {
     } else if (keyword == "import " || keyword == "pub import " || keyword == "pri import ")
@@ -182,6 +185,17 @@ pub fn collect_type(
             },
             ..Default::default()
         });
+    } else if keyword == "new " {
+        parser.current = parser::Collecting::Caller(caller::Caller {
+            value: types::Types::ClassCall(types::class_call::ClassCallCollector {
+                keyword_collected: true,
+                ..Default::default()
+            }),
+            pos: defs::Cursor {
+                range_start: parser.pos,
+                ..Default::default()
+            },
+        });
     } else if letter_char == "(" && keyword.trim() != "(" && !keyword.trim().is_empty() {
         parser.current = parser::Collecting::Caller(caller::Caller {
             value: types::Types::FunctionCall(types::function_call::FunctionCallCollector {
@@ -208,12 +222,15 @@ pub fn collect_type(
             },
         });
     } else if next_char == "." && keyword.trim() != "" {
+        #[cfg(feature = "std")]
+        std::println!("[ParserWarning]: Appliying no position data to VariableType[226] will cause error showing problem in cli");
         parser.current = parser::Collecting::Caller(caller::Caller {
             value: types::Types::Refference(types::refference_type::RefferenceType {
                 refference: Box::new(types::Types::VariableType(
                     types::variable_type::VariableType {
                         value: keyword.clone(),
                         value_complete: true,
+                        ..Default::default()
                     },
                 )),
                 on_dot: true,

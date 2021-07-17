@@ -52,88 +52,40 @@ fn main() {
                     if code_string.is_err() {
                         println!("Unable to read file ~{}", file_arg.clone())
                     } else if let Ok(code) = code_string {
-                        let parser = parser::Parser::new(
-                            code.clone(),
-                            |e| {
-                                println!(
-                                    "{}[ParserInfo]{}: Import Request '{}{}{}'",
-                                    ellie_lang::terminal_colors::get_color(
-                                        ellie_lang::terminal_colors::Colors::Cyan
-                                    ),
-                                    ellie_lang::terminal_colors::get_color(
-                                        ellie_lang::terminal_colors::Colors::Reset
-                                    ),
-                                    ellie_lang::terminal_colors::get_color(
-                                        ellie_lang::terminal_colors::Colors::Yellow
-                                    ),
-                                    e,
-                                    ellie_lang::terminal_colors::get_color(
-                                        ellie_lang::terminal_colors::Colors::Reset
-                                    ),
-                                );
-                                if e == "string" {
-                                    let mut ellie_library_content = Vec::new();
-                                    let mut ellie_library = File::open("./lib/string.ei").unwrap();
-                                    ellie_library
-                                        .read_to_end(&mut ellie_library_content)
-                                        .expect("Unable to read");
-                                    let ellie_code_string =
-                                        String::from_utf8(ellie_library_content).unwrap();
-                                    let mut child_parser = parser::Parser::new(
-                                        ellie_code_string,
-                                        |_| parser::ResolvedImport::default(),
-                                        ellie_core::defs::ParserOptions {
-                                            functions: true,
-                                            break_on_error: false,
-                                            loops: true,
-                                            conditions: true,
-                                            classes: true,
-                                            dynamics: true,
-                                            global_variables: true,
-                                            line_ending: if env::consts::OS == "windows" {
-                                                "\\r\\n".to_string()
-                                            } else {
-                                                "\\n".to_string()
-                                            },
-                                            collectives: true,
-                                            variables: true,
-                                            constants: true,
-                                            parser_type: ellie_core::defs::ParserType::RawParser,
-                                            allow_import: true,
-                                        },
-                                    )
-                                    .map();
-
-                                    if child_parser.syntax_errors.len() != 0 {
-                                        println!(
-                                            "{}[ParserInfo]{}: Import Failed",
-                                            ellie_lang::terminal_colors::get_color(
-                                                ellie_lang::terminal_colors::Colors::Red
-                                            ),
-                                            ellie_lang::terminal_colors::get_color(
-                                                ellie_lang::terminal_colors::Colors::Reset
-                                            ),
-                                        );
-                                        parser::ResolvedImport::default()
-                                    } else {
-                                        println!(
-                                            "{}[ParserInfo]{}: Import Sucess",
-                                            ellie_lang::terminal_colors::get_color(
-                                                ellie_lang::terminal_colors::Colors::Green
-                                            ),
-                                            ellie_lang::terminal_colors::get_color(
-                                                ellie_lang::terminal_colors::Colors::Reset
-                                            ),
-                                        );
-                                        parser::ResolvedImport {
-                                            found: true,
-                                            file_content: child_parser.parsed,
-                                        }
+                        let core_resolver = |e| {
+                            println!(
+                                "{}[ParserInfo]{}: Import Request '{}{}{}'",
+                                ellie_lang::terminal_colors::get_color(
+                                    ellie_lang::terminal_colors::Colors::Cyan
+                                ),
+                                ellie_lang::terminal_colors::get_color(
+                                    ellie_lang::terminal_colors::Colors::Reset
+                                ),
+                                ellie_lang::terminal_colors::get_color(
+                                    ellie_lang::terminal_colors::Colors::Yellow
+                                ),
+                                e,
+                                ellie_lang::terminal_colors::get_color(
+                                    ellie_lang::terminal_colors::Colors::Reset
+                                ),
+                            );
+                            if e == "ellie" || e == "string" || e == "void" {
+                                if let Some(e) = ellie_lang::cli_utils::system_module_resolver(e) {
+                                    parser::ResolvedImport {
+                                        found: true,
+                                        file_content: e,
                                     }
                                 } else {
                                     parser::ResolvedImport::default()
                                 }
-                            },
+                            } else {
+                                parser::ResolvedImport::default()
+                            }
+                        };
+
+                        let parser = parser::Parser::new(
+                            code.clone(),
+                            core_resolver,
                             ellie_core::defs::ParserOptions {
                                 functions: true,
                                 break_on_error: false,
@@ -394,9 +346,7 @@ fn main() {
                             }
                             std::process::exit(1);
                         } else if env::args().any(|x| x == "-rw" || x == "--raw-compile") {
-                            //println!("Pre-compiled raw generation not supported yet {:#?}", code);
-                            let convert = ellie_raw::converter::Converter::new();
-                            convert.convert(mapped.parsed);
+                            println!("Pre-compiled raw generation not supported yet {:#?}", code);
                         } else if !env::args().any(|x| x == "-se" || x == "--show-errors") {
                             print!("Collected: {:#?}", mapped);
                             std::process::exit(0);

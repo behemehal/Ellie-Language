@@ -5,6 +5,7 @@ use serde::Serialize;
 #[derive(PartialEq, Debug, Clone, Serialize, Hash)]
 pub enum Callers {
     FunctionCall(types::function_call::FunctionCallCollector),
+    ClassCall(types::class_call::ClassCallCollector),
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Hash)]

@@ -21,8 +21,8 @@ pub struct ClassCall {
 #[derive(PartialEq, Default, Debug, Clone, Serialize, Hash)]
 pub struct ClassCallCollector {
     pub data: ClassCall,
-    pub keyword_collect: String,
     pub keyword_collected: bool,
+    pub keyword_index: i8,
     pub name_collected: bool,
     pub comma: bool,
     pub complete: bool,
