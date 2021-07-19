@@ -1,5 +1,5 @@
 use crate::parser;
-use crate::processors::{type_processors, value_processor};
+use crate::processors::value_processor;
 use crate::syntax::{definers, types, variable};
 
 use alloc::boxed::Box;
@@ -42,11 +42,11 @@ pub fn collect_refference(
                     data.on_dot = true;
                 } else {
                     match &data.chain[data.chain.len() - 1].value {
-                        types::refference_type::ChainType::Getter(getter_data) => {
+                        types::refference_type::ChainType::Getter(_) => {
                             data.on_dot = true;
                         }
-                        types::refference_type::ChainType::Setter(setter_data) => {}
-                        types::refference_type::ChainType::FunctionCall(function_call_data) => {
+                        types::refference_type::ChainType::Setter(_) => {}
+                        types::refference_type::ChainType::FunctionCall(_) => {
                             panic!("REFFERENCE FUNCTION TYPE IS NOT IMPLEMENTED")
                         }
                     };

@@ -5,17 +5,16 @@ use serde::Serialize as Serd;
 pub mod iterator;
 pub mod scope;
 
+use crate::alloc::boxed::Box;
+use crate::alloc::string::{String, ToString};
+use crate::alloc::vec;
+use crate::alloc::vec::Vec;
 use crate::syntax::{
     caller, class, condition, constructor, definers, forloop, function, import, import_item, ret,
     types, variable,
 };
 use ellie_core::{defs, error, utils};
 
-use crate::alloc::boxed::Box;
-use crate::alloc::string::{String, ToString};
-use crate::alloc::vec;
-use crate::alloc::vec::Vec;
-use core::hash::Hash;
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct Parsed {
     pub name: String,
@@ -28,7 +27,7 @@ pub struct ParserResponse {
     pub syntax_errors: Vec<error::Error>,
 }
 
-#[derive(PartialEq, Debug, Clone, Serd, Hash)]
+#[derive(PartialEq, Debug, Clone, Serd)]
 pub enum Collecting {
     ImportItem(import_item::ImportItem),
     Variable(variable::VariableCollector),
@@ -58,7 +57,7 @@ pub struct NameCheckResponse {
     pub found_type: NameCheckResponseType,
 }
 
-#[derive(PartialEq, Debug, Clone, Hash)]
+#[derive(PartialEq, Debug, Clone)]
 pub struct Parser {
     pub scope: Box<scope::Scope>,
     pub resolver: fn(String) -> ResolvedImport,
@@ -104,7 +103,7 @@ impl Default for Parser {
     fn default() -> Self {
         Parser {
             scope: Box::new(scope::Scope::default()),
-            resolver: |e| ResolvedImport::default(),
+            resolver: |_| ResolvedImport::default(),
             code: "".to_string(),
             options: defs::ParserOptions::default(),
             collected: Vec::new(),
@@ -300,7 +299,7 @@ impl Parser {
         refference_data: types::refference_type::RefferenceType,
         caller_data: types::function_call::FunctionCallCollector,
     ) -> Option<Vec<ellie_core::error::Error>> {
-        let mut found = false;
+        let found = false;
         let mut errors = Vec::new();
 
         let targeted_var = self.check_keyword(self.resolve_variable(*refference_data.refference));

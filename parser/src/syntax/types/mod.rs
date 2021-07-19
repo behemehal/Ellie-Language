@@ -18,12 +18,11 @@ pub mod variable_type;
 
 use alloc::format;
 use alloc::string::String;
-use core::hash::Hash;
 use ellie_core::utils;
 use enum_as_inner::EnumAsInner;
 use serde::Serialize;
 
-#[derive(PartialEq, Debug, Clone, Serialize, EnumAsInner, Hash)]
+#[derive(PartialEq, Debug, Clone, Serialize, EnumAsInner)]
 pub enum Types {
     Integer(integer_type::IntegerType),
     Float(float_type::FloatTypeCollector),

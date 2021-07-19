@@ -22,7 +22,7 @@ pub struct FunctionParameterCollector {
     pub child_brace: usize,
 }
 
-#[derive(PartialEq, Debug, Clone, Default, Serialize, Hash)]
+#[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct Function {
     pub name: String,                                //Function Name string
     pub parameters: Vec<FunctionParameterCollector>, //Parameter vector
@@ -36,7 +36,7 @@ pub struct Function {
     pub return_pos: defs::Cursor,
 }
 
-#[derive(PartialEq, Debug, Clone, Default, Serialize, Hash)]
+#[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct FunctionCollector {
     pub data: Function,
     pub initialized: bool,

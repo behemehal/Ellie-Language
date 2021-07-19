@@ -19,7 +19,7 @@ impl Default for ConditionType {
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Default, Serialize, Hash)]
+#[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct ConditionChain {
     pub rtype: ConditionType,
     pub condition: types::cloak_type::CloakType,
@@ -32,7 +32,7 @@ pub struct ConditionChainCollector {
     pub keyword_pos: defs::Cursor,
 }
 
-#[derive(PartialEq, Debug, Clone, Default, Serialize, Hash)]
+#[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct ConditionCollector {
     pub might_be_else_if: bool,
     pub else_if_keyword_collector: String,

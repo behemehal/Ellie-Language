@@ -83,6 +83,7 @@ mod float_tests {
         assert!(emulated_collector_data.data.value.is_type_complete());
     }
 
+    /*
     #[test]
     fn dot_start_float_prototype_collected() {
         let emulated_parser = ellie_parser::parser::Parser::default();
@@ -247,4 +248,5 @@ mod float_tests {
         assert_eq!(syntax_errors.len(), 0);
         assert_eq!(emulated_collector_data.data.value.get_type(), "operator");
     }
+    */
 }

@@ -5,7 +5,7 @@ use alloc::vec::Vec;
 use ellie_core::defs;
 use serde::Serialize;
 
-#[derive(PartialEq, Debug, Clone, Default, Serialize, Hash)]
+#[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct ArrowFunction {
     pub parameters: Vec<function::FunctionParameterCollector>,
     pub return_type: definers::DefinerCollecting,
@@ -13,7 +13,7 @@ pub struct ArrowFunction {
     pub return_pos: defs::Cursor,
 }
 
-#[derive(PartialEq, Debug, Clone, Default, Serialize, Hash)]
+#[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct ArrowFunctionCollector {
     pub complete: bool,
     pub param_bracket_opened: bool,

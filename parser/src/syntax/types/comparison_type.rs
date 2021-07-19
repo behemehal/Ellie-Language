@@ -5,7 +5,7 @@ use alloc::boxed::Box;
 use alloc::string::String;
 use alloc::vec::Vec;
 
-#[derive(PartialEq, Debug, Clone, Serialize, Hash)]
+#[derive(PartialEq, Debug, Clone, Serialize)]
 pub enum ComparisonOperators {
     Equal,
     NotEqual,
@@ -51,7 +51,7 @@ impl ComparisonOperators {
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Default, Serialize, Hash)]
+#[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct ComparisonType {
     pub cloaked: bool,
     pub first: Box<types::Types>,

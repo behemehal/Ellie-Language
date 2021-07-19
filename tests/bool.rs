@@ -45,6 +45,7 @@ mod boolean_tests {
         );
     }
 
+    /*
     #[test]
     fn bool_prototype_collected() {
         let emulated_parser = ellie_parser::parser::Parser::default();
@@ -127,4 +128,5 @@ mod boolean_tests {
         assert_eq!(syntax_errors.len(), 0);
         assert_eq!(emulated_collector_data.data.value.get_type(), "operator");
     }
+    */
 }
