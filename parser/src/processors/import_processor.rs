@@ -21,7 +21,7 @@ pub fn collect_import(
                 if !response.found {
                     errors.push(error::Error {
                         scope: parser.scope.scope_name.clone(),
-                        debug_message: "replace_import_processor_24".to_string(),
+                        debug_message: "8f7a6c658bc0f0f15d771f1b85d949d5".to_string(),
                         title: error::errorList::error_s28.title.clone(),
                         code: error::errorList::error_s28.code,
                         message: error::errorList::error_s28.message.clone(),
@@ -95,7 +95,7 @@ pub fn collect_import(
         } else if letter_char != " " {
             errors.push(error::Error {
                 scope: parser.scope.scope_name.clone(),
-                debug_message: "replace_import_processor_53".to_string(),
+                debug_message: "b1628292046d6dbd525b8aa097c0bdab".to_string(),
                 title: error::errorList::error_s1.title.clone(),
                 code: error::errorList::error_s1.code,
                 message: error::errorList::error_s1.message.clone(),

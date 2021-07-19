@@ -25,7 +25,7 @@ pub fn collect_cloak(
             if !data.comma && last_entry != 0 {
                 errors.push(error::Error {
                     scope: "cloak_processor".to_string(),
-                    debug_message: "915af1c92d5fa4daf39dbceed1ebaf9c".to_string(),
+                    debug_message: "b93c4c2866fab93a854dde36a3992078".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -63,7 +63,7 @@ pub fn collect_cloak(
             if data.complete {
                 errors.push(error::Error {
                     scope: "cloak_processor".to_string(),
-                    debug_message: "2f674cbbeb81c2a9dca894d8fb9c0c2b".to_string(),
+                    debug_message: "fa7bf3bcaac45f88cfc5580c46d3ce94".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -82,7 +82,7 @@ pub fn collect_cloak(
             } else if data.comma {
                 errors.push(error::Error {
                     scope: "cloak_processor".to_string(),
-                    debug_message: "e0ff4426f4fdeedaaa0c6c559eb5afc0".to_string(),
+                    debug_message: "ea5986f313f57d1683016348f6322979".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -112,7 +112,7 @@ pub fn collect_cloak(
             if data.comma {
                 errors.push(error::Error {
                     scope: "cloak_processor".to_string(),
-                    debug_message: "b4b462af0063fb17e15f632ef39a1293".to_string(),
+                    debug_message: "3663022fd6f03c95cd832f425930bfce".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -131,7 +131,7 @@ pub fn collect_cloak(
             } else if data.complete {
                 errors.push(error::Error {
                     scope: "cloak_processor".to_string(),
-                    debug_message: "1a51f93555cc1b4b91e577f05b1b7b22".to_string(),
+                    debug_message: "cdc16c4fefb43e11086863e34a38bcac".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),

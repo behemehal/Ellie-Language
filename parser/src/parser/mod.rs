@@ -193,7 +193,7 @@ impl Parser {
             std::println!("{:#?}", self.current);
             errors.push(error::Error {
                 scope: "definer_processor".to_string(),
-                debug_message: "ab51e953611e1db4afa538f4e21be62d".to_string(),
+                debug_message: "96910a324dae7459f3f1e063b3477aa7".to_string(),
                 title: error::errorList::error_s26.title.clone(),
                 code: error::errorList::error_s26.code,
                 message: error::errorList::error_s26.message.clone(),
@@ -307,7 +307,7 @@ impl Parser {
         if !targeted_var.found {
             errors.push(error::Error {
                 scope: self.scope.scope_name.clone(),
-                debug_message: "replace_parser_300".to_string(),
+                debug_message: "8bc8af3429bc3dc74b3344a70ff95264".to_string(),
                 title: error::errorList::error_s6.title.clone(),
                 code: error::errorList::error_s6.code,
                 message: error::errorList::error_s6.message.clone(),
@@ -329,7 +329,7 @@ impl Parser {
         if !found {
             errors.push(error::Error {
                 scope: self.scope.scope_name.clone(),
-                debug_message: "replace_parser_322".to_string(),
+                debug_message: "14a11e35c7d5dcd3210eb70e60f5f188".to_string(),
                 title: error::errorList::error_s6.title.clone(),
                 code: error::errorList::error_s6.code,
                 message: error::errorList::error_s6.message.clone(),
@@ -366,7 +366,7 @@ impl Parser {
                             if caller_data.data.params.len() != fntype.params.len() {
                                 errors.push(error::Error {
                                     scope: self.scope.scope_name.clone(),
-                                    debug_message: "ca214243e415baa1e79751570d38fc89".to_string(),
+                                    debug_message: "4ab7796f07cdb9d4bfe79637134525e7".to_string(),
                                     title: error::errorList::error_s7.title.clone(),
                                     code: error::errorList::error_s7.code,
                                     message: error::errorList::error_s7.message.clone(),
@@ -450,7 +450,7 @@ impl Parser {
                         } else {
                             errors.push(error::Error {
                                 scope: self.scope.scope_name.clone(),
-                                debug_message: "1a48a66f03bfc242f5b9d321f7dbb1ec".to_string(),
+                                debug_message: "67eed67c3f984fc5913bb60f19fe826f".to_string(),
                                 title: error::errorList::error_s25.title.clone(),
                                 code: error::errorList::error_s25.code,
                                 message: error::errorList::error_s25.message.clone(),
@@ -473,7 +473,7 @@ impl Parser {
                         if caller_data.data.params.len() != e.data.parameters.len() {
                             errors.push(error::Error {
                                 scope: self.scope.scope_name.clone(),
-                                debug_message: "f69023ab1e85c5b64ea042658a589fbe".to_string(),
+                                debug_message: "a3775631da7e38263f762e1bcf726c18".to_string(),
                                 title: error::errorList::error_s7.title.clone(),
                                 code: error::errorList::error_s7.code,
                                 message: error::errorList::error_s7.message.clone(),
@@ -516,7 +516,7 @@ impl Parser {
                                         if resolved_type != e.rtype {
                                             errors.push(error::Error {
                                                 scope: self.scope.scope_name.clone(),
-                                                debug_message: "4077439e268e9ddea6e44f101221ef38"
+                                                debug_message: "885d700cf36e2e2594ce683d7fea49f5"
                                                     .to_string(),
                                                 title: error::errorList::error_s3.title.clone(),
                                                 code: error::errorList::error_s3.code,
@@ -557,7 +557,7 @@ impl Parser {
                         found = true;
                         errors.push(error::Error {
                             scope: self.scope.scope_name.clone(),
-                            debug_message: "replace_parser_550".to_string(),
+                            debug_message: "4e25530ff8ed09a8887ffaef460912ef".to_string(),
                             title: error::errorList::error_s25.title.clone(),
                             code: error::errorList::error_s25.code,
                             message: error::errorList::error_s25.message.clone(),
@@ -579,7 +579,7 @@ impl Parser {
         if !found {
             errors.push(error::Error {
                 scope: self.scope.scope_name.clone(),
-                debug_message: "400e0860f2f4801c5bb253ed43d2febd".to_string(),
+                debug_message: "fc2e9d0b2ba89054836612c7e6bcaf6a".to_string(),
                 title: error::errorList::error_s6.title.clone(),
                 code: error::errorList::error_s6.code,
                 message: error::errorList::error_s6.message.clone(),
@@ -616,7 +616,7 @@ impl Parser {
                             if caller_data.data.params.len() != fntype.params.len() {
                                 errors.push(error::Error {
                                     scope: self.scope.scope_name.clone(),
-                                    debug_message: "ca214243e415baa1e79751570d38fc89".to_string(),
+                                    debug_message: "b7dffa3f72d2257f1486e7ab12cf2e9e".to_string(),
                                     title: error::errorList::error_s7.title.clone(),
                                     code: error::errorList::error_s7.code,
                                     message: error::errorList::error_s7.message.clone(),
@@ -700,7 +700,7 @@ impl Parser {
                         } else {
                             errors.push(error::Error {
                                 scope: self.scope.scope_name.clone(),
-                                debug_message: "1a48a66f03bfc242f5b9d321f7dbb1ec".to_string(),
+                                debug_message: "1acc7faa536befc32845f0d7024568d2".to_string(),
                                 title: error::errorList::error_s25.title.clone(),
                                 code: error::errorList::error_s25.code,
                                 message: error::errorList::error_s25.message.clone(),
@@ -723,7 +723,7 @@ impl Parser {
                         if caller_data.data.params.len() != e.data.parameters.len() {
                             errors.push(error::Error {
                                 scope: self.scope.scope_name.clone(),
-                                debug_message: "f69023ab1e85c5b64ea042658a589fbe".to_string(),
+                                debug_message: "a0a1f254aab3c3b3b8f48bd587cb2bf3".to_string(),
                                 title: error::errorList::error_s7.title.clone(),
                                 code: error::errorList::error_s7.code,
                                 message: error::errorList::error_s7.message.clone(),
@@ -766,7 +766,7 @@ impl Parser {
                                         if resolved_type != e.rtype {
                                             errors.push(error::Error {
                                                 scope: self.scope.scope_name.clone(),
-                                                debug_message: "4077439e268e9ddea6e44f101221ef38"
+                                                debug_message: "66bbdb187f3adc2e7ff741c9b1e35bd3"
                                                     .to_string(),
                                                 title: error::errorList::error_s3.title.clone(),
                                                 code: error::errorList::error_s3.code,
@@ -809,7 +809,7 @@ impl Parser {
         if !found {
             errors.push(error::Error {
                 scope: self.scope.scope_name.clone(),
-                debug_message: "replace_parser_802".to_string(),
+                debug_message: "2406faaa88a575cf683fd7562f5910ce".to_string(),
                 title: error::errorList::error_s6.title.clone(),
                 code: error::errorList::error_s6.code,
                 message: error::errorList::error_s6.message.clone(),

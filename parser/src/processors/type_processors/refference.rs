@@ -21,7 +21,7 @@ pub fn collect_refference(
             if data.on_dot {
                 errors.push(error::Error {
                     scope: "refference_processor".to_string(),
-                    debug_message: "4cfb82e8313eb19eb2714fc060b82550".to_string(),
+                    debug_message: "0e73655d96ec321dadd1590f804df7a4".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -104,7 +104,7 @@ pub fn collect_refference(
                         } else if letter_char != " " {
                             errors.push(error::Error {
                                 scope: "refference_processor".to_string(),
-                                debug_message: "replace_refference_processor_73".to_string(),
+                                debug_message: "c0154dc06b967dfd5961f2efed324dd8".to_string(),
                                 title: error::errorList::error_s1.title.clone(),
                                 code: error::errorList::error_s1.code,
                                 message: error::errorList::error_s1.message.clone(),
@@ -143,7 +143,7 @@ pub fn collect_refference(
                                 if functioncalldata.complete {
                                     errors.push(error::Error {
                                         scope: "function_call_processor".to_string(),
-                                        debug_message: "6b50fc5cbefae45f6b9c80878c7f4381"
+                                        debug_message: "ac70f480dc84e1026999d7922f4033be"
                                             .to_string(),
                                         title: error::errorList::error_s1.title.clone(),
                                         code: error::errorList::error_s1.code,
@@ -163,7 +163,7 @@ pub fn collect_refference(
                                 } else if functioncalldata.comma {
                                     errors.push(error::Error {
                                         scope: "function_call_processor".to_string(),
-                                        debug_message: "6140233c2550b6459bf2354b290818c4"
+                                        debug_message: "dd3ca7459253c4be1e4de2308bd1b251"
                                             .to_string(),
                                         title: error::errorList::error_s1.title.clone(),
                                         code: error::errorList::error_s1.code,
@@ -480,7 +480,7 @@ pub fn collect_refference(
                 } else {
                     errors.push(error::Error {
                         scope: "refference_processor".to_string(),
-                        debug_message: "replace".to_string(),
+                        debug_message: "9fa95d8312b035c63d69321ffd3bb531".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
