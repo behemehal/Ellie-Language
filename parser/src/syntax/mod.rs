@@ -3,6 +3,7 @@ pub mod class;
 pub mod condition;
 pub mod constructor;
 pub mod definers;
+pub mod enum_type;
 pub mod forloop;
 pub mod function;
 pub mod import;

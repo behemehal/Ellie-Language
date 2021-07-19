@@ -1,6 +1,6 @@
 ![icon](./picture/TextIcon/EllieTextIcon@0,33x.png)
 # Ellie
-[![Refactor Errors](https://github.com/behemehal/Ellie-Language/actions/workflows/refactor.yml/badge.svg)](https://github.com/behemehal/Ellie-Language/actions/workflows/refactor.yml) [![Rust](https://github.com/behemehal/Ellie-Language/actions/workflows/rust.yml/badge.svg)](https://github.com/behemehal/Ellie-Language/actions/workflows/rust.yml) 
+[![Refactor Errors](https://github.com/behemehal/Ellie-Language/actions/workflows/refactor.yml/badge.svg)](https://github.com/behemehal/Ellie-Language/actions/workflows/refactor.yml) [![Rust](https://github.com/behemehal/Ellie-Language/actions/workflows/rust.yml/badge.svg)](https://github.com/behemehal/Ellie-Language/actions/workflows/rust.yml) [![Gitter](https://badgen.net/badge/icon/gitter?icon=gitter&label)](https://gitter.im/ellie-lang/community)
 
 Ellie language
 
@@ -10,6 +10,10 @@ Why ellie? Ellie is a scripting engine that runs on embedded and sandboxed envir
 You can see [LanguageTour.md](./LanguageTour.md)
 
 # Building and running Ellie
+Check [Building.md](./Building.md)
+
+# Robotics
+
 Check [Building.md](./Building.md)
 
 # Language Server

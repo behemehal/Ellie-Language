@@ -3,7 +3,7 @@ use crate::alloc::vec::Vec;
 use crate::parser;
 use ellie_core::{defs, error};
 
-pub fn collect_for(
+pub fn collect_enum(
     parser: &mut parser::Parser,
     _errors: &mut Vec<error::Error>,
     _letter_char: &str,
