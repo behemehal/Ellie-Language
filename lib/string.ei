@@ -22,4 +22,4 @@
     SOFTWARE.
 */
 
-class string {}
+pub class string {}

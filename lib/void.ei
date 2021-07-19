@@ -22,4 +22,4 @@
     SOFTWARE.
 */
 
-class void {}
+pub class void {}

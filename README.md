@@ -9,6 +9,9 @@ Why ellie? Ellie is a scripting engine that runs on embedded and sandboxed envir
 # Language Tour
 You can see [LanguageTour.md](./LanguageTour.md)
 
+# Building and running Ellie
+Check [Building.md](./Building.md)
+
 # Language Server
 You can download ellie extension from [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=behemehal.ellie-lang)
 

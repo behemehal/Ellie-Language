@@ -22,4 +22,4 @@
     SOFTWARE.
 */
 
-class int {}
+pub class int {}

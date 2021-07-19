@@ -69,7 +69,12 @@ fn main() {
                                     ellie_lang::terminal_colors::Colors::Reset
                                 ),
                             );
-                            if e == "ellie" || e == "string" || e == "void" {
+                            if e == "ellie"
+                                || e == "string"
+                                || e == "void"
+                                || e == "int"
+                                || e == "char"
+                            {
                                 if let Some(e) = ellie_lang::cli_utils::system_module_resolver(e) {
                                     parser::ResolvedImport {
                                         found: true,

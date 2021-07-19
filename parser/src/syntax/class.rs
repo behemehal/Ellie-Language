@@ -14,6 +14,7 @@ pub struct GenericDefining {
 #[derive(PartialEq, Debug, Clone, Default, Serialize, Hash)]
 pub struct Class {
     pub name: String,
+    pub public: bool,
     pub constructor: constructor::Constructor,
     pub generic_definings: Vec<GenericDefining>,
     pub properties: Vec<variable::Variable>,

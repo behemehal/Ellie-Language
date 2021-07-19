@@ -22,4 +22,4 @@
     SOFTWARE.
 */
 
-class char {}
+pub class char {}

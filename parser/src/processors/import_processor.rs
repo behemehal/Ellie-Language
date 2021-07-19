@@ -2,6 +2,7 @@ use crate::alloc::string::{String, ToString};
 use crate::alloc::vec;
 use crate::alloc::vec::Vec;
 use crate::parser;
+use alloc::boxed::Box;
 use ellie_core::{defs, error};
 
 pub fn collect_import(
@@ -35,7 +36,51 @@ pub fn collect_import(
                     });
                 } else {
                     for item in response.file_content.items {
-                        parser.collected.push(item);
+                        match item.clone() {
+                            crate::parser::Collecting::ImportItem(e) => {
+                                if e.public {
+                                    parser.collected.push(item);
+                                }
+                            }
+                            crate::parser::Collecting::Variable(e) => {
+                                if e.data.public {
+                                    parser.collected.push(crate::parser::Collecting::ImportItem(
+                                        crate::syntax::import_item::ImportItem {
+                                            item: Box::new(item),
+                                            public: importdata.public,
+                                        },
+                                    ));
+                                }
+                            }
+                            crate::parser::Collecting::Function(e) => {
+                                if e.data.public {
+                                    parser.collected.push(crate::parser::Collecting::ImportItem(
+                                        crate::syntax::import_item::ImportItem {
+                                            item: Box::new(item),
+                                            public: importdata.public,
+                                        },
+                                    ));
+                                }
+                            }
+                            crate::parser::Collecting::Class(e) => {
+                                if e.data.public {
+                                    parser.collected.push(crate::parser::Collecting::ImportItem(
+                                        crate::syntax::import_item::ImportItem {
+                                            item: Box::new(item),
+                                            public: importdata.public,
+                                        },
+                                    ));
+                                }
+                            }
+                            _ => {
+                                parser.collected.push(crate::parser::Collecting::ImportItem(
+                                    crate::syntax::import_item::ImportItem {
+                                        item: Box::new(item),
+                                        public: importdata.public,
+                                    },
+                                ));
+                            }
+                        }
                     }
                 }
                 parser.collected.push(parser.current.clone());

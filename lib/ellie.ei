@@ -22,7 +22,7 @@
     SOFTWARE.
 */
 
-import string;
-import void;
-import int;
-import char;
+pub import string;
+pub import void;
+pub import int;
+pub import char;

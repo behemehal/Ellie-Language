@@ -6,8 +6,8 @@ pub mod iterator;
 pub mod scope;
 
 use crate::syntax::{
-    caller, class, condition, constructor, definers, forloop, function, import, ret, types,
-    variable,
+    caller, class, condition, constructor, definers, forloop, function, import, import_item, ret,
+    types, variable,
 };
 use ellie_core::{defs, error, utils};
 
@@ -30,6 +30,7 @@ pub struct ParserResponse {
 
 #[derive(PartialEq, Debug, Clone, Serd, Hash)]
 pub enum Collecting {
+    ImportItem(import_item::ImportItem),
     Variable(variable::VariableCollector),
     Function(function::FunctionCollector),
     Forloop(forloop::ForloopCollector),
@@ -845,10 +846,18 @@ impl Parser {
     pub fn type_exists(&self, name: String) -> bool {
         let mut found = false;
         for item in self.collected.clone() {
+            std::println!("iştem: {:#?}", item);
             if let Collecting::Class(ref e) = item {
                 if e.data.name == name {
                     found = e.data.name == name;
                     break;
+                }
+            } else if let Collecting::ImportItem(ref e) = item {
+                if let Collecting::Class(class) = *e.item.clone() {
+                    if class.data.name == name {
+                        found = class.data.name == name;
+                        break;
+                    }
                 }
             }
         }

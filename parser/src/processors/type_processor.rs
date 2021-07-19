@@ -18,13 +18,9 @@ pub fn collect_type(
     options: defs::ParserOptions,
 ) {
     let keyword = utils::trim_good(parser.keyword_catch.trim_start().to_string()); //one step next
-
-    if letter_char == "*" && last_char == "/" {
-        //&& parser.on_comment && !parser.on_line_comment
-        panic!("Comment closed: {:#?}", parser.on_comment);
+    if last_char == "*" && letter_char == "/" {
         parser.on_comment = false;
     } else if keyword == "/*" && !parser.on_comment && !parser.on_line_comment {
-        std::println!("comment");
         parser.on_comment = true;
     } else if parser.on_comment {
     } else if (keyword == "import " || keyword == "pub import " || keyword == "pri import ")
@@ -175,8 +171,16 @@ pub fn collect_type(
             //User used else statement without if
             panic!("Error: {:#?}", parser.collected);
         }
-    } else if keyword == "class " && options.parser_type == defs::ParserType::RawParser {
-        parser.current = parser::Collecting::Class(class::ClassCollector::default());
+    } else if (keyword == "class " || keyword == "pub class " || keyword == "pri class ")
+        && options.parser_type == defs::ParserType::RawParser
+    {
+        parser.current = parser::Collecting::Class(class::ClassCollector {
+            data: class::Class {
+                public: keyword == "pub class ",
+                ..Default::default()
+            },
+            ..Default::default()
+        });
     } else if keyword == "ret " && options.parser_type == defs::ParserType::RawParser {
         parser.current = parser::Collecting::Ret(ret::Ret {
             keyword_pos: defs::Cursor {

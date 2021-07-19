@@ -12,17 +12,17 @@ pub fn is_errors_same(first: error::Error, second: error::Error) -> bool {
 }
 
 pub fn system_module_resolver(lib_name: String) -> Option<ellie_parser::parser::Parsed> {
-    let core_resolver = |e| {
+    let core_resolver = |e: String| {
         println!(
-            "{}[ParserInfo]{}: Import Request '{}{}{}'",
+            "{}[DEBUG:ParserInfo]{}: Import Request '{}{}{}'",
             crate::terminal_colors::get_color(crate::terminal_colors::Colors::Cyan),
             crate::terminal_colors::get_color(crate::terminal_colors::Colors::Reset),
             crate::terminal_colors::get_color(crate::terminal_colors::Colors::Yellow),
             e,
             crate::terminal_colors::get_color(crate::terminal_colors::Colors::Reset),
         );
-        if e == "ellie" || e == "string" || e == "void" {
-            if let Some(e) = crate::cli_utils::system_module_resolver(e) {
+        if e == "ellie" || e == "string" || e == "void" || e == "int" || e == "char" {
+            if let Some(e) = crate::cli_utils::system_module_resolver(e.clone()) {
                 parser::ResolvedImport {
                     found: true,
                     file_content: e,
@@ -31,6 +31,12 @@ pub fn system_module_resolver(lib_name: String) -> Option<ellie_parser::parser::
                 parser::ResolvedImport::default()
             }
         } else {
+            println!(
+                "{}[DEBUG:ParserInfo]{}: Import Rejected on: '{}'",
+                crate::terminal_colors::get_color(crate::terminal_colors::Colors::Red),
+                crate::terminal_colors::get_color(crate::terminal_colors::Colors::Reset),
+                e
+            );
             parser::ResolvedImport::default()
         }
     };
@@ -65,17 +71,16 @@ pub fn system_module_resolver(lib_name: String) -> Option<ellie_parser::parser::
         },
     )
     .map();
-
     if child_parser.syntax_errors.len() != 0 {
         println!(
-            "{}[ParserInfo]{}: Import Failed",
+            "{}[DEBUG:ParserInfo]{}: Import Failed",
             crate::terminal_colors::get_color(crate::terminal_colors::Colors::Red),
             crate::terminal_colors::get_color(crate::terminal_colors::Colors::Reset),
         );
         None
     } else {
         println!(
-            "{}[ParserInfo]{}: Import Sucess",
+            "{}[DEBUG:ParserInfo]{}: Import Sucess",
             crate::terminal_colors::get_color(crate::terminal_colors::Colors::Green),
             crate::terminal_colors::get_color(crate::terminal_colors::Colors::Reset),
         );
