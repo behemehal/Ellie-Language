@@ -4,7 +4,7 @@ use crate::syntax::{condition, types};
 use ellie_core::{defs, error};
 
 use alloc::boxed::Box;
-use alloc::string::String;
+use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 
 pub fn collect_condition(
@@ -15,13 +15,15 @@ pub fn collect_condition(
     last_char: String,
     options: defs::ParserOptions,
 ) {
+    let parser_clone = parser.clone();
     if let parser::Collecting::Condition(ref mut data) = parser.current {
         if !data.initialized {
             if last_char == "i" && letter_char == "f" {
                 data.initialized = true;
-                data.cloak_pos.range_start.0 = parser.pos.0; //Function naming started so we set the position
-                data.keyword_pos.range_start.0 = parser.pos.0 - 1; //Function naming started so we set the position
-                data.keyword_pos.range_end.0 = parser.pos.0; //Function naming started so we set the position
+                //TODO BROKEN
+                //data.cloak_pos.range_start.0 = parser.pos.0; //Function naming started so we set the position
+                //data.keyword_pos.range_start.0 = parser.pos.0 - 1; //Function naming started so we set the position
+                //data.keyword_pos.range_end.0 = parser.pos.0; //Function naming started so we set the position
             }
         } else if !data.cloak_collected {
             if data.cloak_itered_data.data.value.is_type_complete() && letter_char == "{" {
@@ -44,12 +46,11 @@ pub fn collect_condition(
                 );
             } else {
                 let collected = processors::value_processor::collect_value(
+                    parser_clone,
                     &mut data.cloak_itered_data,
                     letter_char,
                     next_char,
                     last_char,
-                    parser.pos,
-                    options,
                 );
                 for i in collected.errors {
                     errors.push(i)
@@ -64,23 +65,28 @@ pub fn collect_condition(
                     data.inside_object_count -= 1;
                 }
             } else {
-                let child_parser = parser::Parser::new(
+                let mut child_parser = parser::Parser::new(
                     data.inside_code_string.clone(),
-                    parser.scope.clone() + "/condition",
+                    |_| parser::ResolvedImport::default(),
                     options,
                 );
-                parser.pos = child_parser.pos;
+                child_parser.pos = parser.pos;
                 let mapped = child_parser.map();
                 for i in mapped.syntax_errors {
                     errors.push(i)
                 }
                 let chains_length = data.chains.clone().len() - 1;
-                data.chains[chains_length].inside_code = mapped.items;
+                data.chains[chains_length].inside_code = mapped.parsed.items;
                 parser.collected.push(parser.current.clone());
                 parser.current = parser::Collecting::None;
             }
         } else {
-            data.inside_code_string += letter_char;
+            let code_letter = if last_char.clone() == "\n" || last_char.clone() == "\r" {
+                last_char + letter_char //Make sure we get the lines correctly
+            } else {
+                letter_char.to_string()
+            };
+            data.inside_code_string += &code_letter;
         }
     }
 }

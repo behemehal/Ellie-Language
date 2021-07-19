@@ -3,12 +3,12 @@ use ellie_parser;
 //use std::fs;
 
 fn main() {
-    let pos = ellie_core::defs::CursorPosition(0, 0);
+    let emulated_parser = ellie_parser::parser::Parser::default();
     let mut emulated_collector_data = ellie_parser::syntax::variable::VariableCollector::default();
     emulated_collector_data.data.dynamic = true;
     let code = "
 
-    \'t\' == \'t\'
+    string()
     
     ";
 
@@ -20,12 +20,11 @@ fn main() {
         let last_char = &ellie_core::utils::get_letter(code.to_string(), index, false).to_owned();
         let next_char = &ellie_core::utils::get_letter(code.to_string(), index, true).to_owned();
         let itered = ellie_parser::processors::value_processor::collect_value(
+            emulated_parser.clone(),
             &mut emulated_collector_data,
             letter_char,
             next_char.to_string(),
             last_char.to_string(),
-            pos,
-            ellie_core::defs::ParserOptions::default(),
         );
 
         for error in itered.errors {
@@ -54,5 +53,5 @@ fn main() {
     }
     //let j = serde_json::to_string(&emulated_collector_data).unwrap();
     //fs::write("data.json", j).unwrap();
-    println!("{:#?}", emulated_collector_data.clone());
+    println!("{:#?}", emulated_collector_data.data.clone());
 }

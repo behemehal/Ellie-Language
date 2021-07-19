@@ -1,3 +1,4 @@
+use crate::parser;
 use crate::processors::type_processors;
 use crate::syntax::{definers, types, variable};
 use ellie_core::{defs, error};
@@ -7,13 +8,12 @@ use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 
 pub fn collect_null(
+    parser: parser::Parser,
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     next_char: String,
     last_char: String,
-    pos: defs::CursorPosition,
-    options: defs::ParserOptions,
 ) {
     if let types::Types::Null = itered_data.data.value {
         //let is_num = itered_data.raw_value.parse::<usize>().is_ok();
@@ -50,13 +50,12 @@ pub fn collect_null(
                 itered_data.data.value =
                     types::Types::Integer(types::integer_type::IntegerType::default());
                 type_processors::integer::collect_integer(
+                    parser.clone(),
                     itered_data,
                     errors,
                     letter_char,
                     next_char,
                     last_char,
-                    pos,
-                    options,
                 )
             } else if letter_char == "[" {
                 if itered_data.data.dynamic {
@@ -94,6 +93,10 @@ pub fn collect_null(
                     types::Types::VariableType(types::variable_type::VariableType {
                         value_complete: false,
                         value: itered_data.raw_value.clone() + letter_char,
+                        pos: defs::Cursor {
+                            range_start: parser.pos,
+                            ..Default::default()
+                        },
                     });
             }
         } else if letter_char != " " {

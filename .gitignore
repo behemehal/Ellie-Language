@@ -3,10 +3,8 @@ bot.js
 /package.json
 /package-lock.json
 Cargo.lock
-code.ei
-code.js
 data.json
-fasm
 Cargo.lock
 target
-test.ei
+test_dir
+raw

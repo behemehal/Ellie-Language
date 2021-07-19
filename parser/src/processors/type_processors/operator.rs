@@ -1,3 +1,4 @@
+use crate::parser;
 use crate::processors::value_processor;
 use crate::syntax::{types, variable};
 use ellie_core::{defs, error};
@@ -8,13 +9,12 @@ use alloc::vec;
 use alloc::vec::Vec;
 
 pub fn collect_operator(
+    parser: parser::Parser,
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     next_char: String,
     last_char: String,
-    pos: defs::CursorPosition,
-    options: defs::ParserOptions,
 ) {
     //TODO SUPPORT first operator parse
     if let types::Types::Operator(ref mut data) = itered_data.data.value {
@@ -40,7 +40,7 @@ pub fn collect_operator(
                     } else {
                         errors.push(error::Error {
                             scope: "operator_processor".to_string(),
-                            debug_message: "0223edfb20603f601744235effff46f9".to_string(),
+                            debug_message: "5ff5df1e91ddc19cdfb3435c5dca5f5e".to_string(),
                             title: error::errorList::error_s13.title.clone(),
                             code: error::errorList::error_s13.code,
                             message: error::errorList::error_s13.message.clone(),
@@ -52,8 +52,8 @@ pub fn collect_operator(
                                 }],
                             ),
                             pos: defs::Cursor {
-                                range_start: pos,
-                                range_end: pos.clone().skipChar(1),
+                                range_start: parser.pos,
+                                range_end: parser.pos.clone().skip_char(1),
                             },
                         });
                     }
@@ -69,7 +69,7 @@ pub fn collect_operator(
             } else {
                 errors.push(error::Error {
                     scope: "operator_processor".to_string(),
-                    debug_message: "fcf93658c9408e0271e92d28d1789aa1".to_string(),
+                    debug_message: "8e578ac02a2249648ce783a4ae926b8d".to_string(),
                     title: error::errorList::error_s13.title.clone(),
                     code: error::errorList::error_s13.code,
                     message: error::errorList::error_s13.message.clone(),
@@ -81,8 +81,8 @@ pub fn collect_operator(
                         }],
                     ),
                     pos: defs::Cursor {
-                        range_start: pos,
-                        range_end: pos.clone().skipChar(1),
+                        range_start: parser.pos,
+                        range_end: parser.pos.clone().skip_char(1),
                     },
                 });
             }
@@ -91,20 +91,19 @@ pub fn collect_operator(
             let mut will_be_itered = data.itered_cache.clone();
             data.second_is_not_null = true;
             let itered_child = value_processor::collect_value(
+                parser.clone(),
                 &mut will_be_itered,
                 letter_char,
                 next_char,
                 last_char,
-                defs::CursorPosition(0, 0),
-                options,
             );
             if itered_child.errors.is_empty() {
                 for returned_error in itered_child.errors {
                     let mut edited = returned_error;
-                    edited.pos.range_start.0 += pos.0;
-                    edited.pos.range_start.1 += pos.1;
-                    edited.pos.range_end.0 += pos.0;
-                    edited.pos.range_end.1 += pos.1;
+                    edited.pos.range_start.0 += parser.pos.0;
+                    edited.pos.range_start.1 += parser.pos.1;
+                    edited.pos.range_end.0 += parser.pos.0;
+                    edited.pos.range_end.1 += parser.pos.1;
                     errors.push(edited);
                 }
             }

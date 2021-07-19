@@ -1,3 +1,4 @@
+use crate::parser;
 use crate::processors::type_processors;
 use crate::syntax::{types, variable};
 use ellie_core::{defs, error};
@@ -8,13 +9,12 @@ use alloc::vec;
 use alloc::vec::Vec;
 
 pub fn collect_integer(
+    parser: parser::Parser,
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     next_char: String,
     last_char: String,
-    pos: defs::CursorPosition,
-    options: defs::ParserOptions,
 ) {
     if let types::Types::Integer(ref mut data) = itered_data.data.value {
         let is_num = letter_char.parse::<isize>().is_ok();
@@ -23,7 +23,7 @@ pub fn collect_integer(
             if data.complete && last_char.parse::<isize>().is_err() {
                 errors.push(error::Error {
                     scope: "integer_processor".to_string(),
-                    debug_message: "b1f831f9ee5500b62f1b923200a2ecfb".to_string(),
+                    debug_message: "6c85dc865dd6b63977d054e6190a2ed6".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -35,8 +35,8 @@ pub fn collect_integer(
                         }],
                     ),
                     pos: defs::Cursor {
-                        range_start: pos,
-                        range_end: pos.clone().skipChar(1),
+                        range_start: parser.pos,
+                        range_end: parser.pos.clone().skip_char(1),
                     },
                 });
             } else {
@@ -75,7 +75,7 @@ pub fn collect_integer(
                 } else {
                     errors.push(error::Error {
                         scope: "integer_processor".to_string(),
-                        debug_message: "a92dac9a1b22125eeb5688913337dbc0".to_string(),
+                        debug_message: "bd01d294065fe7df876032c2ceb0591a".to_string(),
                         title: error::errorList::error_s16.title.clone(),
                         code: error::errorList::error_s16.code,
                         message: error::errorList::error_s16.message.clone(),
@@ -87,8 +87,8 @@ pub fn collect_integer(
                             }],
                         ),
                         pos: defs::Cursor {
-                            range_start: pos,
-                            range_end: pos.clone().skipChar(1),
+                            range_start: parser.pos,
+                            range_end: parser.pos.clone().skip_char(1),
                         },
                     });
                 }
@@ -112,13 +112,12 @@ pub fn collect_integer(
                         chain: Vec::new(),
                     });
                 type_processors::refference::collect_refference(
+                    parser,
                     itered_data,
                     errors,
                     letter_char,
                     next_char,
                     last_char,
-                    pos,
-                    options,
                 )
             }
         } else if types::logical_type::LogicalOpearators::is_logical_opearator(letter_char) {
@@ -136,13 +135,12 @@ pub fn collect_integer(
                     ..Default::default()
                 });
             type_processors::operator::collect_operator(
+                parser,
                 itered_data,
                 errors,
                 letter_char,
                 next_char,
                 last_char,
-                pos,
-                options,
             )
         } else if types::comparison_type::ComparisonOperators::is_comparison_opearator(letter_char)
         {
@@ -161,13 +159,12 @@ pub fn collect_integer(
                     ..Default::default()
                 });
             type_processors::operator::collect_operator(
+                parser.clone(),
                 itered_data,
                 errors,
                 letter_char,
                 next_char,
                 last_char,
-                pos,
-                options,
             )
         } else if types::arithmetic_type::ArithmeticOperators::is_arithmetic_opearator(letter_char)
         {
@@ -186,20 +183,19 @@ pub fn collect_integer(
                     ..Default::default()
                 });
             type_processors::operator::collect_operator(
+                parser.clone(),
                 itered_data,
                 errors,
                 letter_char,
                 next_char,
                 last_char,
-                pos,
-                options,
             )
         } else if letter_char == " " && !data.raw.is_empty() {
             data.complete = true;
         } else if letter_char != " " {
             errors.push(error::Error {
                 scope: "integer_processor".to_string(),
-                debug_message: "f4314362b00a562586de6906cbfc3e64".to_string(),
+                debug_message: "e29e0768aade2de2ba73205b3c95533d".to_string(),
                 title: error::errorList::error_s1.title.clone(),
                 code: error::errorList::error_s1.code,
                 message: error::errorList::error_s1.message.clone(),
@@ -211,8 +207,8 @@ pub fn collect_integer(
                     }],
                 ),
                 pos: defs::Cursor {
-                    range_start: pos,
-                    range_end: pos.clone().skipChar(1),
+                    range_start: parser.pos,
+                    range_end: parser.pos.clone().skip_char(1),
                 },
             });
         }

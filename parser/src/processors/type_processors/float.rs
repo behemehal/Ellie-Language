@@ -1,4 +1,5 @@
 #![allow(clippy::unnecessary_unwrap)]
+use crate::parser;
 use crate::processors::type_processors;
 use crate::syntax::{types, variable};
 use alloc::boxed::Box;
@@ -8,13 +9,12 @@ use alloc::vec::Vec;
 use ellie_core::{defs, error};
 
 pub fn collect_float(
+    parser: parser::Parser,
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     next_char: String,
     last_char: String,
-    pos: defs::CursorPosition,
-    options: defs::ParserOptions,
 ) {
     if let types::Types::Float(ref mut data) = itered_data.data.value {
         if !data.at_point {
@@ -26,7 +26,7 @@ pub fn collect_float(
             } else {
                 errors.push(error::Error {
                     scope: "float_processor".to_string(),
-                    debug_message: "4de84b50a7db3050900a4ab2f718335c".to_string(),
+                    debug_message: "70d91a164c241e1f6c18b5e136380be9".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -38,8 +38,8 @@ pub fn collect_float(
                         }],
                     ),
                     pos: defs::Cursor {
-                        range_start: pos,
-                        range_end: pos.clone().skipChar(1),
+                        range_start: parser.pos,
+                        range_end: parser.pos.clone().skip_char(1),
                     },
                 });
             }
@@ -51,7 +51,7 @@ pub fn collect_float(
                 if f32_parse.clone().unwrap().is_infinite() {
                     errors.push(error::Error {
                         scope: "float_processor".to_string(),
-                        debug_message: "7dc4199c61de63895bd8ad8edbea0483".to_string(),
+                        debug_message: "a6c945f765a383fdac46fbb249ff179e".to_string(),
                         title: error::errorList::error_s17.title.clone(),
                         code: error::errorList::error_s17.code,
                         message: error::errorList::error_s17.message.clone(),
@@ -63,10 +63,11 @@ pub fn collect_float(
                             }],
                         ),
                         pos: defs::Cursor {
-                            range_start: pos
+                            range_start: parser
+                                .pos
                                 .clone()
-                                .popChar((data.point.clone() + "." + letter_char).len()),
-                            range_end: pos.clone().skipChar(1),
+                                .pop_char((data.point.clone() + "." + letter_char).len()),
+                            range_end: parser.pos.clone().skip_char(1),
                         },
                     });
                 } else {
@@ -78,7 +79,7 @@ pub fn collect_float(
                 if flt.is_infinite() {
                     errors.push(error::Error {
                         scope: "float_processor".to_string(),
-                        debug_message: "41bd27ad74a3f6ec888eca73e1fb4641".to_string(),
+                        debug_message: "8b31c2ed12c7c173e8a58f017646d87f".to_string(),
                         title: error::errorList::error_s17.title.clone(),
                         code: error::errorList::error_s17.code,
                         message: error::errorList::error_s17.message.clone(),
@@ -90,10 +91,11 @@ pub fn collect_float(
                             }],
                         ),
                         pos: defs::Cursor {
-                            range_start: pos
+                            range_start: parser
+                                .pos
                                 .clone()
-                                .popChar((data.point.clone() + "." + letter_char).len()),
-                            range_end: pos.clone().skipChar(1),
+                                .pop_char((data.point.clone() + "." + letter_char).len()),
+                            range_end: parser.pos.clone().skip_char(1),
                         },
                     });
                 } else {
@@ -104,7 +106,7 @@ pub fn collect_float(
             } else {
                 errors.push(error::Error {
                     scope: "float_processor".to_string(),
-                    debug_message: "25165500e502be2a715782f5e38eebec".to_string(),
+                    debug_message: "cad313bab7199faea14a666d45199010".to_string(),
                     title: error::errorList::error_s17.title.clone(),
                     code: error::errorList::error_s17.code,
                     message: error::errorList::error_s17.message.clone(),
@@ -116,8 +118,8 @@ pub fn collect_float(
                         }],
                     ),
                     pos: defs::Cursor {
-                        range_start: pos,
-                        range_end: pos.clone().skipChar(1),
+                        range_start: parser.pos,
+                        range_end: parser.pos.clone().skip_char(1),
                     },
                 });
             }
@@ -129,13 +131,12 @@ pub fn collect_float(
                     on_dot: false,
                 });
             type_processors::refference::collect_refference(
+                parser,
                 itered_data,
                 errors,
                 letter_char,
                 next_char,
                 last_char,
-                pos,
-                options,
             )
         } else if types::logical_type::LogicalOpearators::is_logical_opearator(letter_char) {
             data.complete = true;
@@ -152,13 +153,12 @@ pub fn collect_float(
                     ..Default::default()
                 });
             type_processors::operator::collect_operator(
+                parser,
                 itered_data,
                 errors,
                 letter_char,
                 next_char,
                 last_char,
-                pos,
-                options,
             )
         } else if types::comparison_type::ComparisonOperators::is_comparison_opearator(letter_char)
         {
@@ -176,13 +176,12 @@ pub fn collect_float(
                     ..Default::default()
                 });
             type_processors::operator::collect_operator(
+                parser,
                 itered_data,
                 errors,
                 letter_char,
                 next_char,
                 last_char,
-                pos,
-                options,
             )
         } else if types::arithmetic_type::ArithmeticOperators::is_arithmetic_opearator(letter_char)
         {
@@ -200,20 +199,19 @@ pub fn collect_float(
                     ..Default::default()
                 });
             type_processors::operator::collect_operator(
+                parser,
                 itered_data,
                 errors,
                 letter_char,
                 next_char,
                 last_char,
-                pos,
-                options,
             )
         } else if letter_char == " " {
             data.complete = true;
         } else {
             errors.push(error::Error {
                 scope: "float_processor".to_string(),
-                debug_message: "2e17394973bd87596f2608212a023bd2".to_string(),
+                debug_message: "ba9c007d5555ece0c28e2e379baf8772".to_string(),
                 title: error::errorList::error_s1.title.clone(),
                 code: error::errorList::error_s1.code,
                 message: error::errorList::error_s1.message.clone(),
@@ -225,8 +223,8 @@ pub fn collect_float(
                     }],
                 ),
                 pos: defs::Cursor {
-                    range_start: pos,
-                    range_end: pos.clone().skipChar(1),
+                    range_start: parser.pos,
+                    range_end: parser.pos.clone().skip_char(1),
                 },
             });
         }

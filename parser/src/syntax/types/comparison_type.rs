@@ -23,10 +23,19 @@ impl Default for ComparisonOperators {
 }
 
 impl ComparisonOperators {
-    pub fn is_comparison_opearator(value: &str) -> bool {
+    pub fn _is_comparison_opearator(value: &str) -> bool {
         let v: Vec<char> = "=!<>".chars().collect();
         let q: Vec<char> = value.chars().filter(|x| !v.contains(x)).collect();
         q.is_empty()
+    }
+
+    pub fn is_comparison_opearator(value: &str) -> bool {
+        value == "=="
+            || value == "!="
+            || value == "> "
+            || value == "< "
+            || value == ">="
+            || value == "<="
     }
 
     pub fn resolve_comparison_operator(value: &str) -> Result<ComparisonOperators, bool> {

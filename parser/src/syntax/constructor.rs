@@ -1,12 +1,10 @@
 use crate::parser::Collecting;
+use alloc::string::String;
+use alloc::vec::Vec;
 use ellie_core::defs;
 use serde::Serialize;
 
-use alloc::boxed::Box;
-use alloc::string::String;
-use alloc::vec::Vec;
-
-#[derive(PartialEq, Debug, Clone, Default, Serialize)]
+#[derive(PartialEq, Debug, Clone, Default, Serialize, Hash)]
 pub struct ConstructorParameter {
     pub name: String,
     pub pos: defs::Cursor,
@@ -30,7 +28,7 @@ pub struct ConstructorCollector {
     pub brace_count: usize,
     pub has_code: bool,
     pub at_comma: bool,
-    pub code: Box<crate::parser::Parser>,
+    pub code: String,
 }
 
 impl ConstructorCollector {

@@ -1,3 +1,4 @@
+use crate::parser;
 use crate::processors::{type_processors, value_processor};
 use crate::syntax::{definers, types, variable};
 use ellie_core::{defs, error, utils};
@@ -8,13 +9,12 @@ use alloc::vec;
 use alloc::vec::Vec;
 
 pub fn collect_function_caller(
+    parser: parser::Parser,
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     next_char: String,
     last_char: String,
-    pos: defs::CursorPosition,
-    options: defs::ParserOptions,
 ) {
     if let types::Types::FunctionCall(ref mut functioncalldata) = itered_data.data.value {
         if itered_data.data.dynamic {
@@ -30,14 +30,16 @@ pub fn collect_function_caller(
             );
 
             if current_reliability.reliable
-                && (last_char != " " && !functioncalldata.data.name.is_empty())
+                && ((last_char != " " && last_char != "\n")
+                    && !functioncalldata.data.name.is_empty())
             {
+                functioncalldata.data.name_pos.range_end = parser.pos;
                 functioncalldata.data.name += letter_char;
             } else if letter_char == "(" {
                 if functioncalldata.data.name.is_empty() {
                     errors.push(error::Error {
                         scope: "function_call_processor".to_string(),
-                        debug_message: "6661c88f6e819d2cbf2b778d34fe8818".to_string(),
+                        debug_message: "c456b3b31970e127f9a2b823c3dfdb3c".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -49,8 +51,8 @@ pub fn collect_function_caller(
                             }],
                         ),
                         pos: defs::Cursor {
-                            range_start: pos,
-                            range_end: pos.clone().skipChar(1),
+                            range_start: parser.pos,
+                            range_end: parser.pos.clone().skip_char(1),
                         },
                     });
                 } else {
@@ -59,7 +61,7 @@ pub fn collect_function_caller(
             } else if letter_char != " " {
                 errors.push(error::Error {
                     scope: "function_call_processor".to_string(),
-                    debug_message: "18e427de941f78f0ee0ebdcab32ac3ce".to_string(),
+                    debug_message: "a2fdc7684a3617e95e7324b24d4da27a".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -71,8 +73,8 @@ pub fn collect_function_caller(
                         }],
                     ),
                     pos: defs::Cursor {
-                        range_start: pos,
-                        range_end: pos.clone().skipChar(1),
+                        range_start: parser.pos,
+                        range_end: parser.pos.clone().skip_char(1),
                     },
                 });
             }
@@ -87,7 +89,7 @@ pub fn collect_function_caller(
                 if functioncalldata.complete {
                     errors.push(error::Error {
                         scope: "function_call_processor".to_string(),
-                        debug_message: "1b1c7ea8a3921ee700450a84a61457ef".to_string(),
+                        debug_message: "6b50fc5cbefae45f6b9c80878c7f4381".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -99,14 +101,14 @@ pub fn collect_function_caller(
                             }],
                         ),
                         pos: defs::Cursor {
-                            range_start: pos,
-                            range_end: pos.clone().skipChar(1),
+                            range_start: parser.pos,
+                            range_end: parser.pos.clone().skip_char(1),
                         },
                     });
                 } else if functioncalldata.comma {
                     errors.push(error::Error {
                         scope: "function_call_processor".to_string(),
-                        debug_message: "38afe27dfd4ac59af86d8cd950f1c18f".to_string(),
+                        debug_message: "6140233c2550b6459bf2354b290818c4".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -118,8 +120,8 @@ pub fn collect_function_caller(
                             }],
                         ),
                         pos: defs::Cursor {
-                            range_start: pos,
-                            range_end: pos.clone().skipChar(1),
+                            range_start: parser.pos,
+                            range_end: parser.pos.clone().skip_char(1),
                         },
                     });
                 } else {
@@ -135,6 +137,16 @@ pub fn collect_function_caller(
                         .push(types::function_call::FunctionCallParameter::default());
                 }
             } else if letter_char == ")" && is_s_n {
+                if last_entry != 0 {
+                    functioncalldata.data.params[last_entry - 1].pos.range_end = parser.pos;
+                }
+
+                let fn_exists = parser.resolve_function_call(functioncalldata.clone());
+                if let Some(type_errors) = fn_exists {
+                    for error in type_errors {
+                        errors.push(error);
+                    }
+                }
                 functioncalldata.complete = true;
             } else {
                 if letter_char != " " {
@@ -184,112 +196,192 @@ pub fn collect_function_caller(
                             ..variable::VariableCollector::default()
                         }
                     };
-                    #[cfg(feature = "std")]
-                    std::println!("[ParserError:0x3]: This shouldn't have happened");
                 }
 
                 let itered_fcall_vector = Box::new(value_processor::collect_value(
+                    parser.clone(),
                     &mut will_be_itered,
                     letter_char,
                     next_char,
                     last_char,
-                    defs::CursorPosition(0, 0),
-                    options,
                 ));
 
                 let itered_entry = match itered_fcall_vector.itered_data.data.value {
                     types::Types::Integer(match_data) => {
                         types::function_call::FunctionCallParameter {
                             value: types::Types::Integer(match_data),
-                            ..Default::default()
+                            pos: if last_entry == 0 {
+                                defs::Cursor::default()
+                            } else {
+                                functioncalldata.data.params[last_entry - 1].pos
+                            },
                         }
                     }
                     types::Types::Float(match_data) => {
                         types::function_call::FunctionCallParameter {
                             value: types::Types::Float(match_data),
-                            ..Default::default()
+                            pos: if last_entry == 0 {
+                                defs::Cursor::default()
+                            } else {
+                                functioncalldata.data.params[last_entry - 1].pos
+                            },
                         }
                     }
                     types::Types::Operator(match_data) => {
                         types::function_call::FunctionCallParameter {
                             value: types::Types::Operator(match_data),
-                            ..Default::default()
+                            pos: if last_entry == 0 {
+                                defs::Cursor::default()
+                            } else {
+                                functioncalldata.data.params[last_entry - 1].pos
+                            },
                         }
                     }
                     types::Types::Bool(match_data) => types::function_call::FunctionCallParameter {
                         value: types::Types::Bool(match_data),
-                        ..Default::default()
+                        pos: if last_entry == 0 {
+                            defs::Cursor::default()
+                        } else {
+                            functioncalldata.data.params[last_entry - 1].pos
+                        },
                     },
                     types::Types::String(match_data) => {
                         types::function_call::FunctionCallParameter {
                             value: types::Types::String(match_data),
-                            ..Default::default()
+                            pos: if last_entry == 0 {
+                                defs::Cursor::default()
+                            } else {
+                                functioncalldata.data.params[last_entry - 1].pos
+                            },
                         }
                     }
                     types::Types::Char(match_data) => types::function_call::FunctionCallParameter {
                         value: types::Types::Char(match_data),
-                        ..Default::default()
+                        pos: if last_entry == 0 {
+                            defs::Cursor::default()
+                        } else {
+                            functioncalldata.data.params[last_entry - 1].pos
+                        },
                     },
                     types::Types::Collective => types::function_call::FunctionCallParameter {
                         value: types::Types::Null,
-                        ..Default::default()
+                        pos: if last_entry == 0 {
+                            defs::Cursor::default()
+                        } else {
+                            functioncalldata.data.params[last_entry - 1].pos
+                        },
                     },
-                    types::Types::Refference(_) => types::function_call::FunctionCallParameter {
-                        value: types::Types::Null,
-                        ..Default::default()
-                    },
+                    types::Types::Refference(match_data) => {
+                        types::function_call::FunctionCallParameter {
+                            value: types::Types::Refference(match_data),
+                            pos: if last_entry == 0 {
+                                defs::Cursor::default()
+                            } else {
+                                functioncalldata.data.params[last_entry - 1].pos
+                            },
+                        }
+                    }
                     types::Types::Array(match_data) => {
                         types::function_call::FunctionCallParameter {
                             value: types::Types::Array(match_data),
-                            ..Default::default()
+                            pos: if last_entry == 0 {
+                                defs::Cursor::default()
+                            } else {
+                                functioncalldata.data.params[last_entry - 1].pos
+                            },
                         }
                     }
                     types::Types::Cloak(match_data) => {
                         types::function_call::FunctionCallParameter {
                             value: types::Types::Cloak(match_data),
-                            ..Default::default()
+                            pos: if last_entry == 0 {
+                                defs::Cursor::default()
+                            } else {
+                                functioncalldata.data.params[last_entry - 1].pos
+                            },
                         }
                     }
                     types::Types::ArrowFunction(match_data) => {
                         types::function_call::FunctionCallParameter {
                             value: types::Types::ArrowFunction(match_data),
-                            ..Default::default()
+                            pos: if last_entry == 0 {
+                                defs::Cursor::default()
+                            } else {
+                                functioncalldata.data.params[last_entry - 1].pos
+                            },
                         }
                     }
-                    types::Types::FunctionCall(_) => types::function_call::FunctionCallParameter {
-                        value: types::Types::Null,
-                        ..Default::default()
-                    },
+                    types::Types::FunctionCall(match_data) => {
+                        types::function_call::FunctionCallParameter {
+                            value: types::Types::FunctionCall(match_data),
+                            pos: if last_entry == 0 {
+                                defs::Cursor::default()
+                            } else {
+                                functioncalldata.data.params[last_entry - 1].pos
+                            },
+                        }
+                    }
+                    types::Types::ClassCall(match_data) => {
+                        types::function_call::FunctionCallParameter {
+                            value: types::Types::ClassCall(match_data),
+                            pos: if last_entry == 0 {
+                                defs::Cursor::default()
+                            } else {
+                                functioncalldata.data.params[last_entry - 1].pos
+                            },
+                        }
+                    }
                     types::Types::Void => types::function_call::FunctionCallParameter {
-                        value: types::Types::Null,
-                        ..Default::default()
+                        value: types::Types::Void,
+                        pos: if last_entry == 0 {
+                            defs::Cursor::default()
+                        } else {
+                            functioncalldata.data.params[last_entry - 1].pos
+                        },
                     },
                     types::Types::VariableType(match_data) => {
                         types::function_call::FunctionCallParameter {
                             value: types::Types::VariableType(match_data),
-                            ..Default::default()
+                            pos: if last_entry == 0 {
+                                defs::Cursor::default()
+                            } else {
+                                functioncalldata.data.params[last_entry - 1].pos
+                            },
                         }
                     }
                     types::Types::Null => types::function_call::FunctionCallParameter {
                         value: types::Types::Null,
-                        ..Default::default()
+                        pos: if last_entry == 0 {
+                            defs::Cursor::default()
+                        } else {
+                            functioncalldata.data.params[last_entry - 1].pos
+                        },
                     },
                 };
+
                 if !itered_fcall_vector.errors.is_empty() {
                     for returned_error in itered_fcall_vector.errors {
-                        //errors.extend(itered_array_vector.errors);
                         let mut edited = returned_error;
-                        edited.pos.range_start.0 += pos.0;
-                        edited.pos.range_start.1 += pos.1;
-                        edited.pos.range_end.0 += pos.0;
-                        edited.pos.range_end.1 += pos.1;
+                        edited.pos.range_start.0 += parser.pos.0;
+                        edited.pos.range_start.1 += parser.pos.1;
+                        edited.pos.range_end.0 += parser.pos.0;
+                        edited.pos.range_end.1 += parser.pos.1;
                         errors.push(edited);
                     }
                 }
                 if functioncalldata.data.params.is_empty() {
                     functioncalldata.data.params.push(itered_entry);
+
+                    if functioncalldata.data.params[0].pos.is_zero() {
+                        functioncalldata.data.params[0].pos.range_start = parser.pos;
+                    }
+                    functioncalldata.data.params[0].pos.range_end = parser.pos;
                 } else {
                     functioncalldata.data.params[last_entry - 1] = itered_entry;
+                    if functioncalldata.data.params[last_entry - 1].pos.is_zero() {
+                        functioncalldata.data.params[last_entry - 1].pos.range_start = parser.pos;
+                    }
+                    functioncalldata.data.params[last_entry - 1].pos.range_end = parser.pos;
                 }
             }
         } else if letter_char == "." {
@@ -300,13 +392,12 @@ pub fn collect_function_caller(
                     on_dot: false,
                 });
             type_processors::refference::collect_refference(
+                parser,
                 itered_data,
                 errors,
                 letter_char,
                 next_char,
                 last_char,
-                pos,
-                options,
             )
         } else if types::logical_type::LogicalOpearators::is_logical_opearator(letter_char) {
             itered_data.data.value =
@@ -322,13 +413,12 @@ pub fn collect_function_caller(
                     ..Default::default()
                 });
             type_processors::operator::collect_operator(
+                parser,
                 itered_data,
                 errors,
                 letter_char,
                 next_char,
                 last_char,
-                pos,
-                options,
             )
         } else if types::comparison_type::ComparisonOperators::is_comparison_opearator(letter_char)
         {
@@ -345,13 +435,12 @@ pub fn collect_function_caller(
                     ..Default::default()
                 });
             type_processors::operator::collect_operator(
+                parser,
                 itered_data,
                 errors,
                 letter_char,
                 next_char,
                 last_char,
-                pos,
-                options,
             )
         } else if types::arithmetic_type::ArithmeticOperators::is_arithmetic_opearator(letter_char)
         {
@@ -368,13 +457,12 @@ pub fn collect_function_caller(
                     ..Default::default()
                 });
             type_processors::operator::collect_operator(
+                parser,
                 itered_data,
                 errors,
                 letter_char,
                 next_char,
                 last_char,
-                pos,
-                options,
             )
         }
     }

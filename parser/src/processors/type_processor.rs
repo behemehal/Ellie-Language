@@ -1,20 +1,47 @@
 use crate::parser;
-use crate::syntax::{class, condition, constructor, function, ret, variable};
+use crate::syntax::{
+    caller, class, condition, constructor, function, import, ret, types, variable,
+};
 use ellie_core::{defs, error, utils};
 
+use alloc::boxed::Box;
 use alloc::string::{String, ToString};
+use alloc::vec;
 use alloc::vec::Vec;
 
 pub fn collect_type(
     parser: &mut parser::Parser,
-    _errors: &mut Vec<error::Error>,
-    _letter_char: &str,
-    _next_char: String,
+    errors: &mut Vec<error::Error>,
+    letter_char: &str,
+    last_char: String,
+    next_char: String,
     options: defs::ParserOptions,
 ) {
     let keyword = utils::trim_good(parser.keyword_catch.trim_start().to_string()); //one step next
+    if last_char == "*" && letter_char == "/" {
+        parser.on_comment = false;
+    } else if keyword == "/*" && !parser.on_comment && !parser.on_line_comment {
+        parser.on_comment = true;
+    } else if parser.on_comment {
+    } else if (keyword == "import " || keyword == "pub import " || keyword == "pri import ")
+        && options.allow_import
+    {
+        if keyword == "pri import" {
+            #[cfg(feature = "std")]
+            std::println!(
+                "[ParserInfo] imports are private in default, but use it anyway its your choice"
+            )
+        }
 
-    if (keyword == "c " || keyword == "pub c " || keyword == "pri c ") && options.constants {
+        parser.current = parser::Collecting::Import(import::Import {
+            public: keyword == "pub import ",
+            pos: defs::Cursor {
+                range_start: parser.pos,
+                ..Default::default()
+            },
+            ..Default::default()
+        });
+    } else if (keyword == "c " || keyword == "pub c " || keyword == "pri c ") && options.constants {
         parser.current = parser::Collecting::Variable(variable::VariableCollector {
             initialized: true,
             data: variable::Variable {
@@ -67,8 +94,7 @@ pub fn collect_type(
             },
             ..Default::default()
         });
-    } else if keyword == "co " {
-        // && options.parser_type == defs::ParserType::ClassParser
+    } else if keyword == "co " && options.parser_type == defs::ParserType::ClassParser {
         parser.current =
             parser::Collecting::Constructor(constructor::ConstructorCollector::default());
     } else if keyword == "if" && options.parser_type == defs::ParserType::RawParser {
@@ -107,7 +133,21 @@ pub fn collect_type(
     } else if keyword == "else {" && options.parser_type == defs::ParserType::RawParser {
         let collected_length = parser.collected.clone().len();
         if collected_length == 0 {
-            panic!("Error");
+            errors.push(error::Error {
+                scope: "definer_processor".to_string(),
+                debug_message: "3b80c3cc73661d1270db98ce89f4bb0b".to_string(),
+                title: error::errorList::error_s1.title.clone(),
+                code: error::errorList::error_s1.code,
+                message: error::errorList::error_s1.message.clone(),
+                builded_message: error::Error::build(
+                    error::errorList::error_s1.message.clone(),
+                    vec![error::ErrorBuildField {
+                        key: "token".to_string(),
+                        value: keyword,
+                    }],
+                ),
+                pos: parser.keyword_pos,
+            });
         } else if let parser::Collecting::Condition(value) =
             &mut parser.collected[collected_length - 1]
         {
@@ -131,15 +171,79 @@ pub fn collect_type(
             //User used else statement without if
             panic!("Error: {:#?}", parser.collected);
         }
-    } else if keyword == "class " && options.parser_type == defs::ParserType::RawParser {
-        parser.current = parser::Collecting::Class(class::ClassCollector::default());
+    } else if (keyword == "class " || keyword == "pub class " || keyword == "pri class ")
+        && options.parser_type == defs::ParserType::RawParser
+    {
+        parser.current = parser::Collecting::Class(class::ClassCollector {
+            data: class::Class {
+                public: keyword == "pub class ",
+                ..Default::default()
+            },
+            ..Default::default()
+        });
     } else if keyword == "ret " && options.parser_type == defs::ParserType::RawParser {
         parser.current = parser::Collecting::Ret(ret::Ret {
             keyword_pos: defs::Cursor {
-                range_start: parser.pos.clone().popChar(3),
-                range_end: parser.pos.skipChar(1),
+                range_start: parser.pos.pop_char(3),
+                range_end: parser.pos.clone().skip_char(1),
             },
             ..Default::default()
+        });
+    } else if keyword == "new " {
+        parser.current = parser::Collecting::Caller(caller::Caller {
+            value: types::Types::ClassCall(types::class_call::ClassCallCollector {
+                keyword_collected: true,
+                ..Default::default()
+            }),
+            pos: defs::Cursor {
+                range_start: parser.pos,
+                ..Default::default()
+            },
+        });
+    } else if letter_char == "(" && keyword.trim() != "(" && !keyword.trim().is_empty() {
+        parser.current = parser::Collecting::Caller(caller::Caller {
+            value: types::Types::FunctionCall(types::function_call::FunctionCallCollector {
+                data: types::function_call::FunctionCall {
+                    name: keyword.clone().replace("(", ""),
+                    name_pos: defs::Cursor {
+                        range_start: if keyword.clone().trim().len() - 1 > parser.pos.1 {
+                            parser.pos
+                        } else {
+                            parser
+                                .pos
+                                .clone()
+                                .pop_char(keyword.clone().trim().len() - 1)
+                        },
+                        range_end: parser.pos,
+                    },
+                    ..Default::default()
+                },
+                ..Default::default()
+            }),
+            pos: defs::Cursor {
+                range_start: parser.pos,
+                ..Default::default()
+            },
+        });
+    } else if next_char == "." && keyword.trim() != "" {
+        #[cfg(feature = "std")]
+        std::println!("[ParserWarning]: Appliying no position data to VariableType[226] will cause error showing problem in cli");
+        parser.current = parser::Collecting::Caller(caller::Caller {
+            value: types::Types::Refference(types::refference_type::RefferenceType {
+                refference: Box::new(types::Types::VariableType(
+                    types::variable_type::VariableType {
+                        value: keyword.clone(),
+                        value_complete: true,
+                        ..Default::default()
+                    },
+                )),
+                on_dot: true,
+                ..Default::default()
+            }),
+            pos: defs::Cursor {
+                range_start: parser.pos,
+                ..Default::default()
+            },
         });
     }
 }

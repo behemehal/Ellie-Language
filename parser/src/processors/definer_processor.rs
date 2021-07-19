@@ -1,6 +1,7 @@
 use crate::alloc::string::{String, ToString};
 use crate::alloc::vec;
 use crate::alloc::vec::Vec;
+use crate::parser;
 use crate::syntax;
 use crate::syntax::definers::DefinerCollecting;
 use ellie_core::{defs, error, utils};
@@ -10,17 +11,15 @@ i8                    //generic type
 array(array(i8), 5)   //i8 5 sized array
 fn(i16, i32)::i8      //a function that takes i16 and i32 as parameter and returns i8 as result
 cloak(i8, i32)        //a cloak that contains i8 as first parameter i32 as second
-
 */
 
 pub fn collect_definer(
+    parser: parser::Parser,
     type_data: &mut DefinerCollecting,
     errors: &mut Vec<error::Error>,
     letter_char: String,
-    pos: defs::CursorPosition,
     next_char: String,
     last_char: String,
-    options: defs::ParserOptions,
 ) {
     match type_data {
         DefinerCollecting::GrowableArray(ref mut data) => {
@@ -30,13 +29,12 @@ pub fn collect_definer(
                 data.complete = true;
             } else {
                 collect_definer(
+                    parser,
                     &mut data.rtype,
                     errors,
                     letter_char,
-                    pos,
                     next_char,
                     last_char,
-                    options,
                 )
             }
         }
@@ -48,13 +46,12 @@ pub fn collect_definer(
                     data.typed = true;
                 } else {
                     collect_definer(
+                        parser,
                         &mut data.rtype,
                         errors,
                         letter_char,
-                        pos,
                         next_char,
                         last_char,
-                        options,
                     )
                 }
             } else if letter_char == ")" && data.len.complete {
@@ -74,12 +71,11 @@ pub fn collect_definer(
                 };
 
                 let processed_data = crate::processors::value_processor::collect_value(
+                    parser.clone(),
                     &mut emulated_collector_data,
                     &letter_char,
                     next_char,
                     last_char,
-                    pos,
-                    options,
                 );
                 for i in processed_data.errors {
                     errors.push(i)
@@ -88,7 +84,7 @@ pub fn collect_definer(
                 if !emulated_collector_data.data.value.is_integer() && letter_char != " " {
                     errors.push(error::Error {
                         scope: "definer_processor".to_string(),
-                        debug_message: "fa57fbf494b41f4f0494466015a81552".to_string(),
+                        debug_message: "212794d91d21d1ff26877b62a3d6e8b9".to_string(),
                         title: error::errorList::error_s20.title.clone(),
                         code: error::errorList::error_s20.code,
                         message: error::errorList::error_s20.message.clone(),
@@ -96,8 +92,8 @@ pub fn collect_definer(
                             error::errorList::error_s20.message.clone(),
                         ),
                         pos: defs::Cursor {
-                            range_start: pos,
-                            range_end: pos.clone().skipChar(1),
+                            range_start: parser.pos,
+                            range_end: parser.pos.clone().skip_char(1),
                         },
                     });
                 }
@@ -139,10 +135,13 @@ pub fn collect_definer(
                         bracket_inserted: true,
                         ..Default::default()
                     });
-            } else if letter_char != " " && last_char == " " && data.rtype.trim() != "" {
+            } else if letter_char != " "
+                && (last_char == " " || last_char == "\n")
+                && data.rtype.trim() != ""
+            {
                 errors.push(error::Error {
                     scope: "definer_processor".to_string(),
-                    debug_message: "700312010d036bf0e3737e03c5b5484d".to_string(),
+                    debug_message: "3f8abcbf79e2bb231fc36f97a20e10cc".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -154,8 +153,8 @@ pub fn collect_definer(
                         }],
                     ),
                     pos: defs::Cursor {
-                        range_start: pos,
-                        range_end: pos.clone().skipChar(1),
+                        range_start: parser.pos,
+                        range_end: parser.pos.clone().skip_char(1),
                     },
                 });
             } else {
@@ -169,7 +168,7 @@ pub fn collect_definer(
                 } else if letter_char != " " {
                     errors.push(error::Error {
                         scope: "definer_processor".to_string(),
-                        debug_message: "134fc65c7af5d238a4033495b58b41d5".to_string(),
+                        debug_message: "8185398c3aa6946810a8ec90b176c9dd".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -181,8 +180,8 @@ pub fn collect_definer(
                             }],
                         ),
                         pos: defs::Cursor {
-                            range_start: pos,
-                            range_end: pos.clone().skipChar(1),
+                            range_start: parser.pos,
+                            range_end: parser.pos.clone().skip_char(1),
                         },
                     });
                 }
@@ -206,7 +205,7 @@ pub fn collect_definer(
                     //This should have been filled If everything were right
                     errors.push(error::Error {
                         scope: "definer_processor".to_string(),
-                        debug_message: "c3e537170bca78b6cdd58e805c2001d9".to_string(),
+                        debug_message: "972eb9100eda54c2e94d8a7b290d9a2a".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -218,21 +217,20 @@ pub fn collect_definer(
                             }],
                         ),
                         pos: defs::Cursor {
-                            range_start: pos,
-                            range_end: pos.clone().skipChar(1),
+                            range_start: parser.pos,
+                            range_end: parser.pos.clone().skip_char(1),
                         },
                     });
                 } else if data.bracket_inserted {
                     data.at_comma = false;
                     let len = data.params.clone().len();
                     collect_definer(
+                        parser,
                         &mut data.params[if len == 0 { 0 } else { len - 1 }],
                         errors,
                         letter_char,
-                        pos,
                         next_char,
                         last_char,
-                        options,
                     );
 
                     if data.params[if len == 0 { 0 } else { len - 1 }].is_definer_complete() {
@@ -244,7 +242,7 @@ pub fn collect_definer(
                     if letter_char != ":" {
                         errors.push(error::Error {
                             scope: "definer_processor".to_string(),
-                            debug_message: "dc106db017d955926be0c3391304f5f2".to_string(),
+                            debug_message: "d8cf020edcaaeb379dad223651f07245".to_string(),
                             title: error::errorList::error_s1.title.clone(),
                             code: error::errorList::error_s1.code,
                             message: error::errorList::error_s1.message.clone(),
@@ -256,8 +254,8 @@ pub fn collect_definer(
                                 }],
                             ),
                             pos: defs::Cursor {
-                                range_start: pos,
-                                range_end: pos.clone().skipChar(1),
+                                range_start: parser.pos,
+                                range_end: parser.pos.clone().skip_char(1),
                             },
                         });
                     }
@@ -265,13 +263,12 @@ pub fn collect_definer(
                 } else {
                     data.complete = true;
                     collect_definer(
+                        parser,
                         &mut data.returning,
                         errors,
                         letter_char,
-                        pos,
                         next_char,
                         last_char,
-                        options,
                     )
                 }
             }
@@ -297,6 +294,7 @@ pub fn collect_definer(
                 data.complete = true;
             } else {
                 collect_definer(
+                    parser,
                     &mut data.rtype[if length_of_childs == 1 {
                         0
                     } else {
@@ -304,10 +302,8 @@ pub fn collect_definer(
                     }],
                     errors,
                     letter_char,
-                    pos,
                     next_char,
                     last_char,
-                    options,
                 )
             }
         }

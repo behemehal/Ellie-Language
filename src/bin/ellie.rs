@@ -17,9 +17,10 @@ fn main() {
             "\t--experimental-error-listing || -xe  : Use experimental error listing in terminal"
         );
         println!("\t--to-raw                     || -tr  : Compiles ellie to ellie raw");
-        println!("\t--raw-compiler               || -rw  : Compiles as ellie raw");
+        println!("\t--raw-compile                || -rw  : Compiles as ellie raw");
         println!("\t--show-errors                || -se  : Linter code for errors");
         println!("\t--json-errors                || -je  : Linter code for errors as json");
+        println!("\t--parser-ws                  || -pw  : Visualize parsing process");
     } else {
         let args = env::args()
             .collect::<Vec<String>>()
@@ -35,8 +36,6 @@ fn main() {
                 .collect::<Vec<String>>();
             let debug_arg = env::args().any(|x| x == "--debug" || x == "-d");
 
-            if debug_arg {}
-
             //let map_errors_arg = env::args().any(|x| x == "--map-errors");
             let file_arg_check = file_args.first();
             if file_arg_check != None {
@@ -46,15 +45,52 @@ fn main() {
                 let file_read = File::open(&file_arg.clone());
                 if file_read.is_err() {
                     println!("File not found ~{}", &file_arg.clone());
+                    std::process::exit(1);
                 } else if let Ok(mut file) = file_read {
                     file.read_to_end(&mut file_content).expect("Unable to read");
                     let code_string = String::from_utf8(file_content);
                     if code_string.is_err() {
                         println!("Unable to read file ~{}", file_arg.clone())
                     } else if let Ok(code) = code_string {
+                        let core_resolver = |e| {
+                            println!(
+                                "{}[ParserInfo]{}: Import Request '{}{}{}'",
+                                ellie_lang::terminal_colors::get_color(
+                                    ellie_lang::terminal_colors::Colors::Cyan
+                                ),
+                                ellie_lang::terminal_colors::get_color(
+                                    ellie_lang::terminal_colors::Colors::Reset
+                                ),
+                                ellie_lang::terminal_colors::get_color(
+                                    ellie_lang::terminal_colors::Colors::Yellow
+                                ),
+                                e,
+                                ellie_lang::terminal_colors::get_color(
+                                    ellie_lang::terminal_colors::Colors::Reset
+                                ),
+                            );
+                            if e == "ellie"
+                                || e == "string"
+                                || e == "void"
+                                || e == "int"
+                                || e == "char"
+                            {
+                                if let Some(e) = ellie_lang::cli_utils::system_module_resolver(e) {
+                                    parser::ResolvedImport {
+                                        found: true,
+                                        file_content: e,
+                                    }
+                                } else {
+                                    parser::ResolvedImport::default()
+                                }
+                            } else {
+                                parser::ResolvedImport::default()
+                            }
+                        };
+
                         let parser = parser::Parser::new(
                             code.clone(),
-                            "core".to_string(),
+                            core_resolver,
                             ellie_core::defs::ParserOptions {
                                 functions: true,
                                 break_on_error: false,
@@ -72,9 +108,11 @@ fn main() {
                                 variables: true,
                                 constants: true,
                                 parser_type: ellie_core::defs::ParserType::RawParser,
+                                allow_import: true,
                             },
                         );
                         let mapped = parser.map();
+
                         if !mapped.syntax_errors.is_empty() {
                             if env::args()
                                 .any(|x| x == "-xe" || x == "--experimental-error-listing")
@@ -83,7 +121,10 @@ fn main() {
                                     &ellie_lang::cli_utils::zip_errors(mapped.syntax_errors)
                                 {
                                     if env::args().any(|x| x == "-je" || x == "--json-errors") {
-                                        println!("{:#?}", serde_json::to_string(error).unwrap());
+                                        println!(
+                                            "+\n{:#?}\n",
+                                            serde_json::to_string(error).unwrap()
+                                        );
                                     } else {
                                         if error.pos.range_start.0 != error.pos.range_end.0 {
                                             std::println!(
@@ -99,7 +140,11 @@ fn main() {
                                                 "{}{}Error[{:#04x}]{} - {}{}{}: {}",
                                                 if debug_arg {
                                                     format!(
-                                                        "{}[{}]{} ",
+                                                        "{}({}) {}[{}]{} ",
+                                                        ellie_lang::terminal_colors::get_color(
+                                                            ellie_lang::terminal_colors::Colors::Magenta
+                                                        ),
+                                                        error.scope,
                                                         ellie_lang::terminal_colors::get_color(
                                                             ellie_lang::terminal_colors::Colors::Yellow
                                                         ),
@@ -228,7 +273,10 @@ fn main() {
                             } else {
                                 for error in &mapped.syntax_errors {
                                     if env::args().any(|x| x == "-je" || x == "--json-errors") {
-                                        println!("{:#?}", serde_json::to_string(error).unwrap());
+                                        println!(
+                                            "+\n{:#?}\n",
+                                            serde_json::to_string(error).unwrap()
+                                        );
                                     } else {
                                         println!(
                                             "{}{}Error[{:#04x}]{} - {}{}{}: {}",
@@ -301,20 +349,18 @@ fn main() {
                                     }
                                 }
                             }
+                            std::process::exit(1);
                         } else if env::args().any(|x| x == "-rw" || x == "--raw-compile") {
-                            //let mut wraw = File::create("compiled.wraw").expect("Unable to create file");
-                            //let serialized = serde_json::to_string(&point).unwrap();
-                            //for i in &syntax.clone().items {
-                            //    write!(wraw, "{:?}", i);
-                            //}
                             println!("Pre-compiled raw generation not supported yet {:#?}", code);
                         } else if !env::args().any(|x| x == "-se" || x == "--show-errors") {
                             print!("Collected: {:#?}", mapped);
+                            std::process::exit(0);
                         }
                     }
                 }
             } else {
                 println!("No file present\n-h for help");
+                std::process::exit(1);
             }
         }
     }

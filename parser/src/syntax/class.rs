@@ -14,6 +14,7 @@ pub struct GenericDefining {
 #[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct Class {
     pub name: String,
+    pub public: bool,
     pub constructor: constructor::Constructor,
     pub generic_definings: Vec<GenericDefining>,
     pub properties: Vec<variable::Variable>,
@@ -34,4 +35,20 @@ pub struct ClassCollector {
     pub at_comma: bool,
     pub data: Class,
     pub code: Box<crate::parser::Parser>,
+}
+
+impl ClassCollector {
+    pub fn has_dedup(&self) -> bool {
+        let mut existent_names: Vec<String> = Vec::with_capacity(self.data.generic_definings.len());
+        let mut duplicate = false;
+        for i in &self.data.generic_definings {
+            if existent_names.contains(&i.name) {
+                duplicate = true;
+                break;
+            } else {
+                existent_names.push(i.name.clone())
+            }
+        }
+        duplicate
+    }
 }

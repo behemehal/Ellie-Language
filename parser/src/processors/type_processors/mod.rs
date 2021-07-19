@@ -2,6 +2,7 @@ pub mod array;
 pub mod arrow_function;
 pub mod bool;
 pub mod char;
+pub mod class_call;
 pub mod cloak;
 pub mod float;
 pub mod function_call;

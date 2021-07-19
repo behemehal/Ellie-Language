@@ -20,7 +20,7 @@ fn variable_benchmark(c: &mut Criterion) {
             ];
         "
         .to_string(),
-        "core".to_string(),
+        |_| ellie_parser::parser::ResolvedImport::default(),
         ellie_core::defs::ParserOptions {
             functions: true,
             break_on_error: false,
@@ -38,6 +38,7 @@ fn variable_benchmark(c: &mut Criterion) {
             variables: true,
             constants: true,
             parser_type: ellie_core::defs::ParserType::RawParser,
+            allow_import: true,
         },
     );
     c.bench_function("parse variables", |b| b.iter(|| parser.clone().map()));

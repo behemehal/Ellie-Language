@@ -1,18 +1,15 @@
-#[derive(PartialEq, Debug, Clone)]
-pub enum CallerType {
-    FunctionCaller,
-    VariableCaller,
-    Unknown,
+use crate::syntax::types;
+use ellie_core::defs;
+use serde::Serialize;
+
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub enum Callers {
+    FunctionCall(types::function_call::FunctionCallCollector),
+    ClassCall(types::class_call::ClassCallCollector),
 }
 
-#[derive(PartialEq, Debug, Clone)]
+#[derive(PartialEq, Debug, Clone, Serialize)]
 pub struct Caller {
-    pub initialized: bool,
-    pub name: String,
-    pub named: bool,
-    pub value_complete: bool,
-    pub rtype: CallerType,
-    pub raw_value: String,
-    pub value: crate::syntax::types::Types,
-    pub pos: crate::parser::defs::Cursor,
+    pub value: types::Types,
+    pub pos: defs::Cursor,
 }

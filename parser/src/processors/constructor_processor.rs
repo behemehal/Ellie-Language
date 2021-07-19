@@ -1,17 +1,15 @@
-use crate::parser;
-use crate::syntax::constructor;
-use ellie_core::{defs, error, utils};
-
-use crate::alloc::boxed::Box;
 use crate::alloc::string::{String, ToString};
 use crate::alloc::vec;
 use crate::alloc::vec::Vec;
+use crate::parser;
+use crate::syntax::constructor;
+use ellie_core::{defs, error, utils};
 
 pub fn collect_constructor(
     parser: &mut parser::Parser,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
-    next_char: String,
+    _next_char: String,
     last_char: String,
     _options: defs::ParserOptions,
 ) {
@@ -23,21 +21,21 @@ pub fn collect_constructor(
 
         if !constructordata.named {
             if current_reliability.reliable
-                && (last_char != " " || constructordata.data.name.is_empty())
+                && ((last_char != " " && last_char != "\n") || constructordata.data.name.is_empty())
             {
                 if constructordata.data.name.is_empty() {
                     constructordata.data.name_pos.range_start = parser.pos;
                 }
 
                 constructordata.data.name += letter_char;
-                constructordata.data.name_pos.range_end = parser.pos;
+                constructordata.data.name_pos.range_end = parser.pos.clone().skip_char(1);
             } else if letter_char == "(" {
                 constructordata.named = true;
                 constructordata.data.parameters_pos.range_start = parser.pos;
             } else if letter_char != " " {
                 errors.push(error::Error {
-                    scope: parser.scope.clone() + "/constructor_processor",
-                    debug_message: "3c12fc0f11ea48d54df7bdda48d153d8".to_string(),
+                    scope: parser.scope.scope_name.clone(),
+                    debug_message: "d310ce9eb13b858ddc1846b7221fd2ac".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -50,7 +48,7 @@ pub fn collect_constructor(
                     ),
                     pos: defs::Cursor {
                         range_start: parser.pos,
-                        range_end: parser.pos.clone().skipChar(1),
+                        range_end: parser.pos.clone().skip_char(1),
                     },
                 });
             }
@@ -67,7 +65,7 @@ pub fn collect_constructor(
             }
 
             if current_reliability.reliable
-                && (last_char != " "
+                && ((last_char != " " && last_char != "\n")
                     || constructordata.data.parameters[last_entry - 1]
                         .name
                         .is_empty())
@@ -92,8 +90,8 @@ pub fn collect_constructor(
                     .push(constructor::ConstructorParameter::default());
             } else if letter_char != " " {
                 errors.push(error::Error {
-                    scope: parser.scope.clone() + "/constructor_processor",
-                    debug_message: "8d58d0b635da2a74375e0a0ab8eb16d6".to_string(),
+                    scope: parser.scope.scope_name.clone(),
+                    debug_message: "5ae655f46d80d24bb75e7604ae4ecc7d".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -106,7 +104,7 @@ pub fn collect_constructor(
                     ),
                     pos: defs::Cursor {
                         range_start: parser.pos,
-                        range_end: parser.pos.clone().skipChar(1),
+                        range_end: parser.pos.clone().skip_char(1),
                     },
                 });
             }
@@ -118,8 +116,8 @@ pub fn collect_constructor(
                 parser.current = parser::Collecting::None;
             } else if letter_char != " " {
                 errors.push(error::Error {
-                    scope: parser.scope.clone() + "/constructor_processor",
-                    debug_message: "257893788177a46fbce517635547ab65".to_string(),
+                    scope: parser.scope.scope_name.clone(),
+                    debug_message: "0d74809a37ca2fb3e518233dad1043b1".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -132,13 +130,11 @@ pub fn collect_constructor(
                     ),
                     pos: defs::Cursor {
                         range_start: parser.pos,
-                        range_end: parser.pos.clone().skipChar(1),
+                        range_end: parser.pos.clone().skip_char(1),
                     },
                 });
             }
         } else if constructordata.brace_count == 0 && letter_char == "}" {
-            constructordata.data.inside_code = constructordata.code.collected.clone();
-            constructordata.code = Box::new(parser::Parser::default()); //Empty the cache
             parser.collected.push(parser.current.clone());
             parser.current = parser::Collecting::None;
         } else {
@@ -148,26 +144,12 @@ pub fn collect_constructor(
                 constructordata.brace_count -= 1;
             }
 
-            let mut child_parser = constructordata.code.clone();
-            child_parser.options = parser.options.clone();
-            let mut child_parser_errors: Vec<error::Error> = Vec::new();
-            parser::iterator::iter(
-                &mut child_parser,
-                &mut child_parser_errors,
-                letter_char,
-                next_char,
-                last_char,
-            );
-
-            for i in child_parser_errors {
-                let mut edited = i;
-                edited.pos.range_start.0 += parser.pos.0;
-                edited.pos.range_start.1 += parser.pos.1;
-                edited.pos.range_end.0 += parser.pos.0;
-                edited.pos.range_end.1 += parser.pos.1;
-                errors.push(edited);
-            }
-            constructordata.code = child_parser;
+            let code_letter = if last_char.clone() == "\n" || last_char.clone() == "\r" {
+                last_char + letter_char //Make sure we get the lines correctly
+            } else {
+                letter_char.to_string()
+            };
+            constructordata.code += &code_letter;
         }
     }
 }

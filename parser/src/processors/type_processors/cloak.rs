@@ -1,3 +1,4 @@
+use crate::parser;
 use crate::processors::{type_processors, value_processor};
 use crate::syntax::{definers, types, variable};
 use ellie_core::{defs, error};
@@ -8,13 +9,12 @@ use alloc::vec;
 use alloc::vec::Vec;
 
 pub fn collect_cloak(
+    parser: parser::Parser,
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     next_char: String,
     last_char: String,
-    pos: defs::CursorPosition,
-    options: defs::ParserOptions,
 ) {
     if let types::Types::Cloak(ref mut data) = itered_data.data.value {
         let last_entry = data.clone().collective.len();
@@ -25,7 +25,7 @@ pub fn collect_cloak(
             if !data.comma && last_entry != 0 {
                 errors.push(error::Error {
                     scope: "cloak_processor".to_string(),
-                    debug_message: "63a1c0196c1202caef4c731333b663c7".to_string(),
+                    debug_message: "915af1c92d5fa4daf39dbceed1ebaf9c".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -37,8 +37,8 @@ pub fn collect_cloak(
                         }],
                     ),
                     pos: defs::Cursor {
-                        range_start: pos,
-                        range_end: pos.clone().skipChar(1),
+                        range_start: parser.pos,
+                        range_end: parser.pos.clone().skip_char(1),
                     },
                 });
             } else {
@@ -63,7 +63,7 @@ pub fn collect_cloak(
             if data.complete {
                 errors.push(error::Error {
                     scope: "cloak_processor".to_string(),
-                    debug_message: "08636af58e1da043654184cd04a1f0fc".to_string(),
+                    debug_message: "2f674cbbeb81c2a9dca894d8fb9c0c2b".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -75,14 +75,14 @@ pub fn collect_cloak(
                         }],
                     ),
                     pos: defs::Cursor {
-                        range_start: pos,
-                        range_end: pos.clone().skipChar(1),
+                        range_start: parser.pos,
+                        range_end: parser.pos.clone().skip_char(1),
                     },
                 });
             } else if data.comma {
                 errors.push(error::Error {
                     scope: "cloak_processor".to_string(),
-                    debug_message: "4c55ff64fabda927e3184ddee0c2d70d".to_string(),
+                    debug_message: "e0ff4426f4fdeedaaa0c6c559eb5afc0".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -94,8 +94,8 @@ pub fn collect_cloak(
                         }],
                     ),
                     pos: defs::Cursor {
-                        range_start: pos,
-                        range_end: pos.clone().skipChar(1),
+                        range_start: parser.pos,
+                        range_end: parser.pos.clone().skip_char(1),
                     },
                 });
             } else {
@@ -112,7 +112,7 @@ pub fn collect_cloak(
             if data.comma {
                 errors.push(error::Error {
                     scope: "cloak_processor".to_string(),
-                    debug_message: "ebb4d1b5f6040a9731bcc1315973e91c".to_string(),
+                    debug_message: "b4b462af0063fb17e15f632ef39a1293".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -124,14 +124,14 @@ pub fn collect_cloak(
                         }],
                     ),
                     pos: defs::Cursor {
-                        range_start: pos,
-                        range_end: pos.clone().skipChar(1),
+                        range_start: parser.pos,
+                        range_end: parser.pos.clone().skip_char(1),
                     },
                 });
             } else if data.complete {
                 errors.push(error::Error {
                     scope: "cloak_processor".to_string(),
-                    debug_message: "be673ee952946f7fdc51b3d9f05c647b".to_string(),
+                    debug_message: "1a51f93555cc1b4b91e577f05b1b7b22".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -143,8 +143,8 @@ pub fn collect_cloak(
                         }],
                     ),
                     pos: defs::Cursor {
-                        range_start: pos,
-                        range_end: pos.clone().skipChar(1),
+                        range_start: parser.pos,
+                        range_end: parser.pos.clone().skip_char(1),
                     },
                 });
             } else {
@@ -168,13 +168,12 @@ pub fn collect_cloak(
                     on_dot: false,
                 });
             type_processors::refference::collect_refference(
+                parser.clone(),
                 itered_data,
                 errors,
                 letter_char,
                 next_char,
                 last_char,
-                pos,
-                options,
             )
         } else if data.complete
             && types::logical_type::LogicalOpearators::is_logical_opearator(letter_char)
@@ -193,13 +192,12 @@ pub fn collect_cloak(
                     ..Default::default()
                 });
             type_processors::operator::collect_operator(
+                parser.clone(),
                 itered_data,
                 errors,
                 letter_char,
                 next_char,
                 last_char,
-                pos,
-                options,
             )
         } else if data.complete
             && types::comparison_type::ComparisonOperators::is_comparison_opearator(letter_char)
@@ -218,13 +216,12 @@ pub fn collect_cloak(
                     ..Default::default()
                 });
             type_processors::operator::collect_operator(
+                parser.clone(),
                 itered_data,
                 errors,
                 letter_char,
                 next_char,
                 last_char,
-                pos,
-                options,
             )
         } else if data.complete
             && types::arithmetic_type::ArithmeticOperators::is_arithmetic_opearator(letter_char)
@@ -243,13 +240,12 @@ pub fn collect_cloak(
                     ..Default::default()
                 });
             type_processors::operator::collect_operator(
+                parser,
                 itered_data,
                 errors,
                 letter_char,
                 next_char,
                 last_char,
-                pos,
-                options,
             )
         } else {
             if letter_char != " " {
@@ -294,12 +290,11 @@ pub fn collect_cloak(
             }
 
             let itered_cloak_vector = Box::new(value_processor::collect_value(
+                parser.clone(),
                 &mut will_be_itered,
                 letter_char,
                 next_char,
                 last_char,
-                defs::CursorPosition(0, 0),
-                options,
             ));
 
             if let types::Types::Cloak(ref adata) = itered_cloak_vector.itered_data.data.value {
@@ -357,6 +352,10 @@ pub fn collect_cloak(
                     value_complete: true,
                     value: Box::new(types::Types::Null),
                 },
+                types::Types::ClassCall(_) => types::cloak_type::CloakEntry {
+                    value_complete: true,
+                    value: Box::new(types::Types::Null),
+                },
                 types::Types::Void => types::cloak_type::CloakEntry {
                     value_complete: true,
                     value: Box::new(types::Types::Null),
@@ -375,10 +374,10 @@ pub fn collect_cloak(
                 for returned_error in itered_cloak_vector.errors {
                     //errors.extend(itered_array_vector.errors);
                     let mut edited = returned_error;
-                    edited.pos.range_start.0 += pos.0;
-                    edited.pos.range_start.1 += pos.1;
-                    edited.pos.range_end.0 += pos.0;
-                    edited.pos.range_end.1 += pos.1;
+                    edited.pos.range_start.0 += parser.clone().pos.0;
+                    edited.pos.range_start.1 += parser.clone().pos.1;
+                    edited.pos.range_end.0 += parser.clone().pos.0;
+                    edited.pos.range_end.1 += parser.clone().pos.1;
                     errors.push(edited);
                 }
             }

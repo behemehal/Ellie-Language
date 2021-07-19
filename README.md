@@ -1,6 +1,6 @@
 ![icon](./picture/TextIcon/EllieTextIcon@0,33x.png)
 # Ellie
-[![Refactor Errors](https://github.com/behemehal/Ellie-Language/actions/workflows/refactor.yml/badge.svg)](https://github.com/behemehal/Ellie-Language/actions/workflows/refactor.yml) [![Rust](https://github.com/behemehal/Ellie-Language/actions/workflows/rust.yml/badge.svg)](https://github.com/behemehal/Ellie-Language/actions/workflows/rust.yml)
+[![Refactor Errors](https://github.com/behemehal/Ellie-Language/actions/workflows/refactor.yml/badge.svg)](https://github.com/behemehal/Ellie-Language/actions/workflows/refactor.yml) [![Rust](https://github.com/behemehal/Ellie-Language/actions/workflows/rust.yml/badge.svg)](https://github.com/behemehal/Ellie-Language/actions/workflows/rust.yml) [![Gitter](https://badgen.net/badge/icon/gitter?icon=gitter&label)](https://gitter.im/ellie-lang/community)
 
 Ellie language
 
@@ -9,7 +9,15 @@ Why ellie? Ellie is a scripting engine that runs on embedded and sandboxed envir
 # Language Tour
 You can see [LanguageTour.md](./LanguageTour.md)
 
-# Contrubiting
+# Building and running Ellie
+Check [Building.md](./Building.md)
+
+# Robotics
+
+Check [Building.md](./Building.md)
+
+# Language Server
+You can download ellie extension from [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=behemehal.ellie-lang)
 
 # LICENSE
 
@@ -36,4 +44,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
-This project is dedicated to the meaning of my life 
