@@ -8,3 +8,5 @@ Cargo.lock
 target
 test_dir
 raw
+inner_code_compiler
+code.ei

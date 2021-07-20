@@ -14,7 +14,7 @@ Check [Building.md](./Building.md)
 
 # Robotics
 
-Check [Building.md](./Building.md)
+Check [Robotics.md](./Robotics.md)
 
 # Language Server
 You can download ellie extension from [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=behemehal.ellie-lang)
