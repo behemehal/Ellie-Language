@@ -1,6 +1,6 @@
 [package]
 name = "ellie_engine"
-version = "2.5.0"
+version = "2.6.0"
 authors = ["Ahmetcan Aksu <ahmetcanaksu@behemehal.net>"]
 edition = "2018"
 license-file = "LICENSE"
@@ -12,6 +12,7 @@ serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
 
 ellie_core = {path = "core", version = "1.0.0"}
 ellie_parser = {path = "parser", version = "1.0.0"}
+ellie_native = {path = "native", version = "0.1.0"}
 
 [lib]
 name = "ellie_lang"

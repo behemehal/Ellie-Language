@@ -3,7 +3,7 @@ use crate::processors;
 use crate::syntax::variable;
 use alloc::string::String;
 use alloc::vec::Vec;
-use ellie_core::{defs, error};
+use ellie_core::error;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct CollectorResponse {
@@ -16,8 +16,7 @@ pub fn collect_caller(
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     next_char: String,
-    last_char: String,
-    _options: defs::ParserOptions,
+    last_char: String
 ) {
     let parser_clone = parser.clone();
     if let parser::Collecting::Caller(ref mut callerdata) = parser.current {

@@ -48,8 +48,7 @@ pub fn iter(
             errors,
             letter_char,
             last_char.clone(),
-            next_char.clone(),
-            parser.options.clone(),
+            next_char.clone()
         );
     } else {
         parser.keyword_catch = String::new();
@@ -61,41 +60,35 @@ pub fn iter(
             errors,
             letter_char,
             next_char.clone(),
-            last_char.clone(),
-            parser.options.clone(),
+            last_char.clone()
         ),
-
         parser::Collecting::Condition(_) => processors::condition_processor::collect_condition(
             parser,
             errors,
             letter_char,
             next_char.clone(),
-            last_char.clone(),
-            parser.options.clone(),
+            last_char.clone()
         ),
         parser::Collecting::Function(_) => processors::function_processor::collect_function(
             parser,
             errors,
             letter_char,
             next_char.clone(),
-            last_char.clone(),
-            parser.options.clone(),
+            last_char.clone()
         ),
         parser::Collecting::Class(_) => processors::class_processor::collect_class(
             parser,
             errors,
             letter_char,
             next_char.clone(),
-            last_char.clone(),
-            parser.options.clone(),
+            last_char.clone()
         ),
         parser::Collecting::Ret(_) => processors::ret_processor::collect_ret(
             parser,
             errors,
             letter_char,
             next_char.clone(),
-            last_char.clone(),
-            parser.options.clone(),
+            last_char.clone()
         ),
         parser::Collecting::Constructor(_) => {
             processors::constructor_processor::collect_constructor(
@@ -103,8 +96,7 @@ pub fn iter(
                 errors,
                 letter_char,
                 next_char.clone(),
-                last_char.clone(),
-                parser.options.clone(),
+                last_char.clone()
             )
         }
         parser::Collecting::Import(_) => processors::import_processor::collect_import(
@@ -112,16 +104,21 @@ pub fn iter(
             errors,
             letter_char,
             next_char.clone(),
-            last_char.clone(),
-            parser.options.clone(),
+            last_char.clone()
         ),
         parser::Collecting::Caller(_) => processors::caller_processor::collect_caller(
             parser,
             errors,
             letter_char,
             next_char.clone(),
-            last_char.clone(),
-            parser.options.clone(),
+            last_char.clone()
+        ),
+        parser::Collecting::FileKey(_) => processors::filekey_processor::collect_filekey(
+            parser,
+            errors,
+            letter_char,
+            next_char.clone(),
+            last_char.clone()
         ),
         _ => (),
     };

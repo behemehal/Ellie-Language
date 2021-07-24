@@ -11,6 +11,10 @@ pub fn is_errors_same(first: error::Error, second: error::Error) -> bool {
         && first.pos.range_start.1 == second.pos.range_start.1
 }
 
+pub fn clean_up_escape(code: String) -> String {
+    code.replace("\\n", "\n").replace("\\t", "\t").replace("\\r", "\r")
+}
+
 pub fn system_module_resolver(lib_name: String) -> Option<ellie_parser::parser::Parsed> {
     let core_resolver = |e: String| {
         println!(
@@ -42,7 +46,7 @@ pub fn system_module_resolver(lib_name: String) -> Option<ellie_parser::parser::
     };
 
     let mut ellie_library_content = Vec::new();
-    let mut ellie_library = File::open("./lib/".to_string() + &(lib_name + ".ei")).unwrap();
+    let mut ellie_library = File::open("C:\\Users\\ahmet\\Desktop\\Projects\\InBuild\\Ellie-Language\\lib\\".to_string() + &(lib_name + ".ei")).unwrap();
     ellie_library
         .read_to_end(&mut ellie_library_content)
         .expect("Unable to read");

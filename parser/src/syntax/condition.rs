@@ -6,7 +6,7 @@ use serde::Serialize;
 use crate::alloc::string::String;
 use crate::alloc::vec::Vec;
 
-#[derive(PartialEq, Debug, Clone, Serialize, Hash)]
+#[derive(PartialEq, Debug, Clone, Serialize)]
 pub enum ConditionType {
     If,
     ElseIf,

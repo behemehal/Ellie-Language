@@ -3,11 +3,10 @@ use alloc::format;
 use alloc::string::String;
 use core::any::Any;
 use core::any::TypeId;
-use core::hash::Hash;
 use enum_as_inner::EnumAsInner;
 use serde::Serialize;
 
-#[derive(PartialEq, Eq, Debug, Clone, Copy, Serialize, Hash)]
+#[derive(PartialEq, Eq, Debug, Clone, Copy, Serialize)]
 pub enum IntegerTypes {
     I8,
     I16,
@@ -29,7 +28,7 @@ impl Default for IntegerTypes {
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Copy, Serialize, EnumAsInner, Hash)]
+#[derive(PartialEq, Debug, Clone, Copy, Serialize, EnumAsInner)]
 pub enum IntegerSize {
     U8(u8),
     U16(u16),
@@ -84,7 +83,7 @@ impl Default for IntegerSize {
     }
 }
 
-#[derive(PartialEq, Default, Debug, Clone, Serialize, Hash)]
+#[derive(PartialEq, Default, Debug, Clone, Serialize)]
 pub struct IntegerType {
     pub value: IntegerSize,
     pub raw: String,

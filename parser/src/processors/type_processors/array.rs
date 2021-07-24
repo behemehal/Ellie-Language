@@ -427,7 +427,6 @@ pub fn collect_array(
 
             if !itered_array_vector.errors.is_empty() {
                 for returned_error in itered_array_vector.errors {
-                    //errors.extend(itered_array_vector.errors);
                     let mut edited = returned_error;
                     edited.pos.range_start.0 += parser.pos.0;
                     edited.pos.range_start.1 += parser.pos.1;

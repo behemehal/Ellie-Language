@@ -1,11 +1,10 @@
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
-use core::hash::Hash;
 use enum_as_inner::EnumAsInner;
 use serde::Serialize;
 
-#[derive(PartialEq, Debug, Clone, Serialize, Default, Hash)]
+#[derive(PartialEq, Debug, Clone, Serialize, Default)]
 pub struct FunctionType {
     pub complete: bool,
     pub params: Vec<DefinerCollecting>,
@@ -17,7 +16,7 @@ pub struct FunctionType {
     pub at_comma: bool,
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Default, Hash)]
+#[derive(PartialEq, Debug, Clone, Serialize, Default)]
 pub struct CloakType {
     pub complete: bool,
     pub rtype: Vec<DefinerCollecting>,
@@ -25,7 +24,7 @@ pub struct CloakType {
     pub at_comma: bool,
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Default, Hash)]
+#[derive(PartialEq, Debug, Clone, Serialize, Default)]
 pub struct ArrayType {
     pub complete: bool,
     pub rtype: Box<DefinerCollecting>,
@@ -35,19 +34,19 @@ pub struct ArrayType {
     pub typed: bool,
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Default, Hash)]
+#[derive(PartialEq, Debug, Clone, Serialize, Default)]
 pub struct GrowableArrayType {
     pub complete: bool,
     pub rtype: Box<DefinerCollecting>,
     pub bracket_inserted: bool,
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Default, Hash)]
+#[derive(PartialEq, Debug, Clone, Serialize, Default)]
 pub struct GenericType {
     pub rtype: String,
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Hash, EnumAsInner)]
+#[derive(PartialEq, Debug, Clone, Serialize, EnumAsInner)]
 pub enum DefinerCollecting {
     Array(ArrayType),
     GrowableArray(GrowableArrayType),

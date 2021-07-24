@@ -24,3 +24,7 @@
       * Scope management
       * Reserved keywords protection
       * Callers are introduced
+
+# v2.6.0
+  - CLI
+    * Support eval for language server 

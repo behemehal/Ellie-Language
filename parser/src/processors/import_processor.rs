@@ -10,8 +10,7 @@ pub fn collect_import(
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     _next_char: String,
-    _last_char: String,
-    _options: defs::ParserOptions,
+    _last_char: String
 ) {
     if let parser::Collecting::Import(ref mut importdata) = parser.current {
         if letter_char != " " && letter_char != "\n" || importdata.path.is_empty() {

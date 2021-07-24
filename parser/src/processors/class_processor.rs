@@ -14,8 +14,7 @@ pub fn collect_class(
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     next_char: String,
-    last_char: String,
-    _options: defs::ParserOptions,
+    last_char: String
 ) {
     if let parser::Collecting::Class(ref mut classdata) = parser.current {
         let current_reliability = utils::reliable_name_range(

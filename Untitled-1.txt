@@ -1,0 +1,3 @@
+if !utils::reliable_name_range(utils::ReliableNameRanges::VariableName,next_char.clone()).reliable {
+                
+            }

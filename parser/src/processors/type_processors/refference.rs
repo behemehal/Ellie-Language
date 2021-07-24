@@ -17,7 +17,7 @@ pub fn collect_refference(
     last_char: String,
 ) {
     if let types::Types::Refference(ref mut data) = itered_data.data.value {
-        if letter_char == "." {
+        if letter_char == "." && (data.chain.len() == 0 || matches!(&data.chain[data.chain.len() - 1].value, types::refference_type::ChainType::Setter(setter_data) if setter_data.value.is_type_complete()) && matches!(&data.chain[data.chain.len() - 1].value, types::refference_type::ChainType::FunctionCall(function_call_data) if function_call_data.complete)) {
             if data.on_dot {
                 errors.push(error::Error {
                     scope: "refference_processor".to_string(),
@@ -41,15 +41,7 @@ pub fn collect_refference(
                 if data.chain.len() == 0 {
                     data.on_dot = true;
                 } else {
-                    match &data.chain[data.chain.len() - 1].value {
-                        types::refference_type::ChainType::Getter(_) => {
-                            data.on_dot = true;
-                        }
-                        types::refference_type::ChainType::Setter(_) => {}
-                        types::refference_type::ChainType::FunctionCall(_) => {
-                            panic!("REFFERENCE FUNCTION TYPE IS NOT IMPLEMENTED")
-                        }
-                    };
+                    data.on_dot = true;
                 }
             }
         } else {
@@ -84,9 +76,7 @@ pub fn collect_refference(
                                         data: types::function_call::FunctionCall {
                                             name: getter_data.value.clone(),
                                             name_pos: data.chain[last_chain - 1].pos,
-                                            params: vec![
-                                            types::function_call::FunctionCallParameter::default()
-                                        ],
+                                            ..Default::default()
                                         },
                                         name_collected: true,
                                         ..Default::default()
@@ -121,7 +111,39 @@ pub fn collect_refference(
                                 },
                             });
                         }
-                    }
+                    },
+                    types::refference_type::ChainType::Setter(setter_data) => {
+                        //panic!("SETTER NOT IMPLEMENTED");
+                        let itered_setter_vector = Box::new(value_processor::collect_value(
+                            parser.clone(),
+                            &mut variable::VariableCollector {
+                                data: variable::Variable {
+                                    value: setter_data.value.clone(),
+                                    ..Default::default()
+                                },
+                                ..Default::default()
+                            },
+                            letter_char,
+                            next_char.clone(),
+                            last_char,
+                        ));
+
+                        if !itered_setter_vector.errors.is_empty() {
+                            for returned_error in itered_setter_vector.errors {
+                                let mut edited = returned_error;
+                                edited.pos.range_start.0 += parser.pos.0;
+                                edited.pos.range_start.1 += parser.pos.1;
+                                edited.pos.range_end.0 += parser.pos.0;
+                                edited.pos.range_end.1 += parser.pos.1;
+                                errors.push(edited);
+                            }
+                        }
+                        setter_data.value = itered_setter_vector.itered_data.data.value;
+
+                        if setter_data.value.is_type_complete() {
+                            
+                        }
+                    },
                     types::refference_type::ChainType::FunctionCall(functioncalldata) => {
                         if itered_data.data.dynamic {
                             itered_data.data.rtype =
@@ -262,7 +284,7 @@ pub fn collect_refference(
                                     parser.clone(),
                                     &mut will_be_itered,
                                     letter_char,
-                                    next_char,
+                                    next_char.clone(),
                                     last_char,
                                 ));
 
@@ -463,44 +485,11 @@ pub fn collect_refference(
                             data.on_dot = true;
                         }
                     }
-                    _ => panic!("This should never happen"),
                 };
             }
 
-            /*
-            if current_reliability.reliable {
-
-                if last_char != " " && last_char != "\n" {
-                    match &mut data.chain[last_chain - 1].value {
-                        types::refference_type::ChainType::Getter(getter_data) => {
-                            getter_data.value += letter_char;
-                        },
-                        _ => panic!("This should never happen")
-                    };
-                } else {
-                    errors.push(error::Error {
-                        scope: "refference_processor".to_string(),
-                        debug_message: "9fa95d8312b035c63d69321ffd3bb531".to_string(),
-                        title: error::errorList::error_s1.title.clone(),
-                        code: error::errorList::error_s1.code,
-                        message: error::errorList::error_s1.message.clone(),
-                        builded_message: error::Error::build(
-                            error::errorList::error_s1.message.clone(),
-                            vec![error::ErrorBuildField {
-                                key: "token".to_string(),
-                                value: letter_char.to_string(),
-                            }],
-                        ),
-                        pos: defs::Cursor {
-                            range_start: parser.pos,
-                            range_end: parser.pos.clone().skip_char(1),
-                        },
-                    })
-                }
-
-            } else {}
-            */
-            //(last_char != " " && last_char != "\n")
+            
+            
         }
     }
 }

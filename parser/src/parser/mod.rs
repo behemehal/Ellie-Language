@@ -11,7 +11,7 @@ use crate::alloc::vec;
 use crate::alloc::vec::Vec;
 use crate::syntax::{
     caller, class, condition, constructor, definers, forloop, function, import, import_item, ret,
-    types, variable,
+    types, variable, file_key
 };
 use ellie_core::{defs, error, utils};
 
@@ -39,8 +39,11 @@ pub enum Collecting {
     Constructor(constructor::ConstructorCollector),
     Caller(caller::Caller),
     Import(import::Import),
+    FileKey(file_key::FileKeyCollector),
     Getter,
     Setter,
+    NativeClass,
+    NativeFunction,
     None,
 }
 
@@ -189,8 +192,7 @@ impl Parser {
                 self.pos.1 = 0;
             }
         }
-        if self.current != Collecting::None || !self.keyword_catch.is_empty() {
-            std::println!("{:#?}", self.current);
+        if self.current != Collecting::None || !self.keyword_catch.trim().is_empty() {
             errors.push(error::Error {
                 scope: "definer_processor".to_string(),
                 debug_message: "96910a324dae7459f3f1e063b3477aa7".to_string(),
@@ -845,7 +847,6 @@ impl Parser {
     pub fn type_exists(&self, name: String) -> bool {
         let mut found = false;
         for item in self.collected.clone() {
-            std::println!("iştem: {:#?}", item);
             if let Collecting::Class(ref e) = item {
                 if e.data.name == name {
                     found = e.data.name == name;
@@ -868,24 +869,31 @@ impl Parser {
         let mut found_item: Collecting = Collecting::None;
 
         for item in self.collected.clone() {
-            match item {
-                Collecting::Variable(ref e) => {
+            match item.clone() {
+                Collecting::Variable(e) => {
                     if e.data.name == name {
-                        found = e.data.name == name;
+                        found = true;
                         found_item = item;
                         break;
                     }
                 }
-                Collecting::Function(ref e) => {
+                Collecting::Function(e) => {
                     if e.data.name == name {
-                        found = e.data.name == name;
+                        found = true;
                         found_item = item;
                         break;
                     }
                 }
-                Collecting::Class(ref e) => {
+                Collecting::Class(e) => {
                     if e.data.name == name {
-                        found = e.data.name == name;
+                        found = true;
+                        found_item = item;
+                        break;
+                    }
+                },
+                Collecting::FileKey(e) => {
+                    if e.data.keyname == name {
+                        found = true;
                         found_item = item;
                         break;
                     }
@@ -908,7 +916,7 @@ impl Parser {
                 found_type: NameCheckResponseType::Class(e),
             },
             _ => NameCheckResponse {
-                found: false,
+                found: found,
                 found_type: NameCheckResponseType::None,
             },
         }

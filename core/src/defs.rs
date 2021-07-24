@@ -1,8 +1,7 @@
 use alloc::string::{String, ToString};
-use core::hash::Hash;
 use serde::Serialize;
 
-#[derive(PartialEq, Debug, Clone, Serialize, Hash)]
+#[derive(PartialEq, Debug, Clone, Serialize)]
 pub enum ParserType {
     RawParser,
     ClassParser,
@@ -14,7 +13,7 @@ impl Default for ParserType {
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Hash)]
+#[derive(PartialEq, Debug, Clone, Serialize)]
 pub struct ParserOptions {
     pub functions: bool,
     pub break_on_error: bool,
@@ -51,7 +50,7 @@ impl Default for ParserOptions {
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Copy, Serialize, Hash)]
+#[derive(PartialEq, Debug, Clone, Copy, Serialize)]
 pub struct CursorPosition(pub usize, pub usize);
 
 impl Default for CursorPosition {
@@ -78,7 +77,7 @@ impl CursorPosition {
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Copy, Serialize, Hash)]
+#[derive(PartialEq, Debug, Clone, Copy, Serialize)]
 pub struct Cursor {
     pub range_start: CursorPosition,
     pub range_end: CursorPosition,
@@ -97,4 +96,8 @@ impl Default for Cursor {
             range_end: CursorPosition::default(),
         }
     }
+}
+
+pub trait NativePlugin {
+    
 }

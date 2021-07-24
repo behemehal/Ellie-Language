@@ -19,7 +19,6 @@ pub fn collect_variable_value(
     letter_char: &str,
     next_char: String,
     last_char: String,
-    _options: defs::ParserOptions,
 ) {
     let parser_clone = parser.clone();
     if let parser::Collecting::Variable(ref mut variabledata) = parser.current {
@@ -84,6 +83,26 @@ pub fn collect_variable_value(
                     variabledata.named = true;
                 }
             } else if letter_char == ";" && variabledata.data.dynamic {
+                if parser_clone
+                    .check_keyword(variabledata.data.name.clone())
+                    .found
+                {
+                    errors.push(error::Error {
+                        scope: parser.scope.scope_name.clone(),
+                        debug_message: "replace_var_227".to_string(),
+                        title: error::errorList::error_s24.title.clone(),
+                        code: error::errorList::error_s24.code,
+                        message: error::errorList::error_s24.message.clone(),
+                        builded_message: error::Error::build(
+                            error::errorList::error_s24.message.clone(),
+                            vec![error::ErrorBuildField {
+                                key: "token".to_string(),
+                                value: variabledata.data.name.clone(),
+                            }],
+                        ),
+                        pos: variabledata.data.name_pos,
+                    });
+                }
                 parser.collected.push(parser.current.clone());
                 parser.current = parser::Collecting::None;
             } else if letter_char == "=" {
@@ -225,7 +244,7 @@ pub fn collect_variable_value(
                 {
                     errors.push(error::Error {
                         scope: parser.scope.scope_name.clone(),
-                        debug_message: "2beb7e6d4cb8cf093e54d3828c253ce8".to_string(),
+                        debug_message: "replace_var_247".to_string(),
                         title: error::errorList::error_s6.title.clone(),
                         code: error::errorList::error_s6.code,
                         message: error::errorList::error_s6.message.clone(),
@@ -236,9 +255,33 @@ pub fn collect_variable_value(
                                 value: variabledata.data.rtype.raw_name(),
                             }],
                         ),
-                        pos: variabledata.data.type_pos,
+                        pos: defs::Cursor {
+                            range_start: variabledata.data.type_pos.range_start,
+                            range_end: variabledata.data.type_pos.range_end.clone().skip_char(1),
+                        },
                     });
                 }
+                if parser_clone
+                    .check_keyword(variabledata.data.name.clone())
+                    .found
+                {
+                    errors.push(error::Error {
+                        scope: parser.scope.scope_name.clone(),
+                        debug_message: "replace_var_227".to_string(),
+                        title: error::errorList::error_s24.title.clone(),
+                        code: error::errorList::error_s24.code,
+                        message: error::errorList::error_s24.message.clone(),
+                        builded_message: error::Error::build(
+                            error::errorList::error_s24.message.clone(),
+                            vec![error::ErrorBuildField {
+                                key: "token".to_string(),
+                                value: variabledata.data.name.clone(),
+                            }],
+                        ),
+                        pos: variabledata.data.name_pos,
+                    });
+                }
+
                 parser.collected.push(parser.current.clone());
                 parser.current = parser::Collecting::None;
             } else if letter_char == "=" {
@@ -302,88 +345,106 @@ pub fn collect_variable_value(
             }
         } else if letter_char == ";" && variabledata.data.value.is_type_complete() {
             variabledata.data.value_pos.range_end = parser.pos;
-            if let parser::Collecting::Variable(ref mut collected) = parser.current {
-                if collected.data.value.is_type_complete() {
-                    collected.data.pos.range_end = parser.pos;
-                    collected.data.value_pos.range_end = parser.pos;
+            if variabledata.data.value.is_type_complete() {
+                variabledata.data.pos.range_end = parser.pos;
+                variabledata.data.value_pos.range_end = parser.pos;
 
-                    let resolved_type_name =
-                        parser_clone.resolve_variable(collected.data.value.clone());
+                let resolved_type_name =
+                    parser_clone.resolve_variable(variabledata.data.value.clone());
 
-                    //nen means cannot resolve type
-                    if collected.data.rtype.raw_name() != resolved_type_name
-                        && resolved_type_name != "nen"
-                    {
-                        //We should resolve inner value
-                        if collected.data.dynamic {
-                            #[cfg(feature = "std")]
-                            std::println!(
+                //nen means cannot resolve type
+                if variabledata.data.rtype.raw_name() != resolved_type_name
+                    && resolved_type_name != "nen"
+                {
+                    //We should resolve inner value
+                    if variabledata.data.dynamic {
+                        #[cfg(feature = "std")]
+                        std::println!(
                                 "[ParserError]: This is a error please report at: https://github.com/behemehal/Ellie-Language/issues/new?title=ParserError-{}+Dynamic+Variable+Not+Handled+Correctly&labels=bug,parser",
-                                collected.data.value.get_type(),
+                                variabledata.data.value.get_type(),
                             );
 
-                            #[cfg(feature = "std")]
-                            std::process::exit(1);
-                        }
+                        #[cfg(feature = "std")]
+                        std::process::exit(1);
+                    }
 
-                        if parser_clone.generic_type_exists(collected.data.rtype.raw_name()) {
-                            errors.push(error::Error {
-                                scope: parser.scope.scope_name.clone(),
-                                debug_message: "f61ac929f9c659d9be2224edf8069fc1".to_string(),
-                                title: error::errorList::error_s27.title.clone(),
-                                code: error::errorList::error_s27.code,
-                                message: error::errorList::error_s27.message.clone(),
-                                builded_message: error::BuildedError::build_from_string(
-                                    error::errorList::error_s27.message.clone(),
-                                ),
-                                pos: collected.data.value_pos,
-                            });
-                        }
+                    if parser_clone.generic_type_exists(variabledata.data.rtype.raw_name()) {
                         errors.push(error::Error {
                             scope: parser.scope.scope_name.clone(),
-                            debug_message: "7b506ba769be986dbddbe65c73249b6c".to_string(),
-                            title: error::errorList::error_s3.title.clone(),
-                            code: error::errorList::error_s3.code,
-                            message: error::errorList::error_s3.message.clone(),
-                            builded_message: error::Error::build(
-                                error::errorList::error_s3.message.clone(),
-                                vec![
-                                    error::ErrorBuildField {
-                                        key: "token1".to_string(),
-                                        value: collected.data.rtype.raw_name(),
-                                    },
-                                    error::ErrorBuildField {
-                                        key: "token2".to_string(),
-                                        value: resolved_type_name,
-                                    },
-                                ],
+                            debug_message: "f61ac929f9c659d9be2224edf8069fc1".to_string(),
+                            title: error::errorList::error_s27.title.clone(),
+                            code: error::errorList::error_s27.code,
+                            message: error::errorList::error_s27.message.clone(),
+                            builded_message: error::BuildedError::build_from_string(
+                                error::errorList::error_s27.message.clone(),
                             ),
-                            pos: collected.data.value_pos,
+                            pos: variabledata.data.value_pos,
                         });
                     }
-                    parser.collected.push(parser.current.clone());
-                    parser.current = parser::Collecting::None;
-                } else {
                     errors.push(error::Error {
                         scope: parser.scope.scope_name.clone(),
-                        debug_message: "13d87b32618796312026a80884433f3b".to_string(),
-                        title: error::errorList::error_s1.title.clone(),
-                        code: error::errorList::error_s1.code,
-                        message: error::errorList::error_s1.message.clone(),
+                        debug_message: "7b506ba769be986dbddbe65c73249b6c".to_string(),
+                        title: error::errorList::error_s3.title.clone(),
+                        code: error::errorList::error_s3.code,
+                        message: error::errorList::error_s3.message.clone(),
                         builded_message: error::Error::build(
-                            error::errorList::error_s1.message.clone(),
-                            vec![error::ErrorBuildField {
-                                key: "token".to_string(),
-                                value: letter_char.to_string(),
-                            }],
+                            error::errorList::error_s3.message.clone(),
+                            vec![
+                                error::ErrorBuildField {
+                                    key: "token1".to_string(),
+                                    value: variabledata.data.rtype.raw_name(),
+                                },
+                                error::ErrorBuildField {
+                                    key: "token2".to_string(),
+                                    value: resolved_type_name,
+                                },
+                            ],
                         ),
-                        pos: defs::Cursor {
-                            range_start: parser.pos,
-                            range_end: parser.pos.clone().skip_char(1),
-                        },
+                        pos: variabledata.data.value_pos,
                     });
                 }
+                if parser_clone
+                    .check_keyword(variabledata.data.name.clone())
+                    .found
+                {
+                    errors.push(error::Error {
+                        scope: parser.scope.scope_name.clone(),
+                        debug_message: "replace_var_227".to_string(),
+                        title: error::errorList::error_s24.title.clone(),
+                        code: error::errorList::error_s24.code,
+                        message: error::errorList::error_s24.message.clone(),
+                        builded_message: error::Error::build(
+                            error::errorList::error_s24.message.clone(),
+                            vec![error::ErrorBuildField {
+                                key: "token".to_string(),
+                                value: variabledata.data.name.clone(),
+                            }],
+                        ),
+                        pos: variabledata.data.name_pos,
+                    });
+                }
+            } else {
+                errors.push(error::Error {
+                    scope: parser.scope.scope_name.clone(),
+                    debug_message: "13d87b32618796312026a80884433f3b".to_string(),
+                    title: error::errorList::error_s1.title.clone(),
+                    code: error::errorList::error_s1.code,
+                    message: error::errorList::error_s1.message.clone(),
+                    builded_message: error::Error::build(
+                        error::errorList::error_s1.message.clone(),
+                        vec![error::ErrorBuildField {
+                            key: "token".to_string(),
+                            value: letter_char.to_string(),
+                        }],
+                    ),
+                    pos: defs::Cursor {
+                        range_start: parser.pos,
+                        range_end: parser.pos.clone().skip_char(1),
+                    },
+                });
             }
+            parser.collected.push(parser.current.clone());
+            parser.current = parser::Collecting::None;
         } else {
             if variabledata.data.value_pos.range_start.0 == 0
                 && variabledata.data.value_pos.range_start.1 == 0

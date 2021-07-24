@@ -8,7 +8,7 @@ fn main() {
     emulated_collector_data.data.dynamic = true;
     let code = "
 
-    string()
+    test.ok = \"test\".ok
     
     ";
 

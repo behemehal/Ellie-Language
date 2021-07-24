@@ -2,6 +2,12 @@
 
 Ellie's runtime is not ready but you can see parsed elements as objects.
 
+Because ellie uses no-std you must change default toolchain to nightly
+
+```shell
+$ rustup default nightly
+```
+
 ```shell
 $ crate build --release
 ```

@@ -1,7 +1,7 @@
 use crate::parser;
 use crate::processors::value_processor;
 use crate::syntax::variable;
-use ellie_core::{defs, error};
+use ellie_core::error;
 
 use alloc::boxed::Box;
 use alloc::string::String;
@@ -12,8 +12,7 @@ pub fn collect_ret(
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     next_char: String,
-    last_char: String,
-    _options: defs::ParserOptions,
+    last_char: String
 ) {
     let parser_clone = parser.clone();
     if let parser::Collecting::Ret(ref mut data) = parser.current {

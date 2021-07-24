@@ -6,13 +6,6 @@ use crate::syntax;
 use crate::syntax::definers::DefinerCollecting;
 use ellie_core::{defs, error, utils};
 
-/*
-i8                    //generic type
-array(array(i8), 5)   //i8 5 sized array
-fn(i16, i32)::i8      //a function that takes i16 and i32 as parameter and returns i8 as result
-cloak(i8, i32)        //a cloak that contains i8 as first parameter i32 as second
-*/
-
 pub fn collect_definer(
     parser: parser::Parser,
     type_data: &mut DefinerCollecting,
