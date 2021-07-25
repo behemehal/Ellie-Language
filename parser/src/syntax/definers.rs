@@ -46,6 +46,16 @@ pub struct GenericType {
     pub rtype: String,
 }
 
+#[derive(PartialEq, Debug, Clone, Serialize, Default)]
+pub struct CollectiveType {
+    pub complete: bool,
+    pub key: Box<DefinerCollecting>,
+    pub value: Box<DefinerCollecting>,
+    pub at_comma: bool,
+    pub has_key: bool,
+}
+
+
 #[derive(PartialEq, Debug, Clone, Serialize, EnumAsInner)]
 pub enum DefinerCollecting {
     Array(ArrayType),
@@ -53,6 +63,7 @@ pub enum DefinerCollecting {
     Generic(GenericType),
     Function(FunctionType),
     Cloak(CloakType),
+    Collective(CollectiveType),
     Dynamic,
 }
 
@@ -122,6 +133,13 @@ impl DefinerCollecting {
                     } else {
                         false
                     }
+                },
+                DefinerCollecting::Collective(data) => {
+                    if let DefinerCollecting::Collective(other_data) = other {
+                        other_data.key.same_as(*data.key) && other_data.value.same_as(*data.value)
+                    } else {
+                        false
+                    }
                 }
                 DefinerCollecting::Dynamic => true,
             }
@@ -137,6 +155,7 @@ impl DefinerCollecting {
             DefinerCollecting::Generic(data) => data.rtype.is_empty(),
             DefinerCollecting::Function(data) => !data.complete,
             DefinerCollecting::Cloak(data) => !data.complete,
+            DefinerCollecting::Collective(data) => !data.complete,
             DefinerCollecting::Dynamic => false,
         }
     }
@@ -148,10 +167,11 @@ impl DefinerCollecting {
             DefinerCollecting::Generic(data) => !data.rtype.is_empty(),
             DefinerCollecting::Function(data) => data.complete,
             DefinerCollecting::Cloak(data) => data.complete,
+            DefinerCollecting::Collective(data) => data.complete,
             DefinerCollecting::Dynamic => true,
         }
     }
-
+    
     pub fn is_generic(&self) -> bool {
         match self {
             DefinerCollecting::Array(_) => false,
@@ -159,6 +179,7 @@ impl DefinerCollecting {
             DefinerCollecting::Generic(_) => true,
             DefinerCollecting::Function(_) => false,
             DefinerCollecting::Cloak(_) => false,
+            DefinerCollecting::Collective(_) => false,
             DefinerCollecting::Dynamic => true,
         }
     }
@@ -170,6 +191,7 @@ impl DefinerCollecting {
             DefinerCollecting::Generic(data) => data.rtype.clone(),
             DefinerCollecting::Function(_) => "function".to_string(),
             DefinerCollecting::Cloak(_) => "cloak".to_string(),
+            DefinerCollecting::Collective(_) => "collective".to_string(),
             DefinerCollecting::Dynamic => "dynamic".to_string(),
         }
     }

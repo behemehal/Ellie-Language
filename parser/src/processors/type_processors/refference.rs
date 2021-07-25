@@ -17,7 +17,11 @@ pub fn collect_refference(
     last_char: String,
 ) {
     if let types::Types::Refference(ref mut data) = itered_data.data.value {
-        if letter_char == "." && (data.chain.len() == 0 || matches!(&data.chain[data.chain.len() - 1].value, types::refference_type::ChainType::Setter(setter_data) if setter_data.value.is_type_complete()) && matches!(&data.chain[data.chain.len() - 1].value, types::refference_type::ChainType::FunctionCall(function_call_data) if function_call_data.complete)) {
+        if letter_char == "."
+            && (data.chain.len() == 0
+                || matches!(&data.chain[data.chain.len() - 1].value, types::refference_type::ChainType::Setter(setter_data) if setter_data.value.is_type_complete())
+                    && matches!(&data.chain[data.chain.len() - 1].value, types::refference_type::ChainType::FunctionCall(function_call_data) if function_call_data.complete))
+        {
             if data.on_dot {
                 errors.push(error::Error {
                     scope: "refference_processor".to_string(),
@@ -111,7 +115,7 @@ pub fn collect_refference(
                                 },
                             });
                         }
-                    },
+                    }
                     types::refference_type::ChainType::Setter(setter_data) => {
                         //panic!("SETTER NOT IMPLEMENTED");
                         let itered_setter_vector = Box::new(value_processor::collect_value(
@@ -133,10 +137,8 @@ pub fn collect_refference(
                         }
                         setter_data.value = itered_setter_vector.itered_data.data.value;
 
-                        if setter_data.value.is_type_complete() {
-                            
-                        }
-                    },
+                        if setter_data.value.is_type_complete() {}
+                    }
                     types::refference_type::ChainType::FunctionCall(functioncalldata) => {
                         if itered_data.data.dynamic {
                             itered_data.data.rtype =
@@ -343,9 +345,9 @@ pub fn collect_refference(
                                             },
                                         }
                                     }
-                                    types::Types::Collective => {
+                                    types::Types::Collective(match_data) => {
                                         types::function_call::FunctionCallParameter {
-                                            value: types::Types::Null,
+                                            value: types::Types::Collective(match_data),
                                             pos: if last_entry == 0 {
                                                 defs::Cursor::default()
                                             } else {
@@ -473,9 +475,6 @@ pub fn collect_refference(
                     }
                 };
             }
-
-            
-            
         }
     }
 }

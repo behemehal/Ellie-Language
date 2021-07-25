@@ -61,7 +61,14 @@ pub fn collect_value(
             next_char,
             last_char,
         ),
-        types::Types::Collective => (),
+        types::Types::Collective(_) => type_processors::collective::collect_collective(
+            parser,
+            itered_data,
+            &mut errors,
+            letter_char,
+            next_char,
+            last_char,
+        ),
         types::Types::Refference(_) => type_processors::refference::collect_refference(
             parser,
             itered_data,

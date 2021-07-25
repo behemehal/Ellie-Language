@@ -9,10 +9,6 @@ use alloc::string::{String, ToString};
 use alloc::vec;
 use alloc::vec::Vec;
 
-/*
-
-*/
-
 pub fn collect_type(
     parser: &mut parser::Parser,
     errors: &mut Vec<error::Error>,
@@ -26,6 +22,7 @@ pub fn collect_type(
         parser.on_comment = true;
     } else if (letter_char == "/" && last_char == "*")
         && parser.on_comment
+        
         && !parser.on_line_comment
         {
         parser.on_comment = false;

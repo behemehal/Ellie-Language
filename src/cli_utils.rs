@@ -27,7 +27,7 @@ pub fn system_module_resolver(lib_name: String) -> Option<ellie_parser::parser::
             e,
             crate::terminal_colors::get_color(crate::terminal_colors::Colors::Reset),
         );
-        if e == "ellie" || e == "string" || e == "void" || e == "int" || e == "char" {
+        if e == "ellie" || e == "string" || e == "void" || e == "int" || e == "char" || e == "collective" {
             if let Some(e) = crate::cli_utils::system_module_resolver(e.clone()) {
                 parser::ResolvedImport {
                     found: true,
@@ -48,6 +48,20 @@ pub fn system_module_resolver(lib_name: String) -> Option<ellie_parser::parser::
     };
 
     let mut ellie_library_content = Vec::new();
+    /*
+
+
+                                 o_Oo_Oo_Oo_O     
+            o_Oo_Oo_Oo_O         o_O      o_O
+            o_O      o_O         o_O      o_O
+            o_O      o_O         o_O      o_O
+            o_Oo_Oo_Oo_O         o_Oo_Oo_Oo_O
+
+            o_Oo_Oo_Oo_Oo_Oo_Oo_Oo_Oo_Oo_Oo_O
+            o_Oo_Oo_Oo_Oo_Oo_Oo_Oo_Oo_Oo_Oo_O
+
+            If you want to use std you should replace this with path
+    */
     let mut ellie_library = File::open(
         "C:\\Users\\ahmet\\Desktop\\Projects\\InBuild\\Ellie-Language\\lib\\".to_string()
             + &(lib_name + ".ei"),

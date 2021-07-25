@@ -328,9 +328,9 @@ pub fn collect_cloak(
                     value_complete: match_data.complete,
                     value: Box::new(types::Types::Char(match_data)),
                 },
-                types::Types::Collective => types::cloak_type::CloakEntry {
+                types::Types::Collective(match_data) => types::cloak_type::CloakEntry {
                     value_complete: true,
-                    value: Box::new(types::Types::Null),
+                    value: Box::new(types::Types::Collective(match_data)),
                 },
                 types::Types::Refference(_) => types::cloak_type::CloakEntry {
                     value_complete: true,

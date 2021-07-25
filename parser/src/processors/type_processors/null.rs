@@ -73,13 +73,13 @@ pub fn collect_null(
                     collective: Vec::new(),
                 });
             } else if letter_char == "@" {
-                itered_data.data.value =
-                    types::Types::ArrowFunction(types::arrow_function::ArrowFunctionCollector {
-                        complete: false,
-                        ..Default::default()
-                    });
+                itered_data.data.value = types::Types::ArrowFunction(
+                    types::arrow_function::ArrowFunctionCollector::default(),
+                );
             } else if letter_char == "{" {
-                panic!("Collective is not complete");
+                itered_data.data.value = types::Types::Collective(
+                    types::collective_type::CollectiveCollector::default(),
+                );
             } else if letter_char == "(" {
                 itered_data.data.value = types::Types::Cloak(types::cloak_type::CloakType {
                     layer_size: 0,

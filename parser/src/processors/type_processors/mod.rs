@@ -12,3 +12,4 @@ pub mod operator;
 pub mod refference;
 pub mod string;
 pub mod variable;
+pub mod collective;

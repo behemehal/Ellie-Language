@@ -1,6 +1,8 @@
+use ellie_core::defs;
 use crate::syntax::types;
 use serde::Serialize;
 
+use alloc::string::String;
 use alloc::boxed::Box;
 use alloc::vec::Vec;
 
@@ -24,4 +26,8 @@ pub struct Collective {
     pub entries: Vec<CollectiveEntryCollector>
 }
 
-
+#[derive(PartialEq, Default, Debug, Clone, Serialize)]
+pub struct CollectiveCollector {
+    pub complete: bool,
+    pub data: Collective,
+}

@@ -263,14 +263,16 @@ pub fn collect_function_caller(
                             functioncalldata.data.params[last_entry - 1].pos
                         },
                     },
-                    types::Types::Collective => types::function_call::FunctionCallParameter {
-                        value: types::Types::Null,
-                        pos: if last_entry == 0 {
-                            defs::Cursor::default()
-                        } else {
-                            functioncalldata.data.params[last_entry - 1].pos
-                        },
-                    },
+                    types::Types::Collective(match_data) => {
+                        types::function_call::FunctionCallParameter {
+                            value: types::Types::Collective(match_data),
+                            pos: if last_entry == 0 {
+                                defs::Cursor::default()
+                            } else {
+                                functioncalldata.data.params[last_entry - 1].pos
+                            },
+                        }
+                    }
                     types::Types::Refference(match_data) => {
                         types::function_call::FunctionCallParameter {
                             value: types::Types::Refference(match_data),

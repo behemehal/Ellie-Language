@@ -15,6 +15,7 @@ pub mod operator_type;
 pub mod refference_type;
 pub mod string_type;
 pub mod variable_type;
+pub mod collective_type;
 
 use alloc::format;
 use alloc::string::String;
@@ -29,7 +30,7 @@ pub enum Types {
     Bool(bool_type::BoolType),
     String(string_type::StringType),
     Char(char_type::CharType),
-    Collective, //Todo
+    Collective(collective_type::CollectiveCollector), //Todo
     Refference(refference_type::RefferenceType),
     Operator(operator_type::OperatorTypeCollector),
     Cloak(cloak_type::CloakType),
@@ -50,47 +51,6 @@ impl Types {
         utils::lower_first_char(q)
     }
 
-    pub fn is_string_open(&self) -> bool {
-        match &*self {
-            Types::Integer(_) => true, //Always complete
-            Types::Float(_) => true,   //Always complete
-            Types::Bool(_) => true,
-            Types::String(data) => !data.complete,
-            Types::Char(data) => !data.complete,
-            Types::Refference(_) => false,
-            Types::Operator(_) => false,
-            Types::Collective => false,
-            Types::Array(data) => {
-                if !data.complete {
-                    if data.collective.is_empty() {
-                        false
-                    } else {
-                        !data.collective[data.collective.len() - 1].value_complete
-                    }
-                } else {
-                    false
-                }
-            }
-            Types::Cloak(data) => {
-                if !data.complete {
-                    if data.collective.is_empty() {
-                        false
-                    } else {
-                        !data.collective[data.collective.len() - 1].value_complete
-                    }
-                } else {
-                    false
-                }
-            }
-            Types::ArrowFunction(_) => false,
-            Types::FunctionCall(_) => false,
-            Types::ClassCall(_) => false,
-            Types::VariableType(_) => false,
-            Types::Void => true,
-            Types::Null => true,
-        }
-    }
-
     pub fn is_type_complete(&self) -> bool {
         match &*self {
             Types::Integer(e) => e.complete,
@@ -98,7 +58,7 @@ impl Types {
             Types::Bool(_) => true,
             Types::String(data) => data.complete,
             Types::Char(data) => data.complete,
-            Types::Collective => false,
+            Types::Collective(e) => e.complete,
             Types::Refference(data) => !data.on_dot,
             Types::Operator(e) => {
                 e.first_filled
@@ -123,7 +83,7 @@ impl Types {
             Types::Bool(_) => false,
             Types::String(_) => false,
             Types::Char(_) => false,
-            Types::Collective => false,
+            Types::Collective(_) => false,
             Types::Refference(_) => false,
             Types::Operator(_) => false,
             Types::Array(_) => true,
@@ -144,7 +104,7 @@ impl Types {
             Types::Bool(_) => false,
             Types::String(_) => false,
             Types::Char(_) => false,
-            Types::Collective => false,
+            Types::Collective(_) => false,
             Types::Refference(_) => false,
             Types::Operator(_) => false,
             Types::Array(_) => false,
@@ -165,7 +125,7 @@ impl Types {
             Types::Bool(_) => false,
             Types::String(_) => false,
             Types::Char(_) => false,
-            Types::Collective => false,
+            Types::Collective(_) => false,
             Types::Refference(_) => false,
             Types::Operator(_) => false,
             Types::Array(_) => false,
@@ -186,7 +146,7 @@ impl Types {
             Types::Bool(_) => true,
             Types::String(_) => false,
             Types::Char(_) => false,
-            Types::Collective => false,
+            Types::Collective(_) => false,
             Types::Refference(_) => false,
             Types::Operator(_) => false,
             Types::Array(_) => false,
@@ -207,7 +167,7 @@ impl Types {
             Types::Bool(_) => false,
             Types::String(_) => true,
             Types::Char(_) => false,
-            Types::Collective => false,
+            Types::Collective(_) => false,
             Types::Refference(_) => false,
             Types::Operator(_) => false,
             Types::Array(_) => false,
@@ -228,7 +188,7 @@ impl Types {
             Types::Bool(_) => (),
             Types::String(e) => e.complete = true,
             Types::Char(e) => e.complete = true,
-            Types::Collective => (),
+            Types::Collective(_) => (),
             Types::Refference(_) => (),
             Types::Operator(_) => (),
             Types::Array(e) => e.complete = true,

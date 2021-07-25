@@ -122,6 +122,8 @@ pub fn collect_definer(
                     )],
                     ..Default::default()
                 });
+            } else if letter_char == "(" && data.rtype == "collective" {
+                *type_data = DefinerCollecting::Collective(syntax::definers::CollectiveType::default());
             } else if letter_char == "(" && data.rtype == "growableArray" {
                 *type_data =
                     DefinerCollecting::GrowableArray(syntax::definers::GrowableArrayType {
@@ -298,6 +300,35 @@ pub fn collect_definer(
                     next_char,
                     last_char,
                 )
+            }
+        }
+        DefinerCollecting::Collective(data) => {
+            if !data.has_key {
+                if letter_char == "," && data.key.is_definer_complete() {
+                    data.has_key = true;
+                } else {
+                    collect_definer(
+                        parser,
+                        &mut data.key,
+                        errors,
+                        letter_char,
+                        next_char,
+                        last_char,
+                    )
+                }
+            } else {
+                if letter_char == ")" && data.key.is_definer_complete() {
+                    data.complete = true;
+                } else {
+                    collect_definer(
+                        parser,
+                        &mut data.key,
+                        errors,
+                        letter_char,
+                        next_char,
+                        last_char,
+                    )
+                }
             }
         }
         DefinerCollecting::Dynamic => {}

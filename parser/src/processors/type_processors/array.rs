@@ -383,9 +383,9 @@ pub fn collect_array(
                     value_complete: match_data.complete,
                     value: Box::new(types::Types::Char(match_data)),
                 },
-                types::Types::Collective => types::array_type::ArrayEntry {
+                types::Types::Collective(match_data) => types::array_type::ArrayEntry {
                     value_complete: true,
-                    value: Box::new(types::Types::Null),
+                    value: Box::new(types::Types::Collective(match_data)),
                 },
                 types::Types::Refference(_) => types::array_type::ArrayEntry {
                     value_complete: true,

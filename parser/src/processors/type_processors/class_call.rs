@@ -276,8 +276,8 @@ pub fn collect_class_call(
                             classcalldata.data.params[last_entry - 1].pos
                         },
                     },
-                    types::Types::Collective => types::class_call::ClassCallParameter {
-                        value: types::Types::Null,
+                    types::Types::Collective(match_data) => types::class_call::ClassCallParameter {
+                        value: types::Types::Collective(match_data),
                         pos: if last_entry == 0 {
                             defs::Cursor::default()
                         } else {

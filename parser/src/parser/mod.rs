@@ -226,7 +226,7 @@ impl Parser {
             types::Types::Float(_) => "float".to_string(),
             types::Types::String(_) => "string".to_string(),
             types::Types::Char(_) => "char".to_string(),
-            types::Types::Collective => {
+            types::Types::Collective(_) => {
                 #[cfg(feature = "std")]
                 std::println!("Not implemented for: types {:#?}", target);
                 "".to_string()
@@ -444,6 +444,9 @@ impl Parser {
                                         definers::DefinerCollecting::Cloak(_) => {
                                             panic!("Definer Resolving on 'Cloak' is not supported");
                                         }
+                                        definers::DefinerCollecting::Collective(_) => {
+                                            panic!("Definer Resolving on 'Collective' is not supported");
+                                        }
                                         definers::DefinerCollecting::Dynamic => {
                                             panic!(
                                                 "Definer Resolving on 'Dynamic' is not supported"
@@ -547,6 +550,9 @@ impl Parser {
                                         panic!("Definer Resolving on 'Function' is not supported");
                                     }
                                     definers::DefinerCollecting::Cloak(_) => {
+                                        panic!("Definer Resolving on 'Cloak' is not supported");
+                                    },
+                                    definers::DefinerCollecting::Collective(_) => {
                                         panic!("Definer Resolving on 'Cloak' is not supported");
                                     }
                                     definers::DefinerCollecting::Dynamic => {
@@ -694,6 +700,9 @@ impl Parser {
                                         definers::DefinerCollecting::Cloak(_) => {
                                             panic!("Definer Resolving on 'Cloak' is not supported");
                                         }
+                                        definers::DefinerCollecting::Collective(_) => {
+                                            panic!("Definer Resolving on 'Collective' is not supported");
+                                        }
                                         definers::DefinerCollecting::Dynamic => {
                                             panic!(
                                                 "Definer Resolving on 'Dynamic' is not supported"
@@ -798,6 +807,11 @@ impl Parser {
                                     }
                                     definers::DefinerCollecting::Cloak(_) => {
                                         panic!("Definer Resolving on 'Cloak' is not supported");
+                                    }
+                                    definers::DefinerCollecting::Collective(_) => {
+                                        panic!(
+                                            "Definer Resolving on 'Collective' is not supported"
+                                        );
                                     }
                                     definers::DefinerCollecting::Dynamic => {
                                         panic!("Definer Resolving on 'Dynamic' is not supported");
