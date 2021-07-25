@@ -8,7 +8,7 @@ use alloc::vec;
 use alloc::vec::Vec;
 use ellie_core::{defs, error, utils};
 
-pub fn collect_refference(
+pub fn collect_reference(
     parser: parser::Parser,
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
@@ -16,11 +16,11 @@ pub fn collect_refference(
     next_char: String,
     last_char: String,
 ) {
-    if let types::Types::Refference(ref mut data) = itered_data.data.value {
+    if let types::Types::Reference(ref mut data) = itered_data.data.value {
         if letter_char == "."
             && (data.chain.len() == 0
-                || matches!(&data.chain[data.chain.len() - 1].value, types::refference_type::ChainType::Setter(setter_data) if setter_data.value.is_type_complete())
-                    && matches!(&data.chain[data.chain.len() - 1].value, types::refference_type::ChainType::FunctionCall(function_call_data) if function_call_data.complete))
+                || matches!(&data.chain[data.chain.len() - 1].value, types::reference_type::ChainType::Setter(setter_data) if setter_data.value.is_type_complete())
+                    && matches!(&data.chain[data.chain.len() - 1].value, types::reference_type::ChainType::FunctionCall(function_call_data) if function_call_data.complete))
         {
             if data.on_dot {
                 errors.push(error::Error {
@@ -56,13 +56,13 @@ pub fn collect_refference(
             let last_chain = data.chain.clone().len();
 
             if last_chain == 0 {
-                data.chain.push(types::refference_type::Chain {
+                data.chain.push(types::reference_type::Chain {
                     pos: defs::Cursor {
                         range_start: parser.pos.clone(),
                         ..Default::default()
                     },
-                    value: types::refference_type::ChainType::Getter(
-                        types::refference_type::GetterChain {
+                    value: types::reference_type::ChainType::Getter(
+                        types::reference_type::GetterChain {
                             value: letter_char.to_string(),
                         },
                     ),
@@ -70,12 +70,12 @@ pub fn collect_refference(
             } else {
                 let clone_ref_data = data.clone();
                 match &mut data.chain[last_chain - 1].value {
-                    types::refference_type::ChainType::Getter(getter_data) => {
+                    types::reference_type::ChainType::Getter(getter_data) => {
                         if current_reliability.reliable {
                             getter_data.value += letter_char;
                         } else if letter_char == "(" && getter_data.value != "" {
                             data.chain[last_chain - 1].value =
-                                types::refference_type::ChainType::FunctionCall(
+                                types::reference_type::ChainType::FunctionCall(
                                     types::function_call::FunctionCallCollector {
                                         data: types::function_call::FunctionCall {
                                             name: getter_data.value.clone(),
@@ -88,8 +88,8 @@ pub fn collect_refference(
                                 );
                         } else if letter_char == "=" && getter_data.value != "" {
                             data.chain[last_chain - 1].value =
-                                types::refference_type::ChainType::Setter(
-                                    types::refference_type::SetterChain {
+                                types::reference_type::ChainType::Setter(
+                                    types::reference_type::SetterChain {
                                         name: getter_data.value.clone(),
                                         name_set: true,
                                         ..Default::default()
@@ -116,7 +116,7 @@ pub fn collect_refference(
                             });
                         }
                     }
-                    types::refference_type::ChainType::Setter(setter_data) => {
+                    types::reference_type::ChainType::Setter(setter_data) => {
                         //panic!("SETTER NOT IMPLEMENTED");
                         let itered_setter_vector = Box::new(value_processor::collect_value(
                             parser.clone(),
@@ -139,7 +139,7 @@ pub fn collect_refference(
 
                         if setter_data.value.is_type_complete() {}
                     }
-                    types::refference_type::ChainType::FunctionCall(functioncalldata) => {
+                    types::reference_type::ChainType::FunctionCall(functioncalldata) => {
                         if itered_data.data.dynamic {
                             itered_data.data.rtype =
                                 definers::DefinerCollecting::Generic(definers::GenericType {
@@ -214,7 +214,7 @@ pub fn collect_refference(
                                         parser.pos;
                                 }
 
-                                let fn_exists = parser.resolve_refference_function_call(
+                                let fn_exists = parser.resolve_reference_function_call(
                                     clone_ref_data,
                                     functioncalldata.clone(),
                                 );
@@ -355,9 +355,19 @@ pub fn collect_refference(
                                             },
                                         }
                                     }
-                                    types::Types::Refference(match_data) => {
+                                    types::Types::Reference(match_data) => {
                                         types::function_call::FunctionCallParameter {
-                                            value: types::Types::Refference(match_data),
+                                            value: types::Types::Reference(match_data),
+                                            pos: if last_entry == 0 {
+                                                defs::Cursor::default()
+                                            } else {
+                                                functioncalldata.data.params[last_entry - 1].pos
+                                            },
+                                        }
+                                    }
+                                    types::Types::BraceReference(match_data) => {
+                                        types::function_call::FunctionCallParameter {
+                                            value: types::Types::BraceReference(match_data),
                                             pos: if last_entry == 0 {
                                                 defs::Cursor::default()
                                             } else {
@@ -418,6 +428,16 @@ pub fn collect_refference(
                                     types::Types::Void => {
                                         types::function_call::FunctionCallParameter {
                                             value: types::Types::Void,
+                                            pos: if last_entry == 0 {
+                                                defs::Cursor::default()
+                                            } else {
+                                                functioncalldata.data.params[last_entry - 1].pos
+                                            },
+                                        }
+                                    }
+                                    types::Types::Negative(match_data) => {
+                                        types::function_call::FunctionCallParameter {
+                                            value: types::Types::Negative(match_data),
                                             pos: if last_entry == 0 {
                                                 defs::Cursor::default()
                                             } else {

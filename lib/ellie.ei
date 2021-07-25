@@ -27,3 +27,7 @@ pub import void;
 pub import int;
 pub import char;
 pub import collective;
+pub import float;
+pub import bool;
+pub import cloak;
+pub import array;

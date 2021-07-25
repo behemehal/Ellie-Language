@@ -284,14 +284,24 @@ pub fn collect_class_call(
                             classcalldata.data.params[last_entry - 1].pos
                         },
                     },
-                    types::Types::Refference(match_data) => types::class_call::ClassCallParameter {
-                        value: types::Types::Refference(match_data),
+                    types::Types::Reference(match_data) => types::class_call::ClassCallParameter {
+                        value: types::Types::Reference(match_data),
                         pos: if last_entry == 0 {
                             defs::Cursor::default()
                         } else {
                             classcalldata.data.params[last_entry - 1].pos
                         },
                     },
+                    types::Types::BraceReference(match_data) => {
+                        types::class_call::ClassCallParameter {
+                            value: types::Types::BraceReference(match_data),
+                            pos: if last_entry == 0 {
+                                defs::Cursor::default()
+                            } else {
+                                classcalldata.data.params[last_entry - 1].pos
+                            },
+                        }
+                    }
                     types::Types::Array(match_data) => types::class_call::ClassCallParameter {
                         value: types::Types::Array(match_data),
                         pos: if last_entry == 0 {
@@ -336,6 +346,15 @@ pub fn collect_class_call(
                             classcalldata.data.params[last_entry - 1].pos
                         },
                     },
+                    types::Types::Negative(match_data) => types::class_call::ClassCallParameter {
+                        value: types::Types::Negative(match_data),
+                        pos: if last_entry == 0 {
+                            defs::Cursor::default()
+                        } else {
+                            classcalldata.data.params[last_entry - 1].pos
+                        },
+                    },
+
                     types::Types::Void => types::class_call::ClassCallParameter {
                         value: types::Types::Void,
                         pos: if last_entry == 0 {
@@ -384,12 +403,12 @@ pub fn collect_class_call(
             }
         } else if letter_char == "." {
             itered_data.data.value =
-                types::Types::Refference(types::refference_type::RefferenceType {
-                    refference: Box::new(itered_data.data.value.clone()),
+                types::Types::Reference(types::reference_type::ReferenceType {
+                    reference: Box::new(itered_data.data.value.clone()),
                     chain: Vec::new(),
                     on_dot: false,
                 });
-            type_processors::refference::collect_refference(
+            type_processors::reference::collect_reference(
                 parser,
                 itered_data,
                 errors,

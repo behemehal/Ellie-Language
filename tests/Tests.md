@@ -10,7 +10,7 @@
   - null            NOT OK
   - number          NOT OK
   - operator        NOT OK
-  - refference      NOT OK
+  - reference      NOT OK
   - string          NOT OK
   - variable        NOT OK
 - Loops      []

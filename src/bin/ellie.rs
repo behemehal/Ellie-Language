@@ -141,7 +141,7 @@ fn main() {
                                                 ),
                                             );
                                             println!(
-                                                "{}{}{}Error[{:#04x}]{} - {}{}{}: {}",
+                                                "{}{}Error[{:#04x}]{} - {}{}{}: {}",
                                                 if debug_arg {
                                                     format!(
                                                     "{}({}) {}[{}]{} ",
@@ -157,20 +157,6 @@ fn main() {
                                                         ellie_lang::terminal_colors::Colors::Reset
                                                     )
                                                 )
-                                                } else {
-                                                    "".to_string()
-                                                },
-                                                if debug_arg {
-                                                    format!(
-                                                            "{}[{}]{} ",
-                                                            ellie_lang::terminal_colors::get_color(
-                                                                ellie_lang::terminal_colors::Colors::Yellow
-                                                            ),
-                                                            error.debug_message,
-                                                            ellie_lang::terminal_colors::get_color(
-                                                                ellie_lang::terminal_colors::Colors::Reset
-                                                            )
-                                                        )
                                                 } else {
                                                     "".to_string()
                                                 },
@@ -277,8 +263,11 @@ fn main() {
                                                             - (error.pos.range_start.1))
                                                             as usize
                                                     } else {
-                                                        error.pos.range_start.1 as usize
-                                                            - (line[error.pos.range_start.1]).len()
+                                                        if error.pos.range_start.1 > (line[error.pos.range_start.1]).len() {
+                                                            error.pos.range_start.1 as usize - (line[error.pos.range_start.1]).len()
+                                                        } else {
+                                                            error.pos.range_end.1
+                                                        }
                                                     }
                                                 ),
                                                 ellie_lang::terminal_colors::get_color(

@@ -162,12 +162,12 @@ pub fn collect_cloak(
             }
         } else if data.complete && letter_char == "." && is_s_n {
             itered_data.data.value =
-                types::Types::Refference(types::refference_type::RefferenceType {
-                    refference: Box::new(itered_data.data.value.clone()),
+                types::Types::Reference(types::reference_type::ReferenceType {
+                    reference: Box::new(itered_data.data.value.clone()),
                     chain: Vec::new(),
                     on_dot: false,
                 });
-            type_processors::refference::collect_refference(
+            type_processors::reference::collect_reference(
                 parser.clone(),
                 itered_data,
                 errors,
@@ -332,9 +332,17 @@ pub fn collect_cloak(
                     value_complete: true,
                     value: Box::new(types::Types::Collective(match_data)),
                 },
-                types::Types::Refference(_) => types::cloak_type::CloakEntry {
+                types::Types::Reference(match_data) => types::cloak_type::CloakEntry {
                     value_complete: true,
-                    value: Box::new(types::Types::Null),
+                    value: Box::new(types::Types::Reference(match_data)),
+                },
+                types::Types::BraceReference(match_data) => types::cloak_type::CloakEntry {
+                    value_complete: true,
+                    value: Box::new(types::Types::BraceReference(match_data)),
+                },
+                types::Types::Negative(match_data) => types::cloak_type::CloakEntry {
+                    value_complete: true,
+                    value: Box::new(types::Types::Negative(match_data)),
                 },
                 types::Types::Array(match_data) => types::cloak_type::CloakEntry {
                     value_complete: false,

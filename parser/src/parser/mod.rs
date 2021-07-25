@@ -226,12 +226,18 @@ impl Parser {
             types::Types::Float(_) => "float".to_string(),
             types::Types::String(_) => "string".to_string(),
             types::Types::Char(_) => "char".to_string(),
-            types::Types::Collective(_) => {
+            types::Types::Bool(_) => "bool".to_string(),
+            types::Types::Negative(_) => "bool".to_string(),
+            types::Types::Collective(_) => "collective".to_string(),
+            types::Types::Cloak(_) => "cloak".to_string(),
+            types::Types::Array(_) => "array".to_string(),
+            types::Types::Void => "void".to_string(),
+            types::Types::Reference(_) => {
                 #[cfg(feature = "std")]
                 std::println!("Not implemented for: types {:#?}", target);
                 "".to_string()
             }
-            types::Types::Refference(_) => {
+            types::Types::BraceReference(_) => {
                 #[cfg(feature = "std")]
                 std::println!("Not implemented for: types {:#?}", target);
                 "".to_string()
@@ -241,16 +247,7 @@ impl Parser {
                 std::println!("Not implemented for: types {:#?}", target);
                 "".to_string()
             }
-            types::Types::Cloak(_) => {
-                #[cfg(feature = "std")]
-                std::println!("Not implemented for: types {:#?}", target);
-                "".to_string()
-            }
-            types::Types::Array(_) => {
-                #[cfg(feature = "std")]
-                std::println!("Not implemented for: types {:#?}", target);
-                "".to_string()
-            }
+
             types::Types::ArrowFunction(_) => "function".to_string(),
             types::Types::ClassCall(_) => {
                 #[cfg(feature = "std")]
@@ -276,7 +273,6 @@ impl Parser {
                     "nen".to_string()
                 }
             }
-            types::Types::Void => "void".to_string(),
             types::Types::VariableType(e) => {
                 let fn_found = self.check_keyword(e.value);
 
@@ -295,19 +291,18 @@ impl Parser {
                 }
             }
             types::Types::Null => "null".to_string(),
-            _ => "".to_string(),
         }
     }
 
-    pub fn resolve_refference_function_call(
+    pub fn resolve_reference_function_call(
         &self,
-        refference_data: types::refference_type::RefferenceType,
+        reference_data: types::reference_type::ReferenceType,
         caller_data: types::function_call::FunctionCallCollector,
     ) -> Option<Vec<ellie_core::error::Error>> {
         let found = false;
         let mut errors = Vec::new();
 
-        let targeted_var = self.check_keyword(self.resolve_variable(*refference_data.refference));
+        let targeted_var = self.check_keyword(self.resolve_variable(*reference_data.reference));
 
         if !targeted_var.found {
             errors.push(error::Error {
@@ -551,7 +546,7 @@ impl Parser {
                                     }
                                     definers::DefinerCollecting::Cloak(_) => {
                                         panic!("Definer Resolving on 'Cloak' is not supported");
-                                    },
+                                    }
                                     definers::DefinerCollecting::Collective(_) => {
                                         panic!("Definer Resolving on 'Cloak' is not supported");
                                     }

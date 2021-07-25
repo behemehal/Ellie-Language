@@ -70,12 +70,12 @@ pub fn collect_variable(
                 } else if letter_char == "." {
                     variabledata.value_complete = true;
                     itered_data.data.value =
-                        types::Types::Refference(types::refference_type::RefferenceType {
-                            refference: Box::new(itered_data.data.value.clone()),
+                        types::Types::Reference(types::reference_type::ReferenceType {
+                            reference: Box::new(itered_data.data.value.clone()),
                             on_dot: false,
                             chain: Vec::new(),
                         });
-                    type_processors::refference::collect_refference(
+                    type_processors::reference::collect_reference(
                         parser.clone(),
                         itered_data,
                         errors,

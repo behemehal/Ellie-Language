@@ -192,7 +192,7 @@ impl DefinerCollecting {
             DefinerCollecting::Function(_) => "function".to_string(),
             DefinerCollecting::Cloak(_) => "cloak".to_string(),
             DefinerCollecting::Collective(_) => "collective".to_string(),
-            DefinerCollecting::Dynamic => "dynamic".to_string(),
+            DefinerCollecting::Dynamic => "dyn".to_string(),
         }
     }
 }

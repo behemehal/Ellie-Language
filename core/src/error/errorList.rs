@@ -20,42 +20,42 @@ lazy_static! {
 
     pub static ref error_s3: crate::error::Error = crate::error::Error {
         code: 0x02,
-        title: "RefferenceError".to_string(),
+        title: "ReferenceError".to_string(),
         message: "Expected '$token1' found '$token2'".to_string(),
         ..Default::default()
     };
 
     pub static ref error_s4: crate::error::Error = crate::error::Error {
         code: 0x03,
-        title: "RefferenceError".to_string(),
+        title: "ReferenceError".to_string(),
         message: "Targeted variable '$token' not found in scope".to_string(),
         ..Default::default()
     };
 
     pub static ref error_s5: crate::error::Error = crate::error::Error {
         code: 0x04,
-        title: "RefferenceError".to_string(),
+        title: "ReferenceError".to_string(),
         message: "Unexpected Return Type '$token'".to_string(),
         ..Default::default()
     };
 
     pub static ref error_s6: crate::error::Error = crate::error::Error {
         code: 0x05,
-        title: "RefferenceError".to_string(),
+        title: "ReferenceError".to_string(),
         message: "'$token' is not defined".to_string(),
         ..Default::default()
     };
 
     pub static ref error_s7: crate::error::Error = crate::error::Error {
         code: 0x06,
-        title: "RefferenceError".to_string(),
+        title: "ReferenceError".to_string(),
         message: "$name requires '$token' parameters, found '$token2' length of parameters".to_string(),
         ..Default::default()
     };
 
     pub static ref error_s8: crate::error::Error = crate::error::Error {
         code: 0x07,
-        title: "RefferenceError".to_string(),
+        title: "ReferenceError".to_string(),
         message: "Expected type annotations".to_string(),
         ..Default::default()
     };
@@ -167,7 +167,7 @@ lazy_static! {
 
     pub static ref error_s24: crate::error::Error = crate::error::Error {
         code: 0x23,
-        title: "RefferenceError".to_string(),
+        title: "ReferenceError".to_string(),
         message: "'$token' is already defined".to_string(),
         ..Default::default()
     };

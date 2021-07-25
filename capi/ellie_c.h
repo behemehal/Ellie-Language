@@ -201,7 +201,7 @@ struct CharType {
 struct Types;
 
 struct RefferenceType {
-  Box<Types> refference;
+  Box<Types> reference;
   bool on_dot;
   const char *const *chain;
 };
@@ -382,7 +382,7 @@ struct Types {
     Bool_Body BOOL;
     String_Body STRING;
     Char_Body CHAR;
-    Refference_Body REFFERENCE;
+    Reference_Body REFERENCE;
     Operator_Body OPERATOR;
     Cloak_Body CLOAK;
     Array_Body ARRAY;

@@ -123,13 +123,22 @@ pub fn collect_definer(
                     ..Default::default()
                 });
             } else if letter_char == "(" && data.rtype == "collective" {
-                *type_data = DefinerCollecting::Collective(syntax::definers::CollectiveType::default());
+                *type_data =
+                    DefinerCollecting::Collective(syntax::definers::CollectiveType::default());
             } else if letter_char == "(" && data.rtype == "growableArray" {
                 *type_data =
                     DefinerCollecting::GrowableArray(syntax::definers::GrowableArrayType {
                         bracket_inserted: true,
                         ..Default::default()
                     });
+            } else if data.rtype == "dyn"
+                && !utils::reliable_name_range(
+                    utils::ReliableNameRanges::VariableName,
+                    letter_char.to_string(),
+                )
+                .reliable
+            {
+                *type_data = DefinerCollecting::Dynamic
             } else if letter_char != " "
                 && (last_char == " " || last_char == "\n")
                 && data.rtype.trim() != ""
@@ -317,12 +326,12 @@ pub fn collect_definer(
                     )
                 }
             } else {
-                if letter_char == ")" && data.key.is_definer_complete() {
+                if letter_char == ")" && data.value.is_definer_complete() {
                     data.complete = true;
                 } else {
                     collect_definer(
                         parser,
-                        &mut data.key,
+                        &mut data.value,
                         errors,
                         letter_char,
                         next_char,

@@ -84,7 +84,7 @@ mod boolean_tests {
         }
         assert_eq!(syntax_errors.len(), 0);
         assert!(emulated_collector_data.data.value.is_type_complete());
-        assert_eq!(emulated_collector_data.data.value.get_type(), "refference");
+        assert_eq!(emulated_collector_data.data.value.get_type(), "reference");
     }
 
     #[test]

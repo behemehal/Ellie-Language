@@ -273,9 +273,29 @@ pub fn collect_function_caller(
                             },
                         }
                     }
-                    types::Types::Refference(match_data) => {
+                    types::Types::Reference(match_data) => {
                         types::function_call::FunctionCallParameter {
-                            value: types::Types::Refference(match_data),
+                            value: types::Types::Reference(match_data),
+                            pos: if last_entry == 0 {
+                                defs::Cursor::default()
+                            } else {
+                                functioncalldata.data.params[last_entry - 1].pos
+                            },
+                        }
+                    }
+                    types::Types::BraceReference(match_data) => {
+                        types::function_call::FunctionCallParameter {
+                            value: types::Types::BraceReference(match_data),
+                            pos: if last_entry == 0 {
+                                defs::Cursor::default()
+                            } else {
+                                functioncalldata.data.params[last_entry - 1].pos
+                            },
+                        }
+                    }
+                    types::Types::Negative(match_data) => {
+                        types::function_call::FunctionCallParameter {
+                            value: types::Types::Negative(match_data),
                             pos: if last_entry == 0 {
                                 defs::Cursor::default()
                             } else {
@@ -381,12 +401,12 @@ pub fn collect_function_caller(
             }
         } else if letter_char == "." {
             itered_data.data.value =
-                types::Types::Refference(types::refference_type::RefferenceType {
-                    refference: Box::new(itered_data.data.value.clone()),
+                types::Types::Reference(types::reference_type::ReferenceType {
+                    reference: Box::new(itered_data.data.value.clone()),
                     chain: Vec::new(),
                     on_dot: false,
                 });
-            type_processors::refference::collect_refference(
+            type_processors::reference::collect_reference(
                 parser,
                 itered_data,
                 errors,

@@ -22,4 +22,4 @@
     SOFTWARE.
 */
 
-pub class array<Type> {}
+pub class bool {}

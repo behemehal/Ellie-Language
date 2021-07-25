@@ -12,10 +12,12 @@ pub mod function_call;
 pub mod integer_type;
 pub mod logical_type;
 pub mod operator_type;
-pub mod refference_type;
+pub mod reference_type;
 pub mod string_type;
 pub mod variable_type;
 pub mod collective_type;
+pub mod brace_reference_type;
+pub mod negative_type;
 
 use alloc::format;
 use alloc::string::String;
@@ -31,7 +33,8 @@ pub enum Types {
     String(string_type::StringType),
     Char(char_type::CharType),
     Collective(collective_type::CollectiveCollector), //Todo
-    Refference(refference_type::RefferenceType),
+    Reference(reference_type::ReferenceType),
+    BraceReference(brace_reference_type::BraceReferenceCollector),
     Operator(operator_type::OperatorTypeCollector),
     Cloak(cloak_type::CloakType),
     Array(array_type::ArrayType),
@@ -39,6 +42,7 @@ pub enum Types {
     ClassCall(class_call::ClassCallCollector),
     FunctionCall(function_call::FunctionCallCollector),
     Void,
+    Negative(negative_type::Negative),
     VariableType(variable_type::VariableType),
     Null,
 }
@@ -59,7 +63,8 @@ impl Types {
             Types::String(data) => data.complete,
             Types::Char(data) => data.complete,
             Types::Collective(e) => e.complete,
-            Types::Refference(data) => !data.on_dot,
+            Types::Reference(data) => !data.on_dot,
+            Types::BraceReference(data) => {panic!("NOT IMPLEMENTED");},
             Types::Operator(e) => {
                 e.first_filled
                     && e.data.operator != operator_type::Operators::Null
@@ -71,6 +76,7 @@ impl Types {
             Types::FunctionCall(data) => data.complete,
             Types::ClassCall(_) => true,
             Types::VariableType(_) => true,
+            Types::Negative(e) => e.value.is_type_complete(),
             Types::Void => false,
             Types::Null => true,
         }
@@ -84,7 +90,8 @@ impl Types {
             Types::String(_) => false,
             Types::Char(_) => false,
             Types::Collective(_) => false,
-            Types::Refference(_) => false,
+            Types::Reference(_) => false,
+            Types::BraceReference(_) => false,
             Types::Operator(_) => false,
             Types::Array(_) => true,
             Types::Cloak(_) => false,
@@ -92,6 +99,7 @@ impl Types {
             Types::FunctionCall(_) => false,
             Types::ClassCall(_) => false,
             Types::VariableType(_) => false,
+            Types::Negative(_) => false,
             Types::Void => false,
             Types::Null => false,
         }
@@ -105,7 +113,8 @@ impl Types {
             Types::String(_) => false,
             Types::Char(_) => false,
             Types::Collective(_) => false,
-            Types::Refference(_) => false,
+            Types::Reference(_) => false,
+            Types::BraceReference(_) => false,
             Types::Operator(_) => false,
             Types::Array(_) => false,
             Types::Cloak(_) => false,
@@ -113,6 +122,7 @@ impl Types {
             Types::FunctionCall(_) => false,
             Types::ClassCall(_) => false,
             Types::VariableType(_) => false,
+            Types::Negative(_) => false,
             Types::Void => false,
             Types::Null => false,
         }
@@ -126,7 +136,8 @@ impl Types {
             Types::String(_) => false,
             Types::Char(_) => false,
             Types::Collective(_) => false,
-            Types::Refference(_) => false,
+            Types::Reference(_) => false,
+            Types::BraceReference(_) => false,
             Types::Operator(_) => false,
             Types::Array(_) => false,
             Types::Cloak(_) => false,
@@ -134,6 +145,7 @@ impl Types {
             Types::FunctionCall(_) => false,
             Types::ClassCall(_) => false,
             Types::VariableType(_) => false,
+            Types::Negative(_) => false,
             Types::Void => false,
             Types::Null => false,
         }
@@ -147,7 +159,8 @@ impl Types {
             Types::String(_) => false,
             Types::Char(_) => false,
             Types::Collective(_) => false,
-            Types::Refference(_) => false,
+            Types::Reference(_) => false,
+            Types::BraceReference(_) => false,
             Types::Operator(_) => false,
             Types::Array(_) => false,
             Types::Cloak(_) => false,
@@ -155,6 +168,7 @@ impl Types {
             Types::FunctionCall(_) => false,
             Types::ClassCall(_) => false,
             Types::VariableType(_) => false,
+            Types::Negative(_) => false,
             Types::Void => false,
             Types::Null => false,
         }
@@ -168,7 +182,8 @@ impl Types {
             Types::String(_) => true,
             Types::Char(_) => false,
             Types::Collective(_) => false,
-            Types::Refference(_) => false,
+            Types::Reference(_) => false,
+            Types::BraceReference(_) => false,
             Types::Operator(_) => false,
             Types::Array(_) => false,
             Types::Cloak(_) => false,
@@ -176,6 +191,7 @@ impl Types {
             Types::FunctionCall(_) => false,
             Types::ClassCall(_) => false,
             Types::VariableType(_) => true,
+            Types::Negative(_) => false,
             Types::Void => false,
             Types::Null => false,
         }
@@ -189,7 +205,8 @@ impl Types {
             Types::String(e) => e.complete = true,
             Types::Char(e) => e.complete = true,
             Types::Collective(_) => (),
-            Types::Refference(_) => (),
+            Types::Reference(_) => (),
+            Types::BraceReference(_) => (),
             Types::Operator(_) => (),
             Types::Array(e) => e.complete = true,
             Types::Cloak(e) => e.complete = true,
@@ -197,6 +214,7 @@ impl Types {
             Types::FunctionCall(_) => (),
             Types::ClassCall(_) => (),
             Types::VariableType(_) => (),
+            Types::Negative(_) => (),
             Types::Void => (),
             Types::Null => (),
         };

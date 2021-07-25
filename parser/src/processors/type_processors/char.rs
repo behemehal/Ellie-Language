@@ -64,12 +64,12 @@ pub fn collect_char(
             }
         } else if letter_char == "." {
             itered_data.data.value =
-                types::Types::Refference(types::refference_type::RefferenceType {
-                    refference: Box::new(itered_data.data.value.clone()),
+                types::Types::Reference(types::reference_type::ReferenceType {
+                    reference: Box::new(itered_data.data.value.clone()),
                     chain: Vec::new(),
                     on_dot: false,
                 });
-            type_processors::refference::collect_refference(
+            type_processors::reference::collect_reference(
                 parser.clone(),
                 itered_data,
                 errors,

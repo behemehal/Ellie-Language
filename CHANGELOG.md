@@ -28,3 +28,10 @@
 # v2.6.0
   - CLI
     * Support eval for language server 
+
+# v2.7.0
+  - Parser
+    * Comment bug fix
+    * Collective introduced 
+    * Negative introduced (!!true) 
+    * Support more
