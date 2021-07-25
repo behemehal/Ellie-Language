@@ -12,7 +12,9 @@ pub fn is_errors_same(first: error::Error, second: error::Error) -> bool {
 }
 
 pub fn clean_up_escape(code: String) -> String {
-    code.replace("\\n", "\n").replace("\\t", "\t").replace("\\r", "\r")
+    code.replace("\\n", "\n")
+        .replace("\\t", "\t")
+        .replace("\\r", "\r")
 }
 
 pub fn system_module_resolver(lib_name: String) -> Option<ellie_parser::parser::Parsed> {
@@ -46,7 +48,11 @@ pub fn system_module_resolver(lib_name: String) -> Option<ellie_parser::parser::
     };
 
     let mut ellie_library_content = Vec::new();
-    let mut ellie_library = File::open("C:\\Users\\ahmet\\Desktop\\Projects\\InBuild\\Ellie-Language\\lib\\".to_string() + &(lib_name + ".ei")).unwrap();
+    let mut ellie_library = File::open(
+        "C:\\Users\\ahmet\\Desktop\\Projects\\InBuild\\Ellie-Language\\lib\\".to_string()
+            + &(lib_name + ".ei"),
+    )
+    .unwrap();
     ellie_library
         .read_to_end(&mut ellie_library_content)
         .expect("Unable to read");
@@ -196,7 +202,11 @@ pub fn get_lines(code: String, lines: defs::Cursor) -> String {
 
 pub fn get_line(code: String, line: usize) -> String {
     let v: Vec<&str> = code.split('\n').collect();
-    v[line].to_string()
+    if line > v.len() {
+        v[v.len() - 1].to_string()
+    } else {
+        v[line].to_string()
+    }
 }
 
 pub fn arrow(line: usize, range: usize) -> String {

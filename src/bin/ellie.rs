@@ -88,7 +88,7 @@ fn main() {
                             }
                         };
 
-                        let parser = parser::Parser::new(
+                        let mut parser = parser::Parser::new(
                             code.clone(),
                             core_resolver,
                             ellie_core::defs::ParserOptions {
@@ -111,6 +111,7 @@ fn main() {
                                 allow_import: true,
                             },
                         );
+                        parser.scope.scope_name = "file_arg".to_string();
                         let mapped = parser.map();
 
                         if !mapped.syntax_errors.is_empty() {
@@ -140,22 +141,36 @@ fn main() {
                                                 ),
                                             );
                                             println!(
-                                                "{}{}Error[{:#04x}]{} - {}{}{}: {}",
+                                                "{}{}{}Error[{:#04x}]{} - {}{}{}: {}",
                                                 if debug_arg {
                                                     format!(
-                                                        "{}({}) {}[{}]{} ",
-                                                        ellie_lang::terminal_colors::get_color(
-                                                            ellie_lang::terminal_colors::Colors::Magenta
-                                                        ),
-                                                        error.scope,
-                                                        ellie_lang::terminal_colors::get_color(
-                                                            ellie_lang::terminal_colors::Colors::Yellow
-                                                        ),
-                                                        error.debug_message,
-                                                        ellie_lang::terminal_colors::get_color(
-                                                            ellie_lang::terminal_colors::Colors::Reset
-                                                        )
+                                                    "{}({}) {}[{}]{} ",
+                                                    ellie_lang::terminal_colors::get_color(
+                                                        ellie_lang::terminal_colors::Colors::Magenta
+                                                    ),
+                                                    error.scope,
+                                                    ellie_lang::terminal_colors::get_color(
+                                                        ellie_lang::terminal_colors::Colors::Yellow
+                                                    ),
+                                                    error.debug_message,
+                                                    ellie_lang::terminal_colors::get_color(
+                                                        ellie_lang::terminal_colors::Colors::Reset
                                                     )
+                                                )
+                                                } else {
+                                                    "".to_string()
+                                                },
+                                                if debug_arg {
+                                                    format!(
+                                                            "{}[{}]{} ",
+                                                            ellie_lang::terminal_colors::get_color(
+                                                                ellie_lang::terminal_colors::Colors::Yellow
+                                                            ),
+                                                            error.debug_message,
+                                                            ellie_lang::terminal_colors::get_color(
+                                                                ellie_lang::terminal_colors::Colors::Reset
+                                                            )
+                                                        )
                                                 } else {
                                                     "".to_string()
                                                 },
@@ -288,15 +303,19 @@ fn main() {
                                             "{}{}Error[{:#04x}]{} - {}{}{}: {}",
                                             if debug_arg {
                                                 format!(
-                                                    "{}[{}]{} ",
-                                                    ellie_lang::terminal_colors::get_color(
-                                                        ellie_lang::terminal_colors::Colors::Yellow
-                                                    ),
-                                                    error.debug_message,
-                                                    ellie_lang::terminal_colors::get_color(
-                                                        ellie_lang::terminal_colors::Colors::Reset
-                                                    )
+                                                "{}({}) {}[{}]{} ",
+                                                ellie_lang::terminal_colors::get_color(
+                                                    ellie_lang::terminal_colors::Colors::Magenta
+                                                ),
+                                                error.scope,
+                                                ellie_lang::terminal_colors::get_color(
+                                                    ellie_lang::terminal_colors::Colors::Yellow
+                                                ),
+                                                error.debug_message,
+                                                ellie_lang::terminal_colors::get_color(
+                                                    ellie_lang::terminal_colors::Colors::Reset
                                                 )
+                                            )
                                             } else {
                                                 "".to_string()
                                             },
@@ -372,9 +391,12 @@ fn main() {
                 }
             } else {
                 if eval_code {
-                    let code_pos = env::args().position(|x| x == "--eval-code" || x == "-ec").unwrap() + 1;
+                    let code_pos = env::args()
+                        .position(|x| x == "--eval-code" || x == "-ec")
+                        .unwrap()
+                        + 1;
                     if env::args().len() > code_pos {
-                        let code_vec : Vec<String> = env::args().skip(code_pos).collect();//.nth(code_pos).unwrap();
+                        let code_vec: Vec<String> = env::args().skip(code_pos).collect(); //.nth(code_pos).unwrap();
                         let code = ellie_lang::cli_utils::clean_up_escape(code_vec.join(" "));
                         let core_resolver = |e| {
                             println!(

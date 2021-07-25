@@ -179,6 +179,7 @@ pub fn collect_variable(
                         last_char,
                     )
                 } else if letter_char != " " {
+                    std::println!("| {:#?}", parser.pos);
                     errors.push(error::Error {
                         scope: "variable_processor".to_string(),
                         debug_message: "4c0be946dc33c54145972586dbba089b".to_string(),

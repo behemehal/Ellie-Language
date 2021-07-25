@@ -10,8 +10,8 @@ use crate::alloc::string::{String, ToString};
 use crate::alloc::vec;
 use crate::alloc::vec::Vec;
 use crate::syntax::{
-    caller, class, condition, constructor, definers, forloop, function, import, import_item, ret,
-    types, variable, file_key
+    caller, class, condition, constructor, definers, file_key, forloop, function, import,
+    import_item, ret, types, variable,
 };
 use ellie_core::{defs, error, utils};
 
@@ -182,10 +182,13 @@ impl Parser {
                     last_char.to_string(),
                 );
                 self.pos.1 += 1;
-            } else if letter_char == "/" || next_char == "/" {
-                if !self.on_comment && !self.on_line_comment {
-                    self.on_line_comment = true
-                }
+            } else if letter_char == "/"
+                && next_char == "/"
+                && !self.on_comment
+                && !self.on_line_comment
+            {
+                self.on_line_comment = true;
+                self.pos.1 += 1;
             } else if last_char == "\r" || letter_char == "\n" {
                 self.pos.0 += 1;
                 self.on_line_comment = false;
@@ -890,7 +893,7 @@ impl Parser {
                         found_item = item;
                         break;
                     }
-                },
+                }
                 Collecting::FileKey(e) => {
                     if e.data.keyname == name {
                         found = true;

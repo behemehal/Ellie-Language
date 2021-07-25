@@ -38,7 +38,7 @@ pub fn collect_filekey(
                     filekeydata.keyname_collected = true;
                 } else if letter_char != " " && (letter_char == "@" && filekeydata.data.keyname != ""){
                     errors.push(error::Error {
-                        scope: parser.scope.scope_name.clone(),
+                        scope: "filekey_processor".to_string(),
                         debug_message: "replace_filekey_42".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
@@ -60,13 +60,33 @@ pub fn collect_filekey(
         } else if letter_char == ";" && filekeydata.data.value.is_type_complete() {
             if clone_parser.check_keyword(filekeydata.data.keyname.clone()).found {
                 errors.push(error::Error {
-                    scope: parser.scope.scope_name.clone(),
+                    scope: "filekey_processor".to_string(),
                     debug_message: "replace_filekey_64".to_string(),
                     title: error::errorList::error_s24.title.clone(),
                     code: error::errorList::error_s24.code,
                     message: error::errorList::error_s24.message.clone(),
                     builded_message: error::Error::build(
                         error::errorList::error_s24.message.clone(),
+                        vec![error::ErrorBuildField {
+                            key: "token".to_string(),
+                            value: filekeydata.data.keyname.clone(),
+                        }],
+                    ),
+                    pos: defs::Cursor {
+                        range_start: filekeydata.data.keyname_location.range_start,
+                        range_end: filekeydata.data.keyname_location.range_end.clone().skip_char(1)
+                    },
+                });
+            }
+            if utils::is_reserved(&filekeydata.data.keyname) {
+                errors.push(error::Error {
+                    scope: "filekey_processor".to_string(),
+                    debug_message: "replace_filekey_processor83".to_string(),
+                    title: error::errorList::error_s21.title.clone(),
+                    code: error::errorList::error_s21.code,
+                    message: error::errorList::error_s21.message.clone(),
+                    builded_message: error::Error::build(
+                        error::errorList::error_s21.message.clone(),
                         vec![error::ErrorBuildField {
                             key: "token".to_string(),
                             value: filekeydata.data.keyname.clone(),
@@ -99,14 +119,7 @@ pub fn collect_filekey(
             ));
 
             if !itered_filekey_vector.errors.is_empty() {
-                for returned_error in itered_filekey_vector.errors {
-                    let mut edited = returned_error;
-                    edited.pos.range_start.0 += parser.pos.0;
-                    edited.pos.range_start.1 += parser.pos.1;
-                    edited.pos.range_end.0 += parser.pos.0;
-                    edited.pos.range_end.1 += parser.pos.1;
-                    errors.push(edited);
-                }
+                errors.extend(itered_filekey_vector.errors);
             }
 
             if filekeydata.data.value_location.is_zero() {

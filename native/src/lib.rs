@@ -9,3 +9,4 @@ extern crate std;
 pub mod ellie_types;
 pub mod ellie_type_define;
 pub mod ellie_function;
+pub mod ellie_class;

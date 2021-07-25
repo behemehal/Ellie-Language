@@ -98,14 +98,7 @@ pub fn collect_operator(
                 last_char,
             );
             if itered_child.errors.is_empty() {
-                for returned_error in itered_child.errors {
-                    let mut edited = returned_error;
-                    edited.pos.range_start.0 += parser.pos.0;
-                    edited.pos.range_start.1 += parser.pos.1;
-                    edited.pos.range_end.0 += parser.pos.0;
-                    edited.pos.range_end.1 += parser.pos.1;
-                    errors.push(edited);
-                }
+                errors.extend(itered_child.errors);
             }
 
             if let types::Types::Operator(child_operator) =

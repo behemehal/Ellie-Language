@@ -35,14 +35,7 @@ pub fn collect_ret(
                 last_char,
             ));
             if !itered_ret_vector.errors.is_empty() {
-                for returned_error in itered_ret_vector.errors {
-                    let mut edited = returned_error;
-                    edited.pos.range_start.0 += parser.pos.0;
-                    edited.pos.range_start.1 += parser.pos.1;
-                    edited.pos.range_end.0 += parser.pos.0;
-                    edited.pos.range_end.1 += parser.pos.1;
-                    errors.push(edited);
-                }
+                errors.extend(itered_ret_vector.errors);
             }
 
             data.value = itered_ret_vector.itered_data.data.value;

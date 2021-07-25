@@ -129,14 +129,7 @@ pub fn collect_refference(
                         ));
 
                         if !itered_setter_vector.errors.is_empty() {
-                            for returned_error in itered_setter_vector.errors {
-                                let mut edited = returned_error;
-                                edited.pos.range_start.0 += parser.pos.0;
-                                edited.pos.range_start.1 += parser.pos.1;
-                                edited.pos.range_end.0 += parser.pos.0;
-                                edited.pos.range_end.1 += parser.pos.1;
-                                errors.push(edited);
-                            }
+                            errors.extend(itered_setter_vector.errors);
                         }
                         setter_data.value = itered_setter_vector.itered_data.data.value;
 
@@ -453,14 +446,7 @@ pub fn collect_refference(
                                 };
 
                                 if !itered_fcall_vector.errors.is_empty() {
-                                    for returned_error in itered_fcall_vector.errors {
-                                        let mut edited = returned_error;
-                                        edited.pos.range_start.0 += parser.pos.0;
-                                        edited.pos.range_start.1 += parser.pos.1;
-                                        edited.pos.range_end.0 += parser.pos.0;
-                                        edited.pos.range_end.1 += parser.pos.1;
-                                        errors.push(edited);
-                                    }
+                                    errors.extend(itered_fcall_vector.errors);
                                 }
                                 if functioncalldata.data.params.is_empty() {
                                     functioncalldata.data.params.push(itered_entry);

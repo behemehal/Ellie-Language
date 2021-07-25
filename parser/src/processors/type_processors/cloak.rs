@@ -371,15 +371,7 @@ pub fn collect_cloak(
             };
 
             if !itered_cloak_vector.errors.is_empty() {
-                for returned_error in itered_cloak_vector.errors {
-                    //errors.extend(itered_array_vector.errors);
-                    let mut edited = returned_error;
-                    edited.pos.range_start.0 += parser.clone().pos.0;
-                    edited.pos.range_start.1 += parser.clone().pos.1;
-                    edited.pos.range_end.0 += parser.clone().pos.0;
-                    edited.pos.range_end.1 += parser.clone().pos.1;
-                    errors.push(edited);
-                }
+                errors.extend(itered_cloak_vector.errors);
             }
 
             if data.collective.is_empty() {

@@ -9,6 +9,10 @@ use alloc::string::{String, ToString};
 use alloc::vec;
 use alloc::vec::Vec;
 
+/*
+
+*/
+
 pub fn collect_type(
     parser: &mut parser::Parser,
     errors: &mut Vec<error::Error>,
@@ -17,13 +21,17 @@ pub fn collect_type(
     next_char: String,
 ) {
     let keyword = utils::trim_good(parser.keyword_catch.trim_start().to_string()); //one step next
-    if last_char == "*" && letter_char == "/" {
+    
+    if (letter_char == "*" && last_char == "/") && !parser.on_comment && !parser.on_line_comment {
+        parser.on_comment = true;
+    } else if (letter_char == "/" && last_char == "*")
+        && parser.on_comment
+        && !parser.on_line_comment
+        {
         parser.on_comment = false;
         parser.keyword_catch = String::new();
-    } else if keyword == "/*" && !parser.on_comment && !parser.on_line_comment {
-        parser.on_comment = true;
-        parser.keyword_catch = String::new();
     } else if parser.on_comment {
+        parser.keyword_catch = String::new();
     } else if (keyword == "import " || keyword == "pub import " || keyword == "pri import ")
         && parser.options.allow_import
     {
