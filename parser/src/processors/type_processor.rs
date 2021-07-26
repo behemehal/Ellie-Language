@@ -111,6 +111,9 @@ pub fn collect_type(
     } else if keyword == "@" && parser.options.parser_type == defs::ParserType::RawParser {
         parser.current = parser::Collecting::FileKey(file_key::FileKeyCollector::default());
         parser.keyword_catch = String::new();
+    } else if keyword == "for " && parser.options.parser_type == defs::ParserType::RawParser {
+        parser.current = parser::Collecting::Forloop(forloop::ForloopCollector::default());
+        parser.keyword_catch = String::new();
     } else if keyword == "if" && parser.options.parser_type == defs::ParserType::RawParser {
         parser.current = parser::Collecting::Condition(condition::ConditionCollector::default());
         parser.keyword_catch = String::new();
