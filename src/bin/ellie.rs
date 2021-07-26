@@ -6,7 +6,7 @@ use std::{fs, io::Read};
 fn main() {
     if env::args().any(|x| x == "-v" || x == "--version") {
         const VERSION: &str = env!("CARGO_PKG_VERSION");
-        println!("Ellie v{} - Code: Millennium", VERSION);
+        println!("Ellie v{} - Code: BeautifulTropicalFish", VERSION);
     } else if env::args().any(|x| x == "-h" || x == "--help") {
         println!("Usage: ellie [options] [file path | code]");
         println!("Options:");

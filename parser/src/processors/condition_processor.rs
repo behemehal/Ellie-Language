@@ -1,7 +1,7 @@
 use crate::parser;
 use crate::processors;
 use crate::syntax::{condition, types};
-use ellie_core::error;
+use ellie_core::{error, defs};
 
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};
@@ -41,6 +41,10 @@ pub fn collect_condition(
                     types::cloak_type::CloakEntry {
                         value: Box::new(data.cloak_itered_data.data.value.clone()),
                         value_complete: true,
+                        location: defs::Cursor {
+                            range_end: parser.pos,
+                            ..Default::default()
+                        },
                     },
                 );
             } else {

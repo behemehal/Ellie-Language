@@ -10,39 +10,77 @@ pub fn collect_import(
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     _next_char: String,
-    _last_char: String
+    _last_char: String,
 ) {
     if let parser::Collecting::Import(ref mut importdata) = parser.current {
         if letter_char != " " && letter_char != "\n" || importdata.path.is_empty() {
             importdata.pos.range_end = parser.pos;
             if letter_char == ";" {
-                let response = (parser.resolver)(importdata.path.clone());
-                if !response.found {
-                    errors.push(error::Error {
-                        scope: parser.scope.scope_name.clone(),
-                        debug_message: "8f7a6c658bc0f0f15d771f1b85d949d5".to_string(),
-                        title: error::errorList::error_s28.title.clone(),
-                        code: error::errorList::error_s28.code,
-                        message: error::errorList::error_s28.message.clone(),
-                        builded_message: error::Error::build(
-                            error::errorList::error_s28.message.clone(),
-                            vec![error::ErrorBuildField {
-                                key: "token".to_string(),
-                                value: importdata.path.clone(),
-                            }],
-                        ),
-                        pos: importdata.path_pos,
-                    });
+                if importdata.native {
+                    panic!("Import native is not available yet");
                 } else {
-                    for item in response.file_content.items {
-                        match item.clone() {
-                            crate::parser::Collecting::ImportItem(e) => {
-                                if e.public {
-                                    parser.collected.push(item);
+                    let response = (parser.resolver)(importdata.path.clone());
+                    if !response.found {
+                        errors.push(error::Error {
+                            scope: parser.scope.scope_name.clone(),
+                            debug_message: "8f7a6c658bc0f0f15d771f1b85d949d5".to_string(),
+                            title: error::errorList::error_s28.title.clone(),
+                            code: error::errorList::error_s28.code,
+                            message: error::errorList::error_s28.message.clone(),
+                            builded_message: error::Error::build(
+                                error::errorList::error_s28.message.clone(),
+                                vec![error::ErrorBuildField {
+                                    key: "token".to_string(),
+                                    value: importdata.path.clone(),
+                                }],
+                            ),
+                            pos: importdata.path_pos,
+                        });
+                    } else {
+                        for item in response.file_content.items {
+                            match item.clone() {
+                                crate::parser::Collecting::ImportItem(e) => {
+                                    if e.public {
+                                        parser.collected.push(item);
+                                    }
                                 }
-                            }
-                            crate::parser::Collecting::Variable(e) => {
-                                if e.data.public {
+                                crate::parser::Collecting::Variable(e) => {
+                                    if e.data.public {
+                                        parser.collected.push(
+                                            crate::parser::Collecting::ImportItem(
+                                                crate::syntax::import_item::ImportItem {
+                                                    item: Box::new(item),
+                                                    public: importdata.public,
+                                                },
+                                            ),
+                                        );
+                                    }
+                                }
+                                crate::parser::Collecting::Function(e) => {
+                                    if e.data.public {
+                                        parser.collected.push(
+                                            crate::parser::Collecting::ImportItem(
+                                                crate::syntax::import_item::ImportItem {
+                                                    item: Box::new(item),
+                                                    public: importdata.public,
+                                                },
+                                            ),
+                                        );
+                                    }
+                                }
+                                crate::parser::Collecting::Class(e) => {
+                                    if e.data.public {
+                                        parser.collected.push(
+                                            crate::parser::Collecting::ImportItem(
+                                                crate::syntax::import_item::ImportItem {
+                                                    item: Box::new(item),
+                                                    public: importdata.public,
+                                                },
+                                            ),
+                                        );
+                                    }
+                                }
+                                _ => {
                                     parser.collected.push(crate::parser::Collecting::ImportItem(
                                         crate::syntax::import_item::ImportItem {
                                             item: Box::new(item),
@@ -50,40 +88,12 @@ pub fn collect_import(
                                         },
                                     ));
                                 }
-                            }
-                            crate::parser::Collecting::Function(e) => {
-                                if e.data.public {
-                                    parser.collected.push(crate::parser::Collecting::ImportItem(
-                                        crate::syntax::import_item::ImportItem {
-                                            item: Box::new(item),
-                                            public: importdata.public,
-                                        },
-                                    ));
-                                }
-                            }
-                            crate::parser::Collecting::Class(e) => {
-                                if e.data.public {
-                                    parser.collected.push(crate::parser::Collecting::ImportItem(
-                                        crate::syntax::import_item::ImportItem {
-                                            item: Box::new(item),
-                                            public: importdata.public,
-                                        },
-                                    ));
-                                }
-                            }
-                            _ => {
-                                parser.collected.push(crate::parser::Collecting::ImportItem(
-                                    crate::syntax::import_item::ImportItem {
-                                        item: Box::new(item),
-                                        public: importdata.public,
-                                    },
-                                ));
                             }
                         }
                     }
+                    parser.collected.push(parser.current.clone());
+                    parser.current = parser::Collecting::None;
                 }
-                parser.collected.push(parser.current.clone());
-                parser.current = parser::Collecting::None;
             } else if letter_char != " " {
                 if importdata.path.is_empty() {
                     importdata.path_pos.range_start = parser.pos;

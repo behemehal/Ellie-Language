@@ -1,6 +1,7 @@
 use crate::parser;
 use crate::syntax::{
-    caller, class, condition, constructor, file_key, function, import, ret, types, variable,
+    caller, class, condition, constructor, file_key, forloop, function, import, ret, types,
+    variable,
 };
 use ellie_core::{defs, error, utils};
 
@@ -17,24 +18,32 @@ pub fn collect_type(
     next_char: String,
 ) {
     let keyword = utils::trim_good(parser.keyword_catch.trim_start().to_string()); //one step next
-    
+
     if (letter_char == "*" && last_char == "/") && !parser.on_comment && !parser.on_line_comment {
         parser.on_comment = true;
     } else if (letter_char == "/" && last_char == "*")
         && parser.on_comment
-        
         && !parser.on_line_comment
-        {
+    {
         parser.on_comment = false;
         parser.keyword_catch = String::new();
     } else if parser.on_comment {
         parser.keyword_catch = String::new();
-    } else if (keyword == "import " || keyword == "pub import " || keyword == "pri import ")
+    } else if (keyword == "import "
+        || keyword == "pub import "
+        || keyword == "pri import "
+        || keyword == "importNative "
+        || keyword == "pub importNative "
+        || keyword == "pri importNative ")
         && parser.options.allow_import
+        && parser.options.parser_type == defs::ParserType::RawParser
     {
         parser.current = parser::Collecting::Import(import::Import {
-            public: keyword == "pub import ",
-            pri_keyword: keyword == "pri import ",
+            public: keyword == "pub import " || keyword == "pub importNative ",
+            pri_keyword: keyword == "pri import " || keyword == "pri importNative ",
+            native: keyword == "importNative "
+                || keyword == "pub importNative "
+                || keyword == "pri importNative ",
             pos: defs::Cursor {
                 range_start: parser.keyword_pos.range_start,
                 ..Default::default()
