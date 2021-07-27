@@ -2,22 +2,22 @@ pub mod arithmetic_type;
 pub mod array_type;
 pub mod arrow_function;
 pub mod bool_type;
+pub mod brace_reference_type;
 pub mod char_type;
 pub mod class_call;
 pub mod cloak_type;
+pub mod collective_type;
 pub mod comparison_type;
 pub mod double_type;
 pub mod float_type;
 pub mod function_call;
 pub mod integer_type;
 pub mod logical_type;
+pub mod negative_type;
 pub mod operator_type;
 pub mod reference_type;
 pub mod string_type;
 pub mod variable_type;
-pub mod collective_type;
-pub mod brace_reference_type;
-pub mod negative_type;
 
 use alloc::format;
 use alloc::string::String;
@@ -64,7 +64,9 @@ impl Types {
             Types::Char(data) => data.complete,
             Types::Collective(e) => e.complete,
             Types::Reference(data) => !data.on_dot,
-            Types::BraceReference(data) => {panic!("NOT IMPLEMENTED");},
+            Types::BraceReference(_) => {
+                panic!("NOT IMPLEMENTED");
+            }
             Types::Operator(e) => {
                 e.first_filled
                     && e.data.operator != operator_type::Operators::Null

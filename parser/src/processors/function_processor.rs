@@ -330,7 +330,10 @@ pub fn collect_function(
                 );
             }
         } else if functiondata.brace_count == 0 && letter_char == "}" {
-            if parser_clone.check_keyword(functiondata.data.name.clone()).found {
+            if parser_clone
+                .check_keyword(functiondata.data.name.clone())
+                .found
+            {
                 errors.push(error::Error {
                     scope: parser.scope.scope_name.clone(),
                     debug_message: "34b8f786e3b3d426d5567d181b7096a4".to_string(),

@@ -3,7 +3,6 @@ use serde::Serialize;
 
 use alloc::boxed::Box;
 use alloc::string::String;
-use alloc::vec::Vec;
 
 #[derive(PartialEq, Debug, Clone, Serialize)]
 pub enum ComparisonOperators {
@@ -23,17 +22,11 @@ impl Default for ComparisonOperators {
 }
 
 impl ComparisonOperators {
-    pub fn _is_comparison_opearator(value: &str) -> bool {
-        let v: Vec<char> = "=!<>".chars().collect();
-        let q: Vec<char> = value.chars().filter(|x| !v.contains(x)).collect();
-        q.is_empty()
-    }
-
-    pub fn is_comparison_opearator(value: &str) -> bool {
+    pub fn is_comparison_operator(value: &str) -> bool {
         value == "=="
             || value == "!="
-            || value == "> "
-            || value == "< "
+            || value == ">"
+            || value == "<"
             || value == ">="
             || value == "<="
     }
@@ -45,7 +38,7 @@ impl ComparisonOperators {
             ">" => Ok(ComparisonOperators::GreaterThan),
             "<" => Ok(ComparisonOperators::LessThan),
             ">=" => Ok(ComparisonOperators::GreaterThanOrEqual),
-            "<=" => Ok(ComparisonOperators::GreaterThan),
+            "<=" => Ok(ComparisonOperators::LessThanOrEqual),
             _ => Err(true),
         }
     }

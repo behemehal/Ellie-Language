@@ -13,7 +13,7 @@ pub enum ReliableNameRanges {
     FunctionName,
 }
 
-pub fn is_opearators(value: &str) -> bool {
+pub fn is_operators(value: &str) -> bool {
     let operators = "|&";
     operators.contains(&value)
 }

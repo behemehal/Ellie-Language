@@ -56,10 +56,10 @@ enum class ConditionType {
   CONDITION_TYPE_ELSE,
 };
 
-enum class LogicalOpearators {
-  LOGICAL_OPEARATORS_AND,
-  LOGICAL_OPEARATORS_OR,
-  LOGICAL_OPEARATORS_NULL,
+enum class LogicalOperators {
+  LOGICAL_OperatorS_AND,
+  LOGICAL_OperatorS_OR,
+  LOGICAL_OperatorS_NULL,
 };
 
 enum class NumberTypes {
@@ -219,7 +219,7 @@ struct Operators {
   };
 
   struct LogicalType_Body {
-    LogicalOpearators _0;
+    LogicalOperators _0;
   };
 
   struct ArithmeticType_Body {

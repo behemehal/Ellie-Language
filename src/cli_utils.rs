@@ -27,7 +27,17 @@ pub fn system_module_resolver(lib_name: String) -> Option<ellie_parser::parser::
             e,
             crate::terminal_colors::get_color(crate::terminal_colors::Colors::Reset),
         );
-        if e == "ellie" || e == "string" || e == "void" || e == "int" || e == "char" || e == "collective" || e == "bool" || e == "float" || e == "cloak" || e == "array" {
+        if e == "ellie"
+            || e == "string"
+            || e == "void"
+            || e == "int"
+            || e == "char"
+            || e == "collective"
+            || e == "bool"
+            || e == "float"
+            || e == "cloak"
+            || e == "array"
+        {
             if let Some(e) = crate::cli_utils::system_module_resolver(e.clone()) {
                 parser::ResolvedImport {
                     found: true,
@@ -51,7 +61,7 @@ pub fn system_module_resolver(lib_name: String) -> Option<ellie_parser::parser::
     /*
 
 
-                                 o_Oo_Oo_Oo_O     
+                                 o_Oo_Oo_Oo_O
             o_Oo_Oo_Oo_O         o_O      o_O
             o_O      o_O         o_O      o_O
             o_O      o_O         o_O      o_O

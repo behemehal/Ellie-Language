@@ -4,6 +4,7 @@ use crate::syntax::function;
 use crate::syntax::{definers, types, variable};
 use ellie_core::{defs, error, utils};
 
+use alloc::boxed::Box;
 use alloc::string::{String, ToString};
 use alloc::vec;
 use alloc::vec::Vec;
@@ -450,6 +451,78 @@ pub fn collect_arrow(
                     last_char,
                 );
             }
+        } else if letter_char == "." && functiondata.complete {
+            itered_data.data.value =
+                types::Types::Reference(types::reference_type::ReferenceType {
+                    reference: Box::new(itered_data.data.value.clone()),
+                    chain: Vec::new(),
+                    on_dot: false,
+                });
+            processors::type_processors::reference::collect_reference(
+                parser.clone(),
+                itered_data,
+                errors,
+                letter_char,
+                next_char,
+                last_char,
+            )
+        } else if functiondata.complete
+            && types::logical_type::LogicalOperators::is_logical_operator(letter_char)
+            || types::logical_type::LogicalOperators::is_logical_operator(
+                &(letter_char.to_string() + &next_char),
+            )
+        {
+            itered_data.data.value =
+                types::Types::Operator(types::operator_type::OperatorTypeCollector {
+                    data: types::operator_type::OperatorType {
+                        first: Box::new(itered_data.data.value.clone()),
+                        operator: types::operator_type::Operators::LogicalType(
+                            types::logical_type::LogicalOperators::Null,
+                        ),
+                        ..Default::default()
+                    },
+                    operator_collect: letter_char.to_string(),
+                    first_filled: true,
+                    ..Default::default()
+                });
+        } else if functiondata.complete
+            && types::comparison_type::ComparisonOperators::is_comparison_operator(letter_char)
+            || types::comparison_type::ComparisonOperators::is_comparison_operator(
+                &(letter_char.to_string() + &next_char),
+            )
+        {
+            itered_data.data.value =
+                types::Types::Operator(types::operator_type::OperatorTypeCollector {
+                    data: types::operator_type::OperatorType {
+                        first: Box::new(itered_data.data.value.clone()),
+                        operator: types::operator_type::Operators::ComparisonType(
+                            types::comparison_type::ComparisonOperators::Null,
+                        ),
+                        ..Default::default()
+                    },
+                    operator_collect: letter_char.to_string(),
+                    first_filled: true,
+                    ..Default::default()
+                });
+        } else if functiondata.complete
+            && types::arithmetic_type::ArithmeticOperators::is_arithmetic_operator(letter_char)
+            || types::arithmetic_type::ArithmeticOperators::is_arithmetic_operator(
+                &(letter_char.to_string() + &next_char),
+            )
+        {
+            itered_data.data.value =
+                types::Types::Operator(types::operator_type::OperatorTypeCollector {
+                    data: types::operator_type::OperatorType {
+                        first: Box::new(itered_data.data.value.clone()),
+                        operator: types::operator_type::Operators::ArithmeticType(
+                            types::arithmetic_type::ArithmeticOperators::Null,
+                        ),
+                        ..Default::default()
+                    },
+                    operator_collect: letter_char.to_string(),
+                    first_filled: true,
+                    ..Default::default()
+                });
         } else if letter_char == "}" && functiondata.brace_count == 0 {
             functiondata.complete = true;
         } else {

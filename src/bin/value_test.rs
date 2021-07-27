@@ -14,10 +14,7 @@ fn main() {
     emulated_collector_data.data.dynamic = true;
     let code = "
 
-    {
-        \"test\": \"ok\",
-        \"test\": \"ok\"
-    }
+    123 && 123
     
     ";
 

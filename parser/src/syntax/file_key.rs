@@ -1,7 +1,7 @@
-use ellie_core::defs;
-use alloc::string::String;
-use serde::Serialize;
 use crate::syntax::types;
+use alloc::string::String;
+use ellie_core::defs;
+use serde::Serialize;
 
 #[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct FileKey {

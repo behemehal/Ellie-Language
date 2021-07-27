@@ -16,7 +16,7 @@ pub fn collect_caller(
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     next_char: String,
-    last_char: String
+    last_char: String,
 ) {
     let parser_clone = parser.clone();
     if let parser::Collecting::Caller(ref mut callerdata) = parser.current {

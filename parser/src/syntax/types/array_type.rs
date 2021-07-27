@@ -1,6 +1,6 @@
 use crate::syntax::types;
-use serde::Serialize;
 use ellie_core::defs;
+use serde::Serialize;
 
 use alloc::boxed::Box;
 use alloc::vec::Vec;
@@ -9,7 +9,7 @@ use alloc::vec::Vec;
 pub struct ArrayEntry {
     pub value_complete: bool,
     pub value: Box<types::Types>,
-    pub location: defs::Cursor
+    pub location: defs::Cursor,
 }
 
 #[derive(PartialEq, Default, Debug, Clone, Serialize)]

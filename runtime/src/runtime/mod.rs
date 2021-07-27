@@ -1,4 +1,4 @@
-use ellie_parser::parser::Parsed;
+//use ellie_parser::parser::Parsed;
 use alloc::string::String;
 
 pub struct Runtime {
@@ -8,5 +8,5 @@ pub struct Runtime {
 impl Runtime {
     pub fn new(main: String) -> Runtime {
         Runtime { start_point: main }
-    } 
+    }
 }

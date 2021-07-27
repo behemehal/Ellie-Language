@@ -55,7 +55,6 @@ pub struct CollectiveType {
     pub has_key: bool,
 }
 
-
 #[derive(PartialEq, Debug, Clone, Serialize, EnumAsInner)]
 pub enum DefinerCollecting {
     Array(ArrayType),
@@ -133,7 +132,7 @@ impl DefinerCollecting {
                     } else {
                         false
                     }
-                },
+                }
                 DefinerCollecting::Collective(data) => {
                     if let DefinerCollecting::Collective(other_data) = other {
                         other_data.key.same_as(*data.key) && other_data.value.same_as(*data.value)
@@ -171,7 +170,7 @@ impl DefinerCollecting {
             DefinerCollecting::Dynamic => true,
         }
     }
-    
+
     pub fn is_generic(&self) -> bool {
         match self {
             DefinerCollecting::Array(_) => false,

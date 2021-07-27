@@ -1,9 +1,7 @@
 //use alloc::ffi;
 
-pub struct NativeFunction {
-
-}
+pub struct NativeFunction {}
 
 pub enum Items {
-    Function
+    Function,
 }

@@ -165,6 +165,7 @@ mod float_tests {
         assert!(emulated_collector_data.data.value.is_type_complete());
         assert_eq!(emulated_collector_data.data.value.get_type(), "reference");
     }
+        */
 
     #[test]
     fn dot_start_float_operators_collected() {
@@ -248,5 +249,4 @@ mod float_tests {
         assert_eq!(syntax_errors.len(), 0);
         assert_eq!(emulated_collector_data.data.value.get_type(), "operator");
     }
-    */
 }

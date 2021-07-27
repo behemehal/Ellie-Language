@@ -9,7 +9,7 @@ use ellie_core::defs;
 pub struct CloakEntry {
     pub value_complete: bool,
     pub value: Box<types::Types>,
-    pub location: defs::Cursor
+    pub location: defs::Cursor,
 }
 
 #[derive(PartialEq, Default, Debug, Clone, Serialize)]

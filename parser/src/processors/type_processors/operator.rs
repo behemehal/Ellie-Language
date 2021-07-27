@@ -22,19 +22,22 @@ pub fn collect_operator(
             //Operator
 
             if letter_char == " "
-                || (types::operator_type::Operators::might_be_operator(
+                || types::operator_type::Operators::might_be_operator(
                     data.data.operator.clone(),
                     &data.operator_collect,
-                ) && !types::operator_type::Operators::might_be_operator(
-                    data.data.operator.clone(),
-                    &(data.operator_collect.clone() + letter_char),
-                ))
+                )
             {
-                let is_opearator = types::operator_type::Operators::resolve_operator(
+                let is_operator = types::operator_type::Operators::resolve_operator(
                     data.data.operator.clone(),
                     &data.operator_collect,
                 );
-                if is_opearator.is_err() {
+
+                let is_next_a_operator = types::operator_type::Operators::resolve_operator(
+                    data.data.operator.clone(),
+                    &(data.operator_collect.to_string() + letter_char),
+                );
+
+                if is_operator.is_err() {
                     if letter_char == " " {
                         data.operator_collected = true;
                     } else {
@@ -57,12 +60,15 @@ pub fn collect_operator(
                             },
                         });
                     }
-                } else if let Ok(parsed_operator) = is_opearator {
-                    data.data.operator = parsed_operator;
-                    data.operator_collected = true;
+                } else if let Ok(parsed_operator) = is_operator {
+                    if !is_next_a_operator.is_ok() {
+                        data.data.operator = parsed_operator;
+                        data.operator_collected = true;
+                    } else {
+                        data.operator_collect += letter_char;
+                    }
                 }
-            } else if types::operator_type::Operators::might_be_operator(
-                data.data.operator.clone(),
+            } else if types::operator_type::Operators::is_comparison_operator(
                 &(data.operator_collect.clone() + letter_char),
             ) {
                 data.operator_collect += letter_char;

@@ -10,7 +10,7 @@ pub fn collect_constructor(
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     _next_char: String,
-    last_char: String
+    last_char: String,
 ) {
     if let parser::Collecting::Constructor(ref mut constructordata) = parser.current {
         let current_reliability = utils::reliable_name_range(

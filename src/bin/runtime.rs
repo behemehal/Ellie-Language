@@ -1,9 +1,6 @@
 use fs::File;
 use std::{fs, io::Read};
 
-
-use ellie_runtime::runtime;
-
 fn main() {
     let mut file_content = Vec::new();
     let file_read = File::open("./test_dir/test.ei");
@@ -15,8 +12,7 @@ fn main() {
         let code_string = String::from_utf8(file_content);
         if code_string.is_err() {
             println!("Unable to read file ~./test_dir/test.ei")
-        } else if let Ok(code) = code_string {
-
+        } else if let Ok(_code) = code_string {
         }
     }
 }

@@ -6,7 +6,7 @@ use serde::Serialize;
 
 use crate::syntax::types::arithmetic_type::ArithmeticOperators;
 use crate::syntax::types::comparison_type::ComparisonOperators;
-use crate::syntax::types::logical_type::LogicalOpearators;
+use crate::syntax::types::logical_type::LogicalOperators;
 
 use alloc::boxed::Box;
 use alloc::string::String;
@@ -14,28 +14,31 @@ use alloc::string::String;
 #[derive(PartialEq, Debug, Clone, Serialize)]
 pub enum Operators {
     ComparisonType(ComparisonOperators),
-    LogicalType(LogicalOpearators),
+    LogicalType(LogicalOperators),
     ArithmeticType(ArithmeticOperators),
     Null,
 }
 
 impl Operators {
-    pub fn is_opeartor(value: &str) -> bool {
-        types::comparison_type::ComparisonOperators::is_comparison_opearator(value)
-            || types::logical_type::LogicalOpearators::is_logical_opearator(value)
-            || types::arithmetic_type::ArithmeticOperators::is_arithmetic_opearator(value)
+    pub fn is_comparison_operator(value: &str) -> bool {
+        value == "=="
+            || value == "!="
+            || value == ">"
+            || value == "<"
+            || value == ">="
+            || value == "<="
     }
 
     pub fn might_be_operator(rtype: Operators, value: &str) -> bool {
         match rtype {
             Operators::ComparisonType(_) => {
-                types::comparison_type::ComparisonOperators::is_comparison_opearator(value)
+                types::comparison_type::ComparisonOperators::is_comparison_operator(value)
             }
             Operators::LogicalType(_) => {
-                types::logical_type::LogicalOpearators::is_logical_opearator(value)
+                types::logical_type::LogicalOperators::is_logical_operator(value)
             }
             Operators::ArithmeticType(_) => {
-                types::arithmetic_type::ArithmeticOperators::is_arithmetic_opearator(value)
+                types::arithmetic_type::ArithmeticOperators::is_arithmetic_operator(value)
             }
             _ => false,
         }
@@ -54,7 +57,7 @@ impl Operators {
             }
             Operators::LogicalType(_) => {
                 if let Ok(e) =
-                    types::logical_type::LogicalOpearators::resolve_logical_operator(value)
+                    types::logical_type::LogicalOperators::resolve_logical_operator(value)
                 {
                     Ok(Operators::LogicalType(e))
                 } else {

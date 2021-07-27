@@ -98,6 +98,4 @@ impl Default for Cursor {
     }
 }
 
-pub trait NativePlugin {
-    
-}
+pub trait NativePlugin {}

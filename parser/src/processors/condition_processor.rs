@@ -1,7 +1,7 @@
 use crate::parser;
 use crate::processors;
 use crate::syntax::{condition, types};
-use ellie_core::{error, defs};
+use ellie_core::{defs, error};
 
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};
@@ -12,7 +12,7 @@ pub fn collect_condition(
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     next_char: String,
-    last_char: String
+    last_char: String,
 ) {
     let parser_clone = parser.clone();
     if let parser::Collecting::Condition(ref mut data) = parser.current {

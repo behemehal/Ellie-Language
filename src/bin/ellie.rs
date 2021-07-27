@@ -263,8 +263,12 @@ fn main() {
                                                             - (error.pos.range_start.1))
                                                             as usize
                                                     } else {
-                                                        if error.pos.range_start.1 > (line[error.pos.range_start.1]).len() {
-                                                            error.pos.range_start.1 as usize - (line[error.pos.range_start.1]).len()
+                                                        if error.pos.range_start.1
+                                                            > (line[error.pos.range_start.1]).len()
+                                                        {
+                                                            error.pos.range_start.1 as usize
+                                                                - (line[error.pos.range_start.1])
+                                                                    .len()
                                                         } else {
                                                             error.pos.range_end.1
                                                         }

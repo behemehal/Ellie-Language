@@ -30,5 +30,5 @@ extern crate alloc;
 #[cfg(feature = "std")]
 extern crate std;
 
-pub mod runtime;
 pub mod heap;
+pub mod runtime;

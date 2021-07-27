@@ -2,8 +2,8 @@ use crate::alloc::string::{String, ToString};
 use crate::alloc::vec;
 use crate::alloc::vec::Vec;
 use crate::parser;
-use crate::syntax;
 use crate::processors::value_processor;
+use crate::syntax;
 use alloc::boxed::Box;
 use ellie_core::{defs, error, utils};
 
@@ -12,7 +12,7 @@ pub fn collect_filekey(
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     next_char: String,
-    last_char: String
+    last_char: String,
 ) {
     let clone_parser = parser.clone();
     if let parser::Collecting::FileKey(ref mut filekeydata) = parser.current {
@@ -36,7 +36,9 @@ pub fn collect_filekey(
             } else {
                 if letter_char == "=" && !filekeydata.data.keyname.is_empty() {
                     filekeydata.keyname_collected = true;
-                } else if letter_char != " " && (letter_char == "@" && filekeydata.data.keyname != ""){
+                } else if letter_char != " "
+                    && (letter_char == "@" && filekeydata.data.keyname != "")
+                {
                     errors.push(error::Error {
                         scope: "filekey_processor".to_string(),
                         debug_message: "replace_filekey_42".to_string(),
@@ -58,7 +60,10 @@ pub fn collect_filekey(
                 }
             }
         } else if letter_char == ";" && filekeydata.data.value.is_type_complete() {
-            if clone_parser.check_keyword(filekeydata.data.keyname.clone()).found {
+            if clone_parser
+                .check_keyword(filekeydata.data.keyname.clone())
+                .found
+            {
                 errors.push(error::Error {
                     scope: "filekey_processor".to_string(),
                     debug_message: "replace_filekey_64".to_string(),
@@ -74,7 +79,12 @@ pub fn collect_filekey(
                     ),
                     pos: defs::Cursor {
                         range_start: filekeydata.data.keyname_location.range_start,
-                        range_end: filekeydata.data.keyname_location.range_end.clone().skip_char(1)
+                        range_end: filekeydata
+                            .data
+                            .keyname_location
+                            .range_end
+                            .clone()
+                            .skip_char(1),
                     },
                 });
             }
@@ -94,7 +104,12 @@ pub fn collect_filekey(
                     ),
                     pos: defs::Cursor {
                         range_start: filekeydata.data.keyname_location.range_start,
-                        range_end: filekeydata.data.keyname_location.range_end.clone().skip_char(1)
+                        range_end: filekeydata
+                            .data
+                            .keyname_location
+                            .range_end
+                            .clone()
+                            .skip_char(1),
                     },
                 });
             }
@@ -125,11 +140,9 @@ pub fn collect_filekey(
             if filekeydata.data.value_location.is_zero() {
                 filekeydata.data.value_location.range_start = parser.pos;
             }
-            
+
             filekeydata.data.value = itered_filekey_vector.itered_data.data.value;
             filekeydata.data.value_location.range_end = parser.pos;
         }
-
-
     }
 }

@@ -249,32 +249,29 @@ pub fn collect_array(
                 last_char,
             )
         } else if data.complete
-            && types::logical_type::LogicalOpearators::is_logical_opearator(letter_char)
-            && is_s_n
+            && types::logical_type::LogicalOperators::is_logical_operator(letter_char)
+            || types::logical_type::LogicalOperators::is_logical_operator(
+                &(letter_char.to_string() + &next_char),
+            ) && is_s_n
         {
             itered_data.data.value =
                 types::Types::Operator(types::operator_type::OperatorTypeCollector {
                     data: types::operator_type::OperatorType {
                         first: Box::new(itered_data.data.value.clone()),
                         operator: types::operator_type::Operators::LogicalType(
-                            types::logical_type::LogicalOpearators::Null,
+                            types::logical_type::LogicalOperators::Null,
                         ),
                         ..Default::default()
                     },
+                    operator_collect: letter_char.to_string(),
                     first_filled: true,
                     ..Default::default()
                 });
-            type_processors::operator::collect_operator(
-                parser.clone(),
-                itered_data,
-                errors,
-                letter_char,
-                next_char,
-                last_char,
-            )
         } else if data.complete
-            && types::comparison_type::ComparisonOperators::is_comparison_opearator(letter_char)
-            && is_s_n
+            && types::comparison_type::ComparisonOperators::is_comparison_operator(letter_char)
+            || types::comparison_type::ComparisonOperators::is_comparison_operator(
+                &(letter_char.to_string() + &next_char),
+            ) && is_s_n
         {
             itered_data.data.value =
                 types::Types::Operator(types::operator_type::OperatorTypeCollector {
@@ -285,20 +282,15 @@ pub fn collect_array(
                         ),
                         ..Default::default()
                     },
+                    operator_collect: letter_char.to_string(),
                     first_filled: true,
                     ..Default::default()
                 });
-            type_processors::operator::collect_operator(
-                parser.clone(),
-                itered_data,
-                errors,
-                letter_char,
-                next_char,
-                last_char,
-            )
         } else if data.complete
-            && types::arithmetic_type::ArithmeticOperators::is_arithmetic_opearator(letter_char)
-            && is_s_n
+            && types::arithmetic_type::ArithmeticOperators::is_arithmetic_operator(letter_char)
+            || types::arithmetic_type::ArithmeticOperators::is_arithmetic_operator(
+                &(letter_char.to_string() + &next_char),
+            ) && is_s_n
         {
             itered_data.data.value =
                 types::Types::Operator(types::operator_type::OperatorTypeCollector {
@@ -309,17 +301,10 @@ pub fn collect_array(
                         ),
                         ..Default::default()
                     },
+                    operator_collect: letter_char.to_string(),
                     first_filled: true,
                     ..Default::default()
                 });
-            type_processors::operator::collect_operator(
-                parser.clone(),
-                itered_data,
-                errors,
-                letter_char,
-                next_char,
-                last_char,
-            )
         } else {
             if letter_char != " " {
                 //TODO IS THIS SAFE ?
@@ -393,8 +378,9 @@ pub fn collect_array(
                 last_char,
             ));
 
-            if let types::Types::Array(ref adata) = itered_array_vector.itered_data.data.value {
-                if adata.complete {
+            if let types::Types::Array(ref array_data) = itered_array_vector.itered_data.data.value
+            {
+                if array_data.complete {
                     data.child_start = false;
                 }
             }

@@ -22,12 +22,13 @@ impl Default for ArithmeticOperators {
 }
 
 impl ArithmeticOperators {
-    pub fn _is_arithmetic_opearator(value: &str) -> bool {
-        "+-*/%".contains(value)
-    }
-
-    pub fn is_arithmetic_opearator(value: &str) -> bool {
-        value == "+ "
+    pub fn is_arithmetic_operator(value: &str) -> bool {
+        value == "+"
+            || value == "-"
+            || value == "*"
+            || value == "**"
+            || value == "/"
+            || value == "%"
     }
 
     pub fn resolve_arithmetic_operator(value: &str) -> Result<ArithmeticOperators, bool> {

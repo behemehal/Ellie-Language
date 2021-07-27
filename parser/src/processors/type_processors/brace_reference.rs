@@ -1,22 +1,16 @@
 use crate::parser;
-use crate::processors::value_processor;
-use crate::syntax::{definers, types, variable};
-
-use alloc::boxed::Box;
-use alloc::string::{String, ToString};
-use alloc::vec;
+use crate::syntax::{types, variable};
+use alloc::string::String;
 use alloc::vec::Vec;
-use ellie_core::{defs, error, utils};
+use ellie_core::error;
 
 pub fn collect_brace_reference(
-    parser: parser::Parser,
+    _parser: parser::Parser,
     itered_data: &mut variable::VariableCollector,
-    errors: &mut Vec<error::Error>,
-    letter_char: &str,
-    next_char: String,
-    last_char: String,
+    _errors: &mut Vec<error::Error>,
+    _letter_char: &str,
+    _next_char: String,
+    _last_char: String,
 ) {
-    if let types::Types::BraceReference(ref mut data) = itered_data.data.value {
-
-    }
+    if let types::Types::BraceReference(ref mut _data) = itered_data.data.value {}
 }

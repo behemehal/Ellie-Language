@@ -81,9 +81,8 @@ pub fn collect_null(
                     types::collective_type::CollectiveCollector::default(),
                 );
             } else if letter_char == "!" {
-                itered_data.data.value = types::Types::Negative(
-                    types::negative_type::Negative::default(),
-                );
+                itered_data.data.value =
+                    types::Types::Negative(types::negative_type::Negative::default());
             } else if letter_char == "(" {
                 itered_data.data.value = types::Types::Cloak(types::cloak_type::CloakType {
                     layer_size: 0,

@@ -1,11 +1,10 @@
 use crate::parser;
 use crate::processors::value_processor;
-use crate::syntax::{definers, types, variable};
-use ellie_core::{defs, error};
+use crate::syntax::{types, variable};
+use ellie_core::error;
 
 use alloc::boxed::Box;
-use alloc::string::{String, ToString};
-use alloc::vec;
+use alloc::string::String;
 use alloc::vec::Vec;
 
 pub fn collect_negative(
@@ -16,10 +15,10 @@ pub fn collect_negative(
     next_char: String,
     last_char: String,
 ) {
-    if let types::Types::Negative(ref mut negativedata) = itered_data.data.value {
+    if let types::Types::Negative(ref mut negative_data) = itered_data.data.value {
         let mut will_be_itered = variable::VariableCollector {
             data: variable::Variable {
-                value: *negativedata.value.clone(),
+                value: *negative_data.value.clone(),
                 ..Default::default()
             },
             ..variable::VariableCollector::default()
@@ -36,6 +35,6 @@ pub fn collect_negative(
         if !itered_negative_vector.errors.is_empty() {
             errors.extend(itered_negative_vector.errors);
         }
-        negativedata.value = Box::new(itered_negative_vector.itered_data.data.value);
+        negative_data.value = Box::new(itered_negative_vector.itered_data.data.value);
     }
 }
