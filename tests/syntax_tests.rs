@@ -1,5 +1,6 @@
 mod syntax {
     mod arithmetic_operators;
+    mod array;
     mod bool;
     mod char;
     mod comparison_operators;
@@ -8,5 +9,4 @@ mod syntax {
     mod logical_operators;
     mod negative;
     mod string;
-    mod array;
 }

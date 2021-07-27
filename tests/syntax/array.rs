@@ -70,11 +70,11 @@ mod array_tests {
                 ellie_lang::test_utils::emulate_value_processor("[1, 2, 3]"),
                 ellie_parser::syntax::types::Types::Array(
                     ellie_parser::syntax::types::array_type::ArrayType {
-                        layer_size: 3,     
-                        complete: true,    
-                        comma: false,      
+                        layer_size: 3,
+                        complete: true,
+                        comma: false,
                         child_start: false,
-                        collective: vec![      
+                        collective: vec![
                             ellie_parser::syntax::types::array_type::ArrayEntry {
                                 value_complete: true,
                                 value: Box::new(ellie_parser::syntax::types::Types::Array(
@@ -128,14 +128,12 @@ mod array_tests {
                                         collective: vec![
                                             ellie_parser::syntax::types::array_type::ArrayEntry {
                                                 value_complete: true,
-                                                value: 
-                                                    Box::new(ellie_parser::syntax::types::Types::Integer(ellie_parser::syntax::types::integer_type::IntegerType {
+                                                value: Box::new(ellie_parser::syntax::types::Types::Integer(ellie_parser::syntax::types::integer_type::IntegerType {
                                                 value: ellie_parser::syntax::types::integer_type::IntegerSize::I8(2),
                                                 raw: "2".to_string(),
                                                 rtype: ellie_parser::syntax::types::integer_type::IntegerTypes::I8,
                                                 complete: true,
                                             },),),
-                                                
                                                 location: ellie_core::defs::Cursor {
                                                     range_start: ellie_core::defs::CursorPosition(
                                                         0,
@@ -222,11 +220,11 @@ mod array_tests {
                     child_start: false,
                     collective: vec![
                         ellie_parser::syntax::types::array_type::ArrayEntry {
-                            value_complete: true,      
+                            value_complete: true,
                             value: Box::new(ellie_parser::syntax::types::Types::Array(
                                 ellie_parser::syntax::types::array_type::ArrayType {
-                                    layer_size: 1,     
-                                    complete: true,    
+                                    layer_size: 1,
+                                    complete: true,
                                     comma: false,
                                     child_start: false,
                                     collective: vec![
