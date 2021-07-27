@@ -102,7 +102,7 @@ pub fn collect_type(
             ..Default::default()
         });
         parser.keyword_catch = String::new();
-    } else if (keyword == "fn " || keyword == "pub fn" || keyword == "pri fn")
+    } else if (keyword == "fn " || keyword == "pub fn " || keyword == "pri fn ")
         && parser.options.functions
     {
         parser.current = parser::Collecting::Function(function::FunctionCollector {
