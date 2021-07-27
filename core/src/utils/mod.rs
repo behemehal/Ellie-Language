@@ -36,7 +36,7 @@ pub fn is_reserved(value: &str) -> bool {
 pub fn reliable_name_range(range: ReliableNameRanges, value: String) -> ReliableNameRangeResponse {
     match range {
         ReliableNameRanges::VariableName => {
-            let variable_range = "QWERTYUIOPASDFGHJKLIZXCVBNMqwertyuıopasdfghjklizxcvbnm0123456789";
+            let variable_range = "QWERTYUIOPASDFGHJKLIZXCVBNMqwertyuıopasdfghjklizxcvbnm0123456789_";
             let find = value.split("").position(|x| !variable_range.contains(&x));
             return ReliableNameRangeResponse {
                 reliable: find == None,
@@ -61,7 +61,7 @@ pub fn reliable_name_range(range: ReliableNameRanges, value: String) -> Reliable
             };
         }
         ReliableNameRanges::FunctionName => {
-            let variable_range = "QWERTYUIOPASDFGHJKLIZXCVBNMqwertyuıopasdfghjklizxcvbnm";
+            let variable_range = "QWERTYUIOPASDFGHJKLIZXCVBNMqwertyuıopasdfghjklizxc_vbnm";
             let find = value.split("").position(|x| !variable_range.contains(&x));
             return ReliableNameRangeResponse {
                 reliable: find == None,

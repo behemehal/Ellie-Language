@@ -98,4 +98,25 @@ mod negative_tests {
             ),
         ));
     }
+
+    #[test]
+    fn variable_value_collected_with_no_error() {
+        assert!(ellie_lang::test_utils::has_no_error_and_correct(
+            ellie_lang::test_utils::emulate_value_processor("!test"),
+            ellie_parser::syntax::types::Types::Negative(
+                ellie_parser::syntax::types::negative_type::Negative {
+                    value: Box::new(ellie_parser::syntax::types::Types::VariableType(
+                        ellie_parser::syntax::types::variable_type::VariableType {
+                            value_complete: false,
+                            value: "test".to_string(),
+                            pos: ellie_core::defs::Cursor {
+                                range_start: ellie_core::defs::CursorPosition::default(),
+                                range_end: ellie_core::defs::CursorPosition::default()
+                            }
+                        },
+                    )),
+                },
+            ),
+        ));
+    }
 }

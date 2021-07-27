@@ -1,12 +1,12 @@
 # Tests
 
 - Syntax Tests
-  - Function         NOT OK
-  - Variable         NOT OK
+  - Function           OK
+  - Variable           OK
   - For              NOT OK
   - Class            NOT OK
-  - Import           NOT OK
-  - Ret              NOT OK
+  - Import             OK
+  - Ret                OK
   - Enum             NOT OK
   - Statements       NOT OK
   - Callers          NOT OK
@@ -26,7 +26,7 @@
     - ClassCall         NOT OK
     - FunctionCall      NOT OK
     - Negative            OK
-    - VariableType      NOT OK
+    - VariableType        OK
     - Void                --
 
 ---
