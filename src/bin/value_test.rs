@@ -14,7 +14,7 @@ fn main() {
     emulated_collector_data.data.dynamic = true;
     let code = "
 
-    123 && 123
+    123&&123
     
     ";
 

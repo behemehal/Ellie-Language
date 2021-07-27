@@ -366,8 +366,8 @@ pub fn collect_array(
                         ..variable::VariableCollector::default()
                     }
                 };
-                #[cfg(feature = "std")]
-                std::println!("[ParserError:0x1]: This shouldn't have happened");
+                //#[cfg(feature = "std")]
+                //std::println!("[ParserError:0x1]: This shouldn't have happened");
             }
 
             let itered_array_vector = Box::new(value_processor::collect_value(

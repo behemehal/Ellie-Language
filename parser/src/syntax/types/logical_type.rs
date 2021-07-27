@@ -18,6 +18,10 @@ impl Default for LogicalOperators {
 }
 
 impl LogicalOperators {
+    pub fn might_logical_operator(value: &str) -> bool {
+        value == "&" || value == "|"
+    }
+
     pub fn is_logical_operator(value: &str) -> bool {
         value == "&&" || value == "||"
     }

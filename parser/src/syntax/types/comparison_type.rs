@@ -22,6 +22,10 @@ impl Default for ComparisonOperators {
 }
 
 impl ComparisonOperators {
+    pub fn might_comparison_operator(value: &str) -> bool {
+        value == "=" || value == "!" || value == ">" || value == "<"
+    }
+
     pub fn is_comparison_operator(value: &str) -> bool {
         value == "=="
             || value == "!="

@@ -22,6 +22,10 @@ impl Default for ArithmeticOperators {
 }
 
 impl ArithmeticOperators {
+    pub fn might_arithmetic_operator(value: &str) -> bool {
+        value == "+" || value == "-" || value == "*" || value == "/" || value == "%"
+    }
+
     pub fn is_arithmetic_operator(value: &str) -> bool {
         value == "+"
             || value == "-"

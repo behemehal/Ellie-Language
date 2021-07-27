@@ -32,13 +32,13 @@ impl Operators {
     pub fn might_be_operator(rtype: Operators, value: &str) -> bool {
         match rtype {
             Operators::ComparisonType(_) => {
-                types::comparison_type::ComparisonOperators::is_comparison_operator(value)
+                types::comparison_type::ComparisonOperators::might_comparison_operator(value)
             }
             Operators::LogicalType(_) => {
-                types::logical_type::LogicalOperators::is_logical_operator(value)
+                types::logical_type::LogicalOperators::might_logical_operator(value)
             }
             Operators::ArithmeticType(_) => {
-                types::arithmetic_type::ArithmeticOperators::is_arithmetic_operator(value)
+                types::arithmetic_type::ArithmeticOperators::might_arithmetic_operator(value)
             }
             _ => false,
         }
