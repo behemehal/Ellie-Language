@@ -24,4 +24,4 @@ import int;
     SOFTWARE.
 */
 
-pub class Enumerate {}
+pub class enumerate {}

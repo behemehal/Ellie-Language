@@ -5,30 +5,32 @@ use alloc::boxed::Box;
 use alloc::string::String;
 
 #[derive(PartialEq, Debug, Clone, Serialize)]
-pub enum LogicalOpearators {
+pub enum LogicalOperators {
     And,
     Or,
     Null,
 }
 
-impl Default for LogicalOpearators {
+impl Default for LogicalOperators {
     fn default() -> Self {
-        LogicalOpearators::Null
+        LogicalOperators::Null
     }
 }
 
-impl LogicalOpearators {
-    pub fn is_logical_opearator(value: &str) -> bool {
-        "|&".contains(value)
+impl LogicalOperators {
+    pub fn might_logical_operator(value: &str) -> bool {
+        value == "&" || value == "|"
     }
 
-    pub fn resolve_logical_operator(value: &str) -> Result<LogicalOpearators, bool> {
-        if value == "&&" {
-            Ok(LogicalOpearators::And)
-        } else if value == "||" {
-            Ok(LogicalOpearators::Or)
-        } else {
-            Err(true)
+    pub fn is_logical_operator(value: &str) -> bool {
+        value == "&&" || value == "||"
+    }
+
+    pub fn resolve_logical_operator(value: &str) -> Result<LogicalOperators, bool> {
+        match value {
+            "&&" => Ok(LogicalOperators::And),
+            "||" => Ok(LogicalOperators::Or),
+            _ => Err(true),
         }
     }
 }
@@ -39,7 +41,7 @@ pub struct LogicalType {
     pub first: Box<types::Types>,
     pub first_filled: bool,
     pub second: Box<types::Types>,
-    pub operator: LogicalOpearators,
+    pub operator: LogicalOperators,
     pub operator_collect: String,
     pub operator_collected: bool,
     pub child_start: bool,

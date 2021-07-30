@@ -2,13 +2,31 @@ use ellie_core;
 use ellie_parser;
 //use std::fs;
 
+/*
+
+    This is a development tool for collecting values
+
+*/
+
 fn main() {
     let emulated_parser = ellie_parser::parser::Parser::default();
     let mut emulated_collector_data = ellie_parser::syntax::variable::VariableCollector::default();
     emulated_collector_data.data.dynamic = true;
     let code = "
 
-    string()
+    {
+        0: 'e',
+        1: 'l',
+        2: 'l',
+        3: 'i',
+        4: {
+            0: 'e',
+            1: 'l',
+            2: 'l',
+            3: 'i',
+            4: 'e'
+        }
+    }
     
     ";
 

@@ -12,7 +12,6 @@ pub fn collect_function(
     letter_char: &str,
     next_char: String,
     last_char: String,
-    _options: defs::ParserOptions,
 ) {
     let parser_clone = parser.clone();
     if let parser::Collecting::Function(ref mut functiondata) = parser.current {
@@ -331,10 +330,10 @@ pub fn collect_function(
                 );
             }
         } else if functiondata.brace_count == 0 && letter_char == "}" {
-            //functiondata.data.inside_code = functiondata.code.collected.clone();
-            //functiondata.code = Box::new(parser::Parser::default()); //Empty the cache
-            let fn_exists = parser_clone.check_keyword(functiondata.data.name.clone());
-            if fn_exists.found {
+            if parser_clone
+                .check_keyword(functiondata.data.name.clone())
+                .found
+            {
                 errors.push(error::Error {
                     scope: parser.scope.scope_name.clone(),
                     debug_message: "34b8f786e3b3d426d5567d181b7096a4".to_string(),
@@ -350,10 +349,9 @@ pub fn collect_function(
                     ),
                     pos: functiondata.data.name_pos,
                 });
-            } else {
-                parser.collected.push(parser.current.clone());
-                parser.current = parser::Collecting::None;
             }
+            parser.collected.push(parser.current.clone());
+            parser.current = parser::Collecting::None;
         } else {
             if letter_char == "{" {
                 functiondata.brace_count += 1;

@@ -4,7 +4,7 @@ use serde::Serialize;
 use alloc::boxed::Box;
 use alloc::string::String;
 
-#[derive(PartialEq, Debug, Clone, Serialize, Hash)]
+#[derive(PartialEq, Debug, Clone, Serialize)]
 pub enum ArithmeticOperators {
     Addition,
     Subtraction,
@@ -22,12 +22,17 @@ impl Default for ArithmeticOperators {
 }
 
 impl ArithmeticOperators {
-    pub fn _is_arithmetic_opearator(value: &str) -> bool {
-        "+-*/%".contains(value)
+    pub fn might_arithmetic_operator(value: &str) -> bool {
+        value == "+" || value == "-" || value == "*" || value == "/" || value == "%"
     }
 
-    pub fn is_arithmetic_opearator(value: &str) -> bool {
-        value == "+ "
+    pub fn is_arithmetic_operator(value: &str) -> bool {
+        value == "+"
+            || value == "-"
+            || value == "*"
+            || value == "**"
+            || value == "/"
+            || value == "%"
     }
 
     pub fn resolve_arithmetic_operator(value: &str) -> Result<ArithmeticOperators, bool> {

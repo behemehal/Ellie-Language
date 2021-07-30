@@ -1,0 +1,8 @@
+import collective;
+
+v test : collective(int, collective(dyn, dyn)) = {
+    0: {},
+    1: {},
+    1: {},
+    1: {}
+};

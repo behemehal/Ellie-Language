@@ -50,12 +50,12 @@ pub fn collect_string(
             data.value += letter_char;
         } else if letter_char == "." {
             itered_data.data.value =
-                types::Types::Refference(types::refference_type::RefferenceType {
-                    refference: Box::new(itered_data.data.value.clone()),
+                types::Types::Reference(types::reference_type::ReferenceType {
+                    reference: Box::new(itered_data.data.value.clone()),
                     chain: Vec::new(),
                     on_dot: false,
                 });
-            type_processors::refference::collect_refference(
+            type_processors::reference::collect_reference(
                 parser.clone(),
                 itered_data,
                 errors,
@@ -63,29 +63,29 @@ pub fn collect_string(
                 next_char,
                 last_char,
             )
-        } else if types::logical_type::LogicalOpearators::is_logical_opearator(letter_char) {
+        } else if types::logical_type::LogicalOperators::is_logical_operator(letter_char)
+            || types::logical_type::LogicalOperators::is_logical_operator(
+                &(letter_char.to_string() + &next_char),
+            )
+        {
             data.complete = true;
             itered_data.data.value =
                 types::Types::Operator(types::operator_type::OperatorTypeCollector {
                     data: types::operator_type::OperatorType {
                         first: Box::new(itered_data.data.value.clone()),
                         operator: types::operator_type::Operators::LogicalType(
-                            types::logical_type::LogicalOpearators::Null,
+                            types::logical_type::LogicalOperators::Null,
                         ),
                         ..Default::default()
                     },
+                    operator_collect: letter_char.to_string(),
                     first_filled: true,
                     ..Default::default()
                 });
-            type_processors::operator::collect_operator(
-                parser.clone(),
-                itered_data,
-                errors,
-                letter_char,
-                next_char,
-                last_char,
+        } else if types::comparison_type::ComparisonOperators::is_comparison_operator(letter_char)
+            || types::comparison_type::ComparisonOperators::is_comparison_operator(
+                &(letter_char.to_string() + &next_char),
             )
-        } else if types::comparison_type::ComparisonOperators::is_comparison_opearator(letter_char)
         {
             data.complete = true;
             itered_data.data.value =
@@ -97,18 +97,14 @@ pub fn collect_string(
                         ),
                         ..Default::default()
                     },
+                    operator_collect: letter_char.to_string(),
                     first_filled: true,
                     ..Default::default()
                 });
-            type_processors::operator::collect_operator(
-                parser.clone(),
-                itered_data,
-                errors,
-                letter_char,
-                next_char,
-                last_char,
+        } else if types::arithmetic_type::ArithmeticOperators::is_arithmetic_operator(letter_char)
+            || types::arithmetic_type::ArithmeticOperators::is_arithmetic_operator(
+                &(letter_char.to_string() + &next_char),
             )
-        } else if types::arithmetic_type::ArithmeticOperators::is_arithmetic_opearator(letter_char)
         {
             data.complete = true;
             itered_data.data.value =
@@ -120,17 +116,10 @@ pub fn collect_string(
                         ),
                         ..Default::default()
                     },
+                    operator_collect: letter_char.to_string(),
                     first_filled: true,
                     ..Default::default()
                 });
-            type_processors::operator::collect_operator(
-                parser.clone(),
-                itered_data,
-                errors,
-                letter_char,
-                next_char,
-                last_char,
-            )
         } else if letter_char != " " {
             errors.push(error::Error {
                 scope: "string_processor".to_string(),

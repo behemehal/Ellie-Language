@@ -8,7 +8,7 @@ use alloc::vec;
 use alloc::vec::Vec;
 use ellie_core::{defs, error, utils};
 
-pub fn collect_refference(
+pub fn collect_reference(
     parser: parser::Parser,
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
@@ -16,8 +16,12 @@ pub fn collect_refference(
     next_char: String,
     last_char: String,
 ) {
-    if let types::Types::Refference(ref mut data) = itered_data.data.value {
-        if letter_char == "." {
+    if let types::Types::Reference(ref mut data) = itered_data.data.value {
+        if letter_char == "."
+            && (data.chain.len() == 0
+                || matches!(&data.chain[data.chain.len() - 1].value, types::reference_type::ChainType::Setter(setter_data) if setter_data.value.is_type_complete())
+                    && matches!(&data.chain[data.chain.len() - 1].value, types::reference_type::ChainType::FunctionCall(function_call_data) if function_call_data.complete))
+        {
             if data.on_dot {
                 errors.push(error::Error {
                     scope: "refference_processor".to_string(),
@@ -41,15 +45,7 @@ pub fn collect_refference(
                 if data.chain.len() == 0 {
                     data.on_dot = true;
                 } else {
-                    match &data.chain[data.chain.len() - 1].value {
-                        types::refference_type::ChainType::Getter(_) => {
-                            data.on_dot = true;
-                        }
-                        types::refference_type::ChainType::Setter(_) => {}
-                        types::refference_type::ChainType::FunctionCall(_) => {
-                            panic!("REFFERENCE FUNCTION TYPE IS NOT IMPLEMENTED")
-                        }
-                    };
+                    data.on_dot = true;
                 }
             }
         } else {
@@ -60,13 +56,13 @@ pub fn collect_refference(
             let last_chain = data.chain.clone().len();
 
             if last_chain == 0 {
-                data.chain.push(types::refference_type::Chain {
+                data.chain.push(types::reference_type::Chain {
                     pos: defs::Cursor {
                         range_start: parser.pos.clone(),
                         ..Default::default()
                     },
-                    value: types::refference_type::ChainType::Getter(
-                        types::refference_type::GetterChain {
+                    value: types::reference_type::ChainType::Getter(
+                        types::reference_type::GetterChain {
                             value: letter_char.to_string(),
                         },
                     ),
@@ -74,19 +70,17 @@ pub fn collect_refference(
             } else {
                 let clone_ref_data = data.clone();
                 match &mut data.chain[last_chain - 1].value {
-                    types::refference_type::ChainType::Getter(getter_data) => {
+                    types::reference_type::ChainType::Getter(getter_data) => {
                         if current_reliability.reliable {
                             getter_data.value += letter_char;
                         } else if letter_char == "(" && getter_data.value != "" {
                             data.chain[last_chain - 1].value =
-                                types::refference_type::ChainType::FunctionCall(
+                                types::reference_type::ChainType::FunctionCall(
                                     types::function_call::FunctionCallCollector {
                                         data: types::function_call::FunctionCall {
                                             name: getter_data.value.clone(),
                                             name_pos: data.chain[last_chain - 1].pos,
-                                            params: vec![
-                                            types::function_call::FunctionCallParameter::default()
-                                        ],
+                                            ..Default::default()
                                         },
                                         name_collected: true,
                                         ..Default::default()
@@ -94,8 +88,8 @@ pub fn collect_refference(
                                 );
                         } else if letter_char == "=" && getter_data.value != "" {
                             data.chain[last_chain - 1].value =
-                                types::refference_type::ChainType::Setter(
-                                    types::refference_type::SetterChain {
+                                types::reference_type::ChainType::Setter(
+                                    types::reference_type::SetterChain {
                                         name: getter_data.value.clone(),
                                         name_set: true,
                                         ..Default::default()
@@ -122,7 +116,30 @@ pub fn collect_refference(
                             });
                         }
                     }
-                    types::refference_type::ChainType::FunctionCall(functioncalldata) => {
+                    types::reference_type::ChainType::Setter(setter_data) => {
+                        //panic!("SETTER NOT IMPLEMENTED");
+                        let itered_setter_vector = Box::new(value_processor::collect_value(
+                            parser.clone(),
+                            &mut variable::VariableCollector {
+                                data: variable::Variable {
+                                    value: setter_data.value.clone(),
+                                    ..Default::default()
+                                },
+                                ..Default::default()
+                            },
+                            letter_char,
+                            next_char.clone(),
+                            last_char,
+                        ));
+
+                        if !itered_setter_vector.errors.is_empty() {
+                            errors.extend(itered_setter_vector.errors);
+                        }
+                        setter_data.value = itered_setter_vector.itered_data.data.value;
+
+                        if setter_data.value.is_type_complete() {}
+                    }
+                    types::reference_type::ChainType::FunctionCall(functioncalldata) => {
                         if itered_data.data.dynamic {
                             itered_data.data.rtype =
                                 definers::DefinerCollecting::Generic(definers::GenericType {
@@ -197,7 +214,7 @@ pub fn collect_refference(
                                         parser.pos;
                                 }
 
-                                let fn_exists = parser.resolve_refference_function_call(
+                                let fn_exists = parser.resolve_reference_function_call(
                                     clone_ref_data,
                                     functioncalldata.clone(),
                                 );
@@ -262,7 +279,7 @@ pub fn collect_refference(
                                     parser.clone(),
                                     &mut will_be_itered,
                                     letter_char,
-                                    next_char,
+                                    next_char.clone(),
                                     last_char,
                                 ));
 
@@ -328,9 +345,9 @@ pub fn collect_refference(
                                             },
                                         }
                                     }
-                                    types::Types::Collective => {
+                                    types::Types::Collective(match_data) => {
                                         types::function_call::FunctionCallParameter {
-                                            value: types::Types::Null,
+                                            value: types::Types::Collective(match_data),
                                             pos: if last_entry == 0 {
                                                 defs::Cursor::default()
                                             } else {
@@ -338,9 +355,19 @@ pub fn collect_refference(
                                             },
                                         }
                                     }
-                                    types::Types::Refference(match_data) => {
+                                    types::Types::Reference(match_data) => {
                                         types::function_call::FunctionCallParameter {
-                                            value: types::Types::Refference(match_data),
+                                            value: types::Types::Reference(match_data),
+                                            pos: if last_entry == 0 {
+                                                defs::Cursor::default()
+                                            } else {
+                                                functioncalldata.data.params[last_entry - 1].pos
+                                            },
+                                        }
+                                    }
+                                    types::Types::BraceReference(match_data) => {
+                                        types::function_call::FunctionCallParameter {
+                                            value: types::Types::BraceReference(match_data),
                                             pos: if last_entry == 0 {
                                                 defs::Cursor::default()
                                             } else {
@@ -408,6 +435,16 @@ pub fn collect_refference(
                                             },
                                         }
                                     }
+                                    types::Types::Negative(match_data) => {
+                                        types::function_call::FunctionCallParameter {
+                                            value: types::Types::Negative(match_data),
+                                            pos: if last_entry == 0 {
+                                                defs::Cursor::default()
+                                            } else {
+                                                functioncalldata.data.params[last_entry - 1].pos
+                                            },
+                                        }
+                                    }
                                     types::Types::VariableType(match_data) => {
                                         types::function_call::FunctionCallParameter {
                                             value: types::Types::VariableType(match_data),
@@ -431,14 +468,7 @@ pub fn collect_refference(
                                 };
 
                                 if !itered_fcall_vector.errors.is_empty() {
-                                    for returned_error in itered_fcall_vector.errors {
-                                        let mut edited = returned_error;
-                                        edited.pos.range_start.0 += parser.pos.0;
-                                        edited.pos.range_start.1 += parser.pos.1;
-                                        edited.pos.range_end.0 += parser.pos.0;
-                                        edited.pos.range_end.1 += parser.pos.1;
-                                        errors.push(edited);
-                                    }
+                                    errors.extend(itered_fcall_vector.errors);
                                 }
                                 if functioncalldata.data.params.is_empty() {
                                     functioncalldata.data.params.push(itered_entry);
@@ -463,44 +493,8 @@ pub fn collect_refference(
                             data.on_dot = true;
                         }
                     }
-                    _ => panic!("This should never happen"),
                 };
             }
-
-            /*
-            if current_reliability.reliable {
-
-                if last_char != " " && last_char != "\n" {
-                    match &mut data.chain[last_chain - 1].value {
-                        types::refference_type::ChainType::Getter(getter_data) => {
-                            getter_data.value += letter_char;
-                        },
-                        _ => panic!("This should never happen")
-                    };
-                } else {
-                    errors.push(error::Error {
-                        scope: "refference_processor".to_string(),
-                        debug_message: "9fa95d8312b035c63d69321ffd3bb531".to_string(),
-                        title: error::errorList::error_s1.title.clone(),
-                        code: error::errorList::error_s1.code,
-                        message: error::errorList::error_s1.message.clone(),
-                        builded_message: error::Error::build(
-                            error::errorList::error_s1.message.clone(),
-                            vec![error::ErrorBuildField {
-                                key: "token".to_string(),
-                                value: letter_char.to_string(),
-                            }],
-                        ),
-                        pos: defs::Cursor {
-                            range_start: parser.pos,
-                            range_end: parser.pos.clone().skip_char(1),
-                        },
-                    })
-                }
-
-            } else {}
-            */
-            //(last_char != " " && last_char != "\n")
         }
     }
 }

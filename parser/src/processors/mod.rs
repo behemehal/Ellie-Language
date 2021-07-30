@@ -4,6 +4,7 @@ pub mod condition_processor;
 pub mod constructor_processor;
 pub mod definer_processor;
 pub mod enum_processor;
+pub mod filekey_processor;
 pub mod forloop_processor;
 pub mod function_processor;
 pub mod import_processor;

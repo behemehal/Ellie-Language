@@ -35,4 +35,5 @@ extern crate std;
 extern crate lazy_static;
 pub mod defs;
 pub mod error;
+pub mod native;
 pub mod utils;

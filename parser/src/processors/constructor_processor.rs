@@ -11,7 +11,6 @@ pub fn collect_constructor(
     letter_char: &str,
     _next_char: String,
     last_char: String,
-    _options: defs::ParserOptions,
 ) {
     if let parser::Collecting::Constructor(ref mut constructordata) = parser.current {
         let current_reliability = utils::reliable_name_range(

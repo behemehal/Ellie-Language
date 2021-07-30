@@ -10,18 +10,18 @@ use crate::alloc::string::{String, ToString};
 use crate::alloc::vec;
 use crate::alloc::vec::Vec;
 use crate::syntax::{
-    caller, class, condition, constructor, definers, forloop, function, import, import_item, ret,
-    types, variable,
+    caller, class, condition, constructor, definers, file_key, forloop, function, import,
+    import_item, ret, types, variable,
 };
 use ellie_core::{defs, error, utils};
 
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Clone, PartialEq, Default, Serd)]
 pub struct Parsed {
     pub name: String,
     pub items: Vec<Collecting>,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serd)]
 pub struct ParserResponse {
     pub parsed: Parsed,
     pub syntax_errors: Vec<error::Error>,
@@ -39,8 +39,11 @@ pub enum Collecting {
     Constructor(constructor::ConstructorCollector),
     Caller(caller::Caller),
     Import(import::Import),
+    FileKey(file_key::FileKeyCollector),
     Getter,
     Setter,
+    NativeClass,
+    NativeFunction,
     None,
 }
 
@@ -179,18 +182,21 @@ impl Parser {
                     last_char.to_string(),
                 );
                 self.pos.1 += 1;
-            } else if letter_char == "/" || next_char == "/" {
-                if !self.on_comment && !self.on_line_comment {
-                    self.on_line_comment = true
-                }
+            } else if letter_char == "/"
+                && next_char == "/"
+                && !self.on_comment
+                && !self.on_line_comment
+            {
+                self.on_line_comment = true;
+                self.pos.1 += 1;
             } else if last_char == "\r" || letter_char == "\n" {
                 self.pos.0 += 1;
                 self.on_line_comment = false;
                 self.pos.1 = 0;
             }
         }
-        if self.current != Collecting::None || !self.keyword_catch.is_empty() {
-            std::println!("{:#?}", self.current);
+
+        if self.current != Collecting::None || !self.keyword_catch.trim().is_empty() {
             errors.push(error::Error {
                 scope: "definer_processor".to_string(),
                 debug_message: "96910a324dae7459f3f1e063b3477aa7".to_string(),
@@ -215,18 +221,57 @@ impl Parser {
         }
     }
 
+    pub fn is_iterable(&self, target: types::Types) -> bool {
+        match target {
+            types::Types::Integer(_) => true,
+            types::Types::Float(_) => false,
+            types::Types::Bool(_) => true,
+            types::Types::String(_) => true,
+            _ => todo!(),
+        }
+    }
+
+    pub fn resolve_deep_call(&self, target: types::Types) -> types::Types {
+        match target {
+            types::Types::Integer(_) => target,
+            types::Types::Float(_) => target,
+            types::Types::Bool(_) => target,
+            types::Types::String(_) => target,
+            types::Types::Char(_) => target,
+            types::Types::Null => target,
+            types::Types::Void => target,
+            types::Types::Collective(_) => todo!(),
+            types::Types::Array(_) => todo!(),
+            types::Types::Cloak(_) => todo!(),
+            types::Types::Reference(_) => todo!(),
+            types::Types::BraceReference(_) => todo!(),
+            types::Types::Operator(_) => todo!(),
+            types::Types::ArrowFunction(_) => todo!(),
+            types::Types::ClassCall(_) => todo!(),
+            types::Types::FunctionCall(_) => todo!(),
+            types::Types::Negative(_) => todo!(),
+            types::Types::VariableType(_) => todo!(),
+        }
+    }
+
     pub fn resolve_variable(&self, target: types::Types) -> String {
         match target {
             types::Types::Integer(_) => "int".to_string(),
             types::Types::Float(_) => "float".to_string(),
             types::Types::String(_) => "string".to_string(),
             types::Types::Char(_) => "char".to_string(),
-            types::Types::Collective => {
+            types::Types::Bool(_) => "bool".to_string(),
+            types::Types::Negative(_) => "bool".to_string(),
+            types::Types::Collective(_) => "collective".to_string(),
+            types::Types::Cloak(_) => "cloak".to_string(),
+            types::Types::Array(_) => "array".to_string(),
+            types::Types::Void => "void".to_string(),
+            types::Types::Reference(_) => {
                 #[cfg(feature = "std")]
                 std::println!("Not implemented for: types {:#?}", target);
                 "".to_string()
             }
-            types::Types::Refference(_) => {
+            types::Types::BraceReference(_) => {
                 #[cfg(feature = "std")]
                 std::println!("Not implemented for: types {:#?}", target);
                 "".to_string()
@@ -236,16 +281,7 @@ impl Parser {
                 std::println!("Not implemented for: types {:#?}", target);
                 "".to_string()
             }
-            types::Types::Cloak(_) => {
-                #[cfg(feature = "std")]
-                std::println!("Not implemented for: types {:#?}", target);
-                "".to_string()
-            }
-            types::Types::Array(_) => {
-                #[cfg(feature = "std")]
-                std::println!("Not implemented for: types {:#?}", target);
-                "".to_string()
-            }
+
             types::Types::ArrowFunction(_) => "function".to_string(),
             types::Types::ClassCall(_) => {
                 #[cfg(feature = "std")]
@@ -271,7 +307,6 @@ impl Parser {
                     "nen".to_string()
                 }
             }
-            types::Types::Void => "void".to_string(),
             types::Types::VariableType(e) => {
                 let fn_found = self.check_keyword(e.value);
 
@@ -290,19 +325,18 @@ impl Parser {
                 }
             }
             types::Types::Null => "null".to_string(),
-            _ => "".to_string(),
         }
     }
 
-    pub fn resolve_refference_function_call(
+    pub fn resolve_reference_function_call(
         &self,
-        refference_data: types::refference_type::RefferenceType,
+        reference_data: types::reference_type::ReferenceType,
         caller_data: types::function_call::FunctionCallCollector,
     ) -> Option<Vec<ellie_core::error::Error>> {
         let found = false;
         let mut errors = Vec::new();
 
-        let targeted_var = self.check_keyword(self.resolve_variable(*refference_data.refference));
+        let targeted_var = self.check_keyword(self.resolve_variable(*reference_data.reference));
 
         if !targeted_var.found {
             errors.push(error::Error {
@@ -400,6 +434,11 @@ impl Parser {
                                         definers::DefinerCollecting::GrowableArray(_) => {
                                             panic!("Definer Resolving on 'GrowableArray' is not supported");
                                         }
+                                        definers::DefinerCollecting::Nullable(_) => {
+                                            panic!(
+                                                "Definer Resolving on 'Nullable' is not supported"
+                                            );
+                                        }
                                         definers::DefinerCollecting::Generic(e) => {
                                             let resolved_type =
                                                 self.resolve_variable(caller_param.value);
@@ -438,6 +477,9 @@ impl Parser {
                                         }
                                         definers::DefinerCollecting::Cloak(_) => {
                                             panic!("Definer Resolving on 'Cloak' is not supported");
+                                        }
+                                        definers::DefinerCollecting::Collective(_) => {
+                                            panic!("Definer Resolving on 'Collective' is not supported");
                                         }
                                         definers::DefinerCollecting::Dynamic => {
                                             panic!(
@@ -509,6 +551,9 @@ impl Parser {
                                             "Definer Resolving on 'GrowableArray' is not supported"
                                         );
                                     }
+                                    definers::DefinerCollecting::Nullable(_) => {
+                                        panic!("Definer Resolving on 'Nullable' is not supported");
+                                    }
                                     definers::DefinerCollecting::Generic(e) => {
                                         let resolved_type =
                                             self.resolve_variable(caller_param.value);
@@ -542,6 +587,9 @@ impl Parser {
                                         panic!("Definer Resolving on 'Function' is not supported");
                                     }
                                     definers::DefinerCollecting::Cloak(_) => {
+                                        panic!("Definer Resolving on 'Cloak' is not supported");
+                                    }
+                                    definers::DefinerCollecting::Collective(_) => {
                                         panic!("Definer Resolving on 'Cloak' is not supported");
                                     }
                                     definers::DefinerCollecting::Dynamic => {
@@ -650,6 +698,11 @@ impl Parser {
                                         definers::DefinerCollecting::GrowableArray(_) => {
                                             panic!("Definer Resolving on 'GrowableArray' is not supported");
                                         }
+                                        definers::DefinerCollecting::Nullable(_) => {
+                                            panic!(
+                                                "Definer Resolving on 'Nullable' is not supported"
+                                            );
+                                        }
                                         definers::DefinerCollecting::Generic(e) => {
                                             let resolved_type =
                                                 self.resolve_variable(caller_param.value);
@@ -688,6 +741,9 @@ impl Parser {
                                         }
                                         definers::DefinerCollecting::Cloak(_) => {
                                             panic!("Definer Resolving on 'Cloak' is not supported");
+                                        }
+                                        definers::DefinerCollecting::Collective(_) => {
+                                            panic!("Definer Resolving on 'Collective' is not supported");
                                         }
                                         definers::DefinerCollecting::Dynamic => {
                                             panic!(
@@ -759,6 +815,9 @@ impl Parser {
                                             "Definer Resolving on 'GrowableArray' is not supported"
                                         );
                                     }
+                                    definers::DefinerCollecting::Nullable(_) => {
+                                        panic!("Definer Resolving on 'Nullable' is not supported");
+                                    }
                                     definers::DefinerCollecting::Generic(e) => {
                                         let resolved_type =
                                             self.resolve_variable(caller_param.value);
@@ -793,6 +852,11 @@ impl Parser {
                                     }
                                     definers::DefinerCollecting::Cloak(_) => {
                                         panic!("Definer Resolving on 'Cloak' is not supported");
+                                    }
+                                    definers::DefinerCollecting::Collective(_) => {
+                                        panic!(
+                                            "Definer Resolving on 'Collective' is not supported"
+                                        );
                                     }
                                     definers::DefinerCollecting::Dynamic => {
                                         panic!("Definer Resolving on 'Dynamic' is not supported");
@@ -845,7 +909,6 @@ impl Parser {
     pub fn type_exists(&self, name: String) -> bool {
         let mut found = false;
         for item in self.collected.clone() {
-            std::println!("iştem: {:#?}", item);
             if let Collecting::Class(ref e) = item {
                 if e.data.name == name {
                     found = e.data.name == name;
@@ -868,24 +931,31 @@ impl Parser {
         let mut found_item: Collecting = Collecting::None;
 
         for item in self.collected.clone() {
-            match item {
-                Collecting::Variable(ref e) => {
+            match item.clone() {
+                Collecting::Variable(e) => {
                     if e.data.name == name {
-                        found = e.data.name == name;
+                        found = true;
                         found_item = item;
                         break;
                     }
                 }
-                Collecting::Function(ref e) => {
+                Collecting::Function(e) => {
                     if e.data.name == name {
-                        found = e.data.name == name;
+                        found = true;
                         found_item = item;
                         break;
                     }
                 }
-                Collecting::Class(ref e) => {
+                Collecting::Class(e) => {
                     if e.data.name == name {
-                        found = e.data.name == name;
+                        found = true;
+                        found_item = item;
+                        break;
+                    }
+                }
+                Collecting::FileKey(e) => {
+                    if e.data.key_name == name {
+                        found = true;
                         found_item = item;
                         break;
                     }
@@ -908,7 +978,7 @@ impl Parser {
                 found_type: NameCheckResponseType::Class(e),
             },
             _ => NameCheckResponse {
-                found: false,
+                found: found,
                 found_type: NameCheckResponseType::None,
             },
         }

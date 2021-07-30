@@ -13,7 +13,7 @@ pub enum ReliableNameRanges {
     FunctionName,
 }
 
-pub fn is_opearators(value: &str) -> bool {
+pub fn is_operators(value: &str) -> bool {
     let operators = "|&";
     operators.contains(&value)
 }
@@ -36,7 +36,8 @@ pub fn is_reserved(value: &str) -> bool {
 pub fn reliable_name_range(range: ReliableNameRanges, value: String) -> ReliableNameRangeResponse {
     match range {
         ReliableNameRanges::VariableName => {
-            let variable_range = "QWERTYUIOPASDFGHJKLIZXCVBNMqwertyuıopasdfghjklizxcvbnm0123456789";
+            let variable_range =
+                "QWERTYUIOPASDFGHJKLIZXCVBNMqwertyuıopasdfghjklizxcvbnm0123456789_";
             let find = value.split("").position(|x| !variable_range.contains(&x));
             return ReliableNameRangeResponse {
                 reliable: find == None,
@@ -61,7 +62,7 @@ pub fn reliable_name_range(range: ReliableNameRanges, value: String) -> Reliable
             };
         }
         ReliableNameRanges::FunctionName => {
-            let variable_range = "QWERTYUIOPASDFGHJKLIZXCVBNMqwertyuıopasdfghjklizxcvbnm";
+            let variable_range = "QWERTYUIOPASDFGHJKLIZXCVBNMqwertyuıopasdfghjklizxc_vbnm";
             let find = value.split("").position(|x| !variable_range.contains(&x));
             return ReliableNameRangeResponse {
                 reliable: find == None,
@@ -104,16 +105,25 @@ pub fn trim_good(line: String) -> String {
     let mut fixed = String::new();
     for i in 0..line.len() {
         let last = line.chars().nth(if i == 0 { 0 } else { i - 1 });
-        let current = line.chars().nth(i).unwrap();
-        if let Some(q) = last {
-            if q != ' ' || current != ' ' || i == 0 {
+        if let Some(current) = line.chars().nth(i) {
+            if let Some(q) = last {
+                if q != ' ' || current != ' ' || i == 0 {
+                    fixed += &current.to_string();
+                }
+            } else {
                 fixed += &current.to_string();
             }
-        } else {
-            fixed += &current.to_string();
         }
     }
     fixed
+}
+
+pub fn upper_first_char(line: String) -> String {
+    let mut c = line.chars();
+    match c.next() {
+        None => String::new(),
+        Some(f) => f.to_uppercase().collect::<String>() + c.as_str(),
+    }
 }
 
 pub fn lower_first_char(line: String) -> String {

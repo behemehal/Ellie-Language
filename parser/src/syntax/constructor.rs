@@ -4,7 +4,7 @@ use alloc::vec::Vec;
 use ellie_core::defs;
 use serde::Serialize;
 
-#[derive(PartialEq, Debug, Clone, Default, Serialize, Hash)]
+#[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct ConstructorParameter {
     pub name: String,
     pub pos: defs::Cursor,

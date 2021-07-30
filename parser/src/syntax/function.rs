@@ -5,7 +5,7 @@ use alloc::vec::Vec;
 use ellie_core::defs;
 use serde::Serialize;
 
-#[derive(PartialEq, Debug, Clone, Default, Serialize, Hash)]
+#[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct FunctionParameter {
     pub name: String,
     pub rtype: definers::DefinerCollecting,
@@ -14,7 +14,7 @@ pub struct FunctionParameter {
     pub type_pos: defs::Cursor,
 }
 
-#[derive(PartialEq, Debug, Clone, Default, Serialize, Hash)]
+#[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct FunctionParameterCollector {
     pub data: FunctionParameter,
     pub named: bool,

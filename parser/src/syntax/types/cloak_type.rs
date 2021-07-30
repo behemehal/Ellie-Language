@@ -3,11 +3,13 @@ use serde::Serialize;
 
 use alloc::boxed::Box;
 use alloc::vec::Vec;
+use ellie_core::defs;
 
 #[derive(PartialEq, Default, Debug, Clone, Serialize)]
 pub struct CloakEntry {
     pub value_complete: bool,
     pub value: Box<types::Types>,
+    pub location: defs::Cursor,
 }
 
 #[derive(PartialEq, Default, Debug, Clone, Serialize)]

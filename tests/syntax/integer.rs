@@ -1,8 +1,8 @@
 #[cfg(test)]
-mod string_tests {
+mod integer_tests {
 
     #[test]
-    fn string_collected_with_no_error() {
+    fn integer_collected_with_no_error() {
         let emulated_parser = ellie_parser::parser::Parser::default();
         let mut emulated_collector_data =
             ellie_parser::syntax::variable::VariableCollector::default();
@@ -10,7 +10,7 @@ mod string_tests {
         emulated_collector_data.data.dynamic = true;
         let code = "
 
-            \"test\"
+            123
 
         ";
 
@@ -38,16 +38,13 @@ mod string_tests {
             emulated_collector_data = itered.itered_data;
         }
         assert_eq!(syntax_errors.len(), 0);
-        assert!(emulated_collector_data.data.value.is_string());
+        assert!(emulated_collector_data.data.value.is_integer());
         assert!(emulated_collector_data.data.value.is_type_complete());
-        assert!(
-            matches!(emulated_collector_data.data.value, ellie_parser::syntax::types::Types::String(x) if x.value == "test")
-        );
     }
 
     /*
     #[test]
-    fn string_prototype_collected() {
+    fn integer_prototype_collected() {
         let emulated_parser = ellie_parser::parser::Parser::default();
         let mut emulated_collector_data =
             ellie_parser::syntax::variable::VariableCollector::default();
@@ -55,7 +52,7 @@ mod string_tests {
         emulated_collector_data.data.dynamic = true;
         let code = "
 
-            \"test\".len
+            123.len
 
         ";
 
@@ -84,11 +81,12 @@ mod string_tests {
         }
         assert_eq!(syntax_errors.len(), 0);
         assert!(emulated_collector_data.data.value.is_type_complete());
-        assert_eq!(emulated_collector_data.data.value.get_type(), "refference");
+        assert_eq!(emulated_collector_data.data.value.get_type(), "reference");
     }
+        */
 
     #[test]
-    fn string_operators_collected() {
+    fn integer_operators_collected() {
         let emulated_parser = ellie_parser::parser::Parser::default();
         let mut emulated_collector_data =
             ellie_parser::syntax::variable::VariableCollector::default();
@@ -96,7 +94,7 @@ mod string_tests {
         emulated_collector_data.data.dynamic = true;
         let code = "
 
-            \"test\" == \"test\"
+            1 == 0
 
         ";
 
@@ -128,5 +126,4 @@ mod string_tests {
         assert_eq!(syntax_errors.len(), 0);
         assert_eq!(emulated_collector_data.data.value.get_type(), "operator");
     }
-    */
 }

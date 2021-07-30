@@ -22,7 +22,15 @@
     SOFTWARE.
 */
 
+@version= "1.0.0"; //Changing this trigers build.rs
+
 pub import string;
 pub import void;
 pub import int;
 pub import char;
+pub import collective;
+pub import float;
+pub import bool;
+pub import cloak;
+pub import array;
+pub import nullAble;

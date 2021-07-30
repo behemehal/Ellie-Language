@@ -56,10 +56,10 @@ enum class ConditionType {
   CONDITION_TYPE_ELSE,
 };
 
-enum class LogicalOpearators {
-  LOGICAL_OPEARATORS_AND,
-  LOGICAL_OPEARATORS_OR,
-  LOGICAL_OPEARATORS_NULL,
+enum class LogicalOperators {
+  LOGICAL_OperatorS_AND,
+  LOGICAL_OperatorS_OR,
+  LOGICAL_OperatorS_NULL,
 };
 
 enum class NumberTypes {
@@ -201,7 +201,7 @@ struct CharType {
 struct Types;
 
 struct RefferenceType {
-  Box<Types> refference;
+  Box<Types> reference;
   bool on_dot;
   const char *const *chain;
 };
@@ -219,7 +219,7 @@ struct Operators {
   };
 
   struct LogicalType_Body {
-    LogicalOpearators _0;
+    LogicalOperators _0;
   };
 
   struct ArithmeticType_Body {
@@ -382,7 +382,7 @@ struct Types {
     Bool_Body BOOL;
     String_Body STRING;
     Char_Body CHAR;
-    Refference_Body REFFERENCE;
+    Reference_Body REFERENCE;
     Operator_Body OPERATOR;
     Cloak_Body CLOAK;
     Array_Body ARRAY;

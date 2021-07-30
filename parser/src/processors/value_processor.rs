@@ -61,8 +61,33 @@ pub fn collect_value(
             next_char,
             last_char,
         ),
-        types::Types::Collective => (),
-        types::Types::Refference(_) => type_processors::refference::collect_refference(
+        types::Types::Collective(_) => type_processors::collective::collect_collective(
+            parser,
+            itered_data,
+            &mut errors,
+            letter_char,
+            next_char,
+            last_char,
+        ),
+        types::Types::Reference(_) => type_processors::reference::collect_reference(
+            parser,
+            itered_data,
+            &mut errors,
+            letter_char,
+            next_char,
+            last_char,
+        ),
+        types::Types::BraceReference(_) => {
+            type_processors::brace_reference::collect_brace_reference(
+                parser,
+                itered_data,
+                &mut errors,
+                letter_char,
+                next_char,
+                last_char,
+            )
+        }
+        types::Types::Negative(_) => type_processors::negative::collect_negative(
             parser,
             itered_data,
             &mut errors,

@@ -1,12 +1,9 @@
-bot.js
 /node_modules
 /package.json
 /package-lock.json
 Cargo.lock
-data.json
 Cargo.lock
 target
-test_dir
 raw
-inner_code_compiler
-code.ei
+build.js
+wasm

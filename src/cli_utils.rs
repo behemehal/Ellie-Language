@@ -11,6 +11,12 @@ pub fn is_errors_same(first: error::Error, second: error::Error) -> bool {
         && first.pos.range_start.1 == second.pos.range_start.1
 }
 
+pub fn clean_up_escape(code: String) -> String {
+    code.replace("\\n", "\n")
+        .replace("\\t", "\t")
+        .replace("\\r", "\r")
+}
+
 pub fn system_module_resolver(lib_name: String) -> Option<ellie_parser::parser::Parsed> {
     let core_resolver = |e: String| {
         println!(
@@ -21,7 +27,18 @@ pub fn system_module_resolver(lib_name: String) -> Option<ellie_parser::parser::
             e,
             crate::terminal_colors::get_color(crate::terminal_colors::Colors::Reset),
         );
-        if e == "ellie" || e == "string" || e == "void" || e == "int" || e == "char" {
+        if e == "ellie"
+            || e == "string"
+            || e == "void"
+            || e == "int"
+            || e == "char"
+            || e == "collective"
+            || e == "bool"
+            || e == "float"
+            || e == "cloak"
+            || e == "array"
+            || e == "nullAble"
+        {
             if let Some(e) = crate::cli_utils::system_module_resolver(e.clone()) {
                 parser::ResolvedImport {
                     found: true,
@@ -42,7 +59,25 @@ pub fn system_module_resolver(lib_name: String) -> Option<ellie_parser::parser::
     };
 
     let mut ellie_library_content = Vec::new();
-    let mut ellie_library = File::open("./lib/".to_string() + &(lib_name + ".ei")).unwrap();
+    /*
+
+
+                                 o_Oo_Oo_Oo_O
+            o_Oo_Oo_Oo_O         o_O      o_O
+            o_O      o_O         o_O      o_O
+            o_O      o_O         o_O      o_O
+            o_Oo_Oo_Oo_O         o_Oo_Oo_Oo_O
+
+            o_Oo_Oo_Oo_Oo_Oo_Oo_Oo_Oo_Oo_Oo_O
+            o_Oo_Oo_Oo_Oo_Oo_Oo_Oo_Oo_Oo_Oo_O
+
+            If you want to use std you should replace this with path
+    */
+    let mut ellie_library = File::open(
+        "C:\\Users\\ahmet\\Desktop\\Projects\\InBuild\\Ellie-Language\\lib\\".to_string()
+            + &(lib_name + ".ei"),
+    )
+    .unwrap();
     ellie_library
         .read_to_end(&mut ellie_library_content)
         .expect("Unable to read");
@@ -192,7 +227,11 @@ pub fn get_lines(code: String, lines: defs::Cursor) -> String {
 
 pub fn get_line(code: String, line: usize) -> String {
     let v: Vec<&str> = code.split('\n').collect();
-    v[line].to_string()
+    if line > v.len() {
+        v[v.len() - 1].to_string()
+    } else {
+        v[line].to_string()
+    }
 }
 
 pub fn arrow(line: usize, range: usize) -> String {

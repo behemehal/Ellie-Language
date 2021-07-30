@@ -6,13 +6,6 @@ use crate::syntax;
 use crate::syntax::definers::DefinerCollecting;
 use ellie_core::{defs, error, utils};
 
-/*
-i8                    //generic type
-array(array(i8), 5)   //i8 5 sized array
-fn(i16, i32)::i8      //a function that takes i16 and i32 as parameter and returns i8 as result
-cloak(i8, i32)        //a cloak that contains i8 as first parameter i32 as second
-*/
-
 pub fn collect_definer(
     parser: parser::Parser,
     type_data: &mut DefinerCollecting,
@@ -38,6 +31,14 @@ pub fn collect_definer(
                 )
             }
         }
+        DefinerCollecting::Nullable(ref mut data) => collect_definer(
+            parser,
+            &mut data.value,
+            errors,
+            letter_char,
+            next_char,
+            last_char,
+        ),
         DefinerCollecting::Array(ref mut data) => {
             if !data.typed {
                 if letter_char == "(" && !data.bracket_inserted {
@@ -129,12 +130,25 @@ pub fn collect_definer(
                     )],
                     ..Default::default()
                 });
+            } else if letter_char == "_" && data.rtype == "" {
+                *type_data = DefinerCollecting::Nullable(syntax::definers::NullableType::default())
+            } else if letter_char == "(" && data.rtype == "collective" {
+                *type_data =
+                    DefinerCollecting::Collective(syntax::definers::CollectiveType::default());
             } else if letter_char == "(" && data.rtype == "growableArray" {
                 *type_data =
                     DefinerCollecting::GrowableArray(syntax::definers::GrowableArrayType {
                         bracket_inserted: true,
                         ..Default::default()
                     });
+            } else if data.rtype == "dyn"
+                && !utils::reliable_name_range(
+                    utils::ReliableNameRanges::VariableName,
+                    letter_char.to_string(),
+                )
+                .reliable
+            {
+                *type_data = DefinerCollecting::Dynamic
             } else if letter_char != " "
                 && (last_char == " " || last_char == "\n")
                 && data.rtype.trim() != ""
@@ -305,6 +319,35 @@ pub fn collect_definer(
                     next_char,
                     last_char,
                 )
+            }
+        }
+        DefinerCollecting::Collective(data) => {
+            if !data.has_key {
+                if letter_char == "," && data.key.is_definer_complete() {
+                    data.has_key = true;
+                } else {
+                    collect_definer(
+                        parser,
+                        &mut data.key,
+                        errors,
+                        letter_char,
+                        next_char,
+                        last_char,
+                    )
+                }
+            } else {
+                if letter_char == ")" && data.value.is_definer_complete() {
+                    data.complete = true;
+                } else {
+                    collect_definer(
+                        parser,
+                        &mut data.value,
+                        errors,
+                        letter_char,
+                        next_char,
+                        last_char,
+                    )
+                }
             }
         }
         DefinerCollecting::Dynamic => {}

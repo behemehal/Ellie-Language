@@ -70,12 +70,12 @@ pub fn collect_variable(
                 } else if letter_char == "." {
                     variabledata.value_complete = true;
                     itered_data.data.value =
-                        types::Types::Refference(types::refference_type::RefferenceType {
-                            refference: Box::new(itered_data.data.value.clone()),
+                        types::Types::Reference(types::reference_type::ReferenceType {
+                            reference: Box::new(itered_data.data.value.clone()),
                             on_dot: false,
                             chain: Vec::new(),
                         });
-                    type_processors::refference::collect_refference(
+                    type_processors::reference::collect_reference(
                         parser.clone(),
                         itered_data,
                         errors,
@@ -104,32 +104,29 @@ pub fn collect_variable(
                         next_char,
                         last_char,
                     )
-                } else if types::logical_type::LogicalOpearators::is_logical_opearator(
-                    (letter_char.to_string() + &next_char).as_str(),
-                ) {
+                } else if types::logical_type::LogicalOperators::is_logical_operator(letter_char)
+                    || types::logical_type::LogicalOperators::is_logical_operator(
+                        &(letter_char.to_string() + &next_char),
+                    )
+                {
                     variabledata.value_complete = true;
                     itered_data.data.value =
                         types::Types::Operator(types::operator_type::OperatorTypeCollector {
                             data: types::operator_type::OperatorType {
                                 first: Box::new(itered_data.data.value.clone()),
                                 operator: types::operator_type::Operators::LogicalType(
-                                    types::logical_type::LogicalOpearators::Null,
+                                    types::logical_type::LogicalOperators::Null,
                                 ),
                                 ..Default::default()
                             },
+                            operator_collect: letter_char.to_string(),
                             first_filled: true,
                             ..Default::default()
                         });
-                    type_processors::operator::collect_operator(
-                        parser.clone(),
-                        itered_data,
-                        errors,
-                        letter_char,
-                        next_char,
-                        last_char,
-                    )
-                } else if types::comparison_type::ComparisonOperators::is_comparison_opearator(
-                    (letter_char.to_string() + &next_char).as_str(),
+                } else if types::comparison_type::ComparisonOperators::is_comparison_operator(
+                    letter_char,
+                ) || types::comparison_type::ComparisonOperators::is_comparison_operator(
+                    &(letter_char.to_string() + &next_char),
                 ) {
                     variabledata.value_complete = true;
                     itered_data.data.value =
@@ -145,16 +142,10 @@ pub fn collect_variable(
                             operator_collect: letter_char.to_string(),
                             ..Default::default()
                         });
-                    type_processors::operator::collect_operator(
-                        parser.clone(),
-                        itered_data,
-                        errors,
-                        letter_char,
-                        next_char,
-                        last_char,
-                    )
-                } else if types::arithmetic_type::ArithmeticOperators::is_arithmetic_opearator(
-                    (letter_char.to_string() + &next_char).as_str(),
+                } else if types::arithmetic_type::ArithmeticOperators::is_arithmetic_operator(
+                    letter_char,
+                ) || types::arithmetic_type::ArithmeticOperators::is_arithmetic_operator(
+                    &(letter_char.to_string() + &next_char),
                 ) {
                     variabledata.value_complete = true;
                     itered_data.data.value =
@@ -170,14 +161,6 @@ pub fn collect_variable(
                             operator_collect: letter_char.to_string(),
                             ..Default::default()
                         });
-                    type_processors::operator::collect_operator(
-                        parser.clone(),
-                        itered_data,
-                        errors,
-                        letter_char,
-                        next_char,
-                        last_char,
-                    )
                 } else if letter_char != " " {
                     errors.push(error::Error {
                         scope: "variable_processor".to_string(),

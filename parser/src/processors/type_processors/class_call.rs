@@ -276,22 +276,32 @@ pub fn collect_class_call(
                             classcalldata.data.params[last_entry - 1].pos
                         },
                     },
-                    types::Types::Collective => types::class_call::ClassCallParameter {
-                        value: types::Types::Null,
+                    types::Types::Collective(match_data) => types::class_call::ClassCallParameter {
+                        value: types::Types::Collective(match_data),
                         pos: if last_entry == 0 {
                             defs::Cursor::default()
                         } else {
                             classcalldata.data.params[last_entry - 1].pos
                         },
                     },
-                    types::Types::Refference(match_data) => types::class_call::ClassCallParameter {
-                        value: types::Types::Refference(match_data),
+                    types::Types::Reference(match_data) => types::class_call::ClassCallParameter {
+                        value: types::Types::Reference(match_data),
                         pos: if last_entry == 0 {
                             defs::Cursor::default()
                         } else {
                             classcalldata.data.params[last_entry - 1].pos
                         },
                     },
+                    types::Types::BraceReference(match_data) => {
+                        types::class_call::ClassCallParameter {
+                            value: types::Types::BraceReference(match_data),
+                            pos: if last_entry == 0 {
+                                defs::Cursor::default()
+                            } else {
+                                classcalldata.data.params[last_entry - 1].pos
+                            },
+                        }
+                    }
                     types::Types::Array(match_data) => types::class_call::ClassCallParameter {
                         value: types::Types::Array(match_data),
                         pos: if last_entry == 0 {
@@ -336,6 +346,15 @@ pub fn collect_class_call(
                             classcalldata.data.params[last_entry - 1].pos
                         },
                     },
+                    types::Types::Negative(match_data) => types::class_call::ClassCallParameter {
+                        value: types::Types::Negative(match_data),
+                        pos: if last_entry == 0 {
+                            defs::Cursor::default()
+                        } else {
+                            classcalldata.data.params[last_entry - 1].pos
+                        },
+                    },
+
                     types::Types::Void => types::class_call::ClassCallParameter {
                         value: types::Types::Void,
                         pos: if last_entry == 0 {
@@ -365,14 +384,7 @@ pub fn collect_class_call(
                 };
 
                 if !itered_fcall_vector.errors.is_empty() {
-                    for returned_error in itered_fcall_vector.errors {
-                        let mut edited = returned_error;
-                        edited.pos.range_start.0 += parser.pos.0;
-                        edited.pos.range_start.1 += parser.pos.1;
-                        edited.pos.range_end.0 += parser.pos.0;
-                        edited.pos.range_end.1 += parser.pos.1;
-                        errors.push(edited);
-                    }
+                    errors.extend(itered_fcall_vector.errors);
                 }
                 if classcalldata.data.params.is_empty() {
                     classcalldata.data.params.push(itered_entry);
@@ -391,12 +403,12 @@ pub fn collect_class_call(
             }
         } else if letter_char == "." {
             itered_data.data.value =
-                types::Types::Refference(types::refference_type::RefferenceType {
-                    refference: Box::new(itered_data.data.value.clone()),
+                types::Types::Reference(types::reference_type::ReferenceType {
+                    reference: Box::new(itered_data.data.value.clone()),
                     chain: Vec::new(),
                     on_dot: false,
                 });
-            type_processors::refference::collect_refference(
+            type_processors::reference::collect_reference(
                 parser,
                 itered_data,
                 errors,
@@ -404,28 +416,28 @@ pub fn collect_class_call(
                 next_char,
                 last_char,
             )
-        } else if types::logical_type::LogicalOpearators::is_logical_opearator(letter_char) {
+        } else if types::logical_type::LogicalOperators::is_logical_operator(letter_char)
+            || types::logical_type::LogicalOperators::is_logical_operator(
+                &(letter_char.to_string() + &next_char),
+            )
+        {
             itered_data.data.value =
                 types::Types::Operator(types::operator_type::OperatorTypeCollector {
                     data: types::operator_type::OperatorType {
                         first: Box::new(itered_data.data.value.clone()),
                         operator: types::operator_type::Operators::LogicalType(
-                            types::logical_type::LogicalOpearators::Null,
+                            types::logical_type::LogicalOperators::Null,
                         ),
                         ..Default::default()
                     },
+                    operator_collect: letter_char.to_string(),
                     first_filled: true,
                     ..Default::default()
                 });
-            type_processors::operator::collect_operator(
-                parser,
-                itered_data,
-                errors,
-                letter_char,
-                next_char,
-                last_char,
+        } else if types::comparison_type::ComparisonOperators::is_comparison_operator(letter_char)
+            || types::comparison_type::ComparisonOperators::is_comparison_operator(
+                &(letter_char.to_string() + &next_char),
             )
-        } else if types::comparison_type::ComparisonOperators::is_comparison_opearator(letter_char)
         {
             itered_data.data.value =
                 types::Types::Operator(types::operator_type::OperatorTypeCollector {
@@ -436,18 +448,14 @@ pub fn collect_class_call(
                         ),
                         ..Default::default()
                     },
+                    operator_collect: letter_char.to_string(),
                     first_filled: true,
                     ..Default::default()
                 });
-            type_processors::operator::collect_operator(
-                parser,
-                itered_data,
-                errors,
-                letter_char,
-                next_char,
-                last_char,
+        } else if types::arithmetic_type::ArithmeticOperators::is_arithmetic_operator(letter_char)
+            || types::arithmetic_type::ArithmeticOperators::is_arithmetic_operator(
+                &(letter_char.to_string() + &next_char),
             )
-        } else if types::arithmetic_type::ArithmeticOperators::is_arithmetic_opearator(letter_char)
         {
             itered_data.data.value =
                 types::Types::Operator(types::operator_type::OperatorTypeCollector {
@@ -458,17 +466,10 @@ pub fn collect_class_call(
                         ),
                         ..Default::default()
                     },
+                    operator_collect: letter_char.to_string(),
                     first_filled: true,
                     ..Default::default()
                 });
-            type_processors::operator::collect_operator(
-                parser,
-                itered_data,
-                errors,
-                letter_char,
-                next_char,
-                last_char,
-            )
         }
     }
 }

@@ -1,20 +1,32 @@
 # Tests
 
-- Function   []
-- Variable   []
-  - array           NOT OK
-  - arrow_function  NOT OK
-  - char            NOT OK
-  - cloak           NOT OK
-  - function_call   NOT OK
-  - null            NOT OK
-  - number          NOT OK
-  - operator        NOT OK
-  - refference      NOT OK
-  - string          NOT OK
-  - variable        NOT OK
-- Loops      []
-- Calls      []
-- Statements []
+- Syntax Tests
+  - Function           OK
+  - Variable           OK
+  - For              NOT OK
+  - Class            NOT OK
+  - Import             OK
+  - Ret                OK
+  - Enum             NOT OK
+  - Statements       NOT OK
+  - Callers          NOT OK
+  - Value Processors NOT OK
+    - Integer             OK
+    - Float               OK
+    - Bool                OK
+    - String              OK
+    - Char                OK  
+    - Collective          OK
+    - Reference         NOT OK
+    - BraceReference    NOT OK
+    - Operator            OK
+    - Cloak             NOT OK
+    - Array               OK
+    - ArrowFunction     NOT OK
+    - ClassCall         NOT OK
+    - FunctionCall      NOT OK
+    - Negative            OK
+    - VariableType        OK
+    - Void                --
 
 ---

@@ -15,7 +15,6 @@ pub fn collect_class(
     letter_char: &str,
     next_char: String,
     last_char: String,
-    _options: defs::ParserOptions,
 ) {
     if let parser::Collecting::Class(ref mut classdata) = parser.current {
         let current_reliability = utils::reliable_name_range(

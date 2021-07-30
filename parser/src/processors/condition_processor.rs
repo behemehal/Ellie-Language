@@ -1,7 +1,7 @@
 use crate::parser;
 use crate::processors;
-use crate::syntax::{condition, types};
-use ellie_core::{defs, error};
+use crate::syntax::condition;
+use ellie_core::error;
 
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};
@@ -13,7 +13,6 @@ pub fn collect_condition(
     letter_char: &str,
     next_char: String,
     last_char: String,
-    options: defs::ParserOptions,
 ) {
     let parser_clone = parser.clone();
     if let parser::Collecting::Condition(ref mut data) = parser.current {
@@ -38,12 +37,8 @@ pub fn collect_condition(
                     data.chains.push(condition::ConditionChain::default());
                 }
 
-                data.chains[chain_length].condition.collective.push(
-                    types::cloak_type::CloakEntry {
-                        value: Box::new(data.cloak_itered_data.data.value.clone()),
-                        value_complete: true,
-                    },
-                );
+                data.chains[chain_length].condition =
+                    Box::new(data.cloak_itered_data.data.value.clone());
             } else {
                 let collected = processors::value_processor::collect_value(
                     parser_clone,
@@ -68,7 +63,7 @@ pub fn collect_condition(
                 let mut child_parser = parser::Parser::new(
                     data.inside_code_string.clone(),
                     |_| parser::ResolvedImport::default(),
-                    options,
+                    parser.options.clone(),
                 );
                 child_parser.pos = parser.pos;
                 let mapped = child_parser.map();

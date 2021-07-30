@@ -3,10 +3,11 @@ use crate::syntax::{types, variable};
 use ellie_core::defs;
 use serde::Serialize;
 
+use crate::alloc::boxed::Box;
 use crate::alloc::string::String;
 use crate::alloc::vec::Vec;
 
-#[derive(PartialEq, Debug, Clone, Serialize, Hash)]
+#[derive(PartialEq, Debug, Clone, Serialize)]
 pub enum ConditionType {
     If,
     ElseIf,
@@ -22,7 +23,7 @@ impl Default for ConditionType {
 #[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct ConditionChain {
     pub rtype: ConditionType,
-    pub condition: types::cloak_type::CloakType,
+    pub condition: Box<types::Types>,
     pub inside_code: Vec<Collecting>,
 }
 
