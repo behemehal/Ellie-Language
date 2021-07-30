@@ -15,13 +15,13 @@ use crate::syntax::{
 };
 use ellie_core::{defs, error, utils};
 
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Clone, PartialEq, Default, Serd)]
 pub struct Parsed {
     pub name: String,
     pub items: Vec<Collecting>,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serd)]
 pub struct ParserResponse {
     pub parsed: Parsed,
     pub syntax_errors: Vec<error::Error>,

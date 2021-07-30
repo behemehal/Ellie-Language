@@ -42,4 +42,4 @@ ellie_core = {path = "core", version = "1.0.0"}
 cbindgen = "*"
 
 [dev-dependencies]
-criterion = "0.3"
+criterion = { version = "0.3", features= ["html_reports"]}
