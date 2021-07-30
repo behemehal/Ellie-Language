@@ -392,13 +392,13 @@ pub fn collect_variable_value(
                                         error::ErrorBuildField {
                                             key: "token1".to_string(),
                                             value: "_".to_string()
-                                            + &(variable_data
-                                                .data
-                                                .rtype
-                                                .as_nullable()
-                                                .unwrap()
-                                                .value
-                                                .raw_name()),
+                                                + &(variable_data
+                                                    .data
+                                                    .rtype
+                                                    .as_nullable()
+                                                    .unwrap()
+                                                    .value
+                                                    .raw_name()),
                                         },
                                         error::ErrorBuildField {
                                             key: "token2".to_string(),

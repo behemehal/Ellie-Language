@@ -104,7 +104,7 @@ mod variable_tests {
         let parsed = emulated_parser.map();
         assert!(
             matches!(parsed.parsed.items[0].clone(), ellie_parser::parser::Collecting::Variable(x) if x.data.name == "test" && !x.data.dynamic && !x.data.constant && !x.data.public && x.data.value.get_type() == "string")
-            && matches!(parsed.syntax_errors[0].clone(), x if x.code == 5 && x.builded_message.fields[0].value == "string")
+                && matches!(parsed.syntax_errors[0].clone(), x if x.code == 5 && x.builded_message.fields[0].value == "string")
         );
     }
 }

@@ -1,10 +1,10 @@
-use crate::syntax::{variable, types};
+use crate::alloc::boxed::Box;
+use crate::alloc::vec::Vec;
+use crate::parser::Collecting;
+use crate::syntax::{types, variable};
 use alloc::string::String;
 use ellie_core::defs;
 use serde::Serialize;
-use crate::parser::Collecting;
-use crate::alloc::vec::Vec;
-use crate::alloc::boxed::Box;
 
 #[derive(PartialEq, Debug, Clone, Default, Serialize)]
 pub struct Forloop {

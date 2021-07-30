@@ -3,7 +3,6 @@ use ellie_core::defs;
 use serde::Serialize;
 
 use alloc::boxed::Box;
-use alloc::string::String;
 use alloc::vec::Vec;
 
 #[derive(PartialEq, Default, Debug, Clone, Serialize)]

@@ -9,7 +9,7 @@ use alloc::vec::Vec;
 
 use crate::syntax::types::collective_type;
 
-use ellie_core::{defs, error};
+use ellie_core::error;
 
 pub fn collect_collective(
     parser: parser::Parser,

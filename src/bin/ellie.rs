@@ -383,7 +383,8 @@ fn main() {
                                 std::process::exit(0);
                             } else {
                                 println!("Collected: {:#?}", mapped);
-                                fs::write("./data.json", format!("{:#?}", mapped.parsed.items)).unwrap();
+                                fs::write("./data.json", format!("{:#?}", mapped.parsed.items))
+                                    .unwrap();
                                 std::process::exit(0);
                             }
                         }

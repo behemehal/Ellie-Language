@@ -195,7 +195,7 @@ impl Parser {
                 self.pos.1 = 0;
             }
         }
-        
+
         if self.current != Collecting::None || !self.keyword_catch.trim().is_empty() {
             errors.push(error::Error {
                 scope: "definer_processor".to_string(),
@@ -227,7 +227,7 @@ impl Parser {
             types::Types::Float(_) => false,
             types::Types::Bool(_) => true,
             types::Types::String(_) => true,
-            _ => todo!()
+            _ => todo!(),
         }
     }
 
@@ -433,9 +433,11 @@ impl Parser {
                                         }
                                         definers::DefinerCollecting::GrowableArray(_) => {
                                             panic!("Definer Resolving on 'GrowableArray' is not supported");
-                                        },
+                                        }
                                         definers::DefinerCollecting::Nullable(_) => {
-                                            panic!("Definer Resolving on 'Nullable' is not supported");
+                                            panic!(
+                                                "Definer Resolving on 'Nullable' is not supported"
+                                            );
                                         }
                                         definers::DefinerCollecting::Generic(e) => {
                                             let resolved_type =
@@ -548,11 +550,9 @@ impl Parser {
                                         panic!(
                                             "Definer Resolving on 'GrowableArray' is not supported"
                                         );
-                                    },
+                                    }
                                     definers::DefinerCollecting::Nullable(_) => {
-                                        panic!(
-                                            "Definer Resolving on 'Nullable' is not supported"
-                                        );
+                                        panic!("Definer Resolving on 'Nullable' is not supported");
                                     }
                                     definers::DefinerCollecting::Generic(e) => {
                                         let resolved_type =
@@ -699,7 +699,9 @@ impl Parser {
                                             panic!("Definer Resolving on 'GrowableArray' is not supported");
                                         }
                                         definers::DefinerCollecting::Nullable(_) => {
-                                            panic!("Definer Resolving on 'Nullable' is not supported");
+                                            panic!(
+                                                "Definer Resolving on 'Nullable' is not supported"
+                                            );
                                         }
                                         definers::DefinerCollecting::Generic(e) => {
                                             let resolved_type =
@@ -814,9 +816,7 @@ impl Parser {
                                         );
                                     }
                                     definers::DefinerCollecting::Nullable(_) => {
-                                        panic!(
-                                            "Definer Resolving on 'Nullable' is not supported"
-                                        );
+                                        panic!("Definer Resolving on 'Nullable' is not supported");
                                     }
                                     definers::DefinerCollecting::Generic(e) => {
                                         let resolved_type =

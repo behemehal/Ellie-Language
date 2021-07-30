@@ -2,11 +2,10 @@ use crate::alloc::string::String;
 use crate::alloc::vec::Vec;
 use crate::parser;
 use crate::processors;
-use crate::syntax::types;
 use alloc::boxed::Box;
 use alloc::string::ToString;
 use alloc::vec;
-use ellie_core::{defs, error};
+use ellie_core::error;
 
 pub fn collect_for(
     parser: &mut parser::Parser,
@@ -29,7 +28,8 @@ pub fn collect_for(
             {
                 for_loop_data.parameters_collected = true;
 
-                let deep_call = parser_clone.resolve_deep_call(for_loop_data.cloak_itered_data.data.value.clone());
+                let deep_call = parser_clone
+                    .resolve_deep_call(for_loop_data.cloak_itered_data.data.value.clone());
 
                 if !parser_clone.is_iterable(deep_call.clone()) {
                     errors.push(error::Error {

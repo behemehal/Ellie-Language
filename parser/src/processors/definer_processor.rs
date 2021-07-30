@@ -31,16 +31,14 @@ pub fn collect_definer(
                 )
             }
         }
-        DefinerCollecting::Nullable(ref mut data) => {
-            collect_definer(
-                parser,
-                &mut data.value,
-                errors,
-                letter_char,
-                next_char,
-                last_char,
-            )
-        }
+        DefinerCollecting::Nullable(ref mut data) => collect_definer(
+            parser,
+            &mut data.value,
+            errors,
+            letter_char,
+            next_char,
+            last_char,
+        ),
         DefinerCollecting::Array(ref mut data) => {
             if !data.typed {
                 if letter_char == "(" && !data.bracket_inserted {

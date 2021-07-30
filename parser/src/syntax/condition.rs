@@ -3,9 +3,9 @@ use crate::syntax::{types, variable};
 use ellie_core::defs;
 use serde::Serialize;
 
+use crate::alloc::boxed::Box;
 use crate::alloc::string::String;
 use crate::alloc::vec::Vec;
-use crate::alloc::boxed::Box;
 
 #[derive(PartialEq, Debug, Clone, Serialize)]
 pub enum ConditionType {

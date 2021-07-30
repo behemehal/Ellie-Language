@@ -1,7 +1,7 @@
 use crate::parser;
 use crate::processors;
-use crate::syntax::{condition, types};
-use ellie_core::{defs, error};
+use crate::syntax::condition;
+use ellie_core::error;
 
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};
