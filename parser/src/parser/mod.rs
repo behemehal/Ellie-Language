@@ -195,6 +195,7 @@ impl Parser {
                 self.pos.1 = 0;
             }
         }
+        
         if self.current != Collecting::None || !self.keyword_catch.trim().is_empty() {
             errors.push(error::Error {
                 scope: "definer_processor".to_string(),
@@ -217,6 +218,39 @@ impl Parser {
                 items: self.collected.clone(),
             },
             syntax_errors: errors,
+        }
+    }
+
+    pub fn is_iterable(&self, target: types::Types) -> bool {
+        match target {
+            types::Types::Integer(_) => true,
+            types::Types::Float(_) => false,
+            types::Types::Bool(_) => true,
+            types::Types::String(_) => true,
+            _ => todo!()
+        }
+    }
+
+    pub fn resolve_deep_call(&self, target: types::Types) -> types::Types {
+        match target {
+            types::Types::Integer(_) => target,
+            types::Types::Float(_) => target,
+            types::Types::Bool(_) => target,
+            types::Types::String(_) => target,
+            types::Types::Char(_) => target,
+            types::Types::Null => target,
+            types::Types::Void => target,
+            types::Types::Collective(_) => todo!(),
+            types::Types::Array(_) => todo!(),
+            types::Types::Cloak(_) => todo!(),
+            types::Types::Reference(_) => todo!(),
+            types::Types::BraceReference(_) => todo!(),
+            types::Types::Operator(_) => todo!(),
+            types::Types::ArrowFunction(_) => todo!(),
+            types::Types::ClassCall(_) => todo!(),
+            types::Types::FunctionCall(_) => todo!(),
+            types::Types::Negative(_) => todo!(),
+            types::Types::VariableType(_) => todo!(),
         }
     }
 
@@ -399,6 +433,9 @@ impl Parser {
                                         }
                                         definers::DefinerCollecting::GrowableArray(_) => {
                                             panic!("Definer Resolving on 'GrowableArray' is not supported");
+                                        },
+                                        definers::DefinerCollecting::Nullable(_) => {
+                                            panic!("Definer Resolving on 'Nullable' is not supported");
                                         }
                                         definers::DefinerCollecting::Generic(e) => {
                                             let resolved_type =
@@ -510,6 +547,11 @@ impl Parser {
                                     definers::DefinerCollecting::GrowableArray(_) => {
                                         panic!(
                                             "Definer Resolving on 'GrowableArray' is not supported"
+                                        );
+                                    },
+                                    definers::DefinerCollecting::Nullable(_) => {
+                                        panic!(
+                                            "Definer Resolving on 'Nullable' is not supported"
                                         );
                                     }
                                     definers::DefinerCollecting::Generic(e) => {
@@ -656,6 +698,9 @@ impl Parser {
                                         definers::DefinerCollecting::GrowableArray(_) => {
                                             panic!("Definer Resolving on 'GrowableArray' is not supported");
                                         }
+                                        definers::DefinerCollecting::Nullable(_) => {
+                                            panic!("Definer Resolving on 'Nullable' is not supported");
+                                        }
                                         definers::DefinerCollecting::Generic(e) => {
                                             let resolved_type =
                                                 self.resolve_variable(caller_param.value);
@@ -766,6 +811,11 @@ impl Parser {
                                     definers::DefinerCollecting::GrowableArray(_) => {
                                         panic!(
                                             "Definer Resolving on 'GrowableArray' is not supported"
+                                        );
+                                    }
+                                    definers::DefinerCollecting::Nullable(_) => {
+                                        panic!(
+                                            "Definer Resolving on 'Nullable' is not supported"
                                         );
                                     }
                                     definers::DefinerCollecting::Generic(e) => {
@@ -904,7 +954,7 @@ impl Parser {
                     }
                 }
                 Collecting::FileKey(e) => {
-                    if e.data.keyname == name {
+                    if e.data.key_name == name {
                         found = true;
                         found_item = item;
                         break;

@@ -37,6 +37,7 @@ pub fn system_module_resolver(lib_name: String) -> Option<ellie_parser::parser::
             || e == "float"
             || e == "cloak"
             || e == "array"
+            || e == "nullAble"
         {
             if let Some(e) = crate::cli_utils::system_module_resolver(e.clone()) {
                 parser::ResolvedImport {

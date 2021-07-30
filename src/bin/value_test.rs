@@ -14,7 +14,19 @@ fn main() {
     emulated_collector_data.data.dynamic = true;
     let code = "
 
-    123&&123
+    {
+        0: 'e',
+        1: 'l',
+        2: 'l',
+        3: 'i',
+        4: {
+            0: 'e',
+            1: 'l',
+            2: 'l',
+            3: 'i',
+            4: 'e'
+        }
+    }
     
     ";
 

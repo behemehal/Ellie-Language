@@ -159,7 +159,8 @@ pub fn collect_variable_value(
                         });
                     }
                     if !parser_clone.type_exists(variable_data.data.rtype.raw_name())
-                        && !parser_clone.generic_type_exists(variable_data.data.rtype.raw_name()) && !variable_data.data.dynamic
+                        && !parser_clone.generic_type_exists(variable_data.data.rtype.raw_name())
+                        && !variable_data.data.dynamic
                     {
                         errors.push(error::Error {
                             scope: parser.scope.scope_name.clone(),
@@ -185,7 +186,8 @@ pub fn collect_variable_value(
                     letter_char.to_string(),
                 );
                 if current_reliability.reliable {
-                    if (last_char == " " || last_char == "\n") && !variable_data.data.name.is_empty()
+                    if (last_char == " " || last_char == "\n")
+                        && !variable_data.data.name.is_empty()
                     {
                         errors.push(error::Error {
                             scope: parser.scope.scope_name.clone(),
@@ -368,6 +370,69 @@ pub fn collect_variable_value(
                         std::process::exit(1);
                     }
 
+                    if variable_data.data.rtype.raw_name() == "nullAble" {
+                        if variable_data
+                            .data
+                            .rtype
+                            .as_nullable()
+                            .unwrap()
+                            .value
+                            .raw_name()
+                            != resolved_type_name
+                        {
+                            errors.push(error::Error {
+                                scope: parser.scope.scope_name.clone(),
+                                debug_message: "7b506ba769be986dbddbe65c73249b6c".to_string(),
+                                title: error::errorList::error_s3.title.clone(),
+                                code: error::errorList::error_s3.code,
+                                message: error::errorList::error_s3.message.clone(),
+                                builded_message: error::Error::build(
+                                    error::errorList::error_s3.message.clone(),
+                                    vec![
+                                        error::ErrorBuildField {
+                                            key: "token1".to_string(),
+                                            value: "_".to_string()
+                                            + &(variable_data
+                                                .data
+                                                .rtype
+                                                .as_nullable()
+                                                .unwrap()
+                                                .value
+                                                .raw_name()),
+                                        },
+                                        error::ErrorBuildField {
+                                            key: "token2".to_string(),
+                                            value: resolved_type_name,
+                                        },
+                                    ],
+                                ),
+                                pos: variable_data.data.value_pos,
+                            });
+                        }
+                    } else {
+                        errors.push(error::Error {
+                            scope: parser.scope.scope_name.clone(),
+                            debug_message: "7b506ba769be986dbddbe65c73249b6c".to_string(),
+                            title: error::errorList::error_s3.title.clone(),
+                            code: error::errorList::error_s3.code,
+                            message: error::errorList::error_s3.message.clone(),
+                            builded_message: error::Error::build(
+                                error::errorList::error_s3.message.clone(),
+                                vec![
+                                    error::ErrorBuildField {
+                                        key: "token1".to_string(),
+                                        value: variable_data.data.rtype.raw_name(),
+                                    },
+                                    error::ErrorBuildField {
+                                        key: "token2".to_string(),
+                                        value: resolved_type_name,
+                                    },
+                                ],
+                            ),
+                            pos: variable_data.data.value_pos,
+                        });
+                    }
+
                     if parser_clone.generic_type_exists(variable_data.data.rtype.raw_name()) {
                         errors.push(error::Error {
                             scope: parser.scope.scope_name.clone(),
@@ -381,27 +446,6 @@ pub fn collect_variable_value(
                             pos: variable_data.data.value_pos,
                         });
                     }
-                    errors.push(error::Error {
-                        scope: parser.scope.scope_name.clone(),
-                        debug_message: "7b506ba769be986dbddbe65c73249b6c".to_string(),
-                        title: error::errorList::error_s3.title.clone(),
-                        code: error::errorList::error_s3.code,
-                        message: error::errorList::error_s3.message.clone(),
-                        builded_message: error::Error::build(
-                            error::errorList::error_s3.message.clone(),
-                            vec![
-                                error::ErrorBuildField {
-                                    key: "token1".to_string(),
-                                    value: variable_data.data.rtype.raw_name(),
-                                },
-                                error::ErrorBuildField {
-                                    key: "token2".to_string(),
-                                    value: resolved_type_name,
-                                },
-                            ],
-                        ),
-                        pos: variable_data.data.value_pos,
-                    });
                 }
                 if parser_clone
                     .check_keyword(variable_data.data.name.clone())

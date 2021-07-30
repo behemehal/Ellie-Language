@@ -120,6 +120,13 @@ pub fn iter(
             next_char.clone(),
             last_char.clone(),
         ),
+        parser::Collecting::Forloop(_) => processors::forloop_processor::collect_for(
+            parser,
+            errors,
+            letter_char,
+            next_char.clone(),
+            last_char.clone(),
+        ),
         _ => (),
     };
 }

@@ -37,16 +37,8 @@ pub fn collect_condition(
                     data.chains.push(condition::ConditionChain::default());
                 }
 
-                data.chains[chain_length].condition.collective.push(
-                    types::cloak_type::CloakEntry {
-                        value: Box::new(data.cloak_itered_data.data.value.clone()),
-                        value_complete: true,
-                        location: defs::Cursor {
-                            range_end: parser.pos,
-                            ..Default::default()
-                        },
-                    },
-                );
+                data.chains[chain_length].condition =
+                    Box::new(data.cloak_itered_data.data.value.clone());
             } else {
                 let collected = processors::value_processor::collect_value(
                     parser_clone,

@@ -31,6 +31,16 @@ pub fn collect_definer(
                 )
             }
         }
+        DefinerCollecting::Nullable(ref mut data) => {
+            collect_definer(
+                parser,
+                &mut data.value,
+                errors,
+                letter_char,
+                next_char,
+                last_char,
+            )
+        }
         DefinerCollecting::Array(ref mut data) => {
             if !data.typed {
                 if letter_char == "(" && !data.bracket_inserted {
@@ -122,6 +132,8 @@ pub fn collect_definer(
                     )],
                     ..Default::default()
                 });
+            } else if letter_char == "_" && data.rtype == "" {
+                *type_data = DefinerCollecting::Nullable(syntax::definers::NullableType::default())
             } else if letter_char == "(" && data.rtype == "collective" {
                 *type_data =
                     DefinerCollecting::Collective(syntax::definers::CollectiveType::default());

@@ -117,6 +117,14 @@ pub fn trim_good(line: String) -> String {
     fixed
 }
 
+pub fn upper_first_char(line: String) -> String {
+    let mut c = line.chars();
+    match c.next() {
+        None => String::new(),
+        Some(f) => f.to_uppercase().collect::<String>() + c.as_str(),
+    }
+}
+
 pub fn lower_first_char(line: String) -> String {
     let mut c = line.chars();
     match c.next() {

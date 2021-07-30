@@ -1,3 +1,8 @@
-class string {}
+import collective;
 
-d test= "ok";
+v test : collective(int, collective(dyn, dyn)) = {
+    0: {},
+    1: {},
+    1: {},
+    1: {}
+};

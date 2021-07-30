@@ -74,6 +74,12 @@ fn main() {
                                 || e == "void"
                                 || e == "int"
                                 || e == "char"
+                                || e == "collective"
+                                || e == "bool"
+                                || e == "float"
+                                || e == "cloak"
+                                || e == "array"
+                                || e == "nullAble"
                             {
                                 if let Some(e) = ellie_lang::cli_utils::system_module_resolver(e) {
                                     parser::ResolvedImport {
@@ -376,7 +382,8 @@ fn main() {
                                 }
                                 std::process::exit(0);
                             } else {
-                                print!("Collected: {:#?}", mapped);
+                                println!("Collected: {:#?}", mapped);
+                                fs::write("./data.json", format!("{:#?}", mapped.parsed.items)).unwrap();
                                 std::process::exit(0);
                             }
                         }

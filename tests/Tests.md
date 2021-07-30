@@ -16,7 +16,7 @@
     - Bool                OK
     - String              OK
     - Char                OK  
-    - Collective        NOT OK
+    - Collective          OK
     - Reference         NOT OK
     - BraceReference    NOT OK
     - Operator            OK

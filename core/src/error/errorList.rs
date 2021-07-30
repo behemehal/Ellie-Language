@@ -199,4 +199,11 @@ lazy_static! {
         message: "Cannot resolve '$token' module".to_string(),
         ..Default::default()
     };
+
+    pub static ref error_s29: crate::error::Error = crate::error::Error {
+        code: 0x28,
+        title: "SyntaxError".to_string(),
+        message: "Unexpected Token '$token' is not iterable".to_string(),
+        ..Default::default()
+    };
 }
