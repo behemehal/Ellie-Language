@@ -77,7 +77,7 @@ pub fn collect_collective(
                         {
                             errors.push(error::Error {
                                 scope: parser.scope.scope_name.clone(),
-                                debug_message: "replace_collective_116".to_string(),
+                                debug_message: "1b37f201e6f0515cc1c2f5e4108d827e".to_string(),
                                 title: error::errorList::error_s3.title.clone(),
                                 code: error::errorList::error_s3.code,
                                 message: error::errorList::error_s3.message.clone(),
@@ -139,7 +139,7 @@ pub fn collect_collective(
                 if has_dedup {
                     errors.push(error::Error {
                         scope: parser.scope.scope_name.clone(),
-                        debug_message: "replace_collective_148".to_string(),
+                        debug_message: "a8f128ed13f2ec8ed60c883bd33f7b96".to_string(),
                         title: error::errorList::error_s10.title.clone(),
                         code: error::errorList::error_s10.code,
                         message: error::errorList::error_s10.message.clone(),
@@ -166,7 +166,7 @@ pub fn collect_collective(
                         {
                             errors.push(error::Error {
                                 scope: parser.scope.scope_name.clone(),
-                                debug_message: "replace_collective_143".to_string(),
+                                debug_message: "bca2ef67edd708a4f6abd70d630e1907".to_string(),
                                 title: error::errorList::error_s3.title.clone(),
                                 code: error::errorList::error_s3.code,
                                 message: error::errorList::error_s3.message.clone(),
@@ -254,7 +254,7 @@ pub fn collect_collective(
 /*
 errors.push(error::Error {
                     scope: parser.scope.scope_name.clone(),
-                    debug_message: "replace_collective_23".to_string(),
+                    debug_message: "187c3fca31ce5ed268e66d02c54b0eb6".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),

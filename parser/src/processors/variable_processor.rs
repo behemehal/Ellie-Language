@@ -27,7 +27,7 @@ pub fn collect_variable_value(
                 if variable_data.data.name.is_empty() {
                     errors.push(error::Error {
                         scope: parser.scope.scope_name.clone(),
-                        debug_message: "5cc4b6a6c0388e13f207b604790ab406".to_string(),
+                        debug_message: "721d9f97f6c14b7f039bcc435120c79c".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -48,7 +48,7 @@ pub fn collect_variable_value(
                         //TODO REMOVE THIS
                         errors.push(error::Error {
                             scope: parser.scope.scope_name.clone(),
-                            debug_message: "d8250e717c05ebd6408b1578581b5966".to_string(),
+                            debug_message: "d72281318351660db07e3b406c33cdbe".to_string(),
                             title: error::errorList::error_s11.title.clone(),
                             code: error::errorList::error_s11.code,
                             message: error::errorList::error_s11.message.clone(),
@@ -65,7 +65,7 @@ pub fn collect_variable_value(
                     if utils::is_reserved(&variable_data.data.name) {
                         errors.push(error::Error {
                             scope: parser.scope.scope_name.clone(),
-                            debug_message: "d5a2fb1cae3dc6601642afc5c5b21a7d".to_string(),
+                            debug_message: "b7957db0bf3e527182d4add9b4c62dce".to_string(),
                             title: error::errorList::error_s21.title.clone(),
                             code: error::errorList::error_s21.code,
                             message: error::errorList::error_s21.message.clone(),
@@ -89,7 +89,7 @@ pub fn collect_variable_value(
                 {
                     errors.push(error::Error {
                         scope: parser.scope.scope_name.clone(),
-                        debug_message: "replace_var_227".to_string(),
+                        debug_message: "d812b157bdca94078b9eea64b14632a1".to_string(),
                         title: error::errorList::error_s24.title.clone(),
                         code: error::errorList::error_s24.code,
                         message: error::errorList::error_s24.message.clone(),
@@ -109,7 +109,7 @@ pub fn collect_variable_value(
                 if !variable_data.data.dynamic {
                     errors.push(error::Error {
                         scope: parser.scope.scope_name.clone(),
-                        debug_message: "ef9e5227b5d2c8fefd04647d0c39e705".to_string(),
+                        debug_message: "8ba1a64d11bd197cbbfa9434d9910232".to_string(),
                         title: error::errorList::error_s8.title.clone(),
                         code: error::errorList::error_s8.code,
                         message: error::errorList::error_s8.message.clone(),
@@ -124,7 +124,7 @@ pub fn collect_variable_value(
                 } else if variable_data.data.name.is_empty() {
                     errors.push(error::Error {
                         scope: parser.scope.scope_name.clone(),
-                        debug_message: "ef45542684e0869a3d8dbf6fcddf4985".to_string(),
+                        debug_message: "bb713e67341289bbec07e037a2f0990e".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -144,7 +144,7 @@ pub fn collect_variable_value(
                     if utils::is_reserved(&variable_data.data.name) {
                         errors.push(error::Error {
                             scope: parser.scope.scope_name.clone(),
-                            debug_message: "4e8c926327e54c7b550d8d47f97e8f6b".to_string(),
+                            debug_message: "c1bc8a20dbbd73d45d1c2149c4a89f70".to_string(),
                             title: error::errorList::error_s21.title.clone(),
                             code: error::errorList::error_s21.code,
                             message: error::errorList::error_s21.message.clone(),
@@ -164,7 +164,7 @@ pub fn collect_variable_value(
                     {
                         errors.push(error::Error {
                             scope: parser.scope.scope_name.clone(),
-                            debug_message: "e4fc3f07eda245ede3d6851a41dfd56b".to_string(),
+                            debug_message: "62a8269f2e56f2534c4ecb5d65eb5c72".to_string(),
                             title: error::errorList::error_s6.title.clone(),
                             code: error::errorList::error_s6.code,
                             message: error::errorList::error_s6.message.clone(),
@@ -191,7 +191,7 @@ pub fn collect_variable_value(
                     {
                         errors.push(error::Error {
                             scope: parser.scope.scope_name.clone(),
-                            debug_message: "1ecb93d7dd927500cd2932a4936fc180".to_string(),
+                            debug_message: "2b6573fd4eca9026024fbd94a4c51a15".to_string(),
                             title: error::errorList::error_s1.title.clone(),
                             code: error::errorList::error_s1.code,
                             message: error::errorList::error_s1.message.clone(),
@@ -221,7 +221,7 @@ pub fn collect_variable_value(
                 {
                     errors.push(error::Error {
                         scope: parser.scope.scope_name.clone(),
-                        debug_message: "c2e721fe71089a3cbb00e8307a1f17b8".to_string(),
+                        debug_message: "d81da14f0d1614db98c909bb47cb1bbc".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -246,7 +246,7 @@ pub fn collect_variable_value(
                 {
                     errors.push(error::Error {
                         scope: parser.scope.scope_name.clone(),
-                        debug_message: "replace_var_247".to_string(),
+                        debug_message: "24fa157afd201bbf2f4ec656fe27c02d".to_string(),
                         title: error::errorList::error_s6.title.clone(),
                         code: error::errorList::error_s6.code,
                         message: error::errorList::error_s6.message.clone(),
@@ -269,7 +269,7 @@ pub fn collect_variable_value(
                 {
                     errors.push(error::Error {
                         scope: parser.scope.scope_name.clone(),
-                        debug_message: "replace_var_227".to_string(),
+                        debug_message: "e62b252516ead44f442c6b14f0cb6351".to_string(),
                         title: error::errorList::error_s24.title.clone(),
                         code: error::errorList::error_s24.code,
                         message: error::errorList::error_s24.message.clone(),
@@ -290,7 +290,7 @@ pub fn collect_variable_value(
                 if !variable_data.data.rtype.is_definer_complete() {
                     errors.push(error::Error {
                         scope: parser.scope.scope_name.clone(),
-                        debug_message: "8d04a6065a01abb4da05be86c2ac81e4".to_string(),
+                        debug_message: "74f1eb691fa0c050b1a7361f3ea0b400".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -312,7 +312,7 @@ pub fn collect_variable_value(
                     {
                         errors.push(error::Error {
                             scope: parser.scope.scope_name.clone(),
-                            debug_message: "d31848b31da7efb0afd1385706d41fb9".to_string(),
+                            debug_message: "a0bd2adc7db6cb87f49b5f10c947f364".to_string(),
                             title: error::errorList::error_s6.title.clone(),
                             code: error::errorList::error_s6.code,
                             message: error::errorList::error_s6.message.clone(),
@@ -382,7 +382,7 @@ pub fn collect_variable_value(
                         {
                             errors.push(error::Error {
                                 scope: parser.scope.scope_name.clone(),
-                                debug_message: "7b506ba769be986dbddbe65c73249b6c".to_string(),
+                                debug_message: "f4114c769bfc1b2ff81176cc5c374830".to_string(),
                                 title: error::errorList::error_s3.title.clone(),
                                 code: error::errorList::error_s3.code,
                                 message: error::errorList::error_s3.message.clone(),
@@ -412,7 +412,7 @@ pub fn collect_variable_value(
                     } else {
                         errors.push(error::Error {
                             scope: parser.scope.scope_name.clone(),
-                            debug_message: "7b506ba769be986dbddbe65c73249b6c".to_string(),
+                            debug_message: "6d3858085ba1cb8b90776a5c1779aa49".to_string(),
                             title: error::errorList::error_s3.title.clone(),
                             code: error::errorList::error_s3.code,
                             message: error::errorList::error_s3.message.clone(),
@@ -436,7 +436,7 @@ pub fn collect_variable_value(
                     if parser_clone.generic_type_exists(variable_data.data.rtype.raw_name()) {
                         errors.push(error::Error {
                             scope: parser.scope.scope_name.clone(),
-                            debug_message: "f61ac929f9c659d9be2224edf8069fc1".to_string(),
+                            debug_message: "5d592200f05c5f30148b750501f75729".to_string(),
                             title: error::errorList::error_s27.title.clone(),
                             code: error::errorList::error_s27.code,
                             message: error::errorList::error_s27.message.clone(),
@@ -453,7 +453,7 @@ pub fn collect_variable_value(
                 {
                     errors.push(error::Error {
                         scope: parser.scope.scope_name.clone(),
-                        debug_message: "replace_var_227".to_string(),
+                        debug_message: "44c8bd82ba30c14c67fb9375593f7e1c".to_string(),
                         title: error::errorList::error_s24.title.clone(),
                         code: error::errorList::error_s24.code,
                         message: error::errorList::error_s24.message.clone(),
@@ -470,7 +470,7 @@ pub fn collect_variable_value(
             } else {
                 errors.push(error::Error {
                     scope: parser.scope.scope_name.clone(),
-                    debug_message: "13d87b32618796312026a80884433f3b".to_string(),
+                    debug_message: "a773536a9b85617841499b49f33a294b".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),

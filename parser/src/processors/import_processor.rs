@@ -23,7 +23,7 @@ pub fn collect_import(
                     if !response.found {
                         errors.push(error::Error {
                             scope: parser.scope.scope_name.clone(),
-                            debug_message: "8f7a6c658bc0f0f15d771f1b85d949d5".to_string(),
+                            debug_message: "09c30a8120fd06f6971f40c9c3e31bac".to_string(),
                             title: error::errorList::error_s28.title.clone(),
                             code: error::errorList::error_s28.code,
                             message: error::errorList::error_s28.message.clone(),
@@ -104,7 +104,7 @@ pub fn collect_import(
         } else if letter_char != " " {
             errors.push(error::Error {
                 scope: parser.scope.scope_name.clone(),
-                debug_message: "b1628292046d6dbd525b8aa097c0bdab".to_string(),
+                debug_message: "8ddbfdcb4ffdc6af65ca90f7a91ad0dd".to_string(),
                 title: error::errorList::error_s1.title.clone(),
                 code: error::errorList::error_s1.code,
                 message: error::errorList::error_s1.message.clone(),

@@ -28,7 +28,7 @@ pub fn collect_variable(
                 if last_char == " " && !variabledata.value.is_empty() {
                     errors.push(error::Error {
                         scope: "variable_processor".to_string(),
-                        debug_message: "4105e1d3ed38797bc155c18fa8ff5ba0".to_string(),
+                        debug_message: "fe99bda5f7d1e3ff5d63ba18d8b25286".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -164,7 +164,7 @@ pub fn collect_variable(
                 } else if letter_char != " " {
                     errors.push(error::Error {
                         scope: "variable_processor".to_string(),
-                        debug_message: "4c0be946dc33c54145972586dbba089b".to_string(),
+                        debug_message: "cd5b56886ce17ff4e84462df12884a96".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -184,7 +184,7 @@ pub fn collect_variable(
             } else if letter_char != " " {
                 errors.push(error::Error {
                     scope: "variable_processor".to_string(),
-                    debug_message: "4686a0a80f3a9e8dccb8e7c7769d60b1".to_string(),
+                    debug_message: "3f9c4c9d281403ae03335c941ea47a3f".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),

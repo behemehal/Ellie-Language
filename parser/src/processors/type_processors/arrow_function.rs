@@ -91,7 +91,7 @@ pub fn collect_arrow(
                         {
                             errors.push(error::Error {
                                 scope: "arrow_function".to_string(),
-                                debug_message: "dcb1cd3218380e566fc07f2b1d3394a4".to_string(),
+                                debug_message: "d075a1ee96765f22eeb78c781276aea9".to_string(),
                                 title: error::errorList::error_s1.title.clone(),
                                 code: error::errorList::error_s1.code,
                                 message: error::errorList::error_s1.message.clone(),
@@ -115,7 +115,7 @@ pub fn collect_arrow(
                     } else if letter_char != " " {
                         errors.push(error::Error {
                             scope: "arrow_function".to_string(),
-                            debug_message: "64f9bc7f3c29c50a1d66049f5af55d66".to_string(),
+                            debug_message: "37accb5d48969664a4bd72c255527b3f".to_string(),
                             title: error::errorList::error_s1.title.clone(),
                             code: error::errorList::error_s1.code,
                             message: error::errorList::error_s1.message.clone(),
@@ -139,7 +139,7 @@ pub fn collect_arrow(
                     if functiondata.has_dedup() {
                         errors.push(error::Error {
                             scope: parser.scope.scope_name.clone(),
-                            debug_message: "c032aa1f8595bbac77f4172017580d82".to_string(),
+                            debug_message: "34a9c1f3d87a1a9545a44545c65a378b".to_string(),
                             title: error::errorList::error_s10.title.clone(),
                             code: error::errorList::error_s10.code,
                             message: error::errorList::error_s10.message.clone(),
@@ -160,7 +160,7 @@ pub fn collect_arrow(
                         {
                             errors.push(error::Error {
                                 scope: parser.scope.scope_name.clone(),
-                                debug_message: "06842f99ae3ad30d9ada11b2c94a584c".to_string(),
+                                debug_message: "c2716c4cf5dba0f991e71cf025835f39".to_string(),
                                 title: error::errorList::error_s3.title.clone(),
                                 code: error::errorList::error_s3.code,
                                 message: error::errorList::error_s3.message.clone(),
@@ -190,7 +190,7 @@ pub fn collect_arrow(
                         if !parser.type_exists(name.rtype.clone()) {
                             errors.push(error::Error {
                                 scope: parser.scope.scope_name.clone(),
-                                debug_message: "47f302ebe066999638c8ff93b0bbae7d".to_string(),
+                                debug_message: "407fba9877280b542afeff80ccfa4339".to_string(),
                                 title: error::errorList::error_s6.title.clone(),
                                 code: error::errorList::error_s6.code,
                                 message: error::errorList::error_s6.message.clone(),
@@ -215,7 +215,7 @@ pub fn collect_arrow(
                     if functiondata.has_dedup() {
                         errors.push(error::Error {
                             scope: parser.scope.scope_name.clone(),
-                            debug_message: "1032b531c867f84b7a88e511a13a83fa".to_string(),
+                            debug_message: "a06499a1e2cc2805f51fc601cfc463a8".to_string(),
                             title: error::errorList::error_s10.title.clone(),
                             code: error::errorList::error_s10.code,
                             message: error::errorList::error_s10.message.clone(),
@@ -231,7 +231,7 @@ pub fn collect_arrow(
                         if !parser.type_exists(name.rtype.clone()) {
                             errors.push(error::Error {
                                 scope: parser.scope.scope_name.clone(),
-                                debug_message: "e2a28753eb41447c805ee1cb63586ed6".to_string(),
+                                debug_message: "0c5807e9139fa16344963908bc63ddcd".to_string(),
                                 title: error::errorList::error_s6.title.clone(),
                                 code: error::errorList::error_s6.code,
                                 message: error::errorList::error_s6.message.clone(),
@@ -257,7 +257,7 @@ pub fn collect_arrow(
                         {
                             errors.push(error::Error {
                                 scope: parser.scope.scope_name.clone(),
-                                debug_message: "a90d56520faab6000dd14ac46c777fc0".to_string(),
+                                debug_message: "35ce262acf25dc6e87c6bf57766d47fd".to_string(),
                                 title: error::errorList::error_s3.title.clone(),
                                 code: error::errorList::error_s3.code,
                                 message: error::errorList::error_s3.message.clone(),
@@ -339,7 +339,7 @@ pub fn collect_arrow(
                     if *function.returning.raw_name() != fndata_type {
                         errors.push(error::Error {
                             scope: parser.scope.scope_name.clone(),
-                            debug_message: "890387cfb6f16512c2c421b56ada70dd".to_string(),
+                            debug_message: "7f3a37d4d379211666da2245d62454ae".to_string(),
                             title: error::errorList::error_s3.title.clone(),
                             code: error::errorList::error_s3.code,
                             message: error::errorList::error_s3.message.clone(),
@@ -366,7 +366,7 @@ pub fn collect_arrow(
             } else if letter_char != " " {
                 errors.push(error::Error {
                     scope: "arrow_function".to_string(),
-                    debug_message: "dfd305001bf124ed2b17d6336485a27c".to_string(),
+                    debug_message: "b4fb2215b5f695c6f3efe6fa961cf872".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -389,7 +389,7 @@ pub fn collect_arrow(
                     if !parser.type_exists(name.rtype.clone()) {
                         errors.push(error::Error {
                             scope: parser.scope.scope_name.clone(),
-                            debug_message: "078b46163313a98a6951a4a74fb9c393".to_string(),
+                            debug_message: "3cfb9db6c448347897b3f519c54c331c".to_string(),
                             title: error::errorList::error_s6.title.clone(),
                             code: error::errorList::error_s6.code,
                             message: error::errorList::error_s6.message.clone(),
@@ -415,7 +415,7 @@ pub fn collect_arrow(
                     {
                         errors.push(error::Error {
                             scope: parser.scope.scope_name.clone(),
-                            debug_message: "12625b7abdcfb640ef8410042e800e0d".to_string(),
+                            debug_message: "77e395018e00dd27262e1850ad13a6b9".to_string(),
                             title: error::errorList::error_s3.title.clone(),
                             code: error::errorList::error_s3.code,
                             message: error::errorList::error_s3.message.clone(),
