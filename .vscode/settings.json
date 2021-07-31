@@ -5,5 +5,16 @@
         "*.toml": "toml",
         "random": "cpp"
     },
-    "C_Cpp.errorSquiggles": "Disabled"
+    "C_Cpp.errorSquiggles": "Disabled",
+    "cSpell.words": [
+        "rustfmt"
+    ],
+    "cSpell.language": "en,tr-TR",
+    "cSpell.enableFiletypes": [
+        "!fsharp",
+        "!go",
+        "!graphql",
+        "ellie",
+        "elliedebugheaders"
+    ]
 }

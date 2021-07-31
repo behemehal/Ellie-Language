@@ -143,7 +143,7 @@ fn main() {
                 );
                 let j = serde_json::to_string(&ellie_lib.file_content).unwrap();
                 fs::write(
-                    "./core/src/builded_libaries.rs",
+                    "./core/src/builded_libraries.rs",
                     format!("pub static ELLIE_STANDARD_LIBRARY : &str = {:#?};", j),
                 )
                 .unwrap();

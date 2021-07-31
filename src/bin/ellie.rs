@@ -19,7 +19,7 @@ fn main() {
         println!("\t--to-raw                     || -tr  : Compiles ellie to ellie raw");
         println!("\t--show-errors                || -se  : Linter code for errors");
         println!("\t--json-errors                || -je  : Linter code for errors as json");
-        println!("\t--eval-code                  || -ec  : Eval code from parameters");
+        // println!("\t--eval-code                  || -ec  : Eval code from parameters");
         println!("\t--parser-ws                  || -pw  : Visualize parsing process");
     } else {
         let args = env::args()
@@ -57,7 +57,7 @@ fn main() {
                             |e| {
                                 if e == "ellie" {
                                     let lib: ellie_parser::parser::Parsed = serde_json::from_str(
-                                        ellie_core::builded_libaries::ELLIE_STANDARD_LIBRARY,
+                                        ellie_core::builded_libraries::ELLIE_STANDARD_LIBRARY,
                                     )
                                     .unwrap();
                                     ellie_parser::parser::ResolvedImport {
@@ -109,7 +109,7 @@ fn main() {
                                     } else {
                                         if error.pos.range_start.0 != error.pos.range_end.0 {
                                             std::println!(
-                                                "{}[Experimental]{}: Multiline error listing",
+                                                "{}[Experimental]{}: Multi line error listing",
                                                 ellie_lang::terminal_colors::get_color(
                                                     ellie_lang::terminal_colors::Colors::Magenta
                                                 ),
@@ -328,7 +328,7 @@ fn main() {
                                                         as usize
                                                 } else {
                                                     std::println!(
-                                                        "{}[ParserWarning]{}: Multiline error show is not supported, you may want to use --experimental-error-listing : {}https://github.com/behemehal/Ellie-Language/issues/17{}",
+                                                        "{}[ParserWarning]{}: Multi line error show is not supported, you may want to use --experimental-error-listing : {}https://github.com/behemehal/Ellie-Language/issues/17{}",
                                                         ellie_lang::terminal_colors::get_color(ellie_lang::terminal_colors::Colors::Red),
                                                         ellie_lang::terminal_colors::get_color(ellie_lang::terminal_colors::Colors::Reset),
                                                         ellie_lang::terminal_colors::get_color(ellie_lang::terminal_colors::Colors::Cyan),
@@ -374,7 +374,7 @@ fn main() {
                             |e| {
                                 if e == "ellie" {
                                     let lib: ellie_parser::parser::Parsed = serde_json::from_str(
-                                        ellie_core::builded_libaries::ELLIE_STANDARD_LIBRARY,
+                                        ellie_core::builded_libraries::ELLIE_STANDARD_LIBRARY,
                                     )
                                     .unwrap();
                                     ellie_parser::parser::ResolvedImport {
@@ -425,7 +425,7 @@ fn main() {
                                     } else {
                                         if error.pos.range_start.0 != error.pos.range_end.0 {
                                             std::println!(
-                                                "{}[Experimental]{}: Multiline error listing",
+                                                "{}[Experimental]{}: Multi line error listing",
                                                 ellie_lang::terminal_colors::get_color(
                                                     ellie_lang::terminal_colors::Colors::Magenta
                                                 ),
@@ -633,7 +633,7 @@ fn main() {
                                                         as usize
                                                 } else {
                                                     std::println!(
-                                                        "{}[ParserWarning]{}: Multiline error show is not supported, you may want to use --experimental-error-listing : {}https://github.com/behemehal/Ellie-Language/issues/17{}",
+                                                        "{}[ParserWarning]{}: Multi line error show is not supported, you may want to use --experimental-error-listing : {}https://github.com/behemehal/Ellie-Language/issues/17{}",
                                                         ellie_lang::terminal_colors::get_color(ellie_lang::terminal_colors::Colors::Red),
                                                         ellie_lang::terminal_colors::get_color(ellie_lang::terminal_colors::Colors::Reset),
                                                         ellie_lang::terminal_colors::get_color(ellie_lang::terminal_colors::Colors::Cyan),
