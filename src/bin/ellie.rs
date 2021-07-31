@@ -56,10 +56,13 @@ fn main() {
                             code.clone(),
                             |e| {
                                 if e == "ellie" {
-                                    let lib : ellie_parser::parser::Parsed = serde_json::from_str(ellie_core::builded_libaries::ELLIE_STANDARD_LIBRARY).unwrap();
+                                    let lib: ellie_parser::parser::Parsed = serde_json::from_str(
+                                        ellie_core::builded_libaries::ELLIE_STANDARD_LIBRARY,
+                                    )
+                                    .unwrap();
                                     ellie_parser::parser::ResolvedImport {
                                         found: true,
-                                        file_content: lib
+                                        file_content: lib,
                                     }
                                 } else {
                                     ellie_parser::parser::ResolvedImport::default()
@@ -370,10 +373,13 @@ fn main() {
                             code.clone(),
                             |e| {
                                 if e == "ellie" {
-                                    let lib : ellie_parser::parser::Parsed = serde_json::from_str(ellie_core::builded_libaries::ELLIE_STANDARD_LIBRARY).unwrap();
+                                    let lib: ellie_parser::parser::Parsed = serde_json::from_str(
+                                        ellie_core::builded_libaries::ELLIE_STANDARD_LIBRARY,
+                                    )
+                                    .unwrap();
                                     ellie_parser::parser::ResolvedImport {
                                         found: true,
-                                        file_content: lib
+                                        file_content: lib,
                                     }
                                 } else {
                                     ellie_parser::parser::ResolvedImport::default()

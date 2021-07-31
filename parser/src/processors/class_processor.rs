@@ -237,13 +237,18 @@ pub fn collect_class(
                 class_data.brace_count -= 1;
             }
             let mut child_parser = class_data.code.clone().to_no_resolver_parser();
-            child_parser.collected = parser.collected.clone().into_iter().filter(|x| {
-                if let parser::Collecting::ImportItem(_) = x {
-                    true
-                } else {
-                    false
-                }
-            }).collect();
+            child_parser.collected = parser
+                .collected
+                .clone()
+                .into_iter()
+                .filter(|x| {
+                    if let parser::Collecting::ImportItem(_) = x {
+                        true
+                    } else {
+                        false
+                    }
+                })
+                .collect();
             child_parser.options = parser.options.clone();
             child_parser.options.parser_type = defs::ParserType::ClassParser;
             child_parser.generic_variables = class_data.data.generic_definings.clone();

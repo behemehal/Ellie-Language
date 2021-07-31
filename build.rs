@@ -3,11 +3,11 @@ use ellie_parser::parser;
 use regex::Regex;
 #[path = "src/terminal_colors.rs"]
 mod terminal_colors;
+use serde_json;
 use std::{
     fs::{self, File},
     io::Read,
 };
-use serde_json;
 
 fn read_file(file_dir: &str) -> Result<String, String> {
     let file_read = File::open(file_dir);
@@ -23,7 +23,6 @@ fn read_file(file_dir: &str) -> Result<String, String> {
 }
 
 fn resolve_import(lib_name: String) -> ellie_parser::parser::ResolvedImport {
-
     std::println!(
         "{}[ReadingFile]{}: {}~./lib/{}.ei{}",
         terminal_colors::get_color(terminal_colors::Colors::Magenta),
@@ -138,21 +137,14 @@ fn main() {
             if version_regex.is_match(&e.value) {
                 println!(
                     "\nCompiling Ellie standard library {}v{}{} complete",
-                    terminal_colors::get_color(
-                        terminal_colors::Colors::Yellow
-                    ),
+                    terminal_colors::get_color(terminal_colors::Colors::Yellow),
                     e.value,
-                    terminal_colors::get_color(
-                        terminal_colors::Colors::Reset
-                    ),
+                    terminal_colors::get_color(terminal_colors::Colors::Reset),
                 );
                 let j = serde_json::to_string(&ellie_lib.file_content).unwrap();
                 fs::write(
                     "./core/src/builded_libaries.rs",
-                    format!(
-                        "pub static ELLIE_STANDARD_LIBRARY : &str = {:#?};",
-                        j
-                    ),
+                    format!("pub static ELLIE_STANDARD_LIBRARY : &str = {:#?};", j),
                 )
                 .unwrap();
             } else {
