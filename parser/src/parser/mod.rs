@@ -106,6 +106,7 @@ impl Serialize for Parser {
     }
 }
 
+/*
 impl<'de> Deserialize<'de> for Parser {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -436,6 +437,7 @@ impl Default for Parser {
         }
     }
 }
+*/
 
 #[derive(Default)]
 pub struct ResolvedImport {
