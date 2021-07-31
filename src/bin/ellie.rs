@@ -52,51 +52,19 @@ fn main() {
                     if code_string.is_err() {
                         println!("Unable to read file ~{}", file_arg.clone())
                     } else if let Ok(code) = code_string {
-                        let core_resolver = |e| {
-                            println!(
-                                "{}[ParserInfo]{}: Import Request '{}{}{}'",
-                                ellie_lang::terminal_colors::get_color(
-                                    ellie_lang::terminal_colors::Colors::Cyan
-                                ),
-                                ellie_lang::terminal_colors::get_color(
-                                    ellie_lang::terminal_colors::Colors::Reset
-                                ),
-                                ellie_lang::terminal_colors::get_color(
-                                    ellie_lang::terminal_colors::Colors::Yellow
-                                ),
-                                e,
-                                ellie_lang::terminal_colors::get_color(
-                                    ellie_lang::terminal_colors::Colors::Reset
-                                ),
-                            );
-                            if e == "ellie"
-                                || e == "string"
-                                || e == "void"
-                                || e == "int"
-                                || e == "char"
-                                || e == "collective"
-                                || e == "bool"
-                                || e == "float"
-                                || e == "cloak"
-                                || e == "array"
-                                || e == "nullAble"
-                            {
-                                if let Some(e) = ellie_lang::cli_utils::system_module_resolver(e) {
-                                    parser::ResolvedImport {
-                                        found: true,
-                                        file_content: e,
-                                    }
-                                } else {
-                                    parser::ResolvedImport::default()
-                                }
-                            } else {
-                                parser::ResolvedImport::default()
-                            }
-                        };
-
                         let mut parser = parser::Parser::new(
                             code.clone(),
-                            core_resolver,
+                            |e| {
+                                if e == "ellie" {
+                                    let lib : ellie_parser::parser::Parsed = serde_json::from_str(ellie_core::builded_libaries::ELLIE_STANDARD_LIBRARY).unwrap();
+                                    ellie_parser::parser::ResolvedImport {
+                                        found: true,
+                                        file_content: lib
+                                    }
+                                } else {
+                                    ellie_parser::ResolvedImport::default()
+                                }
+                            },
                             ellie_core::defs::ParserOptions {
                                 functions: true,
                                 break_on_error: false,
@@ -399,45 +367,10 @@ fn main() {
                     if env::args().len() > code_pos {
                         let code_vec: Vec<String> = env::args().skip(code_pos).collect(); //.nth(code_pos).unwrap();
                         let code = ellie_lang::cli_utils::clean_up_escape(code_vec.join(" "));
-                        let core_resolver = |e| {
-                            println!(
-                                "{}[ParserInfo]{}: Import Request '{}{}{}'",
-                                ellie_lang::terminal_colors::get_color(
-                                    ellie_lang::terminal_colors::Colors::Cyan
-                                ),
-                                ellie_lang::terminal_colors::get_color(
-                                    ellie_lang::terminal_colors::Colors::Reset
-                                ),
-                                ellie_lang::terminal_colors::get_color(
-                                    ellie_lang::terminal_colors::Colors::Yellow
-                                ),
-                                e,
-                                ellie_lang::terminal_colors::get_color(
-                                    ellie_lang::terminal_colors::Colors::Reset
-                                ),
-                            );
-                            if e == "ellie"
-                                || e == "string"
-                                || e == "void"
-                                || e == "int"
-                                || e == "char"
-                            {
-                                if let Some(e) = ellie_lang::cli_utils::system_module_resolver(e) {
-                                    parser::ResolvedImport {
-                                        found: true,
-                                        file_content: e,
-                                    }
-                                } else {
-                                    parser::ResolvedImport::default()
-                                }
-                            } else {
-                                parser::ResolvedImport::default()
-                            }
-                        };
 
                         let parser = parser::Parser::new(
                             code.clone(),
-                            core_resolver,
+                            |_| ellie_parser::parser::ResolvedImport::default(),
                             ellie_core::defs::ParserOptions {
                                 functions: true,
                                 break_on_error: false,

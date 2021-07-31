@@ -1,11 +1,12 @@
 use crate::syntax::types;
 use ellie_core::defs;
+use serde::Deserialize;
 use serde::Serialize;
 
 use alloc::boxed::Box;
 use alloc::vec::Vec;
 
-#[derive(PartialEq, Default, Debug, Clone, Serialize)]
+#[derive(PartialEq, Default, Debug, Clone, Serialize, Deserialize)]
 pub struct CollectiveEntry {
     pub key: Box<types::Types>,
     pub value: Box<types::Types>,
@@ -13,19 +14,19 @@ pub struct CollectiveEntry {
     pub value_pos: defs::Cursor,
 }
 
-#[derive(PartialEq, Default, Debug, Clone, Serialize)]
+#[derive(PartialEq, Default, Debug, Clone, Serialize, Deserialize)]
 pub struct CollectiveEntryCollector {
     pub data: CollectiveEntry,
     pub key_collected: bool,
     pub value_collected: bool,
 }
 
-#[derive(PartialEq, Default, Debug, Clone, Serialize)]
+#[derive(PartialEq, Default, Debug, Clone, Serialize, Deserialize)]
 pub struct Collective {
     pub entries: Vec<CollectiveEntryCollector>,
 }
 
-#[derive(PartialEq, Default, Debug, Clone, Serialize)]
+#[derive(PartialEq, Default, Debug, Clone, Serialize, Deserialize)]
 pub struct CollectiveCollector {
     pub complete: bool,
     pub data: Collective,

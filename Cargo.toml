@@ -38,8 +38,11 @@ name = "benches"
 harness = false
 
 [build-dependencies]
+ellie_parser = {path = "parser", version = "1.0.0"}
 ellie_core = {path = "core", version = "1.0.0"}
 cbindgen = "*"
+regex = "1.1.7"
+serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
 
 [dev-dependencies]
 criterion = { version = "0.3", features= ["html_reports"]}

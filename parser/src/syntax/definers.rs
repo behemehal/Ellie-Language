@@ -2,9 +2,10 @@ use alloc::boxed::Box;
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 use enum_as_inner::EnumAsInner;
+use serde::Deserialize;
 use serde::Serialize;
 
-#[derive(PartialEq, Debug, Clone, Serialize, Default)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
 pub struct FunctionType {
     pub complete: bool,
     pub params: Vec<DefinerCollecting>,
@@ -16,7 +17,7 @@ pub struct FunctionType {
     pub at_comma: bool,
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Default)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
 pub struct CloakType {
     pub complete: bool,
     pub rtype: Vec<DefinerCollecting>,
@@ -24,7 +25,7 @@ pub struct CloakType {
     pub at_comma: bool,
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Default)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ArrayType {
     pub complete: bool,
     pub rtype: Box<DefinerCollecting>,
@@ -34,19 +35,19 @@ pub struct ArrayType {
     pub typed: bool,
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Default)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
 pub struct GrowableArrayType {
     pub complete: bool,
     pub rtype: Box<DefinerCollecting>,
     pub bracket_inserted: bool,
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Default)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
 pub struct GenericType {
     pub rtype: String,
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Default)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
 pub struct CollectiveType {
     pub complete: bool,
     pub key: Box<DefinerCollecting>,
@@ -55,12 +56,12 @@ pub struct CollectiveType {
     pub has_key: bool,
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Default)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
 pub struct NullableType {
     pub value: Box<DefinerCollecting>,
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, EnumAsInner)]
+#[derive(PartialEq, Debug, Clone, Serialize, EnumAsInner, Deserialize)]
 pub enum DefinerCollecting {
     Array(ArrayType),
     GrowableArray(GrowableArrayType),

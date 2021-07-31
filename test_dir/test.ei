@@ -1,8 +1,6 @@
-import collective;
-
-v test : collective(int, collective(dyn, dyn)) = {
+v test : _collective(int, collective(dyn, dyn)) = {
     0: {},
-    1: {},
-    1: {},
-    1: {}
+    1: {} //
 };
+
+v test : string = "ok"; //ok ?   ıjoaıjoıjoıoj£>#$

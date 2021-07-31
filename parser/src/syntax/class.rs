@@ -2,16 +2,17 @@ use crate::syntax::{constructor, function, variable};
 use alloc::string::String;
 use alloc::vec::Vec;
 use ellie_core::defs;
+use serde::Deserialize;
 use serde::Serialize;
 use std::boxed::Box;
 
-#[derive(PartialEq, Debug, Clone, Default, Serialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
 pub struct GenericDefining {
     pub name: String,
     pub pos: defs::Cursor,
 }
 
-#[derive(PartialEq, Debug, Clone, Default, Serialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
 pub struct Class {
     pub name: String,
     pub public: bool,
@@ -24,7 +25,7 @@ pub struct Class {
     pub name_pos: defs::Cursor,
 }
 
-#[derive(PartialEq, Debug, Clone, Default, Serialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ClassCollector {
     pub generic_definings_collected: bool,
     pub brace_count: usize,

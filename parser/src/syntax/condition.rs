@@ -1,13 +1,14 @@
 use crate::parser::Collecting;
 use crate::syntax::{types, variable};
 use ellie_core::defs;
+use serde::Deserialize;
 use serde::Serialize;
 
 use crate::alloc::boxed::Box;
 use crate::alloc::string::String;
 use crate::alloc::vec::Vec;
 
-#[derive(PartialEq, Debug, Clone, Serialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub enum ConditionType {
     If,
     ElseIf,
@@ -20,20 +21,20 @@ impl Default for ConditionType {
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Default, Serialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ConditionChain {
     pub rtype: ConditionType,
     pub condition: Box<types::Types>,
     pub inside_code: Vec<Collecting>,
 }
 
-#[derive(PartialEq, Debug, Clone, Default, Serialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ConditionChainCollector {
     pub data: ConditionChain,
     pub keyword_pos: defs::Cursor,
 }
 
-#[derive(PartialEq, Debug, Clone, Default, Serialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ConditionCollector {
     pub might_be_else_if: bool,
     pub else_if_keyword_collector: String,

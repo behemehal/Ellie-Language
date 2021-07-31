@@ -1,7 +1,8 @@
 use crate::alloc::string::{String, ToString};
+use serde::Deserialize;
 use serde::Serialize;
 
-#[derive(Debug, Clone, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum ScopeTypes {
     File,
     System,
@@ -14,7 +15,7 @@ impl Default for ScopeTypes {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Scope {
     pub scope_name: String,
 }

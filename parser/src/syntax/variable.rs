@@ -1,9 +1,10 @@
 use crate::syntax::{definers, types};
 use alloc::string::String;
 use ellie_core::defs;
+use serde::Deserialize;
 use serde::Serialize;
 
-#[derive(PartialEq, Debug, Clone, Serialize, Default)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
 pub struct Variable {
     pub name: String,
     pub dynamic: bool,
@@ -18,7 +19,7 @@ pub struct Variable {
     pub hash: String,
 }
 
-#[derive(PartialEq, Debug, Clone, Default, Serialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
 pub struct VariableCollector {
     pub initialized: bool,
     pub named: bool,
