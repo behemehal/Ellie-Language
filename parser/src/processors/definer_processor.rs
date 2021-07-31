@@ -63,7 +63,7 @@ pub fn collect_definer(
                         value: syntax::types::Types::Integer(data.len.clone()),
                         rtype: syntax::definers::DefinerCollecting::Generic(
                             syntax::definers::GenericType {
-                                rtype: "integer".to_string(),
+                                rtype: "int".to_string(),
                             },
                         ),
                         ..Default::default()

@@ -2,15 +2,16 @@ use crate::parser::Collecting;
 use alloc::string::String;
 use alloc::vec::Vec;
 use ellie_core::defs;
+use serde::Deserialize;
 use serde::Serialize;
 
-#[derive(PartialEq, Debug, Clone, Default, Serialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ConstructorParameter {
     pub name: String,
     pub pos: defs::Cursor,
 }
 
-#[derive(PartialEq, Debug, Clone, Default, Serialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
 pub struct Constructor {
     pub name: String,                          //Function Name string
     pub parameters: Vec<ConstructorParameter>, //Parameter vector
@@ -19,7 +20,7 @@ pub struct Constructor {
     pub parameters_pos: defs::Cursor,
 }
 
-#[derive(PartialEq, Debug, Clone, Default, Serialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ConstructorCollector {
     pub data: Constructor,
     pub named: bool,

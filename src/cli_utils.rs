@@ -1,8 +1,5 @@
 use crate::terminal_colors;
-
 use ellie_core::{defs, error};
-use ellie_parser::{self, parser};
-use std::{env, fs::File, io::Read};
 
 pub fn is_errors_same(first: error::Error, second: error::Error) -> bool {
     first.code == second.code
@@ -15,112 +12,6 @@ pub fn clean_up_escape(code: String) -> String {
     code.replace("\\n", "\n")
         .replace("\\t", "\t")
         .replace("\\r", "\r")
-}
-
-pub fn system_module_resolver(lib_name: String) -> Option<ellie_parser::parser::Parsed> {
-    let core_resolver = |e: String| {
-        println!(
-            "{}[DEBUG:ParserInfo]{}: Import Request '{}{}{}'",
-            crate::terminal_colors::get_color(crate::terminal_colors::Colors::Cyan),
-            crate::terminal_colors::get_color(crate::terminal_colors::Colors::Reset),
-            crate::terminal_colors::get_color(crate::terminal_colors::Colors::Yellow),
-            e,
-            crate::terminal_colors::get_color(crate::terminal_colors::Colors::Reset),
-        );
-        if e == "ellie"
-            || e == "string"
-            || e == "void"
-            || e == "int"
-            || e == "char"
-            || e == "collective"
-            || e == "bool"
-            || e == "float"
-            || e == "cloak"
-            || e == "array"
-            || e == "nullAble"
-        {
-            if let Some(e) = crate::cli_utils::system_module_resolver(e.clone()) {
-                parser::ResolvedImport {
-                    found: true,
-                    file_content: e,
-                }
-            } else {
-                parser::ResolvedImport::default()
-            }
-        } else {
-            println!(
-                "{}[DEBUG:ParserInfo]{}: Import Rejected on: '{}'",
-                crate::terminal_colors::get_color(crate::terminal_colors::Colors::Red),
-                crate::terminal_colors::get_color(crate::terminal_colors::Colors::Reset),
-                e
-            );
-            parser::ResolvedImport::default()
-        }
-    };
-
-    let mut ellie_library_content = Vec::new();
-    /*
-
-
-                                 o_Oo_Oo_Oo_O
-            o_Oo_Oo_Oo_O         o_O      o_O
-            o_O      o_O         o_O      o_O
-            o_O      o_O         o_O      o_O
-            o_Oo_Oo_Oo_O         o_Oo_Oo_Oo_O
-
-            o_Oo_Oo_Oo_Oo_Oo_Oo_Oo_Oo_Oo_Oo_O
-            o_Oo_Oo_Oo_Oo_Oo_Oo_Oo_Oo_Oo_Oo_O
-
-            If you want to use std you should replace this with path
-    */
-    let mut ellie_library = File::open(
-        "C:\\Users\\ahmet\\Desktop\\Projects\\InBuild\\Ellie-Language\\lib\\".to_string()
-            + &(lib_name + ".ei"),
-    )
-    .unwrap();
-    ellie_library
-        .read_to_end(&mut ellie_library_content)
-        .expect("Unable to read");
-    let ellie_code_string = String::from_utf8(ellie_library_content).unwrap();
-    let child_parser: ellie_parser::parser::ParserResponse = ellie_parser::parser::Parser::new(
-        ellie_code_string,
-        core_resolver,
-        ellie_core::defs::ParserOptions {
-            functions: true,
-            break_on_error: false,
-            loops: true,
-            conditions: true,
-            classes: true,
-            dynamics: true,
-            global_variables: true,
-            line_ending: if env::consts::OS == "windows" {
-                "\\r\\n".to_string()
-            } else {
-                "\\n".to_string()
-            },
-            collectives: true,
-            variables: true,
-            constants: true,
-            parser_type: ellie_core::defs::ParserType::RawParser,
-            allow_import: true,
-        },
-    )
-    .map();
-    if child_parser.syntax_errors.len() != 0 {
-        println!(
-            "{}[DEBUG:ParserInfo]{}: Import Failed",
-            crate::terminal_colors::get_color(crate::terminal_colors::Colors::Red),
-            crate::terminal_colors::get_color(crate::terminal_colors::Colors::Reset),
-        );
-        None
-    } else {
-        println!(
-            "{}[DEBUG:ParserInfo]{}: Import Sucess",
-            crate::terminal_colors::get_color(crate::terminal_colors::Colors::Green),
-            crate::terminal_colors::get_color(crate::terminal_colors::Colors::Reset),
-        );
-        Some(child_parser.parsed)
-    }
 }
 
 pub fn zip_errors(errors: Vec<error::Error>) -> Vec<error::Error> {

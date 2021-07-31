@@ -1,10 +1,11 @@
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 use core::clone::Clone;
+use serde::Deserialize;
 use serde::Serialize;
 pub mod errorList;
 
-#[derive(Debug, Clone, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Error {
     pub code: u8,
     pub scope: String,
@@ -15,13 +16,13 @@ pub struct Error {
     pub pos: crate::defs::Cursor,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ErrorBuildField {
     pub key: String,
     pub value: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Default, Serialize)]
+#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
 pub struct BuildedError {
     pub builded: String,
     pub fields: Vec<ErrorBuildField>,

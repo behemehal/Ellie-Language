@@ -3,9 +3,10 @@ use crate::syntax::{definers, function};
 use alloc::string::String;
 use alloc::vec::Vec;
 use ellie_core::defs;
+use serde::Deserialize;
 use serde::Serialize;
 
-#[derive(PartialEq, Debug, Clone, Default, Serialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ArrowFunction {
     pub parameters: Vec<function::FunctionParameterCollector>,
     pub return_type: definers::DefinerCollecting,
@@ -13,7 +14,7 @@ pub struct ArrowFunction {
     pub return_pos: defs::Cursor,
 }
 
-#[derive(PartialEq, Debug, Clone, Default, Serialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ArrowFunctionCollector {
     pub complete: bool,
     pub param_bracket_opened: bool,

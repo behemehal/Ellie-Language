@@ -2,6 +2,7 @@
 
 use crate::syntax::types;
 use crate::syntax::variable;
+use serde::Deserialize;
 use serde::Serialize;
 
 use crate::syntax::types::arithmetic_type::ArithmeticOperators;
@@ -11,7 +12,7 @@ use crate::syntax::types::logical_type::LogicalOperators;
 use alloc::boxed::Box;
 use alloc::string::String;
 
-#[derive(PartialEq, Debug, Clone, Serialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub enum Operators {
     ComparisonType(ComparisonOperators),
     LogicalType(LogicalOperators),
@@ -84,7 +85,7 @@ impl Default for Operators {
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Default, Serialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
 pub struct OperatorType {
     pub cloaked: bool,
     pub first: Box<types::Types>,
@@ -92,7 +93,7 @@ pub struct OperatorType {
     pub operator: Operators,
 }
 
-#[derive(PartialEq, Debug, Clone, Default, Serialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
 pub struct OperatorTypeCollector {
     pub data: OperatorType,
     pub cloaked: bool,

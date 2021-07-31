@@ -1,6 +1,6 @@
 use enum_as_inner::EnumAsInner;
-use serde::ser::{Serialize, SerializeStruct, Serializer};
-use serde::Serialize as Serd;
+use serde::Deserialize;
+use serde::Serialize;
 
 pub mod iterator;
 pub mod scope;
@@ -9,25 +9,26 @@ use crate::alloc::boxed::Box;
 use crate::alloc::string::{String, ToString};
 use crate::alloc::vec;
 use crate::alloc::vec::Vec;
+
 use crate::syntax::{
     caller, class, condition, constructor, definers, file_key, forloop, function, import,
     import_item, ret, types, variable,
 };
 use ellie_core::{defs, error, utils};
 
-#[derive(Debug, Clone, PartialEq, Default, Serd)]
+#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
 pub struct Parsed {
     pub name: String,
     pub items: Vec<Collecting>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serd)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ParserResponse {
     pub parsed: Parsed,
     pub syntax_errors: Vec<error::Error>,
 }
 
-#[derive(PartialEq, Debug, Clone, Serd)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub enum Collecting {
     ImportItem(import_item::ImportItem),
     Variable(variable::VariableCollector),
@@ -47,6 +48,12 @@ pub enum Collecting {
     None,
 }
 
+impl Default for Collecting {
+    fn default() -> Self {
+        Collecting::None
+    }
+}
+
 #[derive(EnumAsInner)]
 pub enum NameCheckResponseType {
     Variable(variable::VariableCollector),
@@ -58,6 +65,64 @@ pub enum NameCheckResponseType {
 pub struct NameCheckResponse {
     pub found: bool,
     pub found_type: NameCheckResponseType,
+}
+
+//This is a clone of parser that implements serialize and deserialize
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
+pub struct RawParser {
+    pub scope: Box<scope::Scope>,
+    pub code: String,
+    pub options: defs::ParserOptions,
+    pub collected: Vec<Collecting>,
+    pub generic_variables: Vec<class::GenericDefining>,
+    pub pos: defs::CursorPosition,
+    pub on_comment: bool,
+    pub on_line_comment: bool,
+    pub ignore_line: bool,
+    pub current: Collecting,
+    pub keyword_pos: defs::Cursor,
+    pub keyword_catch: String,
+    pub keyword_cache: variable::VariableCollector,
+}
+
+impl RawParser {
+    pub fn to_parser(self, resolver: fn(String) -> ResolvedImport) -> Parser {
+        Parser {
+            scope: self.scope,
+            resolver,
+            code: self.code,
+            options: self.options,
+            collected: self.collected,
+            generic_variables: self.generic_variables,
+            pos: self.pos,
+            on_comment: self.on_comment,
+            on_line_comment: self.on_line_comment,
+            ignore_line: self.ignore_line,
+            current: self.current,
+            keyword_pos: self.keyword_pos,
+            keyword_catch: self.keyword_catch,
+            keyword_cache: self.keyword_cache,
+        }
+    }
+
+    pub fn to_no_resolver_parser(self) -> Parser {
+        Parser {
+            scope: self.scope,
+            resolver: |_| ResolvedImport::default(),
+            code: self.code,
+            options: self.options,
+            collected: self.collected,
+            generic_variables: self.generic_variables,
+            pos: self.pos,
+            on_comment: self.on_comment,
+            on_line_comment: self.on_line_comment,
+            ignore_line: self.ignore_line,
+            current: self.current,
+            keyword_pos: self.keyword_pos,
+            keyword_catch: self.keyword_catch,
+            keyword_cache: self.keyword_cache,
+        }
+    }
 }
 
 #[derive(PartialEq, Debug, Clone)]
@@ -76,30 +141,6 @@ pub struct Parser {
     pub keyword_pos: defs::Cursor,
     pub keyword_catch: String,
     pub keyword_cache: variable::VariableCollector,
-}
-
-impl Serialize for Parser {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        // 3 is the number of fields in the struct.
-        let mut state = serializer.serialize_struct("Color", 3)?;
-        state.serialize_field("scope", &self.scope)?;
-        state.serialize_field("code", &self.code)?;
-        state.serialize_field("options", &self.options)?;
-        state.serialize_field("collected", &self.collected)?;
-        state.serialize_field("generic_variables", &self.generic_variables)?;
-        state.serialize_field("pos", &self.pos)?;
-        state.serialize_field("on_comment", &self.on_comment)?;
-        state.serialize_field("on_line_comment", &self.on_line_comment)?;
-        state.serialize_field("ignore_line", &self.ignore_line)?;
-        state.serialize_field("current", &self.current)?;
-        state.serialize_field("keyword_pos", &self.keyword_pos)?;
-        state.serialize_field("keyword_catch", &self.keyword_catch)?;
-        state.serialize_field("keyword_cache", &self.keyword_cache)?;
-        state.end()
-    }
 }
 
 impl Default for Parser {
@@ -156,6 +197,24 @@ impl Parser {
     pub fn read_module(mut self, code: String) -> ParserResponse {
         self.code = code;
         self.map()
+    }
+
+    pub fn to_raw(self) -> RawParser {
+        RawParser {
+            scope: self.scope,
+            code: self.code,
+            options: self.options,
+            collected: self.collected,
+            generic_variables: self.generic_variables,
+            pos: self.pos,
+            on_comment: self.on_comment,
+            on_line_comment: self.on_line_comment,
+            ignore_line: self.ignore_line,
+            current: self.current,
+            keyword_pos: self.keyword_pos,
+            keyword_catch: self.keyword_catch,
+            keyword_cache: self.keyword_cache,
+        }
     }
 
     pub fn map(mut self) -> ParserResponse {

@@ -1,7 +1,8 @@
 use alloc::string::{String, ToString};
+use serde::Deserialize;
 use serde::Serialize;
 
-#[derive(PartialEq, Debug, Clone, Serialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub enum ParserType {
     RawParser,
     ClassParser,
@@ -13,7 +14,7 @@ impl Default for ParserType {
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct ParserOptions {
     pub functions: bool,
     pub break_on_error: bool,
@@ -50,7 +51,7 @@ impl Default for ParserOptions {
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Copy, Serialize)]
+#[derive(PartialEq, Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct CursorPosition(pub usize, pub usize);
 
 impl Default for CursorPosition {
@@ -77,7 +78,7 @@ impl CursorPosition {
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Copy, Serialize)]
+#[derive(PartialEq, Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct Cursor {
     pub range_start: CursorPosition,
     pub range_end: CursorPosition,

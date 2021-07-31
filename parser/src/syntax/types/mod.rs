@@ -19,13 +19,12 @@ pub mod reference_type;
 pub mod string_type;
 pub mod variable_type;
 
-use alloc::format;
-use alloc::string::String;
-use ellie_core::utils;
+use alloc::string::{String, ToString};
 use enum_as_inner::EnumAsInner;
+use serde::Deserialize;
 use serde::Serialize;
 
-#[derive(PartialEq, Debug, Clone, Serialize, EnumAsInner)]
+#[derive(PartialEq, Debug, Clone, Serialize, EnumAsInner, Deserialize)]
 pub enum Types {
     Integer(integer_type::IntegerType),
     Float(float_type::FloatTypeCollector),
@@ -49,10 +48,26 @@ pub enum Types {
 
 impl Types {
     pub fn get_type(&self) -> String {
-        let mut q: String = format!("{:?}", self);
-        let bracket_offset = q.find('(').unwrap_or_else(|| q.len());
-        q.replace_range(bracket_offset.., "");
-        utils::lower_first_char(q)
+        match *self {
+            Types::Integer(_) => "int".to_string(),
+            Types::Float(_) => "float".to_string(),
+            Types::Bool(_) => "bool".to_string(),
+            Types::String(_) => "string".to_string(),
+            Types::Char(_) => "char".to_string(),
+            Types::Collective(_) => "collective".to_string(),
+            Types::Reference(_) => "reference".to_string(),
+            Types::BraceReference(_) => "braceReference".to_string(),
+            Types::Operator(_) => "operator".to_string(),
+            Types::Array(_) => "array".to_string(),
+            Types::Cloak(_) => "cloak".to_string(),
+            Types::ArrowFunction(_) => "arrowFunction".to_string(),
+            Types::FunctionCall(_) => "functionCall".to_string(),
+            Types::ClassCall(_) => "classCall".to_string(),
+            Types::VariableType(_) => "variable".to_string(),
+            Types::Negative(_) => "negative".to_string(),
+            Types::Void => "void".to_string(),
+            Types::Null => "null".to_string(),
+        }
     }
 
     pub fn is_type_complete(&self) -> bool {

@@ -3,9 +3,10 @@ use alloc::string::{String, ToString};
 use core::any::Any;
 use core::any::TypeId;
 use enum_as_inner::EnumAsInner;
+use serde::Deserialize;
 use serde::Serialize;
 
-#[derive(PartialEq, Eq, Debug, Clone, Copy, Serialize)]
+#[derive(PartialEq, Eq, Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum FloatTypes {
     F32,
     F64,
@@ -17,7 +18,7 @@ impl Default for FloatTypes {
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Copy, Serialize, EnumAsInner)]
+#[derive(PartialEq, Debug, Clone, Copy, Serialize, EnumAsInner, Deserialize)]
 pub enum FloatSize {
     F32(f32),
     F64(f64),
@@ -38,14 +39,14 @@ impl Default for FloatSize {
     }
 }
 
-#[derive(PartialEq, Default, Debug, Clone, Serialize)]
+#[derive(PartialEq, Default, Debug, Clone, Serialize, Deserialize)]
 pub struct FloatType {
     pub value: FloatSize,
     pub rtype: FloatTypes,
     pub raw: String,
 }
 
-#[derive(PartialEq, Default, Debug, Clone, Serialize)]
+#[derive(PartialEq, Default, Debug, Clone, Serialize, Deserialize)]
 pub struct FloatTypeCollector {
     pub data: FloatType,
     pub base: String,

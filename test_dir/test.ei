@@ -1,8 +1,7 @@
-import collective;
+import ellie;
 
-v test : collective(int, collective(dyn, dyn)) = {
-    0: {},
-    1: {},
-    1: {},
-    1: {}
-};
+class test<t, s> {
+    co test();
+
+    pri v test : string;
+}

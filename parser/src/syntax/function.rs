@@ -3,9 +3,10 @@ use crate::syntax::definers;
 use alloc::string::String;
 use alloc::vec::Vec;
 use ellie_core::defs;
+use serde::Deserialize;
 use serde::Serialize;
 
-#[derive(PartialEq, Debug, Clone, Default, Serialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
 pub struct FunctionParameter {
     pub name: String,
     pub rtype: definers::DefinerCollecting,
@@ -14,7 +15,7 @@ pub struct FunctionParameter {
     pub type_pos: defs::Cursor,
 }
 
-#[derive(PartialEq, Debug, Clone, Default, Serialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
 pub struct FunctionParameterCollector {
     pub data: FunctionParameter,
     pub named: bool,
@@ -22,7 +23,7 @@ pub struct FunctionParameterCollector {
     pub child_brace: usize,
 }
 
-#[derive(PartialEq, Debug, Clone, Default, Serialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
 pub struct Function {
     pub name: String,                                //Function Name string
     pub parameters: Vec<FunctionParameterCollector>, //Parameter vector
@@ -36,7 +37,7 @@ pub struct Function {
     pub return_pos: defs::Cursor,
 }
 
-#[derive(PartialEq, Debug, Clone, Default, Serialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
 pub struct FunctionCollector {
     pub data: Function,
     pub initialized: bool,
