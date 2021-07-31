@@ -1,6 +1,7 @@
-v test : _collective(int, collective(dyn, dyn)) = {
-    0: {},
-    1: {} //
-};
+import ellie;
 
-v test : string = "ok"; //ok ?   ıjoaıjoıjoıoj£>#$
+class test<t, s> {
+    co test();
+
+    pri v test : string;
+}

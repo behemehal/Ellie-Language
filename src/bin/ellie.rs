@@ -39,7 +39,7 @@ fn main() {
 
             //let map_errors_arg = env::args().any(|x| x == "--map-errors");
             let file_arg_check = file_args.first();
-            if file_arg_check != None {
+            if file_arg_check != None && !eval_code {
                 let file_arg = file_arg_check.unwrap();
                 let mut file_content = Vec::new();
                 let file_read = File::open(&file_arg.clone());
@@ -62,7 +62,7 @@ fn main() {
                                         file_content: lib
                                     }
                                 } else {
-                                    ellie_parser::ResolvedImport::default()
+                                    ellie_parser::parser::ResolvedImport::default()
                                 }
                             },
                             ellie_core::defs::ParserOptions {
@@ -351,8 +351,6 @@ fn main() {
                                 std::process::exit(0);
                             } else {
                                 println!("Collected: {:#?}", mapped);
-                                fs::write("./data.json", format!("{:#?}", mapped.parsed.items))
-                                    .unwrap();
                                 std::process::exit(0);
                             }
                         }
@@ -370,7 +368,17 @@ fn main() {
 
                         let parser = parser::Parser::new(
                             code.clone(),
-                            |_| ellie_parser::parser::ResolvedImport::default(),
+                            |e| {
+                                if e == "ellie" {
+                                    let lib : ellie_parser::parser::Parsed = serde_json::from_str(ellie_core::builded_libaries::ELLIE_STANDARD_LIBRARY).unwrap();
+                                    ellie_parser::parser::ResolvedImport {
+                                        found: true,
+                                        file_content: lib
+                                    }
+                                } else {
+                                    ellie_parser::parser::ResolvedImport::default()
+                                }
+                            },
                             ellie_core::defs::ParserOptions {
                                 functions: true,
                                 break_on_error: false,

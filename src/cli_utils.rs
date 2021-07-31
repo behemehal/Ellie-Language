@@ -1,8 +1,5 @@
 use crate::terminal_colors;
-
 use ellie_core::{defs, error};
-use ellie_parser::{self, parser};
-use std::{env, fs::File, io::Read};
 
 pub fn is_errors_same(first: error::Error, second: error::Error) -> bool {
     first.code == second.code

@@ -35,7 +35,7 @@ pub struct ClassCollector {
     pub has_code: bool,
     pub at_comma: bool,
     pub data: Class,
-    pub code: Box<crate::parser::Parser>,
+    pub code: Box<crate::parser::RawParser>,
 }
 
 impl ClassCollector {

@@ -35,3 +35,10 @@
     * Collective introduced
     * Negative introduced (!!true) 
     * Nullable types introduced
+
+# v2.8.1
+  - Parser v1.1.1
+    * Fix standard library's long load times
+    * Fix class imports
+  - CLI
+    * Fix eval & file code order

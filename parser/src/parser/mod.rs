@@ -1,8 +1,6 @@
 use enum_as_inner::EnumAsInner;
-use serde::de::{self, Deserialize, Deserializer, MapAccess, SeqAccess, Visitor};
-use serde::ser::{Serialize, SerializeStruct, Serializer};
-use serde::Deserialize as Derd;
-use serde::Serialize as Serd;
+use serde::Deserialize;
+use serde::Serialize;
 
 pub mod iterator;
 pub mod scope;
@@ -11,7 +9,6 @@ use crate::alloc::boxed::Box;
 use crate::alloc::string::{String, ToString};
 use crate::alloc::vec;
 use crate::alloc::vec::Vec;
-use alloc::fmt;
 
 use crate::syntax::{
     caller, class, condition, constructor, definers, file_key, forloop, function, import,
@@ -19,19 +16,19 @@ use crate::syntax::{
 };
 use ellie_core::{defs, error, utils};
 
-#[derive(Debug, Clone, PartialEq, Default, Serd, Derd)]
+#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
 pub struct Parsed {
     pub name: String,
     pub items: Vec<Collecting>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serd, Derd)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ParserResponse {
     pub parsed: Parsed,
     pub syntax_errors: Vec<error::Error>,
 }
 
-#[derive(PartialEq, Debug, Clone, Serd, Derd)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub enum Collecting {
     ImportItem(import_item::ImportItem),
     Variable(variable::VariableCollector),
@@ -51,6 +48,12 @@ pub enum Collecting {
     None,
 }
 
+impl Default for Collecting {
+    fn default() -> Self {
+        Collecting::None
+    }
+}
+
 #[derive(EnumAsInner)]
 pub enum NameCheckResponseType {
     Variable(variable::VariableCollector),
@@ -65,7 +68,7 @@ pub struct NameCheckResponse {
 }
 
 //This is a clone of parser that implements serialize and deserialize
-#[derive(PartialEq, Debug, Clone, Serialize Deserialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
 pub struct RawParser {
     pub scope: Box<scope::Scope>,
     pub code: String,
@@ -80,6 +83,46 @@ pub struct RawParser {
     pub keyword_pos: defs::Cursor,
     pub keyword_catch: String,
     pub keyword_cache: variable::VariableCollector,
+}
+
+impl RawParser {
+    pub fn to_parser(self, resolver: fn(String) -> ResolvedImport) -> Parser {
+        Parser {
+            scope: self.scope,
+            resolver,
+            code: self.code,
+            options: self.options,
+            collected: self.collected,
+            generic_variables: self.generic_variables,
+            pos: self.pos,
+            on_comment: self.on_comment,
+            on_line_comment: self.on_line_comment,
+            ignore_line: self.ignore_line,
+            current: self.current,
+            keyword_pos: self.keyword_pos,
+            keyword_catch: self.keyword_catch,
+            keyword_cache: self.keyword_cache,
+        }
+    }
+
+    pub fn to_no_resolver_parser(self) -> Parser {
+        Parser {
+            scope: self.scope,
+            resolver: |_| ResolvedImport::default(),
+            code: self.code,
+            options: self.options,
+            collected: self.collected,
+            generic_variables: self.generic_variables,
+            pos: self.pos,
+            on_comment: self.on_comment,
+            on_line_comment: self.on_line_comment,
+            ignore_line: self.ignore_line,
+            current: self.current,
+            keyword_pos: self.keyword_pos,
+            keyword_catch: self.keyword_catch,
+            keyword_cache: self.keyword_cache,
+        }
+    }
 }
 
 #[derive(PartialEq, Debug, Clone)]
@@ -98,341 +141,6 @@ pub struct Parser {
     pub keyword_pos: defs::Cursor,
     pub keyword_catch: String,
     pub keyword_cache: variable::VariableCollector,
-}
-
-impl Serialize for Parser {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        // 3 is the number of fields in the struct.
-        let mut state = serializer.serialize_struct("Color", 3)?;
-        state.serialize_field("scope", &self.scope)?;
-        state.serialize_field("code", &self.code)?;
-        state.serialize_field("options", &self.options)?;
-        state.serialize_field("collected", &self.collected)?;
-        state.serialize_field("generic_variables", &self.generic_variables)?;
-        state.serialize_field("pos", &self.pos)?;
-        state.serialize_field("on_comment", &self.on_comment)?;
-        state.serialize_field("on_line_comment", &self.on_line_comment)?;
-        state.serialize_field("ignore_line", &self.ignore_line)?;
-        state.serialize_field("current", &self.current)?;
-        state.serialize_field("keyword_pos", &self.keyword_pos)?;
-        state.serialize_field("keyword_catch", &self.keyword_catch)?;
-        state.serialize_field("keyword_cache", &self.keyword_cache)?;
-        state.end()
-    }
-}
-
-/*
-impl<'de> Deserialize<'de> for Parser {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        enum Field {
-            Scope,
-            Resolver,
-            Code,
-            Options,
-            Collected,
-            GenericVariables,
-            Pos,
-            OnComment,
-            OnLineComment,
-            IgnoreLine,
-            Current,
-            KeywordPos,
-            KeywordCatch,
-            KeywordCache,
-        }
-
-        // This part could also be generated independently by:
-        //
-        //    #[derive(Deserialize)]
-        //    #[serde(field_identifier, rename_all = "lowercase")]
-        //    enum Field { Secs, Nanos }
-        impl<'de> Deserialize<'de> for Field {
-            fn deserialize<D>(deserializer: D) -> Result<Field, D::Error>
-            where
-                D: Deserializer<'de>,
-            {
-                struct FieldVisitor;
-
-                impl<'de> Visitor<'de> for FieldVisitor {
-                    type Value = Field;
-
-                    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-                        formatter.write_str("`secs` or `nanos`")
-                    }
-
-                    fn visit_str<E>(self, value: &str) -> Result<Field, E>
-                    where
-                        E: de::Error,
-                    {
-                        match value {
-                            "scope" => Ok(Field::Scope),
-                            "resolver" => Ok(Field::Resolver),
-                            "code" => Ok(Field::Code),
-                            "options" => Ok(Field::Options),
-                            "collected" => Ok(Field::Collected),
-                            "generic_variables" => Ok(Field::GenericVariables),
-                            "pos" => Ok(Field::Pos),
-                            "on_comment" => Ok(Field::OnComment),
-                            "on_line_comment" => Ok(Field::OnLineComment),
-                            "ignore_line" => Ok(Field::IgnoreLine),
-                            "current" => Ok(Field::Current),
-                            "keyword_pos" => Ok(Field::KeywordPos),
-                            "keyword_catch" => Ok(Field::KeywordCatch),
-                            "keyword_cache" => Ok(Field::KeywordCache),
-                            _ => Err(de::Error::unknown_field(value, FIELDS)),
-                        }
-                    }
-                }
-
-                deserializer.deserialize_identifier(FieldVisitor)
-            }
-        }
-
-        struct ParserVisitor;
-
-        impl<'de> Visitor<'de> for ParserVisitor {
-            type Value = Parser;
-
-            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-                formatter.write_str("struct Parser")
-            }
-
-            fn visit_seq<V>(self, mut seq: V) -> Result<Parser, V::Error>
-            where
-                V: SeqAccess<'de>,
-            {
-                let scope = seq
-                    .next_element()?
-                    .ok_or_else(|| de::Error::invalid_length(0, &self))?;
-                let resolver = seq
-                    .next_element()?
-                    .ok_or_else(|| de::Error::invalid_length(1, &self))?;
-                let code = seq
-                    .next_element()?
-                    .ok_or_else(|| de::Error::invalid_length(2, &self))?;
-                let options = seq
-                    .next_element()?
-                    .ok_or_else(|| de::Error::invalid_length(3, &self))?;
-                let collected = seq
-                    .next_element()?
-                    .ok_or_else(|| de::Error::invalid_length(4, &self))?;
-                let generic_variables = seq
-                    .next_element()?
-                    .ok_or_else(|| de::Error::invalid_length(5, &self))?;
-                let pos = seq
-                    .next_element()?
-                    .ok_or_else(|| de::Error::invalid_length(6, &self))?;
-                let on_comment = seq
-                    .next_element()?
-                    .ok_or_else(|| de::Error::invalid_length(7, &self))?;
-                let on_line_comment = seq
-                    .next_element()?
-                    .ok_or_else(|| de::Error::invalid_length(8, &self))?;
-                let ignore_line = seq
-                    .next_element()?
-                    .ok_or_else(|| de::Error::invalid_length(9, &self))?;
-                let current = seq
-                    .next_element()?
-                    .ok_or_else(|| de::Error::invalid_length(10, &self))?;
-                let keyword_pos = seq
-                    .next_element()?
-                    .ok_or_else(|| de::Error::invalid_length(11, &self))?;
-                let keyword_catch = seq
-                    .next_element()?
-                    .ok_or_else(|| de::Error::invalid_length(12, &self))?;
-                let keyword_cache = seq
-                    .next_element()?
-                    .ok_or_else(|| de::Error::invalid_length(13, &self))?;
-
-                Ok(Parser {
-                    scope,
-                    resolver,
-                    code,
-                    options,
-                    collected,
-                    generic_variables,
-                    pos,
-                    on_comment,
-                    on_line_comment,
-                    ignore_line,
-                    current,
-                    keyword_pos,
-                    keyword_catch,
-                    keyword_cache,
-                })
-            }
-
-            fn visit_map<V>(self, mut map: V) -> Result<Parser, V::Error>
-            where
-                V: MapAccess<'de>,
-            {
-                let mut scope = None;
-                let mut resolver = None;
-                let mut code = None;
-                let mut options = None;
-                let mut collected = None;
-                let mut generic_variables = None;
-                let mut pos = None;
-                let mut on_comment = None;
-                let mut on_line_comment = None;
-                let mut ignore_line = None;
-                let mut current = None;
-                let mut keyword_pos = None;
-                let mut keyword_catch = None;
-                let mut keyword_cache = None;
-                while let Some(key) = map.next_key()? {
-                    match key {
-                        Scope => {
-                            if scope.is_some() {
-                                return Err(de::Error::duplicate_field("scope"));
-                            }
-                            scope = Some(map.next_value()?);
-                        }
-                        Resolver => {
-                            if resolver.is_some() {
-                                return Err(de::Error::duplicate_field("resolver"));
-                            }
-                            resolver = Some(map.next_value()?);
-                        }
-                        Code => {
-                            if code.is_some() {
-                                return Err(de::Error::duplicate_field("code"));
-                            }
-                            code = Some(map.next_value()?);
-                        }
-                        Options => {
-                            if options.is_some() {
-                                return Err(de::Error::duplicate_field("options"));
-                            }
-                            options = Some(map.next_value()?);
-                        }
-                        Collected => {
-                            if collected.is_some() {
-                                return Err(de::Error::duplicate_field("collected"));
-                            }
-                            collected = Some(map.next_value()?);
-                        }
-                        GenericVariable => {
-                            if generic_variables.is_some() {
-                                return Err(de::Error::duplicate_field("generic_variables"));
-                            }
-                            generic_variables = Some(map.next_value()?);
-                        }
-                        Pos => {
-                            if pos.is_some() {
-                                return Err(de::Error::duplicate_field("pos"));
-                            }
-                            pos = Some(map.next_value()?);
-                        }
-                        OnComment => {
-                            if on_comment.is_some() {
-                                return Err(de::Error::duplicate_field("on_comment"));
-                            }
-                            on_comment = Some(map.next_value()?);
-                        }
-                        OnLineComment => {
-                            if on_line_comment.is_some() {
-                                return Err(de::Error::duplicate_field("on_line_comment"));
-                            }
-                            on_line_comment = Some(map.next_value()?);
-                        }
-                        IgnoreLine => {
-                            if ignore_line.is_some() {
-                                return Err(de::Error::duplicate_field("ignore_line"));
-                            }
-                            ignore_line = Some(map.next_value()?);
-                        }
-                        Current => {
-                            if current.is_some() {
-                                return Err(de::Error::duplicate_field("current"));
-                            }
-                            current = Some(map.next_value()?);
-                        }
-                        KeywordPos => {
-                            if keyword_pos.is_some() {
-                                return Err(de::Error::duplicate_field("keyword_pos"));
-                            }
-                            keyword_pos = Some(map.next_value()?);
-                        }
-                        KeywordCatch => {
-                            if keyword_catch.is_some() {
-                                return Err(de::Error::duplicate_field("keyword_catch"));
-                            }
-                            keyword_catch = Some(map.next_value()?);
-                        }
-                        KeywordCache => {
-                            if keyword_cache.is_some() {
-                                return Err(de::Error::duplicate_field("keyword_cache"));
-                            }
-                            keyword_cache = Some(map.next_value()?);
-                        }
-                    }
-                }
-
-                let scope = scope.ok_or_else(|| de::Error::missing_field("scope"))?;
-                let resolver = resolver.ok_or_else(|| de::Error::missing_field("resolver"))?;
-                let code = code.ok_or_else(|| de::Error::missing_field("code"))?;
-                let options = options.ok_or_else(|| de::Error::missing_field("options"))?;
-                let collected = collected.ok_or_else(|| de::Error::missing_field("collected"))?;
-                let generic_variables = generic_variables
-                    .ok_or_else(|| de::Error::missing_field("generic_variables"))?;
-                let pos = pos.ok_or_else(|| de::Error::missing_field("pos"))?;
-                let on_comment =
-                    on_comment.ok_or_else(|| de::Error::missing_field("on_comment"))?;
-                let on_line_comment =
-                    on_line_comment.ok_or_else(|| de::Error::missing_field("on_line_comment"))?;
-                let ignore_line =
-                    ignore_line.ok_or_else(|| de::Error::missing_field("ignore_line"))?;
-                let current = current.ok_or_else(|| de::Error::missing_field("current"))?;
-                let keyword_pos =
-                    keyword_pos.ok_or_else(|| de::Error::missing_field("keyword_pos"))?;
-                let keyword_catch =
-                    keyword_catch.ok_or_else(|| de::Error::missing_field("keyword_catch"))?;
-                let keyword_cache =
-                    keyword_cache.ok_or_else(|| de::Error::missing_field("keyword_cach"))?;
-                Ok(Parser {
-                    scope,
-                    resolver,
-                    code,
-                    options,
-                    collected,
-                    generic_variables,
-                    pos,
-                    on_comment,
-                    on_line_comment,
-                    ignore_line,
-                    current,
-                    keyword_pos,
-                    keyword_catch,
-                    keyword_cache,
-                })
-            }
-        }
-
-        const FIELDS: &'static [&'static str] = &[
-            "scope",
-            "resolver",
-            "code",
-            "options",
-            "collected",
-            "generic_variables",
-            "pos",
-            "on_comment",
-            "on_line_comment",
-            "ignore_line",
-            "current",
-            "keyword_pos",
-            "keyword_catch",
-            "keyword_cache",
-        ];
-        deserializer.deserialize_struct("Parser", FIELDS, ParserVisitor)
-    }
 }
 
 impl Default for Parser {
@@ -455,7 +163,6 @@ impl Default for Parser {
         }
     }
 }
-*/
 
 #[derive(Default)]
 pub struct ResolvedImport {
@@ -490,6 +197,24 @@ impl Parser {
     pub fn read_module(mut self, code: String) -> ParserResponse {
         self.code = code;
         self.map()
+    }
+
+    pub fn to_raw(self) -> RawParser {
+        RawParser {
+            scope: self.scope,
+            code: self.code,
+            options: self.options,
+            collected: self.collected,
+            generic_variables: self.generic_variables,
+            pos: self.pos,
+            on_comment: self.on_comment,
+            on_line_comment: self.on_line_comment,
+            ignore_line: self.ignore_line,
+            current: self.current,
+            keyword_pos: self.keyword_pos,
+            keyword_catch: self.keyword_catch,
+            keyword_cache: self.keyword_cache,
+        }
     }
 
     pub fn map(mut self) -> ParserResponse {
