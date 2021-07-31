@@ -23,7 +23,7 @@ pub fn collect_integer(
             if data.complete && last_char.parse::<isize>().is_err() {
                 errors.push(error::Error {
                     scope: "integer_processor".to_string(),
-                    debug_message: "381a19d0aebb8975eb6738549666d4b0".to_string(),
+                    debug_message: "2ffb6e752b390c249fddb3ed67584944".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -75,7 +75,7 @@ pub fn collect_integer(
                 } else {
                     errors.push(error::Error {
                         scope: "integer_processor".to_string(),
-                        debug_message: "d9d4b84fbaab411c31800c1c81c5f73b".to_string(),
+                        debug_message: "7d7bdcf4fcda53b49cb3ea564d866efc".to_string(),
                         title: error::errorList::error_s16.title.clone(),
                         code: error::errorList::error_s16.code,
                         message: error::errorList::error_s16.message.clone(),
@@ -182,7 +182,7 @@ pub fn collect_integer(
         } else if letter_char != " " {
             errors.push(error::Error {
                 scope: "integer_processor".to_string(),
-                debug_message: "a118b75650b5ceedddf5ea2ce703a0ae".to_string(),
+                debug_message: "407e4f0ba35a7ef5f2bec7298e21e078".to_string(),
                 title: error::errorList::error_s1.title.clone(),
                 code: error::errorList::error_s1.code,
                 message: error::errorList::error_s1.message.clone(),

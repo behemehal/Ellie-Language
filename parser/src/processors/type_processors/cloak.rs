@@ -25,7 +25,7 @@ pub fn collect_cloak(
             if !data.comma && last_entry != 0 {
                 errors.push(error::Error {
                     scope: "cloak_processor".to_string(),
-                    debug_message: "2c8d2545a0b470ef979ed78f5ba6a100".to_string(),
+                    debug_message: "b033bbc626c5f71b1e5139984c55acae".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -71,7 +71,7 @@ pub fn collect_cloak(
             if data.complete {
                 errors.push(error::Error {
                     scope: "cloak_processor".to_string(),
-                    debug_message: "a4224f238d0e74ac4974cfe9b12dacad".to_string(),
+                    debug_message: "ca06d6b5d6850ad375e270cf5e913ea1".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -90,7 +90,7 @@ pub fn collect_cloak(
             } else if data.comma {
                 errors.push(error::Error {
                     scope: "cloak_processor".to_string(),
-                    debug_message: "b02fc9a51682fe5225d7177e5c500f6d".to_string(),
+                    debug_message: "b4b0632c9ed39f490982c5c819df83f2".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -123,7 +123,7 @@ pub fn collect_cloak(
                         {
                             errors.push(error::Error {
                                 scope: parser.scope.scope_name.clone(),
-                                debug_message: "8e520cdb2e7fb39ee178611cc62a54ff".to_string(),
+                                debug_message: "11742b6b8012f19ebf5f0d88e76359b6".to_string(),
                                 title: error::errorList::error_s3.title.clone(),
                                 code: error::errorList::error_s3.code,
                                 message: error::errorList::error_s3.message.clone(),
@@ -155,7 +155,7 @@ pub fn collect_cloak(
             if data.comma {
                 errors.push(error::Error {
                     scope: "cloak_processor".to_string(),
-                    debug_message: "0450416c5b33c5727a4cc7ad7879e4cd".to_string(),
+                    debug_message: "58005599f91afe3db59b6069d7c03b83".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -174,7 +174,7 @@ pub fn collect_cloak(
             } else if data.complete {
                 errors.push(error::Error {
                     scope: "cloak_processor".to_string(),
-                    debug_message: "7fb27b5f84ed8d571e17cd49e4173657".to_string(),
+                    debug_message: "bc8c963c8b417edf8772394c20c0f4a1".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -211,7 +211,7 @@ pub fn collect_cloak(
                         {
                             errors.push(error::Error {
                                 scope: parser.scope.scope_name.clone(),
-                                debug_message: "fd298ede0498afa5ff410375a93a622e".to_string(),
+                                debug_message: "ed2db6e7d6b3d1c25c9e7f396c367c28".to_string(),
                                 title: error::errorList::error_s3.title.clone(),
                                 code: error::errorList::error_s3.code,
                                 message: error::errorList::error_s3.message.clone(),
@@ -654,7 +654,7 @@ pub fn collect_cloak(
                 if cloak_def.rtype.len() < data.collective.len() && letter_char != " " {
                     errors.push(error::Error {
                         scope: "cloak_processor".to_string(),
-                        debug_message: "0be9a0f9b5c19d8cd715c8d22eee24c1".to_string(),
+                        debug_message: "ef6ca253dc5e37de2f8a32aa0bb3a58b".to_string(),
                         title: error::errorList::error_s19.title.clone(),
                         code: error::errorList::error_s19.code,
                         message: error::errorList::error_s19.message.clone(),
