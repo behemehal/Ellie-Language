@@ -64,6 +64,24 @@ pub struct NameCheckResponse {
     pub found_type: NameCheckResponseType,
 }
 
+//This is a clone of parser that implements serialize and deserialize
+#[derive(PartialEq, Debug, Clone, Serialize Deserialize)]
+pub struct RawParser {
+    pub scope: Box<scope::Scope>,
+    pub code: String,
+    pub options: defs::ParserOptions,
+    pub collected: Vec<Collecting>,
+    pub generic_variables: Vec<class::GenericDefining>,
+    pub pos: defs::CursorPosition,
+    pub on_comment: bool,
+    pub on_line_comment: bool,
+    pub ignore_line: bool,
+    pub current: Collecting,
+    pub keyword_pos: defs::Cursor,
+    pub keyword_catch: String,
+    pub keyword_cache: variable::VariableCollector,
+}
+
 #[derive(PartialEq, Debug, Clone)]
 pub struct Parser {
     pub scope: Box<scope::Scope>,
