@@ -1,6 +1,6 @@
 use crate::parser;
 use crate::syntax::{
-    caller, class, condition, constructor, file_key, forloop, function, import, ret, types,
+    caller, class, condition, constructor, file_key, for_loop, function, import, ret, types,
     variable,
 };
 use ellie_core::{defs, error, utils};
@@ -121,7 +121,7 @@ pub fn collect_type(
         parser.current = parser::Collecting::FileKey(file_key::FileKeyCollector::default());
         parser.keyword_catch = String::new();
     } else if keyword == "for " && parser.options.parser_type == defs::ParserType::RawParser {
-        parser.current = parser::Collecting::Forloop(forloop::ForloopCollector::default());
+        parser.current = parser::Collecting::ForLoop(for_loop::ForLoopCollector::default());
         parser.keyword_catch = String::new();
     } else if keyword == "if" && parser.options.parser_type == defs::ParserType::RawParser {
         parser.current = parser::Collecting::Condition(condition::ConditionCollector::default());

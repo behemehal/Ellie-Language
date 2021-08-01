@@ -6,12 +6,13 @@ mod array_tests {
         assert!(ellie_lang::test_utils::has_no_error_and_correct(
             ellie_lang::test_utils::emulate_value_processor("[1, 2, 3]"),
             ellie_parser::syntax::types::Types::Array(
-                ellie_parser::syntax::types::array_type::ArrayType {
-                    layer_size: 3,
+                ellie_parser::syntax::types::array_type::ArrayTypeCollector {
                     complete: true,
                     comma: false,
                     child_start: false,
-                    collective: vec![
+                    data: ellie_parser::syntax::types::array_type::ArrayType {
+                        layer_size: 3,
+                        collective: vec![
                         ellie_parser::syntax::types::array_type::ArrayEntry {
                             value_complete: true,
                             value: Box::new(ellie_parser::syntax::types::Types::Integer(
@@ -70,6 +71,7 @@ mod array_tests {
                             },
                         },
                     ],
+                    },
                 },
             ),
         ),)
@@ -81,20 +83,22 @@ mod array_tests {
             ellie_lang::test_utils::has_no_error_and_correct(
                 ellie_lang::test_utils::emulate_value_processor("[[1], [2], [3]]"),
                 ellie_parser::syntax::types::Types::Array(
-                    ellie_parser::syntax::types::array_type::ArrayType {
-                        layer_size: 3,
+                    ellie_parser::syntax::types::array_type::ArrayTypeCollector {
                         complete: true,
                         comma: false,
                         child_start: false,
+                        data: ellie_parser::syntax::types::array_type::ArrayType {
+                            layer_size: 3,
                         collective: vec![
                             ellie_parser::syntax::types::array_type::ArrayEntry {
                                 value_complete: true,
                                 value: Box::new(ellie_parser::syntax::types::Types::Array(
-                                    ellie_parser::syntax::types::array_type::ArrayType {
-                                        layer_size: 1,
+                                    ellie_parser::syntax::types::array_type::ArrayTypeCollector {
                                         complete: true,
                                         comma: false,
                                         child_start: false,
+                                        data: ellie_parser::syntax::types::array_type::ArrayType {
+                                        layer_size: 1,
                                         collective: vec![
                                             ellie_parser::syntax::types::array_type::ArrayEntry {
                                                 value_complete: true,
@@ -116,6 +120,7 @@ mod array_tests {
                                                 },
                                             },
                                         ],
+                                        },
                                     },
                                 ),),
                                 location: ellie_core::defs::Cursor {
@@ -132,11 +137,12 @@ mod array_tests {
                             ellie_parser::syntax::types::array_type::ArrayEntry {
                                 value_complete: true,
                                 value: Box::new(ellie_parser::syntax::types::Types::Array(
-                                    ellie_parser::syntax::types::array_type::ArrayType {
-                                        layer_size: 1,
+                                    ellie_parser::syntax::types::array_type::ArrayTypeCollector {
                                         complete: true,
                                         comma: false,
                                         child_start: false,
+                                        data: ellie_parser::syntax::types::array_type::ArrayType {
+                                        layer_size: 1,
                                         collective: vec![
                                             ellie_parser::syntax::types::array_type::ArrayEntry {
                                                 value_complete: true,
@@ -158,6 +164,7 @@ mod array_tests {
                                                 },
                                             },
                                         ],
+                                        }
                                     },
                                 ),),
                                 location: ellie_core::defs::Cursor {
@@ -174,11 +181,12 @@ mod array_tests {
                             ellie_parser::syntax::types::array_type::ArrayEntry {
                                 value_complete: true,
                                 value: Box::new(ellie_parser::syntax::types::Types::Array(
-                                    ellie_parser::syntax::types::array_type::ArrayType {
-                                        layer_size: 1,
+                                    ellie_parser::syntax::types::array_type::ArrayTypeCollector {
                                         complete: true,
                                         comma: false,
                                         child_start: false,
+                                        data: ellie_parser::syntax::types::array_type::ArrayType {
+                                        layer_size: 1,
                                         collective: vec![
                                             ellie_parser::syntax::types::array_type::ArrayEntry {
                                                 value_complete: true,
@@ -199,7 +207,7 @@ mod array_tests {
                                                     ),
                                                 },
                                             },
-                                        ],
+                                        ],}
                                     },
                                 ),),
                                 location: ellie_core::defs::Cursor {
@@ -213,7 +221,7 @@ mod array_tests {
                                     ),
                                 },
                             },
-                        ],
+                        ],},
                     },
                 ),
             ),
@@ -225,29 +233,32 @@ mod array_tests {
         assert!(ellie_lang::test_utils::has_no_error_and_correct(
             ellie_lang::test_utils::emulate_value_processor("[[[1]], [[2]], [[3]]]"),
             ellie_parser::syntax::types::Types::Array(
-                ellie_parser::syntax::types::array_type::ArrayType {
-                    layer_size: 3,
+                ellie_parser::syntax::types::array_type::ArrayTypeCollector {
                     complete: true,
                     comma: false,
                     child_start: false,
+                    data: ellie_parser::syntax::types::array_type::ArrayType {
+                        layer_size: 3,
                     collective: vec![
                         ellie_parser::syntax::types::array_type::ArrayEntry {
                             value_complete: true,
                             value: Box::new(ellie_parser::syntax::types::Types::Array(
-                                ellie_parser::syntax::types::array_type::ArrayType {
-                                    layer_size: 1,
+                                ellie_parser::syntax::types::array_type::ArrayTypeCollector {
                                     complete: true,
                                     comma: false,
                                     child_start: false,
+                                    data: ellie_parser::syntax::types::array_type::ArrayType {
+                                        layer_size: 1,
                                     collective: vec![
                                         ellie_parser::syntax::types::array_type::ArrayEntry {
                                             value_complete: true,
                                             value: Box::new(ellie_parser::syntax::types::Types::Array(
-                                                ellie_parser::syntax::types::array_type::ArrayType {
-                                                    layer_size: 1,
+                                                ellie_parser::syntax::types::array_type::ArrayTypeCollector {
                                                     complete: true,
                                                     comma: false,
                                                     child_start: false,
+                                                    data: ellie_parser::syntax::types::array_type::ArrayType {
+                                                        layer_size: 1,
                                                     collective: vec![
                                                         ellie_parser::syntax::types::array_type::ArrayEntry {
                                                             value_complete: true,
@@ -272,7 +283,7 @@ mod array_tests {
                                                                 ),
                                                             },
                                                         },
-                                                    ],
+                                                    ], },
                                                 },
                                             )),
                                             location: ellie_core::defs::Cursor {
@@ -286,7 +297,7 @@ mod array_tests {
                                                 ),
                                             },
                                         },
-                                    ],
+                                    ],}
                                 },
                             )),
                             location: ellie_core::defs::Cursor {
@@ -303,20 +314,22 @@ mod array_tests {
                         ellie_parser::syntax::types::array_type::ArrayEntry {
                             value_complete: true,
                             value: Box::new(ellie_parser::syntax::types::Types::Array(
-                                ellie_parser::syntax::types::array_type::ArrayType {
-                                    layer_size: 1,
+                                ellie_parser::syntax::types::array_type::ArrayTypeCollector {
                                     complete: true,
                                     comma: false,
                                     child_start: false,
+                                    data: ellie_parser::syntax::types::array_type::ArrayType {
+                                        layer_size: 1,
                                     collective: vec![
                                         ellie_parser::syntax::types::array_type::ArrayEntry {
                                             value_complete: true,
                                             value: Box::new(ellie_parser::syntax::types::Types::Array(
-                                                ellie_parser::syntax::types::array_type::ArrayType {
-                                                    layer_size: 1,
+                                                ellie_parser::syntax::types::array_type::ArrayTypeCollector {
                                                     complete: true,
                                                     comma: false,
                                                     child_start: false,
+                                                    data: ellie_parser::syntax::types::array_type::ArrayType {
+                                                        layer_size: 1,
                                                     collective: vec![
                                                         ellie_parser::syntax::types::array_type::ArrayEntry {
                                                             value_complete: true,
@@ -341,7 +354,7 @@ mod array_tests {
                                                                 ),
                                                             },
                                                         },
-                                                    ],
+                                                    ],}
                                                 },
                                             )),
                                             location: ellie_core::defs::Cursor {
@@ -355,7 +368,7 @@ mod array_tests {
                                                 ),
                                             },
                                         },
-                                    ],
+                                    ],}
                                 },
                             )),
                             location: ellie_core::defs::Cursor {
@@ -372,20 +385,22 @@ mod array_tests {
                         ellie_parser::syntax::types::array_type::ArrayEntry {
                             value_complete: true,
                             value: Box::new(ellie_parser::syntax::types::Types::Array(
-                                ellie_parser::syntax::types::array_type::ArrayType {
-                                    layer_size: 1,
+                                ellie_parser::syntax::types::array_type::ArrayTypeCollector {
                                     complete: true,
                                     comma: false,
                                     child_start: false,
+                                    data: ellie_parser::syntax::types::array_type::ArrayType {
+                                        layer_size: 1,
                                     collective: vec![
                                         ellie_parser::syntax::types::array_type::ArrayEntry {
                                             value_complete: true,
                                             value: Box::new(ellie_parser::syntax::types::Types::Array(
-                                                ellie_parser::syntax::types::array_type::ArrayType {
-                                                    layer_size: 1,
+                                                ellie_parser::syntax::types::array_type::ArrayTypeCollector {
                                                     complete: true,
                                                     comma: false,
                                                     child_start: false,
+                                                    data: ellie_parser::syntax::types::array_type::ArrayType {
+                                                        layer_size: 1,
                                                     collective: vec![
                                                         ellie_parser::syntax::types::array_type::ArrayEntry {
                                                             value_complete: true,
@@ -409,8 +424,8 @@ mod array_tests {
                                                                     1,
                                                                 ),
                                                             },
-                                                        },
-                                                    ],
+                                                       },
+                                                    ],}
                                                 },
                                             )),
                                             location: ellie_core::defs::Cursor {
@@ -424,7 +439,7 @@ mod array_tests {
                                                 ),
                                             },
                                         },
-                                    ],
+                                    ],},
                                 },
                             )),
                             location: ellie_core::defs::Cursor {
@@ -440,7 +455,9 @@ mod array_tests {
                         },
                     ],
                 },
-            ),
-        ),);
+            },
+        ),
+    ),
+);
     }
 }

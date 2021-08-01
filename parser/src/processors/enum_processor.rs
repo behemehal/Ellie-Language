@@ -11,7 +11,7 @@ pub fn collect_enum(
     _last_char: String,
     _options: defs::ParserOptions,
 ) {
-    if let parser::Collecting::Forloop(ref mut _forloopdata) = parser.current {
+    if let parser::Collecting::ForLoop(ref mut _forloopdata) = parser.current {
         panic!("NOT IMPLEMENTED");
     }
 }

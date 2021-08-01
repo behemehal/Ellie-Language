@@ -17,7 +17,6 @@ pub struct FunctionParameter {
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
 pub struct FunctionParameterCollector {
-    pub data: FunctionParameter,
     pub named: bool,
     pub colon_expected: bool,
     pub child_brace: usize,
@@ -25,9 +24,9 @@ pub struct FunctionParameterCollector {
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
 pub struct Function {
-    pub name: String,                                //Function Name string
-    pub parameters: Vec<FunctionParameterCollector>, //Parameter vector
-    pub return_type: definers::DefinerCollecting,    //Return type from enum
+    pub name: String,                             //Function Name string
+    pub parameters: Vec<FunctionParameter>,       //Parameter vector
+    pub return_type: definers::DefinerCollecting, //Return type from enum
     pub public: bool,
     pub inside_code: Vec<Collecting>,
     pub name_pos: defs::Cursor,           //Name position fn [test] ......
@@ -40,6 +39,7 @@ pub struct Function {
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
 pub struct FunctionCollector {
     pub data: Function,
+    pub collecting_parameters: FunctionParameterCollector, //Parameter vector
     pub initialized: bool,
     pub named: bool,                //Function named
     pub parameter_wrote: bool,      //Parameter type complete
@@ -55,11 +55,11 @@ impl FunctionCollector {
         let mut existent_names: Vec<String> = Vec::with_capacity(self.data.parameters.len());
         let mut duplicate = false;
         for i in &self.data.parameters {
-            if existent_names.contains(&i.data.name) {
+            if existent_names.contains(&i.name) {
                 duplicate = true;
                 break;
             } else {
-                existent_names.push(i.data.name.clone())
+                existent_names.push(i.name.clone())
             }
         }
         duplicate

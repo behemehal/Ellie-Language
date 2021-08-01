@@ -11,7 +11,7 @@ use crate::alloc::vec;
 use crate::alloc::vec::Vec;
 
 use crate::syntax::{
-    caller, class, condition, constructor, definers, file_key, forloop, function, import,
+    caller, class, condition, constructor, definers, file_key, for_loop, function, import,
     import_item, ret, types, variable,
 };
 use ellie_core::{defs, error, utils};
@@ -33,7 +33,7 @@ pub enum Collecting {
     ImportItem(import_item::ImportItem),
     Variable(variable::VariableCollector),
     Function(function::FunctionCollector),
-    Forloop(forloop::ForloopCollector),
+    ForLoop(for_loop::ForLoopCollector),
     Condition(condition::ConditionCollector),
     Class(class::ClassCollector),
     Ret(ret::Ret),
@@ -354,8 +354,8 @@ impl Parser {
                     if let NameCheckResponseType::Function(fn_data) = fn_found.found_type {
                         fn_data.data.return_type.raw_name()
                     } else if let NameCheckResponseType::Variable(v_data) = fn_found.found_type {
-                        if let definers::DefinerCollecting::Function(fntype) = v_data.data.rtype {
-                            fntype.returning.raw_name()
+                        if let definers::DefinerCollecting::Function(fn_type) = v_data.data.rtype {
+                            fn_type.returning.raw_name()
                         } else {
                             "nen".to_string()
                         }
@@ -417,7 +417,7 @@ impl Parser {
             //targeted_var.found_type
         }
 
-        //panic!("?? : {:#?} \n\n\n, {:#?}", refference_data.clone(), caller_data);
+        //panic!("?? : {:#?} \n\n\n, {:#?}", reference_data.clone(), caller_data);
 
         if !found {
             errors.push(error::Error {
@@ -455,8 +455,8 @@ impl Parser {
                 Collecting::Variable(e) => {
                     if e.data.name == caller_data.data.name {
                         found = true;
-                        if let definers::DefinerCollecting::Function(fntype) = e.data.rtype {
-                            if caller_data.data.params.len() != fntype.params.len() {
+                        if let definers::DefinerCollecting::Function(fn_type) = e.data.rtype {
+                            if caller_data.data.params.len() != fn_type.params.len() {
                                 errors.push(error::Error {
                                     scope: self.scope.scope_name.clone(),
                                     debug_message: "3bc1a7957682f626543a90bc4634482c".to_string(),
@@ -472,7 +472,7 @@ impl Parser {
                                             },
                                             error::ErrorBuildField {
                                                 key: "token".to_string(),
-                                                value: fntype.params.len().to_string(),
+                                                value: fn_type.params.len().to_string(),
                                             },
                                             error::ErrorBuildField {
                                                 key: "token2".to_string(),
@@ -486,7 +486,7 @@ impl Parser {
                                 for (index, caller_param) in
                                     caller_data.data.params.into_iter().enumerate()
                                 {
-                                    match fntype.params[index].clone() {
+                                    match fn_type.params[index].clone() {
                                         definers::DefinerCollecting::Array(_) => {
                                             panic!("Definer Resolving on 'Array' is not supported");
                                         }
@@ -601,7 +601,7 @@ impl Parser {
                             for (index, caller_param) in
                                 caller_data.data.params.clone().into_iter().enumerate()
                             {
-                                match e.data.parameters[index].data.rtype.clone() {
+                                match e.data.parameters[index].rtype.clone() {
                                     definers::DefinerCollecting::Array(_) => {
                                         panic!("Definer Resolving on 'Array' is not supported");
                                     }
@@ -719,8 +719,8 @@ impl Parser {
                 Collecting::Variable(e) => {
                     if e.data.name == caller_data.data.name {
                         found = true;
-                        if let definers::DefinerCollecting::Function(fntype) = e.data.rtype {
-                            if caller_data.data.params.len() != fntype.params.len() {
+                        if let definers::DefinerCollecting::Function(fn_type) = e.data.rtype {
+                            if caller_data.data.params.len() != fn_type.params.len() {
                                 errors.push(error::Error {
                                     scope: self.scope.scope_name.clone(),
                                     debug_message: "18c4f1de87cc3a16e1109fbe3a616eda".to_string(),
@@ -736,7 +736,7 @@ impl Parser {
                                             },
                                             error::ErrorBuildField {
                                                 key: "token".to_string(),
-                                                value: fntype.params.len().to_string(),
+                                                value: fn_type.params.len().to_string(),
                                             },
                                             error::ErrorBuildField {
                                                 key: "token2".to_string(),
@@ -750,7 +750,7 @@ impl Parser {
                                 for (index, caller_param) in
                                     caller_data.data.params.into_iter().enumerate()
                                 {
-                                    match fntype.params[index].clone() {
+                                    match fn_type.params[index].clone() {
                                         definers::DefinerCollecting::Array(_) => {
                                             panic!("Definer Resolving on 'Array' is not supported");
                                         }
@@ -865,7 +865,7 @@ impl Parser {
                             for (index, caller_param) in
                                 caller_data.data.params.clone().into_iter().enumerate()
                             {
-                                match e.data.parameters[index].data.rtype.clone() {
+                                match e.data.parameters[index].rtype.clone() {
                                     definers::DefinerCollecting::Array(_) => {
                                         panic!("Definer Resolving on 'Array' is not supported");
                                     }

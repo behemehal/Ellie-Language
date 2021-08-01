@@ -65,13 +65,16 @@ pub fn collect_null(
                             ..Default::default()
                         });
                 }
-                itered_data.data.value = types::Types::Array(types::array_type::ArrayType {
-                    layer_size: 0,
-                    child_start: false,
-                    complete: false,
-                    comma: false,
-                    collective: Vec::new(),
-                });
+                itered_data.data.value =
+                    types::Types::Array(types::array_type::ArrayTypeCollector {
+                        data: types::array_type::ArrayType {
+                            layer_size: 0,
+                            collective: Vec::new(),
+                        },
+                        child_start: false,
+                        complete: false,
+                        comma: false,
+                    });
             } else if letter_char == "@" {
                 itered_data.data.value = types::Types::ArrowFunction(
                     types::arrow_function::ArrowFunctionCollector::default(),
@@ -84,13 +87,16 @@ pub fn collect_null(
                 itered_data.data.value =
                     types::Types::Negative(types::negative_type::Negative::default());
             } else if letter_char == "(" {
-                itered_data.data.value = types::Types::Cloak(types::cloak_type::CloakType {
-                    layer_size: 0,
-                    child_start: false,
-                    complete: false,
-                    comma: false,
-                    collective: Vec::new(),
-                });
+                itered_data.data.value =
+                    types::Types::Cloak(types::cloak_type::CloakTypeCollector {
+                        child_start: false,
+                        complete: false,
+                        comma: false,
+                        data: types::cloak_type::CloakType {
+                            layer_size: 0,
+                            collective: Vec::new(),
+                        },
+                    });
             } else if letter_char != " " {
                 itered_data.data.value =
                     types::Types::VariableType(types::variable_type::VariableType {

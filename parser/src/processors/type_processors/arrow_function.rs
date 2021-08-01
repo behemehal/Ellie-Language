@@ -17,21 +17,21 @@ pub fn collect_arrow(
     next_char: String,
     last_char: String,
 ) {
-    if let types::Types::ArrowFunction(ref mut functiondata) = itered_data.data.value {
+    if let types::Types::ArrowFunction(ref mut function_data) = itered_data.data.value {
         if itered_data.data.dynamic {
             itered_data.data.rtype =
                 definers::DefinerCollecting::Function(definers::FunctionType::default());
         }
 
-        if !functiondata.parameter_wrote {
-            if letter_char == "(" && !functiondata.param_bracket_opened {
-                functiondata.param_bracket_opened = true;
+        if !function_data.parameter_wrote {
+            if letter_char == "(" && !function_data.param_bracket_opened {
+                function_data.param_bracket_opened = true;
             } else {
-                let mut last_entry = functiondata.data.parameters.len();
+                let mut last_entry = function_data.data.parameters.len();
                 let typing_name = if last_entry == 0 {
                     true
                 } else {
-                    !functiondata.data.parameters[last_entry - 1].named
+                    !function_data.collecting_parameters.named
                 };
 
                 let current_reliability = utils::reliable_name_range(
@@ -43,49 +43,42 @@ pub fn collect_arrow(
                     if current_reliability.reliable
                         && ((last_char != " " && last_char != "\n")
                             || last_entry == 0
-                            || functiondata.data.parameters[last_entry - 1]
-                                .data
+                            || function_data.data.parameters[last_entry - 1]
                                 .name
                                 .is_empty())
                     {
                         if last_entry == 0 {
-                            functiondata
+                            function_data
                                 .data
                                 .parameters
-                                .push(function::FunctionParameterCollector::default());
+                                .push(function::FunctionParameter::default());
                             last_entry = 1;
                         }
-                        if functiondata.data.parameters[last_entry - 1]
-                            .data
+                        if function_data.data.parameters[last_entry - 1]
                             .name
                             .is_empty()
                         {
-                            functiondata.data.parameters[last_entry - 1]
-                                .data
+                            function_data.data.parameters[last_entry - 1]
                                 .pos
                                 .range_start = parser.pos;
                         }
-                        if functiondata.data.parameters[last_entry - 1]
-                            .data
+                        if function_data.data.parameters[last_entry - 1]
                             .name_pos
                             .range_start
                             .is_zero()
                             && letter_char != " "
                         {
-                            functiondata.data.parameters[last_entry - 1]
-                                .data
+                            function_data.data.parameters[last_entry - 1]
                                 .name_pos
                                 .range_start = parser.pos;
                         }
-                        functiondata.data.parameters[last_entry - 1]
-                            .data
+                        function_data.data.parameters[last_entry - 1]
                             .name_pos
                             .range_end = parser.pos.clone().skip_char(1);
-                        functiondata.data.parameters[last_entry - 1].data.name += letter_char
+                        function_data.data.parameters[last_entry - 1].name += letter_char
                     } else if letter_char == ":" {
                         if last_entry == 0
-                            || functiondata.data.parameters[last_entry - 1]
-                                .data
+                            || function_data.data.parameters[last_entry - 1]
                                 .name
                                 .is_empty()
                         {
@@ -108,10 +101,10 @@ pub fn collect_arrow(
                                 },
                             });
                         } else {
-                            functiondata.data.parameters[last_entry - 1].named = true;
+                            function_data.collecting_parameters.named = true;
                         }
                     } else if letter_char == ")" && last_entry == 0 {
-                        functiondata.parameter_wrote = true;
+                        function_data.parameter_wrote = true;
                     } else if letter_char != " " {
                         errors.push(error::Error {
                             scope: "arrow_function".to_string(),
@@ -133,10 +126,9 @@ pub fn collect_arrow(
                         });
                     }
                 } else if letter_char == ")"
-                    && (last_entry == 0
-                        || functiondata.data.parameters[last_entry - 1].child_brace == 0)
+                    && (last_entry == 0 || function_data.collecting_parameters.child_brace == 0)
                 {
-                    if functiondata.has_dedup() {
+                    if function_data.has_dedup() {
                         errors.push(error::Error {
                             scope: parser.scope.scope_name.clone(),
                             debug_message: "28d74502957806fd4c2cf68c0ce0e286".to_string(),
@@ -146,14 +138,13 @@ pub fn collect_arrow(
                             builded_message: error::BuildedError::build_from_string(
                                 error::errorList::error_s10.message.clone(),
                             ),
-                            pos: functiondata.data.parameters[last_entry - 1].data.name_pos,
+                            pos: function_data.data.parameters[last_entry - 1].name_pos,
                         });
                     }
                     if let definers::DefinerCollecting::Function(function) =
                         itered_data.data.rtype.clone()
                     {
-                        if !functiondata.data.parameters[last_entry - 1]
-                            .data
+                        if !function_data.data.parameters[last_entry - 1]
                             .rtype
                             .clone()
                             .same_as(function.params[last_entry - 1].clone())
@@ -173,19 +164,18 @@ pub fn collect_arrow(
                                         },
                                         error::ErrorBuildField {
                                             key: "token2".to_string(),
-                                            value: functiondata.data.parameters[last_entry - 1]
-                                                .data
+                                            value: function_data.data.parameters[last_entry - 1]
                                                 .rtype
                                                 .raw_name(),
                                         },
                                     ],
                                 ),
-                                pos: functiondata.data.parameters[last_entry - 1].data.type_pos,
+                                pos: function_data.data.parameters[last_entry - 1].type_pos,
                             });
                         }
                     }
                     if let definers::DefinerCollecting::Generic(name) =
-                        &functiondata.data.parameters[last_entry - 1].data.rtype
+                        &function_data.data.parameters[last_entry - 1].rtype
                     {
                         if !parser.type_exists(name.rtype.clone()) {
                             errors.push(error::Error {
@@ -201,18 +191,17 @@ pub fn collect_arrow(
                                         value: name.rtype.clone(),
                                     }],
                                 ),
-                                pos: functiondata.data.parameters[last_entry - 1].data.type_pos,
+                                pos: function_data.data.parameters[last_entry - 1].type_pos,
                             });
                         }
                     }
-                    functiondata.parameter_wrote = true;
+                    function_data.parameter_wrote = true;
                 } else if letter_char == ","
-                    && functiondata.data.parameters[last_entry - 1]
-                        .data
+                    && function_data.data.parameters[last_entry - 1]
                         .rtype
                         .is_definer_complete()
                 {
-                    if functiondata.has_dedup() {
+                    if function_data.has_dedup() {
                         errors.push(error::Error {
                             scope: parser.scope.scope_name.clone(),
                             debug_message: "95668d6d2e4540dd31ac0c7034f78c71".to_string(),
@@ -222,11 +211,11 @@ pub fn collect_arrow(
                             builded_message: error::BuildedError::build_from_string(
                                 error::errorList::error_s10.message.clone(),
                             ),
-                            pos: functiondata.data.parameters[last_entry - 1].data.name_pos,
+                            pos: function_data.data.parameters[last_entry - 1].name_pos,
                         });
                     }
                     if let definers::DefinerCollecting::Generic(name) =
-                        &functiondata.data.parameters[last_entry - 1].data.rtype
+                        &function_data.data.parameters[last_entry - 1].rtype
                     {
                         if !parser.type_exists(name.rtype.clone()) {
                             errors.push(error::Error {
@@ -242,15 +231,14 @@ pub fn collect_arrow(
                                         value: name.rtype.clone(),
                                     }],
                                 ),
-                                pos: functiondata.data.parameters[last_entry - 1].data.type_pos,
+                                pos: function_data.data.parameters[last_entry - 1].type_pos,
                             });
                         }
                     }
                     if let definers::DefinerCollecting::Function(function) =
                         itered_data.data.rtype.clone()
                     {
-                        if !functiondata.data.parameters[last_entry - 1]
-                            .data
+                        if !function_data.data.parameters[last_entry - 1]
                             .rtype
                             .clone()
                             .same_as(function.params[last_entry - 1].clone())
@@ -270,51 +258,47 @@ pub fn collect_arrow(
                                         },
                                         error::ErrorBuildField {
                                             key: "token2".to_string(),
-                                            value: functiondata.data.parameters[last_entry - 1]
-                                                .data
+                                            value: function_data.data.parameters[last_entry - 1]
                                                 .rtype
                                                 .raw_name(),
                                         },
                                     ],
                                 ),
-                                pos: functiondata.data.parameters[last_entry - 1].data.type_pos,
+                                pos: function_data.data.parameters[last_entry - 1].type_pos,
                             });
                         }
                     }
                     //If its type's comma dont stop collecting it
-                    functiondata
+                    function_data
                         .data
                         .parameters
-                        .push(function::FunctionParameterCollector::default());
+                        .push(function::FunctionParameter::default());
+                    function_data.collecting_parameters =
+                        function::FunctionParameterCollector::default()
                 } else {
                     if letter_char == ")" {
-                        functiondata.data.parameters[last_entry - 1].child_brace -= 1;
+                        function_data.collecting_parameters.child_brace -= 1;
                     } else if letter_char == "(" {
-                        functiondata.data.parameters[last_entry - 1].child_brace += 1;
+                        function_data.collecting_parameters.child_brace += 1;
                     }
-                    functiondata.data.parameters[last_entry - 1]
-                        .data
-                        .pos
-                        .range_end = parser.pos.clone().skip_char(1);
-                    if functiondata.data.parameters[last_entry - 1]
-                        .data
+                    function_data.data.parameters[last_entry - 1].pos.range_end =
+                        parser.pos.clone().skip_char(1);
+                    if function_data.data.parameters[last_entry - 1]
                         .type_pos
                         .range_start
                         .is_zero()
                         && letter_char != " "
                     {
-                        functiondata.data.parameters[last_entry - 1]
-                            .data
+                        function_data.data.parameters[last_entry - 1]
                             .type_pos
                             .range_start = parser.pos;
                     }
-                    functiondata.data.parameters[last_entry - 1]
-                        .data
+                    function_data.data.parameters[last_entry - 1]
                         .type_pos
                         .range_end = parser.pos.clone().skip_char(1);
                     processors::definer_processor::collect_definer(
                         parser.clone(),
-                        &mut functiondata.data.parameters[last_entry - 1].data.rtype,
+                        &mut function_data.data.parameters[last_entry - 1].rtype,
                         errors,
                         letter_char.to_string(),
                         next_char,
@@ -322,18 +306,18 @@ pub fn collect_arrow(
                     );
                 }
             }
-        } else if !functiondata.pointer_typed {
+        } else if !function_data.pointer_typed {
             if letter_char == ">" {
-                functiondata.pointer_typed = true;
+                function_data.pointer_typed = true;
             } else if letter_char == "{" {
                 if itered_data.data.dynamic {
                 } else if let definers::DefinerCollecting::Function(function) =
                     itered_data.data.rtype.clone()
                 {
-                    let fndata_type = if functiondata.data.return_type.raw_name() == "" {
+                    let fndata_type = if function_data.data.return_type.raw_name() == "" {
                         "void".to_string()
                     } else {
-                        functiondata.data.return_type.raw_name()
+                        function_data.data.return_type.raw_name()
                     };
 
                     if *function.returning.raw_name() != fndata_type {
@@ -361,8 +345,8 @@ pub fn collect_arrow(
                     }
                 }
 
-                functiondata.return_typed = true;
-                functiondata.pointer_typed = true;
+                function_data.return_typed = true;
+                function_data.pointer_typed = true;
             } else if letter_char != " " {
                 errors.push(error::Error {
                     scope: "arrow_function".to_string(),
@@ -383,9 +367,10 @@ pub fn collect_arrow(
                     },
                 });
             }
-        } else if !functiondata.return_typed {
-            if letter_char == "{" && functiondata.data.return_type.is_definer_complete() {
-                if let definers::DefinerCollecting::Generic(name) = &functiondata.data.return_type {
+        } else if !function_data.return_typed {
+            if letter_char == "{" && function_data.data.return_type.is_definer_complete() {
+                if let definers::DefinerCollecting::Generic(name) = &function_data.data.return_type
+                {
                     if !parser.type_exists(name.rtype.clone()) {
                         errors.push(error::Error {
                             scope: parser.scope.scope_name.clone(),
@@ -400,14 +385,14 @@ pub fn collect_arrow(
                                     value: name.rtype.clone(),
                                 }],
                             ),
-                            pos: functiondata.data.return_pos,
+                            pos: function_data.data.return_pos,
                         });
                     }
                 }
                 if let definers::DefinerCollecting::Function(function) =
                     itered_data.data.rtype.clone()
                 {
-                    if !functiondata
+                    if !function_data
                         .data
                         .return_type
                         .clone()
@@ -428,30 +413,30 @@ pub fn collect_arrow(
                                     },
                                     error::ErrorBuildField {
                                         key: "token2".to_string(),
-                                        value: functiondata.data.return_type.raw_name(),
+                                        value: function_data.data.return_type.raw_name(),
                                     },
                                 ],
                             ),
-                            pos: functiondata.data.return_pos,
+                            pos: function_data.data.return_pos,
                         });
                     }
                 }
-                functiondata.return_typed = true;
+                function_data.return_typed = true;
             } else {
-                if functiondata.data.return_pos.range_start.is_zero() && letter_char != " " {
-                    functiondata.data.return_pos.range_start = parser.pos;
+                if function_data.data.return_pos.range_start.is_zero() && letter_char != " " {
+                    function_data.data.return_pos.range_start = parser.pos;
                 }
-                functiondata.data.return_pos.range_end = parser.pos;
+                function_data.data.return_pos.range_end = parser.pos;
                 processors::definer_processor::collect_definer(
                     parser.clone(),
-                    &mut functiondata.data.return_type,
+                    &mut function_data.data.return_type,
                     errors,
                     letter_char.to_string(),
                     next_char,
                     last_char,
                 );
             }
-        } else if letter_char == "." && functiondata.complete {
+        } else if letter_char == "." && function_data.complete {
             itered_data.data.value =
                 types::Types::Reference(types::reference_type::ReferenceType {
                     reference: Box::new(itered_data.data.value.clone()),
@@ -466,7 +451,7 @@ pub fn collect_arrow(
                 next_char,
                 last_char,
             )
-        } else if functiondata.complete
+        } else if function_data.complete
             && types::logical_type::LogicalOperators::is_logical_operator(letter_char)
             || types::logical_type::LogicalOperators::is_logical_operator(
                 &(letter_char.to_string() + &next_char),
@@ -485,7 +470,7 @@ pub fn collect_arrow(
                     first_filled: true,
                     ..Default::default()
                 });
-        } else if functiondata.complete
+        } else if function_data.complete
             && types::comparison_type::ComparisonOperators::is_comparison_operator(letter_char)
             || types::comparison_type::ComparisonOperators::is_comparison_operator(
                 &(letter_char.to_string() + &next_char),
@@ -504,7 +489,7 @@ pub fn collect_arrow(
                     first_filled: true,
                     ..Default::default()
                 });
-        } else if functiondata.complete
+        } else if function_data.complete
             && types::arithmetic_type::ArithmeticOperators::is_arithmetic_operator(letter_char)
             || types::arithmetic_type::ArithmeticOperators::is_arithmetic_operator(
                 &(letter_char.to_string() + &next_char),
@@ -523,13 +508,13 @@ pub fn collect_arrow(
                     first_filled: true,
                     ..Default::default()
                 });
-        } else if letter_char == "}" && functiondata.brace_count == 0 {
-            functiondata.complete = true;
+        } else if letter_char == "}" && function_data.brace_count == 0 {
+            function_data.complete = true;
         } else {
             if letter_char == "{" {
-                functiondata.brace_count += 1;
-            } else if letter_char == "}" && functiondata.brace_count != 0 {
-                functiondata.brace_count -= 1;
+                function_data.brace_count += 1;
+            } else if letter_char == "}" && function_data.brace_count != 0 {
+                function_data.brace_count -= 1;
             }
 
             let code_letter = if last_char.clone() == "\n" || last_char.clone() == "\r" {
@@ -537,7 +522,7 @@ pub fn collect_arrow(
             } else {
                 letter_char.to_string()
             };
-            functiondata.code += &code_letter;
+            function_data.code += &code_letter;
         }
     }
 }

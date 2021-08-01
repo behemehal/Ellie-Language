@@ -16,8 +16,13 @@ pub struct ArrayEntry {
 #[derive(PartialEq, Default, Debug, Clone, Serialize, Deserialize)]
 pub struct ArrayType {
     pub layer_size: usize,
+    pub collective: Vec<ArrayEntry>,
+}
+
+#[derive(PartialEq, Default, Debug, Clone, Serialize, Deserialize)]
+pub struct ArrayTypeCollector {
+    pub data: ArrayType,
     pub complete: bool,
     pub comma: bool,
     pub child_start: bool,
-    pub collective: Vec<ArrayEntry>,
 }

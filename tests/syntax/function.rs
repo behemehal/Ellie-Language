@@ -79,7 +79,7 @@ mod function_tests {
         );
         let parsed = emulated_parser.map();
         assert!(
-            matches!(parsed.parsed.items[1].clone(), ellie_parser::parser::Collecting::Function(x) if x.data.name == "test" && x.data.return_type.raw_name() == "void" && !x.data.public && x.data.parameters[0].data.name == "test" && x.data.parameters[0].data.rtype.raw_name() == "string")
+            matches!(parsed.parsed.items[1].clone(), ellie_parser::parser::Collecting::Function(x) if x.data.name == "test" && x.data.return_type.raw_name() == "void" && !x.data.public && x.data.parameters[0].name == "test" && x.data.parameters[0].rtype.raw_name() == "string")
                 && parsed.syntax_errors.len() == 0
         );
     }
@@ -100,7 +100,7 @@ mod function_tests {
         );
         let parsed = emulated_parser.map();
         assert!(
-            matches!(parsed.parsed.items[0].clone(), ellie_parser::parser::Collecting::Function(x) if x.data.name == "test" && x.data.return_type.raw_name() == "void" && !x.data.public && x.data.parameters[0].data.name == "test" && x.data.parameters[0].data.rtype.raw_name() == "string")
+            matches!(parsed.parsed.items[0].clone(), ellie_parser::parser::Collecting::Function(x) if x.data.name == "test" && x.data.return_type.raw_name() == "void" && !x.data.public && x.data.parameters[0].name == "test" && x.data.parameters[0].rtype.raw_name() == "string")
                 && matches!(parsed.syntax_errors[0].clone(), x if x.code == 5 && x.builded_message.fields[0].value == "string")
         );
     }

@@ -15,7 +15,7 @@ pub fn collect_for(
     last_char: String,
 ) {
     let parser_clone = parser.clone();
-    if let parser::Collecting::Forloop(ref mut for_loop_data) = parser.current {
+    if let parser::Collecting::ForLoop(ref mut for_loop_data) = parser.current {
         //panic!("NOT IMPLEMENTED");
 
         if !for_loop_data.parameters_collected {

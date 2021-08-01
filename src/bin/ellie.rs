@@ -19,7 +19,7 @@ fn main() {
         println!("\t--to-raw                     || -tr  : Compiles ellie to ellie raw");
         println!("\t--show-errors                || -se  : Linter code for errors");
         println!("\t--json-errors                || -je  : Linter code for errors as json");
-        // println!("\t--eval-code                  || -ec  : Eval code from parameters");
+        println!("\t--eval-code                  || -ec  : Eval code from parameters");
         println!("\t--parser-ws                  || -pw  : Visualize parsing process");
     } else {
         let args = env::args()
@@ -424,7 +424,7 @@ fn main() {
                                         );
                                     } else {
                                         if error.pos.range_start.0 != error.pos.range_end.0 {
-                                            std::println!(
+                                            println!(
                                                 "{}[Experimental]{}: Multi line error listing",
                                                 ellie_lang::terminal_colors::get_color(
                                                     ellie_lang::terminal_colors::Colors::Magenta

@@ -17,9 +17,12 @@ pub fn collect_array(
     last_char: String,
 ) {
     if let types::Types::Array(ref mut data) = itered_data.data.value {
-        let mut last_entry = data.clone().collective.len();
+        let mut last_entry = data.clone().data.collective.len();
 
-        let is_s_n = last_entry == 0 || data.collective[last_entry - 1].value.is_type_complete();
+        let is_s_n = last_entry == 0
+            || data.data.collective[last_entry - 1]
+                .value
+                .is_type_complete();
 
         if letter_char == "[" && !data.child_start && is_s_n {
             if !data.comma && last_entry != 0 {
@@ -44,10 +47,10 @@ pub fn collect_array(
             } else {
                 data.child_start = true;
                 if last_entry == 0 {
-                    data.collective.push(types::array_type::ArrayEntry {
+                    data.data.collective.push(types::array_type::ArrayEntry {
                         value_complete: false,
                         value: Box::new(types::Types::Array(
-                            types::array_type::ArrayType::default(),
+                            types::array_type::ArrayTypeCollector::default(),
                         )),
                         location: defs::Cursor {
                             range_start: parser.pos,
@@ -55,10 +58,10 @@ pub fn collect_array(
                         },
                     });
                 } else {
-                    data.collective[last_entry - 1] = types::array_type::ArrayEntry {
+                    data.data.collective[last_entry - 1] = types::array_type::ArrayEntry {
                         value_complete: false,
                         value: Box::new(types::Types::Array(
-                            types::array_type::ArrayType::default(),
+                            types::array_type::ArrayTypeCollector::default(),
                         )),
                         location: defs::Cursor {
                             range_start: parser.pos,
@@ -108,16 +111,16 @@ pub fn collect_array(
                 });
             } else {
                 if last_entry != 0 {
-                    data.collective[last_entry - 1].value.make_complete();
-                    data.collective[last_entry - 1].value_complete = true;
+                    data.data.collective[last_entry - 1].value.make_complete();
+                    data.data.collective[last_entry - 1].value_complete = true;
                 }
 
                 if !itered_data.data.dynamic {
                     if let definers::DefinerCollecting::Array(array_defining) =
                         itered_data.data.rtype.clone()
                     {
-                        let entry_type =
-                            parser.resolve_variable(*data.collective[last_entry - 1].value.clone());
+                        let entry_type = parser
+                            .resolve_variable(*data.data.collective[last_entry - 1].value.clone());
                         if array_defining.rtype.raw_name() != entry_type {
                             errors.push(error::Error {
                                 scope: parser.scope.scope_name.clone(),
@@ -138,15 +141,16 @@ pub fn collect_array(
                                         },
                                     ],
                                 ),
-                                pos: data.collective[last_entry - 1].location,
+                                pos: data.data.collective[last_entry - 1].location,
                             });
                         }
                     }
                 }
 
                 data.comma = true;
-                data.layer_size += 1;
-                data.collective
+                data.data.layer_size += 1;
+                data.data
+                    .collective
                     .push(types::array_type::ArrayEntry::default());
             }
         } else if letter_char == "]" && !data.child_start && is_s_n {
@@ -190,19 +194,19 @@ pub fn collect_array(
                 });
             } else {
                 if last_entry != 0 {
-                    if data.collective[last_entry - 1].value == Box::new(types::Types::Null) {
-                        data.collective.pop();
+                    if data.data.collective[last_entry - 1].value == Box::new(types::Types::Null) {
+                        data.data.collective.pop();
                     } else {
-                        data.collective[last_entry - 1].value_complete = true;
-                        data.collective[last_entry - 1].value.make_complete();
+                        data.data.collective[last_entry - 1].value_complete = true;
+                        data.data.collective[last_entry - 1].value.make_complete();
                     }
                 }
                 if !itered_data.data.dynamic {
                     if let definers::DefinerCollecting::Array(array_defining) =
                         itered_data.data.rtype.clone()
                     {
-                        let entry_type =
-                            parser.resolve_variable(*data.collective[last_entry - 1].value.clone());
+                        let entry_type = parser
+                            .resolve_variable(*data.data.collective[last_entry - 1].value.clone());
                         if array_defining.rtype.raw_name() != entry_type {
                             errors.push(error::Error {
                                 scope: parser.scope.scope_name.clone(),
@@ -223,13 +227,13 @@ pub fn collect_array(
                                         },
                                     ],
                                 ),
-                                pos: data.collective[last_entry - 1].location,
+                                pos: data.data.collective[last_entry - 1].location,
                             });
                         }
                     }
                 }
 
-                data.layer_size += 1;
+                data.data.layer_size += 1;
                 data.complete = true;
                 itered_data.value_complete = true;
             }
@@ -313,7 +317,7 @@ pub fn collect_array(
 
             let mut will_be_itered: variable::VariableCollector;
             if let definers::DefinerCollecting::Array(array_data) = itered_data.data.rtype.clone() {
-                will_be_itered = if data.collective.is_empty() {
+                will_be_itered = if data.data.collective.is_empty() {
                     variable::VariableCollector {
                         data: variable::Variable {
                             rtype: *array_data.rtype.clone(),
@@ -324,7 +328,9 @@ pub fn collect_array(
                 } else {
                     variable::VariableCollector {
                         data: variable::Variable {
-                            value: *data.collective[data.collective.len() - 1].value.clone(),
+                            value: *data.data.collective[data.data.collective.len() - 1]
+                                .value
+                                .clone(),
                             rtype: *array_data.rtype.clone(),
                             ..Default::default()
                         },
@@ -334,7 +340,7 @@ pub fn collect_array(
             } else if let definers::DefinerCollecting::GrowableArray(array_data) =
                 itered_data.data.rtype.clone()
             {
-                will_be_itered = if data.collective.is_empty() {
+                will_be_itered = if data.data.collective.is_empty() {
                     variable::VariableCollector {
                         data: variable::Variable {
                             rtype: *array_data.rtype.clone(),
@@ -345,7 +351,9 @@ pub fn collect_array(
                 } else {
                     variable::VariableCollector {
                         data: variable::Variable {
-                            value: *data.collective[data.collective.len() - 1].value.clone(),
+                            value: *data.data.collective[data.data.collective.len() - 1]
+                                .value
+                                .clone(),
                             rtype: *array_data.rtype.clone(),
                             ..Default::default()
                         },
@@ -353,14 +361,16 @@ pub fn collect_array(
                     }
                 };
             } else {
-                will_be_itered = if data.collective.is_empty() {
+                will_be_itered = if data.data.collective.is_empty() {
                     variable::VariableCollector {
                         ..variable::VariableCollector::default()
                     }
                 } else {
                     variable::VariableCollector {
                         data: variable::Variable {
-                            value: *data.collective[data.collective.len() - 1].value.clone(),
+                            value: *data.data.collective[data.data.collective.len() - 1]
+                                .value
+                                .clone(),
                             ..Default::default()
                         },
                         ..variable::VariableCollector::default()
@@ -390,11 +400,11 @@ pub fn collect_array(
                     value_complete: match_data.complete,
                     value: Box::new(types::Types::Integer(match_data)),
                     location: defs::Cursor {
-                        range_start: if data.collective.len() != 0
-                            && !data.collective[last_entry - 1].location.is_zero()
+                        range_start: if data.data.collective.len() != 0
+                            && !data.data.collective[last_entry - 1].location.is_zero()
                             && letter_char != " "
                         {
-                            data.collective[last_entry - 1].location.range_start
+                            data.data.collective[last_entry - 1].location.range_start
                         } else {
                             parser.pos
                         },
@@ -405,10 +415,10 @@ pub fn collect_array(
                     value_complete: true,
                     value: Box::new(types::Types::Float(match_data)),
                     location: defs::Cursor {
-                        range_start: if data.collective.len() != 0
-                            && !data.collective[last_entry - 1].location.is_zero()
+                        range_start: if data.data.collective.len() != 0
+                            && !data.data.collective[last_entry - 1].location.is_zero()
                         {
-                            data.collective[last_entry - 1].location.range_start
+                            data.data.collective[last_entry - 1].location.range_start
                         } else {
                             parser.pos
                         },
@@ -419,10 +429,10 @@ pub fn collect_array(
                     value_complete: false,
                     value: Box::new(types::Types::Operator(match_data)),
                     location: defs::Cursor {
-                        range_start: if data.collective.len() != 0
-                            && !data.collective[last_entry - 1].location.is_zero()
+                        range_start: if data.data.collective.len() != 0
+                            && !data.data.collective[last_entry - 1].location.is_zero()
                         {
-                            data.collective[last_entry - 1].location.range_start
+                            data.data.collective[last_entry - 1].location.range_start
                         } else {
                             parser.pos
                         },
@@ -433,10 +443,10 @@ pub fn collect_array(
                     value_complete: true,
                     value: Box::new(types::Types::Bool(match_data)),
                     location: defs::Cursor {
-                        range_start: if data.collective.len() != 0
-                            && !data.collective[last_entry - 1].location.is_zero()
+                        range_start: if data.data.collective.len() != 0
+                            && !data.data.collective[last_entry - 1].location.is_zero()
                         {
-                            data.collective[last_entry - 1].location.range_start
+                            data.data.collective[last_entry - 1].location.range_start
                         } else {
                             parser.pos
                         },
@@ -447,10 +457,10 @@ pub fn collect_array(
                     value_complete: match_data.complete,
                     value: Box::new(types::Types::String(match_data.clone())),
                     location: defs::Cursor {
-                        range_start: if data.collective.len() != 0
-                            && !data.collective[last_entry - 1].location.is_zero()
+                        range_start: if data.data.collective.len() != 0
+                            && !data.data.collective[last_entry - 1].location.is_zero()
                         {
-                            data.collective[last_entry - 1].location.range_start
+                            data.data.collective[last_entry - 1].location.range_start
                         } else {
                             parser.pos
                         },
@@ -461,11 +471,11 @@ pub fn collect_array(
                     value_complete: match_data.complete,
                     value: Box::new(types::Types::Char(match_data.clone())),
                     location: defs::Cursor {
-                        range_start: if data.collective.len() != 0
-                            && !data.collective[last_entry - 1].location.is_zero()
+                        range_start: if data.data.collective.len() != 0
+                            && !data.data.collective[last_entry - 1].location.is_zero()
                             && match_data.value.clone() != '\0'
                         {
-                            data.collective[last_entry - 1].location.range_start
+                            data.data.collective[last_entry - 1].location.range_start
                         } else {
                             parser.pos
                         },
@@ -476,10 +486,10 @@ pub fn collect_array(
                     value_complete: true,
                     value: Box::new(types::Types::Collective(match_data)),
                     location: defs::Cursor {
-                        range_start: if data.collective.len() != 0
-                            && !data.collective[last_entry - 1].location.is_zero()
+                        range_start: if data.data.collective.len() != 0
+                            && !data.data.collective[last_entry - 1].location.is_zero()
                         {
-                            data.collective[last_entry - 1].location.range_start
+                            data.data.collective[last_entry - 1].location.range_start
                         } else {
                             parser.pos
                         },
@@ -490,10 +500,10 @@ pub fn collect_array(
                     value_complete: true,
                     value: Box::new(types::Types::Reference(match_data)),
                     location: defs::Cursor {
-                        range_start: if data.collective.len() != 0
-                            && !data.collective[last_entry - 1].location.is_zero()
+                        range_start: if data.data.collective.len() != 0
+                            && !data.data.collective[last_entry - 1].location.is_zero()
                         {
-                            data.collective[last_entry - 1].location.range_start
+                            data.data.collective[last_entry - 1].location.range_start
                         } else {
                             parser.pos
                         },
@@ -504,10 +514,10 @@ pub fn collect_array(
                     value_complete: true,
                     value: Box::new(types::Types::BraceReference(match_data)),
                     location: defs::Cursor {
-                        range_start: if data.collective.len() != 0
-                            && !data.collective[last_entry - 1].location.is_zero()
+                        range_start: if data.data.collective.len() != 0
+                            && !data.data.collective[last_entry - 1].location.is_zero()
                         {
-                            data.collective[last_entry - 1].location.range_start
+                            data.data.collective[last_entry - 1].location.range_start
                         } else {
                             parser.pos
                         },
@@ -518,10 +528,10 @@ pub fn collect_array(
                     value_complete: false,
                     value: Box::new(types::Types::Array(match_data)),
                     location: defs::Cursor {
-                        range_start: if data.collective.len() != 0
-                            && !data.collective[last_entry - 1].location.is_zero()
+                        range_start: if data.data.collective.len() != 0
+                            && !data.data.collective[last_entry - 1].location.is_zero()
                         {
-                            data.collective[last_entry - 1].location.range_start
+                            data.data.collective[last_entry - 1].location.range_start
                         } else {
                             parser.pos
                         },
@@ -532,10 +542,10 @@ pub fn collect_array(
                     value_complete: false,
                     value: Box::new(types::Types::Cloak(match_data)),
                     location: defs::Cursor {
-                        range_start: if data.collective.len() != 0
-                            && !data.collective[last_entry - 1].location.is_zero()
+                        range_start: if data.data.collective.len() != 0
+                            && !data.data.collective[last_entry - 1].location.is_zero()
                         {
-                            data.collective[last_entry - 1].location.range_start
+                            data.data.collective[last_entry - 1].location.range_start
                         } else {
                             parser.pos
                         },
@@ -546,10 +556,10 @@ pub fn collect_array(
                     value_complete: true,
                     value: Box::new(types::Types::ArrowFunction(match_data)),
                     location: defs::Cursor {
-                        range_start: if data.collective.len() != 0
-                            && !data.collective[last_entry - 1].location.is_zero()
+                        range_start: if data.data.collective.len() != 0
+                            && !data.data.collective[last_entry - 1].location.is_zero()
                         {
-                            data.collective[last_entry - 1].location.range_start
+                            data.data.collective[last_entry - 1].location.range_start
                         } else {
                             parser.pos
                         },
@@ -560,10 +570,10 @@ pub fn collect_array(
                     value_complete: true,
                     value: Box::new(types::Types::FunctionCall(match_data)),
                     location: defs::Cursor {
-                        range_start: if data.collective.len() != 0
-                            && !data.collective[last_entry - 1].location.is_zero()
+                        range_start: if data.data.collective.len() != 0
+                            && !data.data.collective[last_entry - 1].location.is_zero()
                         {
-                            data.collective[last_entry - 1].location.range_start
+                            data.data.collective[last_entry - 1].location.range_start
                         } else {
                             parser.pos
                         },
@@ -574,10 +584,10 @@ pub fn collect_array(
                     value_complete: true,
                     value: Box::new(types::Types::ClassCall(match_data)),
                     location: defs::Cursor {
-                        range_start: if data.collective.len() != 0
-                            && !data.collective[last_entry - 1].location.is_zero()
+                        range_start: if data.data.collective.len() != 0
+                            && !data.data.collective[last_entry - 1].location.is_zero()
                         {
-                            data.collective[last_entry - 1].location.range_start
+                            data.data.collective[last_entry - 1].location.range_start
                         } else {
                             parser.pos
                         },
@@ -588,10 +598,10 @@ pub fn collect_array(
                     value_complete: true,
                     value: Box::new(types::Types::Negative(match_data)),
                     location: defs::Cursor {
-                        range_start: if data.collective.len() != 0
-                            && !data.collective[last_entry - 1].location.is_zero()
+                        range_start: if data.data.collective.len() != 0
+                            && !data.data.collective[last_entry - 1].location.is_zero()
                         {
-                            data.collective[last_entry - 1].location.range_start
+                            data.data.collective[last_entry - 1].location.range_start
                         } else {
                             parser.pos
                         },
@@ -610,10 +620,10 @@ pub fn collect_array(
                     value_complete: true,
                     value: Box::new(types::Types::VariableType(match_data)),
                     location: defs::Cursor {
-                        range_start: if data.collective.len() != 0
-                            && !data.collective[last_entry - 1].location.is_zero()
+                        range_start: if data.data.collective.len() != 0
+                            && !data.data.collective[last_entry - 1].location.is_zero()
                         {
-                            data.collective[last_entry - 1].location.range_start
+                            data.data.collective[last_entry - 1].location.range_start
                         } else {
                             parser.pos
                         },
@@ -634,19 +644,20 @@ pub fn collect_array(
                 errors.extend(itered_array_vector.errors);
             }
 
-            if data.collective.is_empty() {
-                data.collective.push(itered_entry);
+            if data.data.collective.is_empty() {
+                data.data.collective.push(itered_entry);
                 last_entry += 1;
             } else {
-                data.collective[last_entry - 1] = itered_entry;
+                data.data.collective[last_entry - 1] = itered_entry;
             }
-            data.collective[last_entry - 1].location.range_end = parser.pos.clone().skip_char(1);
+            data.data.collective[last_entry - 1].location.range_end =
+                parser.pos.clone().skip_char(1);
 
             if let definers::DefinerCollecting::Array(array_def) = itered_data.data.rtype.clone() {
                 if array_def
                     .len
                     .value
-                    .greater_than(data.collective.len() as isize)
+                    .greater_than(data.data.collective.len() as isize)
                     && letter_char != " "
                 {
                     errors.push(error::Error {
@@ -664,11 +675,11 @@ pub fn collect_array(
                                 },
                                 error::ErrorBuildField {
                                     key: "token2".to_string(),
-                                    value: data.collective.len().to_string(),
+                                    value: data.data.collective.len().to_string(),
                                 },
                             ],
                         ),
-                        pos: data.collective[last_entry - 1].location,
+                        pos: data.data.collective[last_entry - 1].location,
                     });
                 }
             }

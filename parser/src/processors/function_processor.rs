@@ -14,23 +14,23 @@ pub fn collect_function(
     last_char: String,
 ) {
     let parser_clone = parser.clone();
-    if let parser::Collecting::Function(ref mut functiondata) = parser.current {
+    if let parser::Collecting::Function(ref mut function_data) = parser.current {
         let current_reliability = utils::reliable_name_range(
             utils::ReliableNameRanges::VariableName,
             letter_char.to_string(),
         );
 
-        if !functiondata.named {
+        if !function_data.named {
             if current_reliability.reliable
-                && ((last_char != " " && last_char != "\n") || functiondata.data.name.is_empty())
+                && ((last_char != " " && last_char != "\n") || function_data.data.name.is_empty())
             {
-                if functiondata.data.name.is_empty() {
-                    functiondata.data.name_pos.range_start = parser.pos;
+                if function_data.data.name.is_empty() {
+                    function_data.data.name_pos.range_start = parser.pos;
                 }
-                functiondata.data.name += letter_char;
-                functiondata.data.name_pos.range_end = parser.pos.clone().skip_char(1);
-            } else if letter_char == "(" && !functiondata.data.name.is_empty() {
-                if utils::is_reserved(&functiondata.data.name) {
+                function_data.data.name += letter_char;
+                function_data.data.name_pos.range_end = parser.pos.clone().skip_char(1);
+            } else if letter_char == "(" && !function_data.data.name.is_empty() {
+                if utils::is_reserved(&function_data.data.name) {
                     errors.push(error::Error {
                         scope: parser.scope.scope_name.clone(),
                         debug_message: "6ea87719c0fd3e960bbce05a57469972".to_string(),
@@ -41,14 +41,14 @@ pub fn collect_function(
                             error::errorList::error_s21.message.clone(),
                             vec![error::ErrorBuildField {
                                 key: "token".to_string(),
-                                value: functiondata.data.name.clone(),
+                                value: function_data.data.name.clone(),
                             }],
                         ),
-                        pos: functiondata.data.name_pos,
+                        pos: function_data.data.name_pos,
                     });
                 }
-                functiondata.named = true;
-                functiondata.data.parameters_pos.range_start = parser.pos;
+                function_data.named = true;
+                function_data.data.parameters_pos.range_start = parser.pos;
             } else if letter_char != " " {
                 errors.push(error::Error {
                     scope: parser.scope.scope_name.clone(),
@@ -69,62 +69,55 @@ pub fn collect_function(
                     },
                 });
             }
-        } else if !functiondata.parameter_wrote {
-            let mut last_entry = functiondata.data.parameters.len();
+        } else if !function_data.parameter_wrote {
+            let mut last_entry = function_data.data.parameters.len();
 
             if last_entry == 0 {
-                functiondata
+                function_data
                     .data
                     .parameters
-                    .push(function::FunctionParameterCollector::default());
+                    .push(function::FunctionParameter::default());
                 last_entry = 1;
             }
 
-            if !functiondata.data.parameters[last_entry - 1].named {
+            if !function_data.collecting_parameters.named {
                 if current_reliability.reliable
                     && ((last_char != " " && last_char != "\n")
-                        || functiondata.data.parameters[last_entry - 1]
-                            .data
+                        || function_data.data.parameters[last_entry - 1]
                             .name
                             .is_empty())
                 {
-                    if functiondata.data.parameters[last_entry - 1]
-                        .data
+                    if function_data.data.parameters[last_entry - 1]
                         .name
                         .is_empty()
                     {
-                        functiondata.data.parameters[last_entry - 1]
-                            .data
+                        function_data.data.parameters[last_entry - 1]
                             .pos
                             .range_start = parser.pos;
                     }
-                    if functiondata.data.parameters[last_entry - 1]
-                        .data
+                    if function_data.data.parameters[last_entry - 1]
                         .name_pos
                         .range_start
                         .is_zero()
                         && letter_char != " "
                     {
-                        functiondata.data.parameters[last_entry - 1]
-                            .data
+                        function_data.data.parameters[last_entry - 1]
                             .name_pos
                             .range_start = parser.pos;
                     }
-                    functiondata.data.parameters[last_entry - 1]
-                        .data
+                    function_data.data.parameters[last_entry - 1]
                         .name_pos
                         .range_end = parser.pos.clone().skip_char(1);
-                    functiondata.data.parameters[last_entry - 1].data.name += letter_char;
+                    function_data.data.parameters[last_entry - 1].name += letter_char;
                 } else if letter_char == ":" {
-                    functiondata.data.parameters[last_entry - 1].named = true;
+                    function_data.collecting_parameters.named = true;
                 } else if letter_char == ")"
-                    && functiondata.data.parameters[last_entry - 1]
-                        .data
+                    && function_data.data.parameters[last_entry - 1]
                         .name
                         .is_empty()
                 {
-                    functiondata.data.parameters = vec![];
-                    functiondata.parameter_wrote = true
+                    function_data.data.parameters = vec![];
+                    function_data.parameter_wrote = true
                 } else if letter_char != " " {
                     errors.push(error::Error {
                         scope: parser.scope.scope_name.clone(),
@@ -146,10 +139,9 @@ pub fn collect_function(
                     });
                 }
             } else if letter_char == ")"
-                && (last_entry == 0
-                    || functiondata.data.parameters[last_entry - 1].child_brace == 0)
+                && (last_entry == 0 || function_data.collecting_parameters.child_brace == 0)
             {
-                if functiondata.has_dedup() {
+                if function_data.has_dedup() {
                     errors.push(error::Error {
                         scope: parser.scope.scope_name.clone(),
                         debug_message: "c177586786cbd2a0e90311f21bb86630".to_string(),
@@ -159,11 +151,11 @@ pub fn collect_function(
                         builded_message: error::BuildedError::build_from_string(
                             error::errorList::error_s10.message.clone(),
                         ),
-                        pos: functiondata.data.parameters[last_entry - 1].data.name_pos,
+                        pos: function_data.data.parameters[last_entry - 1].name_pos,
                     });
                 }
                 if let definers::DefinerCollecting::Generic(name) =
-                    &functiondata.data.parameters[last_entry - 1].data.rtype
+                    &function_data.data.parameters[last_entry - 1].rtype
                 {
                     if !parser_clone.type_exists(name.rtype.clone()) {
                         errors.push(error::Error {
@@ -179,18 +171,17 @@ pub fn collect_function(
                                     value: name.rtype.clone(),
                                 }],
                             ),
-                            pos: functiondata.data.parameters[last_entry - 1].data.type_pos,
+                            pos: function_data.data.parameters[last_entry - 1].type_pos,
                         });
                     }
                 }
-                functiondata.parameter_wrote = true;
+                function_data.parameter_wrote = true;
             } else if letter_char == ","
-                && functiondata.data.parameters[last_entry - 1]
-                    .data
+                && function_data.data.parameters[last_entry - 1]
                     .rtype
                     .is_definer_complete()
             {
-                if functiondata.has_dedup() {
+                if function_data.has_dedup() {
                     errors.push(error::Error {
                         scope: parser.scope.scope_name.clone(),
                         debug_message: "4b5d145ad04ae3b6ee56fe34aec0f3f4".to_string(),
@@ -200,11 +191,11 @@ pub fn collect_function(
                         builded_message: error::BuildedError::build_from_string(
                             error::errorList::error_s10.message.clone(),
                         ),
-                        pos: functiondata.data.parameters[last_entry - 1].data.name_pos,
+                        pos: function_data.data.parameters[last_entry - 1].name_pos,
                     });
                 }
                 if let definers::DefinerCollecting::Generic(name) =
-                    &functiondata.data.parameters[last_entry - 1].data.rtype
+                    &function_data.data.parameters[last_entry - 1].rtype
                 {
                     if !parser_clone.type_exists(name.rtype.clone()) {
                         errors.push(error::Error {
@@ -220,60 +211,57 @@ pub fn collect_function(
                                     value: name.rtype.clone(),
                                 }],
                             ),
-                            pos: functiondata.data.parameters[last_entry - 1].data.type_pos,
+                            pos: function_data.data.parameters[last_entry - 1].type_pos,
                         });
                     }
                 }
                 //If its type's comma dont stop collecting it
-                functiondata
+                function_data
                     .data
                     .parameters
-                    .push(function::FunctionParameterCollector::default());
+                    .push(function::FunctionParameter::default());
+                function_data.collecting_parameters =
+                    function::FunctionParameterCollector::default()
             } else {
                 if letter_char == ")" {
-                    functiondata.data.parameters[last_entry - 1].child_brace -= 1;
+                    function_data.collecting_parameters.child_brace -= 1;
                 } else if letter_char == "(" {
-                    functiondata.data.parameters[last_entry - 1].child_brace += 1;
+                    function_data.collecting_parameters.child_brace += 1;
                 }
-                functiondata.data.parameters[last_entry - 1]
-                    .data
-                    .pos
-                    .range_end = parser.pos.clone().skip_char(1);
-                if functiondata.data.parameters[last_entry - 1]
-                    .data
+                function_data.data.parameters[last_entry - 1].pos.range_end =
+                    parser.pos.clone().skip_char(1);
+                if function_data.data.parameters[last_entry - 1]
                     .type_pos
                     .range_start
                     .is_zero()
                     && letter_char != " "
                 {
-                    functiondata.data.parameters[last_entry - 1]
-                        .data
+                    function_data.data.parameters[last_entry - 1]
                         .type_pos
                         .range_start = parser.pos;
                 }
-                functiondata.data.parameters[last_entry - 1]
-                    .data
+                function_data.data.parameters[last_entry - 1]
                     .type_pos
                     .range_end = parser.pos.clone().skip_char(1);
                 processors::definer_processor::collect_definer(
                     parser_clone,
-                    &mut functiondata.data.parameters[last_entry - 1].data.rtype,
+                    &mut function_data.data.parameters[last_entry - 1].rtype,
                     errors,
                     letter_char.to_string(),
                     next_char,
                     last_char,
                 );
             }
-        } else if !functiondata.return_typed {
-            if !functiondata.return_pointer_typed {
+        } else if !function_data.return_typed {
+            if !function_data.return_pointer_typed {
                 if letter_char == ">" {
-                    functiondata.return_pointer_typed = true;
+                    function_data.return_pointer_typed = true;
                 } else if letter_char == "{" {
-                    functiondata.data.return_type =
+                    function_data.data.return_type =
                         definers::DefinerCollecting::Generic(definers::GenericType {
                             rtype: "void".to_string(),
                         });
-                    functiondata.return_typed = true;
+                    function_data.return_typed = true;
                 } else if letter_char != " " {
                     errors.push(error::Error {
                         scope: parser.scope.scope_name.clone(),
@@ -294,8 +282,9 @@ pub fn collect_function(
                         },
                     });
                 }
-            } else if letter_char == "{" && functiondata.data.return_type.is_definer_complete() {
-                if let definers::DefinerCollecting::Generic(name) = &functiondata.data.return_type {
+            } else if letter_char == "{" && function_data.data.return_type.is_definer_complete() {
+                if let definers::DefinerCollecting::Generic(name) = &function_data.data.return_type
+                {
                     if !parser_clone.type_exists(name.rtype.clone()) {
                         errors.push(error::Error {
                             scope: parser.scope.scope_name.clone(),
@@ -310,28 +299,28 @@ pub fn collect_function(
                                     value: name.rtype.clone(),
                                 }],
                             ),
-                            pos: functiondata.data.return_pos,
+                            pos: function_data.data.return_pos,
                         });
                     }
                 }
-                functiondata.return_typed = true;
+                function_data.return_typed = true;
             } else {
-                if functiondata.data.return_pos.range_start.is_zero() && letter_char != " " {
-                    functiondata.data.return_pos.range_start = parser.pos;
+                if function_data.data.return_pos.range_start.is_zero() && letter_char != " " {
+                    function_data.data.return_pos.range_start = parser.pos;
                 }
-                functiondata.data.return_pos.range_end = parser.pos;
+                function_data.data.return_pos.range_end = parser.pos;
                 processors::definer_processor::collect_definer(
                     parser_clone,
-                    &mut functiondata.data.return_type,
+                    &mut function_data.data.return_type,
                     errors,
                     letter_char.to_string(),
                     next_char.clone(),
                     last_char.clone(),
                 );
             }
-        } else if functiondata.brace_count == 0 && letter_char == "}" {
+        } else if function_data.brace_count == 0 && letter_char == "}" {
             if parser_clone
-                .check_keyword(functiondata.data.name.clone())
+                .check_keyword(function_data.data.name.clone())
                 .found
             {
                 errors.push(error::Error {
@@ -344,19 +333,19 @@ pub fn collect_function(
                         error::errorList::error_s24.message.clone(),
                         vec![error::ErrorBuildField {
                             key: "token".to_string(),
-                            value: functiondata.data.name.clone(),
+                            value: function_data.data.name.clone(),
                         }],
                     ),
-                    pos: functiondata.data.name_pos,
+                    pos: function_data.data.name_pos,
                 });
             }
             parser.collected.push(parser.current.clone());
             parser.current = parser::Collecting::None;
         } else {
             if letter_char == "{" {
-                functiondata.brace_count += 1;
-            } else if letter_char == "}" && functiondata.brace_count != 0 {
-                functiondata.brace_count -= 1;
+                function_data.brace_count += 1;
+            } else if letter_char == "}" && function_data.brace_count != 0 {
+                function_data.brace_count -= 1;
             }
 
             let code_letter = if last_char.clone() == "\n" || last_char.clone() == "\r" {
@@ -364,7 +353,7 @@ pub fn collect_function(
             } else {
                 letter_char.to_string()
             };
-            functiondata.code += &code_letter;
+            function_data.code += &code_letter;
         }
     }
 }

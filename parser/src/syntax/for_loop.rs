@@ -8,19 +8,19 @@ use serde::Deserialize;
 use serde::Serialize;
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
-pub struct Forloop {
+pub struct ForLoop {
     pub parameter: Box<types::Types>,
     pub parameter_pos: defs::Cursor,
     pub code: String,
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
-pub struct ForloopCollector {
+pub struct ForLoopCollector {
     pub parameters_collected: bool,
     pub cloak_itered_data: variable::VariableCollector,
     pub brace_count: usize,
     pub has_code: bool,
-    pub data: Forloop,
+    pub data: ForLoop,
 
     pub inside_code: Vec<Collecting>,
 

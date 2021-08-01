@@ -16,8 +16,13 @@ pub struct CloakEntry {
 #[derive(PartialEq, Default, Debug, Clone, Serialize, Deserialize)]
 pub struct CloakType {
     pub layer_size: usize,
+    pub collective: Vec<CloakEntry>,
+}
+
+#[derive(PartialEq, Default, Debug, Clone, Serialize, Deserialize)]
+pub struct CloakTypeCollector {
+    pub data: CloakType,
     pub complete: bool,
     pub comma: bool,
     pub child_start: bool,
-    pub collective: Vec<CloakEntry>,
 }

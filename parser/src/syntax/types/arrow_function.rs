@@ -8,7 +8,7 @@ use serde::Serialize;
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ArrowFunction {
-    pub parameters: Vec<function::FunctionParameterCollector>,
+    pub parameters: Vec<function::FunctionParameter>,
     pub return_type: definers::DefinerCollecting,
     pub inside_code: Vec<Collecting>,
     pub return_pos: defs::Cursor,
@@ -16,6 +16,7 @@ pub struct ArrowFunction {
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ArrowFunctionCollector {
+    pub collecting_parameters: function::FunctionParameterCollector,
     pub complete: bool,
     pub param_bracket_opened: bool,
     pub parameter_wrote: bool,
@@ -31,11 +32,11 @@ impl ArrowFunctionCollector {
         let mut existent_names: Vec<String> = Vec::with_capacity(self.data.parameters.len());
         let mut duplicate = false;
         for i in &self.data.parameters {
-            if existent_names.contains(&i.data.name) {
+            if existent_names.contains(&i.name) {
                 duplicate = true;
                 break;
             } else {
-                existent_names.push(i.data.name.clone())
+                existent_names.push(i.name.clone())
             }
         }
         duplicate

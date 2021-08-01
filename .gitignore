@@ -7,3 +7,4 @@ target
 raw
 build.js
 wasm
+Cargo.lock
