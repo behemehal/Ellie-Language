@@ -337,7 +337,7 @@ pub fn collect_cloak(
 
             let mut will_be_itered: variable::VariableCollector;
             if let definers::DefinerCollecting::Cloak(cloak_cloak_data) =
-            itered_data.data.rtype.clone()
+                itered_data.data.rtype.clone()
             {
                 will_be_itered = if cloak_data.data.collective.is_empty() {
                     variable::VariableCollector {
