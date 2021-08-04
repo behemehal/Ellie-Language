@@ -10,6 +10,7 @@ pub struct FileKey {
     pub value: types::Types,
     pub key_name_location: defs::Cursor,
     pub value_location: defs::Cursor,
+    pub pos: defs::Cursor,
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]

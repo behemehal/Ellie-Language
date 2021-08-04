@@ -34,6 +34,7 @@ pub struct Function {
     pub code_bracket_end: defs::Cursor,   //Bracket start fn test() > String { ... [}]
     pub parameters_pos: defs::Cursor,
     pub return_pos: defs::Cursor,
+    pub pos: defs::Cursor
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]

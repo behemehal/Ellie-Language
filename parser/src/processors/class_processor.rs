@@ -228,6 +228,7 @@ pub fn collect_class(
                 };
             }
             class_data.code = Box::new(parser::RawParser::default()); //Empty the cache
+            class_data.data.pos.range_end = parser.pos.clone().skip_char(1);
             parser.collected.push(parser.current.clone());
             parser.current = parser::Collecting::None;
         } else {
