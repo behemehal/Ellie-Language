@@ -17,6 +17,12 @@ pub fn collect_float(
     last_char: String,
 ) {
     if let types::Types::Float(ref mut data) = itered_data.data.value {
+        if itered_data.data.dynamic {
+            itered_data.data.rtype = definers::DefinerCollecting::Generic(definers::GenericType {
+                rtype: "float".to_string(),
+            });
+        }
+
         if !data.at_point {
             //[1].111
             if letter_char.parse::<i8>().is_ok() {

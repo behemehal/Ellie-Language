@@ -17,6 +17,12 @@ pub fn collect_integer(
     last_char: String,
 ) {
     if let types::Types::Integer(ref mut data) = itered_data.data.value {
+        if itered_data.data.dynamic {
+            itered_data.data.rtype = definers::DefinerCollecting::Generic(definers::GenericType {
+                rtype: "int".to_string(),
+            });
+        }
+
         let is_num = letter_char.parse::<isize>().is_ok();
 
         if is_num || letter_char == "x" && data.raw.starts_with('0') {
