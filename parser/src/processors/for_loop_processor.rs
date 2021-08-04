@@ -88,6 +88,7 @@ pub fn collect_for(
                 for i in mapped.syntax_errors {
                     errors.push(i)
                 }
+                for_loop_data.data.pos.range_end = parser.pos.clone().skip_char(1);
                 for_loop_data.inside_code = mapped.parsed.items;
                 parser.collected.push(parser.current.clone());
                 parser.current = parser::Collecting::None;

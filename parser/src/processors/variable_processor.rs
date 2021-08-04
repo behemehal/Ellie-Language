@@ -103,6 +103,7 @@ pub fn collect_variable_value(
                         pos: variable_data.data.name_pos,
                     });
                 }
+                variable_data.data.pos.range_end = parser.pos.clone().skip_char(1);
                 parser.collected.push(parser.current.clone());
                 parser.current = parser::Collecting::None;
             } else if letter_char == "=" {

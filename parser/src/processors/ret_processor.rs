@@ -17,6 +17,7 @@ pub fn collect_ret(
     let parser_clone = parser.clone();
     if let parser::Collecting::Ret(ref mut data) = parser.current {
         if letter_char == ";" && data.value.is_type_complete() {
+            data.pos.range_end = parser.pos.clone().skip_char(1);
             parser.collected.push(parser.current.clone());
             parser.current = parser::Collecting::None;
         } else {
