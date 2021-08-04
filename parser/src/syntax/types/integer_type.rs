@@ -20,7 +20,7 @@ pub enum IntegerTypes {
     U32,
     U64,
     U128,
-    Usize,
+    USize,
 }
 
 impl Default for IntegerTypes {
