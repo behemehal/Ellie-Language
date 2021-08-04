@@ -60,10 +60,7 @@ pub fn collect_filekey(
                 }
             }
         } else if letter_char == ";" && file_key_data.data.value.is_type_complete() {
-            if clone_parser
-                .check_keyword(file_key_data.data.key_name.clone())
-                .found
-            {
+            if clone_parser.check_key_keyword(file_key_data.data.key_name.clone()) {
                 errors.push(error::Error {
                     scope: "filekey_processor".to_string(),
                     debug_message: "555d69b1ca2312d1e51de22a5013360f".to_string(),
@@ -88,31 +85,7 @@ pub fn collect_filekey(
                     },
                 });
             }
-            if utils::is_reserved(&file_key_data.data.key_name) {
-                errors.push(error::Error {
-                    scope: "filekey_processor".to_string(),
-                    debug_message: "6d78d787b1236b55ac32f1383a14feb7".to_string(),
-                    title: error::errorList::error_s21.title.clone(),
-                    code: error::errorList::error_s21.code,
-                    message: error::errorList::error_s21.message.clone(),
-                    builded_message: error::Error::build(
-                        error::errorList::error_s21.message.clone(),
-                        vec![error::ErrorBuildField {
-                            key: "token".to_string(),
-                            value: file_key_data.data.key_name.clone(),
-                        }],
-                    ),
-                    pos: defs::Cursor {
-                        range_start: file_key_data.data.key_name_location.range_start,
-                        range_end: file_key_data
-                            .data
-                            .key_name_location
-                            .range_end
-                            .clone()
-                            .skip_char(1),
-                    },
-                });
-            }
+            file_key_data.data.pos.range_end = parser.pos.clone().skip_char(1);
             file_key_data.value_collected = true;
             parser.collected.push(parser.current.clone());
             parser.current = parser::Collecting::None;
