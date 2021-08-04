@@ -25,7 +25,7 @@ pub fn collect_variable(
 
         if !variabledata.value_complete {
             if current_reliability.reliable {
-                if last_char == " " && !variabledata.value.is_empty() {
+                if last_char == " " && !variabledata.data.value.is_empty() {
                     errors.push(error::Error {
                         scope: "variable_processor".to_string(),
                         debug_message: "d932f4ce6bb6f2046940975434f15da8".to_string(),
@@ -45,26 +45,27 @@ pub fn collect_variable(
                         },
                     });
                 } else {
-                    if variabledata.value.is_empty() {
-                        variabledata.pos.range_start = parser.pos;
+                    if variabledata.data.value.is_empty() {
+                        variabledata.data.pos.range_start = parser.pos;
                     }
-                    variabledata.value += letter_char;
-                    variabledata.pos.range_end = parser.pos;
+                    variabledata.data.value += letter_char;
+                    variabledata.data.pos.range_end = parser.pos;
                 }
 
-                if variabledata.value == "true" || variabledata.value == "false" {
+                if variabledata.data.value == "true" || variabledata.data.value == "false" {
                     itered_data.data.value = types::Types::Bool(types::bool_type::BoolType {
-                        value: variabledata.value == "true",
-                        raw: variabledata.value.clone(),
+                        value: variabledata.data.value == "true",
+                        raw: variabledata.data.value.clone(),
                     });
-                } else if variabledata.value == "new" && next_char == " " {
+                } else if variabledata.data.value == "new" && next_char == " " {
                     itered_data.data.value =
                         types::Types::ClassCall(types::class_call::ClassCallCollector {
                             keyword_collected: true,
+                            ignore_space: true,
                             ..Default::default()
                         });
                 }
-            } else if !variabledata.value.is_empty() {
+            } else if !variabledata.data.value.is_empty() {
                 if letter_char == ";" {
                     variabledata.value_complete = true;
                 } else if letter_char == "." {
@@ -87,10 +88,10 @@ pub fn collect_variable(
                     itered_data.data.value =
                         types::Types::FunctionCall(types::function_call::FunctionCallCollector {
                             data: types::function_call::FunctionCall {
-                                name: variabledata.value.clone(),
+                                name: variabledata.data.value.clone(),
                                 name_pos: defs::Cursor {
-                                    range_start: variabledata.pos.range_start,
-                                    range_end: variabledata.pos.range_end.clone().skip_char(1),
+                                    range_start: variabledata.data.pos.range_start,
+                                    range_end: variabledata.data.pos.range_end.clone().skip_char(1),
                                 },
                                 ..Default::default()
                             },

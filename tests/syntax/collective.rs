@@ -36,12 +36,12 @@ mod collective_tests {
                             ellie_parser::syntax::types::collective_type::CollectiveEntryCollector {
                                 data: ellie_parser::syntax::types::collective_type::CollectiveEntry {
                                     key: Box::new(ellie_parser::syntax::types::Types::Integer(
-                                        ellie_parser::syntax::types::integer_type::IntegerType {
-                                            value: ellie_parser::syntax::types::integer_type::IntegerSize::I8(
-                                                1,
-                                            ),
+                                        ellie_parser::syntax::types::integer_type::IntegerTypeCollector {
+                                            data: ellie_parser::syntax::types::integer_type::IntegerType {
+                                                value: ellie_parser::syntax::types::integer_type::IntegerSize::I8(1),
+                                                rtype: ellie_parser::syntax::types::integer_type::IntegerTypes::I8,
+                                            },
                                             raw: "1".to_string(),
-                                            rtype: ellie_parser::syntax::types::integer_type::IntegerTypes::I8,
                                             complete: true,
                                         },
                                     ),),
@@ -78,12 +78,14 @@ mod collective_tests {
                             ellie_parser::syntax::types::collective_type::CollectiveEntryCollector {
                                 data: ellie_parser::syntax::types::collective_type::CollectiveEntry {
                                     key: Box::new(ellie_parser::syntax::types::Types::Integer(
-                                        ellie_parser::syntax::types::integer_type::IntegerType {
-                                            value: ellie_parser::syntax::types::integer_type::IntegerSize::I8(
-                                                2,
-                                            ),
+                                        ellie_parser::syntax::types::integer_type::IntegerTypeCollector {
+                                            data: ellie_parser::syntax::types::integer_type::IntegerType {
+                                                value: ellie_parser::syntax::types::integer_type::IntegerSize::I8(
+                                                    2,
+                                                ),
+                                                rtype: ellie_parser::syntax::types::integer_type::IntegerTypes::I8,
+                                            },
                                             raw: "2".to_string(),
-                                            rtype: ellie_parser::syntax::types::integer_type::IntegerTypes::I8,
                                             complete: true,
                                         },
                                     ),),
@@ -136,12 +138,12 @@ mod collective_tests {
                             ellie_parser::syntax::types::collective_type::CollectiveEntryCollector {
                                 data: ellie_parser::syntax::types::collective_type::CollectiveEntry {
                                     key: Box::new(ellie_parser::syntax::types::Types::Integer(
-                                        ellie_parser::syntax::types::integer_type::IntegerType {
-                                            value: ellie_parser::syntax::types::integer_type::IntegerSize::I8(
-                                                1,
-                                            ),
+                                        ellie_parser::syntax::types::integer_type::IntegerTypeCollector {
+                                            data: ellie_parser::syntax::types::integer_type::IntegerType {
+                                                value: ellie_parser::syntax::types::integer_type::IntegerSize::I8(1),
+                                                rtype: ellie_parser::syntax::types::integer_type::IntegerTypes::I8,
+                                            },
                                             raw: "1".to_string(),
-                                            rtype: ellie_parser::syntax::types::integer_type::IntegerTypes::I8,
                                             complete: true,
                                         },
                                     ),),
@@ -178,12 +180,12 @@ mod collective_tests {
                             ellie_parser::syntax::types::collective_type::CollectiveEntryCollector {
                                 data: ellie_parser::syntax::types::collective_type::CollectiveEntry {
                                     key: Box::new(ellie_parser::syntax::types::Types::Integer(
-                                        ellie_parser::syntax::types::integer_type::IntegerType {
-                                            value: ellie_parser::syntax::types::integer_type::IntegerSize::I8(
-                                                2,
-                                            ),
+                                        ellie_parser::syntax::types::integer_type::IntegerTypeCollector {
+                                            data: ellie_parser::syntax::types::integer_type::IntegerType {
+                                                value: ellie_parser::syntax::types::integer_type::IntegerSize::I8(2),
+                                                rtype: ellie_parser::syntax::types::integer_type::IntegerTypes::I8,
+                                            },
                                             raw: "2".to_string(),
-                                            rtype: ellie_parser::syntax::types::integer_type::IntegerTypes::I8,
                                             complete: true,
                                         },
                                     ),),
@@ -195,12 +197,12 @@ mod collective_tests {
                                                     ellie_parser::syntax::types::collective_type::CollectiveEntryCollector {
                                                         data: ellie_parser::syntax::types::collective_type::CollectiveEntry {
                                                             key: Box::new(ellie_parser::syntax::types::Types::Integer(
-                                                                ellie_parser::syntax::types::integer_type::IntegerType {
-                                                                    value: ellie_parser::syntax::types::integer_type::IntegerSize::I8(
-                                                                        1,
-                                                                    ),
+                                                                ellie_parser::syntax::types::integer_type::IntegerTypeCollector {
+                                                                    data: ellie_parser::syntax::types::integer_type::IntegerType {
+                                                                        value: ellie_parser::syntax::types::integer_type::IntegerSize::I8(1),
+                                                                        rtype: ellie_parser::syntax::types::integer_type::IntegerTypes::I8,
+                                                                    },
                                                                     raw: "1".to_string(),
-                                                                    rtype: ellie_parser::syntax::types::integer_type::IntegerTypes::I8,
                                                                     complete: true,
                                                                 },
                                                             ),),
@@ -237,12 +239,12 @@ mod collective_tests {
                                                     ellie_parser::syntax::types::collective_type::CollectiveEntryCollector {
                                                         data: ellie_parser::syntax::types::collective_type::CollectiveEntry {
                                                             key: Box::new(ellie_parser::syntax::types::Types::Integer(
-                                                                ellie_parser::syntax::types::integer_type::IntegerType {
-                                                                    value: ellie_parser::syntax::types::integer_type::IntegerSize::I8(
-                                                                        2,
-                                                                    ),
+                                                                ellie_parser::syntax::types::integer_type::IntegerTypeCollector {
+                                                                    data: ellie_parser::syntax::types::integer_type::IntegerType {
+                                                                        value: ellie_parser::syntax::types::integer_type::IntegerSize::I8(2),
+                                                                        rtype: ellie_parser::syntax::types::integer_type::IntegerTypes::I8,
+                                                                    },
                                                                     raw: "2".to_string(),
-                                                                    rtype: ellie_parser::syntax::types::integer_type::IntegerTypes::I8,
                                                                     complete: true,
                                                                 },
                                                             ),),

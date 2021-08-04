@@ -3,12 +3,11 @@ use crate::syntax::{
     caller, class, condition, constructor, file_key, for_loop, function, import, ret, types,
     variable,
 };
-use ellie_core::{defs, error, utils};
-
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};
 use alloc::vec;
 use alloc::vec::Vec;
+use ellie_core::{defs, error, utils};
 
 pub fn collect_type(
     parser: &mut parser::Parser,
@@ -60,9 +59,10 @@ pub fn collect_type(
                 public: keyword == "pub c ",
                 constant: true,
                 pos: defs::Cursor {
-                    range_start: parser.pos,
+                    range_start: parser.pos.pop_char(keyword.len() - 1),
                     ..Default::default()
                 },
+                hash: utils::generate_hash(),
                 ..Default::default()
             },
             ..Default::default()
@@ -76,9 +76,10 @@ pub fn collect_type(
             data: variable::Variable {
                 public: keyword == "pub v ",
                 pos: defs::Cursor {
-                    range_start: parser.pos,
+                    range_start: parser.pos.pop_char(keyword.len() - 1),
                     ..Default::default()
                 },
+                hash: utils::generate_hash(),
                 ..Default::default()
             },
             ..Default::default()
@@ -94,9 +95,10 @@ pub fn collect_type(
                 dynamic: true,
                 public: keyword == "pub d ",
                 pos: defs::Cursor {
-                    range_start: parser.pos,
+                    range_start: parser.pos.pop_char(keyword.len() - 1),
                     ..Default::default()
                 },
+                hash: utils::generate_hash(),
                 ..Default::default()
             },
             ..Default::default()
@@ -108,20 +110,50 @@ pub fn collect_type(
         parser.current = parser::Collecting::Function(function::FunctionCollector {
             data: function::Function {
                 public: keyword == "pub fn ",
+                pos: defs::Cursor {
+                    range_start: parser.pos.pop_char(keyword.len() - 1),
+                    ..Default::default()
+                },
                 ..Default::default()
             },
             ..Default::default()
         });
         parser.keyword_catch = String::new();
     } else if keyword == "co " && parser.options.parser_type == defs::ParserType::ClassParser {
-        parser.current =
-            parser::Collecting::Constructor(constructor::ConstructorCollector::default());
+        parser.current = parser::Collecting::Constructor(constructor::ConstructorCollector {
+            data: constructor::Constructor {
+                pos: defs::Cursor {
+                    range_start: parser.pos.pop_char(keyword.len() - 1),
+                    ..Default::default()
+                },
+                ..Default::default()
+            },
+            ..Default::default()
+        });
         parser.keyword_catch = String::new();
     } else if keyword == "@" && parser.options.parser_type == defs::ParserType::RawParser {
-        parser.current = parser::Collecting::FileKey(file_key::FileKeyCollector::default());
+        parser.current = parser::Collecting::FileKey(file_key::FileKeyCollector {
+            data: file_key::FileKey {
+                pos: defs::Cursor {
+                    range_start: parser.pos.pop_char(keyword.len() - 1),
+                    ..Default::default()
+                },
+                ..Default::default()
+            },
+            ..Default::default()
+        });
         parser.keyword_catch = String::new();
     } else if keyword == "for " && parser.options.parser_type == defs::ParserType::RawParser {
-        parser.current = parser::Collecting::ForLoop(for_loop::ForLoopCollector::default());
+        parser.current = parser::Collecting::ForLoop(for_loop::ForLoopCollector {
+            data: for_loop::ForLoop {
+                pos: defs::Cursor {
+                    range_start: parser.pos.pop_char(keyword.len() - 1),
+                    ..Default::default()
+                },
+                ..Default::default()
+            },
+            ..Default::default()
+        });
         parser.keyword_catch = String::new();
     } else if keyword == "if" && parser.options.parser_type == defs::ParserType::RawParser {
         parser.current = parser::Collecting::Condition(condition::ConditionCollector::default());
@@ -206,6 +238,10 @@ pub fn collect_type(
         parser.current = parser::Collecting::Class(class::ClassCollector {
             data: class::Class {
                 public: keyword == "pub class ",
+                pos: defs::Cursor {
+                    range_start: parser.pos.pop_char(keyword.len() - 1),
+                    ..Default::default()
+                },
                 ..Default::default()
             },
             ..Default::default()
@@ -224,6 +260,7 @@ pub fn collect_type(
         parser.current = parser::Collecting::Caller(caller::Caller {
             value: types::Types::ClassCall(types::class_call::ClassCallCollector {
                 keyword_collected: true,
+                ignore_space: true,
                 ..Default::default()
             }),
             pos: defs::Cursor {
@@ -260,13 +297,16 @@ pub fn collect_type(
         parser.keyword_catch = String::new();
     } else if next_char == "." && keyword.trim() != "" {
         #[cfg(feature = "std")]
-        std::println!("[ParserWarning]: Appliying no position data to VariableType[226] will cause error showing problem in cli");
+        std::println!("[ParserWarning]: Applying no position data to VariableType[226] will cause error showing problem in cli");
         parser.current = parser::Collecting::Caller(caller::Caller {
             value: types::Types::Reference(types::reference_type::ReferenceType {
                 reference: Box::new(types::Types::VariableType(
-                    types::variable_type::VariableType {
-                        value: keyword.clone(),
+                    types::variable_type::VariableTypeCollector {
                         value_complete: true,
+                        data: types::variable_type::VariableType {
+                            value: keyword.clone(),
+                            ..Default::default()
+                        },
                         ..Default::default()
                     },
                 )),

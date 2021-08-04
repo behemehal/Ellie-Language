@@ -8,10 +8,14 @@ mod negative_tests {
             ellie_parser::syntax::types::Types::Negative(
                 ellie_parser::syntax::types::negative_type::Negative {
                     value: Box::new(ellie_parser::syntax::types::Types::Integer(
-                        ellie_parser::syntax::types::integer_type::IntegerType {
-                            value: ellie_parser::syntax::types::integer_type::IntegerSize::I8(123),
+                        ellie_parser::syntax::types::integer_type::IntegerTypeCollector {
+                            data: ellie_parser::syntax::types::integer_type::IntegerType {
+                                value: ellie_parser::syntax::types::integer_type::IntegerSize::I8(
+                                    123
+                                ),
+                                rtype: ellie_parser::syntax::types::integer_type::IntegerTypes::I8,
+                            },
                             raw: "123".to_string(),
-                            rtype: ellie_parser::syntax::types::integer_type::IntegerTypes::I8,
                             complete: true
                         },
                     )),
@@ -106,13 +110,15 @@ mod negative_tests {
             ellie_parser::syntax::types::Types::Negative(
                 ellie_parser::syntax::types::negative_type::Negative {
                     value: Box::new(ellie_parser::syntax::types::Types::VariableType(
-                        ellie_parser::syntax::types::variable_type::VariableType {
+                        ellie_parser::syntax::types::variable_type::VariableTypeCollector {
+                            data: ellie_parser::syntax::types::variable_type::VariableType {
+                                value: "test".to_string(),
+                                pos: ellie_core::defs::Cursor {
+                                    range_start: ellie_core::defs::CursorPosition::default(),
+                                    range_end: ellie_core::defs::CursorPosition::default()
+                                }
+                            },
                             value_complete: false,
-                            value: "test".to_string(),
-                            pos: ellie_core::defs::Cursor {
-                                range_start: ellie_core::defs::CursorPosition::default(),
-                                range_end: ellie_core::defs::CursorPosition::default()
-                            }
                         },
                     )),
                 },

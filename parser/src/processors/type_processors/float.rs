@@ -1,7 +1,7 @@
 #![allow(clippy::unnecessary_unwrap)]
 use crate::parser;
 use crate::processors::type_processors;
-use crate::syntax::{types, variable};
+use crate::syntax::{types, variable, definers};
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};
 use alloc::vec;

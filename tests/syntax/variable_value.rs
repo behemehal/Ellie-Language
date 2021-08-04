@@ -37,10 +37,10 @@ mod variable_value_tests {
             }
             emulated_collector_data = itered.itered_data;
         }
-        println!("{:#?}", emulated_collector_data.data.value);
+
         assert_eq!(syntax_errors.len(), 0);
         assert!(
-            matches!(emulated_collector_data.data.value, ellie_parser::syntax::types::Types::VariableType(x) if x.value == "test")
+            matches!(emulated_collector_data.data.value, ellie_parser::syntax::types::Types::VariableType(x) if x.data.value == "test")
         );
     }
 
@@ -82,7 +82,7 @@ mod variable_value_tests {
         }
         assert_eq!(syntax_errors.len(), 0);
         assert!(
-            matches!(emulated_collector_data.data.value, ellie_parser::syntax::types::Types::Operator(x) if x.data.first.as_variable_type().unwrap().value == "test" && x.data.second.as_variable_type().unwrap().value == "test_second" && x.operator_collect == "==" && x.data.operator == ellie_parser::syntax::types::operator_type::Operators::ComparisonType(ellie_parser::syntax::types::comparison_type::ComparisonOperators::Equal))
+            matches!(emulated_collector_data.data.value, ellie_parser::syntax::types::Types::Operator(x) if x.data.first.as_variable_type().unwrap().data.value == "test" && x.data.second.as_variable_type().unwrap().data.value == "test_second" && x.operator_collect == "==" && x.data.operator == ellie_parser::syntax::types::operator_type::Operators::ComparisonType(ellie_parser::syntax::types::comparison_type::ComparisonOperators::Equal))
         );
     }
 
@@ -124,7 +124,7 @@ mod variable_value_tests {
         }
         assert_eq!(syntax_errors.len(), 0);
         assert!(
-            matches!(emulated_collector_data.data.value, ellie_parser::syntax::types::Types::Operator(x) if x.data.first.as_variable_type().unwrap().value == "test" && x.data.second.as_variable_type().unwrap().value == "test_second" && x.operator_collect == "&&" && x.data.operator == ellie_parser::syntax::types::operator_type::Operators::LogicalType(ellie_parser::syntax::types::logical_type::LogicalOperators::And))
+            matches!(emulated_collector_data.data.value, ellie_parser::syntax::types::Types::Operator(x) if x.data.first.as_variable_type().unwrap().data.value == "test" && x.data.second.as_variable_type().unwrap().data.value == "test_second" && x.operator_collect == "&&" && x.data.operator == ellie_parser::syntax::types::operator_type::Operators::LogicalType(ellie_parser::syntax::types::logical_type::LogicalOperators::And))
         );
     }
 
@@ -166,7 +166,7 @@ mod variable_value_tests {
         }
         assert_eq!(syntax_errors.len(), 0);
         assert!(
-            matches!(emulated_collector_data.data.value, ellie_parser::syntax::types::Types::Operator(x) if x.data.first.as_variable_type().unwrap().value == "test" && x.data.second.as_variable_type().unwrap().value == "test_second" && x.operator_collect == "+" && x.data.operator == ellie_parser::syntax::types::operator_type::Operators::ArithmeticType(ellie_parser::syntax::types::arithmetic_type::ArithmeticOperators::Addition))
+            matches!(emulated_collector_data.data.value, ellie_parser::syntax::types::Types::Operator(x) if x.data.first.as_variable_type().unwrap().data.value == "test" && x.data.second.as_variable_type().unwrap().data.value == "test_second" && x.operator_collect == "+" && x.data.operator == ellie_parser::syntax::types::operator_type::Operators::ArithmeticType(ellie_parser::syntax::types::arithmetic_type::ArithmeticOperators::Addition))
         );
     }
 }

@@ -1,7 +1,0 @@
-import ellie;
-
-class test<t, s> {
-    co test();
-
-    pri v test : string;
-}

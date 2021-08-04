@@ -16,14 +16,14 @@ pub fn collect_function_caller(
     next_char: String,
     last_char: String,
 ) {
-    if let types::Types::FunctionCall(ref mut functioncalldata) = itered_data.data.value {
+    if let types::Types::FunctionCall(ref mut function_call_data) = itered_data.data.value {
         if itered_data.data.dynamic {
             itered_data.data.rtype = definers::DefinerCollecting::Generic(definers::GenericType {
                 rtype: "functionCall".to_string(),
             });
         }
 
-        if !functioncalldata.name_collected {
+        if !function_call_data.name_collected {
             let current_reliability = utils::reliable_name_range(
                 utils::ReliableNameRanges::VariableName,
                 letter_char.to_string(),
@@ -31,12 +31,12 @@ pub fn collect_function_caller(
 
             if current_reliability.reliable
                 && ((last_char != " " && last_char != "\n")
-                    && !functioncalldata.data.name.is_empty())
+                    && !function_call_data.data.name.is_empty())
             {
-                functioncalldata.data.name_pos.range_end = parser.pos;
-                functioncalldata.data.name += letter_char;
+                function_call_data.data.name_pos.range_end = parser.pos;
+                function_call_data.data.name += letter_char;
             } else if letter_char == "(" {
-                if functioncalldata.data.name.is_empty() {
+                if function_call_data.data.name.is_empty() {
                     errors.push(error::Error {
                         scope: "function_call_processor".to_string(),
                         debug_message: "a39665b1aee8f0e3fe020017f85fa067".to_string(),
@@ -56,7 +56,7 @@ pub fn collect_function_caller(
                         },
                     });
                 } else {
-                    functioncalldata.name_collected = true;
+                    function_call_data.name_collected = true;
                 }
             } else if letter_char != " " {
                 errors.push(error::Error {
@@ -78,15 +78,15 @@ pub fn collect_function_caller(
                     },
                 });
             }
-        } else if !functioncalldata.complete {
-            let last_entry = functioncalldata.data.params.clone().len();
+        } else if !function_call_data.complete {
+            let last_entry = function_call_data.data.params.clone().len();
             let is_s_n = last_entry == 0
-                || functioncalldata.data.params[last_entry - 1]
+                || function_call_data.data.params[last_entry - 1]
                     .value
                     .is_type_complete();
 
             if letter_char == "," && is_s_n && last_entry != 0 {
-                if functioncalldata.complete {
+                if function_call_data.complete {
                     errors.push(error::Error {
                         scope: "function_call_processor".to_string(),
                         debug_message: "ddaa252e0882a65b5843d855c5e48ecc".to_string(),
@@ -105,7 +105,7 @@ pub fn collect_function_caller(
                             range_end: parser.pos.clone().skip_char(1),
                         },
                     });
-                } else if functioncalldata.comma {
+                } else if function_call_data.comma {
                     errors.push(error::Error {
                         scope: "function_call_processor".to_string(),
                         debug_message: "e2162b6b2db3bdfc450b242f00dedb4f".to_string(),
@@ -126,32 +126,32 @@ pub fn collect_function_caller(
                     });
                 } else {
                     if last_entry != 0 {
-                        functioncalldata.data.params[last_entry - 1]
+                        function_call_data.data.params[last_entry - 1]
                             .value
                             .make_complete();
                     }
-                    functioncalldata.comma = true;
-                    functioncalldata
+                    function_call_data.comma = true;
+                    function_call_data
                         .data
                         .params
                         .push(types::function_call::FunctionCallParameter::default());
                 }
             } else if letter_char == ")" && is_s_n {
                 if last_entry != 0 {
-                    functioncalldata.data.params[last_entry - 1].pos.range_end = parser.pos;
+                    function_call_data.data.params[last_entry - 1].pos.range_end = parser.pos;
                 }
 
-                let fn_exists = parser.resolve_function_call(functioncalldata.clone());
+                let fn_exists = parser.resolve_function_call(function_call_data.clone());
                 if let Some(type_errors) = fn_exists {
                     for error in type_errors {
                         errors.push(error);
                     }
                 }
-                functioncalldata.complete = true;
+                function_call_data.complete = true;
             } else {
                 if letter_char != " " {
                     //TODO IS THIS SAFE ?
-                    functioncalldata.comma = false;
+                    function_call_data.comma = false;
                 }
 
                 //TODO FIX THIS with function after resolving complete
@@ -159,7 +159,7 @@ pub fn collect_function_caller(
                 if let definers::DefinerCollecting::Cloak(cloak_data) =
                     itered_data.data.rtype.clone()
                 {
-                    will_be_itered = if functioncalldata.data.params.is_empty() {
+                    will_be_itered = if function_call_data.data.params.is_empty() {
                         variable::VariableCollector {
                             data: variable::Variable {
                                 rtype: cloak_data.rtype[0].clone(),
@@ -170,11 +170,11 @@ pub fn collect_function_caller(
                     } else {
                         variable::VariableCollector {
                             data: variable::Variable {
-                                value: functioncalldata.data.params
-                                    [functioncalldata.data.params.len() - 1]
+                                value: function_call_data.data.params
+                                    [function_call_data.data.params.len() - 1]
                                     .value
                                     .clone(),
-                                rtype: cloak_data.rtype[functioncalldata.data.params.len() - 1]
+                                rtype: cloak_data.rtype[function_call_data.data.params.len() - 1]
                                     .clone(),
                                 ..Default::default()
                             },
@@ -182,13 +182,13 @@ pub fn collect_function_caller(
                         }
                     };
                 } else {
-                    will_be_itered = if functioncalldata.data.params.is_empty() {
+                    will_be_itered = if function_call_data.data.params.is_empty() {
                         variable::VariableCollector::default()
                     } else {
                         variable::VariableCollector {
                             data: variable::Variable {
-                                value: functioncalldata.data.params
-                                    [functioncalldata.data.params.len() - 1]
+                                value: function_call_data.data.params
+                                    [function_call_data.data.params.len() - 1]
                                     .value
                                     .clone(),
                                 ..Default::default()
@@ -213,7 +213,7 @@ pub fn collect_function_caller(
                             pos: if last_entry == 0 {
                                 defs::Cursor::default()
                             } else {
-                                functioncalldata.data.params[last_entry - 1].pos
+                                function_call_data.data.params[last_entry - 1].pos
                             },
                         }
                     }
@@ -223,7 +223,7 @@ pub fn collect_function_caller(
                             pos: if last_entry == 0 {
                                 defs::Cursor::default()
                             } else {
-                                functioncalldata.data.params[last_entry - 1].pos
+                                function_call_data.data.params[last_entry - 1].pos
                             },
                         }
                     }
@@ -233,7 +233,7 @@ pub fn collect_function_caller(
                             pos: if last_entry == 0 {
                                 defs::Cursor::default()
                             } else {
-                                functioncalldata.data.params[last_entry - 1].pos
+                                function_call_data.data.params[last_entry - 1].pos
                             },
                         }
                     }
@@ -242,7 +242,7 @@ pub fn collect_function_caller(
                         pos: if last_entry == 0 {
                             defs::Cursor::default()
                         } else {
-                            functioncalldata.data.params[last_entry - 1].pos
+                            function_call_data.data.params[last_entry - 1].pos
                         },
                     },
                     types::Types::String(match_data) => {
@@ -251,7 +251,7 @@ pub fn collect_function_caller(
                             pos: if last_entry == 0 {
                                 defs::Cursor::default()
                             } else {
-                                functioncalldata.data.params[last_entry - 1].pos
+                                function_call_data.data.params[last_entry - 1].pos
                             },
                         }
                     }
@@ -260,7 +260,7 @@ pub fn collect_function_caller(
                         pos: if last_entry == 0 {
                             defs::Cursor::default()
                         } else {
-                            functioncalldata.data.params[last_entry - 1].pos
+                            function_call_data.data.params[last_entry - 1].pos
                         },
                     },
                     types::Types::Collective(match_data) => {
@@ -269,7 +269,7 @@ pub fn collect_function_caller(
                             pos: if last_entry == 0 {
                                 defs::Cursor::default()
                             } else {
-                                functioncalldata.data.params[last_entry - 1].pos
+                                function_call_data.data.params[last_entry - 1].pos
                             },
                         }
                     }
@@ -279,7 +279,7 @@ pub fn collect_function_caller(
                             pos: if last_entry == 0 {
                                 defs::Cursor::default()
                             } else {
-                                functioncalldata.data.params[last_entry - 1].pos
+                                function_call_data.data.params[last_entry - 1].pos
                             },
                         }
                     }
@@ -289,7 +289,7 @@ pub fn collect_function_caller(
                             pos: if last_entry == 0 {
                                 defs::Cursor::default()
                             } else {
-                                functioncalldata.data.params[last_entry - 1].pos
+                                function_call_data.data.params[last_entry - 1].pos
                             },
                         }
                     }
@@ -299,7 +299,7 @@ pub fn collect_function_caller(
                             pos: if last_entry == 0 {
                                 defs::Cursor::default()
                             } else {
-                                functioncalldata.data.params[last_entry - 1].pos
+                                function_call_data.data.params[last_entry - 1].pos
                             },
                         }
                     }
@@ -309,7 +309,7 @@ pub fn collect_function_caller(
                             pos: if last_entry == 0 {
                                 defs::Cursor::default()
                             } else {
-                                functioncalldata.data.params[last_entry - 1].pos
+                                function_call_data.data.params[last_entry - 1].pos
                             },
                         }
                     }
@@ -319,7 +319,7 @@ pub fn collect_function_caller(
                             pos: if last_entry == 0 {
                                 defs::Cursor::default()
                             } else {
-                                functioncalldata.data.params[last_entry - 1].pos
+                                function_call_data.data.params[last_entry - 1].pos
                             },
                         }
                     }
@@ -329,7 +329,7 @@ pub fn collect_function_caller(
                             pos: if last_entry == 0 {
                                 defs::Cursor::default()
                             } else {
-                                functioncalldata.data.params[last_entry - 1].pos
+                                function_call_data.data.params[last_entry - 1].pos
                             },
                         }
                     }
@@ -339,7 +339,7 @@ pub fn collect_function_caller(
                             pos: if last_entry == 0 {
                                 defs::Cursor::default()
                             } else {
-                                functioncalldata.data.params[last_entry - 1].pos
+                                function_call_data.data.params[last_entry - 1].pos
                             },
                         }
                     }
@@ -349,7 +349,7 @@ pub fn collect_function_caller(
                             pos: if last_entry == 0 {
                                 defs::Cursor::default()
                             } else {
-                                functioncalldata.data.params[last_entry - 1].pos
+                                function_call_data.data.params[last_entry - 1].pos
                             },
                         }
                     }
@@ -358,7 +358,7 @@ pub fn collect_function_caller(
                         pos: if last_entry == 0 {
                             defs::Cursor::default()
                         } else {
-                            functioncalldata.data.params[last_entry - 1].pos
+                            function_call_data.data.params[last_entry - 1].pos
                         },
                     },
                     types::Types::VariableType(match_data) => {
@@ -367,7 +367,7 @@ pub fn collect_function_caller(
                             pos: if last_entry == 0 {
                                 defs::Cursor::default()
                             } else {
-                                functioncalldata.data.params[last_entry - 1].pos
+                                function_call_data.data.params[last_entry - 1].pos
                             },
                         }
                     }
@@ -376,7 +376,7 @@ pub fn collect_function_caller(
                         pos: if last_entry == 0 {
                             defs::Cursor::default()
                         } else {
-                            functioncalldata.data.params[last_entry - 1].pos
+                            function_call_data.data.params[last_entry - 1].pos
                         },
                     },
                 };
@@ -384,19 +384,19 @@ pub fn collect_function_caller(
                 if !itered_fcall_vector.errors.is_empty() {
                     errors.extend(itered_fcall_vector.errors);
                 }
-                if functioncalldata.data.params.is_empty() {
-                    functioncalldata.data.params.push(itered_entry);
+                if function_call_data.data.params.is_empty() {
+                    function_call_data.data.params.push(itered_entry);
 
-                    if functioncalldata.data.params[0].pos.is_zero() {
-                        functioncalldata.data.params[0].pos.range_start = parser.pos;
+                    if function_call_data.data.params[0].pos.is_zero() {
+                        function_call_data.data.params[0].pos.range_start = parser.pos;
                     }
-                    functioncalldata.data.params[0].pos.range_end = parser.pos;
+                    function_call_data.data.params[0].pos.range_end = parser.pos;
                 } else {
-                    functioncalldata.data.params[last_entry - 1] = itered_entry;
-                    if functioncalldata.data.params[last_entry - 1].pos.is_zero() {
-                        functioncalldata.data.params[last_entry - 1].pos.range_start = parser.pos;
+                    function_call_data.data.params[last_entry - 1] = itered_entry;
+                    if function_call_data.data.params[last_entry - 1].pos.is_zero() {
+                        function_call_data.data.params[last_entry - 1].pos.range_start = parser.pos;
                     }
-                    functioncalldata.data.params[last_entry - 1].pos.range_end = parser.pos;
+                    function_call_data.data.params[last_entry - 1].pos.range_end = parser.pos;
                 }
             }
         } else if letter_char == "." {

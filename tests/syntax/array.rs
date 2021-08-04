@@ -16,14 +16,12 @@ mod array_tests {
                         ellie_parser::syntax::types::array_type::ArrayEntry {
                             value_complete: true,
                             value: Box::new(ellie_parser::syntax::types::Types::Integer(
-                                ellie_parser::syntax::types::integer_type::IntegerType {
-                                    value:
-                                        ellie_parser::syntax::types::integer_type::IntegerSize::I8(
-                                            1
-                                        ),
+                                ellie_parser::syntax::types::integer_type::IntegerTypeCollector {
+                                    data: ellie_parser::syntax::types::integer_type::IntegerType {
+                                    value: ellie_parser::syntax::types::integer_type::IntegerSize::I8(1),
+                                        rtype: ellie_parser::syntax::types::integer_type::IntegerTypes::I8,
+                                    },
                                     raw: "1".to_string(),
-                                    rtype:
-                                        ellie_parser::syntax::types::integer_type::IntegerTypes::I8,
                                     complete: true,
                                 },
                             ),),
@@ -35,14 +33,12 @@ mod array_tests {
                         ellie_parser::syntax::types::array_type::ArrayEntry {
                             value_complete: true,
                             value: Box::new(ellie_parser::syntax::types::Types::Integer(
-                                ellie_parser::syntax::types::integer_type::IntegerType {
-                                    value:
-                                        ellie_parser::syntax::types::integer_type::IntegerSize::I8(
-                                            2
-                                        ),
+                                ellie_parser::syntax::types::integer_type::IntegerTypeCollector {
+                                    data: ellie_parser::syntax::types::integer_type::IntegerType {
+                                        value: ellie_parser::syntax::types::integer_type::IntegerSize::I8(2),
+                                        rtype: ellie_parser::syntax::types::integer_type::IntegerTypes::I8,
+                                    },
                                     raw: "2".to_string(),
-                                    rtype:
-                                        ellie_parser::syntax::types::integer_type::IntegerTypes::I8,
                                     complete: true,
                                 },
                             ),),
@@ -54,14 +50,12 @@ mod array_tests {
                         ellie_parser::syntax::types::array_type::ArrayEntry {
                             value_complete: true,
                             value: Box::new(ellie_parser::syntax::types::Types::Integer(
-                                ellie_parser::syntax::types::integer_type::IntegerType {
-                                    value:
-                                        ellie_parser::syntax::types::integer_type::IntegerSize::I8(
-                                            3
-                                        ),
+                                ellie_parser::syntax::types::integer_type::IntegerTypeCollector {
+                                    data: ellie_parser::syntax::types::integer_type::IntegerType {
+                                        value: ellie_parser::syntax::types::integer_type::IntegerSize::I8(3),
+                                        rtype: ellie_parser::syntax::types::integer_type::IntegerTypes::I8,
+                                    },
                                     raw: "3".to_string(),
-                                    rtype:
-                                        ellie_parser::syntax::types::integer_type::IntegerTypes::I8,
                                     complete: true,
                                 },
                             ),),
@@ -102,12 +96,18 @@ mod array_tests {
                                         collective: vec![
                                             ellie_parser::syntax::types::array_type::ArrayEntry {
                                                 value_complete: true,
-                                                value: Box::new(ellie_parser::syntax::types::Types::Integer(ellie_parser::syntax::types::integer_type::IntegerType {
-                                                value: ellie_parser::syntax::types::integer_type::IntegerSize::I8(1),
-                                                raw: "1".to_string(),
-                                                rtype: ellie_parser::syntax::types::integer_type::IntegerTypes::I8,
-                                                complete: true,
-                                            },),),
+                                                value: Box::new(
+                                                    ellie_parser::syntax::types::Types::Integer(
+                                                        ellie_parser::syntax::types::integer_type::IntegerTypeCollector {
+                                                            data: ellie_parser::syntax::types::integer_type::IntegerType {
+                                                                value: ellie_parser::syntax::types::integer_type::IntegerSize::I8(1),
+                                                                rtype: ellie_parser::syntax::types::integer_type::IntegerTypes::I8,
+                                                            },
+                                                            raw: "1".to_string(),
+                                                            complete: true,
+                                                        },
+                                                    ),
+                                                ),
                                                 location: ellie_core::defs::Cursor {
                                                     range_start: ellie_core::defs::CursorPosition(
                                                         0,
@@ -146,12 +146,16 @@ mod array_tests {
                                         collective: vec![
                                             ellie_parser::syntax::types::array_type::ArrayEntry {
                                                 value_complete: true,
-                                                value: Box::new(ellie_parser::syntax::types::Types::Integer(ellie_parser::syntax::types::integer_type::IntegerType {
-                                                value: ellie_parser::syntax::types::integer_type::IntegerSize::I8(2),
-                                                raw: "2".to_string(),
-                                                rtype: ellie_parser::syntax::types::integer_type::IntegerTypes::I8,
-                                                complete: true,
-                                            },),),
+                                                value: Box::new(ellie_parser::syntax::types::Types::Integer(
+                                                    ellie_parser::syntax::types::integer_type::IntegerTypeCollector {
+                                                        data: ellie_parser::syntax::types::integer_type::IntegerType {
+                                                            value: ellie_parser::syntax::types::integer_type::IntegerSize::I8(2),
+                                                            rtype: ellie_parser::syntax::types::integer_type::IntegerTypes::I8,
+                                                        },
+                                                        raw: "2".to_string(),
+                                                        complete: true,
+                                                    },
+                                                ),),
                                                 location: ellie_core::defs::Cursor {
                                                     range_start: ellie_core::defs::CursorPosition(
                                                         0,
@@ -190,12 +194,18 @@ mod array_tests {
                                         collective: vec![
                                             ellie_parser::syntax::types::array_type::ArrayEntry {
                                                 value_complete: true,
-                                                value: Box::new(ellie_parser::syntax::types::Types::Integer(ellie_parser::syntax::types::integer_type::IntegerType {
-                                                value: ellie_parser::syntax::types::integer_type::IntegerSize::I8(3),
-                                                raw: "3".to_string(),
-                                                rtype: ellie_parser::syntax::types::integer_type::IntegerTypes::I8,
-                                                complete: true,
-                                            },),),
+                                                value: Box::new(
+                                                    ellie_parser::syntax::types::Types::Integer(
+                                                        ellie_parser::syntax::types::integer_type::IntegerTypeCollector {
+                                                            data: ellie_parser::syntax::types::integer_type::IntegerType {
+                                                                value: ellie_parser::syntax::types::integer_type::IntegerSize::I8(3),
+                                                                rtype: ellie_parser::syntax::types::integer_type::IntegerTypes::I8,
+                                                            },
+                                                            raw: "3".to_string(),
+                                                            complete: true,
+                                                        },
+                                                    ),
+                                                ),
                                                 location: ellie_core::defs::Cursor {
                                                     range_start: ellie_core::defs::CursorPosition(
                                                         0,
@@ -263,12 +273,12 @@ mod array_tests {
                                                         ellie_parser::syntax::types::array_type::ArrayEntry {
                                                             value_complete: true,
                                                             value: Box::new(ellie_parser::syntax::types::Types::Integer(
-                                                                ellie_parser::syntax::types::integer_type::IntegerType {
-                                                                    value: ellie_parser::syntax::types::integer_type::IntegerSize::I8(
-                                                                        1,
-                                                                    ),
+                                                                ellie_parser::syntax::types::integer_type::IntegerTypeCollector {
+                                                                    data: ellie_parser::syntax::types::integer_type::IntegerType {
+                                                                        value: ellie_parser::syntax::types::integer_type::IntegerSize::I8(1),
+                                                                        rtype: ellie_parser::syntax::types::integer_type::IntegerTypes::I8,
+                                                                    },
                                                                     raw: "1".to_string(),
-                                                                    rtype: ellie_parser::syntax::types::integer_type::IntegerTypes::I8,
                                                                     complete: true,
                                                                 },
                                                             ),),
@@ -334,12 +344,14 @@ mod array_tests {
                                                         ellie_parser::syntax::types::array_type::ArrayEntry {
                                                             value_complete: true,
                                                             value: Box::new(ellie_parser::syntax::types::Types::Integer(
-                                                                ellie_parser::syntax::types::integer_type::IntegerType {
-                                                                    value: ellie_parser::syntax::types::integer_type::IntegerSize::I8(
-                                                                        2,
-                                                                    ),
+                                                                ellie_parser::syntax::types::integer_type::IntegerTypeCollector {
+                                                                    data: ellie_parser::syntax::types::integer_type::IntegerType {
+                                                                        value: ellie_parser::syntax::types::integer_type::IntegerSize::I8(
+                                                                            2,
+                                                                        ),
+                                                                        rtype: ellie_parser::syntax::types::integer_type::IntegerTypes::I8,
+                                                                    },
                                                                     raw: "2".to_string(),
-                                                                    rtype: ellie_parser::syntax::types::integer_type::IntegerTypes::I8,
                                                                     complete: true,
                                                                 },
                                                             )),
@@ -405,12 +417,12 @@ mod array_tests {
                                                         ellie_parser::syntax::types::array_type::ArrayEntry {
                                                             value_complete: true,
                                                             value: Box::new(ellie_parser::syntax::types::Types::Integer(
-                                                                ellie_parser::syntax::types::integer_type::IntegerType {
-                                                                    value: ellie_parser::syntax::types::integer_type::IntegerSize::I8(
-                                                                        3,
-                                                                    ),
+                                                                ellie_parser::syntax::types::integer_type::IntegerTypeCollector {
+                                                                    data: ellie_parser::syntax::types::integer_type::IntegerType {
+                                                                        value: ellie_parser::syntax::types::integer_type::IntegerSize::I8(3),
+                                                                        rtype: ellie_parser::syntax::types::integer_type::IntegerTypes::I8,
+                                                                    },
                                                                     raw: "3".to_string(),
-                                                                    rtype: ellie_parser::syntax::types::integer_type::IntegerTypes::I8,
                                                                     complete: true,
                                                                 },
                                                             )),

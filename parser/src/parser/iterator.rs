@@ -1,6 +1,6 @@
 use crate::parser;
 use crate::processors;
-use ellie_core::error;
+use ellie_core::{defs, error};
 
 use crate::alloc::string::{String, ToString};
 use crate::alloc::vec;
@@ -32,14 +32,20 @@ pub fn iter(
                         value: parser.keyword_catch.clone(),
                     }],
                 ),
-                pos: parser.keyword_pos,
+                pos: defs::Cursor {
+                    range_start: defs::CursorPosition(parser.keyword_pos.range_start.0, 0),
+                    range_end: parser.keyword_pos.range_end,
+                },
             });
+            parser.keyword_pos.range_start = parser.pos;
             parser.keyword_catch = String::new();
         } else {
-            if parser.keyword_catch.is_empty() {
+            if parser.keyword_catch.trim().is_empty() && letter_char != " " {
                 parser.keyword_pos.range_start = parser.pos;
             }
-            parser.keyword_pos.range_end = parser.pos.clone().skip_char(1);
+            if letter_char != " " {
+                parser.keyword_pos.range_end = parser.pos.clone().skip_char(1);
+            }
             parser.keyword_catch += letter_char;
 
             processors::type_processor::collect_type(
@@ -51,6 +57,7 @@ pub fn iter(
             );
         }
     } else {
+        parser.keyword_pos.range_start = parser.pos;
         parser.keyword_catch = String::new();
     }
 

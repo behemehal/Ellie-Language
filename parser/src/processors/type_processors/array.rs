@@ -656,6 +656,7 @@ pub fn collect_array(
             if let definers::DefinerCollecting::Array(array_def) = itered_data.data.rtype.clone() {
                 if array_def
                     .len
+                    .data
                     .value
                     .greater_than(data.data.collective.len() as isize)
                     && letter_char != " "
@@ -671,7 +672,7 @@ pub fn collect_array(
                             vec![
                                 error::ErrorBuildField {
                                     key: "token".to_string(),
-                                    value: array_def.len.value.get_val(),
+                                    value: array_def.len.data.value.get_val(),
                                 },
                                 error::ErrorBuildField {
                                     key: "token2".to_string(),

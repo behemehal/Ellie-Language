@@ -25,6 +25,7 @@ pub struct ClassCallCollector {
     pub keyword_collected: bool,
     pub keyword_index: i8,
     pub name_collected: bool,
+    pub ignore_space: bool,
     pub comma: bool,
     pub complete: bool,
 }

@@ -8,18 +8,22 @@ mod logical_operator_tests {
             ellie_parser::syntax::types::operator_type::OperatorType {
                 cloaked: false,
                 first: Box::new(ellie_parser::syntax::types::Types::Integer(
-                    ellie_parser::syntax::types::integer_type::IntegerType {
-                        value: ellie_parser::syntax::types::integer_type::IntegerSize::I8(123),
+                    ellie_parser::syntax::types::integer_type::IntegerTypeCollector {
+                        data: ellie_parser::syntax::types::integer_type::IntegerType {
+                            value: ellie_parser::syntax::types::integer_type::IntegerSize::I8(123),
+                            rtype: ellie_parser::syntax::types::integer_type::IntegerTypes::I8,
+                        },
                         raw: "123".to_string(),
-                        rtype: ellie_parser::syntax::types::integer_type::IntegerTypes::I8,
                         complete: true,
                     },
                 )),
                 second: Box::new(ellie_parser::syntax::types::Types::Integer(
-                    ellie_parser::syntax::types::integer_type::IntegerType {
-                        value: ellie_parser::syntax::types::integer_type::IntegerSize::I8(123),
+                    ellie_parser::syntax::types::integer_type::IntegerTypeCollector {
+                        data: ellie_parser::syntax::types::integer_type::IntegerType {
+                            value: ellie_parser::syntax::types::integer_type::IntegerSize::I8(123),
+                            rtype: ellie_parser::syntax::types::integer_type::IntegerTypes::I8,
+                        },
                         raw: "123".to_string(),
-                        rtype: ellie_parser::syntax::types::integer_type::IntegerTypes::I8,
                         complete: true,
                     },
                 )),
@@ -36,18 +40,22 @@ mod logical_operator_tests {
             ellie_parser::syntax::types::operator_type::OperatorType {
                 cloaked: false,
                 first: Box::new(ellie_parser::syntax::types::Types::Integer(
-                    ellie_parser::syntax::types::integer_type::IntegerType {
-                        value: ellie_parser::syntax::types::integer_type::IntegerSize::I8(123),
+                    ellie_parser::syntax::types::integer_type::IntegerTypeCollector {
+                        data: ellie_parser::syntax::types::integer_type::IntegerType {
+                            value: ellie_parser::syntax::types::integer_type::IntegerSize::I8(123),
+                            rtype: ellie_parser::syntax::types::integer_type::IntegerTypes::I8,
+                        },
                         raw: "123".to_string(),
-                        rtype: ellie_parser::syntax::types::integer_type::IntegerTypes::I8,
                         complete: true,
                     },
                 )),
                 second: Box::new(ellie_parser::syntax::types::Types::Integer(
-                    ellie_parser::syntax::types::integer_type::IntegerType {
-                        value: ellie_parser::syntax::types::integer_type::IntegerSize::I8(123),
+                    ellie_parser::syntax::types::integer_type::IntegerTypeCollector {
+                        data: ellie_parser::syntax::types::integer_type::IntegerType {
+                            value: ellie_parser::syntax::types::integer_type::IntegerSize::I8(123),
+                            rtype: ellie_parser::syntax::types::integer_type::IntegerTypes::I8,
+                        },
                         raw: "123".to_string(),
-                        rtype: ellie_parser::syntax::types::integer_type::IntegerTypes::I8,
                         complete: true,
                     },
                 )),

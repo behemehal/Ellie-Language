@@ -48,7 +48,7 @@ pub fn collect_null(
             {
                 // Default integer
                 itered_data.data.value =
-                    types::Types::Integer(types::integer_type::IntegerType::default());
+                    types::Types::Integer(types::integer_type::IntegerTypeCollector::default());
                 type_processors::integer::collect_integer(
                     parser.clone(),
                     itered_data,
@@ -99,12 +99,14 @@ pub fn collect_null(
                     });
             } else if letter_char != " " {
                 itered_data.data.value =
-                    types::Types::VariableType(types::variable_type::VariableType {
+                    types::Types::VariableType(types::variable_type::VariableTypeCollector {
                         value_complete: false,
-                        value: itered_data.raw_value.clone() + letter_char,
-                        pos: defs::Cursor {
-                            range_start: parser.pos,
-                            ..Default::default()
+                        data: types::variable_type::VariableType {
+                            value: itered_data.raw_value.clone() + letter_char,
+                            pos: defs::Cursor {
+                                range_start: parser.pos,
+                                ..Default::default()
+                            },
                         },
                     });
             }

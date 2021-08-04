@@ -216,7 +216,7 @@ impl Parser {
             keyword_cache: self.keyword_cache,
         }
     }
-
+    
     pub fn map(mut self) -> ParserResponse {
         let mut errors: Vec<error::Error> = Vec::new();
 
@@ -265,10 +265,7 @@ impl Parser {
                 builded_message: error::BuildedError::build_from_string(
                     error::errorList::error_s26.message.clone(),
                 ),
-                pos: defs::Cursor {
-                    range_start: defs::CursorPosition::default(),
-                    range_end: self.pos.skip_char(1),
-                },
+                pos: self.keyword_pos
             });
         }
         ParserResponse {
@@ -342,10 +339,8 @@ impl Parser {
             }
 
             types::Types::ArrowFunction(_) => "function".to_string(),
-            types::Types::ClassCall(_) => {
-                #[cfg(feature = "std")]
-                std::println!("Not implemented for: types {:#?}", target);
-                "".to_string()
+            types::Types::ClassCall(e) => {
+                e.data.name
             }
             types::Types::FunctionCall(e) => {
                 let fn_found = self.check_keyword(e.data.name);
@@ -367,7 +362,7 @@ impl Parser {
                 }
             }
             types::Types::VariableType(e) => {
-                let fn_found = self.check_keyword(e.value);
+                let fn_found = self.check_keyword(e.data.value);
 
                 if fn_found.found {
                     if let NameCheckResponseType::Variable(v_data) = fn_found.found_type {
@@ -924,6 +919,14 @@ impl Parser {
                             }
                         }
                     }
+                },
+                Collecting::Class(e) => {
+                    if e.data.name == caller_data.data.name {
+                        found = true;
+                        //if e.data.constructor.parameters[0] {
+                        //
+                        //}
+                    }
                 }
                 _ => (),
             }
@@ -980,6 +983,22 @@ impl Parser {
                         break;
                     }
                 }
+            }
+        }
+        found
+    }
+
+    pub fn check_key_keyword(&self, name: String) -> bool {
+        let mut found = false;
+        for item in self.collected.clone() {
+            match item.clone() {
+                Collecting::FileKey(e) => {
+                    if e.data.key_name == name {
+                        found = true;
+                        break;
+                    }
+                }
+                _ => (),
             }
         }
         found

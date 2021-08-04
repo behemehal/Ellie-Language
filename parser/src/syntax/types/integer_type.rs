@@ -87,88 +87,132 @@ impl Default for IntegerSize {
 #[derive(PartialEq, Default, Debug, Clone, Serialize, Deserialize)]
 pub struct IntegerType {
     pub value: IntegerSize,
-    pub raw: String,
     pub rtype: IntegerTypes,
+}
+
+#[derive(PartialEq, Default, Debug, Clone, Serialize, Deserialize)]
+pub struct IntegerTypeCollector {
+    pub data: IntegerType,
+    pub raw: String,
     pub complete: bool,
 }
 
-impl IntegerType {
-    pub fn build<T: Any>(raw: T) -> IntegerType {
+impl IntegerTypeCollector {
+    pub fn build<T: Any>(raw: T) -> IntegerTypeCollector {
         if TypeId::of::<T>() == TypeId::of::<i8>() {
-            IntegerType {
-                value: IntegerSize::I8(*(&raw as &dyn Any).downcast_ref::<i8>().unwrap()),
+            IntegerTypeCollector {
+                data: IntegerType {
+                    value: IntegerSize::I8(*(&raw as &dyn Any).downcast_ref::<i8>().unwrap()),
+                    rtype: IntegerTypes::I8,
+                },
                 raw: (*(&raw as &dyn Any).downcast_ref::<String>().unwrap()).clone(),
                 ..Default::default()
             }
         } else if TypeId::of::<T>() == TypeId::of::<i16>() {
-            IntegerType {
-                value: IntegerSize::I16(*(&raw as &dyn Any).downcast_ref::<i16>().unwrap()),
+            IntegerTypeCollector {
+                data: IntegerType {
+                    value: IntegerSize::I16(*(&raw as &dyn Any).downcast_ref::<i16>().unwrap()),
+                    rtype: IntegerTypes::I16,
+                },
                 raw: (*(&raw as &dyn Any).downcast_ref::<String>().unwrap()).clone(),
                 ..Default::default()
             }
         } else if TypeId::of::<T>() == TypeId::of::<i32>() {
-            IntegerType {
-                value: IntegerSize::I32(*(&raw as &dyn Any).downcast_ref::<i32>().unwrap()),
+            IntegerTypeCollector {
+                data: IntegerType {
+                    value: IntegerSize::I32(*(&raw as &dyn Any).downcast_ref::<i32>().unwrap()),
+                    rtype: IntegerTypes::I32,
+                },
                 raw: (*(&raw as &dyn Any).downcast_ref::<String>().unwrap()).clone(),
                 ..Default::default()
             }
         } else if TypeId::of::<T>() == TypeId::of::<i64>() {
-            IntegerType {
-                value: IntegerSize::I64(*(&raw as &dyn Any).downcast_ref::<i64>().unwrap()),
+            IntegerTypeCollector {
+                data: IntegerType {
+                    value: IntegerSize::I64(*(&raw as &dyn Any).downcast_ref::<i64>().unwrap()),
+                    rtype: IntegerTypes::I64,
+                },
                 raw: (*(&raw as &dyn Any).downcast_ref::<String>().unwrap()).clone(),
                 ..Default::default()
             }
         } else if TypeId::of::<T>() == TypeId::of::<i128>() {
-            IntegerType {
-                value: IntegerSize::I128(*(&raw as &dyn Any).downcast_ref::<i128>().unwrap()),
+            IntegerTypeCollector {
+                data: IntegerType {
+                    value: IntegerSize::I128(*(&raw as &dyn Any).downcast_ref::<i128>().unwrap()),
+                    rtype: IntegerTypes::I128,
+                },
                 raw: (*(&raw as &dyn Any).downcast_ref::<String>().unwrap()).clone(),
                 ..Default::default()
             }
         } else if TypeId::of::<T>() == TypeId::of::<isize>() {
-            IntegerType {
-                value: IntegerSize::Isize(*(&raw as &dyn Any).downcast_ref::<isize>().unwrap()),
+            IntegerTypeCollector {
+                data: IntegerType {
+                    value: IntegerSize::Isize(*(&raw as &dyn Any).downcast_ref::<isize>().unwrap()),
+                    rtype: IntegerTypes::ISize,
+                },
                 raw: (*(&raw as &dyn Any).downcast_ref::<String>().unwrap()).clone(),
                 ..Default::default()
             }
         } else if TypeId::of::<T>() == TypeId::of::<u8>() {
-            IntegerType {
-                value: IntegerSize::U8(*(&raw as &dyn Any).downcast_ref::<u8>().unwrap()),
+            IntegerTypeCollector {
+                data: IntegerType {
+                    value: IntegerSize::U8(*(&raw as &dyn Any).downcast_ref::<u8>().unwrap()),
+                    rtype: IntegerTypes::U8,
+                },
                 raw: (*(&raw as &dyn Any).downcast_ref::<String>().unwrap()).clone(),
                 ..Default::default()
             }
         } else if TypeId::of::<T>() == TypeId::of::<u16>() {
-            IntegerType {
-                value: IntegerSize::U16(*(&raw as &dyn Any).downcast_ref::<u16>().unwrap()),
+            IntegerTypeCollector {
+                data: IntegerType {
+                    value: IntegerSize::U16(*(&raw as &dyn Any).downcast_ref::<u16>().unwrap()),
+                    rtype: IntegerTypes::U16,
+                },
                 raw: (*(&raw as &dyn Any).downcast_ref::<String>().unwrap()).clone(),
                 ..Default::default()
             }
         } else if TypeId::of::<T>() == TypeId::of::<u32>() {
-            IntegerType {
-                value: IntegerSize::U32(*(&raw as &dyn Any).downcast_ref::<u32>().unwrap()),
+            IntegerTypeCollector {
+                data: IntegerType {
+                    value: IntegerSize::U32(*(&raw as &dyn Any).downcast_ref::<u32>().unwrap()),
+                    rtype: IntegerTypes::U32,
+                },
                 raw: (*(&raw as &dyn Any).downcast_ref::<String>().unwrap()).clone(),
                 ..Default::default()
             }
         } else if TypeId::of::<T>() == TypeId::of::<u64>() {
-            IntegerType {
-                value: IntegerSize::U64(*(&raw as &dyn Any).downcast_ref::<u64>().unwrap()),
+            IntegerTypeCollector {
+                data: IntegerType {
+                    value: IntegerSize::U64(*(&raw as &dyn Any).downcast_ref::<u64>().unwrap()),
+                    rtype: IntegerTypes::U64,
+                },
                 raw: (*(&raw as &dyn Any).downcast_ref::<String>().unwrap()).clone(),
                 ..Default::default()
             }
         } else if TypeId::of::<T>() == TypeId::of::<u128>() {
-            IntegerType {
-                value: IntegerSize::U128(*(&raw as &dyn Any).downcast_ref::<u128>().unwrap()),
+            IntegerTypeCollector {
+                data: IntegerType {
+                    value: IntegerSize::U128(*(&raw as &dyn Any).downcast_ref::<u128>().unwrap()),
+                    rtype: IntegerTypes::U128,
+                },
                 raw: (*(&raw as &dyn Any).downcast_ref::<String>().unwrap()).clone(),
                 ..Default::default()
             }
         } else if TypeId::of::<T>() == TypeId::of::<usize>() {
-            IntegerType {
-                value: IntegerSize::Usize(*(&raw as &dyn Any).downcast_ref::<usize>().unwrap()),
+            IntegerTypeCollector {
+                data: IntegerType {
+                    value: IntegerSize::Usize(*(&raw as &dyn Any).downcast_ref::<usize>().unwrap()),
+                    rtype: IntegerTypes::USize,
+                },
                 raw: (*(&raw as &dyn Any).downcast_ref::<String>().unwrap()).clone(),
                 ..Default::default()
             }
         } else {
-            IntegerType {
-                value: IntegerSize::I8(*(&raw as &dyn Any).downcast_ref::<i8>().unwrap()),
+            IntegerTypeCollector {
+                data: IntegerType {
+                    value: IntegerSize::I8(*(&raw as &dyn Any).downcast_ref::<i8>().unwrap()),
+                    rtype: IntegerTypes::I8,
+                },
                 raw: (*(&raw as &dyn Any).downcast_ref::<String>().unwrap()).clone(),
                 ..Default::default()
             }

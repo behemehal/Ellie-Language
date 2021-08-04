@@ -26,12 +26,12 @@ use serde::Serialize;
 
 #[derive(PartialEq, Debug, Clone, Serialize, EnumAsInner, Deserialize)]
 pub enum Types {
-    Integer(integer_type::IntegerType),
+    Integer(integer_type::IntegerTypeCollector),
     Float(float_type::FloatTypeCollector),
     Bool(bool_type::BoolType),
     String(string_type::StringType),
     Char(char_type::CharType),
-    Collective(collective_type::CollectiveCollector), //Todo
+    Collective(collective_type::CollectiveCollector),
     Reference(reference_type::ReferenceType),
     BraceReference(brace_reference_type::BraceReferenceCollector),
     Operator(operator_type::OperatorTypeCollector),
@@ -40,6 +40,28 @@ pub enum Types {
     ArrowFunction(arrow_function::ArrowFunctionCollector),
     ClassCall(class_call::ClassCallCollector),
     FunctionCall(function_call::FunctionCallCollector),
+    Void,
+    Negative(negative_type::Negative),
+    VariableType(variable_type::VariableTypeCollector),
+    Null,
+}
+
+#[derive(PartialEq, Debug, Clone, Serialize, EnumAsInner, Deserialize)]
+pub enum DefiniteTypes {
+    Integer(integer_type::IntegerType),
+    Float(float_type::FloatType),
+    Bool(bool_type::BoolType),
+    String(string_type::StringType),
+    Char(char_type::CharType),
+    Collective(collective_type::Collective),
+    Reference(reference_type::ReferenceType),
+    BraceReference(brace_reference_type::BraceReference),
+    Operator(operator_type::OperatorType),
+    Cloak(cloak_type::CloakType),
+    Array(array_type::ArrayType),
+    ArrowFunction(arrow_function::ArrowFunction),
+    ClassCall(class_call::ClassCall),
+    FunctionCall(function_call::FunctionCall),
     Void,
     Negative(negative_type::Negative),
     VariableType(variable_type::VariableType),

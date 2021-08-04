@@ -1,6 +1,6 @@
 use crate::parser;
 use crate::processors::type_processors;
-use crate::syntax::{types, variable};
+use crate::syntax::{types, variable, definers};
 use ellie_core::{defs, error};
 
 use alloc::boxed::Box;
@@ -24,9 +24,13 @@ pub fn collect_integer(
         }
 
         let is_num = letter_char.parse::<isize>().is_ok();
-
         if is_num || letter_char == "x" && data.raw.starts_with('0') {
-            if data.complete && last_char.parse::<isize>().is_err() {
+
+            if data.raw == "0x" {
+                panic!("[ParserError]: Hexadecimal are not supported yet")
+            }
+
+            if data.complete && last_char.parse::<isize>().is_err() && last_char != "x" {
                 errors.push(error::Error {
                     scope: "integer_processor".to_string(),
                     debug_message: "2ffb6e752b390c249fddb3ed67584944".to_string(),
@@ -46,38 +50,27 @@ pub fn collect_integer(
                     },
                 });
             } else {
-                /*
-                if matches!(&itered_data.rtype, crate::syntax::definers::DefinerCollecting::Generic(x) if x.rtype.is_empty()) && itered_data.data.dynamic {
-                    //Make type default to u16
-                    itered_data.rtype = crate::syntax::definers::DefinerCollecting::Generic(
-                        crate::syntax::definers::GenericType {
-                            rtype: "u16".to_string(),
-                        },
-                    );
-                }
-                */
-
-                //TODO GROW UP SİZES i8 -> i16
+                //TODO GROW UP SİZES i8 -> i16 ~ u8 -> u16
                 data.raw = data.raw.to_string() + letter_char;
 
                 if let Ok(nm) = data.raw.parse::<i8>() {
-                    data.value = types::integer_type::IntegerSize::I8(nm);
-                    data.rtype = types::integer_type::IntegerTypes::I8;
+                    data.data.value = types::integer_type::IntegerSize::I8(nm);
+                    data.data.rtype = types::integer_type::IntegerTypes::I8;
                 } else if let Ok(nm) = data.raw.parse::<i16>() {
-                    data.value = types::integer_type::IntegerSize::I16(nm);
-                    data.rtype = types::integer_type::IntegerTypes::I16;
+                    data.data.value = types::integer_type::IntegerSize::I16(nm);
+                    data.data.rtype = types::integer_type::IntegerTypes::I16;
                 } else if let Ok(nm) = data.raw.parse::<i32>() {
-                    data.value = types::integer_type::IntegerSize::I32(nm);
-                    data.rtype = types::integer_type::IntegerTypes::I32;
+                    data.data.value = types::integer_type::IntegerSize::I32(nm);
+                    data.data.rtype = types::integer_type::IntegerTypes::I32;
                 } else if let Ok(nm) = data.raw.parse::<i64>() {
-                    data.value = types::integer_type::IntegerSize::I64(nm);
-                    data.rtype = types::integer_type::IntegerTypes::I64;
+                    data.data.value = types::integer_type::IntegerSize::I64(nm);
+                    data.data.rtype = types::integer_type::IntegerTypes::I64;
                 } else if let Ok(nm) = data.raw.parse::<i128>() {
-                    data.value = types::integer_type::IntegerSize::I128(nm);
-                    data.rtype = types::integer_type::IntegerTypes::I128;
+                    data.data.value = types::integer_type::IntegerSize::I128(nm);
+                    data.data.rtype = types::integer_type::IntegerTypes::I128;
                 } else if let Ok(nm) = data.raw.parse::<isize>() {
-                    data.value = types::integer_type::IntegerSize::Isize(nm);
-                    data.rtype = types::integer_type::IntegerTypes::ISize;
+                    data.data.value = types::integer_type::IntegerSize::Isize(nm);
+                    data.data.rtype = types::integer_type::IntegerTypes::ISize;
                 } else {
                     errors.push(error::Error {
                         scope: "integer_processor".to_string(),
