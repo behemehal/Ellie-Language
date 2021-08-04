@@ -1,5 +1,6 @@
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
+use rand;
 
 pub struct ReliableNameRangeResponse {
     pub reliable: bool,
@@ -31,6 +32,10 @@ pub fn is_reserved(value: &str) -> bool {
         || value == "get"
         || value == "set"
         || value == "new"
+}
+
+pub fn generate_hash() -> String {
+    alloc::format!("{:02x?}", (0..24).map(|_| { rand::random::<u8>() }).collect::<Vec<u8>>()).replace(" ", "").replace(",", "").replace("]", "").replace("[", "")
 }
 
 pub fn reliable_name_range(range: ReliableNameRanges, value: String) -> ReliableNameRangeResponse {
