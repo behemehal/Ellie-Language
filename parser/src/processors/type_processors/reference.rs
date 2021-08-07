@@ -25,7 +25,7 @@ pub fn collect_reference(
             if data.on_dot {
                 errors.push(error::Error {
                     scope: "refference_processor".to_string(),
-                    debug_message: "e22c23735e19d1fb8e4fb0bf115d5708".to_string(),
+                    debug_message: "3909a8b7970b3dbca90fe547e7e667d6".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -98,7 +98,7 @@ pub fn collect_reference(
                         } else if letter_char != " " {
                             errors.push(error::Error {
                                 scope: "refference_processor".to_string(),
-                                debug_message: "0a316625cca267908704a5e63bc5c43d".to_string(),
+                                debug_message: "0cf2e39c02bba50a798276951d1dd3fa".to_string(),
                                 title: error::errorList::error_s1.title.clone(),
                                 code: error::errorList::error_s1.code,
                                 message: error::errorList::error_s1.message.clone(),
@@ -160,7 +160,7 @@ pub fn collect_reference(
                                 if functioncalldata.complete {
                                     errors.push(error::Error {
                                         scope: "function_call_processor".to_string(),
-                                        debug_message: "2db4b8f4124945a260471da1c21591f2"
+                                        debug_message: "cab574c9a0f8c280fe368ccfc77b39bc"
                                             .to_string(),
                                         title: error::errorList::error_s1.title.clone(),
                                         code: error::errorList::error_s1.code,
@@ -180,7 +180,7 @@ pub fn collect_reference(
                                 } else if functioncalldata.comma {
                                     errors.push(error::Error {
                                         scope: "function_call_processor".to_string(),
-                                        debug_message: "17609f94825bd20cf786d03a4287c29a"
+                                        debug_message: "4ed3e0bf01b6c7c298782e8f9af967ba"
                                             .to_string(),
                                         title: error::errorList::error_s1.title.clone(),
                                         code: error::errorList::error_s1.code,

@@ -32,7 +32,7 @@ pub fn collect_new_call(
             {
                 errors.push(error::Error {
                     scope: "function_call_processor".to_string(),
-                    debug_message: "replace_35".to_string(),
+                    debug_message: "6aa096bcb938801b2397782e181af52b".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
