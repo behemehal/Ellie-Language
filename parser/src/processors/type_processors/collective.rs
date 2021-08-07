@@ -78,7 +78,7 @@ pub fn collect_collective(
                             errors.push(error::Error {
                                 path: parser.options.path.clone(),
                                 scope: parser.scope.scope_name.clone(),
-                                debug_message: "f7a93a3e00887ce225e3767fa789101b".to_string(),
+                                debug_message: "858fbd233de885db5bb322557a0b1fe0".to_string(),
                                 title: error::errorList::error_s3.title.clone(),
                                 code: error::errorList::error_s3.code,
                                 message: error::errorList::error_s3.message.clone(),
@@ -141,7 +141,7 @@ pub fn collect_collective(
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
                         scope: parser.scope.scope_name.clone(),
-                        debug_message: "06127ffc30f40b277155790eb5abd7ce".to_string(),
+                        debug_message: "bad314f2e99651bad02c84c3f5b31375".to_string(),
                         title: error::errorList::error_s10.title.clone(),
                         code: error::errorList::error_s10.code,
                         message: error::errorList::error_s10.message.clone(),
@@ -169,7 +169,7 @@ pub fn collect_collective(
                             errors.push(error::Error {
                                 path: parser.options.path.clone(),
                                 scope: parser.scope.scope_name.clone(),
-                                debug_message: "dbbb5353ec2862251e4364d260bb4abb".to_string(),
+                                debug_message: "6c474ee32e73bf0f30d2d76cde963a85".to_string(),
                                 title: error::errorList::error_s3.title.clone(),
                                 code: error::errorList::error_s3.code,
                                 message: error::errorList::error_s3.message.clone(),
@@ -257,7 +257,7 @@ pub fn collect_collective(
 /*
 errors.push(error::Error {
                     scope: parser.scope.scope_name.clone(),
-                    debug_message: "5994a97417a82577312b4cbcfb20b396".to_string(),
+                    debug_message: "5536d2535840425f1f0357a737565e8e".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),

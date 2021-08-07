@@ -33,7 +33,7 @@ pub fn collect_integer(
                 errors.push(error::Error {
                     path: parser.options.path.clone(),
                     scope: "integer_processor".to_string(),
-                    debug_message: "16a6384d1cecc2b81c3244dac6c1f610".to_string(),
+                    debug_message: "7f040ad5b8302ccfc507ad5659644644".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -75,7 +75,7 @@ pub fn collect_integer(
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
                         scope: "integer_processor".to_string(),
-                        debug_message: "012b4786a4b46854b69251464c38f593".to_string(),
+                        debug_message: "c8db02caff15df5001ccb40fbbaabe6a".to_string(),
                         title: error::errorList::error_s16.title.clone(),
                         code: error::errorList::error_s16.code,
                         message: error::errorList::error_s16.message.clone(),
@@ -183,7 +183,7 @@ pub fn collect_integer(
             errors.push(error::Error {
                 path: parser.options.path.clone(),
                 scope: "integer_processor".to_string(),
-                debug_message: "d5622c327ca386d0e74dc8fda95c7b38".to_string(),
+                debug_message: "fb5cf2d921e1e951bf83f986b13a2902".to_string(),
                 title: error::errorList::error_s1.title.clone(),
                 code: error::errorList::error_s1.code,
                 message: error::errorList::error_s1.message.clone(),

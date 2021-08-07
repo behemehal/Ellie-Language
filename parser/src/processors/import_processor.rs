@@ -26,7 +26,7 @@ pub fn collect_import(
                             errors.push(error::Error {
                                 path: parser.options.path.clone(),
                                 scope: parser.scope.scope_name.clone(),
-                                debug_message: "aa10cdbe8a76b4c15a57da94d68e34eb".to_string(),
+                                debug_message: "bebf94bce6549808809dec5fc098b1e7".to_string(),
                                 title: error::errorList::error_s28.title.clone(),
                                 code: error::errorList::error_s28.code,
                                 message: error::errorList::error_s28.message.clone(),
@@ -43,7 +43,7 @@ pub fn collect_import(
                             errors.push(error::Error {
                                 path: parser.options.path.clone(),
                                 scope: parser.scope.scope_name.clone(),
-                                debug_message: "aa10cdbe8a76b4c15a57da94d68e34eb".to_string(),
+                                debug_message: "427c3d4c7213dfaa46eedcf39d32fead".to_string(),
                                 title: error::errorList::error_s32.title.clone(),
                                 code: error::errorList::error_s32.code,
                                 message: error::errorList::error_s32.message.clone(),
@@ -127,7 +127,7 @@ pub fn collect_import(
             errors.push(error::Error {
                 path: parser.options.path.clone(),
                 scope: parser.scope.scope_name.clone(),
-                debug_message: "c45fe75346d6a714cd20774f7ed31436".to_string(),
+                debug_message: "f34af3474009a975d2987307a2812061".to_string(),
                 title: error::errorList::error_s1.title.clone(),
                 code: error::errorList::error_s1.code,
                 message: error::errorList::error_s1.message.clone(),
