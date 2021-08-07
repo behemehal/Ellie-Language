@@ -14,6 +14,7 @@ jobs:
       - name: Commit files
         run: |
           git config --local user.name ${{ secrets.COMMIT_ACCOUNT_NAME }}
+          git config --local user.mail ${{ secrets.COMMIT_ACCOUNT_MAIL }}
           git add .
           git commit -m "Auto refactoring code"
       - name: Push changes
