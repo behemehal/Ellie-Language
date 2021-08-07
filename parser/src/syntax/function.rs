@@ -3,8 +3,7 @@ use crate::syntax::definers;
 use alloc::string::String;
 use alloc::vec::Vec;
 use ellie_core::defs;
-use serde::Deserialize;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
 pub struct FunctionParameter {
@@ -34,7 +33,7 @@ pub struct Function {
     pub code_bracket_end: defs::Cursor,   //Bracket start fn test() > String { ... [}]
     pub parameters_pos: defs::Cursor,
     pub return_pos: defs::Cursor,
-    pub pos: defs::Cursor
+    pub pos: defs::Cursor,
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]

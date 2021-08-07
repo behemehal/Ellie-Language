@@ -22,7 +22,7 @@ pub struct Class {
     //pub setters: Vec<types::arrow_function::ArrowFunctionCollector>,
     pub methods: Vec<function::Function>,
     pub name_pos: defs::Cursor,
-    pub pos: defs::Cursor
+    pub pos: defs::Cursor,
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]

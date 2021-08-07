@@ -59,9 +59,16 @@ pub fn collect_variable(
                     });
                 } else if variabledata.data.value == "new" && next_char == " " {
                     itered_data.data.value =
-                        types::Types::ClassCall(types::class_call::ClassCallCollector {
-                            keyword_collected: true,
-                            ignore_space: true,
+                        types::Types::NewCall(types::new_call::NewCallCollector {
+                            keyword_index: 3,
+                            data: types::new_call::NewCall {
+                                value: Box::new(types::Types::Null),
+                                keyword_pos: defs::Cursor {
+                                    range_start: parser.pos.clone().pop_char(3),
+                                    range_end: parser.pos.clone(),
+                                },
+                                ..Default::default()
+                            },
                             ..Default::default()
                         });
                 }

@@ -175,14 +175,20 @@ lazy_static! {
     };
     pub static ref error_s29: crate::error::Error = crate::error::Error {
         code: 0x28,
-        title: "SyntaxError".to_string(),
+        title: "TypeError".to_string(),
         message: "Unexpected Token '$token' is not iterable".to_string(),
         ..Default::default()
     };
     pub static ref error_s30: crate::error::Error = crate::error::Error {
-        code: 0x28,
-        title: "SyntaxError".to_string(),
+        code: 0x29,
+        title: "TypeError".to_string(),
         message: "Class can only have one constructor".to_string(),
+        ..Default::default()
+    };
+    pub static ref error_s31: crate::error::Error = crate::error::Error {
+        code: 0x30,
+        title: "TypeError".to_string(),
+        message: "'$token' is not a constructable".to_string(),
         ..Default::default()
     };
 }

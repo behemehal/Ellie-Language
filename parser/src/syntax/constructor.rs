@@ -17,7 +17,7 @@ pub struct Constructor {
     pub inside_code: Vec<Collecting>,
     pub name_pos: defs::Cursor, //Name position fn [test] ......
     pub parameters_pos: defs::Cursor,
-    pub pos: defs::Cursor
+    pub pos: defs::Cursor,
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]

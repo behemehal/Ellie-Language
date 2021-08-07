@@ -11,7 +11,7 @@ pub struct ForLoop {
     pub parameter: Box<types::Types>,
     pub parameter_pos: defs::Cursor,
     pub code: String,
-    pub pos: defs::Cursor
+    pub pos: defs::Cursor,
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]

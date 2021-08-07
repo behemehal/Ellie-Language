@@ -1,7 +1,6 @@
 pub use crate::parser;
 use alloc::boxed::Box;
-use serde::Deserialize;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct ImportItem {

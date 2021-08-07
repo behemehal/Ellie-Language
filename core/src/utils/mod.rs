@@ -35,7 +35,16 @@ pub fn is_reserved(value: &str) -> bool {
 }
 
 pub fn generate_hash() -> String {
-    alloc::format!("{:02x?}", (0..24).map(|_| { rand::random::<u8>() }).collect::<Vec<u8>>()).replace(" ", "").replace(",", "").replace("]", "").replace("[", "")
+    alloc::format!(
+        "{:02x?}",
+        (0..24)
+            .map(|_| { rand::random::<u8>() })
+            .collect::<Vec<u8>>()
+    )
+    .replace(" ", "")
+    .replace(",", "")
+    .replace("]", "")
+    .replace("[", "")
 }
 
 pub fn reliable_name_range(range: ReliableNameRanges, value: String) -> ReliableNameRangeResponse {

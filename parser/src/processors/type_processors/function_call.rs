@@ -394,7 +394,9 @@ pub fn collect_function_caller(
                 } else {
                     function_call_data.data.params[last_entry - 1] = itered_entry;
                     if function_call_data.data.params[last_entry - 1].pos.is_zero() {
-                        function_call_data.data.params[last_entry - 1].pos.range_start = parser.pos;
+                        function_call_data.data.params[last_entry - 1]
+                            .pos
+                            .range_start = parser.pos;
                     }
                     function_call_data.data.params[last_entry - 1].pos.range_end = parser.pos;
                 }

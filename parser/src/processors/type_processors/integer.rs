@@ -1,6 +1,6 @@
 use crate::parser;
 use crate::processors::type_processors;
-use crate::syntax::{types, variable, definers};
+use crate::syntax::{definers, types, variable};
 use ellie_core::{defs, error};
 
 use alloc::boxed::Box;
@@ -25,7 +25,6 @@ pub fn collect_integer(
 
         let is_num = letter_char.parse::<isize>().is_ok();
         if is_num || letter_char == "x" && data.raw.starts_with('0') {
-
             if data.raw == "0x" {
                 panic!("[ParserError]: Hexadecimal are not supported yet")
             }
