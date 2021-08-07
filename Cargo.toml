@@ -1,6 +1,6 @@
 [package]
 name = "ellie_engine"
-version = "2.9.2"
+version = "3.0.2"
 authors = ["Ahmetcan Aksu <ahmetcanaksu@behemehal.net>"]
 edition = "2018"
 license-file = "LICENSE"
