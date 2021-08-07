@@ -1,7 +1,6 @@
 use crate::syntax::types;
 use alloc::boxed::Box;
-use serde::Deserialize;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(PartialEq, Default, Debug, Clone, Serialize, Deserialize)]
 pub struct Negative {

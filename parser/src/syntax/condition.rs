@@ -1,8 +1,7 @@
 use crate::parser::Collecting;
 use crate::syntax::{types, variable};
 use ellie_core::defs;
-use serde::Deserialize;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::alloc::boxed::Box;
 use crate::alloc::string::String;

@@ -1,8 +1,7 @@
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 use core::clone::Clone;
-use serde::Deserialize;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 pub mod errorList;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

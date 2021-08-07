@@ -3,8 +3,7 @@ use alloc::string::{String, ToString};
 use core::any::Any;
 use core::any::TypeId;
 use enum_as_inner::EnumAsInner;
-use serde::Deserialize;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(PartialEq, Eq, Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum FloatTypes {

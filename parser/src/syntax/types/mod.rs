@@ -21,8 +21,7 @@ pub mod variable_type;
 
 use alloc::string::{String, ToString};
 use enum_as_inner::EnumAsInner;
-use serde::Deserialize;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(PartialEq, Debug, Clone, Serialize, EnumAsInner, Deserialize)]
 pub enum Types {

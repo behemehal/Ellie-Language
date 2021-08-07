@@ -1,7 +1,6 @@
 use crate::syntax::types;
 use ellie_core::defs;
-use serde::Deserialize;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use alloc::string::String;
 use alloc::vec::Vec;

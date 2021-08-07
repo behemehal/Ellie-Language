@@ -1,6 +1,5 @@
 use alloc::string::{String, ToString};
-use serde::Deserialize;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub enum ParserType {

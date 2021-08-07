@@ -1,6 +1,5 @@
 use crate::alloc::string::{String, ToString};
-use serde::Deserialize;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum ScopeTypes {

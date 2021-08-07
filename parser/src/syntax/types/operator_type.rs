@@ -2,8 +2,7 @@
 
 use crate::syntax::types;
 use crate::syntax::variable;
-use serde::Deserialize;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::syntax::types::arithmetic_type::ArithmeticOperators;
 use crate::syntax::types::comparison_type::ComparisonOperators;

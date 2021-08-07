@@ -2,8 +2,7 @@ use crate::syntax::{constructor, function, variable};
 use alloc::string::String;
 use alloc::vec::Vec;
 use ellie_core::defs;
-use serde::Deserialize;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::boxed::Box;
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]

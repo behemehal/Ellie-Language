@@ -1,8 +1,7 @@
 use crate::syntax::definers;
 use alloc::string::String;
 use alloc::vec::Vec;
-use serde::Deserialize;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
 pub struct EnumItem {

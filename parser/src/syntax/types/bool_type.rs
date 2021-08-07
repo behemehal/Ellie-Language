@@ -1,6 +1,5 @@
 use alloc::string::String;
-use serde::Deserialize;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(PartialEq, Eq, Default, Debug, Clone, Serialize, Deserialize)]
 pub struct BoolType {

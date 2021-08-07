@@ -1,6 +1,5 @@
 use crate::syntax::types;
-use serde::Deserialize;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use alloc::boxed::Box;
 use alloc::string::String;
