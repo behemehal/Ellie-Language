@@ -31,6 +31,7 @@ pub fn collect_integer(
 
             if data.complete && last_char.parse::<isize>().is_err() && last_char != "x" {
                 errors.push(error::Error {
+                    path: parser.options.path.clone(),
                     scope: "integer_processor".to_string(),
                     debug_message: "2ffb6e752b390c249fddb3ed67584944".to_string(),
                     title: error::errorList::error_s1.title.clone(),
@@ -72,6 +73,7 @@ pub fn collect_integer(
                     data.data.rtype = types::integer_type::IntegerTypes::ISize;
                 } else {
                     errors.push(error::Error {
+                        path: parser.options.path.clone(),
                         scope: "integer_processor".to_string(),
                         debug_message: "7d7bdcf4fcda53b49cb3ea564d866efc".to_string(),
                         title: error::errorList::error_s16.title.clone(),
@@ -179,6 +181,7 @@ pub fn collect_integer(
             data.complete = true;
         } else if letter_char != " " {
             errors.push(error::Error {
+                path: parser.options.path.clone(),
                 scope: "integer_processor".to_string(),
                 debug_message: "407e4f0ba35a7ef5f2bec7298e21e078".to_string(),
                 title: error::errorList::error_s1.title.clone(),

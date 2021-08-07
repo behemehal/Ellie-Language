@@ -12,30 +12,51 @@ pub fn collect_import(
     _next_char: String,
     _last_char: String,
 ) {
-    if let parser::Collecting::Import(ref mut importdata) = parser.current {
-        if letter_char != " " && letter_char != "\n" || importdata.path.is_empty() {
-            importdata.pos.range_end = parser.pos;
+    if let parser::Collecting::Import(ref mut import_data) = parser.current {
+        if letter_char != " " && letter_char != "\n" || import_data.path.is_empty() {
+            import_data.pos.range_end = parser.pos;
             if letter_char == ";" {
-                if importdata.native {
+                if import_data.native {
                     panic!("Import native is not available yet");
                 } else {
-                    let response = (parser.resolver)(importdata.path.clone());
+                    let response = (parser.resolver)(import_data.path.clone());
+                    errors.extend(response.syntax_errors);
                     if !response.found {
-                        errors.push(error::Error {
-                            scope: parser.scope.scope_name.clone(),
-                            debug_message: "aa10cdbe8a76b4c15a57da94d68e34eb".to_string(),
-                            title: error::errorList::error_s28.title.clone(),
-                            code: error::errorList::error_s28.code,
-                            message: error::errorList::error_s28.message.clone(),
-                            builded_message: error::Error::build(
-                                error::errorList::error_s28.message.clone(),
-                                vec![error::ErrorBuildField {
-                                    key: "token".to_string(),
-                                    value: importdata.path.clone(),
-                                }],
-                            ),
-                            pos: importdata.path_pos,
-                        });
+                        if response.resolve_error == "" {
+                            errors.push(error::Error {
+                                path: parser.options.path.clone(),
+                                scope: parser.scope.scope_name.clone(),
+                                debug_message: "aa10cdbe8a76b4c15a57da94d68e34eb".to_string(),
+                                title: error::errorList::error_s28.title.clone(),
+                                code: error::errorList::error_s28.code,
+                                message: error::errorList::error_s28.message.clone(),
+                                builded_message: error::Error::build(
+                                    error::errorList::error_s28.message.clone(),
+                                    vec![error::ErrorBuildField {
+                                        key: "token".to_string(),
+                                        value: import_data.path.clone(),
+                                    }],
+                                ),
+                                pos: import_data.path_pos,
+                            });
+                        } else {
+                            errors.push(error::Error {
+                                path: parser.options.path.clone(),
+                                scope: parser.scope.scope_name.clone(),
+                                debug_message: "aa10cdbe8a76b4c15a57da94d68e34eb".to_string(),
+                                title: error::errorList::error_s32.title.clone(),
+                                code: error::errorList::error_s32.code,
+                                message: error::errorList::error_s32.message.clone(),
+                                builded_message: error::Error::build(
+                                    error::errorList::error_s32.message.clone(),
+                                    vec![error::ErrorBuildField {
+                                        key: "token".to_string(),
+                                        value: response.resolve_error,
+                                    }],
+                                ),
+                                pos: import_data.path_pos,
+                            });
+                        }
                     } else {
                         for item in response.file_content.items {
                             match item.clone() {
@@ -50,7 +71,7 @@ pub fn collect_import(
                                             crate::parser::Collecting::ImportItem(
                                                 crate::syntax::import_item::ImportItem {
                                                     item: Box::new(item),
-                                                    public: importdata.public,
+                                                    public: import_data.public,
                                                 },
                                             ),
                                         );
@@ -62,7 +83,7 @@ pub fn collect_import(
                                             crate::parser::Collecting::ImportItem(
                                                 crate::syntax::import_item::ImportItem {
                                                     item: Box::new(item),
-                                                    public: importdata.public,
+                                                    public: import_data.public,
                                                 },
                                             ),
                                         );
@@ -74,7 +95,7 @@ pub fn collect_import(
                                             crate::parser::Collecting::ImportItem(
                                                 crate::syntax::import_item::ImportItem {
                                                     item: Box::new(item),
-                                                    public: importdata.public,
+                                                    public: import_data.public,
                                                 },
                                             ),
                                         );
@@ -84,26 +105,27 @@ pub fn collect_import(
                                     parser.collected.push(crate::parser::Collecting::ImportItem(
                                         crate::syntax::import_item::ImportItem {
                                             item: Box::new(item),
-                                            public: importdata.public,
+                                            public: import_data.public,
                                         },
                                     ));
                                 }
                             }
                         }
                     }
-                    importdata.pos.range_end = parser.pos.clone().skip_char(1);
+                    import_data.pos.range_end = parser.pos.clone().skip_char(1);
                     parser.collected.push(parser.current.clone());
                     parser.current = parser::Collecting::None;
                 }
             } else if letter_char != " " {
-                if importdata.path.is_empty() {
-                    importdata.path_pos.range_start = parser.pos;
+                if import_data.path.is_empty() {
+                    import_data.path_pos.range_start = parser.pos;
                 }
-                importdata.path += letter_char;
-                importdata.path_pos.range_end = parser.pos.skip_char(1);
+                import_data.path += letter_char;
+                import_data.path_pos.range_end = parser.pos.skip_char(1);
             }
         } else if letter_char != " " {
             errors.push(error::Error {
+                path: parser.options.path.clone(),
                 scope: parser.scope.scope_name.clone(),
                 debug_message: "12fdf394731c3f6b25270e64c1e9e4f5".to_string(),
                 title: error::errorList::error_s1.title.clone(),

@@ -84,6 +84,7 @@ pub fn collect_definer(
 
                 if !emulated_collector_data.data.value.is_integer() && letter_char != " " {
                     errors.push(error::Error {
+                        path: parser.options.path.clone(),
                         scope: "definer_processor".to_string(),
                         debug_message: "e8cfb878972d706ca129863923c07bc9".to_string(),
                         title: error::errorList::error_s20.title.clone(),
@@ -154,6 +155,7 @@ pub fn collect_definer(
                 && data.rtype.trim() != ""
             {
                 errors.push(error::Error {
+                    path: parser.options.path.clone(),
                     scope: "definer_processor".to_string(),
                     debug_message: "996afc89265fb1083b7ebca9cb0220ca".to_string(),
                     title: error::errorList::error_s1.title.clone(),
@@ -181,6 +183,7 @@ pub fn collect_definer(
                     data.rtype = utils::trim_good(data.rtype.trim().to_string());
                 } else if letter_char != " " {
                     errors.push(error::Error {
+                        path: parser.options.path.clone(),
                         scope: "definer_processor".to_string(),
                         debug_message: "ed9d6ce39e33e3b1214aebd899d194d6".to_string(),
                         title: error::errorList::error_s1.title.clone(),
@@ -218,6 +221,7 @@ pub fn collect_definer(
                 } else if data.params.is_empty() && data.bracket_inserted {
                     //This should have been filled If everything were right
                     errors.push(error::Error {
+                        path: parser.options.path.clone(),
                         scope: "definer_processor".to_string(),
                         debug_message: "50154bcfd73151e189d6386c297942c3".to_string(),
                         title: error::errorList::error_s1.title.clone(),
@@ -255,6 +259,7 @@ pub fn collect_definer(
                 if data.return_keyword != 2 {
                     if letter_char != ":" {
                         errors.push(error::Error {
+                            path: parser.options.path.clone(),
                             scope: "definer_processor".to_string(),
                             debug_message: "86c7c97ac2ab31bb587bd23e922d166d".to_string(),
                             title: error::errorList::error_s1.title.clone(),

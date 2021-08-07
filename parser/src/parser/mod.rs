@@ -61,6 +61,12 @@ pub enum NameCheckResponseType {
     None,
 }
 
+pub enum DeepCallResponse {
+    TypeResponse(types::Types),
+    ElementResponse(Collecting),
+    NoElement,
+}
+
 pub struct NameCheckResponse {
     pub found: bool,
     pub found_type: NameCheckResponseType,
@@ -163,10 +169,11 @@ impl Default for Parser {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct ResolvedImport {
     pub found: bool,
     pub resolve_error: String,
+    pub syntax_errors: Vec<error::Error>,
     pub file_content: Parsed,
 }
 
@@ -257,6 +264,7 @@ impl Parser {
 
         if self.current != Collecting::None || !self.keyword_catch.trim().is_empty() {
             errors.push(error::Error {
+                path: self.options.path.clone(),
                 scope: "definer_processor".to_string(),
                 debug_message: "f49561600f1dbc3e9f415e7566a68eaf".to_string(),
                 title: error::errorList::error_s26.title.clone(),
@@ -277,13 +285,17 @@ impl Parser {
         }
     }
 
-    pub fn is_iterable(&self, target: types::Types) -> bool {
+    pub fn is_iterable(&self, target: DeepCallResponse) -> bool {
         match target {
-            types::Types::Integer(_) => true,
-            types::Types::Float(_) => false,
-            types::Types::Bool(_) => true,
-            types::Types::String(_) => true,
-            _ => todo!(),
+            DeepCallResponse::TypeResponse(e) => match e {
+                types::Types::Integer(_) => true,
+                types::Types::Float(_) => false,
+                types::Types::Bool(_) => true,
+                types::Types::String(_) => true,
+                _ => todo!(),
+            },
+            DeepCallResponse::ElementResponse(_e) => false,
+            DeepCallResponse::NoElement => false,
         }
     }
 
@@ -320,15 +332,15 @@ impl Parser {
         found_item
     }
 
-    pub fn resolve_deep_call(&self, target: types::Types) -> types::Types {
-        match target {
-            types::Types::Integer(_) => target,
-            types::Types::Float(_) => target,
-            types::Types::Bool(_) => target,
-            types::Types::String(_) => target,
-            types::Types::Char(_) => target,
-            types::Types::Null => target,
-            types::Types::Void => target,
+    pub fn resolve_deep_call(&self, target: types::Types) -> DeepCallResponse {
+        match target.clone() {
+            types::Types::Integer(_) => DeepCallResponse::TypeResponse(target),
+            types::Types::Float(_) => DeepCallResponse::TypeResponse(target),
+            types::Types::Bool(_) => DeepCallResponse::TypeResponse(target),
+            types::Types::String(_) => DeepCallResponse::TypeResponse(target),
+            types::Types::Char(_) => DeepCallResponse::TypeResponse(target),
+            types::Types::Null => DeepCallResponse::TypeResponse(target),
+            types::Types::Void => DeepCallResponse::TypeResponse(target),
             types::Types::Collective(_) => todo!(),
             types::Types::Array(_) => todo!(),
             types::Types::Cloak(_) => todo!(),
@@ -336,10 +348,26 @@ impl Parser {
             types::Types::BraceReference(_) => todo!(),
             types::Types::Operator(_) => todo!(),
             types::Types::ArrowFunction(_) => todo!(),
-            types::Types::NewCall(_) => todo!(),
+            types::Types::ConstructedClass(_) => todo!(),
             types::Types::FunctionCall(_) => todo!(),
             types::Types::Negative(_) => todo!(),
-            types::Types::VariableType(_) => todo!(),
+            types::Types::VariableType(e) => {
+                let fn_found = self.check_keyword(e.data.value);
+
+                if fn_found.found {
+                    if let NameCheckResponseType::Variable(v_data) = fn_found.found_type {
+                        DeepCallResponse::ElementResponse(Collecting::Variable(v_data))
+                    } else if let NameCheckResponseType::Function(f_data) = fn_found.found_type {
+                        DeepCallResponse::ElementResponse(Collecting::Function(f_data))
+                    } else if let NameCheckResponseType::Class(c_data) = fn_found.found_type {
+                        DeepCallResponse::ElementResponse(Collecting::Class(c_data))
+                    } else {
+                        DeepCallResponse::NoElement
+                    }
+                } else {
+                    DeepCallResponse::NoElement
+                }
+            } // self.resolve_variable(target)
         }
     }
 
@@ -372,7 +400,7 @@ impl Parser {
             }
 
             types::Types::ArrowFunction(_) => "function".to_string(),
-            types::Types::NewCall(e) => {
+            types::Types::ConstructedClass(e) => {
                 if let Ok(resolved) = self.resolve_new_call(e) {
                     if let Collecting::Class(e) = resolved {
                         e.data.name
@@ -435,6 +463,7 @@ impl Parser {
 
         if !targeted_var.found {
             errors.push(error::Error {
+                path: self.options.path.clone(),
                 scope: self.scope.scope_name.clone(),
                 debug_message: "308b8c43cf79f06bacd36ca7df72f97e".to_string(),
                 title: error::errorList::error_s6.title.clone(),
@@ -457,6 +486,7 @@ impl Parser {
 
         if !found {
             errors.push(error::Error {
+                path: self.options.path.clone(),
                 scope: self.scope.scope_name.clone(),
                 debug_message: "1b202878ad52316b13fdb826df01a5cc".to_string(),
                 title: error::errorList::error_s6.title.clone(),
@@ -482,7 +512,7 @@ impl Parser {
 
     pub fn resolve_new_call(
         &self,
-        caller_data: types::new_call::NewCallCollector,
+        caller_data: types::constructed_class::ConstructedClassCollector,
     ) -> Result<Collecting, Vec<ellie_core::error::Error>> {
         let mut found = false;
         let mut found_item = Collecting::None;
@@ -497,24 +527,57 @@ impl Parser {
                         match looked_up.clone() {
                             Collecting::Variable(c) => {
                                 found = true;
-                                if self.resolve_deep_call(c.data.value).get_type() != "class" {
-                                    errors.push(error::Error {
-                                        scope: "function_call_processor".to_string(),
-                                        debug_message: "replace_79".to_string(),
-                                        title: error::errorList::error_s31.title.clone(),
-                                        code: error::errorList::error_s31.code,
-                                        message: error::errorList::error_s31.message.clone(),
-                                        builded_message: error::Error::build(
-                                            error::errorList::error_s31.message.clone(),
-                                            vec![error::ErrorBuildField {
-                                                key: "token".to_string(),
-                                                value: caller_data.raw_value.clone(),
-                                            }],
-                                        ),
-                                        pos: caller_data.data.value_pos,
-                                    });
-                                } else {
-                                    found_item = looked_up;
+                                let resolved_deep_call = self.resolve_deep_call(c.data.value);
+
+                                match resolved_deep_call {
+                                    DeepCallResponse::ElementResponse(response) => {
+                                        match response.clone() {
+                                            Collecting::Class(_e) => {
+                                                found = true;
+                                                found_item = response;
+                                            }
+                                            _ => {
+                                                errors.push(error::Error {
+                                                    path: self.options.path.clone(),
+                                                    scope: "function_call_processor".to_string(),
+                                                    debug_message: "replace_536".to_string(),
+                                                    title: error::errorList::error_s31
+                                                        .title
+                                                        .clone(),
+                                                    code: error::errorList::error_s31.code,
+                                                    message: error::errorList::error_s31
+                                                        .message
+                                                        .clone(),
+                                                    builded_message: error::Error::build(
+                                                        error::errorList::error_s31.message.clone(),
+                                                        vec![error::ErrorBuildField {
+                                                            key: "token".to_string(),
+                                                            value: caller_data.raw_value.clone(),
+                                                        }],
+                                                    ),
+                                                    pos: caller_data.data.value_pos,
+                                                });
+                                            }
+                                        }
+                                    }
+                                    _ => {
+                                        errors.push(error::Error {
+                                            path: self.options.path.clone(),
+                                            scope: "function_call_processor".to_string(),
+                                            debug_message: "replace_555".to_string(),
+                                            title: error::errorList::error_s31.title.clone(),
+                                            code: error::errorList::error_s31.code,
+                                            message: error::errorList::error_s31.message.clone(),
+                                            builded_message: error::Error::build(
+                                                error::errorList::error_s31.message.clone(),
+                                                vec![error::ErrorBuildField {
+                                                    key: "token".to_string(),
+                                                    value: caller_data.raw_value.clone(),
+                                                }],
+                                            ),
+                                            pos: caller_data.data.value_pos,
+                                        });
+                                    }
                                 }
                             }
                             Collecting::Class(_) => {
@@ -531,6 +594,7 @@ impl Parser {
             _ => {
                 found = true;
                 errors.push(error::Error {
+                    path: self.options.path.clone(),
                     scope: "function_call_processor".to_string(),
                     debug_message: "replace_7d9".to_string(),
                     title: error::errorList::error_s31.title.clone(),
@@ -550,6 +614,7 @@ impl Parser {
 
         if !found {
             errors.push(error::Error {
+                path: self.options.path.clone(),
                 scope: self.scope.scope_name.clone(),
                 debug_message: "replace_parser_540".to_string(),
                 title: error::errorList::error_s6.title.clone(),
@@ -587,6 +652,7 @@ impl Parser {
                         if let definers::DefinerCollecting::Function(fn_type) = e.data.rtype {
                             if caller_data.data.params.len() != fn_type.params.len() {
                                 errors.push(error::Error {
+                                    path: self.options.path.clone(),
                                     scope: self.scope.scope_name.clone(),
                                     debug_message: "3bc1a7957682f626543a90bc4634482c".to_string(),
                                     title: error::errorList::error_s7.title.clone(),
@@ -632,6 +698,7 @@ impl Parser {
                                                 self.resolve_variable(caller_param.value);
                                             if resolved_type != e.rtype {
                                                 errors.push(error::Error {
+                                                    path: self.options.path.clone(),
                                                     scope: self.scope.scope_name.clone(),
                                                     debug_message:
                                                         "d4824ea474c0c2675d16029f0708f38f"
@@ -679,6 +746,7 @@ impl Parser {
                             }
                         } else {
                             errors.push(error::Error {
+                                path: self.options.path.clone(),
                                 scope: self.scope.scope_name.clone(),
                                 debug_message: "103834decfc74a584c612db8db0029db".to_string(),
                                 title: error::errorList::error_s25.title.clone(),
@@ -702,6 +770,7 @@ impl Parser {
                         found = true;
                         if caller_data.data.params.len() != e.data.parameters.len() {
                             errors.push(error::Error {
+                                path: self.options.path.clone(),
                                 scope: self.scope.scope_name.clone(),
                                 debug_message: "dc7d0d3714c9594f6758f5e56e474d29".to_string(),
                                 title: error::errorList::error_s7.title.clone(),
@@ -748,6 +817,7 @@ impl Parser {
 
                                         if resolved_type != e.rtype {
                                             errors.push(error::Error {
+                                                path: self.options.path.clone(),
                                                 scope: self.scope.scope_name.clone(),
                                                 debug_message: "648271468e3a888e0c070fd7a5228cfc"
                                                     .to_string(),
@@ -792,6 +862,7 @@ impl Parser {
                     if e.data.name == caller_data.data.name {
                         found = true;
                         errors.push(error::Error {
+                            path: self.options.path.clone(),
                             scope: self.scope.scope_name.clone(),
                             debug_message: "c3bde7f48c8baaf0ac3d8182895ecace".to_string(),
                             title: error::errorList::error_s25.title.clone(),
@@ -814,6 +885,7 @@ impl Parser {
 
         if !found {
             errors.push(error::Error {
+                path: self.options.path.clone(),
                 scope: self.scope.scope_name.clone(),
                 debug_message: "8eab94a5d7dd30bd4b86df2c30b16b7d".to_string(),
                 title: error::errorList::error_s6.title.clone(),

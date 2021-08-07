@@ -15,6 +15,7 @@ impl Default for ParserType {
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct ParserOptions {
+    pub path: String,
     pub functions: bool,
     pub break_on_error: bool,
     pub loops: bool,
@@ -33,6 +34,7 @@ pub struct ParserOptions {
 impl Default for ParserOptions {
     fn default() -> Self {
         ParserOptions {
+            path: "".to_string(),
             functions: true,
             break_on_error: false,
             loops: true,

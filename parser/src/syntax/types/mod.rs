@@ -7,13 +7,13 @@ pub mod char_type;
 pub mod cloak_type;
 pub mod collective_type;
 pub mod comparison_type;
+pub mod constructed_class;
 pub mod double_type;
 pub mod float_type;
 pub mod function_call;
 pub mod integer_type;
 pub mod logical_type;
 pub mod negative_type;
-pub mod new_call;
 pub mod operator_type;
 pub mod reference_type;
 pub mod string_type;
@@ -37,7 +37,7 @@ pub enum Types {
     Cloak(cloak_type::CloakTypeCollector),
     Array(array_type::ArrayTypeCollector),
     ArrowFunction(arrow_function::ArrowFunctionCollector),
-    NewCall(new_call::NewCallCollector),
+    ConstructedClass(constructed_class::ConstructedClassCollector),
     FunctionCall(function_call::FunctionCallCollector),
     Void,
     Negative(negative_type::Negative),
@@ -59,7 +59,7 @@ pub enum DefiniteTypes {
     Cloak(cloak_type::CloakType),
     Array(array_type::ArrayType),
     ArrowFunction(arrow_function::ArrowFunction),
-    NewCall(new_call::NewCall),
+    ConstructedClass(constructed_class::ConstructedClass),
     FunctionCall(function_call::FunctionCall),
     Void,
     Negative(negative_type::Negative),
@@ -83,7 +83,7 @@ impl Types {
             Types::Cloak(_) => "cloak".to_string(),
             Types::ArrowFunction(_) => "arrowFunction".to_string(),
             Types::FunctionCall(_) => "functionCall".to_string(),
-            Types::NewCall(_) => "classCall".to_string(),
+            Types::ConstructedClass(_) => "classCall".to_string(),
             Types::VariableType(_) => "variable".to_string(),
             Types::Negative(_) => "negative".to_string(),
             Types::Void => "void".to_string(),
@@ -112,7 +112,7 @@ impl Types {
             Types::Cloak(data) => data.complete,
             Types::ArrowFunction(data) => data.complete,
             Types::FunctionCall(data) => data.complete,
-            Types::NewCall(_) => true,
+            Types::ConstructedClass(_) => true,
             Types::VariableType(_) => true,
             Types::Negative(e) => e.value.is_type_complete(),
             Types::Void => false,
@@ -135,7 +135,7 @@ impl Types {
             Types::Cloak(_) => false,
             Types::ArrowFunction(_) => false,
             Types::FunctionCall(_) => false,
-            Types::NewCall(_) => false,
+            Types::ConstructedClass(_) => false,
             Types::VariableType(_) => false,
             Types::Negative(_) => false,
             Types::Void => false,
@@ -158,7 +158,7 @@ impl Types {
             Types::Cloak(_) => false,
             Types::ArrowFunction(_) => false,
             Types::FunctionCall(_) => false,
-            Types::NewCall(_) => false,
+            Types::ConstructedClass(_) => false,
             Types::VariableType(_) => false,
             Types::Negative(_) => false,
             Types::Void => false,
@@ -181,7 +181,7 @@ impl Types {
             Types::Cloak(_) => false,
             Types::ArrowFunction(_) => false,
             Types::FunctionCall(_) => false,
-            Types::NewCall(_) => false,
+            Types::ConstructedClass(_) => false,
             Types::VariableType(_) => false,
             Types::Negative(_) => false,
             Types::Void => false,
@@ -204,7 +204,7 @@ impl Types {
             Types::Cloak(_) => false,
             Types::ArrowFunction(_) => false,
             Types::FunctionCall(_) => false,
-            Types::NewCall(_) => false,
+            Types::ConstructedClass(_) => false,
             Types::VariableType(_) => false,
             Types::Negative(_) => false,
             Types::Void => false,
@@ -227,7 +227,7 @@ impl Types {
             Types::Cloak(_) => false,
             Types::ArrowFunction(_) => false,
             Types::FunctionCall(_) => false,
-            Types::NewCall(_) => false,
+            Types::ConstructedClass(_) => false,
             Types::VariableType(_) => true,
             Types::Negative(_) => false,
             Types::Void => false,
@@ -250,7 +250,7 @@ impl Types {
             Types::Cloak(e) => e.complete = true,
             Types::ArrowFunction(e) => e.complete = true,
             Types::FunctionCall(_) => (),
-            Types::NewCall(_) => (),
+            Types::ConstructedClass(_) => (),
             Types::VariableType(_) => (),
             Types::Negative(_) => (),
             Types::Void => (),

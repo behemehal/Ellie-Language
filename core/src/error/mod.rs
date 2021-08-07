@@ -7,6 +7,7 @@ pub mod errorList;
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Error {
     pub code: u8,
+    pub path: String,
     pub scope: String,
     pub message: String,
     pub title: String,
@@ -62,6 +63,7 @@ impl Error {
 impl Default for Error {
     fn default() -> Error {
         Error {
+            path: "".to_string(),
             debug_message: "".to_string(),
             code: 0x00,
             scope: "".to_string(),

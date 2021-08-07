@@ -35,6 +35,7 @@ fn resolve_import(lib_name: String) -> ellie_parser::parser::ResolvedImport {
         Ok(e) => ellie_parser::parser::ResolvedImport {
             found: true,
             file_content: parse(e, lib_name).parsed,
+            ..Default::default()
         },
         Err(err) => {
             panic!(
@@ -63,6 +64,7 @@ fn parse(contents: String, file_name: String) -> ellie_parser::parser::ParserRes
         contents.clone(),
         resolve_import,
         ellie_core::defs::ParserOptions {
+            path: "./lib/".to_string() + &file_name.to_string(),
             functions: true,
             break_on_error: false,
             loops: true,

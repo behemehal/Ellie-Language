@@ -194,6 +194,7 @@ pub fn collect_type(
         let collected_length = parser.collected.clone().len();
         if collected_length == 0 {
             errors.push(error::Error {
+                path: parser.options.path.clone(),
                 scope: "definer_processor".to_string(),
                 debug_message: "df476c84947d6eb56f5eaf5e1f8bc486".to_string(),
                 title: error::errorList::error_s1.title.clone(),
@@ -258,17 +259,19 @@ pub fn collect_type(
         parser.keyword_catch = String::new();
     } else if keyword == "new " {
         parser.current = parser::Collecting::Caller(caller::Caller {
-            value: types::Types::NewCall(types::new_call::NewCallCollector {
-                data: types::new_call::NewCall {
-                    value: Box::new(types::Types::Null),
-                    keyword_pos: defs::Cursor {
-                        range_start: parser.pos.pop_char(3),
-                        range_end: parser.pos.clone().skip_char(1),
+            value: types::Types::ConstructedClass(
+                types::constructed_class::ConstructedClassCollector {
+                    data: types::constructed_class::ConstructedClass {
+                        value: Box::new(types::Types::Null),
+                        keyword_pos: defs::Cursor {
+                            range_start: parser.pos.pop_char(3),
+                            range_end: parser.pos.clone().skip_char(1),
+                        },
+                        ..Default::default()
                     },
                     ..Default::default()
                 },
-                ..Default::default()
-            }),
+            ),
             pos: defs::Cursor {
                 range_start: parser.pos,
                 ..Default::default()

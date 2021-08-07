@@ -34,6 +34,7 @@ pub fn collect_constructor(
                 constructor_data.data.parameters_pos.range_start = parser.pos;
             } else if letter_char != " " {
                 errors.push(error::Error {
+                    path: parser.options.path.clone(),
                     scope: parser.scope.scope_name.clone(),
                     debug_message: "6cc320021536280621f8ba33ee5bd9d7".to_string(),
                     title: error::errorList::error_s1.title.clone(),
@@ -93,6 +94,7 @@ pub fn collect_constructor(
                     .push(constructor::ConstructorParameter::default());
             } else if letter_char != " " {
                 errors.push(error::Error {
+                    path: parser.options.path.clone(),
                     scope: parser.scope.scope_name.clone(),
                     debug_message: "56d4e10a9bce65a854658071ea910455".to_string(),
                     title: error::errorList::error_s1.title.clone(),
@@ -120,6 +122,7 @@ pub fn collect_constructor(
                 parser.current = parser::Collecting::None;
             } else if letter_char != " " {
                 errors.push(error::Error {
+                    path: parser.options.path.clone(),
                     scope: parser.scope.scope_name.clone(),
                     debug_message: "80fb192947210379f4a18d297866f38e".to_string(),
                     title: error::errorList::error_s1.title.clone(),

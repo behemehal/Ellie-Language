@@ -27,6 +27,7 @@ pub fn collect_variable(
             if current_reliability.reliable {
                 if last_char == " " && !variabledata.data.value.is_empty() {
                     errors.push(error::Error {
+                        path: parser.options.path.clone(),
                         scope: "variable_processor".to_string(),
                         debug_message: "d932f4ce6bb6f2046940975434f15da8".to_string(),
                         title: error::errorList::error_s1.title.clone(),
@@ -58,10 +59,10 @@ pub fn collect_variable(
                         raw: variabledata.data.value.clone(),
                     });
                 } else if variabledata.data.value == "new" && next_char == " " {
-                    itered_data.data.value =
-                        types::Types::NewCall(types::new_call::NewCallCollector {
+                    itered_data.data.value = types::Types::ConstructedClass(
+                        types::constructed_class::ConstructedClassCollector {
                             keyword_index: 3,
-                            data: types::new_call::NewCall {
+                            data: types::constructed_class::ConstructedClass {
                                 value: Box::new(types::Types::Null),
                                 keyword_pos: defs::Cursor {
                                     range_start: parser.pos.clone().pop_char(3),
@@ -70,7 +71,8 @@ pub fn collect_variable(
                                 ..Default::default()
                             },
                             ..Default::default()
-                        });
+                        },
+                    );
                 }
             } else if !variabledata.data.value.is_empty() {
                 if letter_char == ";" {
@@ -171,6 +173,7 @@ pub fn collect_variable(
                         });
                 } else if letter_char != " " {
                     errors.push(error::Error {
+                        path: parser.options.path.clone(),
                         scope: "variable_processor".to_string(),
                         debug_message: "4ee4ce3cb0cfbe844fa4c100c6b1e4d6".to_string(),
                         title: error::errorList::error_s1.title.clone(),
@@ -191,6 +194,7 @@ pub fn collect_variable(
                 }
             } else if letter_char != " " {
                 errors.push(error::Error {
+                    path: parser.options.path.clone(),
                     scope: "variable_processor".to_string(),
                     debug_message: "f9a02977c6f24df66398b3ea0da97b9c".to_string(),
                     title: error::errorList::error_s1.title.clone(),

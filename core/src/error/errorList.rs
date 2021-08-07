@@ -191,4 +191,10 @@ lazy_static! {
         message: "'$token' is not a constructable".to_string(),
         ..Default::default()
     };
+    pub static ref error_s32: crate::error::Error = crate::error::Error {
+        code: 0x31,
+        title: "ImportError".to_string(),
+        message: "$token".to_string(),
+        ..Default::default()
+    };
 }

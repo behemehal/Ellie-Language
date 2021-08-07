@@ -83,6 +83,7 @@ pub fn collect_arrow(
                                 .is_empty()
                         {
                             errors.push(error::Error {
+                                path: parser.options.path.clone(),
                                 scope: "arrow_function".to_string(),
                                 debug_message: "2d1a21845fc76a63e9b4a25088595287".to_string(),
                                 title: error::errorList::error_s1.title.clone(),
@@ -107,6 +108,7 @@ pub fn collect_arrow(
                         function_data.parameter_wrote = true;
                     } else if letter_char != " " {
                         errors.push(error::Error {
+                            path: parser.options.path.clone(),
                             scope: "arrow_function".to_string(),
                             debug_message: "3ca3d4effefe03e1e77247a48a79aa62".to_string(),
                             title: error::errorList::error_s1.title.clone(),
@@ -130,6 +132,7 @@ pub fn collect_arrow(
                 {
                     if function_data.has_dedup() {
                         errors.push(error::Error {
+                            path: parser.options.path.clone(),
                             scope: parser.scope.scope_name.clone(),
                             debug_message: "28d74502957806fd4c2cf68c0ce0e286".to_string(),
                             title: error::errorList::error_s10.title.clone(),
@@ -150,6 +153,7 @@ pub fn collect_arrow(
                             .same_as(function.params[last_entry - 1].clone())
                         {
                             errors.push(error::Error {
+                                path: parser.options.path.clone(),
                                 scope: parser.scope.scope_name.clone(),
                                 debug_message: "70f8600a9301a5404f074a27fdfa66b6".to_string(),
                                 title: error::errorList::error_s3.title.clone(),
@@ -179,6 +183,7 @@ pub fn collect_arrow(
                     {
                         if !parser.type_exists(name.rtype.clone()) {
                             errors.push(error::Error {
+                                path: parser.options.path.clone(),
                                 scope: parser.scope.scope_name.clone(),
                                 debug_message: "59d9ab213a5a6fb4fef49f376919063b".to_string(),
                                 title: error::errorList::error_s6.title.clone(),
@@ -203,6 +208,7 @@ pub fn collect_arrow(
                 {
                     if function_data.has_dedup() {
                         errors.push(error::Error {
+                            path: parser.options.path.clone(),
                             scope: parser.scope.scope_name.clone(),
                             debug_message: "95668d6d2e4540dd31ac0c7034f78c71".to_string(),
                             title: error::errorList::error_s10.title.clone(),
@@ -219,6 +225,7 @@ pub fn collect_arrow(
                     {
                         if !parser.type_exists(name.rtype.clone()) {
                             errors.push(error::Error {
+                                path: parser.options.path.clone(),
                                 scope: parser.scope.scope_name.clone(),
                                 debug_message: "2a8384d65736f39c75db357b9a0d1cd1".to_string(),
                                 title: error::errorList::error_s6.title.clone(),
@@ -244,6 +251,7 @@ pub fn collect_arrow(
                             .same_as(function.params[last_entry - 1].clone())
                         {
                             errors.push(error::Error {
+                                path: parser.options.path.clone(),
                                 scope: parser.scope.scope_name.clone(),
                                 debug_message: "a56e13b4587e56831a3f5e6415197877".to_string(),
                                 title: error::errorList::error_s3.title.clone(),
@@ -322,6 +330,7 @@ pub fn collect_arrow(
 
                     if *function.returning.raw_name() != fndata_type {
                         errors.push(error::Error {
+                            path: parser.options.path.clone(),
                             scope: parser.scope.scope_name.clone(),
                             debug_message: "c03c5dd09bbb45cfbe4e9818d4780c98".to_string(),
                             title: error::errorList::error_s3.title.clone(),
@@ -349,6 +358,7 @@ pub fn collect_arrow(
                 function_data.pointer_typed = true;
             } else if letter_char != " " {
                 errors.push(error::Error {
+                    path: parser.options.path.clone(),
                     scope: "arrow_function".to_string(),
                     debug_message: "464ee2c8660a313ec7049749e9c34af2".to_string(),
                     title: error::errorList::error_s1.title.clone(),
@@ -373,6 +383,7 @@ pub fn collect_arrow(
                 {
                     if !parser.type_exists(name.rtype.clone()) {
                         errors.push(error::Error {
+                            path: parser.options.path.clone(),
                             scope: parser.scope.scope_name.clone(),
                             debug_message: "f6e60f509652c3bffda9f8648f867f40".to_string(),
                             title: error::errorList::error_s6.title.clone(),
@@ -399,6 +410,7 @@ pub fn collect_arrow(
                         .same_as(*function.returning.clone())
                     {
                         errors.push(error::Error {
+                            path: parser.options.path.clone(),
                             scope: parser.scope.scope_name.clone(),
                             debug_message: "785d82ecc6a7c6f6dfbb12d577f093d8".to_string(),
                             title: error::errorList::error_s3.title.clone(),

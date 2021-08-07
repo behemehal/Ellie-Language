@@ -1,5 +1,92 @@
+use std::{fs::File, io::Read};
+
 use crate::terminal_colors;
 use ellie_core::{defs, error};
+use ellie_parser::parser;
+
+fn parse(contents: String, file_name: String) -> ellie_parser::parser::ParserResponse {
+    std::println!(
+        "{}[ParsingFile]{}: {}~{}{}",
+        terminal_colors::get_color(terminal_colors::Colors::Cyan),
+        terminal_colors::get_color(terminal_colors::Colors::Reset),
+        terminal_colors::get_color(terminal_colors::Colors::Yellow),
+        file_name,
+        terminal_colors::get_color(terminal_colors::Colors::Reset),
+    );
+    let parser = parser::Parser::new(
+        contents.clone(),
+        resolve_import,
+        ellie_core::defs::ParserOptions {
+            path: file_name.to_string(),
+            functions: true,
+            break_on_error: false,
+            loops: true,
+            conditions: true,
+            classes: true,
+            dynamics: true,
+            global_variables: true,
+            line_ending: "\\n".to_string(),
+            collectives: true,
+            variables: true,
+            constants: true,
+            parser_type: ellie_core::defs::ParserType::RawParser,
+            allow_import: true,
+        },
+    );
+    let parsed = parser.map();
+
+    if parsed.syntax_errors.len() == 0 {
+        std::println!(
+            "{}[ParsingSuccess]{}: {}~{}{}",
+            terminal_colors::get_color(terminal_colors::Colors::Green),
+            terminal_colors::get_color(terminal_colors::Colors::Reset),
+            terminal_colors::get_color(terminal_colors::Colors::Yellow),
+            file_name,
+            terminal_colors::get_color(terminal_colors::Colors::Reset),
+        );
+    } else {
+        println!(
+            "{}[ParsingFailed]{}: {}~{}{}",
+            terminal_colors::get_color(terminal_colors::Colors::Red),
+            terminal_colors::get_color(terminal_colors::Colors::Reset),
+            terminal_colors::get_color(terminal_colors::Colors::Yellow),
+            file_name,
+            terminal_colors::get_color(terminal_colors::Colors::Reset)
+        );
+    }
+    parsed
+}
+
+pub fn resolve_import(lib_name: String) -> ellie_parser::parser::ResolvedImport {
+    std::println!("IMPORT {:#?}", lib_name);
+    if cfg!(ellie_standard_libraries) && lib_name == "ellie" {
+        ellie_parser::parser::ResolvedImport {
+            found: true,
+            file_content: serde_json::from_str(
+                ellie_core::builded_libraries::ELLIE_STANDARD_LIBRARY,
+            )
+            .unwrap(),
+            ..Default::default()
+        }
+    } else {
+        match read_file(&lib_name.clone()) {
+            Ok(file) => {
+                let q = parse(file.clone(), lib_name);
+                ellie_parser::parser::ResolvedImport {
+                    found: true,
+                    file_content: q.parsed,
+                    syntax_errors: q.syntax_errors,
+                    ..Default::default()
+                }
+            }
+            Err(c) => ellie_parser::parser::ResolvedImport {
+                found: false,
+                resolve_error: format!("Cannot find module '{}' ({})", lib_name, c),
+                ..Default::default()
+            },
+        }
+    }
+}
 
 pub fn is_errors_same(first: error::Error, second: error::Error) -> bool {
     first.code == second.code
@@ -122,6 +209,19 @@ pub fn get_line(code: String, line: usize) -> String {
         v[v.len() - 1].to_string()
     } else {
         v[line].to_string()
+    }
+}
+
+pub fn read_file(file_dir: &str) -> Result<String, String> {
+    let file_read = File::open(file_dir);
+    match file_read {
+        Err(r) => Err(r.to_string()),
+        Ok(mut file) => {
+            let mut file_content = Vec::new();
+            file.read_to_end(&mut file_content).expect("Unable to read");
+            let code_string = String::from_utf8(file_content);
+            Ok(code_string.unwrap())
+        }
     }
 }
 

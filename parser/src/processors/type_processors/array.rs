@@ -27,6 +27,7 @@ pub fn collect_array(
         if letter_char == "[" && !data.child_start && is_s_n {
             if !data.comma && last_entry != 0 {
                 errors.push(error::Error {
+                    path: parser.options.path.clone(),
                     scope: "array_processor".to_string(),
                     debug_message: "0d06b6736db655964ac2c067b7b82203".to_string(),
                     title: error::errorList::error_s1.title.clone(),
@@ -73,6 +74,7 @@ pub fn collect_array(
         } else if letter_char == "," && !data.child_start && is_s_n {
             if data.complete {
                 errors.push(error::Error {
+                    path: parser.options.path.clone(),
                     scope: "array_processor".to_string(),
                     debug_message: "dac8da6ed27771ef68b53c62ed62b9cf".to_string(),
                     title: error::errorList::error_s1.title.clone(),
@@ -92,6 +94,7 @@ pub fn collect_array(
                 });
             } else if data.comma {
                 errors.push(error::Error {
+                    path: parser.options.path.clone(),
                     scope: "array_processor".to_string(),
                     debug_message: "98b1329450e831b36e0f0814f58693f6".to_string(),
                     title: error::errorList::error_s1.title.clone(),
@@ -123,6 +126,7 @@ pub fn collect_array(
                             .resolve_variable(*data.data.collective[last_entry - 1].value.clone());
                         if array_defining.rtype.raw_name() != entry_type {
                             errors.push(error::Error {
+                                path: parser.options.path.clone(),
                                 scope: parser.scope.scope_name.clone(),
                                 debug_message: "8bf91477d85249d4fdc8edc6ace06d47".to_string(),
                                 title: error::errorList::error_s3.title.clone(),
@@ -156,6 +160,7 @@ pub fn collect_array(
         } else if letter_char == "]" && !data.child_start && is_s_n {
             if data.comma {
                 errors.push(error::Error {
+                    path: parser.options.path.clone(),
                     scope: "array_processor".to_string(),
                     debug_message: "8c9a4bff3f9849f3a41cdf08e494a2cf".to_string(),
                     title: error::errorList::error_s1.title.clone(),
@@ -175,6 +180,7 @@ pub fn collect_array(
                 });
             } else if data.complete {
                 errors.push(error::Error {
+                    path: parser.options.path.clone(),
                     scope: "array_processor".to_string(),
                     debug_message: "a1cdd3f3a28193f2ea47991963185388".to_string(),
                     title: error::errorList::error_s1.title.clone(),
@@ -209,6 +215,7 @@ pub fn collect_array(
                             .resolve_variable(*data.data.collective[last_entry - 1].value.clone());
                         if array_defining.rtype.raw_name() != entry_type {
                             errors.push(error::Error {
+                                path: parser.options.path.clone(),
                                 scope: parser.scope.scope_name.clone(),
                                 debug_message: "7be10c44f9564e20867dd548f2d3545e".to_string(),
                                 title: error::errorList::error_s3.title.clone(),
@@ -580,9 +587,9 @@ pub fn collect_array(
                         ..Default::default()
                     },
                 },
-                types::Types::NewCall(match_data) => types::array_type::ArrayEntry {
+                types::Types::ConstructedClass(match_data) => types::array_type::ArrayEntry {
                     value_complete: true,
-                    value: Box::new(types::Types::NewCall(match_data)),
+                    value: Box::new(types::Types::ConstructedClass(match_data)),
                     location: defs::Cursor {
                         range_start: if data.data.collective.len() != 0
                             && !data.data.collective[last_entry - 1].location.is_zero()
@@ -662,6 +669,7 @@ pub fn collect_array(
                     && letter_char != " "
                 {
                     errors.push(error::Error {
+                        path: parser.options.path.clone(),
                         scope: "array_processor".to_string(),
                         debug_message: "7e16dfe8ca9ecbff09337ce7909557de".to_string(),
                         title: error::errorList::error_s19.title.clone(),

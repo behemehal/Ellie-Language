@@ -31,6 +31,7 @@ pub fn collect_float(
                 data.at_point = true;
             } else {
                 errors.push(error::Error {
+                    path: parser.options.path.clone(),
                     scope: "float_processor".to_string(),
                     debug_message: "b4a01b14d864fb650e66d08c334158e1".to_string(),
                     title: error::errorList::error_s1.title.clone(),
@@ -56,6 +57,7 @@ pub fn collect_float(
             if f32_parse.is_ok() && data.collect().len() < 9 {
                 if f32_parse.clone().unwrap().is_infinite() {
                     errors.push(error::Error {
+                        path: parser.options.path.clone(),
                         scope: "float_processor".to_string(),
                         debug_message: "4264b1f390cb9eeb55256b01e0b85737".to_string(),
                         title: error::errorList::error_s17.title.clone(),
@@ -84,6 +86,7 @@ pub fn collect_float(
             } else if let Ok(flt) = data.collect().parse::<f64>() {
                 if flt.is_infinite() {
                     errors.push(error::Error {
+                        path: parser.options.path.clone(),
                         scope: "float_processor".to_string(),
                         debug_message: "4a7a776ec72db48207fa0996b88865d4".to_string(),
                         title: error::errorList::error_s17.title.clone(),
@@ -111,6 +114,7 @@ pub fn collect_float(
                 }
             } else {
                 errors.push(error::Error {
+                    path: parser.options.path.clone(),
                     scope: "float_processor".to_string(),
                     debug_message: "a52e908a24366b12b28becca35b51e29".to_string(),
                     title: error::errorList::error_s17.title.clone(),
@@ -205,6 +209,7 @@ pub fn collect_float(
             data.complete = true;
         } else {
             errors.push(error::Error {
+                path: parser.options.path.clone(),
                 scope: "float_processor".to_string(),
                 debug_message: "ceeda817ef074f0dcc9657b64f69a0e7".to_string(),
                 title: error::errorList::error_s1.title.clone(),

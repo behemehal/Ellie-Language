@@ -28,6 +28,7 @@ pub fn collect_char(
         if letter_char == "'" && last_char != "\\" {
             if data.value == '\0' {
                 errors.push(error::Error {
+                    path: parser.options.path.clone(),
                     scope: "char_function".to_string(),
                     debug_message: "9ed3483e5e0f6580d9d1400d59de2f2d".to_string(),
                     title: error::errorList::error_s14.title.clone(),
@@ -46,6 +47,7 @@ pub fn collect_char(
         } else if !data.complete {
             if data.value != '\0' {
                 errors.push(error::Error {
+                    path: parser.options.path.clone(),
                     scope: "char_function".to_string(),
                     debug_message: "4286d8db34a95956ed8271c82d536131".to_string(),
                     title: error::errorList::error_s15.title.clone(),
@@ -136,6 +138,7 @@ pub fn collect_char(
                 });
         } else if letter_char != " " {
             errors.push(error::Error {
+                path: parser.options.path.clone(),
                 scope: "char_function".to_string(),
                 debug_message: "c62f03d42b6782058741392bcc0691b2".to_string(),
                 title: error::errorList::error_s1.title.clone(),

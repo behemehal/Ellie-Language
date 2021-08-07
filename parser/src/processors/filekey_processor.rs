@@ -40,6 +40,7 @@ pub fn collect_filekey(
                     && (letter_char == "@" && file_key_data.data.key_name != "")
                 {
                     errors.push(error::Error {
+                        path: parser.options.path.clone(),
                         scope: "filekey_processor".to_string(),
                         debug_message: "5b4a11c93649906d1eae65a0fe4ecc5e".to_string(),
                         title: error::errorList::error_s1.title.clone(),
@@ -62,6 +63,7 @@ pub fn collect_filekey(
         } else if letter_char == ";" && file_key_data.data.value.is_type_complete() {
             if clone_parser.check_key_keyword(file_key_data.data.key_name.clone()) {
                 errors.push(error::Error {
+                    path: parser.options.path.clone(),
                     scope: "filekey_processor".to_string(),
                     debug_message: "555d69b1ca2312d1e51de22a5013360f".to_string(),
                     title: error::errorList::error_s24.title.clone(),

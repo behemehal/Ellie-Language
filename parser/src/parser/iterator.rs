@@ -20,6 +20,7 @@ pub fn iter(
             && !parser.on_comment
         {
             errors.push(error::Error {
+                path: parser.options.path.clone(),
                 scope: parser.scope.scope_name.clone(),
                 debug_message: "151731aadd2a24fdf3c232d116f79e10".to_string(),
                 title: error::errorList::error_s23.title.clone(),

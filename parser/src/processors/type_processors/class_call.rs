@@ -16,7 +16,7 @@ pub fn collect_class_call(
     next_char: String,
     last_char: String,
 ) {
-    if let types::Types::NewCall(ref mut class_call_data) = itered_data.data.value {
+    if let types::Types::ConstructedClass(ref mut class_call_data) = itered_data.data.value {
         if !class_call_data.keyword_collected {
             if class_call_data.keyword_index == 0 && letter_char != "n" {
                 class_call_data.keyword_index = 1;
@@ -28,7 +28,8 @@ pub fn collect_class_call(
             } else if (letter_char == " " && class_call_data.keyword_index == 0)
                 || letter_char != " "
             {
-                errors.push(error::Error {
+                                errors.push(error::Error {
+                    path: parser.options.path.clone(),
                     scope: "function_call_processor".to_string(),
                     debug_message: "4f0fc7b0def70759390e812989882b40".to_string(),
                     title: error::errorList::error_s1.title.clone(),
@@ -64,6 +65,7 @@ pub fn collect_class_call(
             } else if letter_char == "(" {
                 if class_call_data.data.name.is_empty() {
                     errors.push(error::Error {
+                        path: parser.options.path.clone(),
                         scope: "function_call_processor".to_string(),
                         debug_message: "d3fbc7e3cf53db467f778a8640d724e6".to_string(),
                         title: error::errorList::error_s1.title.clone(),
@@ -85,7 +87,8 @@ pub fn collect_class_call(
                     class_call_data.name_collected = true;
                 }
             } else if letter_char != " " {
-                errors.push(error::Error {
+                                errors.push(error::Error {
+                    path: parser.options.path.clone(),
                     scope: "function_call_processor".to_string(),
                     debug_message: "aa5ed75a413911a3b370ef1bb4b3d546".to_string(),
                     title: error::errorList::error_s1.title.clone(),
@@ -114,6 +117,7 @@ pub fn collect_class_call(
             if letter_char == "," && is_s_n && last_entry != 0 {
                 if class_call_data.complete {
                     errors.push(error::Error {
+                        path: parser.options.path.clone(),
                         scope: "function_call_processor".to_string(),
                         debug_message: "3009c14c8ab234df0f3cea265c27aac9".to_string(),
                         title: error::errorList::error_s1.title.clone(),
@@ -133,6 +137,7 @@ pub fn collect_class_call(
                     });
                 } else if class_call_data.comma {
                     errors.push(error::Error {
+                        path: parser.options.path.clone(),
                         scope: "function_call_processor".to_string(),
                         debug_message: "c626ae3fce6e1921ac5983d4f488f995".to_string(),
                         title: error::errorList::error_s1.title.clone(),
@@ -343,8 +348,8 @@ pub fn collect_class_call(
                             },
                         }
                     }
-                    types::Types::NewCall(match_data) => types::class_call::ClassCallParameter {
-                        value: types::Types::NewCall(match_data),
+                    types::Types::ConstructedClass(match_data) => types::class_call::ClassCallParameter {
+                        value: types::Types::ConstructedClass(match_data),
                         pos: if last_entry == 0 {
                             defs::Cursor::default()
                         } else {

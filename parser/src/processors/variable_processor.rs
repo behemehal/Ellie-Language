@@ -26,6 +26,7 @@ pub fn collect_variable_value(
             if letter_char == ":" {
                 if variable_data.data.name.is_empty() {
                     errors.push(error::Error {
+                        path: parser.options.path.clone(),
                         scope: parser.scope.scope_name.clone(),
                         debug_message: "134bbd588b8657b9013ef5e49d73ed6d".to_string(),
                         title: error::errorList::error_s1.title.clone(),
@@ -47,6 +48,7 @@ pub fn collect_variable_value(
                     if variable_data.data.dynamic {
                         //TODO REMOVE THIS
                         errors.push(error::Error {
+                            path: parser.options.path.clone(),
                             scope: parser.scope.scope_name.clone(),
                             debug_message: "66c54fcf8f42942171cd91f7101fd926".to_string(),
                             title: error::errorList::error_s11.title.clone(),
@@ -64,6 +66,7 @@ pub fn collect_variable_value(
 
                     if utils::is_reserved(&variable_data.data.name) {
                         errors.push(error::Error {
+                            path: parser.options.path.clone(),
                             scope: parser.scope.scope_name.clone(),
                             debug_message: "d1cc8433d0f8c6109a2a51c5a1f1625d".to_string(),
                             title: error::errorList::error_s21.title.clone(),
@@ -88,6 +91,7 @@ pub fn collect_variable_value(
                     .found
                 {
                     errors.push(error::Error {
+                        path: parser.options.path.clone(),
                         scope: parser.scope.scope_name.clone(),
                         debug_message: "a694d0b0352c75f98dd75db466036d76".to_string(),
                         title: error::errorList::error_s24.title.clone(),
@@ -109,6 +113,7 @@ pub fn collect_variable_value(
             } else if letter_char == "=" {
                 if !variable_data.data.dynamic {
                     errors.push(error::Error {
+                        path: parser.options.path.clone(),
                         scope: parser.scope.scope_name.clone(),
                         debug_message: "bb1f330471c11780933aae5566a2fa65".to_string(),
                         title: error::errorList::error_s8.title.clone(),
@@ -124,6 +129,7 @@ pub fn collect_variable_value(
                     });
                 } else if variable_data.data.name.is_empty() {
                     errors.push(error::Error {
+                        path: parser.options.path.clone(),
                         scope: parser.scope.scope_name.clone(),
                         debug_message: "2cdb90a3ecc6eb6b36790b3b3c0adcdb".to_string(),
                         title: error::errorList::error_s1.title.clone(),
@@ -144,6 +150,7 @@ pub fn collect_variable_value(
                 } else {
                     if utils::is_reserved(&variable_data.data.name) {
                         errors.push(error::Error {
+                            path: parser.options.path.clone(),
                             scope: parser.scope.scope_name.clone(),
                             debug_message: "2314d7cb23dcb7c34f404d86c0468574".to_string(),
                             title: error::errorList::error_s21.title.clone(),
@@ -164,6 +171,7 @@ pub fn collect_variable_value(
                         && !variable_data.data.dynamic
                     {
                         errors.push(error::Error {
+                            path: parser.options.path.clone(),
                             scope: parser.scope.scope_name.clone(),
                             debug_message: "524cca4a9a70968f37248ee430ad3c9d".to_string(),
                             title: error::errorList::error_s6.title.clone(),
@@ -191,6 +199,7 @@ pub fn collect_variable_value(
                         && !variable_data.data.name.is_empty()
                     {
                         errors.push(error::Error {
+                            path: parser.options.path.clone(),
                             scope: parser.scope.scope_name.clone(),
                             debug_message: "8265e26976f98ffa9a879c71d968dbca".to_string(),
                             title: error::errorList::error_s1.title.clone(),
@@ -221,6 +230,7 @@ pub fn collect_variable_value(
                         || !variable_data.data.name.is_empty())
                 {
                     errors.push(error::Error {
+                        path: parser.options.path.clone(),
                         scope: parser.scope.scope_name.clone(),
                         debug_message: "42be4b5c28e08b71585cbecb6f8995e7".to_string(),
                         title: error::errorList::error_s1.title.clone(),
@@ -246,6 +256,7 @@ pub fn collect_variable_value(
                     && !parser_clone.generic_type_exists(variable_data.data.rtype.raw_name())
                 {
                     errors.push(error::Error {
+                        path: parser.options.path.clone(),
                         scope: parser.scope.scope_name.clone(),
                         debug_message: "2efbdf4d151951bebb7944ba47e3d94c".to_string(),
                         title: error::errorList::error_s6.title.clone(),
@@ -269,6 +280,7 @@ pub fn collect_variable_value(
                     .found
                 {
                     errors.push(error::Error {
+                        path: parser.options.path.clone(),
                         scope: parser.scope.scope_name.clone(),
                         debug_message: "7577ddfdd149de0e5ec153463b38ede1".to_string(),
                         title: error::errorList::error_s24.title.clone(),
@@ -290,6 +302,7 @@ pub fn collect_variable_value(
             } else if letter_char == "=" {
                 if !variable_data.data.rtype.is_definer_complete() {
                     errors.push(error::Error {
+                        path: parser.options.path.clone(),
                         scope: parser.scope.scope_name.clone(),
                         debug_message: "68cad62beb7f6b24f74061d81d32366b".to_string(),
                         title: error::errorList::error_s1.title.clone(),
@@ -312,6 +325,7 @@ pub fn collect_variable_value(
                         && !parser_clone.generic_type_exists(variable_data.data.rtype.raw_name())
                     {
                         errors.push(error::Error {
+                            path: parser.options.path.clone(),
                             scope: parser.scope.scope_name.clone(),
                             debug_message: "980a0b096673132e5d503b5ab1959bbd".to_string(),
                             title: error::errorList::error_s6.title.clone(),
@@ -382,6 +396,7 @@ pub fn collect_variable_value(
                             != resolved_type_name
                         {
                             errors.push(error::Error {
+                                path: parser.options.path.clone(),
                                 scope: parser.scope.scope_name.clone(),
                                 debug_message: "5c006da0519ff27f7847dc0670c5537c".to_string(),
                                 title: error::errorList::error_s3.title.clone(),
@@ -411,7 +426,11 @@ pub fn collect_variable_value(
                             });
                         }
                     } else {
+                        std::println!(
+                            "[ParserWarning] Working blind, type checks are not type safe ()"
+                        );
                         errors.push(error::Error {
+                            path: parser.options.path.clone(),
                             scope: parser.scope.scope_name.clone(),
                             debug_message: "b83f8d5fb3e1ff2b15a87e9b4a660b11".to_string(),
                             title: error::errorList::error_s3.title.clone(),
@@ -436,6 +455,7 @@ pub fn collect_variable_value(
 
                     if parser_clone.generic_type_exists(variable_data.data.rtype.raw_name()) {
                         errors.push(error::Error {
+                            path: parser.options.path.clone(),
                             scope: parser.scope.scope_name.clone(),
                             debug_message: "80be9cb39ebb79c531e880e04518c049".to_string(),
                             title: error::errorList::error_s27.title.clone(),
@@ -453,6 +473,7 @@ pub fn collect_variable_value(
                     .found
                 {
                     errors.push(error::Error {
+                        path: parser.options.path.clone(),
                         scope: parser.scope.scope_name.clone(),
                         debug_message: "77393c08ffe86144bded72a0dadd44c0".to_string(),
                         title: error::errorList::error_s24.title.clone(),
@@ -470,6 +491,7 @@ pub fn collect_variable_value(
                 }
             } else {
                 errors.push(error::Error {
+                    path: parser.options.path.clone(),
                     scope: parser.scope.scope_name.clone(),
                     debug_message: "92e75ed30d191729c05125cadd614010".to_string(),
                     title: error::errorList::error_s1.title.clone(),

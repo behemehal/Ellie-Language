@@ -27,6 +27,7 @@ pub fn collect_cloak(
         if letter_char == "(" && !cloak_data.child_start && is_s_n {
             if !cloak_data.comma && last_entry != 0 {
                 errors.push(error::Error {
+                    path: parser.options.path.clone(),
                     scope: "cloak_processor".to_string(),
                     debug_message: "b033bbc626c5f71b1e5139984c55acae".to_string(),
                     title: error::errorList::error_s1.title.clone(),
@@ -76,6 +77,7 @@ pub fn collect_cloak(
         } else if letter_char == "," && !cloak_data.child_start && is_s_n {
             if cloak_data.complete {
                 errors.push(error::Error {
+                    path: parser.options.path.clone(),
                     scope: "cloak_processor".to_string(),
                     debug_message: "ca06d6b5d6850ad375e270cf5e913ea1".to_string(),
                     title: error::errorList::error_s1.title.clone(),
@@ -95,6 +97,7 @@ pub fn collect_cloak(
                 });
             } else if cloak_data.comma {
                 errors.push(error::Error {
+                    path: parser.options.path.clone(),
                     scope: "cloak_processor".to_string(),
                     debug_message: "b4b0632c9ed39f490982c5c819df83f2".to_string(),
                     title: error::errorList::error_s1.title.clone(),
@@ -131,6 +134,7 @@ pub fn collect_cloak(
                             && cloak_defining.rtype[last_entry - 1].raw_name() != entry_type
                         {
                             errors.push(error::Error {
+                                path: parser.options.path.clone(),
                                 scope: parser.scope.scope_name.clone(),
                                 debug_message: "11742b6b8012f19ebf5f0d88e76359b6".to_string(),
                                 title: error::errorList::error_s3.title.clone(),
@@ -165,6 +169,7 @@ pub fn collect_cloak(
         } else if letter_char == ")" && !cloak_data.child_start && is_s_n {
             if cloak_data.comma {
                 errors.push(error::Error {
+                    path: parser.options.path.clone(),
                     scope: "cloak_processor".to_string(),
                     debug_message: "58005599f91afe3db59b6069d7c03b83".to_string(),
                     title: error::errorList::error_s1.title.clone(),
@@ -184,6 +189,7 @@ pub fn collect_cloak(
                 });
             } else if cloak_data.complete {
                 errors.push(error::Error {
+                    path: parser.options.path.clone(),
                     scope: "cloak_processor".to_string(),
                     debug_message: "bc8c963c8b417edf8772394c20c0f4a1".to_string(),
                     title: error::errorList::error_s1.title.clone(),
@@ -226,6 +232,7 @@ pub fn collect_cloak(
                             && cloak_defining.rtype[last_entry - 1].raw_name() != entry_type
                         {
                             errors.push(error::Error {
+                                path: parser.options.path.clone(),
                                 scope: parser.scope.scope_name.clone(),
                                 debug_message: "ed2db6e7d6b3d1c25c9e7f396c367c28".to_string(),
                                 title: error::errorList::error_s3.title.clone(),
@@ -663,9 +670,9 @@ pub fn collect_cloak(
                         ..Default::default()
                     },
                 },
-                types::Types::NewCall(match_cloak_data) => types::cloak_type::CloakEntry {
+                types::Types::ConstructedClass(match_cloak_data) => types::cloak_type::CloakEntry {
                     value_complete: true,
-                    value: Box::new(types::Types::NewCall(match_cloak_data)),
+                    value: Box::new(types::Types::ConstructedClass(match_cloak_data)),
                     location: defs::Cursor {
                         range_start: if cloak_data.data.collective.len() != 0
                             && !cloak_data.data.collective[last_entry - 1]
@@ -756,6 +763,7 @@ pub fn collect_cloak(
             if let definers::DefinerCollecting::Cloak(cloak_def) = itered_data.data.rtype.clone() {
                 if cloak_def.rtype.len() < cloak_data.data.collective.len() && letter_char != " " {
                     errors.push(error::Error {
+                        path: parser.options.path.clone(),
                         scope: "cloak_processor".to_string(),
                         debug_message: "ef6ca253dc5e37de2f8a32aa0bb3a58b".to_string(),
                         title: error::errorList::error_s19.title.clone(),

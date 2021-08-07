@@ -24,7 +24,8 @@ pub fn collect_reference(
         {
             if data.on_dot {
                 errors.push(error::Error {
-                    scope: "refference_processor".to_string(),
+                    path: parser.options.path.clone(),
+                    scope: "reference_processor".to_string(),
                     debug_message: "e22c23735e19d1fb8e4fb0bf115d5708".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
@@ -97,7 +98,8 @@ pub fn collect_reference(
                                 );
                         } else if letter_char != " " {
                             errors.push(error::Error {
-                                scope: "refference_processor".to_string(),
+                                path: parser.options.path.clone(),
+                                scope: "reference_processor".to_string(),
                                 debug_message: "0a316625cca267908704a5e63bc5c43d".to_string(),
                                 title: error::errorList::error_s1.title.clone(),
                                 code: error::errorList::error_s1.code,
@@ -159,6 +161,7 @@ pub fn collect_reference(
                             if letter_char == "," && is_s_n && last_entry != 0 {
                                 if functioncalldata.complete {
                                     errors.push(error::Error {
+                                        path: parser.options.path.clone(),
                                         scope: "function_call_processor".to_string(),
                                         debug_message: "2db4b8f4124945a260471da1c21591f2"
                                             .to_string(),
@@ -179,6 +182,7 @@ pub fn collect_reference(
                                     });
                                 } else if functioncalldata.comma {
                                     errors.push(error::Error {
+                                        path: parser.options.path.clone(),
                                         scope: "function_call_processor".to_string(),
                                         debug_message: "17609f94825bd20cf786d03a4287c29a"
                                             .to_string(),
@@ -415,9 +419,9 @@ pub fn collect_reference(
                                             },
                                         }
                                     }
-                                    types::Types::NewCall(match_data) => {
+                                    types::Types::ConstructedClass(match_data) => {
                                         types::function_call::FunctionCallParameter {
-                                            value: types::Types::NewCall(match_data),
+                                            value: types::Types::ConstructedClass(match_data),
                                             pos: if last_entry == 0 {
                                                 defs::Cursor::default()
                                             } else {

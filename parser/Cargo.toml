@@ -15,5 +15,6 @@ enum-as-inner = "0.3.3"
 serde_yaml = "0.8"
 
 [features]
-default = ["std"]
+default = ["std", "ellie_standard_libraries"]
 std = []
+ellie_standard_libraries = []
