@@ -166,6 +166,7 @@ impl Default for Parser {
 #[derive(Default)]
 pub struct ResolvedImport {
     pub found: bool,
+    pub resolve_error: String,
     pub file_content: Parsed,
 }
 
