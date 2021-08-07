@@ -8,6 +8,8 @@
     "C_Cpp.errorSquiggles": "Disabled",
     "cSpell.words": [
         "ellieraw",
+        "fcall",
+        "ncall",
         "rustfmt"
     ],
     "cSpell.language": "en,tr-TR",
