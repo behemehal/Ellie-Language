@@ -258,9 +258,15 @@ pub fn collect_type(
         parser.keyword_catch = String::new();
     } else if keyword == "new " {
         parser.current = parser::Collecting::Caller(caller::Caller {
-            value: types::Types::ClassCall(types::class_call::ClassCallCollector {
-                keyword_collected: true,
-                ignore_space: true,
+            value: types::Types::NewCall(types::new_call::NewCallCollector {
+                data: types::new_call::NewCall {
+                    value: Box::new(types::Types::Null),
+                    keyword_pos: defs::Cursor {
+                        range_start: parser.pos.pop_char(3),
+                        range_end: parser.pos.clone().skip_char(1),
+                    },
+                    ..Default::default()
+                },
                 ..Default::default()
             }),
             pos: defs::Cursor {

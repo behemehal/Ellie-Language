@@ -1,5 +1,11 @@
+/*
+
+    DEPRECATED
+
+*/
+
 use crate::syntax::class;
-use crate::{parser::Collecting, parser, syntax};
+use crate::{parser, parser::Collecting, syntax};
 
 use ellie_core::{defs, error, utils};
 
@@ -260,7 +266,9 @@ pub fn collect_class(
                 });
             }
         } else if class_data.brace_count == 0 && letter_char == "}" {
-            if class_data.code.current != Collecting::None || !class_data.code.keyword_catch.trim().is_empty() {
+            if class_data.code.current != Collecting::None
+                || !class_data.code.keyword_catch.trim().is_empty()
+            {
                 errors.push(error::Error {
                     scope: "definer_processor".to_string(),
                     debug_message: "replace_266".to_string(),
@@ -270,7 +278,7 @@ pub fn collect_class(
                     builded_message: error::BuildedError::build_from_string(
                         error::errorList::error_s26.message.clone(),
                     ),
-                    pos: class_data.code.keyword_pos
+                    pos: class_data.code.keyword_pos,
                 });
             }
             for i in class_data.code.collected.clone() {
@@ -324,7 +332,7 @@ pub fn collect_class(
                     {
                         errors.push(error::Error {
                             scope: parser.scope.scope_name.clone(),
-                            debug_message: "308b8c43cf79f06bacd36ca7df72f97e".to_string(),
+                            debug_message: "replace_335".to_string(),
                             title: error::errorList::error_s4.title.clone(),
                             code: error::errorList::error_s4.code,
                             message: error::errorList::error_s4.message.clone(),
@@ -372,7 +380,7 @@ pub fn collect_class(
             child_parser.current = class_data.code.current.clone();
             child_parser.keyword_catch = class_data.code.keyword_catch.clone();
             child_parser.keyword_cache = class_data.code.keyword_cache.clone();
-            
+
             let mut child_parser_errors: Vec<error::Error> = Vec::new();
             parser::iterator::iter(
                 &mut child_parser,

@@ -663,9 +663,9 @@ pub fn collect_cloak(
                         ..Default::default()
                     },
                 },
-                types::Types::ClassCall(match_cloak_data) => types::cloak_type::CloakEntry {
+                types::Types::NewCall(match_cloak_data) => types::cloak_type::CloakEntry {
                     value_complete: true,
-                    value: Box::new(types::Types::ClassCall(match_cloak_data)),
+                    value: Box::new(types::Types::NewCall(match_cloak_data)),
                     location: defs::Cursor {
                         range_start: if cloak_data.data.collective.len() != 0
                             && !cloak_data.data.collective[last_entry - 1]

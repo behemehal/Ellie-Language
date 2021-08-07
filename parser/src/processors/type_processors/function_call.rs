@@ -343,9 +343,9 @@ pub fn collect_function_caller(
                             },
                         }
                     }
-                    types::Types::ClassCall(match_data) => {
+                    types::Types::NewCall(match_data) => {
                         types::function_call::FunctionCallParameter {
-                            value: types::Types::ClassCall(match_data),
+                            value: types::Types::NewCall(match_data),
                             pos: if last_entry == 0 {
                                 defs::Cursor::default()
                             } else {

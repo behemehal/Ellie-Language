@@ -16,7 +16,7 @@ pub fn collect_class_call(
     next_char: String,
     last_char: String,
 ) {
-    if let types::Types::ClassCall(ref mut class_call_data) = itered_data.data.value {
+    if let types::Types::NewCall(ref mut class_call_data) = itered_data.data.value {
         if !class_call_data.keyword_collected {
             if class_call_data.keyword_index == 0 && letter_char != "n" {
                 class_call_data.keyword_index = 1;
@@ -343,8 +343,8 @@ pub fn collect_class_call(
                             },
                         }
                     }
-                    types::Types::ClassCall(match_data) => types::class_call::ClassCallParameter {
-                        value: types::Types::ClassCall(match_data),
+                    types::Types::NewCall(match_data) => types::class_call::ClassCallParameter {
+                        value: types::Types::NewCall(match_data),
                         pos: if last_entry == 0 {
                             defs::Cursor::default()
                         } else {

@@ -135,7 +135,7 @@ pub fn collect_value(
             next_char,
             last_char,
         ),
-        types::Types::ClassCall(_) => type_processors::class_call::collect_class_call(
+        types::Types::NewCall(_) => type_processors::new_call::collect_new_call(
             parser,
             itered_data,
             &mut errors,

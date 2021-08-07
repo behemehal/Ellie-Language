@@ -580,9 +580,9 @@ pub fn collect_array(
                         ..Default::default()
                     },
                 },
-                types::Types::ClassCall(match_data) => types::array_type::ArrayEntry {
+                types::Types::NewCall(match_data) => types::array_type::ArrayEntry {
                     value_complete: true,
-                    value: Box::new(types::Types::ClassCall(match_data)),
+                    value: Box::new(types::Types::NewCall(match_data)),
                     location: defs::Cursor {
                         range_start: if data.data.collective.len() != 0
                             && !data.data.collective[last_entry - 1].location.is_zero()
