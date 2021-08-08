@@ -219,8 +219,10 @@ pub fn read_file(file_dir: &str) -> Result<String, String> {
         Ok(mut file) => {
             let mut file_content = Vec::new();
             file.read_to_end(&mut file_content).expect("Unable to read");
-            let code_string = String::from_utf8(file_content);
-            Ok(code_string.unwrap())
+            match String::from_utf8(file_content) {
+                Ok(code_string) => Ok(code_string),
+                Err(e) => Err(e.to_string())
+            }
         }
     }
 }
