@@ -1,5 +1,5 @@
-use std::{fs::File, io::Read};
 use std::path::Path;
+use std::{fs::File, io::Read};
 extern crate path_absolutize;
 
 use crate::terminal_colors;
@@ -67,8 +67,17 @@ pub fn parse(contents: String, file_name: String) -> ellie_parser::parser::Parse
     parsed
 }
 
-pub fn resolve_import(options: ellie_core::defs::ParserOptions, lib_name: String) -> ellie_parser::parser::ResolvedImport {
-    let parent = &(Path::new(&options.path.clone()).parent().unwrap().to_str().unwrap().to_string() + "/");
+pub fn resolve_import(
+    options: ellie_core::defs::ParserOptions,
+    lib_name: String,
+) -> ellie_parser::parser::ResolvedImport {
+    let parent = &(Path::new(&options.path.clone())
+        .parent()
+        .unwrap()
+        .to_str()
+        .unwrap()
+        .to_string()
+        + "/");
     let path = parent.clone() + &lib_name;
 
     if lib_name == "ellie" {
@@ -83,7 +92,15 @@ pub fn resolve_import(options: ellie_core::defs::ParserOptions, lib_name: String
     } else {
         match read_file(Path::new(&path).absolutize().unwrap().to_str().unwrap()) {
             Ok(file) => {
-                let q = parse(file.clone(), Path::new(&path).absolutize().unwrap().to_str().unwrap().to_string());
+                let q = parse(
+                    file.clone(),
+                    Path::new(&path)
+                        .absolutize()
+                        .unwrap()
+                        .to_str()
+                        .unwrap()
+                        .to_string(),
+                );
                 ellie_parser::parser::ResolvedImport {
                     found: true,
                     file_content: q.parsed,
@@ -93,7 +110,11 @@ pub fn resolve_import(options: ellie_core::defs::ParserOptions, lib_name: String
             }
             Err(c) => ellie_parser::parser::ResolvedImport {
                 found: false,
-                resolve_error: format!("Cannot find module '{}' ({})", Path::new(&path).absolutize().unwrap().to_str().unwrap(), c),
+                resolve_error: format!(
+                    "Cannot find module '{}' ({})",
+                    Path::new(&path).absolutize().unwrap().to_str().unwrap(),
+                    c
+                ),
                 ..Default::default()
             },
         }

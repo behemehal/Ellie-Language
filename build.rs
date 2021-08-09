@@ -22,7 +22,10 @@ fn read_file(file_dir: &str) -> Result<String, String> {
     }
 }
 
-fn resolve_import(_: ellie_core::defs::ParserOptions, lib_name: String) -> ellie_parser::parser::ResolvedImport {
+fn resolve_import(
+    _: ellie_core::defs::ParserOptions,
+    lib_name: String,
+) -> ellie_parser::parser::ResolvedImport {
     std::eprintln!(
         "{}[ReadingFile]{}: {}~./lib/{}.ei{}",
         terminal_colors::get_color(terminal_colors::Colors::Magenta),

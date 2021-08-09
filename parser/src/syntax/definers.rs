@@ -198,14 +198,13 @@ impl DefinerCollecting {
             DefinerCollecting::Dynamic => true,
         }
     }
-    
+
     pub fn is_dynamic(&self) -> bool {
         match self {
             DefinerCollecting::Dynamic => true,
-            _ => false
+            _ => false,
         }
     }
-
 
     pub fn raw_name(&self) -> String {
         match self {

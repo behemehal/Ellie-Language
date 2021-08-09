@@ -113,7 +113,7 @@ impl RawParser {
     pub fn to_no_resolver_parser(self) -> Parser {
         Parser {
             scope: self.scope,
-            resolver: |_,_| ResolvedImport::default(),
+            resolver: |_, _| ResolvedImport::default(),
             code: self.code,
             options: self.options,
             collected: self.collected,
@@ -540,7 +540,9 @@ impl Parser {
                                                 errors.push(error::Error {
                                                     path: self.options.path.clone(),
                                                     scope: "function_call_processor".to_string(),
-                                                    debug_message: "cd5e55a2e9b088bbd6f453d7593d6d94".to_string(),
+                                                    debug_message:
+                                                        "cd5e55a2e9b088bbd6f453d7593d6d94"
+                                                            .to_string(),
                                                     title: error::errorList::error_s31
                                                         .title
                                                         .clone(),
@@ -564,7 +566,8 @@ impl Parser {
                                         errors.push(error::Error {
                                             path: self.options.path.clone(),
                                             scope: "function_call_processor".to_string(),
-                                            debug_message: "3a251d038a29cedb6e7ccf6937bd1ba2".to_string(),
+                                            debug_message: "3a251d038a29cedb6e7ccf6937bd1ba2"
+                                                .to_string(),
                                             title: error::errorList::error_s31.title.clone(),
                                             code: error::errorList::error_s31.code,
                                             message: error::errorList::error_s31.message.clone(),

@@ -20,8 +20,8 @@ pub fn collect_import(
                 if import_data.native {
                     panic!("Import native is not available yet");
                 } else {
-
-                    let response = (parser.resolver)(parser_clone.options, import_data.path.clone());
+                    let response =
+                        (parser.resolver)(parser_clone.options, import_data.path.clone());
                     errors.extend(response.syntax_errors);
                     if !response.found {
                         if response.resolve_error == "" {
