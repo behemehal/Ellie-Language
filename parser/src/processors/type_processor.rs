@@ -196,7 +196,7 @@ pub fn collect_type(
             errors.push(error::Error {
                 path: parser.options.path.clone(),
                 scope: "definer_processor".to_string(),
-                debug_message: "5274a93365f8bbf4b9b9648e703ffab5".to_string(),
+                debug_message: "ed217387143f0e07294b32eff7448afe".to_string(),
                 title: error::errorList::error_s1.title.clone(),
                 code: error::errorList::error_s1.code,
                 message: error::errorList::error_s1.message.clone(),

@@ -29,7 +29,7 @@ pub fn collect_cloak(
                 errors.push(error::Error {
                     path: parser.options.path.clone(),
                     scope: "cloak_processor".to_string(),
-                    debug_message: "e75d26ff941d68977462c41c8f8f9ff3".to_string(),
+                    debug_message: "1db9c99fc486086effc6c3f297d53215".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -79,7 +79,7 @@ pub fn collect_cloak(
                 errors.push(error::Error {
                     path: parser.options.path.clone(),
                     scope: "cloak_processor".to_string(),
-                    debug_message: "3128421788970e44e724d9af67d3deda".to_string(),
+                    debug_message: "4323fe779c275c5ac5c7b0edc7ae3904".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -99,7 +99,7 @@ pub fn collect_cloak(
                 errors.push(error::Error {
                     path: parser.options.path.clone(),
                     scope: "cloak_processor".to_string(),
-                    debug_message: "6a07bf433b8b04dabcd95f90425eebef".to_string(),
+                    debug_message: "f31e0ae8732ca257db99b2777fd83603".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -136,7 +136,7 @@ pub fn collect_cloak(
                             errors.push(error::Error {
                                 path: parser.options.path.clone(),
                                 scope: parser.scope.scope_name.clone(),
-                                debug_message: "efd7b9a8c5fdfa590886b1024977926b".to_string(),
+                                debug_message: "8c24c227560236d9f312cd10930a068c".to_string(),
                                 title: error::errorList::error_s3.title.clone(),
                                 code: error::errorList::error_s3.code,
                                 message: error::errorList::error_s3.message.clone(),
@@ -171,7 +171,7 @@ pub fn collect_cloak(
                 errors.push(error::Error {
                     path: parser.options.path.clone(),
                     scope: "cloak_processor".to_string(),
-                    debug_message: "00ba644a9352f6eb2207b489eeb489f6".to_string(),
+                    debug_message: "52a63d212b683fb375a11a7e781eeae6".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -191,7 +191,7 @@ pub fn collect_cloak(
                 errors.push(error::Error {
                     path: parser.options.path.clone(),
                     scope: "cloak_processor".to_string(),
-                    debug_message: "4aaf5218944371735b41f4787b6f5dad".to_string(),
+                    debug_message: "fc9fd557a1569873d36df85f6214d998".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -234,7 +234,7 @@ pub fn collect_cloak(
                             errors.push(error::Error {
                                 path: parser.options.path.clone(),
                                 scope: parser.scope.scope_name.clone(),
-                                debug_message: "5547657734ed06aca46148bcb3eeb865".to_string(),
+                                debug_message: "a722d8cd092cf0b5a4f6d53e0e93446a".to_string(),
                                 title: error::errorList::error_s3.title.clone(),
                                 code: error::errorList::error_s3.code,
                                 message: error::errorList::error_s3.message.clone(),
@@ -765,7 +765,7 @@ pub fn collect_cloak(
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
                         scope: "cloak_processor".to_string(),
-                        debug_message: "d75283bad33588c62a65d535ba9782bc".to_string(),
+                        debug_message: "66684278ab2079035e9e402be282ff07".to_string(),
                         title: error::errorList::error_s19.title.clone(),
                         code: error::errorList::error_s19.code,
                         message: error::errorList::error_s19.message.clone(),

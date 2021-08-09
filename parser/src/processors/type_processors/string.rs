@@ -28,7 +28,7 @@ pub fn collect_string(
                 errors.push(error::Error {
                     path: parser.options.path.clone(),
                     scope: "string_processor".to_string(),
-                    debug_message: "fe3822ae36cd40166a3f4fa399221d45".to_string(),
+                    debug_message: "8835138b3641c7a5c6949d1f93ef2340".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -125,7 +125,7 @@ pub fn collect_string(
             errors.push(error::Error {
                 path: parser.options.path.clone(),
                 scope: "string_processor".to_string(),
-                debug_message: "1f1fb66a8eaab97169b0c24ce2ee5e8a".to_string(),
+                debug_message: "0be58737c339442bfca7678b6c30f5ee".to_string(),
                 title: error::errorList::error_s1.title.clone(),
                 code: error::errorList::error_s1.code,
                 message: error::errorList::error_s1.message.clone(),
