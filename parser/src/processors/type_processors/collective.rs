@@ -73,7 +73,7 @@ pub fn collect_collective(
                         );
 
                         if collective_defining.key.raw_name() != entry_type
-                            && collective_defining.value.raw_name() != "dyn"
+                            && collective_defining.value.is_dynamic()
                         {
                             errors.push(error::Error {
                                 path: parser.options.path.clone(),

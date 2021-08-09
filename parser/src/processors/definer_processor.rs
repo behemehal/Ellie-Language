@@ -142,13 +142,7 @@ pub fn collect_definer(
                         bracket_inserted: true,
                         ..Default::default()
                     });
-            } else if data.rtype == "dyn"
-                && !utils::reliable_name_range(
-                    utils::ReliableNameRanges::VariableName,
-                    letter_char.to_string(),
-                )
-                .reliable
-            {
+            } else if (data.rtype.clone() + &letter_char) == "dy" {
                 *type_data = DefinerCollecting::Dynamic
             } else if letter_char != " "
                 && (last_char == " " || last_char == "\n")

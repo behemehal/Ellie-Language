@@ -91,10 +91,10 @@ pub struct RawParser {
 }
 
 impl RawParser {
-    pub fn to_parser(self, resolver: fn(String) -> ResolvedImport) -> Parser {
+    pub fn to_parser(self, resolver: fn(defs::ParserOptions, String) -> ResolvedImport) -> Parser {
         Parser {
             scope: self.scope,
-            resolver,
+            resolver: resolver,
             code: self.code,
             options: self.options,
             collected: self.collected,
@@ -113,7 +113,7 @@ impl RawParser {
     pub fn to_no_resolver_parser(self) -> Parser {
         Parser {
             scope: self.scope,
-            resolver: |_| ResolvedImport::default(),
+            resolver: |_,_| ResolvedImport::default(),
             code: self.code,
             options: self.options,
             collected: self.collected,
@@ -130,10 +130,10 @@ impl RawParser {
     }
 }
 
-#[derive(PartialEq, Debug, Clone)]
+#[derive(Clone)]
 pub struct Parser {
     pub scope: Box<scope::Scope>,
-    pub resolver: fn(String) -> ResolvedImport,
+    pub resolver: fn(defs::ParserOptions, String) -> ResolvedImport,
     pub code: String,
     pub options: defs::ParserOptions,
     pub collected: Vec<Collecting>,
@@ -152,7 +152,7 @@ impl Default for Parser {
     fn default() -> Self {
         Parser {
             scope: Box::new(scope::Scope::default()),
-            resolver: |_| ResolvedImport::default(),
+            resolver: |_, _| ResolvedImport::default(),
             code: "".to_string(),
             options: defs::ParserOptions::default(),
             collected: Vec::new(),
@@ -180,7 +180,7 @@ pub struct ResolvedImport {
 impl Parser {
     pub fn new(
         code: String,
-        resolve_import: fn(String) -> ResolvedImport,
+        resolve_import: fn(defs::ParserOptions, String) -> ResolvedImport,
         options: defs::ParserOptions,
     ) -> Self {
         Parser {

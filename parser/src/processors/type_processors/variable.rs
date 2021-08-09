@@ -93,6 +93,12 @@ pub fn collect_variable(
                         next_char,
                         last_char,
                     )
+                } else if letter_char == "[" {
+                    itered_data.data.value = types::Types::BraceReference(
+                        types::brace_reference_type::BraceReferenceCollector {
+                            ..Default::default()
+                        },
+                    );
                 } else if letter_char == "(" {
                     itered_data.data.value =
                         types::Types::FunctionCall(types::function_call::FunctionCallCollector {

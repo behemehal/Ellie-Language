@@ -8,7 +8,7 @@ mod ret_tests {
         ";
         let emulated_parser = ellie_parser::parser::Parser::new(
             code.to_string(),
-            |_| ellie_parser::parser::ResolvedImport::default(),
+            |_, _| ellie_parser::parser::ResolvedImport::default(),
             ellie_core::defs::ParserOptions::default(),
         );
         let parsed = emulated_parser.map();

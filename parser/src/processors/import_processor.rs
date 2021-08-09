@@ -12,6 +12,7 @@ pub fn collect_import(
     _next_char: String,
     _last_char: String,
 ) {
+    let parser_clone = parser.clone();
     if let parser::Collecting::Import(ref mut import_data) = parser.current {
         if letter_char != " " && letter_char != "\n" || import_data.path.is_empty() {
             import_data.pos.range_end = parser.pos;
@@ -19,7 +20,8 @@ pub fn collect_import(
                 if import_data.native {
                     panic!("Import native is not available yet");
                 } else {
-                    let response = (parser.resolver)(import_data.path.clone());
+
+                    let response = (parser.resolver)(parser_clone.options, import_data.path.clone());
                     errors.extend(response.syntax_errors);
                     if !response.found {
                         if response.resolve_error == "" {

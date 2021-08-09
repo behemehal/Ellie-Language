@@ -13,6 +13,6 @@ pub fn collect_brace_reference(
     _last_char: String,
 ) {
     if let types::Types::BraceReference(ref mut _data) = itered_data.data.value {
-        todo!("This type is not implemented");
+        
     }
 }

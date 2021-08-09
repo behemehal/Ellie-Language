@@ -81,7 +81,7 @@ pub fn collect_for(
             } else {
                 let mut child_parser = parser::Parser::new(
                     for_loop_data.inside_code_string.clone(),
-                    |_| parser::ResolvedImport::default(),
+                    |_, _| parser::ResolvedImport::default(),
                     parser.options.clone(),
                 );
                 child_parser.pos = parser.pos;

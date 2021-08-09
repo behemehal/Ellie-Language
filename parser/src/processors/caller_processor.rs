@@ -5,7 +5,7 @@ use alloc::string::String;
 use alloc::vec::Vec;
 use ellie_core::error;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Clone)]
 pub struct CollectorResponse {
     parser: parser::Parser,
     data: variable::VariableCollector,

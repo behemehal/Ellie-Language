@@ -1,10 +1,19 @@
 use std::{fs::File, io::Read};
+use std::path::Path;
+extern crate path_absolutize;
 
 use crate::terminal_colors;
 use ellie_core::{defs, error};
 use ellie_parser::parser;
+use path_absolutize::Absolutize;
 
-fn parse(contents: String, file_name: String) -> ellie_parser::parser::ParserResponse {
+pub struct EllieModuleResolver {
+    pub main_path: String,
+}
+
+impl EllieModuleResolver {}
+
+pub fn parse(contents: String, file_name: String) -> ellie_parser::parser::ParserResponse {
     std::println!(
         "{}[ParsingFile]{}: {}~{}{}",
         terminal_colors::get_color(terminal_colors::Colors::Cyan),
@@ -13,6 +22,7 @@ fn parse(contents: String, file_name: String) -> ellie_parser::parser::ParserRes
         file_name,
         terminal_colors::get_color(terminal_colors::Colors::Reset),
     );
+
     let parser = parser::Parser::new(
         contents.clone(),
         resolve_import,
@@ -57,9 +67,11 @@ fn parse(contents: String, file_name: String) -> ellie_parser::parser::ParserRes
     parsed
 }
 
-pub fn resolve_import(lib_name: String) -> ellie_parser::parser::ResolvedImport {
-    std::println!("IMPORT {:#?}", lib_name);
-    if cfg!(ellie_standard_libraries) && lib_name == "ellie" {
+pub fn resolve_import(options: ellie_core::defs::ParserOptions, lib_name: String) -> ellie_parser::parser::ResolvedImport {
+    let parent = &(Path::new(&options.path.clone()).parent().unwrap().to_str().unwrap().to_string() + "/");
+    let path = parent.clone() + &lib_name;
+
+    if lib_name == "ellie" {
         ellie_parser::parser::ResolvedImport {
             found: true,
             file_content: serde_json::from_str(
@@ -69,9 +81,9 @@ pub fn resolve_import(lib_name: String) -> ellie_parser::parser::ResolvedImport 
             ..Default::default()
         }
     } else {
-        match read_file(&lib_name.clone()) {
+        match read_file(Path::new(&path).absolutize().unwrap().to_str().unwrap()) {
             Ok(file) => {
-                let q = parse(file.clone(), lib_name);
+                let q = parse(file.clone(), Path::new(&path).absolutize().unwrap().to_str().unwrap().to_string());
                 ellie_parser::parser::ResolvedImport {
                     found: true,
                     file_content: q.parsed,
@@ -81,7 +93,7 @@ pub fn resolve_import(lib_name: String) -> ellie_parser::parser::ResolvedImport 
             }
             Err(c) => ellie_parser::parser::ResolvedImport {
                 found: false,
-                resolve_error: format!("Cannot find module '{}' ({})", lib_name, c),
+                resolve_error: format!("Cannot find module '{}' ({})", Path::new(&path).absolutize().unwrap().to_str().unwrap(), c),
                 ..Default::default()
             },
         }
@@ -221,7 +233,7 @@ pub fn read_file(file_dir: &str) -> Result<String, String> {
             file.read_to_end(&mut file_content).expect("Unable to read");
             match String::from_utf8(file_content) {
                 Ok(code_string) => Ok(code_string),
-                Err(e) => Err(e.to_string())
+                Err(e) => Err(e.to_string()),
             }
         }
     }

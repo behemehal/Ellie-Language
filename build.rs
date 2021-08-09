@@ -22,7 +22,7 @@ fn read_file(file_dir: &str) -> Result<String, String> {
     }
 }
 
-fn resolve_import(lib_name: String) -> ellie_parser::parser::ResolvedImport {
+fn resolve_import(_: ellie_core::defs::ParserOptions, lib_name: String) -> ellie_parser::parser::ResolvedImport {
     std::eprintln!(
         "{}[ReadingFile]{}: {}~./lib/{}.ei{}",
         terminal_colors::get_color(terminal_colors::Colors::Magenta),
@@ -150,8 +150,6 @@ fn main() {
                                     format!("//@version = \"{}\";\npub static ELLIE_STANDARD_LIBRARY : &str = {:#?};", lib_version, j),
                                 )
                                 .unwrap();
-
-                                panic!("Compile {} {}", lib_version, current_version);
                             }
                         } else if lib_version_number.name("version").is_some() {
                             panic!(

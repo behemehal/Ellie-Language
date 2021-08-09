@@ -23,7 +23,7 @@
     "1.0.0"
 */
 
-@version = "1.0.3"; //Changing this trigers build.rs
+@version = "1.0.4"; //Changing this triggers build.rs
 
 pub import string;
 pub import void;

@@ -42,3 +42,10 @@
     * Fix class imports
   - CLI
     * Fix eval & file code order
+
+# v3.0.2
+  - Parser v1.3.2
+    * Apply imported file error trace
+    * Support constructing classes
+  - CLI
+    * Support imported file error show
