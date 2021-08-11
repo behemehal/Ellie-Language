@@ -1,0 +1,14 @@
+name: "Ellie Test Library"
+version: "1.2.3"
+license: "MIT"
+supportedEnvironments:
+    - win
+    - linux
+    -
+containsNative: false
+dependencies:
+  - name: ellie_test_extension
+    version: "1.2.3"
+author:
+  url: "http://ellie.behemehal.net"
+  mail: "ahmetcanco@gmail.com"

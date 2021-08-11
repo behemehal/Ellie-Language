@@ -90,34 +90,43 @@ pub fn resolve_import(
             ..Default::default()
         }
     } else {
-        match read_file(Path::new(&path).absolutize().unwrap().to_str().unwrap()) {
-            Ok(file) => {
-                let q = parse(
-                    file.clone(),
-                    Path::new(&path)
-                        .absolutize()
-                        .unwrap()
-                        .to_str()
-                        .unwrap()
-                        .to_string(),
-                );
-                ellie_parser::parser::ResolvedImport {
-                    found: true,
-                    file_content: q.parsed,
-                    syntax_errors: q.syntax_errors,
-                    ..Default::default()
-                }
-            }
-            Err(c) => ellie_parser::parser::ResolvedImport {
+        if Path::new(&path).absolutize().unwrap().to_str().unwrap() == Path::new(&options.path.clone()).absolutize().unwrap().to_str().unwrap() {
+            ellie_parser::parser::ResolvedImport {
                 found: false,
-                resolve_error: format!(
-                    "Cannot find module '{}' ({})",
-                    Path::new(&path).absolutize().unwrap().to_str().unwrap(),
-                    c
-                ),
+                resolve_error: "Importing this file causes infinite loop".to_string(),
                 ..Default::default()
-            },
+            }
+        } else {
+            match read_file(Path::new(&path).absolutize().unwrap().to_str().unwrap()) {
+                Ok(file) => {
+                    let q = parse(
+                        file.clone(),
+                        Path::new(&path)
+                            .absolutize()
+                            .unwrap()
+                            .to_str()
+                            .unwrap()
+                            .to_string(),
+                    );
+                    ellie_parser::parser::ResolvedImport {
+                        found: true,
+                        file_content: q.parsed,
+                        syntax_errors: q.syntax_errors,
+                        ..Default::default()
+                    }
+                }
+                Err(c) => ellie_parser::parser::ResolvedImport {
+                    found: false,
+                    resolve_error: format!(
+                        "Cannot find module '{}' ({})",
+                        Path::new(&path).absolutize().unwrap().to_str().unwrap(),
+                        c
+                    ),
+                    ..Default::default()
+                },
+            }
         }
+
     }
 }
 

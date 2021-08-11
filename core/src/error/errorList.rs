@@ -197,4 +197,10 @@ lazy_static! {
         message: "$token".to_string(),
         ..Default::default()
     };
+    pub static ref error_s33: crate::error::Error = crate::error::Error {
+        code: 0x32,
+        title: "ImportError".to_string(),
+        message: "Cannot compile '$token'".to_string(),
+        ..Default::default()
+    };
 }

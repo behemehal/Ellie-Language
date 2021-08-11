@@ -21,8 +21,26 @@ pub fn collect_import(
                     panic!("Import native is not available yet");
                 } else {
                     let response =
-                        (parser.resolver)(parser_clone.options, import_data.path.clone());
-                    errors.extend(response.syntax_errors);
+                        (parser.resolver)(parser_clone.options.clone(), import_data.path.clone());
+                    errors.extend(response.syntax_errors.clone());
+                    if !response.syntax_errors.is_empty() {
+                        errors.push(error::Error {
+                            path: parser.options.path.clone(),
+                            scope: parser.scope.scope_name.clone(),
+                            debug_message: "427c3d4c7213dfaa46eedcf39d32fead".to_string(),
+                            title: error::errorList::error_s33.title.clone(),
+                            code: error::errorList::error_s33.code,
+                            message: error::errorList::error_s33.message.clone(),
+                            builded_message: error::Error::build(
+                                error::errorList::error_s33.message.clone(),
+                                vec![error::ErrorBuildField {
+                                    key: "token".to_string(),
+                                    value: import_data.path.clone(),
+                                }],
+                            ),
+                            pos: import_data.path_pos,
+                        });
+                    }
                     if !response.found {
                         if response.resolve_error == "" {
                             errors.push(error::Error {
@@ -61,10 +79,16 @@ pub fn collect_import(
                         }
                     } else {
                         for item in response.file_content.items {
+                            let parser_iter_clone = parser_clone.clone();
                             match item.clone() {
                                 crate::parser::Collecting::ImportItem(e) => {
                                     if e.public {
-                                        parser.collected.push(item);
+                                        if !parser_iter_clone.clone().import_exists(&e.from_path) {
+                                            parser.collected.push(item);
+                                        } else {
+                                            #[cfg(feature = "std")]
+                                            std::println!("\u{001b}[33m[ParserInfo]\u{001b}[0m: Ignore {:#?} from {}", e.from_path, parser.options.path);
+                                        }
                                     }
                                 }
                                 crate::parser::Collecting::Variable(e) => {
@@ -72,6 +96,7 @@ pub fn collect_import(
                                         parser.collected.push(
                                             crate::parser::Collecting::ImportItem(
                                                 crate::syntax::import_item::ImportItem {
+                                                    from_path: import_data.path.clone(),
                                                     item: Box::new(item),
                                                     public: import_data.public,
                                                 },
@@ -84,6 +109,7 @@ pub fn collect_import(
                                         parser.collected.push(
                                             crate::parser::Collecting::ImportItem(
                                                 crate::syntax::import_item::ImportItem {
+                                                    from_path: import_data.path.clone(),
                                                     item: Box::new(item),
                                                     public: import_data.public,
                                                 },
@@ -96,6 +122,7 @@ pub fn collect_import(
                                         parser.collected.push(
                                             crate::parser::Collecting::ImportItem(
                                                 crate::syntax::import_item::ImportItem {
+                                                    from_path: import_data.path.clone(),
                                                     item: Box::new(item),
                                                     public: import_data.public,
                                                 },
@@ -106,6 +133,7 @@ pub fn collect_import(
                                 _ => {
                                     parser.collected.push(crate::parser::Collecting::ImportItem(
                                         crate::syntax::import_item::ImportItem {
+                                            from_path: import_data.path.clone(),
                                             item: Box::new(item),
                                             public: import_data.public,
                                         },
@@ -118,7 +146,7 @@ pub fn collect_import(
                     parser.collected.push(parser.current.clone());
                     parser.current = parser::Collecting::None;
                 }
-            } else if letter_char != " " {
+            } else if letter_char != " " || (letter_char == " " && !import_data.path.is_empty()) {
                 if import_data.path.is_empty() {
                     import_data.path_pos.range_start = parser.pos;
                 }

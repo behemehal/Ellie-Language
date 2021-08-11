@@ -1,7 +1,7 @@
-import ./test.js;
+import ellie;
 
-println("pkll");
+v test : collective(dyn, dyn) = {
+    "name": "ahmet"
+};
 
-
-
-
+v name : string = test.name;

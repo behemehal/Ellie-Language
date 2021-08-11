@@ -308,17 +308,20 @@ pub fn collect_type(
         #[cfg(feature = "std")]
         std::println!("[ParserWarning]: Applying no position data to VariableType[226] will cause error showing problem in cli");
         parser.current = parser::Collecting::Caller(caller::Caller {
-            value: types::Types::Reference(types::reference_type::ReferenceType {
-                reference: Box::new(types::Types::VariableType(
-                    types::variable_type::VariableTypeCollector {
-                        value_complete: true,
-                        data: types::variable_type::VariableType {
-                            value: keyword.clone(),
+            value: types::Types::Reference(types::reference_type::ReferenceTypeCollector {
+                data: types::reference_type::ReferenceType {
+                    reference: Box::new(types::Types::VariableType(
+                        types::variable_type::VariableTypeCollector {
+                            value_complete: true,
+                            data: types::variable_type::VariableType {
+                                value: keyword.clone(),
+                                ..Default::default()
+                            },
                             ..Default::default()
                         },
-                        ..Default::default()
-                    },
-                )),
+                    )),
+                    ..Default::default()
+                },
                 on_dot: true,
                 ..Default::default()
             }),

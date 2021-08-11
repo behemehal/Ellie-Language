@@ -51,9 +51,11 @@ pub fn collect_string(
             data.value += letter_char;
         } else if letter_char == "." {
             itered_data.data.value =
-                types::Types::Reference(types::reference_type::ReferenceType {
-                    reference: Box::new(itered_data.data.value.clone()),
-                    chain: Vec::new(),
+                types::Types::Reference(types::reference_type::ReferenceTypeCollector {
+                    data: types::reference_type::ReferenceType {
+                        reference: Box::new(itered_data.data.value.clone()),
+                        chain: Vec::new(),
+                    },
                     on_dot: false,
                 });
             type_processors::reference::collect_reference(

@@ -7,39 +7,19 @@ use alloc::string::String;
 use alloc::vec::Vec;
 
 #[derive(PartialEq, Default, Debug, Clone, Serialize, Deserialize)]
-pub struct GetterChain {
-    pub value: String,
-}
-
-#[derive(PartialEq, Default, Debug, Clone, Serialize, Deserialize)]
-pub struct SetterChain {
-    pub name: String,
-    pub value: types::Types,
-    pub name_set: bool,
-}
-
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-pub enum ChainType {
-    Getter(GetterChain),
-    Setter(SetterChain),
-    FunctionCall(types::function_call::FunctionCallCollector),
-}
-
-#[derive(PartialEq, Default, Debug, Clone, Serialize, Deserialize)]
 pub struct Chain {
     pub pos: defs::Cursor,
-    pub value: ChainType,
-}
-
-impl Default for ChainType {
-    fn default() -> Self {
-        ChainType::Getter(GetterChain::default())
-    }
+    pub value: types::Types
 }
 
 #[derive(PartialEq, Default, Debug, Clone, Serialize, Deserialize)]
 pub struct ReferenceType {
     pub reference: Box<types::Types>,
-    pub on_dot: bool,
     pub chain: Vec<Chain>,
+}
+
+#[derive(PartialEq, Default, Debug, Clone, Serialize, Deserialize)]
+pub struct ReferenceTypeCollector {
+    pub data: ReferenceType,
+    pub on_dot: bool,
 }

@@ -245,12 +245,14 @@ pub fn collect_array(
                 itered_data.value_complete = true;
             }
         } else if data.complete && letter_char == "." && is_s_n {
-            itered_data.data.value =
-                types::Types::Reference(types::reference_type::ReferenceType {
+            itered_data.data.value = types::Types::Reference(types::reference_type::ReferenceTypeCollector {
+                data: types::reference_type::ReferenceType {
                     reference: Box::new(itered_data.data.value.clone()),
                     chain: Vec::new(),
-                    on_dot: false,
-                });
+                },
+                on_dot: false,
+            });
+
             type_processors::reference::collect_reference(
                 parser.clone(),
                 itered_data,

@@ -36,6 +36,20 @@ fn main() {
                 .collect::<Vec<String>>();
             let debug_arg = env::args().any(|x| x == "--debug" || x == "-d");
             let eval_code = env::args().any(|x| x == "--eval-code" || x == "-ec");
+            let ignore_errors = env::args().any(|x| x == "-i");
+
+            if ignore_errors && !File::open("./DEBUG_HEADERS.eidbg").is_ok() {
+                std::println!(
+                    "{}Cannot ignore errors, you are not in development directory{}",
+                    ellie_lang::terminal_colors::get_color(
+                        ellie_lang::terminal_colors::Colors::Red
+                    ),
+                    ellie_lang::terminal_colors::get_color(
+                        ellie_lang::terminal_colors::Colors::Reset
+                    ),
+                );
+                std::process::exit(2);
+            }
 
             //let map_errors_arg = env::args().any(|x| x == "--map-errors");
             let file_arg_check = file_args.first();
@@ -87,7 +101,7 @@ fn main() {
                                     print!("*");
                                 }
                                 for error in
-                                    &ellie_lang::cli_utils::zip_errors(mapped.syntax_errors)
+                                    &ellie_lang::cli_utils::zip_errors(mapped.syntax_errors.clone())
                                 {
                                     if env::args().any(|x| x == "-je" || x == "--json-errors") {
                                         println!(
@@ -371,8 +385,22 @@ fn main() {
                                     }
                                 }
                             }
-                            std::process::exit(1);
-                        } else if !env::args().any(|x| x == "-se" || x == "--show-errors") {
+                        }
+
+                        println!(
+                            "
+                            Show Errors: {},
+                            Errors available: {}
+                            Ignore Errors: {}
+                        ",
+                            !env::args().any(|x| x == "-se" || x == "--show-errors"),
+                            mapped.syntax_errors.clone().is_empty(),
+                            ignore_errors
+                        );
+
+                        if !env::args().any(|x| x == "-se" || x == "--show-errors")
+                            && (mapped.syntax_errors.is_empty() || ignore_errors)
+                        {
                             if env::args().any(|x| x == "-tr" || x == "--to-raw") {
                                 print!("/");
                                 for item in mapped.parsed.items {
@@ -380,9 +408,13 @@ fn main() {
                                 }
                                 std::process::exit(0);
                             } else {
-                                println!("Collected: {:#?}", mapped);
+                                print!("Collected: {:#?}", mapped.parsed.items.into_iter().filter(|x| !matches!(x, ellie_parser::parser::Collecting::ImportItem(_))));
                                 std::process::exit(0);
                             }
+                        }
+
+                        if !mapped.syntax_errors.is_empty() {
+                            std::process::exit(1);
                         }
                     }
                 }
@@ -430,7 +462,7 @@ fn main() {
                                     print!("*");
                                 }
                                 for error in
-                                    &ellie_lang::cli_utils::zip_errors(mapped.syntax_errors)
+                                    &ellie_lang::cli_utils::zip_errors(mapped.syntax_errors.clone())
                                 {
                                     if env::args().any(|x| x == "-je" || x == "--json-errors") {
                                         println!(
@@ -668,7 +700,7 @@ fn main() {
                         } else if env::args().any(|x| x == "-rw" || x == "--raw-compile") {
                             println!("Pre-compiled raw generation not supported yet {:#?}", code);
                         } else if !env::args().any(|x| x == "-se" || x == "--show-errors") {
-                            print!("Collected: {:#?}", mapped);
+                            print!("Collected: {:#?}", mapped.parsed.items.into_iter().filter(|x| !matches!(x, ellie_parser::parser::Collecting::ImportItem(_))));
                             std::process::exit(0);
                         }
                     } else {

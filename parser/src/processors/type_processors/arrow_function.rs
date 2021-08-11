@@ -450,9 +450,11 @@ pub fn collect_arrow(
             }
         } else if letter_char == "." && function_data.complete {
             itered_data.data.value =
-                types::Types::Reference(types::reference_type::ReferenceType {
-                    reference: Box::new(itered_data.data.value.clone()),
-                    chain: Vec::new(),
+                types::Types::Reference(types::reference_type::ReferenceTypeCollector {
+                    data: types::reference_type::ReferenceType {
+                        reference: Box::new(itered_data.data.value.clone()),
+                        chain: Vec::new(),
+                    },
                     on_dot: false,
                 });
             processors::type_processors::reference::collect_reference(

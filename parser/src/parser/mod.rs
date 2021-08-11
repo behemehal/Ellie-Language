@@ -1016,4 +1016,17 @@ impl Parser {
             },
         }
     }
+
+    pub fn import_exists(self, path_name: &str) -> bool {
+        let mut found = false;
+        for i in self.collected {
+            if let Collecting::ImportItem(import_item) = i {
+                if import_item.from_path == path_name {
+                    found = true;
+                    break;
+                }
+            }
+        }
+        found
+    }
 }
