@@ -35,3 +35,4 @@ extern crate ellie_parser;
 pub mod cli_utils;
 pub mod terminal_colors;
 pub mod test_utils;
+pub mod cli_constants;

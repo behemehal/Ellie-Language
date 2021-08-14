@@ -137,10 +137,13 @@ pub fn collect_float(
             itered_data.data.value =
                 types::Types::Reference(types::reference_type::ReferenceTypeCollector {
                     data: types::reference_type::ReferenceType {
+                        reference_pos: itered_data.data.value_pos,
                         reference: Box::new(itered_data.data.value.clone()),
                         chain: Vec::new(),
                     },
+                    root_available: false,
                     on_dot: false,
+                    complete: false,
                 });
             type_processors::reference::collect_reference(
                 parser,

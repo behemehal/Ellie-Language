@@ -16,7 +16,7 @@ pub fn collect_string(
     next_char: String,
     last_char: String,
 ) {
-    if let types::Types::String(ref mut data) = itered_data.data.value {
+    if let types::Types::String(ref mut string_data) = itered_data.data.value {
         if itered_data.data.dynamic {
             itered_data.data.rtype = definers::DefinerCollecting::Generic(definers::GenericType {
                 rtype: "string".to_string(),
@@ -24,7 +24,7 @@ pub fn collect_string(
         }
 
         if letter_char == "\"" && last_char != "\\" {
-            if data.complete {
+            if string_data.complete {
                 errors.push(error::Error {
                     path: parser.options.path.clone(),
                     scope: "string_processor".to_string(),
@@ -45,18 +45,29 @@ pub fn collect_string(
                     },
                 });
             } else {
-                data.complete = true;
+                string_data.data.comma_end_pos = defs::Cursor {
+                    range_start: parser.pos.clone().skip_char(1),
+                    range_end: parser.pos,
+                };
+                string_data.complete = true;
             }
-        } else if !data.complete {
-            data.value += letter_char;
+        } else if !string_data.complete {
+            if string_data.data.value.is_empty() {
+                string_data.data.value_pos.range_start = parser.pos;
+            }
+            string_data.data.value_pos.range_end = parser.pos;
+            string_data.data.value += letter_char;
         } else if letter_char == "." {
             itered_data.data.value =
                 types::Types::Reference(types::reference_type::ReferenceTypeCollector {
                     data: types::reference_type::ReferenceType {
+                        reference_pos: itered_data.data.value_pos,
                         reference: Box::new(itered_data.data.value.clone()),
                         chain: Vec::new(),
                     },
+                    root_available: false,
                     on_dot: false,
+                    complete: false,
                 });
             type_processors::reference::collect_reference(
                 parser.clone(),
@@ -71,7 +82,7 @@ pub fn collect_string(
                 &(letter_char.to_string() + &next_char),
             )
         {
-            data.complete = true;
+            string_data.complete = true;
             itered_data.data.value =
                 types::Types::Operator(types::operator_type::OperatorTypeCollector {
                     data: types::operator_type::OperatorType {
@@ -90,7 +101,7 @@ pub fn collect_string(
                 &(letter_char.to_string() + &next_char),
             )
         {
-            data.complete = true;
+            string_data.complete = true;
             itered_data.data.value =
                 types::Types::Operator(types::operator_type::OperatorTypeCollector {
                     data: types::operator_type::OperatorType {
@@ -109,7 +120,7 @@ pub fn collect_string(
                 &(letter_char.to_string() + &next_char),
             )
         {
-            data.complete = true;
+            string_data.complete = true;
             itered_data.data.value =
                 types::Types::Operator(types::operator_type::OperatorTypeCollector {
                     data: types::operator_type::OperatorType {

@@ -1,4 +1,5 @@
 use alloc::boxed::Box;
+use alloc::format;
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 use enum_as_inner::EnumAsInner;
@@ -215,6 +216,51 @@ impl DefinerCollecting {
             DefinerCollecting::Function(_) => "function".to_string(),
             DefinerCollecting::Cloak(_) => "cloak".to_string(),
             DefinerCollecting::Collective(_) => "collective".to_string(),
+            DefinerCollecting::Dynamic => "dyn".to_string(),
+        }
+    }
+
+    pub fn raw_name_with_extensions(&self) -> String {
+        match self {
+            DefinerCollecting::Array(e) => {
+                "array(".to_string()
+                    + &e.len.raw.to_string()
+                    + &",".to_string()
+                    + &*e.rtype.raw_name_with_extensions()
+                    + &")".to_string()
+            }
+            DefinerCollecting::GrowableArray(e) => {
+                "dynamicArray(".to_string()
+                    + &*e.rtype.raw_name_with_extensions().to_string()
+                    + &")".to_string()
+            }
+            DefinerCollecting::Nullable(e) => {
+                "_".to_string() + &*e.value.raw_name_with_extensions()
+            }
+            DefinerCollecting::Generic(data) => data.rtype.clone(),
+            DefinerCollecting::Function(e) => {
+                let mut params = String::new();
+                for i in &e.params {
+                    params += &format!("{},", i.raw_name_with_extensions().to_string()).to_string();
+                }
+
+                "fn(".to_string()
+                    + &params
+                    + &")::".to_string()
+                    + &*e.returning.raw_name_with_extensions().to_string()
+            }
+            DefinerCollecting::Cloak(e) => {
+                let mut params = String::new();
+                for i in &e.rtype {
+                    params += &format!("{},", i.raw_name_with_extensions()).to_string();
+                }
+                "fn(".to_string() + &params + &")".to_string()
+            }
+            DefinerCollecting::Collective(e) => format!(
+                "collective({}, {})",
+                e.key.raw_name_with_extensions(),
+                e.value.raw_name_with_extensions()
+            ),
             DefinerCollecting::Dynamic => "dyn".to_string(),
         }
     }

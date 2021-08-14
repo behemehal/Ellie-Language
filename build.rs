@@ -1,6 +1,8 @@
 use ellie_core;
 use ellie_parser::parser;
 use regex::Regex;
+use toml::Value;
+
 #[path = "src/terminal_colors.rs"]
 mod terminal_colors;
 use serde_json;
@@ -108,6 +110,43 @@ fn parse(contents: String, file_name: String) -> ellie_parser::parser::ParserRes
 }
 
 fn main() {
+    match read_file(&("./Cargo.toml".to_string())) {
+        Ok(cargo_toml) => {
+            let ellie_lang_toml = cargo_toml.parse::<Value>().unwrap();
+            //panic!("{:#?}", ellie_lang_toml);
+            let ellie_version = &ellie_lang_toml["package"]["version"];
+            let ellie_version_name = &ellie_lang_toml["package"]["version_code"];
+            let parser_version = &ellie_lang_toml["dependencies"]["ellie_parser"]["version"];
+            let runtime_version = &ellie_lang_toml["dependencies"]["ellie_runtime"]["version"];
+            let raw_version =
+                if let Some(raw_version) = &ellie_lang_toml["dependencies"].get("ellie_raw") {
+                    raw_version["version"].to_string()
+                } else {
+                    "UnPlugged".to_string()
+                };
+            let core_version = &ellie_lang_toml["dependencies"]["ellie_core"]["version"];
+
+            fs::write(
+                "./src/cli_constants.rs",
+                format!(
+                    "pub static ELLIE_VERSION: &'static str = &{};\npub static ELLIE_VERSION_NAME: &'static str = &{};\npub static ELLIE_PARSER_VERSION: &'static str = &{};\npub static ELLIE_RUNTIME_VERSION: &'static str = &{};\npub static ELLIE_RAW_VERSION: &'static str = &\"{}\";\npub static ELLIE_CORE_VERSION: &'static str = &{};\n",
+                    ellie_version,
+                    ellie_version_name,
+                    parser_version,
+                    runtime_version,
+                    raw_version,
+                    core_version),
+            )
+            .unwrap();
+        }
+        Err(_) => {
+            panic!(
+                "Failed to build ellie constants, cannot read {}Cargo.toml{}",
+                terminal_colors::get_color(terminal_colors::Colors::Yellow),
+                terminal_colors::get_color(terminal_colors::Colors::Reset),
+            )
+        }
+    }
     match read_file(&("./lib/ellie.ei".to_string())) {
         Ok(ellie_lib) => {
             match read_file(&("./core/src/builded_libraries.rs".to_string())) {

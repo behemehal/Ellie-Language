@@ -4,9 +4,12 @@ use std::env;
 use std::{fs, io::Read};
 
 fn main() {
-    if env::args().any(|x| x == "-v" || x == "--version") {
-        const VERSION: &str = env!("CARGO_PKG_VERSION");
-        println!("Ellie v{} - Code: BeautifulTropicalFish", VERSION);
+    if env::args().any(|x| x == "-v" || x == "--version" || x == "-dv" || x == "--detailed-version") {
+        if env::args().any(|x| x == "-dv" || x == "--detailed-version") {
+            println!("Ellie v{} - Code: {}\n\nParser Version: {}\nRuntime Version: {}\nEllie RawByteCode Version: {}\n", ellie_lang::cli_constants::ELLIE_VERSION, ellie_lang::cli_constants::ELLIE_VERSION_NAME, ellie_lang::cli_constants::ELLIE_PARSER_VERSION, ellie_lang::cli_constants::ELLIE_RUNTIME_VERSION, ellie_lang::cli_constants::ELLIE_RAW_VERSION);
+        } else {
+            println!("Ellie v{} - Code: {}", ellie_lang::cli_constants::ELLIE_VERSION, ellie_lang::cli_constants::ELLIE_VERSION_NAME);
+        }
     } else if env::args().any(|x| x == "-h" || x == "--help") {
         println!("Usage: ellie [options] [file path | code]");
         println!("Options:");
@@ -386,17 +389,6 @@ fn main() {
                                 }
                             }
                         }
-
-                        println!(
-                            "
-                            Show Errors: {},
-                            Errors available: {}
-                            Ignore Errors: {}
-                        ",
-                            !env::args().any(|x| x == "-se" || x == "--show-errors"),
-                            mapped.syntax_errors.clone().is_empty(),
-                            ignore_errors
-                        );
 
                         if !env::args().any(|x| x == "-se" || x == "--show-errors")
                             && (mapped.syntax_errors.is_empty() || ignore_errors)

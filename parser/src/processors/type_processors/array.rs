@@ -247,10 +247,13 @@ pub fn collect_array(
         } else if data.complete && letter_char == "." && is_s_n {
             itered_data.data.value = types::Types::Reference(types::reference_type::ReferenceTypeCollector {
                 data: types::reference_type::ReferenceType {
+                    reference_pos: itered_data.data.value_pos,
                     reference: Box::new(itered_data.data.value.clone()),
                     chain: Vec::new(),
                 },
+                root_available: false,
                 on_dot: false,
+                complete: false,
             });
 
             type_processors::reference::collect_reference(

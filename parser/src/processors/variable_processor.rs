@@ -10,7 +10,7 @@ use alloc::vec::Vec;
 #[derive(Clone)]
 pub struct CollectorResponse {
     parser: parser::Parser,
-    data: variable::VariableCollector,
+    data: crate::parser::Collecting,
 }
 
 pub fn collect_variable_value(

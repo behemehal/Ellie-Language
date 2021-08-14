@@ -28,7 +28,7 @@ pub enum Types {
     Integer(integer_type::IntegerTypeCollector),
     Float(float_type::FloatTypeCollector),
     Bool(bool_type::BoolType),
-    String(string_type::StringType),
+    String(string_type::StringTypeCollector),
     Char(char_type::CharType),
     Collective(collective_type::CollectiveCollector),
     Reference(reference_type::ReferenceTypeCollector),
@@ -99,7 +99,7 @@ impl Types {
             Types::String(data) => data.complete,
             Types::Char(data) => data.complete,
             Types::Collective(e) => e.complete,
-            Types::Reference(data) => !data.on_dot,
+            Types::Reference(data) => !data.on_dot && data.complete,
             Types::BraceReference(_) => {
                 panic!("NOT IMPLEMENTED");
             }

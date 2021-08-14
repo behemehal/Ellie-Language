@@ -33,7 +33,16 @@ pub fn collect_null(
                         });
                 }
                 itered_data.data.value =
-                    types::Types::String(types::string_type::StringType::default());
+                    types::Types::String(types::string_type::StringTypeCollector {
+                        data: types::string_type::StringType {
+                            comma_start_pos: defs::Cursor {
+                                range_start: parser.pos.clone().pop_char(1),
+                                range_end: parser.pos
+                            },
+                            ..Default::default()
+                        },
+                        ..Default::default()
+                    });
             } else if letter_char == "'" {
                 if itered_data.data.dynamic {
                     itered_data.data.rtype =
