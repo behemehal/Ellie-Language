@@ -90,7 +90,13 @@ pub fn resolve_import(
             ..Default::default()
         }
     } else {
-        if Path::new(&path).absolutize().unwrap().to_str().unwrap() == Path::new(&options.path.clone()).absolutize().unwrap().to_str().unwrap() {
+        if Path::new(&path).absolutize().unwrap().to_str().unwrap()
+            == Path::new(&options.path.clone())
+                .absolutize()
+                .unwrap()
+                .to_str()
+                .unwrap()
+        {
             ellie_parser::parser::ResolvedImport {
                 found: false,
                 resolve_error: "Importing this file causes infinite loop".to_string(),
@@ -126,7 +132,6 @@ pub fn resolve_import(
                 },
             }
         }
-
     }
 }
 

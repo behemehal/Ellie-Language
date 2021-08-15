@@ -32,7 +32,7 @@ pub fn collect_bool(
             }
         } else if letter_char == "." {
             itered_data.data.value =
-            types::Types::Reference(types::reference_type::ReferenceTypeCollector {
+                types::Types::Reference(types::reference_type::ReferenceTypeCollector {
                     data: types::reference_type::ReferenceType {
                         reference_pos: itered_data.data.value_pos,
                         reference: Box::new(itered_data.data.value.clone()),

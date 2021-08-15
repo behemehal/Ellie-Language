@@ -76,7 +76,12 @@ pub fn collect_variable(
                         } else {
                             match found_target.found_type {
                                 parser::NameCheckResponseType::Variable(variable_type) => {
-                                    if !itered_data_clone.clone().data.rtype.same_as(variable_type.data.rtype.clone()) {
+                                    if !itered_data_clone
+                                        .clone()
+                                        .data
+                                        .rtype
+                                        .same_as(variable_type.data.rtype.clone())
+                                    {
                                         errors.push(error::Error {
                                             path: parser.options.path.clone(),
                                             scope: parser.scope.scope_name.clone(),
@@ -90,11 +95,17 @@ pub fn collect_variable(
                                                 vec![
                                                     error::ErrorBuildField {
                                                         key: "token1".to_string(),
-                                                        value: itered_data.data.rtype.raw_name_with_extensions(),
+                                                        value: itered_data
+                                                            .data
+                                                            .rtype
+                                                            .raw_name_with_extensions(),
                                                     },
                                                     error::ErrorBuildField {
                                                         key: "token2".to_string(),
-                                                        value: variable_type.data.rtype.raw_name_with_extensions()
+                                                        value: variable_type
+                                                            .data
+                                                            .rtype
+                                                            .raw_name_with_extensions(),
                                                     },
                                                 ],
                                             ),

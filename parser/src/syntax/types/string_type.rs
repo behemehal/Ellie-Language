@@ -1,6 +1,6 @@
 use alloc::string::String;
-use serde::{Deserialize, Serialize};
 use ellie_core::defs;
+use serde::{Deserialize, Serialize};
 
 #[derive(PartialEq, Default, Debug, Clone, Serialize, Deserialize)]
 pub struct StringType {
@@ -9,7 +9,6 @@ pub struct StringType {
     pub comma_end_pos: defs::Cursor,
     pub value_pos: defs::Cursor,
 }
-
 
 #[derive(PartialEq, Default, Debug, Clone, Serialize, Deserialize)]
 pub struct StringTypeCollector {

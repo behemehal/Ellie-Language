@@ -37,7 +37,7 @@ pub fn collect_null(
                         data: types::string_type::StringType {
                             comma_start_pos: defs::Cursor {
                                 range_start: parser.pos.clone().pop_char(1),
-                                range_end: parser.pos
+                                range_end: parser.pos,
                             },
                             ..Default::default()
                         },

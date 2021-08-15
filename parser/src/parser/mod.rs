@@ -472,19 +472,18 @@ impl Parser {
 
     pub fn resolve_reference_call(
         self,
-        reference_data: types::reference_type::ReferenceType
+        reference_data: types::reference_type::ReferenceType,
     ) -> Option<Vec<ellie_core::error::Error>> {
         let mut errors = Vec::new();
         let deep_scan = self.resolve_deep_call(*reference_data.reference.clone());
         match deep_scan {
             DeepCallResponse::TypeResponse(type_response) => {
                 std::println!("TYPE RESPONSE {:#?}", type_response);
-            },
+            }
             DeepCallResponse::ElementResponse(element_response) => {
                 std::println!("ELEMENT RESPONSE {:#?}", element_response);
-                
-            },
-            _ => panic!("This should have not been called")
+            }
+            _ => panic!("This should have not been called"),
         };
 
         if !errors.is_empty() {

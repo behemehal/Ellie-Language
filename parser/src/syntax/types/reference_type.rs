@@ -9,7 +9,7 @@ use alloc::vec::Vec;
 #[derive(PartialEq, Default, Debug, Clone, Serialize, Deserialize)]
 pub struct Chain {
     pub pos: defs::Cursor,
-    pub value: types::Types
+    pub value: types::Types,
 }
 
 #[derive(PartialEq, Default, Debug, Clone, Serialize, Deserialize)]
@@ -24,5 +24,5 @@ pub struct ReferenceTypeCollector {
     pub data: ReferenceType,
     pub on_dot: bool,
     pub root_available: bool,
-    pub complete: bool
+    pub complete: bool,
 }

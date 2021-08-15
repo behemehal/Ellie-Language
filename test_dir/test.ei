@@ -9,4 +9,4 @@ v test : collective(string, string) = {
 v test_tr : collective(string, string) = test;
 
 
-v testc : string = test_tr.ahmet;
+v testc : string = test_tr.ahmet
