@@ -32,7 +32,6 @@ pub enum Types {
     Char(char_type::CharType),
     Collective(collective_type::CollectiveCollector),
     Reference(reference_type::ReferenceTypeCollector),
-    BraceReference(brace_reference_type::BraceReferenceCollector),
     Operator(operator_type::OperatorTypeCollector),
     Cloak(cloak_type::CloakTypeCollector),
     Array(array_type::ArrayTypeCollector),
