@@ -3,7 +3,12 @@ mod string_tests {
 
     #[test]
     fn string_collected_with_no_error() {
-        let emulated_parser = ellie_parser::parser::Parser::default();
+        let emulated_parser = ellie_parser::parser::Parser::new(
+            "".to_string(),
+            |_, _| ellie_parser::parser::ResolvedImport::default(),
+            |_| {},
+            ellie_core::defs::ParserOptions::default(),
+        );
         let mut emulated_collector_data =
             ellie_parser::syntax::variable::VariableCollector::default();
         let mut syntax_errors = vec![];
@@ -41,14 +46,19 @@ mod string_tests {
         assert!(emulated_collector_data.data.value.is_string());
         assert!(emulated_collector_data.data.value.is_type_complete());
         assert!(
-            matches!(emulated_collector_data.data.value, ellie_parser::syntax::types::Types::String(x) if x.value == "test")
+            matches!(emulated_collector_data.data.value, ellie_parser::syntax::types::Types::String(x) if x.data.value == "test")
         );
     }
 
     /*
     #[test]
     fn string_prototype_collected() {
-        let emulated_parser = ellie_parser::parser::Parser::default();
+        let emulated_parser = ellie_parser::parser::Parser::new(
+        "".to_string(),
+        |_, _| ellie_parser::parser::ResolvedImport::default(),
+        |_| {},
+        ellie_core::defs::ParserOptions::default(),
+    );
         let mut emulated_collector_data =
             ellie_parser::syntax::variable::VariableCollector::default();
         let mut syntax_errors = vec![];
@@ -90,7 +100,12 @@ mod string_tests {
 
     #[test]
     fn string_operators_collected() {
-        let emulated_parser = ellie_parser::parser::Parser::default();
+        let emulated_parser = ellie_parser::parser::Parser::new(
+            "".to_string(),
+            |_, _| ellie_parser::parser::ResolvedImport::default(),
+            |_| {},
+            ellie_core::defs::ParserOptions::default(),
+        );
         let mut emulated_collector_data =
             ellie_parser::syntax::variable::VariableCollector::default();
         let mut syntax_errors = vec![];

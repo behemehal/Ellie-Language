@@ -9,14 +9,16 @@ use alloc::string::{String, ToString};
 use alloc::vec;
 use alloc::vec::Vec;
 
-pub fn collect_arrow(
-    parser: parser::Parser,
+pub fn collect_arrow<F>(
+    parser: parser::Parser<F>,
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     next_char: String,
     last_char: String,
-) {
+) where
+    F: FnMut(ellie_core::com::Message) + Clone + Sized,
+{
     if let types::Types::ArrowFunction(ref mut function_data) = itered_data.data.value {
         if itered_data.data.dynamic {
             itered_data.data.rtype =

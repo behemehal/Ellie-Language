@@ -8,14 +8,16 @@ use alloc::string::{String, ToString};
 use alloc::vec;
 use alloc::vec::Vec;
 
-pub fn collect_string(
-    parser: parser::Parser,
+pub fn collect_string<F>(
+    parser: parser::Parser<F>,
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     next_char: String,
     last_char: String,
-) {
+) where
+    F: FnMut(ellie_core::com::Message) + core::clone::Clone,
+{
     if let types::Types::String(ref mut string_data) = itered_data.data.value {
         if itered_data.data.dynamic {
             itered_data.data.rtype = definers::DefinerCollecting::Generic(definers::GenericType {

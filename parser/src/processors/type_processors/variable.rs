@@ -9,14 +9,16 @@ use alloc::string::{String, ToString};
 use alloc::vec;
 use alloc::vec::Vec;
 
-pub fn collect_variable(
-    parser: parser::Parser,
+pub fn collect_variable<F>(
+    parser: parser::Parser<F>,
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     next_char: String,
     last_char: String,
-) {
+) where
+    F: FnMut(ellie_core::com::Message) + Clone + Sized,
+{
     let parser_clone = parser.clone();
     let itered_data_clone = itered_data.clone();
     if let types::Types::VariableType(ref mut variable_data) = itered_data.data.value {
@@ -166,12 +168,6 @@ pub fn collect_variable(
                         next_char,
                         last_char,
                     )
-                } else if letter_char == "[" {
-                    itered_data.data.value = types::Types::BraceReference(
-                        types::brace_reference_type::BraceReferenceCollector {
-                            ..Default::default()
-                        },
-                    );
                 } else if letter_char == "(" {
                     itered_data.data.value =
                         types::Types::FunctionCall(types::function_call::FunctionCallCollector {

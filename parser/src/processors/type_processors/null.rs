@@ -7,14 +7,16 @@ use alloc::boxed::Box;
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 
-pub fn collect_null(
-    parser: parser::Parser,
+pub fn collect_null<F>(
+    parser: parser::Parser<F>,
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     next_char: String,
     last_char: String,
-) {
+) where
+    F: FnMut(ellie_core::com::Message) + Clone + Sized,
+{
     if let types::Types::Null = itered_data.data.value {
         //let is_num = itered_data.raw_value.parse::<usize>().is_ok();
         if itered_data.raw_value.is_empty() {

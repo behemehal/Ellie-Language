@@ -11,14 +11,16 @@ use crate::syntax::types::collective_type;
 
 use ellie_core::error;
 
-pub fn collect_collective(
-    parser: parser::Parser,
+pub fn collect_collective<F>(
+    parser: parser::Parser<F>,
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     next_char: String,
     last_char: String,
-) {
+) where
+    F: FnMut(ellie_core::com::Message) + Clone + Sized,
+{
     let clone_parser = parser.clone();
     if let types::Types::Collective(ref mut collective_data) = itered_data.data.value {
         let mut last_entry_ind = collective_data.data.entries.len(); //Get the last entry

@@ -5,13 +5,15 @@ use crate::parser;
 use alloc::boxed::Box;
 use ellie_core::{defs, error};
 
-pub fn collect_import(
-    parser: &mut parser::Parser,
+pub fn collect_import<F>(
+    parser: &mut parser::Parser<F>,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     _next_char: String,
     _last_char: String,
-) {
+) where
+    F: FnMut(ellie_core::com::Message) + Clone + Sized,
+{
     let parser_clone = parser.clone();
     if let parser::Collecting::Import(ref mut import_data) = parser.current {
         if letter_char != " " && letter_char != "\n" || import_data.path.is_empty() {
@@ -20,27 +22,17 @@ pub fn collect_import(
                 if import_data.native {
                     panic!("Import native is not available yet");
                 } else {
+                    let import_resolve_chain_id = ellie_core::utils::generate_hash();
+                    (parser.emit_message)(ellie_core::com::Message {
+                        id: import_resolve_chain_id.clone(),
+                        message_type: ellie_core::com::MessageType::ParserImportItem,
+                        from: parser.options.path.clone(),
+                        from_chain: None,
+                        message_data: alloc::format!("{:?}", parser.pos.clone()),
+                    });
                     let response =
                         (parser.resolver)(parser_clone.options.clone(), import_data.path.clone());
-                    errors.extend(response.syntax_errors.clone());
-                    if !response.syntax_errors.is_empty() {
-                        errors.push(error::Error {
-                            path: parser.options.path.clone(),
-                            scope: parser.scope.scope_name.clone(),
-                            debug_message: "427c3d4c7213dfaa46eedcf39d32fead".to_string(),
-                            title: error::errorList::error_s33.title.clone(),
-                            code: error::errorList::error_s33.code,
-                            message: error::errorList::error_s33.message.clone(),
-                            builded_message: error::Error::build(
-                                error::errorList::error_s33.message.clone(),
-                                vec![error::ErrorBuildField {
-                                    key: "token".to_string(),
-                                    value: import_data.path.clone(),
-                                }],
-                            ),
-                            pos: import_data.path_pos,
-                        });
-                    }
+
                     if !response.found {
                         if response.resolve_error == "" {
                             errors.push(error::Error {
@@ -78,21 +70,90 @@ pub fn collect_import(
                             });
                         }
                     } else {
-                        for item in response.file_content.items {
-                            let parser_iter_clone = parser_clone.clone();
-                            match item.clone() {
-                                crate::parser::Collecting::ImportItem(e) => {
-                                    if e.public {
-                                        if !parser_iter_clone.clone().import_exists(&e.from_path) {
-                                            parser.collected.push(item);
-                                        } else {
-                                            #[cfg(feature = "std")]
-                                            std::println!("\u{001b}[33m[ParserInfo]\u{001b}[0m: Ignore {:#?} from {}", e.from_path, parser.options.path);
+                        (parser.emit_message)(ellie_core::com::Message {
+                            id: ellie_core::utils::generate_hash(),
+                            message_type: ellie_core::com::MessageType::ParserImportItem,
+                            from: parser.options.path.clone(),
+                            from_chain: Some(import_resolve_chain_id),
+                            message_data: alloc::format!("{:?}", parser.pos.clone()),
+                        });
+                        let inner_parser = parser_clone.clone().read_module(response.file_content);
+
+                        if !inner_parser.syntax_errors.is_empty() {
+                            errors.extend(inner_parser.syntax_errors);
+                            errors.push(error::Error {
+                                path: parser.options.path.clone(),
+                                scope: parser.scope.scope_name.clone(),
+                                debug_message: "427c3d4c7213dfaa46eedcf39d32fead".to_string(),
+                                title: error::errorList::error_s33.title.clone(),
+                                code: error::errorList::error_s33.code,
+                                message: error::errorList::error_s33.message.clone(),
+                                builded_message: error::Error::build(
+                                    error::errorList::error_s33.message.clone(),
+                                    vec![error::ErrorBuildField {
+                                        key: "token".to_string(),
+                                        value: import_data.path.clone(),
+                                    }],
+                                ),
+                                pos: import_data.path_pos,
+                            });
+                        } else {
+                            for item in inner_parser.parsed.items {
+                                let parser_iter_clone = parser_clone.clone();
+                                match item.clone() {
+                                    crate::parser::Collecting::ImportItem(e) => {
+                                        if e.public {
+                                            if !parser_iter_clone
+                                                .clone()
+                                                .import_exists(&e.from_path)
+                                            {
+                                                parser.collected.push(item);
+                                            } else {
+                                                #[cfg(feature = "std")]
+                                                std::println!("\u{001b}[33m[ParserInfo]\u{001b}[0m: Ignore {:#?} from {}", e.from_path, parser.options.path);
+                                            }
                                         }
                                     }
-                                }
-                                crate::parser::Collecting::Variable(e) => {
-                                    if e.data.public {
+                                    crate::parser::Collecting::Variable(e) => {
+                                        if e.data.public {
+                                            parser.collected.push(
+                                                crate::parser::Collecting::ImportItem(
+                                                    crate::syntax::import_item::ImportItem {
+                                                        from_path: import_data.path.clone(),
+                                                        item: Box::new(item),
+                                                        public: import_data.public,
+                                                    },
+                                                ),
+                                            );
+                                        }
+                                    }
+                                    crate::parser::Collecting::Function(e) => {
+                                        if e.data.public {
+                                            parser.collected.push(
+                                                crate::parser::Collecting::ImportItem(
+                                                    crate::syntax::import_item::ImportItem {
+                                                        from_path: import_data.path.clone(),
+                                                        item: Box::new(item),
+                                                        public: import_data.public,
+                                                    },
+                                                ),
+                                            );
+                                        }
+                                    }
+                                    crate::parser::Collecting::Class(e) => {
+                                        if e.data.public {
+                                            parser.collected.push(
+                                                crate::parser::Collecting::ImportItem(
+                                                    crate::syntax::import_item::ImportItem {
+                                                        from_path: import_data.path.clone(),
+                                                        item: Box::new(item),
+                                                        public: import_data.public,
+                                                    },
+                                                ),
+                                            );
+                                        }
+                                    }
+                                    _ => {
                                         parser.collected.push(
                                             crate::parser::Collecting::ImportItem(
                                                 crate::syntax::import_item::ImportItem {
@@ -103,41 +164,6 @@ pub fn collect_import(
                                             ),
                                         );
                                     }
-                                }
-                                crate::parser::Collecting::Function(e) => {
-                                    if e.data.public {
-                                        parser.collected.push(
-                                            crate::parser::Collecting::ImportItem(
-                                                crate::syntax::import_item::ImportItem {
-                                                    from_path: import_data.path.clone(),
-                                                    item: Box::new(item),
-                                                    public: import_data.public,
-                                                },
-                                            ),
-                                        );
-                                    }
-                                }
-                                crate::parser::Collecting::Class(e) => {
-                                    if e.data.public {
-                                        parser.collected.push(
-                                            crate::parser::Collecting::ImportItem(
-                                                crate::syntax::import_item::ImportItem {
-                                                    from_path: import_data.path.clone(),
-                                                    item: Box::new(item),
-                                                    public: import_data.public,
-                                                },
-                                            ),
-                                        );
-                                    }
-                                }
-                                _ => {
-                                    parser.collected.push(crate::parser::Collecting::ImportItem(
-                                        crate::syntax::import_item::ImportItem {
-                                            from_path: import_data.path.clone(),
-                                            item: Box::new(item),
-                                            public: import_data.public,
-                                        },
-                                    ));
                                 }
                             }
                         }

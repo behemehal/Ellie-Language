@@ -17,3 +17,4 @@ serde_yaml = "0.8"
 [features]
 default = ["std"]
 std = []
+integrity_com = []

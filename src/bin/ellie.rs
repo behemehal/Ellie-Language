@@ -24,8 +24,9 @@ fn main() {
         println!("\t--to-raw                     || -tr  : Compiles ellie to ellie raw");
         println!("\t--show-errors                || -se  : Linter code for errors");
         println!("\t--json-errors                || -je  : Linter code for errors as json");
-        println!("\t--eval-code                  || -ec  : Eval code from parameters");
+        println!("\t--eval-code                  || -ec  : Evaluate code from parameters");
         println!("\t--parser-ws                  || -pw  : Visualize parsing process");
+        println!("\t--parser-messages            || -pm  : Show parser messages");
     } else {
         let args = env::args()
             .collect::<Vec<String>>()
@@ -71,9 +72,54 @@ fn main() {
                     if code_string.is_err() {
                         println!("Unable to read file ~{}", file_arg.clone())
                     } else if let Ok(code) = code_string {
+                        if env::args().any(|x| x == "--parser-messages" || x == "-pm") {
+                            println!("{}[Warning]{}: Parser messages arg applied to runtime, this will reduce performance",
+                                ellie_lang::terminal_colors::get_color(
+                                    ellie_lang::terminal_colors::Colors::Yellow
+                                ),
+                                ellie_lang::terminal_colors::get_color(
+                                    ellie_lang::terminal_colors::Colors::Reset
+                                ),
+                            );
+                        }
+
                         let mut parser = parser::Parser::new(
                             code.clone(),
                             ellie_lang::cli_utils::resolve_import,
+                            |e| {
+                                if env::args().any(|x| x == "--parser-messages" || x == "-pm") {
+                                    println!(
+                                        "{}[{}]{} {}[Parser Message]{}: {}[{:?}]{} - {}{}{}",
+                                        ellie_lang::terminal_colors::get_color(
+                                            ellie_lang::terminal_colors::Colors::Yellow
+                                        ),
+                                        e.id,
+                                        ellie_lang::terminal_colors::get_color(
+                                            ellie_lang::terminal_colors::Colors::Reset
+                                        ),
+                                        ellie_lang::terminal_colors::get_color(
+                                            ellie_lang::terminal_colors::Colors::Magenta
+                                        ),
+                                        ellie_lang::terminal_colors::get_color(
+                                            ellie_lang::terminal_colors::Colors::Reset
+                                        ),
+                                        ellie_lang::terminal_colors::get_color(
+                                            ellie_lang::terminal_colors::Colors::Red
+                                        ),
+                                        e.message_type,
+                                        ellie_lang::terminal_colors::get_color(
+                                            ellie_lang::terminal_colors::Colors::Reset
+                                        ),
+                                        ellie_lang::terminal_colors::get_color(
+                                            ellie_lang::terminal_colors::Colors::Yellow
+                                        ),
+                                        e.message_data,
+                                        ellie_lang::terminal_colors::get_color(
+                                            ellie_lang::terminal_colors::Colors::Reset
+                                        ),
+                                    )
+                                }
+                            },
                             ellie_core::defs::ParserOptions {
                                 path: file_arg.to_string(),
                                 functions: true,
@@ -319,9 +365,54 @@ fn main() {
                         let code_vec: Vec<String> = env::args().skip(code_pos).collect(); //.nth(code_pos).unwrap();
                         let code = ellie_lang::cli_utils::clean_up_escape(code_vec.join(" "));
 
+                        if env::args().any(|x| x == "--parser-messages" || x == "-pm") {
+                            println!("{}[Warning]{}: Parser messages arg applied to runtime, this will reduce performance",
+                                ellie_lang::terminal_colors::get_color(
+                                    ellie_lang::terminal_colors::Colors::Yellow
+                                ),
+                                ellie_lang::terminal_colors::get_color(
+                                    ellie_lang::terminal_colors::Colors::Reset
+                                ),
+                            );
+                        }
+
                         let parser = parser::Parser::new(
                             code.clone(),
                             ellie_lang::cli_utils::resolve_import,
+                            |e| {
+                                if env::args().any(|x| x == "--parser-messages" || x == "-pm") {
+                                    println!(
+                                        "{}[{}]{} {}[Parser Message]{}: {}[{:?}]{} - {}{}{}",
+                                        ellie_lang::terminal_colors::get_color(
+                                            ellie_lang::terminal_colors::Colors::Yellow
+                                        ),
+                                        e.id,
+                                        ellie_lang::terminal_colors::get_color(
+                                            ellie_lang::terminal_colors::Colors::Reset
+                                        ),
+                                        ellie_lang::terminal_colors::get_color(
+                                            ellie_lang::terminal_colors::Colors::Magenta
+                                        ),
+                                        ellie_lang::terminal_colors::get_color(
+                                            ellie_lang::terminal_colors::Colors::Reset
+                                        ),
+                                        ellie_lang::terminal_colors::get_color(
+                                            ellie_lang::terminal_colors::Colors::Red
+                                        ),
+                                        e.message_type,
+                                        ellie_lang::terminal_colors::get_color(
+                                            ellie_lang::terminal_colors::Colors::Reset
+                                        ),
+                                        ellie_lang::terminal_colors::get_color(
+                                            ellie_lang::terminal_colors::Colors::Yellow
+                                        ),
+                                        e.message_data,
+                                        ellie_lang::terminal_colors::get_color(
+                                            ellie_lang::terminal_colors::Colors::Reset
+                                        ),
+                                    )
+                                }
+                            },
                             ellie_core::defs::ParserOptions {
                                 path: "<eval>".to_string(),
                                 functions: true,

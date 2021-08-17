@@ -9,13 +9,15 @@ use alloc::vec;
 use alloc::vec::Vec;
 use ellie_core::{defs, error, utils};
 
-pub fn collect_type(
-    parser: &mut parser::Parser,
+pub fn collect_type<F>(
+    parser: &mut parser::Parser<F>,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     last_char: String,
     next_char: String,
-) {
+) where
+    F: FnMut(ellie_core::com::Message) + Clone + Sized,
+{
     let keyword = utils::trim_good(parser.keyword_catch.trim_start().to_string()); //one step next
 
     if (letter_char == "*" && last_char == "/") && !parser.on_comment && !parser.on_line_comment {

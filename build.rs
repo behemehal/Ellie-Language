@@ -39,7 +39,7 @@ fn resolve_import(
     match read_file(&("./lib/".to_string() + &lib_name + &".ei".to_string())) {
         Ok(e) => ellie_parser::parser::ResolvedImport {
             found: true,
-            file_content: parse(e, lib_name).parsed,
+            //file_content: parse(e, lib_name).parsed,
             ..Default::default()
         },
         Err(err) => {
@@ -68,6 +68,7 @@ fn parse(contents: String, file_name: String) -> ellie_parser::parser::ParserRes
     let parser = parser::Parser::new(
         contents.clone(),
         resolve_import,
+        |_| {},
         ellie_core::defs::ParserOptions {
             path: "./lib/".to_string() + &file_name.to_string(),
             functions: true,
@@ -117,7 +118,7 @@ fn main() {
             let ellie_version = &ellie_lang_toml["package"]["version"];
             let ellie_version_name = &ellie_lang_toml["package"]["version_code"];
             let parser_version = &ellie_lang_toml["dependencies"]["ellie_parser"]["version"];
-            let runtime_version = &ellie_lang_toml["dependencies"]["ellie_runtime"]["version"];
+            let runtime_version = &ellie_lang_toml["dependencies"]["ellie_runtime"]["version"]; 
             let raw_version =
                 if let Some(raw_version) = &ellie_lang_toml["dependencies"].get("ellie_raw") {
                     raw_version["version"].to_string()
@@ -147,6 +148,7 @@ fn main() {
             )
         }
     }
+    /*
     match read_file(&("./lib/ellie.ei".to_string())) {
         Ok(ellie_lib) => {
             match read_file(&("./core/src/builded_libraries.rs".to_string())) {
@@ -247,4 +249,5 @@ fn main() {
             );
         }
     }
+    */
 }

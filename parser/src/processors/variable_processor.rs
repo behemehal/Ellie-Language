@@ -8,18 +8,20 @@ use alloc::vec;
 use alloc::vec::Vec;
 
 #[derive(Clone)]
-pub struct CollectorResponse {
-    parser: parser::Parser,
+pub struct CollectorResponse<F> {
+    parser: parser::Parser<F>,
     data: crate::parser::Collecting,
 }
 
-pub fn collect_variable_value(
-    parser: &mut parser::Parser,
+pub fn collect_variable_value<F>(
+    parser: &mut parser::Parser<F>,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     next_char: String,
     last_char: String,
-) {
+) where
+    F: FnMut(ellie_core::com::Message) + Clone + Sized,
+{
     let parser_clone = parser.clone();
     if let parser::Collecting::Variable(ref mut variable_data) = parser.current {
         if !variable_data.named {

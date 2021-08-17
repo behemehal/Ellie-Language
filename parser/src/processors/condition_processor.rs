@@ -7,13 +7,15 @@ use alloc::boxed::Box;
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 
-pub fn collect_condition(
-    parser: &mut parser::Parser,
+pub fn collect_condition<F>(
+    parser: &mut parser::Parser<F>,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     next_char: String,
     last_char: String,
-) {
+) where
+    F: FnMut(ellie_core::com::Message) + Clone + Sized,
+{
     let parser_clone = parser.clone();
     if let parser::Collecting::Condition(ref mut data) = parser.current {
         if !data.initialized {
@@ -63,6 +65,7 @@ pub fn collect_condition(
                 let mut child_parser = parser::Parser::new(
                     data.inside_code_string.clone(),
                     |_, _| parser::ResolvedImport::default(),
+                    parser.emit_message.clone(),
                     parser.options.clone(),
                 );
                 child_parser.pos = parser.pos;

@@ -8,14 +8,16 @@ use alloc::string::{String, ToString};
 use alloc::vec;
 use alloc::vec::Vec;
 
-pub fn collect_operator(
-    parser: parser::Parser,
+pub fn collect_operator<F>(
+    parser: parser::Parser<F>,
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     next_char: String,
     last_char: String,
-) {
+) where
+    F: FnMut(ellie_core::com::Message) + core::clone::Clone,
+{
     //TODO SUPPORT first operator parse
     if let types::Types::Operator(ref mut data) = itered_data.data.value {
         if !data.operator_collected {

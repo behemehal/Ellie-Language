@@ -76,9 +76,13 @@ mod negative_tests {
             ellie_parser::syntax::types::Types::Negative(
                 ellie_parser::syntax::types::negative_type::Negative {
                     value: Box::new(ellie_parser::syntax::types::Types::String(
-                        ellie_parser::syntax::types::string_type::StringType {
-                            value: "ok".to_string(),
+                        ellie_parser::syntax::types::string_type::StringTypeCollector {
+                            data: ellie_parser::syntax::types::string_type::StringType {
+                                value: "ok".to_string(),
+                                ..Default::default()
+                            },
                             complete: true,
+                            ..Default::default()
                         },
                     )),
                 },

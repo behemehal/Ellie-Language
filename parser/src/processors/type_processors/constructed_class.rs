@@ -8,14 +8,16 @@ use alloc::vec::Vec;
 use ellie_core::defs;
 use ellie_core::error;
 
-pub fn collect_new_call(
-    parser: parser::Parser,
+pub fn collect_new_call<F>(
+    parser: parser::Parser<F>,
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     next_char: String,
     last_char: String,
-) {
+) where
+    F: FnMut(ellie_core::com::Message) + Clone + Sized,
+{
     if let types::Types::ConstructedClass(ref mut new_call_data) = itered_data.data.value {
         if !new_call_data.keyword_collected {
             if new_call_data.keyword_index == 0 && letter_char == "n" {
@@ -294,16 +296,6 @@ pub fn collect_new_call(
                     types::Types::Reference(match_data) => {
                         types::constructed_class::ConstructedClassParameter {
                             value: types::Types::Reference(match_data),
-                            pos: if last_entry == 0 {
-                                defs::Cursor::default()
-                            } else {
-                                new_call_data.data.params[last_entry - 1].pos
-                            },
-                        }
-                    }
-                    types::Types::BraceReference(match_data) => {
-                        types::constructed_class::ConstructedClassParameter {
-                            value: types::Types::BraceReference(match_data),
                             pos: if last_entry == 0 {
                                 defs::Cursor::default()
                             } else {

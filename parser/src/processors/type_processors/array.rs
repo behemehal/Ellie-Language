@@ -8,14 +8,16 @@ use alloc::string::{String, ToString};
 use alloc::vec;
 use alloc::vec::Vec;
 
-pub fn collect_array(
-    parser: parser::Parser,
+pub fn collect_array<F>(
+    parser: parser::Parser<F>,
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     next_char: String,
     last_char: String,
-) {
+) where
+    F: FnMut(ellie_core::com::Message) + Clone + Sized,
+{
     if let types::Types::Array(ref mut data) = itered_data.data.value {
         let mut last_entry = data.clone().data.collective.len();
 
@@ -512,20 +514,6 @@ pub fn collect_array(
                 types::Types::Reference(match_data) => types::array_type::ArrayEntry {
                     value_complete: true,
                     value: Box::new(types::Types::Reference(match_data)),
-                    location: defs::Cursor {
-                        range_start: if data.data.collective.len() != 0
-                            && !data.data.collective[last_entry - 1].location.is_zero()
-                        {
-                            data.data.collective[last_entry - 1].location.range_start
-                        } else {
-                            parser.pos
-                        },
-                        ..Default::default()
-                    },
-                },
-                types::Types::BraceReference(match_data) => types::array_type::ArrayEntry {
-                    value_complete: true,
-                    value: Box::new(types::Types::BraceReference(match_data)),
                     location: defs::Cursor {
                         range_start: if data.data.collective.len() != 0
                             && !data.data.collective[last_entry - 1].location.is_zero()

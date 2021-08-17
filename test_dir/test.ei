@@ -1,12 +1,1 @@
-import ellie;
-
-
-
-v test : collective(string, string) = {
-    "ahmet": "test",
-};
-
-v test_tr : collective(string, string) = test;
-
-
-v testc : string = test_tr.ahmet
+import second.ei;

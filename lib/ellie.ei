@@ -24,13 +24,13 @@
 
 @version = "1.0.0"; //Changing this triggers build.rs
 
-pub import string;
-pub import void;
-pub import int;
-pub import char;
-pub import collective;
-pub import float;
-pub import bool;
-pub import cloak;
-pub import array;
-pub import nullAble;
+pub import ./string.ei;
+pub import ./void.ei;
+pub import ./int.ei;
+pub import ./char.ei;
+pub import ./collective.ei;
+pub import ./float.ei;
+pub import ./bool.ei;
+pub import ./cloak.ei;
+pub import ./array.ei;
+pub import ./nullAble.ei;

@@ -1,10 +1,18 @@
+use ellie_core::defs;
+use ellie_parser::parser::{Parser, ResolvedImport};
+
 pub fn emulate_value_processor(
     code: &str,
 ) -> (
     ellie_parser::syntax::types::Types,
     Vec<ellie_core::error::Error>,
 ) {
-    let emulated_parser = ellie_parser::parser::Parser::default();
+    let emulated_parser = Parser::new(
+        "".to_string(),
+        |_, _| ResolvedImport::default(),
+        |_| {},
+        defs::ParserOptions::default(),
+    );
     let mut emulated_collector_data = ellie_parser::syntax::variable::VariableCollector::default();
     let mut syntax_errors = vec![];
     emulated_collector_data.data.dynamic = true;
@@ -54,7 +62,12 @@ pub fn emulate_value_processor_operator(
     ellie_parser::syntax::types::operator_type::OperatorType,
     Vec<ellie_core::error::Error>,
 ) {
-    let emulated_parser = ellie_parser::parser::Parser::default();
+    let emulated_parser = Parser::new(
+        "".to_string(),
+        |_, _| ResolvedImport::default(),
+        |_| {},
+        defs::ParserOptions::default(),
+    );
     let mut emulated_collector_data = ellie_parser::syntax::variable::VariableCollector::default();
     let mut syntax_errors = vec![];
     emulated_collector_data.data.dynamic = true;

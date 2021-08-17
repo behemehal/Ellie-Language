@@ -26,6 +26,7 @@ pub fn parse(contents: String, file_name: String) -> ellie_parser::parser::Parse
     let parser = parser::Parser::new(
         contents.clone(),
         resolve_import,
+        |_| {},
         ellie_core::defs::ParserOptions {
             path: file_name.to_string(),
             functions: true,
@@ -104,23 +105,11 @@ pub fn resolve_import(
             }
         } else {
             match read_file(Path::new(&path).absolutize().unwrap().to_str().unwrap()) {
-                Ok(file) => {
-                    let q = parse(
-                        file.clone(),
-                        Path::new(&path)
-                            .absolutize()
-                            .unwrap()
-                            .to_str()
-                            .unwrap()
-                            .to_string(),
-                    );
-                    ellie_parser::parser::ResolvedImport {
-                        found: true,
-                        file_content: q.parsed,
-                        syntax_errors: q.syntax_errors,
-                        ..Default::default()
-                    }
-                }
+                Ok(file) => ellie_parser::parser::ResolvedImport {
+                    found: true,
+                    file_content: file,
+                    ..Default::default()
+                },
                 Err(c) => ellie_parser::parser::ResolvedImport {
                     found: false,
                     resolve_error: format!(

@@ -8,14 +8,16 @@ use alloc::vec;
 use alloc::vec::Vec;
 use ellie_core::{defs, error, utils};
 
-pub fn collect_reference(
-    parser: parser::Parser,
+pub fn collect_reference<F>(
+    parser: parser::Parser<F>,
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     next_char: String,
     last_char: String,
-) {
+) where
+    F: FnMut(ellie_core::com::Message) + Clone + Sized,
+{
     if let types::Types::Reference(ref mut reference_data) = itered_data.data.value {
         let last_entry = reference_data.data.chain.len();
 

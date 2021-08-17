@@ -5,19 +5,15 @@ use alloc::string::String;
 use alloc::vec::Vec;
 use ellie_core::error;
 
-#[derive(Clone)]
-pub struct CollectorResponse {
-    parser: parser::Parser,
-    data: variable::VariableCollector,
-}
-
-pub fn collect_caller(
-    parser: &mut parser::Parser,
+pub fn collect_caller<F>(
+    parser: &mut parser::Parser<F>,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     next_char: String,
     last_char: String,
-) {
+) where
+    F: FnMut(ellie_core::com::Message) + Clone + Sized,
+{
     let parser_clone = parser.clone();
     if let parser::Collecting::Caller(ref mut caller_data) = parser.current {
         if letter_char == ";" && caller_data.value.is_type_complete() {

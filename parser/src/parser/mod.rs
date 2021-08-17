@@ -13,7 +13,7 @@ use crate::syntax::{
     caller, class, condition, constructor, definers, file_key, for_loop, function, import,
     import_item, ret, types, variable,
 };
-use ellie_core::{defs, error, utils};
+use ellie_core::{com, defs, error, utils};
 
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
 pub struct Parsed {
@@ -92,10 +92,14 @@ pub struct RawParser {
 }
 
 impl RawParser {
-    pub fn to_parser(self, resolver: fn(defs::ParserOptions, String) -> ResolvedImport) -> Parser {
+    pub fn to_parser(
+        self,
+        resolver: fn(defs::ParserOptions, String) -> ResolvedImport,
+    ) -> Parser<impl FnMut(com::Message) + Clone + Sized> {
         Parser {
             scope: self.scope,
-            resolver: resolver,
+            resolver: |_, _| ResolvedImport::default(),
+            emit_message: |_| {},
             code: self.code,
             options: self.options,
             collected: self.collected,
@@ -111,10 +115,11 @@ impl RawParser {
         }
     }
 
-    pub fn to_no_resolver_parser(self) -> Parser {
+    pub fn to_no_resolver_parser(self) -> Parser<impl FnMut(com::Message) + Clone + Sized> {
         Parser {
             scope: self.scope,
             resolver: |_, _| ResolvedImport::default(),
+            emit_message: |_| {},
             code: self.code,
             options: self.options,
             collected: self.collected,
@@ -132,9 +137,10 @@ impl RawParser {
 }
 
 #[derive(Clone)]
-pub struct Parser {
+pub struct Parser<F> {
     pub scope: Box<scope::Scope>,
-    pub resolver: fn(defs::ParserOptions, String) -> ResolvedImport,
+    pub resolver: fn(ellie_core::defs::ParserOptions, String) -> ResolvedImport,
+    pub emit_message: F,
     pub code: String,
     pub options: defs::ParserOptions,
     pub collected: Vec<Collecting>,
@@ -149,44 +155,27 @@ pub struct Parser {
     pub keyword_cache: variable::VariableCollector,
 }
 
-impl Default for Parser {
-    fn default() -> Self {
-        Parser {
-            scope: Box::new(scope::Scope::default()),
-            resolver: |_, _| ResolvedImport::default(),
-            code: "".to_string(),
-            options: defs::ParserOptions::default(),
-            collected: Vec::new(),
-            generic_variables: Vec::new(),
-            pos: defs::CursorPosition(0, 0),
-            keyword_pos: defs::Cursor::default(),
-            ignore_line: false,
-            on_comment: false,
-            on_line_comment: false,
-            current: Collecting::None,
-            keyword_catch: String::new(),
-            keyword_cache: variable::VariableCollector::default(),
-        }
-    }
-}
-
 #[derive(Default, Debug)]
 pub struct ResolvedImport {
     pub found: bool,
     pub resolve_error: String,
-    pub syntax_errors: Vec<error::Error>,
-    pub file_content: Parsed,
+    pub file_content: String,
 }
 
-impl Parser {
+impl<F> Parser<F>
+where
+    F: FnMut(com::Message) + Clone + Sized,
+{
     pub fn new(
         code: String,
-        resolve_import: fn(defs::ParserOptions, String) -> ResolvedImport,
+        mut resolve_import: fn(ellie_core::defs::ParserOptions, String) -> ResolvedImport,
+        mut com: F,
         options: defs::ParserOptions,
-    ) -> Self {
+    ) -> Parser<F> {
         Parser {
             scope: Box::new(scope::Scope::default()),
             resolver: resolve_import,
+            emit_message: com,
             code,
             options,
             collected: Vec::new(),
@@ -203,8 +192,7 @@ impl Parser {
     }
 
     pub fn read_module(mut self, code: String) -> ParserResponse {
-        self.code = code;
-        self.map()
+        Parser::new(code, self.resolver, self.emit_message, self.options).map()
     }
 
     pub fn to_raw(self) -> RawParser {
@@ -234,6 +222,16 @@ impl Parser {
                 &utils::get_letter(self.code.clone().to_string(), index, false).to_string();
             let next_char =
                 &utils::get_letter(self.code.clone().to_string(), index, true).to_string();
+
+            if self.pos.1 == 1 {
+                (self.emit_message)(ellie_core::com::Message {
+                    id: ellie_core::utils::generate_hash(),
+                    message_type: ellie_core::com::MessageType::ParserLineExec,
+                    from: self.options.path.clone(),
+                    from_chain: None,
+                    message_data: alloc::format!("{:?}", self.pos.clone()),
+                });
+            }
 
             if char != '\n'
                 && char != '\r'
@@ -277,6 +275,13 @@ impl Parser {
                 pos: self.keyword_pos,
             });
         }
+        (self.emit_message)(ellie_core::com::Message {
+            id: ellie_core::utils::generate_hash(),
+            message_type: ellie_core::com::MessageType::ParseComplete,
+            from: self.options.path.clone(),
+            from_chain: None,
+            message_data: alloc::format!(""),
+        });
         ParserResponse {
             parsed: Parsed {
                 name: self.scope.scope_name,
@@ -346,7 +351,6 @@ impl Parser {
             types::Types::Array(_) => todo!(),
             types::Types::Cloak(_) => todo!(),
             types::Types::Reference(_) => todo!(),
-            types::Types::BraceReference(_) => todo!(),
             types::Types::Operator(_) => todo!(),
             types::Types::ArrowFunction(_) => todo!(),
             types::Types::ConstructedClass(_) => todo!(),
@@ -406,11 +410,6 @@ impl Parser {
                 }
                 */
                 "nen".to_string()
-            }
-            types::Types::BraceReference(_) => {
-                #[cfg(feature = "std")]
-                std::println!("Not implemented for: types {:#?}", target);
-                "".to_string()
             }
             types::Types::Operator(_) => {
                 #[cfg(feature = "std")]

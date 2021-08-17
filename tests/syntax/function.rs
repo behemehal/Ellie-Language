@@ -7,6 +7,7 @@ mod function_tests {
         let emulated_parser = ellie_parser::parser::Parser::new(
             code.to_string(),
             |_, _| ellie_parser::parser::ResolvedImport::default(),
+            |_| {},
             ellie_core::defs::ParserOptions::default(),
         );
         let parsed = emulated_parser.map();
@@ -22,6 +23,7 @@ mod function_tests {
         let emulated_parser = ellie_parser::parser::Parser::new(
             code.to_string(),
             |_, _| ellie_parser::parser::ResolvedImport::default(),
+            |_| {},
             ellie_core::defs::ParserOptions::default(),
         );
         let parsed = emulated_parser.map();
@@ -39,6 +41,7 @@ mod function_tests {
         let emulated_parser = ellie_parser::parser::Parser::new(
             code.to_string(),
             |_, _| ellie_parser::parser::ResolvedImport::default(),
+            |_| {},
             ellie_core::defs::ParserOptions::default(),
         );
         let parsed = emulated_parser.map();
@@ -57,6 +60,7 @@ mod function_tests {
         let emulated_parser = ellie_parser::parser::Parser::new(
             code.to_string(),
             |_, _| ellie_parser::parser::ResolvedImport::default(),
+            |_| {},
             ellie_core::defs::ParserOptions::default(),
         );
         let parsed = emulated_parser.map();
@@ -75,6 +79,7 @@ mod function_tests {
         let emulated_parser = ellie_parser::parser::Parser::new(
             code.to_string(),
             |_, _| ellie_parser::parser::ResolvedImport::default(),
+            |_| {},
             ellie_core::defs::ParserOptions::default(),
         );
         let parsed = emulated_parser.map();
@@ -96,6 +101,7 @@ mod function_tests {
         let emulated_parser = ellie_parser::parser::Parser::new(
             code.to_string(),
             |_, _| ellie_parser::parser::ResolvedImport::default(),
+            |_| {},
             ellie_core::defs::ParserOptions::default(),
         );
         let parsed = emulated_parser.map();
@@ -116,6 +122,7 @@ mod function_tests {
         let emulated_parser = ellie_parser::parser::Parser::new(
             code.to_string(),
             |_, _| ellie_parser::parser::ResolvedImport::default(),
+            |_| {},
             ellie_core::defs::ParserOptions::default(),
         );
         let parsed = emulated_parser.map();
