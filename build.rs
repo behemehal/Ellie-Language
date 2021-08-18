@@ -39,7 +39,8 @@ fn resolve_import(
     match read_file(&("./lib/".to_string() + &lib_name + &".ei".to_string())) {
         Ok(e) => ellie_parser::parser::ResolvedImport {
             found: true,
-            //file_content: parse(e, lib_name).parsed,
+            resolved_path: ("./lib/".to_string() + &lib_name + &".ei".to_string()),
+            file_content: e,
             ..Default::default()
         },
         Err(err) => {
@@ -118,7 +119,7 @@ fn main() {
             let ellie_version = &ellie_lang_toml["package"]["version"];
             let ellie_version_name = &ellie_lang_toml["package"]["version_code"];
             let parser_version = &ellie_lang_toml["dependencies"]["ellie_parser"]["version"];
-            let runtime_version = &ellie_lang_toml["dependencies"]["ellie_runtime"]["version"]; 
+            let runtime_version = &ellie_lang_toml["dependencies"]["ellie_runtime"]["version"];
             let raw_version =
                 if let Some(raw_version) = &ellie_lang_toml["dependencies"].get("ellie_raw") {
                     raw_version["version"].to_string()

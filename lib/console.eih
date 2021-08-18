@@ -1,0 +1,7 @@
+import ./string.ei;
+
+@compile_output = "console";
+pub fn print(toBeFormatted: string, *args: dyn);
+pub fn println(toBeFormatted: string, *args: dyn);
+pub fn processTitle(title: string);
+pub fn readLine() > string;

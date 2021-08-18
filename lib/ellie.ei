@@ -34,3 +34,4 @@ pub import ./bool.ei;
 pub import ./cloak.ei;
 pub import ./array.ei;
 pub import ./nullAble.ei;
+pub importNative ./console.eih;

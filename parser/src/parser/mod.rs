@@ -11,7 +11,7 @@ use crate::alloc::vec::Vec;
 
 use crate::syntax::{
     caller, class, condition, constructor, definers, file_key, for_loop, function, import,
-    import_item, ret, types, variable,
+    import_item, ret, types, variable, native_function
 };
 use ellie_core::{com, defs, error, utils};
 
@@ -43,7 +43,7 @@ pub enum Collecting {
     Getter,
     Setter,
     NativeClass,
-    NativeFunction,
+    NativeFunction(native_function::NativeFunction),
     None,
 }
 
@@ -159,6 +159,7 @@ pub struct Parser<F> {
 pub struct ResolvedImport {
     pub found: bool,
     pub resolve_error: String,
+    pub resolved_path: String,
     pub file_content: String,
 }
 
@@ -191,8 +192,18 @@ where
         }
     }
 
-    pub fn read_module(mut self, code: String) -> ParserResponse {
-        Parser::new(code, self.resolver, self.emit_message, self.options).map()
+    pub fn read_module(mut self, code: String, path: String) -> ParserResponse {
+        let mut new_options = self.options.clone();
+        new_options.path = path;
+        new_options.parser_type = ellie_core::defs::ParserType::RawParser;
+        Parser::new(code, self.resolver, self.emit_message, new_options).map()
+    }
+
+    pub fn read_native_header(mut self, code: String, path: String) -> ParserResponse {
+        let mut new_options = self.options.clone();
+        new_options.path = path;
+        new_options.parser_type = ellie_core::defs::ParserType::HeaderParser;
+        Parser::new(code, self.resolver, self.emit_message, new_options).map()
     }
 
     pub fn to_raw(self) -> RawParser {

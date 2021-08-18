@@ -4,6 +4,7 @@ use alloc::string::String;
 pub enum MessageType {
     ParserLineExec,
     ParserImportItem,
+    ParserImportNativeItem,
     ParserVariableItem,
     ParserFunctionItem,
     ParserClassItem,

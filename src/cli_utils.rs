@@ -84,6 +84,7 @@ pub fn resolve_import(
     if lib_name == "ellie" {
         ellie_parser::parser::ResolvedImport {
             found: true,
+            resolved_path: "<virtual>".to_string(),
             file_content: serde_json::from_str(
                 ellie_core::builded_libraries::ELLIE_STANDARD_LIBRARY,
             )
@@ -108,6 +109,12 @@ pub fn resolve_import(
                 Ok(file) => ellie_parser::parser::ResolvedImport {
                     found: true,
                     file_content: file,
+                    resolved_path: Path::new(&path)
+                        .absolutize()
+                        .unwrap()
+                        .to_str()
+                        .unwrap()
+                        .to_string(),
                     ..Default::default()
                 },
                 Err(c) => ellie_parser::parser::ResolvedImport {

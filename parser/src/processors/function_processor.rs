@@ -3,7 +3,7 @@ use crate::alloc::vec;
 use crate::alloc::vec::Vec;
 use crate::parser;
 use crate::processors;
-use crate::syntax::{definers, function};
+use crate::syntax::{definers, function, native_function};
 use ellie_core::{defs, error, utils};
 
 pub fn collect_function<F>(
@@ -122,6 +122,8 @@ pub fn collect_function<F>(
                 {
                     function_data.data.parameters = vec![];
                     function_data.parameter_wrote = true
+                } else if letter_char == "*" && function_data.data.parameters[last_entry - 1].name == "" {
+                    function_data.data.parameters[last_entry - 1].multi_capture = true;
                 } else if letter_char != " " {
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
@@ -160,6 +162,22 @@ pub fn collect_function<F>(
                         pos: function_data.data.parameters[last_entry - 1].name_pos,
                     });
                 }
+
+                if last_entry > 1 && function_data.data.parameters[last_entry - 2].multi_capture {
+                    errors.push(error::Error {
+                        path: parser.options.path.clone(),
+                        scope: parser.scope.scope_name.clone(),
+                        debug_message: "1bcc6e8edbe38ae5d2c5823074f06af7".to_string(),
+                        title: error::errorList::error_s35.title.clone(),
+                        code: error::errorList::error_s35.code,
+                        message: error::errorList::error_s35.message.clone(),
+                        builded_message: error::BuildedError::build_from_string(
+                            error::errorList::error_s35.message.clone(),
+                        ),
+                        pos: function_data.data.parameters[last_entry - 1].pos,
+                    });
+                }
+
                 if let definers::DefinerCollecting::Generic(name) =
                     &function_data.data.parameters[last_entry - 1].rtype
                 {
@@ -200,6 +218,20 @@ pub fn collect_function<F>(
                             error::errorList::error_s10.message.clone(),
                         ),
                         pos: function_data.data.parameters[last_entry - 1].name_pos,
+                    });
+                }
+                if last_entry > 1 && function_data.data.parameters[last_entry - 2].multi_capture {
+                    errors.push(error::Error {
+                        path: parser.options.path.clone(),
+                        scope: parser.scope.scope_name.clone(),
+                        debug_message: "1bcc6e8edbe38ae5d2c5823074f06af7".to_string(),
+                        title: error::errorList::error_s35.title.clone(),
+                        code: error::errorList::error_s35.code,
+                        message: error::errorList::error_s35.message.clone(),
+                        builded_message: error::BuildedError::build_from_string(
+                            error::errorList::error_s35.message.clone(),
+                        ),
+                        pos: function_data.data.parameters[last_entry - 1].pos,
                     });
                 }
                 if let definers::DefinerCollecting::Generic(name) =
@@ -265,6 +297,10 @@ pub fn collect_function<F>(
             if !function_data.return_pointer_typed {
                 if letter_char == ">" {
                     function_data.return_pointer_typed = true;
+                } else if letter_char == ";" && parser.options.parser_type == ellie_core::defs::ParserType::HeaderParser {
+                    function_data.data.pos.range_end = parser.pos.clone().skip_char(1);
+                    parser.collected.push(parser::Collecting::NativeFunction(native_function::NativeFunction::from_runtime(function_data.data.clone())));
+                    parser.current = parser::Collecting::None;
                 } else if letter_char == "{" {
                     function_data.data.return_type =
                         definers::DefinerCollecting::Generic(definers::GenericType {
@@ -292,6 +328,10 @@ pub fn collect_function<F>(
                         },
                     });
                 }
+            } else if letter_char == ";" && function_data.data.return_type.is_definer_complete() && parser.options.parser_type == ellie_core::defs::ParserType::HeaderParser {
+                function_data.data.pos.range_end = parser.pos.clone().skip_char(1);
+                parser.collected.push(parser::Collecting::NativeFunction(native_function::NativeFunction::from_runtime(function_data.data.clone())));
+                parser.current = parser::Collecting::None;
             } else if letter_char == "{" && function_data.data.return_type.is_definer_complete() {
                 if let definers::DefinerCollecting::Generic(name) = &function_data.data.return_type
                 {
