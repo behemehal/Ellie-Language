@@ -6,14 +6,16 @@ use crate::syntax;
 use crate::syntax::definers::DefinerCollecting;
 use ellie_core::{defs, error, utils};
 
-pub fn collect_definer(
-    parser: parser::Parser,
+pub fn collect_definer<F>(
+    parser: parser::Parser<F>,
     type_data: &mut DefinerCollecting,
     errors: &mut Vec<error::Error>,
     letter_char: String,
     next_char: String,
     last_char: String,
-) {
+) where
+    F: FnMut(ellie_core::com::Message) + Clone + Sized,
+{
     match type_data {
         DefinerCollecting::GrowableArray(ref mut data) => {
             if letter_char == "(" && !data.bracket_inserted {

@@ -12,13 +12,16 @@ pub struct CollectorResponse {
     pub errors: Vec<error::Error>,
 }
 
-pub fn collect_value(
-    parser: parser::Parser,
+pub fn collect_value<F>(
+    parser: parser::Parser<F>,
     itered_data: &mut variable::VariableCollector,
     letter_char: &str,
     next_char: String,
     last_char: String,
-) -> CollectorResponse {
+) -> CollectorResponse
+where
+    F: FnMut(ellie_core::com::Message) + Clone + Sized,
+{
     let mut errors: Vec<error::Error> = Vec::new();
     match &mut itered_data.data.value {
         types::Types::Integer(_) => type_processors::integer::collect_integer(
@@ -77,16 +80,6 @@ pub fn collect_value(
             next_char,
             last_char,
         ),
-        types::Types::BraceReference(_) => {
-            type_processors::brace_reference::collect_brace_reference(
-                parser,
-                itered_data,
-                &mut errors,
-                letter_char,
-                next_char,
-                last_char,
-            )
-        }
         types::Types::Negative(_) => type_processors::negative::collect_negative(
             parser,
             itered_data,

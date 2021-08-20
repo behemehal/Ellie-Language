@@ -3,7 +3,12 @@ mod char_tests {
 
     #[test]
     fn char_collected_with_no_error() {
-        let emulated_parser = ellie_parser::parser::Parser::default();
+        let emulated_parser = ellie_parser::parser::Parser::new(
+            "".to_string(),
+            |_, _, _| ellie_parser::parser::ResolvedImport::default(),
+            |_| {},
+            ellie_core::defs::ParserOptions::default(),
+        );
         let mut emulated_collector_data =
             ellie_parser::syntax::variable::VariableCollector::default();
         let mut syntax_errors = vec![];
@@ -47,7 +52,12 @@ mod char_tests {
     /*
     #[test]
     fn char_prototype_collected() {
-        let emulated_parser = ellie_parser::parser::Parser::default();
+        let emulated_parser = ellie_parser::parser::Parser::new(
+        "".to_string(),
+        |_, _, _| ellie_parser::parser::ResolvedImport::default(),
+        |_| {},
+        ellie_core::defs::ParserOptions::default(),
+    );
         let mut emulated_collector_data =
             ellie_parser::syntax::variable::VariableCollector::default();
         let mut syntax_errors = vec![];
@@ -89,7 +99,12 @@ mod char_tests {
 
     #[test]
     fn char_operators_collected() {
-        let emulated_parser = ellie_parser::parser::Parser::default();
+        let emulated_parser = ellie_parser::parser::Parser::new(
+            "".to_string(),
+            |_, _, _| ellie_parser::parser::ResolvedImport::default(),
+            |_| {},
+            ellie_core::defs::ParserOptions::default(),
+        );
         let mut emulated_collector_data =
             ellie_parser::syntax::variable::VariableCollector::default();
         let mut syntax_errors = vec![];

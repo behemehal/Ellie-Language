@@ -9,16 +9,18 @@ use alloc::vec::Vec;
 
 use crate::syntax::types::collective_type;
 
-use ellie_core::error;
+use ellie_core::{defs, error};
 
-pub fn collect_collective(
-    parser: parser::Parser,
+pub fn collect_collective<F>(
+    parser: parser::Parser<F>,
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     next_char: String,
     last_char: String,
-) {
+) where
+    F: FnMut(ellie_core::com::Message) + Clone + Sized,
+{
     let clone_parser = parser.clone();
     if let types::Types::Collective(ref mut collective_data) = itered_data.data.value {
         let mut last_entry_ind = collective_data.data.entries.len(); //Get the last entry
@@ -48,6 +50,7 @@ pub fn collect_collective(
         if !last_entry.key_collected {
             //If last entry's key is not yet collected
 
+            collective_data.at_comma = false;
             if letter_char != " " && last_entry.data.key_pos.range_start.is_zero() {
                 //If current char is not empty and range_start position is not yet initialized
                 last_entry.data.key_pos.range_start = clone_parser.pos.clone();
@@ -55,6 +58,27 @@ pub fn collect_collective(
             last_entry.data.key_pos.range_end = clone_parser.pos.clone(); //Set the range end
 
             if letter_char == "}" && last_entry.data.key.get_type() == "null" {
+                if collective_data.at_comma {
+                    errors.push(error::Error {
+                        path: parser.options.path.clone(),
+                        scope: parser.scope.scope_name.clone(),
+                        debug_message: "79b05fba804980016a867e0c354e3a96".to_string(),
+                        title: error::errorList::error_s1.title.clone(),
+                        code: error::errorList::error_s1.code,
+                        message: error::errorList::error_s1.message.clone(),
+                        builded_message: error::Error::build(
+                            error::errorList::error_s1.message.clone(),
+                            vec![error::ErrorBuildField {
+                                key: "token".to_string(),
+                                value: letter_char.to_string(),
+                            }],
+                        ),
+                        pos: defs::Cursor {
+                            range_start: parser.pos,
+                            range_end: parser.pos.clone().skip_char(1),
+                        },
+                    });
+                }
                 collective_data.complete = true;
                 collective_data.data.entries = vec![];
             } else if letter_char == ":" && last_entry.data.key.is_type_complete() {
@@ -199,7 +223,29 @@ pub fn collect_collective(
                         .data
                         .entries
                         .push(collective_type::CollectiveEntryCollector::default());
+                    collective_data.at_comma = true;
                 } else if letter_char == "}" {
+                    if collective_data.at_comma {
+                        errors.push(error::Error {
+                            path: parser.options.path.clone(),
+                            scope: parser.scope.scope_name.clone(),
+                            debug_message: "79b05fba804980016a867e0c354e3a96".to_string(),
+                            title: error::errorList::error_s1.title.clone(),
+                            code: error::errorList::error_s1.code,
+                            message: error::errorList::error_s1.message.clone(),
+                            builded_message: error::Error::build(
+                                error::errorList::error_s1.message.clone(),
+                                vec![error::ErrorBuildField {
+                                    key: "token".to_string(),
+                                    value: letter_char.to_string(),
+                                }],
+                            ),
+                            pos: defs::Cursor {
+                                range_start: parser.pos,
+                                range_end: parser.pos.clone().skip_char(1),
+                            },
+                        });
+                    }
                     collective_data.complete = true;
                 }
             } else {
@@ -253,24 +299,3 @@ pub fn collect_collective(
         }
     }
 }
-
-/*
-errors.push(error::Error {
-                    scope: parser.scope.scope_name.clone(),
-                    debug_message: "5536d2535840425f1f0357a737565e8e".to_string(),
-                    title: error::errorList::error_s1.title.clone(),
-                    code: error::errorList::error_s1.code,
-                    message: error::errorList::error_s1.message.clone(),
-                    builded_message: error::Error::build(
-                        error::errorList::error_s1.message.clone(),
-                        vec![error::ErrorBuildField {
-                            key: "token".to_string(),
-                            value: letter_char.to_string(),
-                        }],
-                    ),
-                    pos: defs::Cursor {
-                        range_start: parser.pos,
-                        range_end: parser.pos.clone().skip_char(1),
-                    },
-                });
-*/

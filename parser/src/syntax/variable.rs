@@ -23,6 +23,7 @@ pub struct VariableCollector {
     pub initialized: bool,
     pub named: bool,
     pub typed: bool,
+    pub ignore_existence: bool,
     pub value_complete: bool,
     pub raw_value: String,
     pub data: Variable,

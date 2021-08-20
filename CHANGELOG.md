@@ -49,3 +49,13 @@
     * Support constructing classes
   - CLI
     * Support imported file error show
+
+# v3.4.0
+  - Parser v1.4.0
+    * Support native headers
+    * Apply parsing log
+    * Expandable function parameter introduced
+  - CLI
+    * Create parsing visualizer
+    * Make experimental error provider stable
+    * Improve import resolver

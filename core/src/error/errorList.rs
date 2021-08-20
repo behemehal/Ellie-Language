@@ -203,4 +203,16 @@ lazy_static! {
         message: "Cannot compile '$token'".to_string(),
         ..Default::default()
     };
+    pub static ref error_s34: crate::error::Error = crate::error::Error {
+        code: 0x33,
+        title: "TypeError".to_string(),
+        message: "'$token' is not found in properties".to_string(),
+        ..Default::default()
+    };
+    pub static ref error_s35: crate::error::Error = crate::error::Error {
+        code: 0x34,
+        title: "SyntaxError".to_string(),
+        message: "Cannot add a new parameter after multiple parameter".to_string(),
+        ..Default::default()
+    };
 }

@@ -8,18 +8,20 @@ use alloc::vec;
 use alloc::vec::Vec;
 
 #[derive(Clone)]
-pub struct CollectorResponse {
-    parser: parser::Parser,
-    data: variable::VariableCollector,
+pub struct CollectorResponse<F> {
+    parser: parser::Parser<F>,
+    data: crate::parser::Collecting,
 }
 
-pub fn collect_variable_value(
-    parser: &mut parser::Parser,
+pub fn collect_variable_value<F>(
+    parser: &mut parser::Parser<F>,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     next_char: String,
     last_char: String,
-) {
+) where
+    F: FnMut(ellie_core::com::Message) + Clone + Sized,
+{
     let parser_clone = parser.clone();
     if let parser::Collecting::Variable(ref mut variable_data) = parser.current {
         if !variable_data.named {
@@ -85,7 +87,7 @@ pub fn collect_variable_value(
 
                     variable_data.named = true;
                 }
-            } else if letter_char == ";" && variable_data.data.dynamic {
+            } else if letter_char == ";" {
                 if parser_clone
                     .check_keyword(variable_data.data.name.clone())
                     .found
@@ -107,26 +109,32 @@ pub fn collect_variable_value(
                         pos: variable_data.data.name_pos,
                     });
                 }
-                variable_data.data.pos.range_end = parser.pos.clone().skip_char(1);
-                parser.collected.push(parser.current.clone());
-                parser.current = parser::Collecting::None;
-            } else if letter_char == "=" {
+
                 if !variable_data.data.dynamic {
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
                         scope: parser.scope.scope_name.clone(),
-                        debug_message: "50a20c9ab9939b00f97c4b8ef79d1df3".to_string(),
+                        debug_message: "replace_variable_processor_117".to_string(),
                         title: error::errorList::error_s8.title.clone(),
                         code: error::errorList::error_s8.code,
                         message: error::errorList::error_s8.message.clone(),
                         builded_message: error::BuildedError::build_from_string(
                             error::errorList::error_s8.message.clone(),
                         ),
-                        pos: defs::Cursor {
-                            range_start: parser.pos,
-                            range_end: parser.pos.clone().skip_char(1),
-                        },
+                        pos: variable_data.data.name_pos,
                     });
+                }
+
+                variable_data.data.pos.range_end = parser.pos.clone().skip_char(1);
+                parser.collected.push(parser.current.clone());
+                parser.current = parser::Collecting::None;
+            } else if letter_char == "=" {
+                if !variable_data.data.dynamic {
+                    #[cfg(feature = "std")]
+                    #[cfg(feature = "std")]
+                    std::println!("\u{001b}[33m[Experimental]\u{001b}[0m: Casting as dynamic");
+                    variable_data.data.dynamic = true;
+                    variable_data.named = true;
                 } else if variable_data.data.name.is_empty() {
                     errors.push(error::Error {
                         path: parser.options.path.clone(),

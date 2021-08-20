@@ -8,14 +8,16 @@ use alloc::string::{String, ToString};
 use alloc::vec;
 use alloc::vec::Vec;
 
-pub fn collect_function_caller(
-    parser: parser::Parser,
+pub fn collect_function_caller<F>(
+    parser: parser::Parser<F>,
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     next_char: String,
     last_char: String,
-) {
+) where
+    F: FnMut(ellie_core::com::Message) + Clone + Sized,
+{
     if let types::Types::FunctionCall(ref mut function_call_data) = itered_data.data.value {
         if itered_data.data.dynamic {
             itered_data.data.rtype = definers::DefinerCollecting::Generic(definers::GenericType {
@@ -287,16 +289,6 @@ pub fn collect_function_caller(
                             },
                         }
                     }
-                    types::Types::BraceReference(match_data) => {
-                        types::function_call::FunctionCallParameter {
-                            value: types::Types::BraceReference(match_data),
-                            pos: if last_entry == 0 {
-                                defs::Cursor::default()
-                            } else {
-                                function_call_data.data.params[last_entry - 1].pos
-                            },
-                        }
-                    }
                     types::Types::Negative(match_data) => {
                         types::function_call::FunctionCallParameter {
                             value: types::Types::Negative(match_data),
@@ -409,10 +401,13 @@ pub fn collect_function_caller(
             itered_data.data.value =
                 types::Types::Reference(types::reference_type::ReferenceTypeCollector {
                     data: types::reference_type::ReferenceType {
+                        reference_pos: itered_data.data.value_pos,
                         reference: Box::new(itered_data.data.value.clone()),
                         chain: Vec::new(),
                     },
+                    root_available: false,
                     on_dot: false,
+                    complete: false,
                 });
             type_processors::reference::collect_reference(
                 parser,

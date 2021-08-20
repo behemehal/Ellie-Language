@@ -67,18 +67,30 @@ mod negative_tests {
 
     #[test]
     fn string_collected_with_no_error() {
-        println!(
-            "{:#?}",
-            ellie_lang::test_utils::emulate_value_processor("!\"ok\"")
-        );
         assert!(ellie_lang::test_utils::has_no_error_and_correct(
             ellie_lang::test_utils::emulate_value_processor("!\"ok\""),
             ellie_parser::syntax::types::Types::Negative(
                 ellie_parser::syntax::types::negative_type::Negative {
                     value: Box::new(ellie_parser::syntax::types::Types::String(
-                        ellie_parser::syntax::types::string_type::StringType {
-                            value: "ok".to_string(),
+                        ellie_parser::syntax::types::string_type::StringTypeCollector {
+                            data: ellie_parser::syntax::types::string_type::StringType {
+                                value: "ok".to_string(),
+                                comma_start_pos: ellie_core::defs::Cursor {
+                                    range_start: ellie_core::defs::CursorPosition(0, 0),
+                                    range_end: ellie_core::defs::CursorPosition(0, 1)
+                                },
+                                comma_end_pos: ellie_core::defs::Cursor {
+                                    range_start: ellie_core::defs::CursorPosition(0, 3),
+                                    range_end: ellie_core::defs::CursorPosition(0, 4)
+                                },
+                                value_pos: ellie_core::defs::Cursor {
+                                    range_start: ellie_core::defs::CursorPosition(0, 2),
+                                    range_end: ellie_core::defs::CursorPosition(0, 3)
+                                },
+                            },
                             complete: true,
+
+                            ..Default::default()
                         },
                     )),
                 },
@@ -114,8 +126,8 @@ mod negative_tests {
                             data: ellie_parser::syntax::types::variable_type::VariableType {
                                 value: "test".to_string(),
                                 pos: ellie_core::defs::Cursor {
-                                    range_start: ellie_core::defs::CursorPosition::default(),
-                                    range_end: ellie_core::defs::CursorPosition::default()
+                                    range_start: ellie_core::defs::CursorPosition(0, 1),
+                                    range_end: ellie_core::defs::CursorPosition(0, 5)
                                 }
                             },
                             value_complete: false,

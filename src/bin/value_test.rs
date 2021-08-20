@@ -9,24 +9,17 @@ use ellie_parser;
 */
 
 fn main() {
-    let emulated_parser = ellie_parser::parser::Parser::default();
+    let emulated_parser = ellie_parser::parser::Parser::new(
+        "".to_string(),
+        |_, _, _| ellie_parser::parser::ResolvedImport::default(),
+        |_| {},
+        ellie_core::defs::ParserOptions::default(),
+    );
     let mut emulated_collector_data = ellie_parser::syntax::variable::VariableCollector::default();
     emulated_collector_data.data.dynamic = true;
     let code = "
 
-    {
-        0: 'e',
-        1: 'l',
-        2: 'l',
-        3: 'i',
-        4: {
-            0: 'e',
-            1: 'l',
-            2: 'l',
-            3: 'i',
-            4: 'e'
-        }
-    }
+    {1: 1, 1: 1}
     
     ";
 

@@ -10,6 +10,7 @@ pub struct FunctionParameter {
     pub name: String,
     pub rtype: definers::DefinerCollecting,
     pub pos: defs::Cursor,
+    pub multi_capture: bool,
     pub name_pos: defs::Cursor,
     pub type_pos: defs::Cursor,
 }

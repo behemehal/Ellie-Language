@@ -9,23 +9,27 @@ use alloc::string::{String, ToString};
 use alloc::vec;
 use alloc::vec::Vec;
 
-pub fn collect_variable(
-    parser: parser::Parser,
+pub fn collect_variable<F>(
+    parser: parser::Parser<F>,
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     next_char: String,
     last_char: String,
-) {
-    if let types::Types::VariableType(ref mut variabledata) = itered_data.data.value {
+) where
+    F: FnMut(ellie_core::com::Message) + Clone + Sized,
+{
+    let parser_clone = parser.clone();
+    let itered_data_clone = itered_data.clone();
+    if let types::Types::VariableType(ref mut variable_data) = itered_data.data.value {
         let current_reliability = utils::reliable_name_range(
             utils::ReliableNameRanges::VariableName,
             letter_char.to_string(),
         );
 
-        if !variabledata.value_complete {
+        if !variable_data.value_complete {
             if current_reliability.reliable {
-                if last_char == " " && !variabledata.data.value.is_empty() {
+                if last_char == " " && !variable_data.data.value.is_empty() {
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
                         scope: "variable_processor".to_string(),
@@ -46,19 +50,87 @@ pub fn collect_variable(
                         },
                     });
                 } else {
-                    if variabledata.data.value.is_empty() {
-                        variabledata.data.pos.range_start = parser.pos;
+                    if variable_data.data.value.is_empty() {
+                        variable_data.data.pos.range_start = parser.pos;
                     }
-                    variabledata.data.value += letter_char;
-                    variabledata.data.pos.range_end = parser.pos;
+                    variable_data.data.value += letter_char;
+                    variable_data.data.pos.range_end = parser.pos.clone().skip_char(1);
+                    if (next_char == ";" || next_char == "," || next_char == " ")
+                        && !itered_data_clone.ignore_existence
+                    {
+                        let found_target = parser.check_keyword(variable_data.data.value.clone());
+
+                        if !found_target.found {
+                            errors.push(error::Error {
+                                path: parser.options.path.clone(),
+                                scope: "variable_processor".to_string(),
+                                debug_message: "replace_type_processor_63".to_string(),
+                                title: error::errorList::error_s6.title.clone(),
+                                code: error::errorList::error_s6.code,
+                                message: error::errorList::error_s6.message.clone(),
+                                builded_message: error::Error::build(
+                                    error::errorList::error_s6.message.clone(),
+                                    vec![error::ErrorBuildField {
+                                        key: "token".to_string(),
+                                        value: variable_data.data.value.clone(),
+                                    }],
+                                ),
+                                pos: variable_data.data.pos,
+                            });
+                        } else {
+                            match found_target.found_type {
+                                parser::NameCheckResponseType::Variable(variable_type) => {
+                                    if !itered_data_clone
+                                        .clone()
+                                        .data
+                                        .rtype
+                                        .same_as(variable_type.data.rtype.clone())
+                                    {
+                                        errors.push(error::Error {
+                                            path: parser.options.path.clone(),
+                                            scope: parser.scope.scope_name.clone(),
+                                            debug_message: "d04f829b3050981b2cdcbe4120cb58a2"
+                                                .to_string(),
+                                            title: error::errorList::error_s3.title.clone(),
+                                            code: error::errorList::error_s3.code,
+                                            message: error::errorList::error_s3.message.clone(),
+                                            builded_message: error::Error::build(
+                                                error::errorList::error_s3.message.clone(),
+                                                vec![
+                                                    error::ErrorBuildField {
+                                                        key: "token1".to_string(),
+                                                        value: itered_data
+                                                            .data
+                                                            .rtype
+                                                            .raw_name_with_extensions(),
+                                                    },
+                                                    error::ErrorBuildField {
+                                                        key: "token2".to_string(),
+                                                        value: variable_type
+                                                            .data
+                                                            .rtype
+                                                            .raw_name_with_extensions(),
+                                                    },
+                                                ],
+                                            ),
+                                            pos: variable_data.data.pos,
+                                        });
+                                    }
+                                }
+                                _ => {
+                                    panic!("Inferring language items to variables are not yet supported")
+                                }
+                            }
+                        }
+                    }
                 }
 
-                if variabledata.data.value == "true" || variabledata.data.value == "false" {
+                if variable_data.data.value == "true" || variable_data.data.value == "false" {
                     itered_data.data.value = types::Types::Bool(types::bool_type::BoolType {
-                        value: variabledata.data.value == "true",
-                        raw: variabledata.data.value.clone(),
+                        value: variable_data.data.value == "true",
+                        raw: variable_data.data.value.clone(),
                     });
-                } else if variabledata.data.value == "new" && next_char == " " {
+                } else if variable_data.data.value == "new" && next_char == " " {
                     itered_data.data.value = types::Types::ConstructedClass(
                         types::constructed_class::ConstructedClassCollector {
                             keyword_index: 3,
@@ -74,18 +146,21 @@ pub fn collect_variable(
                         },
                     );
                 }
-            } else if !variabledata.data.value.is_empty() {
+            } else if !variable_data.data.value.is_empty() {
                 if letter_char == ";" {
-                    variabledata.value_complete = true;
+                    variable_data.value_complete = true;
                 } else if letter_char == "." {
-                    variabledata.value_complete = true;
+                    variable_data.value_complete = true;
                     itered_data.data.value =
                         types::Types::Reference(types::reference_type::ReferenceTypeCollector {
                             data: types::reference_type::ReferenceType {
+                                reference_pos: variable_data.data.pos,
                                 reference: Box::new(itered_data.data.value.clone()),
                                 chain: Vec::new(),
                             },
+                            root_available: false,
                             on_dot: false,
+                            complete: false,
                         });
                     type_processors::reference::collect_reference(
                         parser.clone(),
@@ -95,20 +170,19 @@ pub fn collect_variable(
                         next_char,
                         last_char,
                     )
-                } else if letter_char == "[" {
-                    itered_data.data.value = types::Types::BraceReference(
-                        types::brace_reference_type::BraceReferenceCollector {
-                            ..Default::default()
-                        },
-                    );
                 } else if letter_char == "(" {
                     itered_data.data.value =
                         types::Types::FunctionCall(types::function_call::FunctionCallCollector {
                             data: types::function_call::FunctionCall {
-                                name: variabledata.data.value.clone(),
+                                name: variable_data.data.value.clone(),
                                 name_pos: defs::Cursor {
-                                    range_start: variabledata.data.pos.range_start,
-                                    range_end: variabledata.data.pos.range_end.clone().skip_char(1),
+                                    range_start: variable_data.data.pos.range_start,
+                                    range_end: variable_data
+                                        .data
+                                        .pos
+                                        .range_end
+                                        .clone()
+                                        .skip_char(1),
                                 },
                                 ..Default::default()
                             },
@@ -127,7 +201,7 @@ pub fn collect_variable(
                         &(letter_char.to_string() + &next_char),
                     )
                 {
-                    variabledata.value_complete = true;
+                    variable_data.value_complete = true;
                     itered_data.data.value =
                         types::Types::Operator(types::operator_type::OperatorTypeCollector {
                             data: types::operator_type::OperatorType {
@@ -146,7 +220,7 @@ pub fn collect_variable(
                 ) || types::comparison_type::ComparisonOperators::is_comparison_operator(
                     &(letter_char.to_string() + &next_char),
                 ) {
-                    variabledata.value_complete = true;
+                    variable_data.value_complete = true;
                     itered_data.data.value =
                         types::Types::Operator(types::operator_type::OperatorTypeCollector {
                             data: types::operator_type::OperatorType {
@@ -165,7 +239,7 @@ pub fn collect_variable(
                 ) || types::arithmetic_type::ArithmeticOperators::is_arithmetic_operator(
                     &(letter_char.to_string() + &next_char),
                 ) {
-                    variabledata.value_complete = true;
+                    variable_data.value_complete = true;
                     itered_data.data.value =
                         types::Types::Operator(types::operator_type::OperatorTypeCollector {
                             data: types::operator_type::OperatorType {

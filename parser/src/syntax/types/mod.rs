@@ -28,11 +28,10 @@ pub enum Types {
     Integer(integer_type::IntegerTypeCollector),
     Float(float_type::FloatTypeCollector),
     Bool(bool_type::BoolType),
-    String(string_type::StringType),
+    String(string_type::StringTypeCollector),
     Char(char_type::CharType),
     Collective(collective_type::CollectiveCollector),
     Reference(reference_type::ReferenceTypeCollector),
-    BraceReference(brace_reference_type::BraceReferenceCollector),
     Operator(operator_type::OperatorTypeCollector),
     Cloak(cloak_type::CloakTypeCollector),
     Array(array_type::ArrayTypeCollector),
@@ -77,7 +76,6 @@ impl Types {
             Types::Char(_) => "char".to_string(),
             Types::Collective(_) => "collective".to_string(),
             Types::Reference(_) => "reference".to_string(),
-            Types::BraceReference(_) => "braceReference".to_string(),
             Types::Operator(_) => "operator".to_string(),
             Types::Array(_) => "array".to_string(),
             Types::Cloak(_) => "cloak".to_string(),
@@ -99,10 +97,8 @@ impl Types {
             Types::String(data) => data.complete,
             Types::Char(data) => data.complete,
             Types::Collective(e) => e.complete,
-            Types::Reference(data) => !data.on_dot,
-            Types::BraceReference(_) => {
-                panic!("NOT IMPLEMENTED");
-            }
+            Types::Reference(data) => !data.on_dot && data.complete,
+
             Types::Operator(e) => {
                 e.first_filled
                     && e.data.operator != operator_type::Operators::Null
@@ -129,7 +125,7 @@ impl Types {
             Types::Char(_) => false,
             Types::Collective(_) => false,
             Types::Reference(_) => false,
-            Types::BraceReference(_) => false,
+
             Types::Operator(_) => false,
             Types::Array(_) => true,
             Types::Cloak(_) => false,
@@ -152,7 +148,7 @@ impl Types {
             Types::Char(_) => false,
             Types::Collective(_) => false,
             Types::Reference(_) => false,
-            Types::BraceReference(_) => false,
+
             Types::Operator(_) => false,
             Types::Array(_) => false,
             Types::Cloak(_) => false,
@@ -175,7 +171,7 @@ impl Types {
             Types::Char(_) => false,
             Types::Collective(_) => false,
             Types::Reference(_) => false,
-            Types::BraceReference(_) => false,
+
             Types::Operator(_) => false,
             Types::Array(_) => false,
             Types::Cloak(_) => false,
@@ -198,7 +194,7 @@ impl Types {
             Types::Char(_) => false,
             Types::Collective(_) => false,
             Types::Reference(_) => false,
-            Types::BraceReference(_) => false,
+
             Types::Operator(_) => false,
             Types::Array(_) => false,
             Types::Cloak(_) => false,
@@ -221,7 +217,7 @@ impl Types {
             Types::Char(_) => false,
             Types::Collective(_) => false,
             Types::Reference(_) => false,
-            Types::BraceReference(_) => false,
+
             Types::Operator(_) => false,
             Types::Array(_) => false,
             Types::Cloak(_) => false,
@@ -244,7 +240,6 @@ impl Types {
             Types::Char(e) => e.complete = true,
             Types::Collective(_) => (),
             Types::Reference(_) => (),
-            Types::BraceReference(_) => (),
             Types::Operator(_) => (),
             Types::Array(e) => e.complete = true,
             Types::Cloak(e) => e.complete = true,

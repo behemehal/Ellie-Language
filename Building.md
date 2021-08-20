@@ -3,10 +3,10 @@
 Ellie's runtime is not ready but you can see parsed elements as objects.
 
 ```shell
-$ crate build --release
+$ cargo build --release
 ```
 
-Ellie cli should be in ./target/release/ellie.exe
+Ellie cli should be in ./target/release/ellie
 
 ```shell
 $ ellie ./index.ei

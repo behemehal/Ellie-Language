@@ -8,10 +8,11 @@ mod variable_tests {
         ";
         let emulated_parser = ellie_parser::parser::Parser::new(
             code.to_string(),
-            |_, _| ellie_parser::parser::ResolvedImport {
+            |_, _, _| ellie_parser::parser::ResolvedImport {
                 found: true,
                 ..Default::default()
             },
+            |_| {},
             ellie_core::defs::ParserOptions::default(),
         );
         let parsed = emulated_parser.map();
@@ -28,7 +29,8 @@ mod variable_tests {
         ";
         let emulated_parser = ellie_parser::parser::Parser::new(
             code.to_string(),
-            |_, _| ellie_parser::parser::ResolvedImport::default(),
+            |_, _, _| ellie_parser::parser::ResolvedImport::default(),
+            |_| {},
             ellie_core::defs::ParserOptions::default(),
         );
         let parsed = emulated_parser.map();

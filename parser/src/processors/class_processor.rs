@@ -15,13 +15,15 @@ use crate::alloc::boxed::Box;
 use crate::alloc::vec;
 use crate::alloc::vec::Vec;
 
-pub fn collect_class(
-    parser: &mut parser::Parser,
+pub fn collect_class<F>(
+    parser: &mut parser::Parser<F>,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     next_char: String,
     last_char: String,
-) {
+) where
+    F: FnMut(ellie_core::com::Message) + Clone + Sized,
+{
     if let parser::Collecting::Class(ref mut class_data) = parser.current {
         let current_reliability = utils::reliable_name_range(
             utils::ReliableNameRanges::VariableName,

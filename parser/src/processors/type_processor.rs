@@ -9,13 +9,15 @@ use alloc::vec;
 use alloc::vec::Vec;
 use ellie_core::{defs, error, utils};
 
-pub fn collect_type(
-    parser: &mut parser::Parser,
+pub fn collect_type<F>(
+    parser: &mut parser::Parser<F>,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     last_char: String,
     next_char: String,
-) {
+) where
+    F: FnMut(ellie_core::com::Message) + Clone + Sized,
+{
     let keyword = utils::trim_good(parser.keyword_catch.trim_start().to_string()); //one step next
 
     if (letter_char == "*" && last_char == "/") && !parser.on_comment && !parser.on_line_comment {
@@ -35,7 +37,8 @@ pub fn collect_type(
         || keyword == "pub importNative "
         || keyword == "pri importNative ")
         && parser.options.allow_import
-        && parser.options.parser_type == defs::ParserType::RawParser
+        && (parser.options.parser_type == defs::ParserType::RawParser
+            || parser.options.parser_type == defs::ParserType::HeaderParser)
     {
         parser.current = parser::Collecting::Import(import::Import {
             public: keyword == "pub import " || keyword == "pub importNative ",
@@ -131,7 +134,10 @@ pub fn collect_type(
             ..Default::default()
         });
         parser.keyword_catch = String::new();
-    } else if keyword == "@" && parser.options.parser_type == defs::ParserType::RawParser {
+    } else if keyword == "@"
+        && (parser.options.parser_type == defs::ParserType::RawParser
+            || parser.options.parser_type == defs::ParserType::HeaderParser)
+    {
         parser.current = parser::Collecting::FileKey(file_key::FileKeyCollector {
             data: file_key::FileKey {
                 pos: defs::Cursor {
@@ -155,10 +161,16 @@ pub fn collect_type(
             ..Default::default()
         });
         parser.keyword_catch = String::new();
-    } else if keyword == "if" && parser.options.parser_type == defs::ParserType::RawParser {
+    } else if keyword == "if"
+        && (parser.options.parser_type == defs::ParserType::RawParser
+            || parser.options.parser_type == defs::ParserType::HeaderParser)
+    {
         parser.current = parser::Collecting::Condition(condition::ConditionCollector::default());
         parser.keyword_catch = String::new();
-    } else if keyword == "else if" && parser.options.parser_type == defs::ParserType::RawParser {
+    } else if keyword == "else if"
+        && (parser.options.parser_type == defs::ParserType::RawParser
+            || parser.options.parser_type == defs::ParserType::HeaderParser)
+    {
         let collected_length = parser.collected.clone().len();
         if collected_length == 0 {
             panic!("Error");
@@ -190,7 +202,10 @@ pub fn collect_type(
             panic!("Error: {:#?}", parser.collected);
         }
         parser.keyword_catch = String::new();
-    } else if keyword == "else {" && parser.options.parser_type == defs::ParserType::RawParser {
+    } else if keyword == "else {"
+        && (parser.options.parser_type == defs::ParserType::RawParser
+            || parser.options.parser_type == defs::ParserType::HeaderParser)
+    {
         let collected_length = parser.collected.clone().len();
         if collected_length == 0 {
             errors.push(error::Error {
@@ -257,7 +272,7 @@ pub fn collect_type(
             ..Default::default()
         });
         parser.keyword_catch = String::new();
-    } else if keyword == "new " {
+    } else if keyword == "new " && parser.options.parser_type == defs::ParserType::RawParser {
         parser.current = parser::Collecting::Caller(caller::Caller {
             value: types::Types::ConstructedClass(
                 types::constructed_class::ConstructedClassCollector {
@@ -278,7 +293,11 @@ pub fn collect_type(
             },
         });
         parser.keyword_catch = String::new();
-    } else if letter_char == "(" && keyword.trim() != "(" && !keyword.trim().is_empty() {
+    } else if letter_char == "("
+        && keyword.trim() != "("
+        && !keyword.trim().is_empty()
+        && parser.options.parser_type == defs::ParserType::RawParser
+    {
         parser.current = parser::Collecting::Caller(caller::Caller {
             value: types::Types::FunctionCall(types::function_call::FunctionCallCollector {
                 data: types::function_call::FunctionCall {
@@ -304,7 +323,10 @@ pub fn collect_type(
             },
         });
         parser.keyword_catch = String::new();
-    } else if next_char == "." && keyword.trim() != "" {
+    } else if next_char == "."
+        && keyword.trim() != ""
+        && parser.options.parser_type == defs::ParserType::RawParser
+    {
         #[cfg(feature = "std")]
         std::println!("[ParserWarning]: Applying no position data to VariableType[226] will cause error showing problem in cli");
         parser.current = parser::Collecting::Caller(caller::Caller {

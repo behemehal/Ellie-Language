@@ -43,7 +43,6 @@
         ];
     ```
   - Collective
-    **Not complete**
     ```ellie
         v letters : collective(int, char) = {
             1 :'e',

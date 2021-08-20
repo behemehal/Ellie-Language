@@ -26,6 +26,7 @@ pub fn parse(contents: String, file_name: String) -> ellie_parser::parser::Parse
     let parser = parser::Parser::new(
         contents.clone(),
         resolve_import,
+        |_| {},
         ellie_core::defs::ParserOptions {
             path: file_name.to_string(),
             functions: true,
@@ -70,6 +71,7 @@ pub fn parse(contents: String, file_name: String) -> ellie_parser::parser::Parse
 pub fn resolve_import(
     options: ellie_core::defs::ParserOptions,
     lib_name: String,
+    nativeHeader: bool,
 ) -> ellie_parser::parser::ResolvedImport {
     let parent = &(Path::new(&options.path.clone())
         .parent()
@@ -78,11 +80,22 @@ pub fn resolve_import(
         .unwrap()
         .to_string()
         + "/");
-    let path = parent.clone() + &lib_name;
+    let path = parent.clone()
+        + &lib_name
+        + if !Path::new(&lib_name).extension().is_some() {
+            if nativeHeader {
+                ".eih"
+            } else {
+                ".ei"
+            }
+        } else {
+            ""
+        };
 
     if lib_name == "ellie" {
         ellie_parser::parser::ResolvedImport {
             found: true,
+            resolved_path: "<virtual>".to_string(),
             file_content: serde_json::from_str(
                 ellie_core::builded_libraries::ELLIE_STANDARD_LIBRARY,
             )
@@ -90,7 +103,13 @@ pub fn resolve_import(
             ..Default::default()
         }
     } else {
-        if Path::new(&path).absolutize().unwrap().to_str().unwrap() == Path::new(&options.path.clone()).absolutize().unwrap().to_str().unwrap() {
+        if Path::new(&path).absolutize().unwrap().to_str().unwrap()
+            == Path::new(&options.path.clone())
+                .absolutize()
+                .unwrap()
+                .to_str()
+                .unwrap()
+        {
             ellie_parser::parser::ResolvedImport {
                 found: false,
                 resolve_error: "Importing this file causes infinite loop".to_string(),
@@ -98,23 +117,17 @@ pub fn resolve_import(
             }
         } else {
             match read_file(Path::new(&path).absolutize().unwrap().to_str().unwrap()) {
-                Ok(file) => {
-                    let q = parse(
-                        file.clone(),
-                        Path::new(&path)
-                            .absolutize()
-                            .unwrap()
-                            .to_str()
-                            .unwrap()
-                            .to_string(),
-                    );
-                    ellie_parser::parser::ResolvedImport {
-                        found: true,
-                        file_content: q.parsed,
-                        syntax_errors: q.syntax_errors,
-                        ..Default::default()
-                    }
-                }
+                Ok(file) => ellie_parser::parser::ResolvedImport {
+                    found: true,
+                    file_content: file,
+                    resolved_path: Path::new(&path)
+                        .absolutize()
+                        .unwrap()
+                        .to_str()
+                        .unwrap()
+                        .to_string(),
+                    ..Default::default()
+                },
                 Err(c) => ellie_parser::parser::ResolvedImport {
                     found: false,
                     resolve_error: format!(
@@ -126,7 +139,6 @@ pub fn resolve_import(
                 },
             }
         }
-
     }
 }
 

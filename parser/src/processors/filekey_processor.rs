@@ -7,13 +7,15 @@ use crate::syntax;
 use alloc::boxed::Box;
 use ellie_core::{defs, error, utils};
 
-pub fn collect_filekey(
-    parser: &mut parser::Parser,
+pub fn collect_filekey<F>(
+    parser: &mut parser::Parser<F>,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     next_char: String,
     last_char: String,
-) {
+) where
+    F: FnMut(ellie_core::com::Message) + Clone + Sized,
+{
     let clone_parser = parser.clone();
     if let parser::Collecting::FileKey(ref mut file_key_data) = parser.current {
         if !file_key_data.key_name_collected {

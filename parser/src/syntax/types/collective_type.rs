@@ -28,6 +28,7 @@ pub struct Collective {
 #[derive(PartialEq, Default, Debug, Clone, Serialize, Deserialize)]
 pub struct CollectiveCollector {
     pub complete: bool,
+    pub at_comma: bool,
     pub data: Collective,
 }
 

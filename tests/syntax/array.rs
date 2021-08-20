@@ -1,5 +1,6 @@
 #[cfg(test)]
 mod array_tests {
+    use core::panic;
 
     #[test]
     fn one_dimension_array_collected_with_no_error() {
@@ -26,8 +27,8 @@ mod array_tests {
                                 },
                             ),),
                             location: ellie_core::defs::Cursor {
-                                range_start: ellie_core::defs::CursorPosition(0, 0,),
-                                range_end: ellie_core::defs::CursorPosition(0, 1,),
+                                range_start: ellie_core::defs::CursorPosition(0, 1,),
+                                range_end: ellie_core::defs::CursorPosition(0, 2,),
                             },
                         },
                         ellie_parser::syntax::types::array_type::ArrayEntry {
@@ -43,8 +44,8 @@ mod array_tests {
                                 },
                             ),),
                             location: ellie_core::defs::Cursor {
-                                range_start: ellie_core::defs::CursorPosition(0, 1,),
-                                range_end: ellie_core::defs::CursorPosition(0, 1,),
+                                range_start: ellie_core::defs::CursorPosition(0, 4,),
+                                range_end: ellie_core::defs::CursorPosition(0, 5,),
                             },
                         },
                         ellie_parser::syntax::types::array_type::ArrayEntry {
@@ -60,8 +61,8 @@ mod array_tests {
                                 },
                             ),),
                             location: ellie_core::defs::Cursor {
-                                range_start: ellie_core::defs::CursorPosition(0, 1,),
-                                range_end: ellie_core::defs::CursorPosition(0, 1,),
+                                range_start: ellie_core::defs::CursorPosition(0, 7,),
+                                range_end: ellie_core::defs::CursorPosition(0, 8,),
                             },
                         },
                     ],
@@ -111,11 +112,11 @@ mod array_tests {
                                                 location: ellie_core::defs::Cursor {
                                                     range_start: ellie_core::defs::CursorPosition(
                                                         0,
-                                                        0,
+                                                        2,
                                                     ),
                                                     range_end: ellie_core::defs::CursorPosition(
                                                         0,
-                                                        1,
+                                                        3,
                                                     ),
                                                 },
                                             },
@@ -126,11 +127,11 @@ mod array_tests {
                                 location: ellie_core::defs::Cursor {
                                     range_start: ellie_core::defs::CursorPosition(
                                         0,
-                                        0,
+                                        1,
                                     ),
                                     range_end: ellie_core::defs::CursorPosition(
                                         0,
-                                        1,
+                                        4,
                                     ),
                                 },
                             },
@@ -159,11 +160,11 @@ mod array_tests {
                                                 location: ellie_core::defs::Cursor {
                                                     range_start: ellie_core::defs::CursorPosition(
                                                         0,
-                                                        0,
+                                                        7,
                                                     ),
                                                     range_end: ellie_core::defs::CursorPosition(
                                                         0,
-                                                        1,
+                                                        8,
                                                     ),
                                                 },
                                             },
@@ -174,11 +175,11 @@ mod array_tests {
                                 location: ellie_core::defs::Cursor {
                                     range_start: ellie_core::defs::CursorPosition(
                                         0,
-                                        0,
+                                        6,
                                     ),
                                     range_end: ellie_core::defs::CursorPosition(
                                         0,
-                                        1,
+                                        9,
                                     ),
                                 },
                             },
@@ -209,11 +210,11 @@ mod array_tests {
                                                 location: ellie_core::defs::Cursor {
                                                     range_start: ellie_core::defs::CursorPosition(
                                                         0,
-                                                        0,
+                                                        12,
                                                     ),
                                                     range_end: ellie_core::defs::CursorPosition(
                                                         0,
-                                                        1,
+                                                        13,
                                                     ),
                                                 },
                                             },
@@ -223,11 +224,11 @@ mod array_tests {
                                 location: ellie_core::defs::Cursor {
                                     range_start: ellie_core::defs::CursorPosition(
                                         0,
-                                        0,
+                                        11,
                                     ),
                                     range_end: ellie_core::defs::CursorPosition(
                                         0,
-                                        1,
+                                        14,
                                     ),
                                 },
                             },
@@ -285,11 +286,11 @@ mod array_tests {
                                                             location: ellie_core::defs::Cursor {
                                                                 range_start: ellie_core::defs::CursorPosition(
                                                                     0,
-                                                                    0,
+                                                                    3,
                                                                 ),
                                                                 range_end: ellie_core::defs::CursorPosition(
                                                                     0,
-                                                                    1,
+                                                                    4,
                                                                 ),
                                                             },
                                                         },
@@ -299,11 +300,11 @@ mod array_tests {
                                             location: ellie_core::defs::Cursor {
                                                 range_start: ellie_core::defs::CursorPosition(
                                                     0,
-                                                    0,
+                                                    2,
                                                 ),
                                                 range_end: ellie_core::defs::CursorPosition(
                                                     0,
-                                                    1,
+                                                    5,
                                                 ),
                                             },
                                         },
@@ -313,11 +314,11 @@ mod array_tests {
                             location: ellie_core::defs::Cursor {
                                 range_start: ellie_core::defs::CursorPosition(
                                     0,
-                                    0,
+                                    1,
                                 ),
                                 range_end: ellie_core::defs::CursorPosition(
                                     0,
-                                    1,
+                                    6,
                                 ),
                             },
                         },
@@ -358,11 +359,11 @@ mod array_tests {
                                                             location: ellie_core::defs::Cursor {
                                                                 range_start: ellie_core::defs::CursorPosition(
                                                                     0,
-                                                                    0,
+                                                                    10,
                                                                 ),
                                                                 range_end: ellie_core::defs::CursorPosition(
                                                                     0,
-                                                                    1,
+                                                                    11,
                                                                 ),
                                                             },
                                                         },
@@ -372,11 +373,11 @@ mod array_tests {
                                             location: ellie_core::defs::Cursor {
                                                 range_start: ellie_core::defs::CursorPosition(
                                                     0,
-                                                    0,
+                                                    9,
                                                 ),
                                                 range_end: ellie_core::defs::CursorPosition(
                                                     0,
-                                                    1,
+                                                    12,
                                                 ),
                                             },
                                         },
@@ -386,11 +387,11 @@ mod array_tests {
                             location: ellie_core::defs::Cursor {
                                 range_start: ellie_core::defs::CursorPosition(
                                     0,
-                                    0,
+                                    8,
                                 ),
                                 range_end: ellie_core::defs::CursorPosition(
                                     0,
-                                    1,
+                                    13,
                                 ),
                             },
                         },
@@ -429,11 +430,11 @@ mod array_tests {
                                                             location: ellie_core::defs::Cursor {
                                                                 range_start: ellie_core::defs::CursorPosition(
                                                                     0,
-                                                                    0,
+                                                                    17,
                                                                 ),
                                                                 range_end: ellie_core::defs::CursorPosition(
                                                                     0,
-                                                                    1,
+                                                                    18,
                                                                 ),
                                                             },
                                                        },
@@ -443,11 +444,11 @@ mod array_tests {
                                             location: ellie_core::defs::Cursor {
                                                 range_start: ellie_core::defs::CursorPosition(
                                                     0,
-                                                    0,
+                                                    16,
                                                 ),
                                                 range_end: ellie_core::defs::CursorPosition(
                                                     0,
-                                                    1,
+                                                    19,
                                                 ),
                                             },
                                         },
@@ -457,11 +458,11 @@ mod array_tests {
                             location: ellie_core::defs::Cursor {
                                 range_start: ellie_core::defs::CursorPosition(
                                     0,
-                                    0,
+                                    15,
                                 ),
                                 range_end: ellie_core::defs::CursorPosition(
                                     0,
-                                    1,
+                                    20,
                                 ),
                             },
                         },

@@ -8,6 +8,7 @@ mod collective_tests {
             ellie_parser::syntax::types::Types::Collective(
                 ellie_parser::syntax::types::collective_type::CollectiveCollector {
                     complete: true,
+                    at_comma: false,
                     data: ellie_parser::syntax::types::collective_type::Collective::default(),
                 }
             )
@@ -31,6 +32,7 @@ mod collective_tests {
             ellie_parser::syntax::types::Types::Collective(
                 ellie_parser::syntax::types::collective_type::CollectiveCollector {
                     complete: true,
+                    at_comma: false,
                     data: ellie_parser::syntax::types::collective_type::Collective {
                         entries: vec![
                             ellie_parser::syntax::types::collective_type::CollectiveEntryCollector {
@@ -54,21 +56,21 @@ mod collective_tests {
                                     key_pos: ellie_core::defs::Cursor {
                                         range_start: ellie_core::defs::CursorPosition(
                                             0,
-                                            0,
+                                            1,
                                         ),
                                         range_end: ellie_core::defs::CursorPosition(
                                             0,
-                                            0,
+                                            2,
                                         ),
                                     },
                                     value_pos: ellie_core::defs::Cursor {
                                         range_start: ellie_core::defs::CursorPosition(
                                             0,
-                                            0,
+                                            4,
                                         ),
                                         range_end: ellie_core::defs::CursorPosition(
                                             0,
-                                            1,
+                                            7,
                                         ),
                                     },
                                 },
@@ -98,21 +100,21 @@ mod collective_tests {
                                     key_pos: ellie_core::defs::Cursor {
                                         range_start: ellie_core::defs::CursorPosition(
                                             0,
-                                            0,
+                                            9,
                                         ),
                                         range_end: ellie_core::defs::CursorPosition(
                                             0,
-                                            0,
+                                            10,
                                         ),
                                     },
                                     value_pos: ellie_core::defs::Cursor {
                                         range_start: ellie_core::defs::CursorPosition(
                                             0,
-                                            0,
+                                            12,
                                         ),
                                         range_end: ellie_core::defs::CursorPosition(
                                             0,
-                                            1,
+                                            15,
                                         ),
                                     },
                                 },
@@ -133,6 +135,7 @@ mod collective_tests {
             ellie_parser::syntax::types::Types::Collective(
                 ellie_parser::syntax::types::collective_type::CollectiveCollector {
                     complete: true,
+                    at_comma: false,
                     data: ellie_parser::syntax::types::collective_type::Collective {
                         entries: vec![
                             ellie_parser::syntax::types::collective_type::CollectiveEntryCollector {
@@ -156,21 +159,21 @@ mod collective_tests {
                                     key_pos: ellie_core::defs::Cursor {
                                         range_start: ellie_core::defs::CursorPosition(
                                             0,
-                                            0,
+                                            1,
                                         ),
                                         range_end: ellie_core::defs::CursorPosition(
                                             0,
-                                            0,
+                                            2,
                                         ),
                                     },
                                     value_pos: ellie_core::defs::Cursor {
                                         range_start: ellie_core::defs::CursorPosition(
                                             0,
-                                            0,
+                                            4,
                                         ),
                                         range_end: ellie_core::defs::CursorPosition(
                                             0,
-                                            1,
+                                            7,
                                         ),
                                     },
                                 },
@@ -192,6 +195,7 @@ mod collective_tests {
                                     value: Box::new(ellie_parser::syntax::types::Types::Collective(
                                         ellie_parser::syntax::types::collective_type::CollectiveCollector {
                                             complete: true,
+                                            at_comma: false,
                                             data: ellie_parser::syntax::types::collective_type::Collective {
                                                 entries: vec![
                                                     ellie_parser::syntax::types::collective_type::CollectiveEntryCollector {
@@ -215,21 +219,21 @@ mod collective_tests {
                                                             key_pos: ellie_core::defs::Cursor {
                                                                 range_start: ellie_core::defs::CursorPosition(
                                                                     0,
-                                                                    0,
+                                                                    13,
                                                                 ),
                                                                 range_end: ellie_core::defs::CursorPosition(
                                                                     0,
-                                                                    0,
+                                                                    14,
                                                                 ),
                                                             },
                                                             value_pos: ellie_core::defs::Cursor {
                                                                 range_start: ellie_core::defs::CursorPosition(
                                                                     0,
-                                                                    0,
+                                                                    16,
                                                                 ),
                                                                 range_end: ellie_core::defs::CursorPosition(
                                                                     0,
-                                                                    1,
+                                                                    19,
                                                                 ),
                                                             },
                                                         },
@@ -257,21 +261,21 @@ mod collective_tests {
                                                             key_pos: ellie_core::defs::Cursor {
                                                                 range_start: ellie_core::defs::CursorPosition(
                                                                     0,
-                                                                    0,
+                                                                    21,
                                                                 ),
                                                                 range_end: ellie_core::defs::CursorPosition(
                                                                     0,
-                                                                    0,
+                                                                    22,
                                                                 ),
                                                             },
                                                             value_pos: ellie_core::defs::Cursor {
                                                                 range_start: ellie_core::defs::CursorPosition(
                                                                     0,
-                                                                    0,
+                                                                    24,
                                                                 ),
                                                                 range_end: ellie_core::defs::CursorPosition(
                                                                     0,
-                                                                    1,
+                                                                    27,
                                                                 ),
                                                             },
                                                         },
@@ -285,21 +289,21 @@ mod collective_tests {
                                     key_pos: ellie_core::defs::Cursor {
                                         range_start: ellie_core::defs::CursorPosition(
                                             0,
-                                            0,
+                                            9,
                                         ),
                                         range_end: ellie_core::defs::CursorPosition(
                                             0,
-                                            0,
+                                            10,
                                         ),
                                     },
                                     value_pos: ellie_core::defs::Cursor {
                                         range_start: ellie_core::defs::CursorPosition(
                                             0,
-                                            0,
+                                            12,
                                         ),
                                         range_end: ellie_core::defs::CursorPosition(
                                             0,
-                                            1,
+                                            28,
                                         ),
                                     },
                                 },

@@ -11,9 +11,9 @@ use crate::alloc::vec::Vec;
 
 use crate::syntax::{
     caller, class, condition, constructor, definers, file_key, for_loop, function, import,
-    import_item, ret, types, variable,
+    import_item, native_function, ret, types, variable,
 };
-use ellie_core::{defs, error, utils};
+use ellie_core::{com, defs, error, utils};
 
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
 pub struct Parsed {
@@ -43,7 +43,7 @@ pub enum Collecting {
     Getter,
     Setter,
     NativeClass,
-    NativeFunction,
+    NativeFunction(native_function::NativeFunction),
     None,
 }
 
@@ -61,6 +61,7 @@ pub enum NameCheckResponseType {
     None,
 }
 
+#[derive(PartialEq, Debug)]
 pub enum DeepCallResponse {
     TypeResponse(types::Types),
     ElementResponse(Collecting),
@@ -91,10 +92,14 @@ pub struct RawParser {
 }
 
 impl RawParser {
-    pub fn to_parser(self, resolver: fn(defs::ParserOptions, String) -> ResolvedImport) -> Parser {
+    pub fn to_parser(
+        self,
+        resolver: fn(defs::ParserOptions, String) -> ResolvedImport,
+    ) -> Parser<impl FnMut(com::Message) + Clone + Sized> {
         Parser {
             scope: self.scope,
-            resolver: resolver,
+            resolver: |_, _, _| ResolvedImport::default(),
+            emit_message: |_| {},
             code: self.code,
             options: self.options,
             collected: self.collected,
@@ -110,10 +115,11 @@ impl RawParser {
         }
     }
 
-    pub fn to_no_resolver_parser(self) -> Parser {
+    pub fn to_no_resolver_parser(self) -> Parser<impl FnMut(com::Message) + Clone + Sized> {
         Parser {
             scope: self.scope,
-            resolver: |_, _| ResolvedImport::default(),
+            resolver: |_, _, _| ResolvedImport::default(),
+            emit_message: |_| {},
             code: self.code,
             options: self.options,
             collected: self.collected,
@@ -131,9 +137,10 @@ impl RawParser {
 }
 
 #[derive(Clone)]
-pub struct Parser {
+pub struct Parser<F> {
     pub scope: Box<scope::Scope>,
-    pub resolver: fn(defs::ParserOptions, String) -> ResolvedImport,
+    pub resolver: fn(ellie_core::defs::ParserOptions, String, bool) -> ResolvedImport,
+    pub emit_message: F,
     pub code: String,
     pub options: defs::ParserOptions,
     pub collected: Vec<Collecting>,
@@ -148,44 +155,28 @@ pub struct Parser {
     pub keyword_cache: variable::VariableCollector,
 }
 
-impl Default for Parser {
-    fn default() -> Self {
-        Parser {
-            scope: Box::new(scope::Scope::default()),
-            resolver: |_, _| ResolvedImport::default(),
-            code: "".to_string(),
-            options: defs::ParserOptions::default(),
-            collected: Vec::new(),
-            generic_variables: Vec::new(),
-            pos: defs::CursorPosition(0, 0),
-            keyword_pos: defs::Cursor::default(),
-            ignore_line: false,
-            on_comment: false,
-            on_line_comment: false,
-            current: Collecting::None,
-            keyword_catch: String::new(),
-            keyword_cache: variable::VariableCollector::default(),
-        }
-    }
-}
-
 #[derive(Default, Debug)]
 pub struct ResolvedImport {
     pub found: bool,
     pub resolve_error: String,
-    pub syntax_errors: Vec<error::Error>,
-    pub file_content: Parsed,
+    pub resolved_path: String,
+    pub file_content: String,
 }
 
-impl Parser {
+impl<F> Parser<F>
+where
+    F: FnMut(com::Message) + Clone + Sized,
+{
     pub fn new(
         code: String,
-        resolve_import: fn(defs::ParserOptions, String) -> ResolvedImport,
+        mut resolve_import: fn(ellie_core::defs::ParserOptions, String, bool) -> ResolvedImport,
+        mut com: F,
         options: defs::ParserOptions,
-    ) -> Self {
+    ) -> Parser<F> {
         Parser {
             scope: Box::new(scope::Scope::default()),
             resolver: resolve_import,
+            emit_message: com,
             code,
             options,
             collected: Vec::new(),
@@ -201,9 +192,18 @@ impl Parser {
         }
     }
 
-    pub fn read_module(mut self, code: String) -> ParserResponse {
-        self.code = code;
-        self.map()
+    pub fn read_module(mut self, code: String, path: String) -> ParserResponse {
+        let mut new_options = self.options.clone();
+        new_options.path = path;
+        new_options.parser_type = ellie_core::defs::ParserType::RawParser;
+        Parser::new(code, self.resolver, self.emit_message, new_options).map()
+    }
+
+    pub fn read_native_header(mut self, code: String, path: String) -> ParserResponse {
+        let mut new_options = self.options.clone();
+        new_options.path = path;
+        new_options.parser_type = ellie_core::defs::ParserType::HeaderParser;
+        Parser::new(code, self.resolver, self.emit_message, new_options).map()
     }
 
     pub fn to_raw(self) -> RawParser {
@@ -233,6 +233,16 @@ impl Parser {
                 &utils::get_letter(self.code.clone().to_string(), index, false).to_string();
             let next_char =
                 &utils::get_letter(self.code.clone().to_string(), index, true).to_string();
+
+            if self.pos.1 == 1 {
+                (self.emit_message)(ellie_core::com::Message {
+                    id: ellie_core::utils::generate_hash(),
+                    message_type: ellie_core::com::MessageType::ParserLineExec,
+                    from: self.options.path.clone(),
+                    from_chain: None,
+                    message_data: alloc::format!("{:?}", self.pos.clone()),
+                });
+            }
 
             if char != '\n'
                 && char != '\r'
@@ -276,6 +286,13 @@ impl Parser {
                 pos: self.keyword_pos,
             });
         }
+        (self.emit_message)(ellie_core::com::Message {
+            id: ellie_core::utils::generate_hash(),
+            message_type: ellie_core::com::MessageType::ParseComplete,
+            from: self.options.path.clone(),
+            from_chain: None,
+            message_data: alloc::format!(""),
+        });
         ParserResponse {
             parsed: Parsed {
                 name: self.scope.scope_name,
@@ -341,25 +358,24 @@ impl Parser {
             types::Types::Char(_) => DeepCallResponse::TypeResponse(target),
             types::Types::Null => DeepCallResponse::TypeResponse(target),
             types::Types::Void => DeepCallResponse::TypeResponse(target),
-            types::Types::Collective(_) => todo!(),
+            types::Types::Collective(_) => DeepCallResponse::TypeResponse(target),
             types::Types::Array(_) => todo!(),
             types::Types::Cloak(_) => todo!(),
             types::Types::Reference(_) => todo!(),
-            types::Types::BraceReference(_) => todo!(),
             types::Types::Operator(_) => todo!(),
             types::Types::ArrowFunction(_) => todo!(),
             types::Types::ConstructedClass(_) => todo!(),
             types::Types::FunctionCall(_) => todo!(),
             types::Types::Negative(_) => todo!(),
             types::Types::VariableType(e) => {
-                let fn_found = self.check_keyword(e.data.value);
+                let vr_found = self.check_keyword(e.data.value);
 
-                if fn_found.found {
-                    if let NameCheckResponseType::Variable(v_data) = fn_found.found_type {
-                        DeepCallResponse::ElementResponse(Collecting::Variable(v_data))
-                    } else if let NameCheckResponseType::Function(f_data) = fn_found.found_type {
+                if vr_found.found {
+                    if let NameCheckResponseType::Variable(v_data) = vr_found.found_type {
+                        self.resolve_deep_call(v_data.data.value)
+                    } else if let NameCheckResponseType::Function(f_data) = vr_found.found_type {
                         DeepCallResponse::ElementResponse(Collecting::Function(f_data))
-                    } else if let NameCheckResponseType::Class(c_data) = fn_found.found_type {
+                    } else if let NameCheckResponseType::Class(c_data) = vr_found.found_type {
                         DeepCallResponse::ElementResponse(Collecting::Class(c_data))
                     } else {
                         DeepCallResponse::NoElement
@@ -383,15 +399,28 @@ impl Parser {
             types::Types::Cloak(_) => "cloak".to_string(),
             types::Types::Array(_) => "array".to_string(),
             types::Types::Void => "void".to_string(),
-            types::Types::Reference(_) => {
-                #[cfg(feature = "std")]
-                std::println!("Not implemented for: types {:#?}", target);
-                "".to_string()
-            }
-            types::Types::BraceReference(_) => {
-                #[cfg(feature = "std")]
-                std::println!("Not implemented for: types {:#?}", target);
-                "".to_string()
+            types::Types::Reference(e) => {
+                //let q = self.resolve_reference_call(e);
+
+                "nen".to_string();
+
+                /*
+                let vr_found = self.check_keyword(*e.data.reference);
+                if vr_found.found {
+                    if let NameCheckResponseType::Variable(v_data) = vr_found.found_type {
+                        v_data.data.rtype.raw_name()
+                    } else if let NameCheckResponseType::Function(_) = vr_found.found_type {
+                        "function".to_string()
+                    } else if let NameCheckResponseType::Class(_) = vr_found.found_type {
+                        "class".to_string()
+                    } else {
+                        "nen".to_string()
+                    }
+                } else {
+                    "nen".to_string()
+                }
+                */
+                "nen".to_string()
             }
             types::Types::Operator(_) => {
                 #[cfg(feature = "std")]
@@ -431,14 +460,14 @@ impl Parser {
                 }
             }
             types::Types::VariableType(e) => {
-                let fn_found = self.check_keyword(e.data.value);
+                let vr_found = self.check_keyword(e.data.value);
 
-                if fn_found.found {
-                    if let NameCheckResponseType::Variable(v_data) = fn_found.found_type {
+                if vr_found.found {
+                    if let NameCheckResponseType::Variable(v_data) = vr_found.found_type {
                         v_data.data.rtype.raw_name()
-                    } else if let NameCheckResponseType::Function(_) = fn_found.found_type {
+                    } else if let NameCheckResponseType::Function(_) = vr_found.found_type {
                         "function".to_string()
-                    } else if let NameCheckResponseType::Class(_) = fn_found.found_type {
+                    } else if let NameCheckResponseType::Class(_) = vr_found.found_type {
                         "class".to_string()
                     } else {
                         "nen".to_string()
@@ -451,62 +480,36 @@ impl Parser {
         }
     }
 
-    pub fn resolve_reference_function_call(
+    pub fn resolve_reference_tree(
+        self,
+        reference: DeepCallResponse,
+        chain: Vec<types::reference_type::Chain>,
+    ) {
+    }
+
+    pub fn resolve_reference_call(
         self,
         reference_data: types::reference_type::ReferenceType,
-        caller_data: types::function_call::FunctionCallCollector,
     ) -> Option<Vec<ellie_core::error::Error>> {
-        let found = false;
         let mut errors = Vec::new();
+        let deep_scan = self.resolve_deep_call(*reference_data.reference.clone());
 
-        let targeted_var = self.check_keyword(self.resolve_variable(*reference_data.reference));
+        let resolve_tree = || {};
 
-        if !targeted_var.found {
-            errors.push(error::Error {
-                path: self.options.path.clone(),
-                scope: self.scope.scope_name.clone(),
-                debug_message: "71a7c4da06b7552995388cf515b66766".to_string(),
-                title: error::errorList::error_s6.title.clone(),
-                code: error::errorList::error_s6.code,
-                message: error::errorList::error_s6.message.clone(),
-                builded_message: error::Error::build(
-                    error::errorList::error_s6.message.clone(),
-                    vec![error::ErrorBuildField {
-                        key: "token".to_string(),
-                        value: caller_data.data.name.clone(),
-                    }],
-                ),
-                pos: caller_data.data.name_pos,
-            });
-        } else {
-            //targeted_var.found_type
-        }
+        match deep_scan {
+            DeepCallResponse::TypeResponse(type_response) => {
+                std::println!("TYPE RESPONSE {:#?}", type_response);
+            }
+            DeepCallResponse::ElementResponse(element_response) => {
+                std::println!("ELEMENT RESPONSE {:#?}", element_response);
+            }
+            _ => panic!("This should have not been called"),
+        };
 
-        //panic!("?? : {:#?} \n\n\n, {:#?}", reference_data.clone(), caller_data);
-
-        if !found {
-            errors.push(error::Error {
-                path: self.options.path.clone(),
-                scope: self.scope.scope_name.clone(),
-                debug_message: "b0e66543a1380289cabfd8c05706ad83".to_string(),
-                title: error::errorList::error_s6.title.clone(),
-                code: error::errorList::error_s6.code,
-                message: error::errorList::error_s6.message.clone(),
-                builded_message: error::Error::build(
-                    error::errorList::error_s6.message.clone(),
-                    vec![error::ErrorBuildField {
-                        key: "token".to_string(),
-                        value: caller_data.data.name.clone(),
-                    }],
-                ),
-                pos: caller_data.data.name_pos,
-            });
-        }
-
-        if errors.is_empty() {
-            None
-        } else {
+        if !errors.is_empty() {
             Some(errors)
+        } else {
+            None
         }
     }
 

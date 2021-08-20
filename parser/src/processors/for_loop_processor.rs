@@ -7,13 +7,15 @@ use alloc::string::ToString;
 use alloc::vec;
 use ellie_core::error;
 
-pub fn collect_for(
-    parser: &mut parser::Parser,
+pub fn collect_for<F>(
+    parser: &mut parser::Parser<F>,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     next_char: String,
     last_char: String,
-) {
+) where
+    F: FnMut(ellie_core::com::Message) + Clone + Sized,
+{
     let parser_clone = parser.clone();
     if let parser::Collecting::ForLoop(ref mut for_loop_data) = parser.current {
         //panic!("NOT IMPLEMENTED");
@@ -81,7 +83,8 @@ pub fn collect_for(
             } else {
                 let mut child_parser = parser::Parser::new(
                     for_loop_data.inside_code_string.clone(),
-                    |_, _| parser::ResolvedImport::default(),
+                    |_, _, _| parser::ResolvedImport::default(),
+                    parser.emit_message.clone(),
                     parser.options.clone(),
                 );
                 child_parser.pos = parser.pos;

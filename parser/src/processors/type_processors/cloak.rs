@@ -8,14 +8,16 @@ use alloc::string::{String, ToString};
 use alloc::vec;
 use alloc::vec::Vec;
 
-pub fn collect_cloak(
-    parser: parser::Parser,
+pub fn collect_cloak<F>(
+    parser: parser::Parser<F>,
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     next_char: String,
     last_char: String,
-) {
+) where
+    F: FnMut(ellie_core::com::Message) + Clone + Sized,
+{
     if let types::Types::Cloak(ref mut cloak_data) = itered_data.data.value {
         let mut last_entry = cloak_data.data.clone().collective.len();
 
@@ -265,10 +267,13 @@ pub fn collect_cloak(
             itered_data.data.value =
                 types::Types::Reference(types::reference_type::ReferenceTypeCollector {
                     data: types::reference_type::ReferenceType {
+                        reference_pos: itered_data.data.value_pos,
                         reference: Box::new(itered_data.data.value.clone()),
                         chain: Vec::new(),
                     },
+                    root_available: false,
                     on_dot: false,
+                    complete: false,
                 });
             type_processors::reference::collect_reference(
                 parser.clone(),
@@ -549,24 +554,6 @@ pub fn collect_cloak(
                 types::Types::Reference(match_cloak_data) => types::cloak_type::CloakEntry {
                     value_complete: true,
                     value: Box::new(types::Types::Reference(match_cloak_data)),
-                    location: defs::Cursor {
-                        range_start: if cloak_data.data.collective.len() != 0
-                            && !cloak_data.data.collective[last_entry - 1]
-                                .location
-                                .is_zero()
-                        {
-                            cloak_data.data.collective[last_entry - 1]
-                                .location
-                                .range_start
-                        } else {
-                            parser.pos
-                        },
-                        ..Default::default()
-                    },
-                },
-                types::Types::BraceReference(match_cloak_data) => types::cloak_type::CloakEntry {
-                    value_complete: true,
-                    value: Box::new(types::Types::BraceReference(match_cloak_data)),
                     location: defs::Cursor {
                         range_start: if cloak_data.data.collective.len() != 0
                             && !cloak_data.data.collective[last_entry - 1]

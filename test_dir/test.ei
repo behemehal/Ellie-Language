@@ -1,7 +1,7 @@
-import ellie;
+import ../lib/ellie;
 
-v test : collective(dyn, dyn) = {
-    "name": "ahmet"
+v test = {
+    "ahmet": "ok"
 };
 
-v name : string = test.name;
+v name = test.ahmets.tre;

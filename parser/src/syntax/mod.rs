@@ -9,6 +9,7 @@ pub mod for_loop;
 pub mod function;
 pub mod import;
 pub mod import_item;
+pub mod native_function;
 pub mod ret;
 pub mod types;
 pub mod variable;

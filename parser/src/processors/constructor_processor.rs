@@ -5,13 +5,15 @@ use crate::parser;
 use crate::syntax::constructor;
 use ellie_core::{defs, error, utils};
 
-pub fn collect_constructor(
-    parser: &mut parser::Parser,
+pub fn collect_constructor<F>(
+    parser: &mut parser::Parser<F>,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     _next_char: String,
     last_char: String,
-) {
+) where
+    F: FnMut(ellie_core::com::Message) + Clone + Sized,
+{
     if let parser::Collecting::Constructor(ref mut constructor_data) = parser.current {
         let current_reliability = utils::reliable_name_range(
             utils::ReliableNameRanges::VariableName,

@@ -4,7 +4,12 @@ use ellie_parser;
 fn main() {
     let mut pos = ellie_core::defs::CursorPosition(0, 0);
     let mut errors: Vec<ellie_core::error::Error> = vec![];
-    let emulated_parser = ellie_parser::parser::Parser::default();
+    let emulated_parser = ellie_parser::parser::Parser::new(
+        "".to_string(),
+        |_, _, _| ellie_parser::parser::ResolvedImport::default(),
+        |_| {},
+        ellie_core::defs::ParserOptions::default(),
+    );
     let mut emulated_collector_data = ellie_parser::syntax::definers::DefinerCollecting::default();
     let code = "
     collective(string, dyn)

@@ -1,18 +1,25 @@
 [package]
 name = "ellie_engine"
-version = "3.0.2"
+version_code = "BeautifulTropicalFish"
+version = "3.4.0"
 authors = ["Ahmetcan Aksu <ahmetcanaksu@behemehal.net>"]
 edition = "2018"
 license-file = "LICENSE"
 
 [dependencies]
-lazy_static = { version = "1.4.0", features = ["spin_no_std"]}
+lazy_static = { version = "1.4.0", features = ["spin_no_std"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
 ellie_core = {path = "core", version = "1.0.0"}
-ellie_parser = {path = "parser", version = "1.3.2", default-features = false}
-ellie_runtime = {path = "runtime", version = "0.1.0"}
-path-absolutize = "3.0.10"
+ellie_parser = {path = "parser", version = "1.4.0", default-features = false }
+ellie_runtime = {path = "runtime", version = "0.1.0" }
+path-absolutize = {version = "3.0.10", optional = true }
+websocket = {version = "0.26.2", optional = true, default-features = false, features = ["sync"] }
+
+[features]
+default = ["build-cli"]
+build-cli = ["path-absolutize", "websocket"]
+
 
 [lib]
 name = "ellie_lang"
@@ -22,6 +29,7 @@ path = "src/lib.rs"
 name = "ellie"
 test = false
 bench = false
+required-features = ["build-cli"]  
 
 [[bin]]
 name = "value_test"
@@ -38,11 +46,11 @@ name = "benches"
 harness = false
 
 [build-dependencies]
-ellie_parser = {path = "parser", version = "1.3.2", default-features = false}
+ellie_parser = {path = "parser", version = "1.4.0", default-features = false}
 ellie_core = {path = "core", version = "1.0.0"}
-cbindgen = "*"
 regex = "1.1.7"
 serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
+toml = "0.5.8"
 
 [dev-dependencies]
 criterion = { version = "0.3", features= ["html_reports"]}
