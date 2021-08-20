@@ -48,7 +48,7 @@ pub fn collect_string<F>(
                 });
             } else {
                 string_data.data.comma_end_pos = defs::Cursor {
-                    range_start: parser.pos.clone().skip_char(1),
+                    range_start: parser.pos.clone().pop_char(1),
                     range_end: parser.pos,
                 };
                 string_data.complete = true;
