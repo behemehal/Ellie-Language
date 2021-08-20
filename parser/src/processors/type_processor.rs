@@ -37,7 +37,8 @@ pub fn collect_type<F>(
         || keyword == "pub importNative "
         || keyword == "pri importNative ")
         && parser.options.allow_import
-        && (parser.options.parser_type == defs::ParserType::RawParser || parser.options.parser_type == defs::ParserType::HeaderParser)
+        && (parser.options.parser_type == defs::ParserType::RawParser
+            || parser.options.parser_type == defs::ParserType::HeaderParser)
     {
         parser.current = parser::Collecting::Import(import::Import {
             public: keyword == "pub import " || keyword == "pub importNative ",
@@ -133,7 +134,10 @@ pub fn collect_type<F>(
             ..Default::default()
         });
         parser.keyword_catch = String::new();
-    } else if keyword == "@" && (parser.options.parser_type == defs::ParserType::RawParser || parser.options.parser_type == defs::ParserType::HeaderParser) {
+    } else if keyword == "@"
+        && (parser.options.parser_type == defs::ParserType::RawParser
+            || parser.options.parser_type == defs::ParserType::HeaderParser)
+    {
         parser.current = parser::Collecting::FileKey(file_key::FileKeyCollector {
             data: file_key::FileKey {
                 pos: defs::Cursor {
@@ -157,10 +161,16 @@ pub fn collect_type<F>(
             ..Default::default()
         });
         parser.keyword_catch = String::new();
-    } else if keyword == "if" && (parser.options.parser_type == defs::ParserType::RawParser || parser.options.parser_type == defs::ParserType::HeaderParser) {
+    } else if keyword == "if"
+        && (parser.options.parser_type == defs::ParserType::RawParser
+            || parser.options.parser_type == defs::ParserType::HeaderParser)
+    {
         parser.current = parser::Collecting::Condition(condition::ConditionCollector::default());
         parser.keyword_catch = String::new();
-    } else if keyword == "else if" && (parser.options.parser_type == defs::ParserType::RawParser || parser.options.parser_type == defs::ParserType::HeaderParser) {
+    } else if keyword == "else if"
+        && (parser.options.parser_type == defs::ParserType::RawParser
+            || parser.options.parser_type == defs::ParserType::HeaderParser)
+    {
         let collected_length = parser.collected.clone().len();
         if collected_length == 0 {
             panic!("Error");
@@ -192,7 +202,10 @@ pub fn collect_type<F>(
             panic!("Error: {:#?}", parser.collected);
         }
         parser.keyword_catch = String::new();
-    } else if keyword == "else {" && (parser.options.parser_type == defs::ParserType::RawParser || parser.options.parser_type == defs::ParserType::HeaderParser) {
+    } else if keyword == "else {"
+        && (parser.options.parser_type == defs::ParserType::RawParser
+            || parser.options.parser_type == defs::ParserType::HeaderParser)
+    {
         let collected_length = parser.collected.clone().len();
         if collected_length == 0 {
             errors.push(error::Error {
@@ -280,7 +293,11 @@ pub fn collect_type<F>(
             },
         });
         parser.keyword_catch = String::new();
-    } else if letter_char == "(" && keyword.trim() != "(" && !keyword.trim().is_empty() && parser.options.parser_type == defs::ParserType::RawParser {
+    } else if letter_char == "("
+        && keyword.trim() != "("
+        && !keyword.trim().is_empty()
+        && parser.options.parser_type == defs::ParserType::RawParser
+    {
         parser.current = parser::Collecting::Caller(caller::Caller {
             value: types::Types::FunctionCall(types::function_call::FunctionCallCollector {
                 data: types::function_call::FunctionCall {
@@ -306,7 +323,10 @@ pub fn collect_type<F>(
             },
         });
         parser.keyword_catch = String::new();
-    } else if next_char == "." && keyword.trim() != "" && parser.options.parser_type == defs::ParserType::RawParser {
+    } else if next_char == "."
+        && keyword.trim() != ""
+        && parser.options.parser_type == defs::ParserType::RawParser
+    {
         #[cfg(feature = "std")]
         std::println!("[ParserWarning]: Applying no position data to VariableType[226] will cause error showing problem in cli");
         parser.current = parser::Collecting::Caller(caller::Caller {

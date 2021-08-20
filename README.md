@@ -1,6 +1,6 @@
 ![icon](./picture/TextIcon/EllieTextIcon@0,33x.png)
 # Ellie
-[![Refactor Errors](https://github.com/behemehal/Ellie-Language/actions/workflows/refactor.yml/badge.svg)](https://github.com/behemehal/Ellie-Language/actions/workflows/refactor.yml) [![Rust](https://github.com/behemehal/Ellie-Language/actions/workflows/rust.yml/badge.svg)](https://github.com/behemehal/Ellie-Language/actions/workflows/rust.yml) [![Gitter](https://badgen.net/badge/icon/gitter?icon=gitter&label)](https://gitter.im/ellie-lang/community)
+[![Refactor Errors](https://github.com/behemehal/Ellie-Language/actions/workflows/refactor.yml/badge.svg)](https://github.com/behemehal/Ellie-Language/actions/workflows/refactor.yml) [![Rust](https://github.com/behemehal/Ellie-Language/actions/workflows/rust.yml/badge.svg)](https://github.com/behemehal/Ellie-Language/actions/workflows/rust.yml) [![Gitter](https://badgen.net/badge/icon/gitter?icon=gitter&label)](https://gitter.im/ellie-lang/community) [![Lines Of Code](https://tokei.rs/b1/github/behemehal/ellie-language?category=code)](https://github.com/behemehal/ellie-language)
 
 Ellie language
 

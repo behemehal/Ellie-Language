@@ -29,7 +29,7 @@ pub fn collect_import<F>(
                         message_data: alloc::format!("{:?}", parser.pos.clone()),
                     });
                     let response =
-                        (parser.resolver)(parser_clone.options.clone(), import_data.path.clone());
+                        (parser.resolver)(parser_clone.options.clone(), import_data.path.clone(), import_data.native);
 
                     if !response.found {
                         if response.resolve_error == "" {
@@ -75,7 +75,9 @@ pub fn collect_import<F>(
                             from_chain: Some(import_resolve_chain_id),
                             message_data: alloc::format!("{:?}", parser.pos.clone()),
                         });
-                        let inner_parser = parser_clone.clone().read_native_header(response.file_content, response.resolved_path);
+                        let inner_parser = parser_clone
+                            .clone()
+                            .read_native_header(response.file_content, response.resolved_path);
 
                         if !inner_parser.syntax_errors.is_empty() {
                             errors.extend(inner_parser.syntax_errors);
@@ -169,7 +171,6 @@ pub fn collect_import<F>(
                     import_data.pos.range_end = parser.pos.clone().skip_char(1);
                     parser.collected.push(parser.current.clone());
                     parser.current = parser::Collecting::None;
-                    
                 } else {
                     let import_resolve_chain_id = ellie_core::utils::generate_hash();
                     (parser.emit_message)(ellie_core::com::Message {
@@ -180,7 +181,7 @@ pub fn collect_import<F>(
                         message_data: alloc::format!("{:?}", parser.pos.clone()),
                     });
                     let response =
-                        (parser.resolver)(parser_clone.options.clone(), import_data.path.clone());
+                        (parser.resolver)(parser_clone.options.clone(), import_data.path.clone(), import_data.native);
 
                     if !response.found {
                         if response.resolve_error == "" {

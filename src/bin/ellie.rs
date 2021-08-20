@@ -135,7 +135,8 @@ fn main() {
 
                             match Server::bind(format!("127.0.0.1:{}", port)) {
                                 Ok(server) => {
-                                    println!("{}[Success]{}: Connect {}{}{} to visualize code exec",
+                                    println!(
+                                        "{}[Success]{}: Connect {}{}{} to visualize code exec",
                                         ellie_lang::terminal_colors::get_color(
                                             ellie_lang::terminal_colors::Colors::Green
                                         ),
@@ -145,21 +146,24 @@ fn main() {
                                         ellie_lang::terminal_colors::get_color(
                                             ellie_lang::terminal_colors::Colors::Cyan
                                         ),
-                                        format!("file://{}?s=127.0.0.1:{}", Path::new("../panel/panel.html")
-                                        .absolutize()
-                                        .unwrap()
-                                        .to_str()
-                                        .unwrap()
-                                        .to_string(), port),
+                                        format!(
+                                            "file://{}?s=127.0.0.1:{}",
+                                            Path::new("../panel/panel.html")
+                                                .absolutize()
+                                                .unwrap()
+                                                .to_str()
+                                                .unwrap()
+                                                .to_string(),
+                                            port
+                                        ),
                                         ellie_lang::terminal_colors::get_color(
                                             ellie_lang::terminal_colors::Colors::Reset
                                         ),
-
                                     );
                                     for connection in server.filter_map(Result::ok) {
                                         thread::spawn(|| {
                                             let client = connection.accept().unwrap();
-			                                println!(
+                                            println!(
                                                 "{}[Connection]{}: Connection from {}{}{}, waiting for go signal",
                                                 ellie_lang::terminal_colors::get_color(
                                                     ellie_lang::terminal_colors::Colors::Cyan
@@ -175,11 +179,10 @@ fn main() {
                                                     ellie_lang::terminal_colors::Colors::Reset
                                                 ),
                                             );
-                                            let (mut receiver, mut sender) = client.split().unwrap();
-                                           
+                                            let (mut receiver, mut sender) =
+                                                client.split().unwrap();
                                         });
                                     }
-
                                 }
                                 Err(e) => {
                                     println!("{}[Error: {}]{}: Failed to open port at {}{}{}, use --port or -p to alternate port.",
@@ -200,9 +203,6 @@ fn main() {
                                     );
                                 }
                             }
-
-
-
 
                             println!("{}[Warning]{}: Visualizing code exec, waiting for a client to connect...",
                                 ellie_lang::terminal_colors::get_color(

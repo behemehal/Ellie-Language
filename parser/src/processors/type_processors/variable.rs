@@ -55,7 +55,7 @@ pub fn collect_variable<F>(
                     }
                     variable_data.data.value += letter_char;
                     variable_data.data.pos.range_end = parser.pos.clone().skip_char(1);
-                    if next_char == ";" || next_char == "," || next_char == " " {
+                    if (next_char == ";" || next_char == "," || next_char == " ") && !itered_data_clone.ignore_existence {
                         let found_target = parser.check_keyword(variable_data.data.value.clone());
 
                         if !found_target.found {

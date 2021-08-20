@@ -25,10 +25,10 @@ pub struct NativeFunctionParameterCollector {
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
 pub struct NativeFunction {
     pub name: String,                             //NativeFunction Name string
-    pub parameters: Vec<NativeFunctionParameter>,       //Parameter vector
+    pub parameters: Vec<NativeFunctionParameter>, //Parameter vector
     pub return_type: definers::DefinerCollecting, //Return type from enum
     pub public: bool,
-    pub name_pos: defs::Cursor,           //Name position fn [test] ......
+    pub name_pos: defs::Cursor, //Name position fn [test] ......
     pub parameters_pos: defs::Cursor,
     pub return_pos: defs::Cursor,
     pub pos: defs::Cursor,
@@ -38,20 +38,24 @@ impl NativeFunction {
     pub fn from_runtime(func: crate::syntax::function::Function) -> NativeFunction {
         NativeFunction {
             name: func.name,
-            parameters: func.parameters.into_iter().map(|x| NativeFunctionParameter {
-                name: x.name,
-                rtype: x.rtype,
-                pos: x.pos,
-                multi_capture: x.multi_capture,
-                name_pos: x.name_pos,
-                type_pos: x.type_pos,
-            }).collect(),
+            parameters: func
+                .parameters
+                .into_iter()
+                .map(|x| NativeFunctionParameter {
+                    name: x.name,
+                    rtype: x.rtype,
+                    pos: x.pos,
+                    multi_capture: x.multi_capture,
+                    name_pos: x.name_pos,
+                    type_pos: x.type_pos,
+                })
+                .collect(),
             return_type: func.return_type,
             public: func.public,
             name_pos: func.name_pos,
             parameters_pos: func.parameters_pos,
             return_pos: func.return_pos,
-            pos: func.pos
+            pos: func.pos,
         }
     }
 }

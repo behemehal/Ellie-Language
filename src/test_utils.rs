@@ -9,7 +9,7 @@ pub fn emulate_value_processor(
 ) {
     let emulated_parser = Parser::new(
         "".to_string(),
-        |_, _| ResolvedImport::default(),
+        |_, _, _| ResolvedImport::default(),
         |_| {},
         defs::ParserOptions::default(),
     );
@@ -64,7 +64,7 @@ pub fn emulate_value_processor_operator(
 ) {
     let emulated_parser = Parser::new(
         "".to_string(),
-        |_, _| ResolvedImport::default(),
+        |_, _, _| ResolvedImport::default(),
         |_| {},
         defs::ParserOptions::default(),
     );

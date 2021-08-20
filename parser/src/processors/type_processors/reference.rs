@@ -51,23 +51,38 @@ pub fn collect_reference<F>(
                     reference_data.root_available = true;
                 }
             } else if reference_data.root_available {
-                let resolved_reference = parser.resolve_reference_call(reference_data.data.clone());
+                let resolved_reference = parser.clone().resolve_reference_call(reference_data.data.clone());
 
                 if let Some(resolved_errors) = resolved_reference {
                     errors.extend(resolved_errors)
+                } else {
+                    reference_data
+                        .data
+                        .chain
+                        .push(types::reference_type::Chain {
+                            pos: defs::Cursor {
+                                range_start: parser.pos.clone().skip_char(1),
+                                ..Default::default()
+                            },
+                            ..Default::default()
+                        });
                 }
             }
             reference_data.on_dot = true;
         } else {
             reference_data.on_dot = false;
             let mut will_be_itered = if last_entry == 0 {
-                variable::VariableCollector::default()
+                variable::VariableCollector {
+                    ignore_existence: true,
+                    ..Default::default()
+                }
             } else {
                 variable::VariableCollector {
                     data: variable::Variable {
                         value: reference_data.data.chain[last_entry - 1].value.clone(),
                         ..Default::default()
                     },
+                    ignore_existence: true,
                     ..Default::default()
                 }
             };

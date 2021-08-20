@@ -1,1 +1,7 @@
-import ../lib/ellie.ei;
+import ../lib/ellie;
+
+v test = {
+    "ahmet": "ok"
+};
+
+v name = test.ahmets.tre;

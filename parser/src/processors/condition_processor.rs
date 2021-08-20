@@ -64,7 +64,7 @@ pub fn collect_condition<F>(
             } else {
                 let mut child_parser = parser::Parser::new(
                     data.inside_code_string.clone(),
-                    |_, _| parser::ResolvedImport::default(),
+                    |_, _, _| parser::ResolvedImport::default(),
                     parser.emit_message.clone(),
                     parser.options.clone(),
                 );

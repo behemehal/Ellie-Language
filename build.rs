@@ -27,6 +27,7 @@ fn read_file(file_dir: &str) -> Result<String, String> {
 fn resolve_import(
     _: ellie_core::defs::ParserOptions,
     lib_name: String,
+    nativeImport: bool,
 ) -> ellie_parser::parser::ResolvedImport {
     std::eprintln!(
         "{}[ReadingFile]{}: {}~./lib/{}.ei{}",

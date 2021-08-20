@@ -12,8 +12,8 @@ pub enum Colors {
     Reset,
 }
 
-pub fn title_set(title: &str)  {
-    println!("{}]0;{}{}", '\u{001b}', title,'\u{007}');
+pub fn title_set(title: &str) {
+    println!("{}]0;{}{}", '\u{001b}', title, '\u{007}');
 }
 
 pub fn get_color(selected: Colors) -> String {

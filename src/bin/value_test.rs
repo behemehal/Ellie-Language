@@ -11,7 +11,7 @@ use ellie_parser;
 fn main() {
     let emulated_parser = ellie_parser::parser::Parser::new(
         "".to_string(),
-        |_, _| ellie_parser::parser::ResolvedImport::default(),
+        |_, _, _| ellie_parser::parser::ResolvedImport::default(),
         |_| {},
         ellie_core::defs::ParserOptions::default(),
     );
@@ -21,16 +21,6 @@ fn main() {
 
     {
         0: 'e',
-        1: 'l',
-        2: 'l',
-        3: 'i',
-        4: {
-            0: 'e',
-            1: 'l',
-            2: 'l',
-            3: 'i',
-            4: 'e'
-        }
     }
     
     ";

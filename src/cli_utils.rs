@@ -71,6 +71,7 @@ pub fn parse(contents: String, file_name: String) -> ellie_parser::parser::Parse
 pub fn resolve_import(
     options: ellie_core::defs::ParserOptions,
     lib_name: String,
+    nativeHeader: bool,
 ) -> ellie_parser::parser::ResolvedImport {
     let parent = &(Path::new(&options.path.clone())
         .parent()
@@ -79,7 +80,7 @@ pub fn resolve_import(
         .unwrap()
         .to_string()
         + "/");
-    let path = parent.clone() + &lib_name;
+    let path = parent.clone() + &lib_name + if !Path::new(&lib_name).extension().is_some() { if nativeHeader { ".eih" } else { ".ei" } } else { "" };
 
     if lib_name == "ellie" {
         ellie_parser::parser::ResolvedImport {

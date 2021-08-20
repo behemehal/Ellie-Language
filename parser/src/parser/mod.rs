@@ -11,7 +11,7 @@ use crate::alloc::vec::Vec;
 
 use crate::syntax::{
     caller, class, condition, constructor, definers, file_key, for_loop, function, import,
-    import_item, ret, types, variable, native_function
+    import_item, native_function, ret, types, variable,
 };
 use ellie_core::{com, defs, error, utils};
 
@@ -98,7 +98,7 @@ impl RawParser {
     ) -> Parser<impl FnMut(com::Message) + Clone + Sized> {
         Parser {
             scope: self.scope,
-            resolver: |_, _| ResolvedImport::default(),
+            resolver: |_, _, _| ResolvedImport::default(),
             emit_message: |_| {},
             code: self.code,
             options: self.options,
@@ -118,7 +118,7 @@ impl RawParser {
     pub fn to_no_resolver_parser(self) -> Parser<impl FnMut(com::Message) + Clone + Sized> {
         Parser {
             scope: self.scope,
-            resolver: |_, _| ResolvedImport::default(),
+            resolver: |_, _, _| ResolvedImport::default(),
             emit_message: |_| {},
             code: self.code,
             options: self.options,
@@ -139,7 +139,7 @@ impl RawParser {
 #[derive(Clone)]
 pub struct Parser<F> {
     pub scope: Box<scope::Scope>,
-    pub resolver: fn(ellie_core::defs::ParserOptions, String) -> ResolvedImport,
+    pub resolver: fn(ellie_core::defs::ParserOptions, String, bool) -> ResolvedImport,
     pub emit_message: F,
     pub code: String,
     pub options: defs::ParserOptions,
@@ -169,7 +169,7 @@ where
 {
     pub fn new(
         code: String,
-        mut resolve_import: fn(ellie_core::defs::ParserOptions, String) -> ResolvedImport,
+        mut resolve_import: fn(ellie_core::defs::ParserOptions, String, bool) -> ResolvedImport,
         mut com: F,
         options: defs::ParserOptions,
     ) -> Parser<F> {
@@ -480,14 +480,80 @@ where
         }
     }
 
+    pub fn resolve_reference_tree(self, reference: DeepCallResponse, chain: Vec<types::reference_type::Chain>) {
+        
+    }
+
     pub fn resolve_reference_call(
         self,
         reference_data: types::reference_type::ReferenceType,
     ) -> Option<Vec<ellie_core::error::Error>> {
         let mut errors = Vec::new();
         let deep_scan = self.resolve_deep_call(*reference_data.reference.clone());
+       
+        let resolve_tree = || {
+
+
+
+        };
+
         match deep_scan {
             DeepCallResponse::TypeResponse(type_response) => {
+                
+                match type_response {
+                    Integer(integer_type) => {
+
+                    },
+                    Float(float_type) => {
+
+                    },
+                    Bool(bool_type) => {
+
+                    },
+                    String(string_type) => {
+
+                    },
+                    Char(char_type) => {
+
+                    },
+                    Collective(collective_type) => {
+
+                    },
+                    Reference(reference_type) => {
+
+                    },
+                    Operator(operator_type) => {
+
+                    },
+                    Cloak(cloak_type) => {
+
+                    },
+                    Array(array_type) => {
+
+                    },
+                    ArrowFunction(arrow_function_type) => {
+
+                    },
+                    ConstructedClass(constructed_class_type) => {
+
+                    },
+                    FunctionCall(function_call_type) => {
+
+                    },
+                    Negative(negative_type) => {
+
+                    },
+                    VariableType(variable_type_type) => {
+
+                    },
+                    Void => {
+                        
+                    },
+                    Null => {
+                        
+                    },
+                }
+
                 std::println!("TYPE RESPONSE {:#?}", type_response);
             }
             DeepCallResponse::ElementResponse(element_response) => {
