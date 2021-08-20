@@ -11,5 +11,5 @@ pub struct VariableType {
 #[derive(PartialEq, Default, Debug, Clone, Serialize, Deserialize)]
 pub struct VariableTypeCollector {
     pub data: VariableType,
-    pub value_complete: bool
+    pub value_complete: bool,
 }

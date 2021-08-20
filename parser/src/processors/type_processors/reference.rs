@@ -51,7 +51,9 @@ pub fn collect_reference<F>(
                     reference_data.root_available = true;
                 }
             } else if reference_data.root_available {
-                let resolved_reference = parser.clone().resolve_reference_call(reference_data.data.clone());
+                let resolved_reference = parser
+                    .clone()
+                    .resolve_reference_call(reference_data.data.clone());
 
                 if let Some(resolved_errors) = resolved_reference {
                     errors.extend(resolved_errors)

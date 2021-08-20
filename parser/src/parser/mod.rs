@@ -480,8 +480,11 @@ where
         }
     }
 
-    pub fn resolve_reference_tree(self, reference: DeepCallResponse, chain: Vec<types::reference_type::Chain>) {
-        
+    pub fn resolve_reference_tree(
+        self,
+        reference: DeepCallResponse,
+        chain: Vec<types::reference_type::Chain>,
+    ) {
     }
 
     pub fn resolve_reference_call(
@@ -490,68 +493,29 @@ where
     ) -> Option<Vec<ellie_core::error::Error>> {
         let mut errors = Vec::new();
         let deep_scan = self.resolve_deep_call(*reference_data.reference.clone());
-       
-        let resolve_tree = || {
 
-
-
-        };
+        let resolve_tree = || {};
 
         match deep_scan {
             DeepCallResponse::TypeResponse(type_response) => {
-                
                 match type_response {
-                    Integer(integer_type) => {
-
-                    },
-                    Float(float_type) => {
-
-                    },
-                    Bool(bool_type) => {
-
-                    },
-                    String(string_type) => {
-
-                    },
-                    Char(char_type) => {
-
-                    },
-                    Collective(collective_type) => {
-
-                    },
-                    Reference(reference_type) => {
-
-                    },
-                    Operator(operator_type) => {
-
-                    },
-                    Cloak(cloak_type) => {
-
-                    },
-                    Array(array_type) => {
-
-                    },
-                    ArrowFunction(arrow_function_type) => {
-
-                    },
-                    ConstructedClass(constructed_class_type) => {
-
-                    },
-                    FunctionCall(function_call_type) => {
-
-                    },
-                    Negative(negative_type) => {
-
-                    },
-                    VariableType(variable_type_type) => {
-
-                    },
-                    Void => {
-                        
-                    },
-                    Null => {
-                        
-                    },
+                    Integer(integer_type) => {}
+                    Float(float_type) => {}
+                    Bool(bool_type) => {}
+                    String(string_type) => {}
+                    Char(char_type) => {}
+                    Collective(collective_type) => {}
+                    Reference(reference_type) => {}
+                    Operator(operator_type) => {}
+                    Cloak(cloak_type) => {}
+                    Array(array_type) => {}
+                    ArrowFunction(arrow_function_type) => {}
+                    ConstructedClass(constructed_class_type) => {}
+                    FunctionCall(function_call_type) => {}
+                    Negative(negative_type) => {}
+                    VariableType(variable_type_type) => {}
+                    Void => {}
+                    Null => {}
                 }
 
                 std::println!("TYPE RESPONSE {:#?}", type_response);

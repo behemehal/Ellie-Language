@@ -80,7 +80,17 @@ pub fn resolve_import(
         .unwrap()
         .to_string()
         + "/");
-    let path = parent.clone() + &lib_name + if !Path::new(&lib_name).extension().is_some() { if nativeHeader { ".eih" } else { ".ei" } } else { "" };
+    let path = parent.clone()
+        + &lib_name
+        + if !Path::new(&lib_name).extension().is_some() {
+            if nativeHeader {
+                ".eih"
+            } else {
+                ".ei"
+            }
+        } else {
+            ""
+        };
 
     if lib_name == "ellie" {
         ellie_parser::parser::ResolvedImport {

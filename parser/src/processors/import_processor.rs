@@ -28,8 +28,11 @@ pub fn collect_import<F>(
                         from_chain: None,
                         message_data: alloc::format!("{:?}", parser.pos.clone()),
                     });
-                    let response =
-                        (parser.resolver)(parser_clone.options.clone(), import_data.path.clone(), import_data.native);
+                    let response = (parser.resolver)(
+                        parser_clone.options.clone(),
+                        import_data.path.clone(),
+                        import_data.native,
+                    );
 
                     if !response.found {
                         if response.resolve_error == "" {
@@ -180,8 +183,11 @@ pub fn collect_import<F>(
                         from_chain: None,
                         message_data: alloc::format!("{:?}", parser.pos.clone()),
                     });
-                    let response =
-                        (parser.resolver)(parser_clone.options.clone(), import_data.path.clone(), import_data.native);
+                    let response = (parser.resolver)(
+                        parser_clone.options.clone(),
+                        import_data.path.clone(),
+                        import_data.native,
+                    );
 
                     if !response.found {
                         if response.resolve_error == "" {
