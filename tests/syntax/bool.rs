@@ -5,7 +5,7 @@ mod boolean_tests {
     fn boolean_collected_with_no_error() {
         let emulated_parser = ellie_parser::parser::Parser::new(
             "".to_string(),
-            |_, _| ellie_parser::parser::ResolvedImport::default(),
+            |_, _, _| ellie_parser::parser::ResolvedImport::default(),
             |_| {},
             ellie_core::defs::ParserOptions::default(),
         );
@@ -55,7 +55,7 @@ mod boolean_tests {
     fn bool_prototype_collected() {
         let emulated_parser = ellie_parser::parser::Parser::new(
         "".to_string(),
-        |_, _| ellie_parser::parser::ResolvedImport::default(),
+        |_, _, _| ellie_parser::parser::ResolvedImport::default(),
         |_| {},
         ellie_core::defs::ParserOptions::default(),
     );
@@ -102,12 +102,14 @@ mod boolean_tests {
     fn bool_operators_collected() {
         let emulated_parser = ellie_parser::parser::Parser::new(
             "".to_string(),
-            |_, _| ellie_parser::parser::ResolvedImport::default(),
+            |_, _, _| ellie_parser::parser::ResolvedImport::default(),
             |_| {},
             ellie_core::defs::ParserOptions::default(),
         );
-        let mut emulated_collector_data =
-            ellie_parser::syntax::variable::VariableCollector::default();
+        let mut emulated_collector_data = ellie_parser::syntax::variable::VariableCollector {
+            ignore_existence: true,
+            ..Default::default()
+        };
         let mut syntax_errors = vec![];
         emulated_collector_data.data.dynamic = true;
         let code = "

@@ -498,26 +498,6 @@ where
 
         match deep_scan {
             DeepCallResponse::TypeResponse(type_response) => {
-                match type_response {
-                    Integer(integer_type) => {}
-                    Float(float_type) => {}
-                    Bool(bool_type) => {}
-                    String(string_type) => {}
-                    Char(char_type) => {}
-                    Collective(collective_type) => {}
-                    Reference(reference_type) => {}
-                    Operator(operator_type) => {}
-                    Cloak(cloak_type) => {}
-                    Array(array_type) => {}
-                    ArrowFunction(arrow_function_type) => {}
-                    ConstructedClass(constructed_class_type) => {}
-                    FunctionCall(function_call_type) => {}
-                    Negative(negative_type) => {}
-                    VariableType(variable_type_type) => {}
-                    Void => {}
-                    Null => {}
-                }
-
                 std::println!("TYPE RESPONSE {:#?}", type_response);
             }
             DeepCallResponse::ElementResponse(element_response) => {

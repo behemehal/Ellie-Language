@@ -19,9 +19,7 @@ fn main() {
     emulated_collector_data.data.dynamic = true;
     let code = "
 
-    {
-        0: 'e',
-    }
+    {1: 1, 1: 1}
     
     ";
 

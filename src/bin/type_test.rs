@@ -6,7 +6,7 @@ fn main() {
     let mut errors: Vec<ellie_core::error::Error> = vec![];
     let emulated_parser = ellie_parser::parser::Parser::new(
         "".to_string(),
-        |_, _| ellie_parser::parser::ResolvedImport::default(),
+        |_, _, _| ellie_parser::parser::ResolvedImport::default(),
         |_| {},
         ellie_core::defs::ParserOptions::default(),
     );

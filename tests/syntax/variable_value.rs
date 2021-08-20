@@ -5,12 +5,14 @@ mod variable_value_tests {
     fn variable_collected_with_no_error() {
         let emulated_parser = ellie_parser::parser::Parser::new(
             "".to_string(),
-            |_, _| ellie_parser::parser::ResolvedImport::default(),
+            |_, _, _| ellie_parser::parser::ResolvedImport::default(),
             |_| {},
             ellie_core::defs::ParserOptions::default(),
         );
-        let mut emulated_collector_data =
-            ellie_parser::syntax::variable::VariableCollector::default();
+        let mut emulated_collector_data = ellie_parser::syntax::variable::VariableCollector {
+            ignore_existence: true,
+            ..Default::default()
+        };
         let mut syntax_errors = vec![];
         emulated_collector_data.data.dynamic = true;
         let code = "
@@ -53,17 +55,17 @@ mod variable_value_tests {
     fn variable_comparison_collected_with_no_error() {
         let emulated_parser = ellie_parser::parser::Parser::new(
             "".to_string(),
-            |_, _| ellie_parser::parser::ResolvedImport::default(),
+            |_, _, _| ellie_parser::parser::ResolvedImport::default(),
             |_| {},
             ellie_core::defs::ParserOptions::default(),
         );
-        let mut emulated_collector_data =
-            ellie_parser::syntax::variable::VariableCollector::default();
+        let mut emulated_collector_data = ellie_parser::syntax::variable::VariableCollector {
+            ignore_existence: true,
+            ..Default::default()
+        };
         let mut syntax_errors = vec![];
         emulated_collector_data.data.dynamic = true;
         let code = "
-            v test : char = 'o';
-            v test_second : char = 'o';
 
             test == test_second
 
@@ -102,17 +104,17 @@ mod variable_value_tests {
     fn logical_equal_collected_with_no_error() {
         let emulated_parser = ellie_parser::parser::Parser::new(
             "".to_string(),
-            |_, _| ellie_parser::parser::ResolvedImport::default(),
+            |_, _, _| ellie_parser::parser::ResolvedImport::default(),
             |_| {},
             ellie_core::defs::ParserOptions::default(),
         );
-        let mut emulated_collector_data =
-            ellie_parser::syntax::variable::VariableCollector::default();
+        let mut emulated_collector_data = ellie_parser::syntax::variable::VariableCollector {
+            ignore_existence: true,
+            ..Default::default()
+        };
         let mut syntax_errors = vec![];
         emulated_collector_data.data.dynamic = true;
         let code = "
-            v test : char = 'o';
-            v test_second : char = 'o';
 
             test && test_second
 
@@ -151,20 +153,18 @@ mod variable_value_tests {
     fn arithmetic_equal_collected_with_no_error() {
         let emulated_parser = ellie_parser::parser::Parser::new(
             "".to_string(),
-            |_, _| ellie_parser::parser::ResolvedImport::default(),
+            |_, _, _| ellie_parser::parser::ResolvedImport::default(),
             |_| {},
             ellie_core::defs::ParserOptions::default(),
         );
-        let mut emulated_collector_data =
-            ellie_parser::syntax::variable::VariableCollector::default();
+        let mut emulated_collector_data = ellie_parser::syntax::variable::VariableCollector {
+            ignore_existence: true,
+            ..Default::default()
+        };
         let mut syntax_errors = vec![];
         emulated_collector_data.data.dynamic = true;
         let code = "
-            v test : char = 'o';
-            v test_second : char = 'o';
-
             test + test_second
-
         ";
 
         for (index, char) in code.chars().enumerate() {

@@ -3,9 +3,9 @@ mod integer_tests {
 
     #[test]
     fn integer_collected_with_no_error() {
-        let emulated_parser = ellie_parser::parser::Parser::new(
+        let mut emulated_parser = ellie_parser::parser::Parser::new(
             "".to_string(),
-            |_, _| ellie_parser::parser::ResolvedImport::default(),
+            |_, _, _| ellie_parser::parser::ResolvedImport::default(),
             |_| {},
             ellie_core::defs::ParserOptions::default(),
         );
@@ -40,6 +40,7 @@ mod integer_tests {
             for error in itered.errors {
                 syntax_errors.push(error);
             }
+            emulated_parser.pos.1 += 1;
             emulated_collector_data = itered.itered_data;
         }
         assert_eq!(syntax_errors.len(), 0);
@@ -52,7 +53,7 @@ mod integer_tests {
     fn integer_prototype_collected() {
         let emulated_parser = ellie_parser::parser::Parser::new(
         "".to_string(),
-        |_, _| ellie_parser::parser::ResolvedImport::default(),
+        |_, _, _| ellie_parser::parser::ResolvedImport::default(),
         |_| {},
         ellie_core::defs::ParserOptions::default(),
     );
@@ -99,7 +100,7 @@ mod integer_tests {
     fn integer_operators_collected() {
         let emulated_parser = ellie_parser::parser::Parser::new(
             "".to_string(),
-            |_, _| ellie_parser::parser::ResolvedImport::default(),
+            |_, _, _| ellie_parser::parser::ResolvedImport::default(),
             |_| {},
             ellie_core::defs::ParserOptions::default(),
         );

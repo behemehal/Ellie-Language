@@ -5,7 +5,7 @@ mod float_tests {
     fn dot_start_float_collected_with_no_error() {
         let emulated_parser = ellie_parser::parser::Parser::new(
             "".to_string(),
-            |_, _| ellie_parser::parser::ResolvedImport::default(),
+            |_, _, _| ellie_parser::parser::ResolvedImport::default(),
             |_| {},
             ellie_core::defs::ParserOptions::default(),
         );
@@ -51,7 +51,7 @@ mod float_tests {
     fn float_collected_with_no_error() {
         let emulated_parser = ellie_parser::parser::Parser::new(
             "".to_string(),
-            |_, _| ellie_parser::parser::ResolvedImport::default(),
+            |_, _, _| ellie_parser::parser::ResolvedImport::default(),
             |_| {},
             ellie_core::defs::ParserOptions::default(),
         );
@@ -98,7 +98,7 @@ mod float_tests {
     fn dot_start_float_prototype_collected() {
         let emulated_parser = ellie_parser::parser::Parser::new(
         "".to_string(),
-        |_, _| ellie_parser::parser::ResolvedImport::default(),
+        |_, _, _| ellie_parser::parser::ResolvedImport::default(),
         |_| {},
         ellie_core::defs::ParserOptions::default(),
     );
@@ -144,7 +144,7 @@ mod float_tests {
     fn float_prototype_collected() {
         let emulated_parser = ellie_parser::parser::Parser::new(
         "".to_string(),
-        |_, _| ellie_parser::parser::ResolvedImport::default(),
+        |_, _, _| ellie_parser::parser::ResolvedImport::default(),
         |_| {},
         ellie_core::defs::ParserOptions::default(),
     );
@@ -191,7 +191,7 @@ mod float_tests {
     fn dot_start_float_operators_collected() {
         let emulated_parser = ellie_parser::parser::Parser::new(
             "".to_string(),
-            |_, _| ellie_parser::parser::ResolvedImport::default(),
+            |_, _, _| ellie_parser::parser::ResolvedImport::default(),
             |_| {},
             ellie_core::defs::ParserOptions::default(),
         );
@@ -237,7 +237,7 @@ mod float_tests {
     fn float_operators_collected() {
         let emulated_parser = ellie_parser::parser::Parser::new(
             "".to_string(),
-            |_, _| ellie_parser::parser::ResolvedImport::default(),
+            |_, _, _| ellie_parser::parser::ResolvedImport::default(),
             |_| {},
             ellie_core::defs::ParserOptions::default(),
         );

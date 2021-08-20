@@ -3,9 +3,9 @@ mod string_tests {
 
     #[test]
     fn string_collected_with_no_error() {
-        let emulated_parser = ellie_parser::parser::Parser::new(
+        let mut emulated_parser = ellie_parser::parser::Parser::new(
             "".to_string(),
-            |_, _| ellie_parser::parser::ResolvedImport::default(),
+            |_, _, _| ellie_parser::parser::ResolvedImport::default(),
             |_| {},
             ellie_core::defs::ParserOptions::default(),
         );
@@ -40,6 +40,7 @@ mod string_tests {
             for error in itered.errors {
                 syntax_errors.push(error);
             }
+            emulated_parser.pos.1 += 1;
             emulated_collector_data = itered.itered_data;
         }
         assert_eq!(syntax_errors.len(), 0);
@@ -55,7 +56,7 @@ mod string_tests {
     fn string_prototype_collected() {
         let emulated_parser = ellie_parser::parser::Parser::new(
         "".to_string(),
-        |_, _| ellie_parser::parser::ResolvedImport::default(),
+        |_, _, _| ellie_parser::parser::ResolvedImport::default(),
         |_| {},
         ellie_core::defs::ParserOptions::default(),
     );
@@ -100,9 +101,9 @@ mod string_tests {
 
     #[test]
     fn string_operators_collected() {
-        let emulated_parser = ellie_parser::parser::Parser::new(
+        let mut emulated_parser = ellie_parser::parser::Parser::new(
             "".to_string(),
-            |_, _| ellie_parser::parser::ResolvedImport::default(),
+            |_, _, _| ellie_parser::parser::ResolvedImport::default(),
             |_| {},
             ellie_core::defs::ParserOptions::default(),
         );
@@ -138,6 +139,7 @@ mod string_tests {
                 syntax_errors.push(error);
             }
             emulated_collector_data = itered.itered_data;
+            emulated_parser.pos.1 += 1;
         }
         assert_eq!(syntax_errors.len(), 0);
         assert!(emulated_collector_data.data.value.is_type_complete());
