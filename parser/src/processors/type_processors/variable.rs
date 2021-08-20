@@ -33,7 +33,7 @@ pub fn collect_variable<F>(
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
                         scope: "variable_processor".to_string(),
-                        debug_message: "3f7e0c7b30c000b056ee72c985237d23".to_string(),
+                        debug_message: "aa3b8fd0e4aabf254dcb44e1c851be71".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -64,7 +64,7 @@ pub fn collect_variable<F>(
                             errors.push(error::Error {
                                 path: parser.options.path.clone(),
                                 scope: "variable_processor".to_string(),
-                                debug_message: "replace_type_processor_63".to_string(),
+                                debug_message: "42762599be40226ba61ebcb0e2062685".to_string(),
                                 title: error::errorList::error_s6.title.clone(),
                                 code: error::errorList::error_s6.code,
                                 message: error::errorList::error_s6.message.clone(),
@@ -89,7 +89,7 @@ pub fn collect_variable<F>(
                                         errors.push(error::Error {
                                             path: parser.options.path.clone(),
                                             scope: parser.scope.scope_name.clone(),
-                                            debug_message: "d04f829b3050981b2cdcbe4120cb58a2"
+                                            debug_message: "1b91ff3ac1c5447fc0b11f9fbaf92528"
                                                 .to_string(),
                                             title: error::errorList::error_s3.title.clone(),
                                             code: error::errorList::error_s3.code,
@@ -257,7 +257,7 @@ pub fn collect_variable<F>(
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
                         scope: "variable_processor".to_string(),
-                        debug_message: "e0cd6356f8488d22e919b38ff618767f".to_string(),
+                        debug_message: "ccb4515b29aa9feb313f030148146ac9".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -278,7 +278,7 @@ pub fn collect_variable<F>(
                 errors.push(error::Error {
                     path: parser.options.path.clone(),
                     scope: "variable_processor".to_string(),
-                    debug_message: "46e659b1ca9dc141f07a0fb2fdce44d9".to_string(),
+                    debug_message: "ae2a2291a7051b289d896d7ed3d5dbce".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),

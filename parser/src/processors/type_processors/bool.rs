@@ -110,7 +110,7 @@ pub fn collect_bool<F>(
             errors.push(error::Error {
                 path: parser.options.path.clone(),
                 scope: "bool_function".to_string(),
-                debug_message: "a5044c5f4b9454a109071bae2c04a3bb".to_string(),
+                debug_message: "9a27b074d4685e8d4041d0861b067a11".to_string(),
                 title: error::errorList::error_s1.title.clone(),
                 code: error::errorList::error_s1.code,
                 message: error::errorList::error_s1.message.clone(),
