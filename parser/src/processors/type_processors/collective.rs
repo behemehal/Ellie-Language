@@ -50,6 +50,7 @@ pub fn collect_collective<F>(
         if !last_entry.key_collected {
             //If last entry's key is not yet collected
 
+            collective_data.at_comma = false;
             if letter_char != " " && last_entry.data.key_pos.range_start.is_zero() {
                 //If current char is not empty and range_start position is not yet initialized
                 last_entry.data.key_pos.range_start = clone_parser.pos.clone();
