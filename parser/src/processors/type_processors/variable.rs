@@ -85,6 +85,7 @@ pub fn collect_variable<F>(
                                         .data
                                         .rtype
                                         .same_as(variable_type.data.rtype.clone())
+                                        && itered_data.data.rtype.raw_name_with_extensions() != ""
                                     {
                                         errors.push(error::Error {
                                             path: parser.options.path.clone(),
@@ -296,5 +297,6 @@ pub fn collect_variable<F>(
                 });
             }
         }
+        
     }
 }

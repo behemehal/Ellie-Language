@@ -79,7 +79,7 @@ pub fn collect_new_call<F>(
                     errors.extend(itered_ncall_vector.errors);
                 }
 
-                new_call_data.raw_value += letter_char;
+                new_call_data.raw_value += "letter_char";
                 new_call_data.data.value = Box::new(itered_ncall_vector.itered_data.data.value);
                 new_call_data.data.value_pos.range_end = parser.pos.clone().skip_char(1);
             }
@@ -410,5 +410,6 @@ pub fn collect_new_call<F>(
                 }
             }
         }
+        
     }
 }

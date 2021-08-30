@@ -402,8 +402,6 @@ where
             types::Types::Reference(e) => {
                 //let q = self.resolve_reference_call(e);
 
-                "nen".to_string();
-
                 /*
                 let vr_found = self.check_keyword(*e.data.reference);
                 if vr_found.found {
@@ -489,22 +487,10 @@ where
 
     pub fn resolve_reference_call(
         self,
-        reference_data: types::reference_type::ReferenceType,
+        reference_data_collector: types::reference_type::ReferenceTypeCollector,
     ) -> Option<Vec<ellie_core::error::Error>> {
         let mut errors = Vec::new();
-        let deep_scan = self.resolve_deep_call(*reference_data.reference.clone());
-
-        let resolve_tree = || {};
-
-        match deep_scan {
-            DeepCallResponse::TypeResponse(type_response) => {
-                std::println!("TYPE RESPONSE {:#?}", type_response);
-            }
-            DeepCallResponse::ElementResponse(element_response) => {
-                std::println!("ELEMENT RESPONSE {:#?}", element_response);
-            }
-            _ => panic!("This should have not been called"),
-        };
+        let deep_scan = self.resolve_deep_call(*reference_data_collector.data.reference.clone());
 
         if !errors.is_empty() {
             Some(errors)
@@ -774,7 +760,10 @@ where
                 Collecting::Function(e) => {
                     if e.data.name == caller_data.data.name {
                         found = true;
-                        if caller_data.data.params.len() != e.data.parameters.len() {
+                        if caller_data.data.params.len() != e.data.parameters.len()
+                            && (caller_data.data.params.len() > 0
+                                && !e.data.parameters[e.data.parameters.len() - 1].multi_capture)
+                        {
                             errors.push(error::Error {
                                 path: self.options.path.clone(),
                                 scope: self.scope.scope_name.clone(),
@@ -805,7 +794,14 @@ where
                             for (index, caller_param) in
                                 caller_data.data.params.clone().into_iter().enumerate()
                             {
-                                match e.data.parameters[index].rtype.clone() {
+                                let to_match = if index > e.data.parameters.len() - 1 {
+                                    //If multi capturer function
+                                    e.data.parameters[e.data.parameters.len() - 1].rtype.clone()
+                                } else {
+                                    e.data.parameters[index].rtype.clone()
+                                };
+
+                                match to_match {
                                     definers::DefinerCollecting::Array(_) => {
                                         panic!("Definer Resolving on 'Array' is not supported");
                                     }
@@ -857,7 +853,28 @@ where
                                         panic!("Definer Resolving on 'Cloak' is not supported");
                                     }
                                     definers::DefinerCollecting::Dynamic => {
-                                        panic!("Definer Resolving on 'Dynamic' is not supported");
+                                        #[cfg(feature = "std")]
+                                        std::println!("\u{001b}[33m[Experimental]\u{001b}[0m: Resolving type as dynamic");
+                                        let resolved_type =
+                                            self.resolve_variable(caller_param.value.clone());
+                                        if resolved_type == "nen" && caller_param.value.clone().get_type() == "variable" {
+                                            errors.push(error::Error {
+                                                path: self.options.path.clone(),
+                                                scope: self.scope.scope_name.clone(),
+                                                debug_message: "replace_parser_864".to_string(),
+                                                title: error::errorList::error_s4.title.clone(),
+                                                code: error::errorList::error_s4.code,
+                                                message: error::errorList::error_s4.message.clone(),
+                                                builded_message: error::Error::build(
+                                                    error::errorList::error_s4.message.clone(),
+                                                    vec![error::ErrorBuildField {
+                                                        key: "token".to_string(),
+                                                        value: caller_param.value.as_variable_type().unwrap().data.value.clone(),
+                                                    }],
+                                                ),
+                                                pos: caller_param.pos,
+                                            });
+                                        }
                                     }
                                 }
                             }

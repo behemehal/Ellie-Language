@@ -287,5 +287,6 @@ pub fn collect_operator<F>(
                 data.data.second = Box::new(itered_child.itered_data.data.value);
             }
         }
+        
     }
 }

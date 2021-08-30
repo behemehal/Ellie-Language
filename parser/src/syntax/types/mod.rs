@@ -252,6 +252,52 @@ impl Types {
             Types::Null => (),
         };
     }
+
+    /*
+    pub fn build_type_from_definer(rtype: crate::syntax::definers::DefinerCollecting) -> Types {
+        match rtype {
+            crate::definers::DefinerCollecting::Array(e) => {
+                Types::Array(array_type::ArrayTypeCollector {
+                    value: array_type::ArrayType {
+                        layer_size: e.len,
+                        collective: (0..e.len).into_iter().map(|x| {
+                            array_type::ArrayEntry {
+                                value_complete: true,
+                                value: Box::new(Types::build_type_from_definer(*e.rtype)),
+                                ..Default::default()
+                            }
+                        })
+                    },
+                    ..Default::default()
+                })
+            },
+            crate::definers::DefinerCollecting::GrowableArray(_) => todo!(),
+            crate::definers::DefinerCollecting::Generic(e) => {
+                match e {
+                    "string" => {
+                        string_type::StringTypeCollector::default()
+                    },
+                    "char" => {
+                        char_type::CharType::default()
+                    },
+                    "float" => {
+                        string_type::::default()
+                    },
+                    "int" => {
+                        integer_type::IntegerTypeCollector::default()
+                    }
+                }
+            },
+            crate::definers::DefinerCollecting::Function(_) => todo!(),
+            crate::definers::DefinerCollecting::Cloak(_) => todo!(),
+            crate::definers::DefinerCollecting::Collective(_) => todo!(),
+            crate::definers::DefinerCollecting::Nullable(_) => todo!(),
+            crate::definers::DefinerCollecting::Dynamic => todo!(),
+        }
+    }
+    */
+
+    
 }
 
 impl Default for Types {

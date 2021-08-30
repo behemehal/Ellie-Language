@@ -543,5 +543,6 @@ pub fn collect_arrow<F>(
             };
             function_data.code += &code_letter;
         }
+        
     }
 }

@@ -13,13 +13,14 @@ serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
 ellie_core = {path = "core", version = "1.0.0"}
 ellie_parser = {path = "parser", version = "1.4.0", default-features = false }
 ellie_runtime = {path = "runtime", version = "0.1.0" }
+ellie_raw = {path = "raw", version = "0.1.0", optional = true }
 path-absolutize = {version = "3.0.10", optional = true }
 websocket = {version = "0.26.2", optional = true, default-features = false, features = ["sync"] }
 
 [features]
 default = ["build-cli"]
 build-cli = ["path-absolutize", "websocket"]
-
+raw = ["ellie_raw"]
 
 [lib]
 name = "ellie_lang"
@@ -56,4 +57,4 @@ toml = "0.5.8"
 criterion = { version = "0.3", features= ["html_reports"]}
 
 [profile.release]
-opt-level = 'z'  # Optimize for size.
+opt-level = 3

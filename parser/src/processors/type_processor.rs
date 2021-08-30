@@ -178,28 +178,47 @@ pub fn collect_type<F>(
             &mut parser.collected[collected_length - 1]
         {
             let mut repeated_condition = condition::ConditionCollector {
-                chains: value.chains.clone(),
+                data: condition::Condition {
+                    chains: value.data.chains.clone(),
+                    cloak_pos: defs::Cursor {
+                        range_start: defs::CursorPosition(parser.pos.0, parser.pos.0 + 1),
+                        ..Default::default()
+                    },
+                    keyword_pos: defs::Cursor {
+                        range_start: defs::CursorPosition(parser.pos.0 - 1, parser.pos.0),
+                        range_end: defs::CursorPosition(parser.pos.0, parser.pos.0 + 1),
+                    },
+                },
                 initialized: true,
                 cloak_collected: false,
-                cloak_pos: defs::Cursor {
-                    range_start: defs::CursorPosition(parser.pos.0, parser.pos.0 + 1),
-                    ..Default::default()
-                },
-                keyword_pos: defs::Cursor {
-                    range_start: defs::CursorPosition(parser.pos.0 - 1, parser.pos.0),
-                    range_end: defs::CursorPosition(parser.pos.0, parser.pos.0 + 1),
-                },
                 ..Default::default()
             };
-            repeated_condition.chains.push(condition::ConditionChain {
-                rtype: condition::ConditionType::ElseIf,
-                ..Default::default()
-            });
+            repeated_condition
+                .data
+                .chains
+                .push(condition::ConditionChain {
+                    rtype: condition::ConditionType::ElseIf,
+                    ..Default::default()
+                });
             parser.current = parser::Collecting::Condition(repeated_condition);
             parser.collected.remove(collected_length - 1);
         } else {
-            //User used else statement without if
-            panic!("Error: {:#?}", parser.collected);
+            errors.push(error::Error {
+                path: parser.options.path.clone(),
+                scope: "definer_processor".to_string(),
+                debug_message: "ed217387143f0e07294b32eff7448afe".to_string(),
+                title: error::errorList::error_s1.title.clone(),
+                code: error::errorList::error_s1.code,
+                message: error::errorList::error_s1.message.clone(),
+                builded_message: error::Error::build(
+                    error::errorList::error_s1.message.clone(),
+                    vec![error::ErrorBuildField {
+                        key: "token".to_string(),
+                        value: keyword,
+                    }],
+                ),
+                pos: parser.keyword_pos,
+            });
         }
         parser.keyword_catch = String::new();
     } else if keyword == "else {"
@@ -228,19 +247,25 @@ pub fn collect_type<F>(
             &mut parser.collected[collected_length - 1]
         {
             let mut repeated_condition = condition::ConditionCollector {
-                chains: value.chains.clone(),
+                data: condition::Condition {
+                    chains: value.data.chains.clone(),
+                    keyword_pos: defs::Cursor {
+                        range_start: defs::CursorPosition(parser.pos.0 - 1, parser.pos.0),
+                        range_end: defs::CursorPosition(parser.pos.0, parser.pos.0 + 1),
+                    },
+                    ..Default::default()
+                },
                 initialized: true,
                 cloak_collected: true,
-                keyword_pos: defs::Cursor {
-                    range_start: defs::CursorPosition(parser.pos.0 - 1, parser.pos.0),
-                    range_end: defs::CursorPosition(parser.pos.0, parser.pos.0 + 1),
-                },
                 ..Default::default()
             };
-            repeated_condition.chains.push(condition::ConditionChain {
-                rtype: condition::ConditionType::Else,
-                ..Default::default()
-            });
+            repeated_condition
+                .data
+                .chains
+                .push(condition::ConditionChain {
+                    rtype: condition::ConditionType::Else,
+                    ..Default::default()
+                });
             parser.current = parser::Collecting::Condition(repeated_condition);
             parser.collected.remove(collected_length - 1);
         } else {
@@ -327,8 +352,6 @@ pub fn collect_type<F>(
         && keyword.trim() != ""
         && parser.options.parser_type == defs::ParserType::RawParser
     {
-        #[cfg(feature = "std")]
-        std::println!("[ParserWarning]: Applying no position data to VariableType[226] will cause error showing problem in cli");
         parser.current = parser::Collecting::Caller(caller::Caller {
             value: types::Types::Reference(types::reference_type::ReferenceTypeCollector {
                 data: types::reference_type::ReferenceType {
@@ -337,6 +360,7 @@ pub fn collect_type<F>(
                             value_complete: true,
                             data: types::variable_type::VariableType {
                                 value: keyword.clone(),
+                                pos: parser.keyword_pos,
                                 ..Default::default()
                             },
                             ..Default::default()

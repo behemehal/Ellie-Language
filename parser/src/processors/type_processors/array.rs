@@ -687,5 +687,6 @@ pub fn collect_array<F>(
                 }
             }
         }
+        
     }
 }

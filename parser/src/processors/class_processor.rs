@@ -5,7 +5,7 @@
 */
 
 use crate::syntax::class;
-use crate::{parser, parser::Collecting, syntax};
+use crate::{parser, parser::Collecting, syntax, syntax::import_item};
 
 use ellie_core::{defs, error, utils};
 
@@ -364,6 +364,7 @@ pub fn collect_class<F>(
                     }
                 }
             }
+
             class_data.code = Box::new(parser::RawParser::default()); //Empty the cache
             class_data.data.pos.range_end = parser.pos.clone().skip_char(1);
             parser.collected.push(parser.current.clone());
@@ -376,18 +377,21 @@ pub fn collect_class<F>(
             }
             let mut child_parser = class_data.code.clone().to_no_resolver_parser();
 
-            // Import scope's modules
-            child_parser.collected = parser
-                .collected
-                .clone()
-                .into_iter()
-                .filter(|x| matches!(x, parser::Collecting::ImportItem(_)))
-                .collect();
+            if class_data.code.pos.is_zero() {
+                //Make sure upper scope imported once
 
-            // Import previous iteration data
-            child_parser
-                .collected
-                .extend(class_data.code.collected.clone());
+                for item in parser.collected.clone() {
+                    //Import variables as temporary for syntax support, we will remove them after collecting complete
+                    child_parser.collected.push(parser::Collecting::ImportItem(
+                        import_item::ImportItem {
+                            from_path: "<temporary>".to_string(),
+                            public: true,
+                            item: Box::new(item),
+                        },
+                    ));
+                }
+            }
+
             child_parser.options = parser.options.clone();
             child_parser.options.parser_type = defs::ParserType::ClassParser;
             child_parser.generic_variables = class_data.data.generic_definings.clone();

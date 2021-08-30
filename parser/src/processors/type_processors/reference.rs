@@ -53,7 +53,7 @@ pub fn collect_reference<F>(
             } else if reference_data.root_available {
                 let resolved_reference = parser
                     .clone()
-                    .resolve_reference_call(reference_data.data.clone());
+                    .resolve_reference_call(reference_data.clone());
 
                 if let Some(resolved_errors) = resolved_reference {
                     errors.extend(resolved_errors)
@@ -125,6 +125,7 @@ pub fn collect_reference<F>(
                 .data
                 .value
                 .is_type_complete();
+            
         }
     }
 }

@@ -127,5 +127,6 @@ pub fn collect_bool<F>(
                 },
             });
         }
+        
     }
 }

@@ -2,6 +2,7 @@ use crate::parser::Collecting;
 use crate::syntax::definers;
 use alloc::string::String;
 use alloc::vec::Vec;
+use alloc::boxed::Box;
 use ellie_core::defs;
 use serde::{Deserialize, Serialize};
 
@@ -35,6 +36,7 @@ pub struct Function {
     pub parameters_pos: defs::Cursor,
     pub return_pos: defs::Cursor,
     pub pos: defs::Cursor,
+    pub code: Box<crate::parser::RawParser>,
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]

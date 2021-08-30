@@ -132,7 +132,7 @@ fn main() {
             fs::write(
                 "./src/cli_constants.rs",
                 format!(
-                    "pub static ELLIE_VERSION: &'static str = &{};\npub static ELLIE_VERSION_NAME: &'static str = &{};\npub static ELLIE_PARSER_VERSION: &'static str = &{};\npub static ELLIE_RUNTIME_VERSION: &'static str = &{};\npub static ELLIE_RAW_VERSION: &'static str = &\"{}\";\npub static ELLIE_CORE_VERSION: &'static str = &{};\n",
+                    "pub static ELLIE_VERSION: &'static str = &{};\npub static ELLIE_VERSION_NAME: &'static str = &{};\npub static ELLIE_PARSER_VERSION: &'static str = &{};\npub static ELLIE_RUNTIME_VERSION: &'static str = &{};\npub static ELLIE_RAW_VERSION: &'static str = &{};\npub static ELLIE_CORE_VERSION: &'static str = &{};\n",
                     ellie_version,
                     ellie_version_name,
                     parser_version,

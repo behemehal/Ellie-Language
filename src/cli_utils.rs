@@ -96,10 +96,7 @@ pub fn resolve_import(
         ellie_parser::parser::ResolvedImport {
             found: true,
             resolved_path: "<virtual>".to_string(),
-            file_content: serde_json::from_str(
-                ellie_core::builded_libraries::ELLIE_STANDARD_LIBRARY,
-            )
-            .unwrap(),
+            file_content: ellie_core::builded_libraries::ELLIE_STANDARD_LIBRARY.to_string(),
             ..Default::default()
         }
     } else {

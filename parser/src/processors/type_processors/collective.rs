@@ -89,12 +89,7 @@ pub fn collect_collective<F>(
                     if let definers::DefinerCollecting::Collective(collective_defining) =
                         itered_data.data.rtype.clone()
                     {
-                        let entry_type = parser.resolve_variable(
-                            *collective_data.data.entries[last_entry_ind - 1]
-                                .data
-                                .key
-                                .clone(),
-                        );
+                        let entry_type = parser.resolve_variable(*last_entry.data.key.clone());
 
                         if collective_defining.key.raw_name() != entry_type
                             && !collective_defining.value.is_dynamic()
@@ -119,12 +114,33 @@ pub fn collect_collective<F>(
                                         },
                                     ],
                                 ),
-                                pos: collective_data.data.entries[last_entry_ind - 1]
-                                    .data
-                                    .key_pos,
+                                pos: last_entry.data.key_pos,
                             });
                         }
                     }
+                }
+
+                if &*last_entry.data.key.get_type() != "string" {
+                    #[cfg(feature = "std")]
+                    std::println!("\u{001b}[31m[ParserError]\u{001b}[0m: Not all types supported as collective key. Only strings are allowed for now");
+                    errors.push(error::Error {
+                        path: parser.options.path.clone(),
+                        scope: parser.scope.scope_name.clone(),
+                        debug_message: "858fbd233de885db5bb322557a0b1fe0".to_string(),
+                        title: error::errorList::error_s36.title.clone(),
+                        code: error::errorList::error_s36.code,
+                        message: error::errorList::error_s36.message.clone(),
+                        builded_message: error::Error::build(
+                            error::errorList::error_s36.message.clone(),
+                            vec![error::ErrorBuildField {
+                                key: "token".to_string(),
+                                value: (*last_entry.data.key.get_type().clone()).to_string(),
+                            }],
+                        ),
+                        pos: collective_data.data.entries[last_entry_ind - 1]
+                            .data
+                            .key_pos,
+                    });
                 }
             } else {
                 let mut will_be_itered = syntax::variable::VariableCollector {
@@ -297,5 +313,6 @@ pub fn collect_collective<F>(
                 //Set the range end
             }
         }
+        
     }
 }

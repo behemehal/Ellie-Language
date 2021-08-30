@@ -1,9 +1,10 @@
+use crate::alloc::boxed::Box;
 use crate::alloc::string::{String, ToString};
 use crate::alloc::vec;
 use crate::alloc::vec::Vec;
 use crate::parser;
 use crate::processors;
-use crate::syntax::{definers, function, native_function};
+use crate::syntax::{definers, function, import_item, native_function, variable};
 use ellie_core::{defs, error, utils};
 
 pub fn collect_function<F>(
@@ -402,6 +403,21 @@ pub fn collect_function<F>(
                     pos: function_data.data.name_pos,
                 });
             }
+
+            //Filter out temporary items
+            let mut filtered_items: Vec<parser::Collecting> = Vec::new();
+            for item in function_data.data.code.collected.clone() {
+                match item {
+                    parser::Collecting::ImportItem(e) => {
+                        if e.from_path != "<temporary>" {
+                            filtered_items.push(parser::Collecting::ImportItem(e))
+                        }
+                    }
+                    e => filtered_items.push(e),
+                }
+            }
+
+            function_data.data.code.collected = filtered_items;
             function_data.data.pos.range_end = parser.pos.clone().skip_char(1);
             parser.collected.push(parser.current.clone());
             parser.current = parser::Collecting::None;
@@ -412,11 +428,92 @@ pub fn collect_function<F>(
                 function_data.brace_count -= 1;
             }
 
-            let code_letter = if last_char.clone() == "\n" || last_char.clone() == "\r" {
-                last_char + letter_char //Make sure we get the lines correctly
+            let code_letter = if last_char == "\n" || last_char == "\r" {
+                last_char.clone() + letter_char //Make sure we get the lines correctly
             } else {
                 letter_char.to_string()
             };
+
+            let mut child_parser = function_data.data.code.clone().to_no_resolver_parser();
+
+            if function_data.data.code.pos.is_zero() {
+                //Make sure upper scope imported once
+
+                for item in parser.collected.clone() {
+                    //Import variables as temporary for syntax support, we will remove them after collecting complete
+                    child_parser.collected.push(parser::Collecting::ImportItem(
+                        import_item::ImportItem {
+                            from_path: "<temporary>".to_string(),
+                            public: true,
+                            item: Box::new(item),
+                        },
+                    ));
+                }
+
+                for param in function_data.data.parameters.clone() {
+                    //Import variables as temporary for syntax support, we will remove them after collecting complete
+                    child_parser.collected.push(parser::Collecting::ImportItem(
+                        import_item::ImportItem {
+                            from_path: "<temporary>".to_string(),
+                            public: true,
+                            item: Box::new(parser::Collecting::Variable(if param.multi_capture {
+                                variable::VariableCollector {
+                                    data: variable::Variable {
+                                        pos: param.pos,
+                                        value_pos: param.type_pos,
+                                        name_pos: param.name_pos,
+                                        name: param.name,
+                                        rtype: definers::DefinerCollecting::GrowableArray(
+                                            definers::GrowableArrayType {
+                                                rtype: Box::new(param.rtype),
+                                                ..Default::default()
+                                            },
+                                        ),
+                                        hash: "not_required".to_string(),
+                                        ..Default::default()
+                                    },
+                                    ..Default::default()
+                                }
+                            } else {
+                                variable::VariableCollector {
+                                    data: variable::Variable {
+                                        pos: param.pos,
+                                        value_pos: param.type_pos,
+                                        name_pos: param.name_pos,
+                                        rtype: param.rtype,
+                                        name: param.name,
+                                        hash: "not_required".to_string(),
+                                        ..Default::default()
+                                    },
+                                    ..Default::default()
+                                }
+                            })),
+                        },
+                    ));
+                }
+            }
+
+            child_parser.options = parser.options.clone();
+            child_parser.options.parser_type = defs::ParserType::RawParser;
+            child_parser.pos = parser.pos;
+            child_parser.scope.scope_name = "core/function_processor".to_string();
+            child_parser.current = function_data.data.code.current.clone();
+            child_parser.keyword_catch = function_data.data.code.keyword_catch.clone();
+            child_parser.keyword_cache = function_data.data.code.keyword_cache.clone();
+
+            let mut child_parser_errors: Vec<error::Error> = Vec::new();
+            parser::iterator::iter(
+                &mut child_parser,
+                &mut child_parser_errors,
+                letter_char,
+                next_char,
+                last_char,
+            );
+            for i in child_parser_errors {
+                errors.push(i);
+            }
+
+            function_data.data.code = Box::new(child_parser.to_raw());
             function_data.code += &code_letter;
         }
     }

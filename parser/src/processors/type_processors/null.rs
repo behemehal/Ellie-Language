@@ -18,7 +18,6 @@ pub fn collect_null<F>(
     F: FnMut(ellie_core::com::Message) + Clone + Sized,
 {
     if let types::Types::Null = itered_data.data.value {
-        //let is_num = itered_data.raw_value.parse::<usize>().is_ok();
         if itered_data.raw_value.is_empty() {
             if letter_char == "." {
                 itered_data.data.value =
@@ -123,7 +122,7 @@ pub fn collect_null<F>(
             }
         } else if letter_char != " " {
             if (next_char == ";" || next_char == " ")
-                && itered_data.raw_value.parse::<i64>().is_ok()
+            && itered_data.raw_value.parse::<i64>().is_ok()
             {
                 panic!("This should have been happened XC11");
             }

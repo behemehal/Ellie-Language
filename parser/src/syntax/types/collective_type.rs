@@ -29,6 +29,7 @@ pub struct Collective {
 pub struct CollectiveCollector {
     pub complete: bool,
     pub at_comma: bool,
+    pub entry_collector: (Box<types::Types>, Box<types::Types>), //If new data added to collective we can track it. TO-DO !?
     pub data: Collective,
 }
 

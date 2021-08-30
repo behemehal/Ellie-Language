@@ -32,3 +32,4 @@ extern crate std;
 
 pub mod heap;
 pub mod runtime;
+pub mod thread;

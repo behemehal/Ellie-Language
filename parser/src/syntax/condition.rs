@@ -34,21 +34,22 @@ pub struct ConditionChainCollector {
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
-pub struct ConditionCollector {
-    pub might_be_else_if: bool,
-    pub else_if_keyword_collector: String,
-
+pub struct Condition {
     pub chains: Vec<ConditionChain>,
     pub keyword_pos: defs::Cursor,
-    pub initialized: bool,
+    pub cloak_pos: defs::Cursor, //Cloak position if [test] ......
+}
 
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
+pub struct ConditionCollector {
+    pub data: Condition,
+    pub cloak_itered_data: variable::VariableCollector,
     pub inside_code_string: String,
+    pub might_be_else_if: bool,
+    pub else_if_keyword_collector: String,
+    pub initialized: bool,   
     pub inside_object_start: bool,
     pub inside_object_count: i64,
-
     pub cloak_collected: bool,
-    pub cloak_pos: defs::Cursor, //Cloak position if [test] ......
-    pub cloak_itered_data: variable::VariableCollector,
-
     pub complete: bool, //Fill this when end bracket placed
 }
