@@ -18,7 +18,7 @@ path-absolutize = {version = "3.0.10", optional = true }
 websocket = {version = "0.26.2", optional = true, default-features = false, features = ["sync"] }
 
 [features]
-default = ["build-cli", "ellie_raw"]
+default = ["build-cli"]
 build-cli = ["path-absolutize", "websocket"]
 raw = ["ellie_raw"]
 
