@@ -4,7 +4,8 @@ use path_absolutize::Absolutize;
 use std::env;
 use std::path::Path;
 use std::thread;
-use std::{fs, io::Read};
+use std::{fs, io::{Read, Write}};
+
 use websocket::sync::Server; //Message, OwnedMessage
 fn main() {
     println!("{}]0;{}{}", '\u{001b}', "Ellie", '\u{007}');

@@ -42,7 +42,7 @@ impl Default for FloatSize {
 pub struct FloatType {
     pub value: FloatSize,
     pub rtype: FloatTypes,
-    pub raw: String,
+    pub raw: String
 }
 
 #[derive(PartialEq, Default, Debug, Clone, Serialize, Deserialize)]
@@ -52,6 +52,7 @@ pub struct FloatTypeCollector {
     pub point: String,
     pub at_point: bool,
     pub complete: bool,
+    pub raw: String,
 }
 
 impl FloatTypeCollector {
