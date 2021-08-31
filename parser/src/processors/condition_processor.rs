@@ -27,7 +27,13 @@ pub fn collect_condition<F>(
                 //data.keyword_pos.range_end.0 = parser.pos.0; //Function naming started so we set the position
             }
         } else if !condition_data.cloak_collected {
-            if condition_data.cloak_itered_data.data.value.is_type_complete() && letter_char == "{" {
+            if condition_data
+                .cloak_itered_data
+                .data
+                .value
+                .is_type_complete()
+                && letter_char == "{"
+            {
                 condition_data.cloak_collected = true;
                 let chain_length = if condition_data.data.chains.is_empty() {
                     0
@@ -36,7 +42,10 @@ pub fn collect_condition<F>(
                 };
 
                 if chain_length == 0 {
-                    condition_data.data.chains.push(condition::ConditionChain::default());
+                    condition_data
+                        .data
+                        .chains
+                        .push(condition::ConditionChain::default());
                 }
 
                 condition_data.data.chains[chain_length].condition =

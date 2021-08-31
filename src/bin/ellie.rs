@@ -5,9 +5,9 @@ use std::env;
 use std::path::Path;
 use std::thread;
 use std::{fs, io::Read};
-use websocket::{sync::Server, Message, OwnedMessage};
+use websocket::sync::Server; //Message, OwnedMessage
 fn main() {
-    ellie_lang::terminal_colors::title_set("Ellie");
+    println!("{}]0;{}{}", '\u{001b}', "Ellie", '\u{007}');
     if env::args().any(|x| x == "-v" || x == "--version" || x == "-dv" || x == "--detailed-version")
     {
         if env::args().any(|x| x == "-dv" || x == "--detailed-version") {
@@ -179,7 +179,7 @@ fn main() {
                                                     ellie_lang::terminal_colors::Colors::Reset
                                                 ),
                                             );
-                                            let (mut receiver, mut sender) =
+                                            let (mut _receiver, mut _sender) =
                                                 client.split().unwrap();
                                         });
                                     }

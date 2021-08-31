@@ -1,9 +1,9 @@
 use crate::syntax::types;
+use alloc::boxed::Box;
+use alloc::string::{String, ToString};
+use alloc::vec::Vec;
 use ellie_core::defs;
 use serde::{Deserialize, Serialize};
-
-use alloc::boxed::Box;
-use alloc::vec::Vec;
 
 #[derive(PartialEq, Default, Debug, Clone, Serialize, Deserialize)]
 pub struct CollectiveEntry {
@@ -29,20 +29,28 @@ pub struct Collective {
 pub struct CollectiveCollector {
     pub complete: bool,
     pub at_comma: bool,
-    pub entry_collector: (Box<types::Types>, Box<types::Types>), //If new data added to collective we can track it. TO-DO !?
+    //pub entry_collector: (Box<types::Types>, Box<types::Types>), //If new data added to collective we can track it. TO-DO !?
     pub data: Collective,
 }
 
 impl CollectiveCollector {
     pub fn has_dedup(&self) -> bool {
-        let mut existent_names: Vec<types::Types> = Vec::with_capacity(self.data.entries.len());
+        let mut existent_names: Vec<String> = Vec::with_capacity(self.data.entries.len());
         let mut duplicate = false;
         for i in &self.data.entries {
-            if existent_names.contains(&*i.data.key.clone()) {
+            let current_key = match *i.data.key.clone() {
+                types::Types::String(e) => e.data.value,
+                types::Types::Integer(e) => e.raw,
+                types::Types::Char(e) => e.value.to_string(),
+                types::Types::Float(e) => e.data.raw,
+                _ => "".to_string(),
+            };
+
+            if existent_names.contains(&current_key) {
                 duplicate = true;
                 break;
             } else {
-                existent_names.push(*i.data.key.clone())
+                existent_names.push(current_key.to_string());
             }
         }
         duplicate

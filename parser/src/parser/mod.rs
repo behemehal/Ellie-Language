@@ -170,7 +170,7 @@ where
     pub fn new(
         code: String,
         mut resolve_import: fn(ellie_core::defs::ParserOptions, String, bool) -> ResolvedImport,
-        mut com: F,
+        com: F,
         options: defs::ParserOptions,
     ) -> Parser<F> {
         Parser {
@@ -192,14 +192,14 @@ where
         }
     }
 
-    pub fn read_module(mut self, code: String, path: String) -> ParserResponse {
+    pub fn read_module(self, code: String, path: String) -> ParserResponse {
         let mut new_options = self.options.clone();
         new_options.path = path;
         new_options.parser_type = ellie_core::defs::ParserType::RawParser;
         Parser::new(code, self.resolver, self.emit_message, new_options).map()
     }
 
-    pub fn read_native_header(mut self, code: String, path: String) -> ParserResponse {
+    pub fn read_native_header(self, code: String, path: String) -> ParserResponse {
         let mut new_options = self.options.clone();
         new_options.path = path;
         new_options.parser_type = ellie_core::defs::ParserType::HeaderParser;
@@ -857,7 +857,9 @@ where
                                         std::println!("\u{001b}[33m[Experimental]\u{001b}[0m: Resolving type as dynamic");
                                         let resolved_type =
                                             self.resolve_variable(caller_param.value.clone());
-                                        if resolved_type == "nen" && caller_param.value.clone().get_type() == "variable" {
+                                        if resolved_type == "nen"
+                                            && caller_param.value.clone().get_type() == "variable"
+                                        {
                                             errors.push(error::Error {
                                                 path: self.options.path.clone(),
                                                 scope: self.scope.scope_name.clone(),
@@ -869,7 +871,13 @@ where
                                                     error::errorList::error_s4.message.clone(),
                                                     vec![error::ErrorBuildField {
                                                         key: "token".to_string(),
-                                                        value: caller_param.value.as_variable_type().unwrap().data.value.clone(),
+                                                        value: caller_param
+                                                            .value
+                                                            .as_variable_type()
+                                                            .unwrap()
+                                                            .data
+                                                            .value
+                                                            .clone(),
                                                     }],
                                                 ),
                                                 pos: caller_param.pos,

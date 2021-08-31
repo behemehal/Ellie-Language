@@ -472,6 +472,5 @@ pub fn collect_function_caller<F>(
                     ..Default::default()
                 });
         }
-        
     }
 }

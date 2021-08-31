@@ -1,12 +1,12 @@
 use crate::parser;
 use crate::processors::value_processor;
-use crate::syntax::{definers, types, variable};
+use crate::syntax::{types, variable};
 
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};
 use alloc::vec;
 use alloc::vec::Vec;
-use ellie_core::{defs, error, utils};
+use ellie_core::{defs, error};
 
 pub fn collect_reference<F>(
     parser: parser::Parser<F>,
@@ -125,7 +125,6 @@ pub fn collect_reference<F>(
                 .data
                 .value
                 .is_type_complete();
-            
         }
     }
 }

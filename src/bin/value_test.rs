@@ -9,7 +9,7 @@ use ellie_parser;
 */
 
 fn main() {
-    let emulated_parser = ellie_parser::parser::Parser::new(
+    let mut emulated_parser = ellie_parser::parser::Parser::new(
         "".to_string(),
         |_, _, _| ellie_parser::parser::ResolvedImport::default(),
         |_| {},
@@ -19,12 +19,14 @@ fn main() {
     emulated_collector_data.data.dynamic = true;
     let code = "
 
-    {1: 1, 1: 1}
+    {\"1\": 1, \"1\": 1}
     
     ";
 
     for (index, char) in code.chars().enumerate() {
         if char == '\n' || char == '\r' {
+            emulated_parser.pos.1 = 0;
+            emulated_parser.pos.0 += 1;
             continue;
         }
         let letter_char = &char.to_string();
@@ -60,7 +62,9 @@ fn main() {
                 error.builded_message.builded
             );
         }
+
         emulated_collector_data = itered.itered_data;
+        emulated_parser.pos.1 += 1;
     }
     //let j = serde_json::to_string(&emulated_collector_data).unwrap();
     //fs::write("data.json", j).unwrap();

@@ -38,6 +38,5 @@ pub fn collect_negative<F>(
             errors.extend(itered_negative_vector.errors);
         }
         negative_data.value = Box::new(itered_negative_vector.itered_data.data.value);
-        
     }
 }

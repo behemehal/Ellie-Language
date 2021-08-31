@@ -1,11 +1,11 @@
 use ellie_core;
 use ellie_parser::parser;
-use regex::Regex;
+//use regex::Regex;
 use toml::Value;
 
 #[path = "src/terminal_colors.rs"]
 mod terminal_colors;
-use serde_json;
+//use serde_json;
 use std::{
     fs::{self, File},
     io::Read,
@@ -24,10 +24,10 @@ fn read_file(file_dir: &str) -> Result<String, String> {
     }
 }
 
-fn resolve_import(
+fn _resolve_import(
     _: ellie_core::defs::ParserOptions,
     lib_name: String,
-    nativeImport: bool,
+    _native_header: bool,
 ) -> ellie_parser::parser::ResolvedImport {
     std::eprintln!(
         "{}[ReadingFile]{}: {}~./lib/{}.ei{}",
@@ -58,7 +58,7 @@ fn resolve_import(
     }
 }
 
-fn parse(contents: String, file_name: String) -> ellie_parser::parser::ParserResponse {
+fn _parse(contents: String, file_name: String) -> ellie_parser::parser::ParserResponse {
     std::eprintln!(
         "{}[ParsingFile]{}: {}~./lib/{}.ei{}",
         terminal_colors::get_color(terminal_colors::Colors::Cyan),
@@ -69,7 +69,7 @@ fn parse(contents: String, file_name: String) -> ellie_parser::parser::ParserRes
     );
     let parser = parser::Parser::new(
         contents.clone(),
-        resolve_import,
+        _resolve_import,
         |_| {},
         ellie_core::defs::ParserOptions {
             path: "./lib/".to_string() + &file_name.to_string(),

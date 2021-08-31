@@ -207,6 +207,5 @@ pub fn collect_integer<F>(
                 },
             });
         }
-        
     }
 }

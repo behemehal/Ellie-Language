@@ -1,6 +1,5 @@
 use crate::parser;
 use crate::processors;
-use crate::syntax::variable;
 use ellie_core::{defs, error, utils};
 
 use alloc::string::{String, ToString};
@@ -527,7 +526,9 @@ pub fn collect_variable_value<F>(
                 variable_data.data.value_pos.range_start = parser.pos;
             }
 
-            if (variable_data.collected_value == "" && letter_char != " ") || variable_data.collected_value != "" {
+            if (variable_data.collected_value == "" && letter_char != " ")
+                || variable_data.collected_value != ""
+            {
                 variable_data.collected_value += letter_char;
             }
 

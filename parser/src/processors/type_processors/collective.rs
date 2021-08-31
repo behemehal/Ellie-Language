@@ -44,6 +44,7 @@ pub fn collect_collective<F>(
                 })
         }
 
+        let collective_data_clone = collective_data.clone();
         let has_dedup = collective_data.clone().has_dedup();
         let ref mut last_entry = collective_data.data.entries[last_entry_ind - 1];
 
@@ -120,7 +121,10 @@ pub fn collect_collective<F>(
                     }
                 }
 
-                if &*last_entry.data.key.get_type() != "string" {
+                if &*last_entry.data.key.get_type() != "string"
+                    && &*last_entry.data.key.get_type() != "char"
+                    && &*last_entry.data.key.get_type() != "int"
+                {
                     #[cfg(feature = "std")]
                     std::println!("\u{001b}[31m[ParserError]\u{001b}[0m: Not all types supported as collective key. Only strings are allowed for now");
                     errors.push(error::Error {
@@ -176,7 +180,7 @@ pub fn collect_collective<F>(
                 && last_entry.data.value.is_type_complete()
             {
                 //If current char is a comma and collected value is complete
-
+                std::println!("{:#?}", collective_data_clone);
                 if has_dedup {
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
@@ -313,6 +317,5 @@ pub fn collect_collective<F>(
                 //Set the range end
             }
         }
-        
     }
 }

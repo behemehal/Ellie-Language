@@ -47,7 +47,7 @@ pub struct ConditionCollector {
     pub inside_code_string: String,
     pub might_be_else_if: bool,
     pub else_if_keyword_collector: String,
-    pub initialized: bool,   
+    pub initialized: bool,
     pub inside_object_start: bool,
     pub inside_object_count: i64,
     pub cloak_collected: bool,

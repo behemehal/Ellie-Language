@@ -296,8 +296,6 @@ impl Types {
         }
     }
     */
-
-    
 }
 
 impl Default for Types {

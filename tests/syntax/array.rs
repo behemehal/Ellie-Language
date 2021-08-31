@@ -1,7 +1,5 @@
 #[cfg(test)]
 mod array_tests {
-    use core::panic;
-
     #[test]
     fn one_dimension_array_collected_with_no_error() {
         assert!(ellie_lang::test_utils::has_no_error_and_correct(

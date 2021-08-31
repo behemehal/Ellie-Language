@@ -122,7 +122,7 @@ pub fn collect_null<F>(
             }
         } else if letter_char != " " {
             if (next_char == ";" || next_char == " ")
-            && itered_data.raw_value.parse::<i64>().is_ok()
+                && itered_data.raw_value.parse::<i64>().is_ok()
             {
                 panic!("This should have been happened XC11");
             }

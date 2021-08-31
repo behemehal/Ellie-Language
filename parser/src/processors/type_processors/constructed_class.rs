@@ -410,6 +410,5 @@ pub fn collect_new_call<F>(
                 }
             }
         }
-        
     }
 }

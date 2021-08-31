@@ -297,6 +297,5 @@ pub fn collect_variable<F>(
                 });
             }
         }
-        
     }
 }

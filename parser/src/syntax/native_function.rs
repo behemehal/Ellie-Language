@@ -1,4 +1,3 @@
-use crate::parser::Collecting;
 use crate::syntax::definers;
 use alloc::string::String;
 use alloc::vec::Vec;

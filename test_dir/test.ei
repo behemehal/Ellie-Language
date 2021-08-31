@@ -1,6 +1,8 @@
 
-
-class ctest {}
+v test = {
+    123: "ahmet",
+    123: "ahmet",
+};
 
 /*
 v test : string = "test";
@@ -8,4 +10,5 @@ v test : string = "test";
 fn testfn() {
     v testc : string = "test";
 }
+
 */
