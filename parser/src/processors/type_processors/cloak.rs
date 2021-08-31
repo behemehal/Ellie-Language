@@ -401,8 +401,6 @@ pub fn collect_cloak<F>(
                         ..variable::VariableCollector::default()
                     }
                 };
-                #[cfg(feature = "std")]
-                std::println!("[ParserError:0x2]: This shouldn't have happened");
             }
 
             let itered_cloak_vector = Box::new(value_processor::collect_value(

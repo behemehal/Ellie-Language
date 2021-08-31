@@ -18,7 +18,7 @@ mod collective_tests {
     #[test]
     fn duplicate_parameter_handled() {
         assert!(
-            ellie_lang::test_utils::emulate_value_processor("{1: 1, 1: 1}")
+            ellie_lang::test_utils::emulate_value_processor("{\"1\": 1, \"1\": 1}")
                 .1
                 .len()
                 == 1

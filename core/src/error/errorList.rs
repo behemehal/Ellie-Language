@@ -215,4 +215,10 @@ lazy_static! {
         message: "Cannot add a new parameter after multiple parameter".to_string(),
         ..Default::default()
     };
+    pub static ref error_s36: crate::error::Error = crate::error::Error {
+        code: 0x35,
+        title: "SyntaxError".to_string(),
+        message: "'$token' cannot be used as collective parameter".to_string(),
+        ..Default::default()
+    };
 }

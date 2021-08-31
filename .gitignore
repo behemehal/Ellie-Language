@@ -4,7 +4,6 @@
 Cargo.lock
 Cargo.lock
 target
-raw
 build.js
 wasm
 Cargo.lock

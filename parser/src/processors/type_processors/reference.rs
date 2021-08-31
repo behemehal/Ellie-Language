@@ -1,12 +1,12 @@
 use crate::parser;
 use crate::processors::value_processor;
-use crate::syntax::{definers, types, variable};
+use crate::syntax::{types, variable};
 
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};
 use alloc::vec;
 use alloc::vec::Vec;
-use ellie_core::{defs, error, utils};
+use ellie_core::{defs, error};
 
 pub fn collect_reference<F>(
     parser: parser::Parser<F>,
@@ -53,7 +53,7 @@ pub fn collect_reference<F>(
             } else if reference_data.root_available {
                 let resolved_reference = parser
                     .clone()
-                    .resolve_reference_call(reference_data.data.clone());
+                    .resolve_reference_call(reference_data.clone());
 
                 if let Some(resolved_errors) = resolved_reference {
                     errors.extend(resolved_errors)

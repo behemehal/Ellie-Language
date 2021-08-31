@@ -1,5 +1,6 @@
 use crate::parser::Collecting;
 use crate::syntax::definers;
+use alloc::boxed::Box;
 use alloc::string::String;
 use alloc::vec::Vec;
 use ellie_core::defs;
@@ -35,6 +36,7 @@ pub struct Function {
     pub parameters_pos: defs::Cursor,
     pub return_pos: defs::Cursor,
     pub pos: defs::Cursor,
+    pub code: Box<crate::parser::RawParser>,
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]

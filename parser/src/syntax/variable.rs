@@ -26,5 +26,6 @@ pub struct VariableCollector {
     pub ignore_existence: bool,
     pub value_complete: bool,
     pub raw_value: String,
+    pub collected_value: String,
     pub data: Variable,
 }

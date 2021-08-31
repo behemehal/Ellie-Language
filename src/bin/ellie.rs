@@ -5,9 +5,9 @@ use std::env;
 use std::path::Path;
 use std::thread;
 use std::{fs, io::Read};
-use websocket::{sync::Server, Message, OwnedMessage};
+use websocket::sync::Server; //Message, OwnedMessage
 fn main() {
-    ellie_lang::terminal_colors::title_set("Ellie");
+    println!("{}]0;{}{}", '\u{001b}', "Ellie", '\u{007}');
     if env::args().any(|x| x == "-v" || x == "--version" || x == "-dv" || x == "--detailed-version")
     {
         if env::args().any(|x| x == "-dv" || x == "--detailed-version") {
@@ -25,7 +25,7 @@ fn main() {
         println!("\t--version                    || -v   : Show Version");
         println!("\t--help                       || -h   : Show Help");
         println!("\t--debug                      || -d   : Show debug headers");
-        println!("\t--to-raw                     || -tr  : Compiles ellie to ellie raw");
+        println!("\t--to-json                    || -tj  : Compiles ellie to ellie json");
         println!("\t--show-errors                || -se  : Linter code for errors");
         println!("\t--json-errors                || -je  : Linter code for errors as json");
         println!("\t--eval-code                  || -ec  : Evaluate code from parameters");
@@ -179,7 +179,7 @@ fn main() {
                                                     ellie_lang::terminal_colors::Colors::Reset
                                                 ),
                                             );
-                                            let (mut receiver, mut sender) =
+                                            let (mut _receiver, mut _sender) =
                                                 client.split().unwrap();
                                         });
                                     }
@@ -303,7 +303,7 @@ fn main() {
                                     allow_import: true,
                                 },
                             );
-                            parser.scope.scope_name = "file_arg".to_string();
+                            parser.scope.scope_name = "ellie_core".to_string();
                             let mapped = parser.map();
 
                             if !mapped.syntax_errors.is_empty() {
@@ -499,7 +499,58 @@ fn main() {
                             if !env::args().any(|x| x == "-se" || x == "--show-errors")
                                 && (mapped.syntax_errors.is_empty() || ignore_errors)
                             {
-                                if env::args().any(|x| x == "-tr" || x == "--to-raw") {
+                                if env::args().any(|x| x == "-rw" || x == "--raw-compile") {
+                                    if !cfg!(feature = "raw") {
+                                        println!(
+                                            "{}[WrongConfig]{}: Config is not correct, raw feature must be enabled",
+                                            ellie_lang::terminal_colors::get_color(
+                                                ellie_lang::terminal_colors::Colors::Red
+                                            ),
+                                            ellie_lang::terminal_colors::get_color(ellie_lang::terminal_colors::Colors::Reset),
+                                        )
+                                    }
+
+                                    #[cfg(feature = "raw")]
+                                    {
+                                        let mut raw_conv = ellie_raw::converter::Converter::new(
+                                            "ellie_core".to_string(),
+                                            ellie_raw::converter::ConverterOptions {
+                                                apply_comments: true,
+                                                lib_name: file_arg.to_string(),
+                                            },
+                                            false,
+                                        );
+                                        raw_conv.convert(mapped.parsed);
+                                        println!("-----RAW---\n{:#?}", raw_conv.clone());
+                                        let path_to_w = format!(
+                                            "./raw_{}.eiw",
+                                            Path::new(&file_arg.to_string())
+                                                .extension()
+                                                .unwrap()
+                                                .to_str()
+                                                .unwrap()
+                                        );
+                                        if let Err(e) =
+                                            fs::write(path_to_w.clone(), raw_conv.to_string())
+                                        {
+                                            println!(
+                                                "{}[WriteError]{}: Cannot write raw file {}'{}'{}, {}{}{}",
+                                                ellie_lang::terminal_colors::get_color(
+                                                    ellie_lang::terminal_colors::Colors::Red
+                                                ),
+                                                ellie_lang::terminal_colors::get_color(ellie_lang::terminal_colors::Colors::Reset),
+                                                ellie_lang::terminal_colors::get_color(ellie_lang::terminal_colors::Colors::Yellow),
+                                                path_to_w,
+                                                ellie_lang::terminal_colors::get_color(ellie_lang::terminal_colors::Colors::Reset),
+                                                ellie_lang::terminal_colors::get_color(
+                                                    ellie_lang::terminal_colors::Colors::Red
+                                                ),
+                                                e.to_string(),
+                                                ellie_lang::terminal_colors::get_color(ellie_lang::terminal_colors::Colors::Reset),
+                                            )
+                                        }
+                                    }
+                                } else if env::args().any(|x| x == "-tj" || x == "--to-json") {
                                     print!("/");
                                     for item in mapped.parsed.items {
                                         print!("-\n{:#?}\n", serde_json::to_string(&item).unwrap());
@@ -758,7 +809,54 @@ fn main() {
                             }
                             std::process::exit(1);
                         } else if env::args().any(|x| x == "-rw" || x == "--raw-compile") {
-                            println!("Pre-compiled raw generation not supported yet {:#?}", code);
+                            if !cfg!(feature = "raw") {
+                                println!(
+                                    "{}[WrongConfig]{}: Config is not correct, raw feature must be enabled",
+                                    ellie_lang::terminal_colors::get_color(
+                                        ellie_lang::terminal_colors::Colors::Red
+                                    ),
+                                    ellie_lang::terminal_colors::get_color(ellie_lang::terminal_colors::Colors::Reset),
+                                )
+                            }
+
+                            #[cfg(feature = "raw")]
+                            {
+                                let mut raw_conv = ellie_raw::converter::Converter::new(
+                                    "ellie_core".to_string(),
+                                    ellie_raw::converter::ConverterOptions {
+                                        apply_comments: true,
+                                        lib_name: "<eval>".to_string(),
+                                    },
+                                    false,
+                                );
+                                raw_conv.convert(mapped.parsed);
+                                println!("-----RAW---\n{:#?}", raw_conv.clone());
+                                if let Err(e) = fs::write("./raw_eval.eiw", raw_conv.to_string()) {
+                                    println!(
+                                        "{}[WriteError]{}: Cannot write raw file {}'{}'{}, {}{}{}",
+                                        ellie_lang::terminal_colors::get_color(
+                                            ellie_lang::terminal_colors::Colors::Red
+                                        ),
+                                        ellie_lang::terminal_colors::get_color(
+                                            ellie_lang::terminal_colors::Colors::Reset
+                                        ),
+                                        ellie_lang::terminal_colors::get_color(
+                                            ellie_lang::terminal_colors::Colors::Yellow
+                                        ),
+                                        "./raw_eval.eiw",
+                                        ellie_lang::terminal_colors::get_color(
+                                            ellie_lang::terminal_colors::Colors::Reset
+                                        ),
+                                        ellie_lang::terminal_colors::get_color(
+                                            ellie_lang::terminal_colors::Colors::Red
+                                        ),
+                                        e.to_string(),
+                                        ellie_lang::terminal_colors::get_color(
+                                            ellie_lang::terminal_colors::Colors::Reset
+                                        ),
+                                    )
+                                }
+                            }
                         } else if !env::args().any(|x| x == "-se" || x == "--show-errors") {
                             print!(
                                 "Collected: {:#?}",

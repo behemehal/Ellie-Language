@@ -1,6 +1,5 @@
 use crate::parser;
 use crate::processors;
-use crate::syntax::variable;
 use ellie_core::{defs, error, utils};
 
 use alloc::string::{String, ToString};
@@ -130,7 +129,6 @@ pub fn collect_variable_value<F>(
                 parser.current = parser::Collecting::None;
             } else if letter_char == "=" {
                 if !variable_data.data.dynamic {
-                    #[cfg(feature = "std")]
                     #[cfg(feature = "std")]
                     std::println!("\u{001b}[33m[Experimental]\u{001b}[0m: Casting as dynamic");
                     variable_data.data.dynamic = true;
@@ -527,11 +525,18 @@ pub fn collect_variable_value<F>(
             {
                 variable_data.data.value_pos.range_start = parser.pos;
             }
+
+            if (variable_data.collected_value == "" && letter_char != " ")
+                || variable_data.collected_value != ""
+            {
+                variable_data.collected_value += letter_char;
+            }
+
             let mut cd = variable_data.clone();
             let collected = processors::value_processor::collect_value(
                 parser_clone,
                 &mut cd,
-                letter_char,
+                letter_char.clone(),
                 next_char,
                 last_char,
             );

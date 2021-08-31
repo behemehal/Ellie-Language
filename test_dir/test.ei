@@ -1,7 +1,14 @@
-import ../lib/ellie;
 
 v test = {
-    "ahmet": "ok"
+    123: "ahmet",
+    123: "ahmet",
 };
 
-v name = test.ahmets.tre;
+/*
+v test : string = "test";
+
+fn testfn() {
+    v testc : string = "test";
+}
+
+*/

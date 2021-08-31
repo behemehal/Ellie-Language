@@ -18,7 +18,6 @@ pub fn collect_null<F>(
     F: FnMut(ellie_core::com::Message) + Clone + Sized,
 {
     if let types::Types::Null = itered_data.data.value {
-        //let is_num = itered_data.raw_value.parse::<usize>().is_ok();
         if itered_data.raw_value.is_empty() {
             if letter_char == "." {
                 itered_data.data.value =
