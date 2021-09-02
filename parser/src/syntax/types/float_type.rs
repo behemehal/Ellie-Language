@@ -53,7 +53,6 @@ pub struct FloatTypeCollector {
     pub point: String,
     pub at_point: bool,
     pub complete: bool,
-    pub raw: String,
 }
 
 impl FloatTypeCollector {
