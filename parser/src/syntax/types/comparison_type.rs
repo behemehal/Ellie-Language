@@ -1,8 +1,8 @@
 use crate::syntax::types;
-use serde::{Deserialize, Serialize};
-
 use alloc::boxed::Box;
 use alloc::string::String;
+use ellie_core::definite;
+use serde::{Deserialize, Serialize};
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub enum ComparisonOperators {
@@ -57,4 +57,22 @@ pub struct ComparisonType {
     pub operator: ComparisonOperators,
     pub operator_collect: String,
     pub operator_collected: bool,
+}
+
+impl ComparisonType {
+    pub fn to_definite(self) -> definite::types::comparison_type::ComparisonType {
+        definite::types::comparison_type::ComparisonType {
+            first: Box::new(self.first.to_definite()),
+            second: Box::new(self.second.to_definite()),
+            operator: match self.operator {
+                ComparisonOperators::Equal => definite::types::comparison_type::ComparisonOperators::Equal,
+                ComparisonOperators::NotEqual => definite::types::comparison_type::ComparisonOperators::NotEqual,
+                ComparisonOperators::GreaterThan => definite::types::comparison_type::ComparisonOperators::GreaterThan,
+                ComparisonOperators::LessThan => definite::types::comparison_type::ComparisonOperators::LessThan,
+                ComparisonOperators::GreaterThanOrEqual => definite::types::comparison_type::ComparisonOperators::GreaterThanOrEqual,
+                ComparisonOperators::LessThanOrEqual => definite::types::comparison_type::ComparisonOperators::LessThanOrEqual,
+                ComparisonOperators::Null => definite::types::comparison_type::ComparisonOperators::Null,
+            },
+        }
+    }
 }

@@ -3,7 +3,7 @@ use crate::syntax::definers;
 use alloc::boxed::Box;
 use alloc::string::String;
 use alloc::vec::Vec;
-use ellie_core::defs;
+use ellie_core::{definite, defs};
 use serde::{Deserialize, Serialize};
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
@@ -39,6 +39,39 @@ pub struct Function {
     pub code: Box<crate::parser::RawParser>,
 }
 
+impl Function {
+    pub fn to_definite(self) -> definite::items::function::Function {
+        definite::items::function::Function {
+            name: self.name,
+            parameters: self
+                .parameters
+                .into_iter()
+                .map(|x| definite::items::function::FunctionParameter {
+                    name: x.name,
+                    rtype: x.rtype.to_definite(),
+                    pos: x.pos,
+                    multi_capture: x.multi_capture,
+                    name_pos: x.name_pos,
+                    type_pos: x.type_pos,
+                })
+                .collect(),
+            return_type: self.return_type.to_definite(),
+            public: self.public,
+            inside_code: self
+                .inside_code
+                .into_iter()
+                .map(|x| x.to_definite())
+                .collect(),
+            name_pos: self.name_pos,
+            code_bracket_start: self.code_bracket_start,
+            code_bracket_end: self.code_bracket_end,
+            parameters_pos: self.parameters_pos,
+            return_pos: self.return_pos,
+            pos: self.pos,
+        }
+    }
+}
+
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
 pub struct FunctionCollector {
     pub data: Function,
@@ -54,6 +87,11 @@ pub struct FunctionCollector {
 }
 
 impl FunctionCollector {
+
+    pub fn to_definite(self) -> definite::items::function::Function {
+        self.data.to_definite()
+    }
+
     pub fn has_dedup(&self) -> bool {
         let mut existent_names: Vec<String> = Vec::with_capacity(self.data.parameters.len());
         let mut duplicate = false;

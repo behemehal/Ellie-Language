@@ -2,7 +2,7 @@ use crate::syntax::types;
 use alloc::boxed::Box;
 use alloc::string::String;
 use alloc::vec::Vec;
-use ellie_core::defs;
+use ellie_core::{definite, defs};
 use serde::{Deserialize, Serialize};
 
 #[derive(PartialEq, Default, Debug, Clone, Serialize, Deserialize)]
@@ -28,4 +28,25 @@ pub struct ConstructedClassCollector {
     pub value_collected: bool,
     pub comma: bool,
     pub complete: bool,
+}
+
+impl ConstructedClassCollector {
+    pub fn to_definite(self) -> definite::types::constructed_class::ConstructedClass {
+        definite::types::constructed_class::ConstructedClass {
+            value: Box::new(self.data.value.to_definite()),
+            keyword_pos: self.data.keyword_pos,
+            value_pos: self.data.value_pos,
+            params: self
+                .data
+                .params
+                .into_iter()
+                .map(
+                    |x| definite::types::constructed_class::ConstructedClassParameter {
+                        value: x.value.to_definite(),
+                        pos: x.pos,
+                    },
+                )
+                .collect(),
+        }
+    }
 }

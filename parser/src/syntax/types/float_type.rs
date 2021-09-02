@@ -2,6 +2,7 @@ use alloc::format;
 use alloc::string::{String, ToString};
 use core::any::Any;
 use core::any::TypeId;
+use ellie_core::definite;
 use enum_as_inner::EnumAsInner;
 use serde::{Deserialize, Serialize};
 
@@ -42,7 +43,7 @@ impl Default for FloatSize {
 pub struct FloatType {
     pub value: FloatSize,
     pub rtype: FloatTypes,
-    pub raw: String
+    pub raw: String,
 }
 
 #[derive(PartialEq, Default, Debug, Clone, Serialize, Deserialize)]
@@ -56,6 +57,19 @@ pub struct FloatTypeCollector {
 }
 
 impl FloatTypeCollector {
+    pub fn to_definite(self) -> definite::types::float::FloatType {
+        definite::types::float::FloatType {
+            value: match self.data.value {
+                FloatSize::F32(e) => definite::types::float::FloatSize::F32(e),
+                FloatSize::F64(e) => definite::types::float::FloatSize::F64(e),
+            },
+            rtype: match self.data.rtype {
+                FloatTypes::F32 => definite::types::float::FloatTypes::F32,
+                FloatTypes::F64 => definite::types::float::FloatTypes::F64,
+            },
+        }
+    }
+
     pub fn collect(&self) -> String {
         (self.base.to_string() + &(".".to_string())) + &self.point
     }

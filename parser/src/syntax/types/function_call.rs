@@ -2,6 +2,7 @@ use crate::syntax::types;
 use ellie_core::defs;
 use serde::{Deserialize, Serialize};
 
+use ellie_core::definite;
 use alloc::string::String;
 use alloc::vec::Vec;
 
@@ -24,4 +25,22 @@ pub struct FunctionCallCollector {
     pub name_collected: bool,
     pub comma: bool,
     pub complete: bool,
+}
+
+impl FunctionCallCollector {
+    pub fn to_definite(self) -> definite::types::function_call::FunctionCall {
+        definite::types::function_call::FunctionCall {
+            name: self.data.name,
+            name_pos: self.data.name_pos,
+            params: self
+                .data
+                .params
+                .into_iter()
+                .map(|x| definite::types::function_call::FunctionCallParameter {
+                    value: x.value.to_definite(),
+                    pos: x.pos,
+                })
+                .collect(),
+        }
+    }
 }

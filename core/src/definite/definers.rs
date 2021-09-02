@@ -52,3 +52,4 @@ pub enum DefinerCollecting {
     Nullable(NullableType),
     Dynamic,
 }
+

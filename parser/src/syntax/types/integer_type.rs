@@ -3,6 +3,7 @@ use alloc::format;
 use alloc::string::String;
 use core::any::Any;
 use core::any::TypeId;
+use ellie_core::definite;
 use enum_as_inner::EnumAsInner;
 use serde::{Deserialize, Serialize};
 
@@ -97,6 +98,39 @@ pub struct IntegerTypeCollector {
 }
 
 impl IntegerTypeCollector {
+    pub fn to_definite(self) -> definite::types::integer::IntegerType {
+        definite::types::integer::IntegerType {
+            value: match self.data.value {
+                IntegerSize::U8(e) => definite::types::integer::IntegerSize::U8(e),
+                IntegerSize::U16(e) => definite::types::integer::IntegerSize::U16(e),
+                IntegerSize::U32(e) => definite::types::integer::IntegerSize::U32(e),
+                IntegerSize::U64(e) => definite::types::integer::IntegerSize::U64(e),
+                IntegerSize::U128(e) => definite::types::integer::IntegerSize::U128(e),
+                IntegerSize::Usize(e) => definite::types::integer::IntegerSize::Usize(e),
+                IntegerSize::I8(e) => definite::types::integer::IntegerSize::I8(e),
+                IntegerSize::I16(e) => definite::types::integer::IntegerSize::I16(e),
+                IntegerSize::I32(e) => definite::types::integer::IntegerSize::I32(e),
+                IntegerSize::I64(e) => definite::types::integer::IntegerSize::I64(e),
+                IntegerSize::I128(e) => definite::types::integer::IntegerSize::I128(e),
+                IntegerSize::Isize(e) => definite::types::integer::IntegerSize::Isize(e),
+            },
+            rtype: match self.data.rtype {
+                IntegerTypes::U8 => definite::types::integer::IntegerTypes::U8,
+                IntegerTypes::U16 => definite::types::integer::IntegerTypes::U16,
+                IntegerTypes::U32 => definite::types::integer::IntegerTypes::U32,
+                IntegerTypes::U64 => definite::types::integer::IntegerTypes::U64,
+                IntegerTypes::U128 => definite::types::integer::IntegerTypes::U128,
+                IntegerTypes::USize => definite::types::integer::IntegerTypes::USize,
+                IntegerTypes::I8 => definite::types::integer::IntegerTypes::I8,
+                IntegerTypes::I16 => definite::types::integer::IntegerTypes::I16,
+                IntegerTypes::I32 => definite::types::integer::IntegerTypes::I32,
+                IntegerTypes::I64 => definite::types::integer::IntegerTypes::I64,
+                IntegerTypes::I128 => definite::types::integer::IntegerTypes::I128,
+                IntegerTypes::ISize => definite::types::integer::IntegerTypes::ISize,
+            },
+        }
+    }
+
     pub fn build<T: Any>(raw: T) -> IntegerTypeCollector {
         if TypeId::of::<T>() == TypeId::of::<i8>() {
             IntegerTypeCollector {

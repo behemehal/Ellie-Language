@@ -1,6 +1,6 @@
 use crate::syntax::types;
 use alloc::string::String;
-use ellie_core::defs;
+use ellie_core::{definite, defs};
 use serde::{Deserialize, Serialize};
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
@@ -17,4 +17,16 @@ pub struct FileKeyCollector {
     pub data: FileKey,
     pub key_name_collected: bool,
     pub value_collected: bool,
+}
+
+impl FileKeyCollector {
+    pub fn to_definite(self) -> definite::items::file_key::FileKey {
+        definite::items::file_key::FileKey {
+            key_name: self.data.key_name,
+            value: self.data.value.to_definite(),
+            key_name_location: self.data.key_name_location,
+            value_location: self.data.value_location,
+            pos: self.data.pos,
+        }
+    }
 }

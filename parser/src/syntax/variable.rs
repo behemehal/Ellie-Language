@@ -1,6 +1,6 @@
 use crate::syntax::{definers, types};
 use alloc::string::String;
-use ellie_core::defs;
+use ellie_core::{defs, definite};
 use serde::{Deserialize, Serialize};
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
@@ -18,6 +18,24 @@ pub struct Variable {
     pub hash: String,
 }
 
+impl Variable {
+    pub fn to_definite(self) -> definite::items::variable::Variable {
+        definite::items::variable::Variable {
+            name: self.name,
+            dynamic: self.dynamic,
+            constant: self.constant,
+            public: self.public,
+            value: self.value.to_definite(),
+            pos: self.pos,
+            name_pos: self.name_pos,
+            value_pos: self.value_pos,
+            type_pos: self.type_pos,
+            rtype: self.rtype.to_definite(),
+            hash: self.hash,
+        }
+    }
+}
+
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
 pub struct VariableCollector {
     pub initialized: bool,
@@ -28,4 +46,10 @@ pub struct VariableCollector {
     pub raw_value: String,
     pub collected_value: String,
     pub data: Variable,
+}
+
+impl VariableCollector {
+    pub fn to_definite(self) -> definite::items::variable::Variable {
+        self.data.to_definite()
+    }
 }

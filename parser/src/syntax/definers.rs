@@ -2,6 +2,7 @@ use alloc::boxed::Box;
 use alloc::format;
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
+use ellie_core::definite;
 use enum_as_inner::EnumAsInner;
 use serde::{Deserialize, Serialize};
 
@@ -17,12 +18,29 @@ pub struct FunctionType {
     pub at_comma: bool,
 }
 
+impl FunctionType {
+    pub fn to_definite(self) -> definite::definers::FunctionType {
+        definite::definers::FunctionType {
+            params: self.params.into_iter().map(|x| x.to_definite()).collect(),
+            returning: Box::new(self.returning.to_definite()),
+        }
+    }
+}
+
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
 pub struct CloakType {
     pub complete: bool,
     pub rtype: Vec<DefinerCollecting>,
     pub bracket_inserted: bool,
     pub at_comma: bool,
+}
+
+impl CloakType {
+    pub fn to_definite(self) -> definite::definers::CloakType {
+        definite::definers::CloakType {
+            rtype: self.rtype.into_iter().map(|x| x.to_definite()).collect(),
+        }
+    }
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
@@ -35,6 +53,15 @@ pub struct ArrayType {
     pub typed: bool,
 }
 
+impl ArrayType {
+    pub fn to_definite(self) -> definite::definers::ArrayType {
+        definite::definers::ArrayType {
+            rtype: Box::new(self.rtype.to_definite()),
+            len: self.len.to_definite(),
+        }
+    }
+}
+
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
 pub struct GrowableArrayType {
     pub complete: bool,
@@ -42,9 +69,23 @@ pub struct GrowableArrayType {
     pub bracket_inserted: bool,
 }
 
+impl GrowableArrayType {
+    pub fn to_definite(self) -> definite::definers::GrowableArrayType {
+        definite::definers::GrowableArrayType {
+            rtype: Box::new(self.rtype.to_definite()),
+        }
+    }
+}
+
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
 pub struct GenericType {
     pub rtype: String,
+}
+
+impl GenericType {
+    pub fn to_definite(self) -> definite::definers::GenericType {
+        definite::definers::GenericType { rtype: self.rtype }
+    }
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
@@ -56,9 +97,26 @@ pub struct CollectiveType {
     pub has_key: bool,
 }
 
+impl CollectiveType {
+    pub fn to_definite(self) -> definite::definers::CollectiveType {
+        definite::definers::CollectiveType {
+            key: Box::new(self.key.to_definite()),
+            value: Box::new(self.value.to_definite()),
+        }
+    }
+}
+
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
 pub struct NullableType {
     pub value: Box<DefinerCollecting>,
+}
+
+impl NullableType {
+    pub fn to_definite(self) -> definite::definers::NullableType {
+        definite::definers::NullableType {
+            value: Box::new(self.value.to_definite()),
+        }
+    }
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, EnumAsInner, Deserialize)]
@@ -80,6 +138,33 @@ impl Default for DefinerCollecting {
 }
 
 impl DefinerCollecting {
+    pub fn to_definite(self) -> definite::definers::DefinerCollecting {
+        match self {
+            DefinerCollecting::Array(e) => {
+                definite::definers::DefinerCollecting::Array(e.to_definite())
+            }
+            DefinerCollecting::GrowableArray(e) => {
+                definite::definers::DefinerCollecting::GrowableArray(e.to_definite())
+            }
+            DefinerCollecting::Generic(e) => {
+                definite::definers::DefinerCollecting::Generic(e.to_definite())
+            }
+            DefinerCollecting::Function(e) => {
+                definite::definers::DefinerCollecting::Function(e.to_definite())
+            }
+            DefinerCollecting::Cloak(e) => {
+                definite::definers::DefinerCollecting::Cloak(e.to_definite())
+            }
+            DefinerCollecting::Collective(e) => {
+                definite::definers::DefinerCollecting::Collective(e.to_definite())
+            }
+            DefinerCollecting::Nullable(e) => {
+                definite::definers::DefinerCollecting::Nullable(e.to_definite())
+            }
+            DefinerCollecting::Dynamic => definite::definers::DefinerCollecting::Dynamic,
+        }
+    }
+
     pub fn same_as(self, other: DefinerCollecting) -> bool {
         if self == other {
             match self {

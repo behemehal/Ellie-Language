@@ -10,6 +10,7 @@ use crate::syntax::types::logical_type::LogicalOperators;
 
 use alloc::boxed::Box;
 use alloc::string::String;
+use ellie_core::definite;
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub enum Operators {
@@ -101,4 +102,40 @@ pub struct OperatorTypeCollector {
     pub itered_cache: Box<variable::VariableCollector>,
     pub operator_collect: String,
     pub operator_collected: bool,
+}
+
+impl OperatorTypeCollector {
+    pub fn to_definite(self) -> definite::types::operator::OperatorType {
+        definite::types::operator::OperatorType {
+            cloaked: self.cloaked,
+            first: Box::new(self.data.first.to_definite()),
+            second: Box::new(self.data.second.to_definite()),
+            operator: match self.data.operator {
+                Operators::ComparisonType(e) => match e {
+                    ComparisonOperators::Equal => ellie_core::definite::types::operator::Operators::ComparisonType(definite::types::comparison_type::ComparisonOperators::Equal),
+                    ComparisonOperators::NotEqual => ellie_core::definite::types::operator::Operators::ComparisonType(definite::types::comparison_type::ComparisonOperators::NotEqual),
+                    ComparisonOperators::GreaterThan => ellie_core::definite::types::operator::Operators::ComparisonType(definite::types::comparison_type::ComparisonOperators::GreaterThan),
+                    ComparisonOperators::LessThan => ellie_core::definite::types::operator::Operators::ComparisonType(definite::types::comparison_type::ComparisonOperators::LessThan),
+                    ComparisonOperators::GreaterThanOrEqual => ellie_core::definite::types::operator::Operators::ComparisonType(definite::types::comparison_type::ComparisonOperators::GreaterThanOrEqual),
+                    ComparisonOperators::LessThanOrEqual => ellie_core::definite::types::operator::Operators::ComparisonType(definite::types::comparison_type::ComparisonOperators::LessThanOrEqual),
+                    ComparisonOperators::Null => ellie_core::definite::types::operator::Operators::ComparisonType(definite::types::comparison_type::ComparisonOperators::Null),
+                },
+                Operators::LogicalType(e) => match e {
+                    LogicalOperators::And => definite::types::operator::Operators::LogicalType(definite::types::logical_type::LogicalOperators::And),
+                    LogicalOperators::Or => definite::types::operator::Operators::LogicalType(definite::types::logical_type::LogicalOperators::Or),
+                    LogicalOperators::Null => definite::types::operator::Operators::LogicalType(definite::types::logical_type::LogicalOperators::Null),
+                },
+                Operators::ArithmeticType(e) => match e {
+                    ArithmeticOperators::Addition => definite::types::operator::Operators::ArithmeticType(definite::types::arithmetic_type::ArithmeticOperators::Addition),
+                    ArithmeticOperators::Subtraction => definite::types::operator::Operators::ArithmeticType(definite::types::arithmetic_type::ArithmeticOperators::Subtraction),
+                    ArithmeticOperators::Multiplication => definite::types::operator::Operators::ArithmeticType(definite::types::arithmetic_type::ArithmeticOperators::Multiplication),
+                    ArithmeticOperators::Exponentiation => definite::types::operator::Operators::ArithmeticType(definite::types::arithmetic_type::ArithmeticOperators::Exponentiation),
+                    ArithmeticOperators::Division => definite::types::operator::Operators::ArithmeticType(definite::types::arithmetic_type::ArithmeticOperators::Division),
+                    ArithmeticOperators::Modulus => definite::types::operator::Operators::ArithmeticType(definite::types::arithmetic_type::ArithmeticOperators::Modulus),
+                    ArithmeticOperators::Null => definite::types::operator::Operators::ArithmeticType(definite::types::arithmetic_type::ArithmeticOperators::Null),
+                },
+                Operators::Null => definite::types::operator::Operators::Null,
+            },
+        }
+    }
 }
