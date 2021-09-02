@@ -2,7 +2,7 @@ use crate::syntax::types;
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
-use ellie_core::defs;
+use ellie_core::{definite, defs};
 use serde::{Deserialize, Serialize};
 
 #[derive(PartialEq, Default, Debug, Clone, Serialize, Deserialize)]
@@ -34,6 +34,22 @@ pub struct CollectiveCollector {
 }
 
 impl CollectiveCollector {
+    pub fn to_definite(self) -> definite::types::collective::Collective {
+        definite::types::collective::Collective {
+            entries: self
+                .data
+                .entries
+                .into_iter()
+                .map(|x| definite::types::collective::CollectiveEntry {
+                    key: Box::new(x.data.key.to_definite()),
+                    value: Box::new(x.data.value.to_definite()),
+                    key_pos: x.data.key_pos,
+                    value_pos: x.data.value_pos,
+                })
+                .collect(),
+        }
+    }
+
     pub fn has_dedup(&self) -> bool {
         let mut existent_names: Vec<String> = Vec::with_capacity(self.data.entries.len());
         let mut duplicate = false;

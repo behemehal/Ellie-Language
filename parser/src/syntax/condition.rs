@@ -1,6 +1,6 @@
 use crate::parser::Collecting;
 use crate::syntax::{types, variable};
-use ellie_core::defs;
+use ellie_core::{definite, defs};
 use serde::{Deserialize, Serialize};
 
 use crate::alloc::boxed::Box;
@@ -52,4 +52,27 @@ pub struct ConditionCollector {
     pub inside_object_count: i64,
     pub cloak_collected: bool,
     pub complete: bool, //Fill this when end bracket placed
+}
+
+impl ConditionCollector {
+    pub fn to_definite(self) -> definite::items::condition::Condition {
+        definite::items::condition::Condition {
+            chains: self
+                .data
+                .chains
+                .into_iter()
+                .map(|x| definite::items::condition::ConditionChain {
+                    rtype: match x.rtype {
+                        ConditionType::If => definite::items::condition::ConditionType::If,
+                        ConditionType::ElseIf => definite::items::condition::ConditionType::ElseIf,
+                        ConditionType::Else => definite::items::condition::ConditionType::Else,
+                    },
+                    condition: Box::new(x.condition.to_definite()),
+                    inside_code: x.inside_code.into_iter().map(|x| x.to_definite()).collect(),
+                })
+                .collect(),
+            keyword_pos: self.data.keyword_pos,
+            cloak_pos: self.data.cloak_pos,
+        }
+    }
 }

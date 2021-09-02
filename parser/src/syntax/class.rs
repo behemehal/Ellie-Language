@@ -1,7 +1,7 @@
 use crate::syntax::{constructor, function, variable};
 use alloc::string::String;
 use alloc::vec::Vec;
-use ellie_core::defs;
+use ellie_core::{definite, defs};
 use serde::{Deserialize, Serialize};
 use std::boxed::Box;
 
@@ -39,6 +39,37 @@ pub struct ClassCollector {
 }
 
 impl ClassCollector {
+    pub fn to_definite(self) -> definite::items::class::Class {
+        definite::items::class::Class {
+            name: self.data.name,
+            public: self.data.public,
+            constructor: self.data.constructor.to_definite(),
+            generic_definings: self
+                .data
+                .generic_definings
+                .into_iter()
+                .map(|x| definite::items::class::GenericDefining {
+                    name: x.name,
+                    pos: x.pos,
+                })
+                .collect(),
+            properties: self
+                .data
+                .properties
+                .into_iter()
+                .map(|x| x.to_definite())
+                .collect(),
+            methods: self
+                .data
+                .methods
+                .into_iter()
+                .map(|x| x.to_definite())
+                .collect(),
+            name_pos: self.data.name_pos,
+            pos: self.data.pos,
+        }
+    }
+
     pub fn has_dedup(&self) -> bool {
         let mut existent_names: Vec<String> = Vec::with_capacity(self.data.generic_definings.len());
         let mut duplicate = false;

@@ -1,7 +1,7 @@
 use crate::parser::Collecting;
 use alloc::string::String;
 use alloc::vec::Vec;
-use ellie_core::defs;
+use ellie_core::{definite, defs};
 use serde::{Deserialize, Serialize};
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
@@ -20,6 +20,30 @@ pub struct Constructor {
     pub pos: defs::Cursor,
 }
 
+impl Constructor {
+    pub fn to_definite(self) -> definite::items::constructor::Constructor {
+        definite::items::constructor::Constructor {
+            name: self.name,
+            parameters: self
+                .parameters
+                .into_iter()
+                .map(|x| definite::items::constructor::ConstructorParameter {
+                    name: x.name,
+                    pos: x.pos,
+                })
+                .collect(),
+            inside_code: self
+                .inside_code
+                .into_iter()
+                .map(|x| x.to_definite())
+                .collect(),
+            name_pos: self.name_pos,
+            parameters_pos: self.parameters_pos,
+            pos: self.pos,
+        }
+    }
+}
+
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ConstructorCollector {
     pub data: Constructor,
@@ -33,6 +57,10 @@ pub struct ConstructorCollector {
 }
 
 impl ConstructorCollector {
+    pub fn to_definite(self) -> definite::items::constructor::Constructor {
+        self.data.to_definite()
+    }
+
     pub fn is_parameters_complete(&self) -> bool {
         if self.data.parameters.is_empty() {
             true

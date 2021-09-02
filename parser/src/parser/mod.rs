@@ -13,7 +13,7 @@ use crate::syntax::{
     caller, class, condition, constructor, definers, file_key, for_loop, function, import,
     import_item, native_function, ret, types, variable,
 };
-use ellie_core::{com, defs, error, utils};
+use ellie_core::{com, definite, defs, error, utils};
 
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
 pub struct Parsed {
@@ -45,6 +45,31 @@ pub enum Collecting {
     NativeClass,
     NativeFunction(native_function::NativeFunction),
     None,
+}
+
+impl Collecting {
+    pub fn to_definite(self) -> definite::items::Collecting {
+        match self {
+            Collecting::ImportItem(e) => definite::items::Collecting::ImportItem(e.to_definite()),
+            Collecting::Variable(e) => definite::items::Collecting::Variable(e.to_definite()),
+            Collecting::Function(e) => definite::items::Collecting::Function(e.to_definite()),
+            Collecting::ForLoop(e) => definite::items::Collecting::ForLoop(e.to_definite()),
+            Collecting::Condition(e) => definite::items::Collecting::Condition(e.to_definite()),
+            Collecting::Class(e) => definite::items::Collecting::Class(e.to_definite()),
+            Collecting::Ret(e) => definite::items::Collecting::Ret(e.to_definite()),
+            Collecting::Constructor(e) => definite::items::Collecting::Constructor(e.to_definite()),
+            Collecting::Caller(e) => definite::items::Collecting::Caller(e.to_definite()),
+            Collecting::Import(e) => definite::items::Collecting::Import(e.to_definite()),
+            Collecting::FileKey(e) => definite::items::Collecting::FileKey(e.to_definite()),
+            Collecting::Getter => definite::items::Collecting::Getter,
+            Collecting::Setter => definite::items::Collecting::Setter,
+            Collecting::NativeClass => definite::items::Collecting::NativeClass,
+            Collecting::NativeFunction(e) => {
+                definite::items::Collecting::NativeFunction(e.to_definite())
+            }
+            Collecting::None => definite::items::Collecting::None,
+        }
+    }
 }
 
 impl Default for Collecting {

@@ -1,4 +1,5 @@
 use crate::syntax::types;
+use ellie_core::definite;
 use serde::{Deserialize, Serialize};
 
 use alloc::boxed::Box;
@@ -57,4 +58,36 @@ pub struct ArithmeticType {
     pub operator: ArithmeticOperators,
     pub operator_collect: String,
     pub operator_collected: bool,
+}
+
+impl ArithmeticType {
+    pub fn to_definite(self) -> definite::types::arithmetic_type::ArithmeticType {
+        definite::types::arithmetic_type::ArithmeticType {
+            first: Box::new(self.first.to_definite()),
+            second: Box::new(self.second.to_definite()),
+            operator: match self.operator {
+                ArithmeticOperators::Addition => {
+                    definite::types::arithmetic_type::ArithmeticOperators::Addition
+                }
+                ArithmeticOperators::Subtraction => {
+                    definite::types::arithmetic_type::ArithmeticOperators::Subtraction
+                }
+                ArithmeticOperators::Multiplication => {
+                    definite::types::arithmetic_type::ArithmeticOperators::Multiplication
+                }
+                ArithmeticOperators::Exponentiation => {
+                    definite::types::arithmetic_type::ArithmeticOperators::Exponentiation
+                }
+                ArithmeticOperators::Division => {
+                    definite::types::arithmetic_type::ArithmeticOperators::Division
+                }
+                ArithmeticOperators::Modulus => {
+                    definite::types::arithmetic_type::ArithmeticOperators::Modulus
+                }
+                ArithmeticOperators::Null => {
+                    definite::types::arithmetic_type::ArithmeticOperators::Null
+                }
+            },
+        }
+    }
 }

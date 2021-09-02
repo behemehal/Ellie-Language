@@ -1,7 +1,7 @@
 use crate::syntax::definers;
 use alloc::string::String;
 use alloc::vec::Vec;
-use ellie_core::defs;
+use ellie_core::{definite, defs};
 use serde::{Deserialize, Serialize};
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
@@ -34,6 +34,32 @@ pub struct NativeFunction {
 }
 
 impl NativeFunction {
+    pub fn to_definite(self) -> definite::items::native_function::NativeFunction {
+        definite::items::native_function::NativeFunction {
+            name: self.name,
+            parameters: self
+                .parameters
+                .into_iter()
+                .map(
+                    |x| definite::items::native_function::NativeFunctionParameter {
+                        name: x.name,
+                        rtype: x.rtype.to_definite(),
+                        pos: x.pos,
+                        multi_capture: x.multi_capture,
+                        name_pos: x.name_pos,
+                        type_pos: x.type_pos,
+                    },
+                )
+                .collect(),
+            return_type: self.return_type.to_definite(),
+            public: self.public,
+            name_pos: self.name_pos,
+            parameters_pos: self.parameters_pos,
+            return_pos: self.return_pos,
+            pos: self.pos,
+        }
+    }
+
     pub fn from_runtime(func: crate::syntax::function::Function) -> NativeFunction {
         NativeFunction {
             name: func.name,

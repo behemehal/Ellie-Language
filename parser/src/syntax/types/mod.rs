@@ -20,6 +20,7 @@ pub mod string_type;
 pub mod variable_type;
 
 use alloc::string::{String, ToString};
+use ellie_core::definite;
 use enum_as_inner::EnumAsInner;
 use serde::{Deserialize, Serialize};
 
@@ -44,29 +45,29 @@ pub enum Types {
     Null,
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, EnumAsInner, Deserialize)]
-pub enum DefiniteTypes {
-    Integer(integer_type::IntegerType),
-    Float(float_type::FloatType),
-    Bool(bool_type::BoolType),
-    String(string_type::StringType),
-    Char(char_type::CharType),
-    Collective(collective_type::Collective),
-    Reference(reference_type::ReferenceType),
-    BraceReference(brace_reference_type::BraceReference),
-    Operator(operator_type::OperatorType),
-    Cloak(cloak_type::CloakType),
-    Array(array_type::ArrayType),
-    ArrowFunction(arrow_function::ArrowFunction),
-    ConstructedClass(constructed_class::ConstructedClass),
-    FunctionCall(function_call::FunctionCall),
-    Void,
-    Negative(negative_type::Negative),
-    VariableType(variable_type::VariableType),
-    Null,
-}
-
 impl Types {
+    pub fn to_definite(self) -> definite::types::Types {
+        match self {
+            Types::Integer(e) => definite::types::Types::Integer(e.to_definite()),
+            Types::Float(e) => definite::types::Types::Float(e.to_definite()),
+            Types::Bool(e) => definite::types::Types::Bool(e.to_definite()),
+            Types::String(e) => definite::types::Types::String(e.to_definite()),
+            Types::Char(e) => definite::types::Types::Char(e.to_definite()),
+            Types::Collective(e) => definite::types::Types::Collective(e.to_definite()),
+            Types::Reference(e) => definite::types::Types::Reference(e.to_definite()),
+            Types::Operator(e) => definite::types::Types::Operator(e.to_definite()),
+            Types::Cloak(e) => definite::types::Types::Cloak(e.to_definite()),
+            Types::Array(e) => definite::types::Types::Array(e.to_definite()),
+            Types::ArrowFunction(e) => definite::types::Types::ArrowFunction(e.to_definite()),
+            Types::ConstructedClass(e) => definite::types::Types::ConstructedClass(e.to_definite()),
+            Types::FunctionCall(e) => definite::types::Types::FunctionCall(e.to_definite()),
+            Types::Void => definite::types::Types::Void,
+            Types::Negative(e) => definite::types::Types::Negative(e.to_definite()),
+            Types::VariableType(e) => definite::types::Types::VariableType(e.to_definite()),
+            Types::Null => definite::types::Types::Null,
+        }
+    }
+
     pub fn get_type(&self) -> String {
         match *self {
             Types::Integer(_) => "int".to_string(),
