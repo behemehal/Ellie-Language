@@ -1,7 +1,7 @@
 use crate::syntax::types;
 use alloc::boxed::Box;
-use serde::{Deserialize, Serialize};
 use ellie_core::definite;
+use serde::{Deserialize, Serialize};
 
 #[derive(PartialEq, Default, Debug, Clone, Serialize, Deserialize)]
 pub struct Negative {

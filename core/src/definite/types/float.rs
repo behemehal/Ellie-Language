@@ -16,5 +16,5 @@ pub enum FloatSize {
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct FloatType {
     pub value: FloatSize,
-    pub rtype: FloatTypes
+    pub rtype: FloatTypes,
 }

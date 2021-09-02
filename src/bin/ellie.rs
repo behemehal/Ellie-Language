@@ -4,7 +4,10 @@ use path_absolutize::Absolutize;
 use std::env;
 use std::path::Path;
 use std::thread;
-use std::{fs, io::{Read, Write}};
+use std::{
+    fs,
+    io::{Read, Write},
+};
 
 use websocket::sync::Server; //Message, OwnedMessage
 fn main() {

@@ -36,8 +36,8 @@ extern crate lazy_static;
 #[rustfmt::skip]
 pub mod builded_libraries;
 pub mod com;
+pub mod definite;
 pub mod defs;
 pub mod error;
 pub mod native;
 pub mod utils;
-pub mod definite;

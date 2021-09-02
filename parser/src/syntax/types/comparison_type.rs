@@ -65,13 +65,27 @@ impl ComparisonType {
             first: Box::new(self.first.to_definite()),
             second: Box::new(self.second.to_definite()),
             operator: match self.operator {
-                ComparisonOperators::Equal => definite::types::comparison_type::ComparisonOperators::Equal,
-                ComparisonOperators::NotEqual => definite::types::comparison_type::ComparisonOperators::NotEqual,
-                ComparisonOperators::GreaterThan => definite::types::comparison_type::ComparisonOperators::GreaterThan,
-                ComparisonOperators::LessThan => definite::types::comparison_type::ComparisonOperators::LessThan,
-                ComparisonOperators::GreaterThanOrEqual => definite::types::comparison_type::ComparisonOperators::GreaterThanOrEqual,
-                ComparisonOperators::LessThanOrEqual => definite::types::comparison_type::ComparisonOperators::LessThanOrEqual,
-                ComparisonOperators::Null => definite::types::comparison_type::ComparisonOperators::Null,
+                ComparisonOperators::Equal => {
+                    definite::types::comparison_type::ComparisonOperators::Equal
+                }
+                ComparisonOperators::NotEqual => {
+                    definite::types::comparison_type::ComparisonOperators::NotEqual
+                }
+                ComparisonOperators::GreaterThan => {
+                    definite::types::comparison_type::ComparisonOperators::GreaterThan
+                }
+                ComparisonOperators::LessThan => {
+                    definite::types::comparison_type::ComparisonOperators::LessThan
+                }
+                ComparisonOperators::GreaterThanOrEqual => {
+                    definite::types::comparison_type::ComparisonOperators::GreaterThanOrEqual
+                }
+                ComparisonOperators::LessThanOrEqual => {
+                    definite::types::comparison_type::ComparisonOperators::LessThanOrEqual
+                }
+                ComparisonOperators::Null => {
+                    definite::types::comparison_type::ComparisonOperators::Null
+                }
             },
         }
     }

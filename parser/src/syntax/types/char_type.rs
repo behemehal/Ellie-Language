@@ -9,8 +9,6 @@ pub struct CharType {
 
 impl CharType {
     pub fn to_definite(self) -> definite::types::ellie_char::CharType {
-        definite::types::ellie_char::CharType {
-            value: self.value
-        }
+        definite::types::ellie_char::CharType { value: self.value }
     }
 }

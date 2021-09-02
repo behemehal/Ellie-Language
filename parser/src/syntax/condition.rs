@@ -57,8 +57,11 @@ pub struct ConditionCollector {
 impl ConditionCollector {
     pub fn to_definite(self) -> definite::items::condition::Condition {
         definite::items::condition::Condition {
-            chains: self.data.chains.into_iter().map(|x| {
-                definite::items::condition::ConditionChain {
+            chains: self
+                .data
+                .chains
+                .into_iter()
+                .map(|x| definite::items::condition::ConditionChain {
                     rtype: match x.rtype {
                         ConditionType::If => definite::items::condition::ConditionType::If,
                         ConditionType::ElseIf => definite::items::condition::ConditionType::ElseIf,
@@ -66,8 +69,8 @@ impl ConditionCollector {
                     },
                     condition: Box::new(x.condition.to_definite()),
                     inside_code: x.inside_code.into_iter().map(|x| x.to_definite()).collect(),
-                }
-            }).collect(),
+                })
+                .collect(),
             keyword_pos: self.data.keyword_pos,
             cloak_pos: self.data.cloak_pos,
         }

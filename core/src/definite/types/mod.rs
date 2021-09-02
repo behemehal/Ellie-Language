@@ -1,21 +1,21 @@
-pub mod variable;
-pub mod string;
-pub mod bool;
-pub mod float;
-pub mod integer;
-pub mod ellie_char;
-pub mod negative;
-pub mod function_call;
-pub mod collective;
-pub mod reference;
-pub mod operator;
 pub mod arithmetic_type;
-pub mod comparison_type;
-pub mod logical_type;
-pub mod cloak;
 pub mod array;
 pub mod arrow_function;
+pub mod bool;
+pub mod cloak;
+pub mod collective;
+pub mod comparison_type;
 pub mod constructed_class;
+pub mod ellie_char;
+pub mod float;
+pub mod function_call;
+pub mod integer;
+pub mod logical_type;
+pub mod negative;
+pub mod operator;
+pub mod reference;
+pub mod string;
+pub mod variable;
 
 use serde::{Deserialize, Serialize};
 

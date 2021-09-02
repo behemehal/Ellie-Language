@@ -1,6 +1,6 @@
 use crate::syntax::{definers, types};
 use alloc::string::String;
-use ellie_core::{defs, definite};
+use ellie_core::{definite, defs};
 use serde::{Deserialize, Serialize};
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]

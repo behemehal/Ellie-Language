@@ -1,7 +1,7 @@
 use crate::definite::types;
-use serde::{Deserialize, Serialize};
 use alloc::boxed::Box;
 use alloc::string::String;
+use serde::{Deserialize, Serialize};
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub enum ComparisonOperators {

@@ -1,7 +1,7 @@
 use crate::syntax::{constructor, function, variable};
 use alloc::string::String;
 use alloc::vec::Vec;
-use ellie_core::{defs, definite};
+use ellie_core::{definite, defs};
 use serde::{Deserialize, Serialize};
 use std::boxed::Box;
 

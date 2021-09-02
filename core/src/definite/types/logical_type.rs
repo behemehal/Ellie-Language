@@ -11,7 +11,6 @@ pub enum LogicalOperators {
     Null,
 }
 
-
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct LogicalType {
     pub first: Box<types::Types>,

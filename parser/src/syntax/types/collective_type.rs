@@ -36,14 +36,17 @@ pub struct CollectiveCollector {
 impl CollectiveCollector {
     pub fn to_definite(self) -> definite::types::collective::Collective {
         definite::types::collective::Collective {
-            entries: self.data.entries.into_iter().map(|x| {
-                definite::types::collective::CollectiveEntry {
+            entries: self
+                .data
+                .entries
+                .into_iter()
+                .map(|x| definite::types::collective::CollectiveEntry {
                     key: Box::new(x.data.key.to_definite()),
                     value: Box::new(x.data.value.to_definite()),
                     key_pos: x.data.key_pos,
                     value_pos: x.data.value_pos,
-                }
-            }).collect(),
+                })
+                .collect(),
         }
     }
 

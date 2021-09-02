@@ -30,7 +30,8 @@ pub struct ArrowFunctionCollector {
 impl ArrowFunctionCollector {
     pub fn to_definite(self) -> definite::types::arrow_function::ArrowFunction {
         definite::types::arrow_function::ArrowFunction {
-            parameters: self.data
+            parameters: self
+                .data
                 .parameters
                 .into_iter()
                 .map(|x| definite::items::function::FunctionParameter {
@@ -43,7 +44,8 @@ impl ArrowFunctionCollector {
                 })
                 .collect(),
             return_type: self.data.return_type.to_definite(),
-            inside_code: self.data
+            inside_code: self
+                .data
                 .inside_code
                 .into_iter()
                 .map(|x| x.to_definite())

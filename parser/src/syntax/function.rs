@@ -87,7 +87,6 @@ pub struct FunctionCollector {
 }
 
 impl FunctionCollector {
-
     pub fn to_definite(self) -> definite::items::function::Function {
         self.data.to_definite()
     }

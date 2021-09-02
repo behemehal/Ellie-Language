@@ -37,16 +37,20 @@ impl NativeFunction {
     pub fn to_definite(self) -> definite::items::native_function::NativeFunction {
         definite::items::native_function::NativeFunction {
             name: self.name,
-            parameters: self.parameters.into_iter().map(|x| {
-                definite::items::native_function::NativeFunctionParameter {
-                    name: x.name,
-                    rtype: x.rtype.to_definite(),
-                    pos: x.pos,
-                    multi_capture: x.multi_capture,
-                    name_pos: x.name_pos,
-                    type_pos: x.type_pos,
-                }
-            }).collect(),
+            parameters: self
+                .parameters
+                .into_iter()
+                .map(
+                    |x| definite::items::native_function::NativeFunctionParameter {
+                        name: x.name,
+                        rtype: x.rtype.to_definite(),
+                        pos: x.pos,
+                        multi_capture: x.multi_capture,
+                        name_pos: x.name_pos,
+                        type_pos: x.type_pos,
+                    },
+                )
+                .collect(),
             return_type: self.return_type.to_definite(),
             public: self.public,
             name_pos: self.name_pos,
