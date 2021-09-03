@@ -29,6 +29,11 @@ fn main() {
         println!("\t--eval-code                  || -ec  : Evaluate code from parameters");
         println!("\t--parser-ws                  || -pw  : Visualize parsing process");
         println!("\t--parser-messages            || -pm  : Show parser messages");
+        if File::open("./DEBUG_HEADERS.eidbg").is_ok() {
+            println!("Development Options:");
+            println!("\t-i                                   : Ignore errors");
+            println!("\t-e                                   : Show non-definite items");
+        }
     } else {
         let args = env::args()
             .collect::<Vec<String>>()
@@ -46,10 +51,22 @@ fn main() {
             let eval_code = env::args().any(|x| x == "--eval-code" || x == "-ec");
             let visualize_code = env::args().any(|x| x == "--parser-ws" || x == "-pw");
             let ignore_errors = env::args().any(|x| x == "-i");
+            let non_definite = env::args().any(|x| x == "-e");
 
             if ignore_errors && !File::open("./DEBUG_HEADERS.eidbg").is_ok() {
                 std::println!(
                     "{}Cannot ignore errors, you are not in development directory{}",
+                    ellie_lang::terminal_colors::get_color(
+                        ellie_lang::terminal_colors::Colors::Red
+                    ),
+                    ellie_lang::terminal_colors::get_color(
+                        ellie_lang::terminal_colors::Colors::Reset
+                    ),
+                );
+                std::process::exit(2);
+            } else if non_definite && !File::open("./DEBUG_HEADERS.eidbg").is_ok() {
+                std::println!(
+                    "{}Cannot show non-definite items, you are not in development directory{}",
                     ellie_lang::terminal_colors::get_color(
                         ellie_lang::terminal_colors::Colors::Red
                     ),
@@ -354,8 +371,12 @@ fn main() {
                             if !env::args().any(|x| x == "-se" || x == "--show-errors")
                                 && (mapped.syntax_errors.is_empty() || ignore_errors)
                             {
-                                let collected_items =
-                                    mapped.parsed.items.into_iter().map(|x| x.to_definite());
+                                let collected_items = mapped
+                                    .parsed
+                                    .items
+                                    .clone()
+                                    .into_iter()
+                                    .map(|x| x.to_definite());
                                 let collected_definite_items: Vec<definite::items::Collecting> =
                                     collected_items.collect();
 
@@ -417,7 +438,17 @@ fn main() {
                                     }
                                     std::process::exit(0);
                                 } else {
-                                    print!("Collected: {:#?}", collected_definite_items);
+                                    if env::args().any(|x| x == "-e") {
+                                        print!(
+                                            "Collected non-definite items: {:#?}",
+                                            mapped.parsed.items
+                                        );
+                                    } else {
+                                        print!(
+                                            "Collected: definite items {:#?}",
+                                            collected_definite_items
+                                        );
+                                    }
                                     std::process::exit(0);
                                 }
                             }
@@ -669,8 +700,17 @@ fn main() {
                                                             - (error.pos.range_start.1))
                                                             as usize
                                                     } else {
-                                                        error.pos.range_start.1 as usize
-                                                            - (line[error.pos.range_start.1]).len()
+                                                        if line.len() - 1 >= error.pos.range_start.1
+                                                            && error.pos.range_start.1
+                                                                > (line[error.pos.range_start.1])
+                                                                    .len()
+                                                        {
+                                                            error.pos.range_start.1 as usize
+                                                                - (line[error.pos.range_start.1])
+                                                                    .len()
+                                                        } else {
+                                                            error.pos.range_end.1
+                                                        }
                                                     }
                                                 ),
                                                 ellie_lang::terminal_colors::get_color(
@@ -681,63 +721,95 @@ fn main() {
                                     }
                                 }
                                 std::process::exit(1);
-                            } else if env::args().any(|x| x == "-rw" || x == "--raw-compile") {
-                                if !cfg!(feature = "raw") {
-                                    println!(
-                                    "{}[WrongConfig]{}: Config is not correct, raw feature must be enabled",
-                                    ellie_lang::terminal_colors::get_color(
-                                        ellie_lang::terminal_colors::Colors::Red
-                                    ),
-                                    ellie_lang::terminal_colors::get_color(ellie_lang::terminal_colors::Colors::Reset),
-                                )
-                                }
+                            }
 
-                                #[cfg(feature = "raw")]
-                                {
-                                    let mut raw_conv = ellie_raw::converter::Converter::new(
-                                        "ellie_core".to_string(),
-                                        ellie_raw::converter::ConverterOptions {
-                                            apply_comments: true,
-                                            lib_name: "<eval>".to_string(),
-                                        },
-                                        false,
-                                    );
-                                    raw_conv.convert(mapped.parsed);
-                                    println!("-----RAW---\n{:#?}", raw_conv.clone());
-                                    if let Err(e) =
-                                        fs::write("./raw_eval.eiw", raw_conv.to_string())
-                                    {
+                            if !env::args().any(|x| x == "-se" || x == "--show-errors")
+                                && (mapped.syntax_errors.is_empty() || ignore_errors)
+                            {
+                                let collected_items = mapped
+                                    .parsed
+                                    .items
+                                    .clone()
+                                    .into_iter()
+                                    .map(|x| x.to_definite());
+                                let collected_definite_items: Vec<definite::items::Collecting> =
+                                    collected_items.collect();
+
+                                if env::args().any(|x| x == "-rw" || x == "--raw-compile") {
+                                    if !cfg!(feature = "raw") {
                                         println!(
-                                        "{}[WriteError]{}: Cannot write raw file {}'{}'{}, {}{}{}",
-                                        ellie_lang::terminal_colors::get_color(
-                                            ellie_lang::terminal_colors::Colors::Red
-                                        ),
-                                        ellie_lang::terminal_colors::get_color(
-                                            ellie_lang::terminal_colors::Colors::Reset
-                                        ),
-                                        ellie_lang::terminal_colors::get_color(
-                                            ellie_lang::terminal_colors::Colors::Yellow
-                                        ),
-                                        "./raw_eval.eiw",
-                                        ellie_lang::terminal_colors::get_color(
-                                            ellie_lang::terminal_colors::Colors::Reset
-                                        ),
-                                        ellie_lang::terminal_colors::get_color(
-                                            ellie_lang::terminal_colors::Colors::Red
-                                        ),
-                                        e.to_string(),
-                                        ellie_lang::terminal_colors::get_color(
-                                            ellie_lang::terminal_colors::Colors::Reset
-                                        ),
-                                    )
+                                            "{}[WrongConfig]{}: Config is not correct, raw feature must be enabled",
+                                            ellie_lang::terminal_colors::get_color(
+                                                ellie_lang::terminal_colors::Colors::Red
+                                            ),
+                                            ellie_lang::terminal_colors::get_color(ellie_lang::terminal_colors::Colors::Reset),
+                                        )
                                     }
+
+                                    #[cfg(feature = "raw")]
+                                    {
+                                        let mut raw_conv = ellie_raw::converter::Converter::new(
+                                            "ellie_core".to_string(),
+                                            ellie_raw::converter::ConverterOptions {
+                                                apply_comments: true,
+                                                lib_name: file_arg.to_string(),
+                                            },
+                                            false,
+                                        );
+                                        raw_conv.convert(mapped.parsed);
+                                        println!("-----RAW---\n{:#?}", raw_conv.clone());
+                                        let path_to_w = format!(
+                                            "./raw_{}.eiw",
+                                            Path::new(&file_arg.to_string())
+                                                .extension()
+                                                .unwrap()
+                                                .to_str()
+                                                .unwrap()
+                                        );
+                                        if let Err(e) =
+                                            fs::write(path_to_w.clone(), raw_conv.to_string())
+                                        {
+                                            println!(
+                                                "{}[WriteError]{}: Cannot write raw file {}'{}'{}, {}{}{}",
+                                                ellie_lang::terminal_colors::get_color(
+                                                    ellie_lang::terminal_colors::Colors::Red
+                                                ),
+                                                ellie_lang::terminal_colors::get_color(ellie_lang::terminal_colors::Colors::Reset),
+                                                ellie_lang::terminal_colors::get_color(ellie_lang::terminal_colors::Colors::Yellow),
+                                                path_to_w,
+                                                ellie_lang::terminal_colors::get_color(ellie_lang::terminal_colors::Colors::Reset),
+                                                ellie_lang::terminal_colors::get_color(
+                                                    ellie_lang::terminal_colors::Colors::Red
+                                                ),
+                                                e.to_string(),
+                                                ellie_lang::terminal_colors::get_color(ellie_lang::terminal_colors::Colors::Reset),
+                                            )
+                                        }
+                                    }
+                                } else if env::args().any(|x| x == "-tj" || x == "--to-json") {
+                                    print!("/");
+                                    for item in collected_definite_items {
+                                        print!("-\n{:#?}\n", serde_json::to_string(&item).unwrap());
+                                    }
+                                    std::process::exit(0);
+                                } else {
+                                    if env::args().any(|x| x == "-e") {
+                                        print!(
+                                            "Collected non-definite items: {:#?}",
+                                            mapped.parsed.items
+                                        );
+                                    } else {
+                                        print!(
+                                            "Collected: definite items {:#?}",
+                                            collected_definite_items
+                                        );
+                                    }
+                                    std::process::exit(0);
                                 }
-                            } else if !env::args().any(|x| x == "-se" || x == "--show-errors") {
-                                print!(
-                                    "Collected: {:#?}",
-                                    mapped.parsed.items.into_iter().map(|x| x.to_definite())
-                                );
-                                std::process::exit(0);
+                            }
+
+                            if !mapped.syntax_errors.is_empty() {
+                                std::process::exit(1);
                             }
                         }
                     } else {
