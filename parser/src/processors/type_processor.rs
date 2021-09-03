@@ -1,7 +1,7 @@
 use crate::parser;
 use crate::syntax::{
-    caller, class, condition, constructor, file_key, for_loop, function, import, ret, types,
-    variable,
+    caller, class, condition, constructor, file_key, for_loop, function, getter, import, ret,
+    setter, types, variable,
 };
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};
@@ -88,6 +88,14 @@ pub fn collect_type<F>(
             ..Default::default()
         });
         parser.keyword_catch = String::new();
+    } else if (keyword == "s " || keyword == "pub s " || keyword == "pri s ")
+        && parser.options.setters
+    {
+        parser.current = parser::Collecting::Setter(setter::SetterCollector::default());
+    } else if (keyword == "g " || keyword == "pub g " || keyword == "pri g ")
+        && parser.options.getters
+    {
+        parser.current = parser::Collecting::Getter(getter::GetterCollector::default());
     } else if (keyword == "d " || keyword == "pub d " || keyword == "pri d ")
         && parser.options.dynamics
         && parser.options.variables
@@ -366,6 +374,7 @@ pub fn collect_type<F>(
                             ..Default::default()
                         },
                     )),
+                    reference_pos: parser.keyword_pos,
                     ..Default::default()
                 },
                 on_dot: true,

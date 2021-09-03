@@ -137,6 +137,20 @@ pub fn iter<F>(
             next_char.clone(),
             last_char.clone(),
         ),
+        parser::Collecting::Getter(_) => processors::getter_processor::collect_getter_value(
+            parser,
+            errors,
+            letter_char,
+            next_char.clone(),
+            last_char.clone(),
+        ),
+        parser::Collecting::Setter(_) => processors::setter_processor::collect_setter_value(
+            parser,
+            errors,
+            letter_char,
+            next_char.clone(),
+            last_char.clone(),
+        ),
         _ => (),
     };
 }

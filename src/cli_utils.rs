@@ -36,6 +36,8 @@ pub fn parse(contents: String, file_name: String) -> ellie_parser::parser::Parse
             classes: true,
             dynamics: true,
             global_variables: true,
+            getters: true,
+            setters: true,
             line_ending: "\\n".to_string(),
             collectives: true,
             variables: true,
@@ -96,7 +98,9 @@ pub fn resolve_import(
         ellie_parser::parser::ResolvedImport {
             found: true,
             resolved_path: "<virtual>".to_string(),
-            file_content: ellie_core::builded_libraries::ELLIE_STANDARD_LIBRARY.to_string(),
+            file_content: ellie_parser::parser::ResolvedFileContent::Raw(
+                ellie_core::builded_libraries::ELLIE_STANDARD_LIBRARY.to_string(),
+            ),
             ..Default::default()
         }
     } else {
@@ -116,7 +120,7 @@ pub fn resolve_import(
             match read_file(Path::new(&path).absolutize().unwrap().to_str().unwrap()) {
                 Ok(file) => ellie_parser::parser::ResolvedImport {
                     found: true,
-                    file_content: file,
+                    file_content: ellie_parser::parser::ResolvedFileContent::Raw(file),
                     resolved_path: Path::new(&path)
                         .absolutize()
                         .unwrap()

@@ -1,14 +1,8 @@
+import ../lib/ellie;
 
-v test = {
-    123: "ahmet",
-    123: "ahmet",
+v test : collective(string, dyn) = {
+    "name": "ahmet",
+    1: "ahmet"
 };
 
-/*
-v test : string = "test";
-
-fn testfn() {
-    v testc : string = "test";
-}
-
-*/
+v testq : string = q.name;

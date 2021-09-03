@@ -257,7 +257,7 @@ pub fn collect_variable_value<F>(
                 }
             }
         } else if !variable_data.typed && !variable_data.data.dynamic {
-            if letter_char == ";" {
+            if variable_data.data.rtype.is_definer_complete() && letter_char == ";" {
                 if !parser_clone.type_exists(variable_data.data.rtype.raw_name())
                     && !parser_clone.generic_type_exists(variable_data.data.rtype.raw_name())
                 {
@@ -305,7 +305,7 @@ pub fn collect_variable_value<F>(
 
                 parser.collected.push(parser.current.clone());
                 parser.current = parser::Collecting::None;
-            } else if letter_char == "=" {
+            } else if variable_data.data.rtype.is_definer_complete() && letter_char == "=" {
                 if !variable_data.data.rtype.is_definer_complete() {
                     errors.push(error::Error {
                         path: parser.options.path.clone(),

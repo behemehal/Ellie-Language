@@ -1,6 +1,6 @@
 use ellie_core;
 use ellie_parser::parser;
-//use regex::Regex;
+use regex::Regex;
 use toml::Value;
 
 #[path = "src/terminal_colors.rs"]
@@ -24,7 +24,7 @@ fn read_file(file_dir: &str) -> Result<String, String> {
     }
 }
 
-fn _resolve_import(
+fn resolve_import(
     _: ellie_core::defs::ParserOptions,
     lib_name: String,
     _native_header: bool,
@@ -41,7 +41,7 @@ fn _resolve_import(
         Ok(e) => ellie_parser::parser::ResolvedImport {
             found: true,
             resolved_path: ("./lib/".to_string() + &lib_name + &".ei".to_string()),
-            file_content: e,
+            file_content: ellie_parser::parser::ResolvedFileContent::Raw(e),
             ..Default::default()
         },
         Err(err) => {
@@ -58,7 +58,7 @@ fn _resolve_import(
     }
 }
 
-fn _parse(contents: String, file_name: String) -> ellie_parser::parser::ParserResponse {
+fn parse(contents: String, file_name: String) -> ellie_parser::parser::ParserResponse {
     std::eprintln!(
         "{}[ParsingFile]{}: {}~./lib/{}.ei{}",
         terminal_colors::get_color(terminal_colors::Colors::Cyan),
@@ -69,7 +69,7 @@ fn _parse(contents: String, file_name: String) -> ellie_parser::parser::ParserRe
     );
     let parser = parser::Parser::new(
         contents.clone(),
-        _resolve_import,
+        resolve_import,
         |_| {},
         ellie_core::defs::ParserOptions {
             path: "./lib/".to_string() + &file_name.to_string(),
@@ -80,6 +80,8 @@ fn _parse(contents: String, file_name: String) -> ellie_parser::parser::ParserRe
             classes: true,
             dynamics: true,
             global_variables: true,
+            getters: true,
+            setters: true,
             line_ending: "\\n".to_string(),
             collectives: true,
             variables: true,
@@ -150,7 +152,7 @@ fn main() {
             )
         }
     }
-    /*
+
     match read_file(&("./lib/ellie.ei".to_string())) {
         Ok(ellie_lib) => {
             match read_file(&("./core/src/builded_libraries.rs".to_string())) {
@@ -251,5 +253,4 @@ fn main() {
             );
         }
     }
-    */
 }

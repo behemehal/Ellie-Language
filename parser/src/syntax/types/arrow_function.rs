@@ -2,8 +2,7 @@ use crate::parser::Collecting;
 use crate::syntax::{definers, function};
 use alloc::string::String;
 use alloc::vec::Vec;
-use ellie_core::definite;
-use ellie_core::defs;
+use ellie_core::{definite, defs};
 use serde::{Deserialize, Serialize};
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]

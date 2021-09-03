@@ -7,8 +7,10 @@ pub mod constructor;
 pub mod file_key;
 pub mod for_loop;
 pub mod function;
+pub mod getter;
 pub mod import;
 pub mod import_item;
+pub mod setter;
 pub mod variable;
 
 pub mod native_function;
@@ -27,8 +29,8 @@ pub enum Collecting {
     Caller(caller::Caller),
     Import(import::Import),
     FileKey(file_key::FileKey),
-    Getter,
-    Setter,
+    Getter(getter::Getter),
+    Setter(setter::Setter),
     NativeClass,
     NativeFunction(native_function::NativeFunction),
     None,

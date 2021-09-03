@@ -1,7 +1,5 @@
 use crate::alloc::boxed::Box;
-use crate::alloc::vec::Vec;
-use crate::definite::items::Collecting;
-use crate::definite::{items::variable, types};
+use crate::definite::types;
 use crate::defs;
 use alloc::string::String;
 use serde::{Deserialize, Serialize};

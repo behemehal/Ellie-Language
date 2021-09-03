@@ -1,4 +1,3 @@
-use alloc::string::String;
 use serde::{Deserialize, Serialize};
 
 #[derive(PartialEq, Eq, Debug, Clone, Copy, Serialize, Deserialize)]

@@ -4,7 +4,6 @@ license: "MIT"
 supportedEnvironments:
     - win
     - linux
-    -
 containsNative: false
 dependencies:
   - name: ellie_test_extension

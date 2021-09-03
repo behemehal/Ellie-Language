@@ -1,4 +1,3 @@
-use crate::definite::items::variable;
 use crate::definite::types;
 use serde::{Deserialize, Serialize};
 
@@ -7,7 +6,6 @@ use crate::definite::types::comparison_type::ComparisonOperators;
 use crate::definite::types::logical_type::LogicalOperators;
 
 use alloc::boxed::Box;
-use alloc::string::String;
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub enum Operators {

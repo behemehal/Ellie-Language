@@ -19,7 +19,6 @@ pub fn collect_variable<F>(
 ) where
     F: FnMut(ellie_core::com::Message) + Clone + Sized,
 {
-    let parser_clone = parser.clone();
     let itered_data_clone = itered_data.clone();
     if let types::Types::VariableType(ref mut variable_data) = itered_data.data.value {
         let current_reliability = utils::reliable_name_range(

@@ -10,8 +10,8 @@ use crate::alloc::vec;
 use crate::alloc::vec::Vec;
 
 use crate::syntax::{
-    caller, class, condition, constructor, definers, file_key, for_loop, function, import,
-    import_item, native_function, ret, types, variable,
+    caller, class, condition, constructor, definers, file_key, for_loop, function, getter, import,
+    import_item, native_function, ret, setter, types, variable,
 };
 use ellie_core::{com, definite, defs, error, utils};
 
@@ -40,8 +40,8 @@ pub enum Collecting {
     Caller(caller::Caller),
     Import(import::Import),
     FileKey(file_key::FileKeyCollector),
-    Getter,
-    Setter,
+    Getter(getter::GetterCollector),
+    Setter(setter::SetterCollector),
     NativeClass,
     NativeFunction(native_function::NativeFunction),
     None,
@@ -61,8 +61,8 @@ impl Collecting {
             Collecting::Caller(e) => definite::items::Collecting::Caller(e.to_definite()),
             Collecting::Import(e) => definite::items::Collecting::Import(e.to_definite()),
             Collecting::FileKey(e) => definite::items::Collecting::FileKey(e.to_definite()),
-            Collecting::Getter => definite::items::Collecting::Getter,
-            Collecting::Setter => definite::items::Collecting::Setter,
+            Collecting::Getter(e) => definite::items::Collecting::Getter(e.to_definite()),
+            Collecting::Setter(e) => definite::items::Collecting::Setter(e.to_definite()),
             Collecting::NativeClass => definite::items::Collecting::NativeClass,
             Collecting::NativeFunction(e) => {
                 definite::items::Collecting::NativeFunction(e.to_definite())
@@ -81,6 +81,8 @@ impl Default for Collecting {
 #[derive(EnumAsInner)]
 pub enum NameCheckResponseType {
     Variable(variable::VariableCollector),
+    Getter(getter::GetterCollector),
+    Setter(setter::SetterCollector),
     Function(function::FunctionCollector),
     Class(class::ClassCollector),
     None,
@@ -119,7 +121,7 @@ pub struct RawParser {
 impl RawParser {
     pub fn to_parser(
         self,
-        resolver: fn(defs::ParserOptions, String) -> ResolvedImport,
+        _resolver: fn(defs::ParserOptions, String) -> ResolvedImport,
     ) -> Parser<impl FnMut(com::Message) + Clone + Sized> {
         Parser {
             scope: self.scope,
@@ -180,12 +182,24 @@ pub struct Parser<F> {
     pub keyword_cache: variable::VariableCollector,
 }
 
+#[derive(Debug)]
+pub enum ResolvedFileContent {
+    PreBuilt(Vec<ellie_core::definite::items::Collecting>),
+    Raw(String),
+}
+
+impl Default for ResolvedFileContent {
+    fn default() -> Self {
+        ResolvedFileContent::Raw("".to_string())
+    }
+}
+
 #[derive(Default, Debug)]
 pub struct ResolvedImport {
     pub found: bool,
     pub resolve_error: String,
     pub resolved_path: String,
-    pub file_content: String,
+    pub file_content: ResolvedFileContent,
 }
 
 impl<F> Parser<F>
@@ -194,7 +208,7 @@ where
 {
     pub fn new(
         code: String,
-        mut resolve_import: fn(ellie_core::defs::ParserOptions, String, bool) -> ResolvedImport,
+        resolve_import: fn(ellie_core::defs::ParserOptions, String, bool) -> ResolvedImport,
         com: F,
         options: defs::ParserOptions,
     ) -> Parser<F> {
@@ -424,7 +438,7 @@ where
             types::Types::Cloak(_) => "cloak".to_string(),
             types::Types::Array(_) => "array".to_string(),
             types::Types::Void => "void".to_string(),
-            types::Types::Reference(e) => {
+            types::Types::Reference(_) => {
                 //let q = self.resolve_reference_call(e);
 
                 /*
@@ -505,15 +519,16 @@ where
 
     pub fn resolve_reference_tree(
         self,
-        reference: DeepCallResponse,
-        chain: Vec<types::reference_type::Chain>,
+        _reference: DeepCallResponse,
+        _chain: Vec<types::reference_type::Chain>,
     ) {
     }
 
     pub fn resolve_reference_call(
         self,
-        reference_data_collector: types::reference_type::ReferenceTypeCollector,
+        _reference_data_collector: types::reference_type::ReferenceTypeCollector,
     ) -> Option<Vec<ellie_core::error::Error>> {
+        /*
         let mut errors = Vec::new();
         let deep_scan = self.resolve_deep_call(*reference_data_collector.data.reference.clone());
 
@@ -522,6 +537,8 @@ where
         } else {
             None
         }
+        */
+        None
     }
 
     pub fn resolve_new_call(
@@ -1025,6 +1042,20 @@ where
                         break;
                     }
                 }
+                Collecting::Setter(e) => {
+                    if e.data.name == name {
+                        found = true;
+                        found_item = item;
+                        break;
+                    }
+                }
+                Collecting::Getter(e) => {
+                    if e.data.name == name {
+                        found = true;
+                        found_item = item;
+                        break;
+                    }
+                }
                 Collecting::Function(e) => {
                     if e.data.name == name {
                         found = true;
@@ -1054,6 +1085,14 @@ where
             Collecting::Variable(e) => NameCheckResponse {
                 found,
                 found_type: NameCheckResponseType::Variable(e),
+            },
+            Collecting::Getter(e) => NameCheckResponse {
+                found,
+                found_type: NameCheckResponseType::Getter(e),
+            },
+            Collecting::Setter(e) => NameCheckResponse {
+                found,
+                found_type: NameCheckResponseType::Setter(e),
             },
             Collecting::Function(e) => NameCheckResponse {
                 found,

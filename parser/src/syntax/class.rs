@@ -1,4 +1,4 @@
-use crate::syntax::{constructor, function, variable};
+use crate::syntax::{constructor, function, getter, setter, variable};
 use alloc::string::String;
 use alloc::vec::Vec;
 use ellie_core::{definite, defs};
@@ -18,8 +18,8 @@ pub struct Class {
     pub constructor: constructor::Constructor,
     pub generic_definings: Vec<GenericDefining>,
     pub properties: Vec<variable::Variable>,
-    //pub getters: Vec<types::arrow_function::ArrowFunctionCollector>,
-    //pub setters: Vec<types::arrow_function::ArrowFunctionCollector>,
+    pub getters: Vec<getter::Getter>,
+    pub setters: Vec<setter::Setter>,
     pub methods: Vec<function::Function>,
     pub name_pos: defs::Cursor,
     pub pos: defs::Cursor,
@@ -56,6 +56,18 @@ impl ClassCollector {
             properties: self
                 .data
                 .properties
+                .into_iter()
+                .map(|x| x.to_definite())
+                .collect(),
+            getters: self
+                .data
+                .getters
+                .into_iter()
+                .map(|x| x.to_definite())
+                .collect(),
+            setters: self
+                .data
+                .setters
                 .into_iter()
                 .map(|x| x.to_definite())
                 .collect(),
