@@ -31,6 +31,8 @@ fn variable_benchmark(c: &mut Criterion) {
             classes: true,
             dynamics: true,
             global_variables: true,
+            getters: true,
+            setters: true,
             line_ending: if env::consts::OS == "windows" {
                 "\\r\\n".to_string()
             } else {
