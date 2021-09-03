@@ -1,8 +1,5 @@
-import ../lib/ellie;
-
-v test : collective(string, dyn) = {
-    "name": "ahmet",
-    1: "ahmet"
-};
-
-v testq : string = q.name;
+class test {
+    g test : string {
+        
+    }
+}

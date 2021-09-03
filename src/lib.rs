@@ -33,6 +33,9 @@ extern crate ellie_core;
 extern crate ellie_parser;
 
 pub mod cli_constants;
+
+#[cfg(feature = "build-cli")]
 pub mod cli_utils;
+
 pub mod terminal_colors;
 pub mod test_utils;

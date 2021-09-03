@@ -36,7 +36,6 @@ pub struct Function {
     pub parameters_pos: defs::Cursor,
     pub return_pos: defs::Cursor,
     pub pos: defs::Cursor,
-    pub code: Box<crate::parser::RawParser>,
 }
 
 impl Function {
@@ -83,7 +82,7 @@ pub struct FunctionCollector {
     pub return_pointer_typed: bool, // > typed
     pub at_comma: bool,
     pub brace_count: usize,
-    pub code: String,
+    pub code: Box<crate::parser::RawParser>,
 }
 
 impl FunctionCollector {

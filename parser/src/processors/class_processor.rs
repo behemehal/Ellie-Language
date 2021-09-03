@@ -1,9 +1,3 @@
-/*
-
-    DEPRECATED
-
-*/
-
 use crate::syntax::class;
 use crate::{parser, parser::Collecting, syntax, syntax::import_item};
 
@@ -301,6 +295,12 @@ pub fn collect_class<F>(
                     }
                     parser::Collecting::Function(e) => {
                         class_data.data.methods.push(e.data);
+                    }
+                    parser::Collecting::Getter(e) => {
+                        class_data.data.getters.push(e.data);
+                    }
+                    parser::Collecting::Setter(e) => {
+                        class_data.data.setters.push(e.data);
                     }
                     parser::Collecting::Constructor(e) => {
                         if e.data.name != class_data.data.name {

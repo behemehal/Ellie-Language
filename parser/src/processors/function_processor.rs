@@ -406,7 +406,7 @@ pub fn collect_function<F>(
 
             //Filter out temporary items
             let mut filtered_items: Vec<parser::Collecting> = Vec::new();
-            for item in function_data.data.code.collected.clone() {
+            for item in function_data.code.collected.clone() {
                 match item {
                     parser::Collecting::ImportItem(e) => {
                         if e.from_path != "<temporary>" {
@@ -417,7 +417,7 @@ pub fn collect_function<F>(
                 }
             }
 
-            function_data.data.code.collected = filtered_items;
+            function_data.data.inside_code = filtered_items;
             function_data.data.pos.range_end = parser.pos.clone().skip_char(1);
             parser.collected.push(parser.current.clone());
             parser.current = parser::Collecting::None;
@@ -427,16 +427,9 @@ pub fn collect_function<F>(
             } else if letter_char == "}" && function_data.brace_count != 0 {
                 function_data.brace_count -= 1;
             }
+            let mut child_parser = function_data.code.clone().to_no_resolver_parser();
 
-            let code_letter = if last_char == "\n" || last_char == "\r" {
-                last_char.clone() + letter_char //Make sure we get the lines correctly
-            } else {
-                letter_char.to_string()
-            };
-
-            let mut child_parser = function_data.data.code.clone().to_no_resolver_parser();
-
-            if function_data.data.code.pos.is_zero() {
+            if function_data.code.pos.is_zero() {
                 //Make sure upper scope imported once
 
                 for item in parser.collected.clone() {
@@ -497,9 +490,9 @@ pub fn collect_function<F>(
             child_parser.options.parser_type = defs::ParserType::RawParser;
             child_parser.pos = parser.pos;
             child_parser.scope.scope_name = "core/function_processor".to_string();
-            child_parser.current = function_data.data.code.current.clone();
-            child_parser.keyword_catch = function_data.data.code.keyword_catch.clone();
-            child_parser.keyword_cache = function_data.data.code.keyword_cache.clone();
+            child_parser.current = function_data.code.current.clone();
+            child_parser.keyword_catch = function_data.code.keyword_catch.clone();
+            child_parser.keyword_cache = function_data.code.keyword_cache.clone();
 
             let mut child_parser_errors: Vec<error::Error> = Vec::new();
             parser::iterator::iter(
@@ -513,8 +506,7 @@ pub fn collect_function<F>(
                 errors.push(i);
             }
 
-            function_data.data.code = Box::new(child_parser.to_raw());
-            function_data.code += &code_letter;
+            function_data.code = Box::new(child_parser.to_raw());
         }
     }
 }
