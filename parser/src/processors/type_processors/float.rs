@@ -35,7 +35,7 @@ pub fn collect_float<F>(
                 errors.push(error::Error {
                     path: parser.options.path.clone(),
                     scope: "float_processor".to_string(),
-                    debug_message: "3805a9a7f3f735429370448009f24da0".to_string(),
+                    debug_message: "4e8b2494c3559dc080d63f63dbccc74c".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -61,7 +61,7 @@ pub fn collect_float<F>(
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
                         scope: "float_processor".to_string(),
-                        debug_message: "df6d362a49cd94ca62b26e19f2f1620a".to_string(),
+                        debug_message: "195ddf34827650327a7aa6b5bce1af39".to_string(),
                         title: error::errorList::error_s17.title.clone(),
                         code: error::errorList::error_s17.code,
                         message: error::errorList::error_s17.message.clone(),
@@ -90,7 +90,7 @@ pub fn collect_float<F>(
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
                         scope: "float_processor".to_string(),
-                        debug_message: "d07164176073ac20d4c059b5ed52a7a6".to_string(),
+                        debug_message: "b8905236fe18000c20d120a37bd2ebf4".to_string(),
                         title: error::errorList::error_s17.title.clone(),
                         code: error::errorList::error_s17.code,
                         message: error::errorList::error_s17.message.clone(),
@@ -118,7 +118,7 @@ pub fn collect_float<F>(
                 errors.push(error::Error {
                     path: parser.options.path.clone(),
                     scope: "float_processor".to_string(),
-                    debug_message: "65964a64ffc097d1b20a4d8f8f13024a".to_string(),
+                    debug_message: "7986d929ba82ce8ba94f4a5e701d3a7d".to_string(),
                     title: error::errorList::error_s17.title.clone(),
                     code: error::errorList::error_s17.code,
                     message: error::errorList::error_s17.message.clone(),
@@ -218,7 +218,7 @@ pub fn collect_float<F>(
             errors.push(error::Error {
                 path: parser.options.path.clone(),
                 scope: "float_processor".to_string(),
-                debug_message: "e49690c75215ebeb37dfbbf79a86efef".to_string(),
+                debug_message: "5b422e9d7271bc1c366cf6657d365bb4".to_string(),
                 title: error::errorList::error_s1.title.clone(),
                 code: error::errorList::error_s1.code,
                 message: error::errorList::error_s1.message.clone(),

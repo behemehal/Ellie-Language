@@ -35,7 +35,7 @@ pub fn collect_new_call<F>(
                 errors.push(error::Error {
                     path: parser.options.path.clone(),
                     scope: "function_call_processor".to_string(),
-                    debug_message: "cace8991860d15eefdaaffcdb846da77".to_string(),
+                    debug_message: "166d25697eaa7119cba059a5edd0abb3".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -95,7 +95,7 @@ pub fn collect_new_call<F>(
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
                         scope: "function_call_processor".to_string(),
-                        debug_message: "a4358182aa9b0531dbd835e3bf7d1e0d".to_string(),
+                        debug_message: "803571a755c67ec57f078f98ca675894".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -115,7 +115,7 @@ pub fn collect_new_call<F>(
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
                         scope: "function_call_processor".to_string(),
-                        debug_message: "817d2f5426d2102a7a95a383aea7f070".to_string(),
+                        debug_message: "c8263770d363007c3e24a65a21a35e4d".to_string(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),

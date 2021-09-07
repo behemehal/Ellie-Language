@@ -37,7 +37,7 @@ pub fn collect_setter_value<F>(
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
                         scope: parser.scope.scope_name.clone(),
-                        debug_message: "b33c40fb1f6ae4432f337dd4f0dc9179".to_string(),
+                        debug_message: "c70452bb499b5d9b1214da0097e1cf37".to_string(),
                         title: error::errorList::error_s21.title.clone(),
                         code: error::errorList::error_s21.code,
                         message: error::errorList::error_s21.message.clone(),
@@ -56,7 +56,7 @@ pub fn collect_setter_value<F>(
                 errors.push(error::Error {
                     path: parser.options.path.clone(),
                     scope: parser.scope.scope_name.clone(),
-                    debug_message: "b5a2ec8c7a226bd97600b4965375fae0".to_string(),
+                    debug_message: "22e5f035c56aeae2b9758732bf35fe74".to_string(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),

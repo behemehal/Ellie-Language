@@ -224,7 +224,7 @@ pub fn collect_type<F>(
             errors.push(error::Error {
                 path: parser.options.path.clone(),
                 scope: "definer_processor".to_string(),
-                debug_message: "ed217387143f0e07294b32eff7448afe".to_string(),
+                debug_message: "e649d850cd39327f0184c5ae7888443f".to_string(),
                 title: error::errorList::error_s1.title.clone(),
                 code: error::errorList::error_s1.code,
                 message: error::errorList::error_s1.message.clone(),
@@ -248,7 +248,7 @@ pub fn collect_type<F>(
             errors.push(error::Error {
                 path: parser.options.path.clone(),
                 scope: "definer_processor".to_string(),
-                debug_message: "44ead32f8245d7c8dd474e74a60528d5".to_string(),
+                debug_message: "cc0a8ee9b89335c9171876051b452a11".to_string(),
                 title: error::errorList::error_s1.title.clone(),
                 code: error::errorList::error_s1.code,
                 message: error::errorList::error_s1.message.clone(),
