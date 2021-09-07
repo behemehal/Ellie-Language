@@ -32,7 +32,7 @@ pub fn collect_char<F>(
                 errors.push(error::Error {
                     path: parser.options.path.clone(),
                     scope: "char_function".to_string(),
-                    debug_message: "1db66a86a3df17817435030c45bd1324".to_string(),
+                    debug_message: "074b5bb6dc988350527b820e864c35a6".to_string(),
                     title: error::errorList::error_s14.title.clone(),
                     code: error::errorList::error_s14.code,
                     message: error::errorList::error_s14.message.clone(),
@@ -51,7 +51,7 @@ pub fn collect_char<F>(
                 errors.push(error::Error {
                     path: parser.options.path.clone(),
                     scope: "char_function".to_string(),
-                    debug_message: "b939ee755e795a2ed511fc0d59ab17db".to_string(),
+                    debug_message: "c5ad88d77c2f412032d99a7fee8af90c".to_string(),
                     title: error::errorList::error_s15.title.clone(),
                     code: error::errorList::error_s15.code,
                     message: error::errorList::error_s15.message.clone(),
@@ -147,7 +147,7 @@ pub fn collect_char<F>(
             errors.push(error::Error {
                 path: parser.options.path.clone(),
                 scope: "char_function".to_string(),
-                debug_message: "af0ce8525e3ddbf8e2dd42aea2ce241f".to_string(),
+                debug_message: "4bec45a87be657a5b723eb707fa861ff".to_string(),
                 title: error::errorList::error_s1.title.clone(),
                 code: error::errorList::error_s1.code,
                 message: error::errorList::error_s1.message.clone(),
