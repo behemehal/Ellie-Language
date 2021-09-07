@@ -118,7 +118,7 @@
       }
   ```
 
-- Enum (NOT COMPLETE > 1.0.0)
+- Enum
 
   ```ellie
       pub enum Test {
@@ -133,7 +133,7 @@
       }
   ```
 
-- For Loops (NOT COMPLETE > 1.0.0)
+- For Loops
   ```ellie
       v reversedEllie : string;
       for (character, ellie_chars.reverse()) { //Array.reverse is standard-library function

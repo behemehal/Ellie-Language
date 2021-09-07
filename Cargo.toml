@@ -22,10 +22,6 @@ default = ["build-cli"]
 build-cli = ["path-absolutize", "websocket"]
 raw = ["ellie_raw"]
 
-[lib]
-name = "ellie_lang"
-path = "src/lib.rs"
-
 [[bin]]
 name = "ellie"
 test = false

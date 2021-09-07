@@ -3,8 +3,8 @@ mod collective_tests {
 
     #[test]
     fn empty_collective_collected_with_no_error() {
-        assert!(ellie_lang::test_utils::has_no_error_and_correct(
-            ellie_lang::test_utils::emulate_value_processor("{}"),
+        assert!(ellie_engine::test_utils::has_no_error_and_correct(
+            ellie_engine::test_utils::emulate_value_processor("{}"),
             ellie_parser::syntax::types::Types::Collective(
                 ellie_parser::syntax::types::collective_type::CollectiveCollector {
                     complete: true,
@@ -18,7 +18,7 @@ mod collective_tests {
     #[test]
     fn duplicate_parameter_handled() {
         assert!(
-            ellie_lang::test_utils::emulate_value_processor("{\"1\": 1, \"1\": 1}")
+            ellie_engine::test_utils::emulate_value_processor("{\"1\": 1, \"1\": 1}")
                 .1
                 .len()
                 == 1
@@ -27,8 +27,8 @@ mod collective_tests {
 
     #[test]
     fn one_dimension_collective_collected_with_no_error() {
-        assert!(ellie_lang::test_utils::has_no_error_and_correct(
-            ellie_lang::test_utils::emulate_value_processor("{1: 'o', 2: 'k'}"),
+        assert!(ellie_engine::test_utils::has_no_error_and_correct(
+            ellie_engine::test_utils::emulate_value_processor("{1: 'o', 2: 'k'}"),
             ellie_parser::syntax::types::Types::Collective(
                 ellie_parser::syntax::types::collective_type::CollectiveCollector {
                     complete: true,
@@ -130,8 +130,8 @@ mod collective_tests {
 
     #[test]
     fn two_dimension_collective_collected_with_no_error() {
-        assert!(ellie_lang::test_utils::has_no_error_and_correct(
-            ellie_lang::test_utils::emulate_value_processor("{1: 'o', 2: {1: 'o', 2: 'k'}}"),
+        assert!(ellie_engine::test_utils::has_no_error_and_correct(
+            ellie_engine::test_utils::emulate_value_processor("{1: 'o', 2: {1: 'o', 2: 'k'}}"),
             ellie_parser::syntax::types::Types::Collective(
                 ellie_parser::syntax::types::collective_type::CollectiveCollector {
                     complete: true,

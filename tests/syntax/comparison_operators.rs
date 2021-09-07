@@ -3,8 +3,8 @@ mod comparison_operator_tests {
 
     #[test]
     fn equal_collected_with_no_error() {
-        assert!(ellie_lang::test_utils::has_no_error_and_correct_operator(
-            ellie_lang::test_utils::emulate_value_processor_operator("123 == 123"),
+        assert!(ellie_engine::test_utils::has_no_error_and_correct_operator(
+            ellie_engine::test_utils::emulate_value_processor_operator("123 == 123"),
             ellie_parser::syntax::types::operator_type::OperatorType {
                 cloaked: false,
                 first: Box::new(ellie_parser::syntax::types::Types::Integer(
@@ -36,8 +36,8 @@ mod comparison_operator_tests {
 
     #[test]
     fn not_equal_collected_with_no_error() {
-        assert!(ellie_lang::test_utils::has_no_error_and_correct_operator(
-            ellie_lang::test_utils::emulate_value_processor_operator("123 != 123"),
+        assert!(ellie_engine::test_utils::has_no_error_and_correct_operator(
+            ellie_engine::test_utils::emulate_value_processor_operator("123 != 123"),
             ellie_parser::syntax::types::operator_type::OperatorType {
                 cloaked: false,
                 first: Box::new(ellie_parser::syntax::types::Types::Integer(
@@ -69,8 +69,8 @@ mod comparison_operator_tests {
 
     #[test]
     fn greater_than_collected_with_no_error() {
-        assert!(ellie_lang::test_utils::has_no_error_and_correct_operator(
-            ellie_lang::test_utils::emulate_value_processor_operator("123 > 123"),
+        assert!(ellie_engine::test_utils::has_no_error_and_correct_operator(
+            ellie_engine::test_utils::emulate_value_processor_operator("123 > 123"),
             ellie_parser::syntax::types::operator_type::OperatorType {
                 cloaked: false,
                 first: Box::new(ellie_parser::syntax::types::Types::Integer(
@@ -102,8 +102,8 @@ mod comparison_operator_tests {
 
     #[test]
     fn less_than_collected_with_no_error() {
-        assert!(ellie_lang::test_utils::has_no_error_and_correct_operator(
-            ellie_lang::test_utils::emulate_value_processor_operator("123 < 123"),
+        assert!(ellie_engine::test_utils::has_no_error_and_correct_operator(
+            ellie_engine::test_utils::emulate_value_processor_operator("123 < 123"),
             ellie_parser::syntax::types::operator_type::OperatorType {
                 cloaked: false,
                 first: Box::new(ellie_parser::syntax::types::Types::Integer(
@@ -135,8 +135,8 @@ mod comparison_operator_tests {
 
     #[test]
     fn greater_than_or_equal_collected_with_no_error() {
-        assert!(ellie_lang::test_utils::has_no_error_and_correct_operator(
-            ellie_lang::test_utils::emulate_value_processor_operator("123 >= 123"),
+        assert!(ellie_engine::test_utils::has_no_error_and_correct_operator(
+            ellie_engine::test_utils::emulate_value_processor_operator("123 >= 123"),
             ellie_parser::syntax::types::operator_type::OperatorType {
                 cloaked: false,
                 first: Box::new(ellie_parser::syntax::types::Types::Integer(
@@ -168,8 +168,8 @@ mod comparison_operator_tests {
 
     #[test]
     fn less_than_or_equal_collected_with_no_error() {
-        assert!(ellie_lang::test_utils::has_no_error_and_correct_operator(
-            ellie_lang::test_utils::emulate_value_processor_operator("123 <= 123"),
+        assert!(ellie_engine::test_utils::has_no_error_and_correct_operator(
+            ellie_engine::test_utils::emulate_value_processor_operator("123 <= 123"),
             ellie_parser::syntax::types::operator_type::OperatorType {
                 cloaked: false,
                 first: Box::new(ellie_parser::syntax::types::Types::Integer(

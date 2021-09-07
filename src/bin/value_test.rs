@@ -45,20 +45,20 @@ fn main() {
                 "{}{}Error[{:#04x}]{} - {}{}{}: {}",
                 format!(
                     "{}[{}]{} ",
-                    ellie_lang::terminal_colors::get_color(
-                        ellie_lang::terminal_colors::Colors::Yellow
+                    ellie_engine::terminal_colors::get_color(
+                        ellie_engine::terminal_colors::Colors::Yellow
                     ),
                     error.debug_message,
-                    ellie_lang::terminal_colors::get_color(
-                        ellie_lang::terminal_colors::Colors::Reset
+                    ellie_engine::terminal_colors::get_color(
+                        ellie_engine::terminal_colors::Colors::Reset
                     )
                 ),
-                ellie_lang::terminal_colors::get_color(ellie_lang::terminal_colors::Colors::Red),
+                ellie_engine::terminal_colors::get_color(ellie_engine::terminal_colors::Colors::Red),
                 &error.code,
-                ellie_lang::terminal_colors::get_color(ellie_lang::terminal_colors::Colors::Reset),
-                ellie_lang::terminal_colors::get_color(ellie_lang::terminal_colors::Colors::Cyan),
+                ellie_engine::terminal_colors::get_color(ellie_engine::terminal_colors::Colors::Reset),
+                ellie_engine::terminal_colors::get_color(ellie_engine::terminal_colors::Colors::Cyan),
                 error.title,
-                ellie_lang::terminal_colors::get_color(ellie_lang::terminal_colors::Colors::Reset),
+                ellie_engine::terminal_colors::get_color(ellie_engine::terminal_colors::Colors::Reset),
                 error.builded_message.builded
             );
         }

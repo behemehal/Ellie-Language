@@ -3,8 +3,8 @@ mod negative_tests {
 
     #[test]
     fn int_collected_with_no_error() {
-        assert!(ellie_lang::test_utils::has_no_error_and_correct(
-            ellie_lang::test_utils::emulate_value_processor("!123"),
+        assert!(ellie_engine::test_utils::has_no_error_and_correct(
+            ellie_engine::test_utils::emulate_value_processor("!123"),
             ellie_parser::syntax::types::Types::Negative(
                 ellie_parser::syntax::types::negative_type::Negative {
                     value: Box::new(ellie_parser::syntax::types::Types::Integer(
@@ -26,8 +26,8 @@ mod negative_tests {
 
     #[test]
     fn float_collected_with_no_error() {
-        assert!(ellie_lang::test_utils::has_no_error_and_correct(
-            ellie_lang::test_utils::emulate_value_processor("!0.1"),
+        assert!(ellie_engine::test_utils::has_no_error_and_correct(
+            ellie_engine::test_utils::emulate_value_processor("!0.1"),
             ellie_parser::syntax::types::Types::Negative(
                 ellie_parser::syntax::types::negative_type::Negative {
                     value: Box::new(ellie_parser::syntax::types::Types::Float(
@@ -50,8 +50,8 @@ mod negative_tests {
 
     #[test]
     fn bool_collected_with_no_error() {
-        assert!(ellie_lang::test_utils::has_no_error_and_correct(
-            ellie_lang::test_utils::emulate_value_processor("!true"),
+        assert!(ellie_engine::test_utils::has_no_error_and_correct(
+            ellie_engine::test_utils::emulate_value_processor("!true"),
             ellie_parser::syntax::types::Types::Negative(
                 ellie_parser::syntax::types::negative_type::Negative {
                     value: Box::new(ellie_parser::syntax::types::Types::Bool(
@@ -67,8 +67,8 @@ mod negative_tests {
 
     #[test]
     fn string_collected_with_no_error() {
-        assert!(ellie_lang::test_utils::has_no_error_and_correct(
-            ellie_lang::test_utils::emulate_value_processor("!\"ok\""),
+        assert!(ellie_engine::test_utils::has_no_error_and_correct(
+            ellie_engine::test_utils::emulate_value_processor("!\"ok\""),
             ellie_parser::syntax::types::Types::Negative(
                 ellie_parser::syntax::types::negative_type::Negative {
                     value: Box::new(ellie_parser::syntax::types::Types::String(
@@ -100,8 +100,8 @@ mod negative_tests {
 
     #[test]
     fn char_collected_with_no_error() {
-        assert!(ellie_lang::test_utils::has_no_error_and_correct(
-            ellie_lang::test_utils::emulate_value_processor("!\'o'"),
+        assert!(ellie_engine::test_utils::has_no_error_and_correct(
+            ellie_engine::test_utils::emulate_value_processor("!\'o'"),
             ellie_parser::syntax::types::Types::Negative(
                 ellie_parser::syntax::types::negative_type::Negative {
                     value: Box::new(ellie_parser::syntax::types::Types::Char(
@@ -117,8 +117,8 @@ mod negative_tests {
 
     #[test]
     fn variable_value_collected_with_no_error() {
-        assert!(ellie_lang::test_utils::has_no_error_and_correct(
-            ellie_lang::test_utils::emulate_value_processor("!test"),
+        assert!(ellie_engine::test_utils::has_no_error_and_correct(
+            ellie_engine::test_utils::emulate_value_processor("!test"),
             ellie_parser::syntax::types::Types::Negative(
                 ellie_parser::syntax::types::negative_type::Negative {
                     value: Box::new(ellie_parser::syntax::types::Types::VariableType(

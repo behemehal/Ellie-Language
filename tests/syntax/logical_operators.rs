@@ -3,8 +3,8 @@ mod logical_operator_tests {
 
     #[test]
     fn and_collected_with_no_error() {
-        assert!(ellie_lang::test_utils::has_no_error_and_correct_operator(
-            ellie_lang::test_utils::emulate_value_processor_operator("123 && 123"),
+        assert!(ellie_engine::test_utils::has_no_error_and_correct_operator(
+            ellie_engine::test_utils::emulate_value_processor_operator("123 && 123"),
             ellie_parser::syntax::types::operator_type::OperatorType {
                 cloaked: false,
                 first: Box::new(ellie_parser::syntax::types::Types::Integer(
@@ -35,8 +35,8 @@ mod logical_operator_tests {
     }
     #[test]
     fn or_collected_with_no_error() {
-        assert!(ellie_lang::test_utils::has_no_error_and_correct_operator(
-            ellie_lang::test_utils::emulate_value_processor_operator("123 || 123"),
+        assert!(ellie_engine::test_utils::has_no_error_and_correct_operator(
+            ellie_engine::test_utils::emulate_value_processor_operator("123 || 123"),
             ellie_parser::syntax::types::operator_type::OperatorType {
                 cloaked: false,
                 first: Box::new(ellie_parser::syntax::types::Types::Integer(

@@ -2,8 +2,8 @@
 mod array_tests {
     #[test]
     fn one_dimension_array_collected_with_no_error() {
-        assert!(ellie_lang::test_utils::has_no_error_and_correct(
-            ellie_lang::test_utils::emulate_value_processor("[1, 2, 3]"),
+        assert!(ellie_engine::test_utils::has_no_error_and_correct(
+            ellie_engine::test_utils::emulate_value_processor("[1, 2, 3]"),
             ellie_parser::syntax::types::Types::Array(
                 ellie_parser::syntax::types::array_type::ArrayTypeCollector {
                     complete: true,
@@ -73,8 +73,8 @@ mod array_tests {
     #[test]
     fn two_dimension_array_collected_with_no_error() {
         assert!(
-            ellie_lang::test_utils::has_no_error_and_correct(
-                ellie_lang::test_utils::emulate_value_processor("[[1], [2], [3]]"),
+            ellie_engine::test_utils::has_no_error_and_correct(
+                ellie_engine::test_utils::emulate_value_processor("[[1], [2], [3]]"),
                 ellie_parser::syntax::types::Types::Array(
                     ellie_parser::syntax::types::array_type::ArrayTypeCollector {
                         complete: true,
@@ -239,8 +239,8 @@ mod array_tests {
 
     #[test]
     fn three_dimension_array_collected_with_no_error() {
-        assert!(ellie_lang::test_utils::has_no_error_and_correct(
-            ellie_lang::test_utils::emulate_value_processor("[[[1]], [[2]], [[3]]]"),
+        assert!(ellie_engine::test_utils::has_no_error_and_correct(
+            ellie_engine::test_utils::emulate_value_processor("[[[1]], [[2]], [[3]]]"),
             ellie_parser::syntax::types::Types::Array(
                 ellie_parser::syntax::types::array_type::ArrayTypeCollector {
                     complete: true,

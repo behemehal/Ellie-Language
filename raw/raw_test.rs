@@ -45,46 +45,46 @@ fn main() {
     let mapped = parser.map();
 
     if mapped.syntax_errors.len() != 0 {
-        for error in &ellie_lang::cli_utils::zip_errors(mapped.syntax_errors) {
+        for error in &ellie_engine::cli_utils::zip_errors(mapped.syntax_errors) {
             if error.pos.range_start.0 != error.pos.range_end.0 {
                 println!(
                     "{}[Experimental]{}: Multi line error listing",
-                    ellie_lang::terminal_colors::get_color(
-                        ellie_lang::terminal_colors::Colors::Magenta
+                    ellie_engine::terminal_colors::get_color(
+                        ellie_engine::terminal_colors::Colors::Magenta
                     ),
-                    ellie_lang::terminal_colors::get_color(
-                        ellie_lang::terminal_colors::Colors::Reset
+                    ellie_engine::terminal_colors::get_color(
+                        ellie_engine::terminal_colors::Colors::Reset
                     ),
                 );
                 println!(
                     "{}{}Error[{:#04x}]{} - {}{}{}: {}",
                     format!(
                         "{}({}) {}[{}]{} ",
-                        ellie_lang::terminal_colors::get_color(
-                            ellie_lang::terminal_colors::Colors::Magenta
+                        ellie_engine::terminal_colors::get_color(
+                            ellie_engine::terminal_colors::Colors::Magenta
                         ),
                         error.scope,
-                        ellie_lang::terminal_colors::get_color(
-                            ellie_lang::terminal_colors::Colors::Yellow
+                        ellie_engine::terminal_colors::get_color(
+                            ellie_engine::terminal_colors::Colors::Yellow
                         ),
                         error.debug_message,
-                        ellie_lang::terminal_colors::get_color(
-                            ellie_lang::terminal_colors::Colors::Reset
+                        ellie_engine::terminal_colors::get_color(
+                            ellie_engine::terminal_colors::Colors::Reset
                         )
                     ),
-                    ellie_lang::terminal_colors::get_color(
-                        ellie_lang::terminal_colors::Colors::Red
+                    ellie_engine::terminal_colors::get_color(
+                        ellie_engine::terminal_colors::Colors::Red
                     ),
                     &error.code,
-                    ellie_lang::terminal_colors::get_color(
-                        ellie_lang::terminal_colors::Colors::Reset
+                    ellie_engine::terminal_colors::get_color(
+                        ellie_engine::terminal_colors::Colors::Reset
                     ),
-                    ellie_lang::terminal_colors::get_color(
-                        ellie_lang::terminal_colors::Colors::Cyan
+                    ellie_engine::terminal_colors::get_color(
+                        ellie_engine::terminal_colors::Colors::Cyan
                     ),
                     error.title,
-                    ellie_lang::terminal_colors::get_color(
-                        ellie_lang::terminal_colors::Colors::Reset
+                    ellie_engine::terminal_colors::get_color(
+                        ellie_engine::terminal_colors::Colors::Reset
                     ),
                     error.builded_message.builded
                 );
@@ -102,38 +102,38 @@ fn main() {
 
                 println!(
                     "{}",
-                    ellie_lang::cli_utils::get_lines(code.clone(), error.pos)
+                    ellie_engine::cli_utils::get_lines(code.clone(), error.pos)
                 )
             } else {
                 println!(
                     "{}{}Error[{:#04x}]{} - {}{}{}: {}",
                     format!(
                         "{}({}) {}[{}]{} ",
-                        ellie_lang::terminal_colors::get_color(
-                            ellie_lang::terminal_colors::Colors::Magenta
+                        ellie_engine::terminal_colors::get_color(
+                            ellie_engine::terminal_colors::Colors::Magenta
                         ),
                         error.scope,
-                        ellie_lang::terminal_colors::get_color(
-                            ellie_lang::terminal_colors::Colors::Yellow
+                        ellie_engine::terminal_colors::get_color(
+                            ellie_engine::terminal_colors::Colors::Yellow
                         ),
                         error.debug_message,
-                        ellie_lang::terminal_colors::get_color(
-                            ellie_lang::terminal_colors::Colors::Reset
+                        ellie_engine::terminal_colors::get_color(
+                            ellie_engine::terminal_colors::Colors::Reset
                         )
                     ),
-                    ellie_lang::terminal_colors::get_color(
-                        ellie_lang::terminal_colors::Colors::Red
+                    ellie_engine::terminal_colors::get_color(
+                        ellie_engine::terminal_colors::Colors::Red
                     ),
                     &error.code,
-                    ellie_lang::terminal_colors::get_color(
-                        ellie_lang::terminal_colors::Colors::Reset
+                    ellie_engine::terminal_colors::get_color(
+                        ellie_engine::terminal_colors::Colors::Reset
                     ),
-                    ellie_lang::terminal_colors::get_color(
-                        ellie_lang::terminal_colors::Colors::Cyan
+                    ellie_engine::terminal_colors::get_color(
+                        ellie_engine::terminal_colors::Colors::Cyan
                     ),
                     error.title,
-                    ellie_lang::terminal_colors::get_color(
-                        ellie_lang::terminal_colors::Colors::Reset
+                    ellie_engine::terminal_colors::get_color(
+                        ellie_engine::terminal_colors::Colors::Reset
                     ),
                     error.builded_message.builded
                 );
@@ -146,11 +146,11 @@ fn main() {
                 let line: Vec<&str> = code.split("\\n").collect();
                 println!(
                     "{}\n{}{}{}",
-                    ellie_lang::cli_utils::get_line(code.clone(), error.pos.range_start.0 as usize),
-                    ellie_lang::terminal_colors::get_color(
-                        ellie_lang::terminal_colors::Colors::Red
+                    ellie_engine::cli_utils::get_line(code.clone(), error.pos.range_start.0 as usize),
+                    ellie_engine::terminal_colors::get_color(
+                        ellie_engine::terminal_colors::Colors::Red
                     ),
-                    ellie_lang::cli_utils::arrow(
+                    ellie_engine::cli_utils::arrow(
                         (error.pos.range_start.1 + 1) as usize,
                         if error.pos.range_end.1 > error.pos.range_start.1 {
                             ((error.pos.range_end.1) - (error.pos.range_start.1)) as usize
@@ -158,8 +158,8 @@ fn main() {
                             error.pos.range_start.1 as usize - (line[error.pos.range_start.1]).len()
                         }
                     ),
-                    ellie_lang::terminal_colors::get_color(
-                        ellie_lang::terminal_colors::Colors::Reset
+                    ellie_engine::terminal_colors::get_color(
+                        ellie_engine::terminal_colors::Colors::Reset
                     )
                 );
             }
