@@ -93,6 +93,13 @@ pub fn iter<F>(
             next_char.clone(),
             last_char.clone(),
         ),
+        parser::Collecting::Enum(_) => processors::enum_processor::collect_enum(
+            parser,
+            errors,
+            letter_char,
+            next_char.clone(),
+            last_char.clone(),
+        ),
         parser::Collecting::Ret(_) => processors::ret_processor::collect_ret(
             parser,
             errors,

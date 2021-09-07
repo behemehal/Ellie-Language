@@ -59,3 +59,12 @@
     * Create parsing visualizer
     * Make experimental error provider stable
     * Improve import resolver
+
+
+# v3.5.1
+  - Parser v1.6.0
+    * Getter & setter implemented
+    * Enum implemented
+  - CLI
+    * Fix eval bugs
+    * Initialize runtime

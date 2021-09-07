@@ -10,8 +10,8 @@ use crate::alloc::vec;
 use crate::alloc::vec::Vec;
 
 use crate::syntax::{
-    caller, class, condition, constructor, definers, file_key, for_loop, function, getter, import,
-    import_item, native_function, ret, setter, types, variable,
+    caller, class, condition, constructor, definers, enum_type, file_key, for_loop, function,
+    getter, import, import_item, native_function, ret, setter, types, variable,
 };
 use ellie_core::{com, definite, defs, error, utils};
 
@@ -43,6 +43,7 @@ pub enum Collecting {
     Getter(getter::GetterCollector),
     Setter(setter::SetterCollector),
     NativeClass,
+    Enum(enum_type::EnumTypeCollector),
     NativeFunction(native_function::NativeFunction),
     None,
 }
@@ -64,6 +65,7 @@ impl Collecting {
             Collecting::Getter(e) => definite::items::Collecting::Getter(e.to_definite()),
             Collecting::Setter(e) => definite::items::Collecting::Setter(e.to_definite()),
             Collecting::NativeClass => definite::items::Collecting::NativeClass,
+            Collecting::Enum(e) => definite::items::Collecting::Enum(e.to_definite()),
             Collecting::NativeFunction(e) => {
                 definite::items::Collecting::NativeFunction(e.to_definite())
             }
@@ -312,6 +314,7 @@ where
         }
 
         if self.current != Collecting::None || !self.keyword_catch.trim().is_empty() {
+            std::println!("{:#?}", self.current);
             errors.push(error::Error {
                 path: self.options.path.clone(),
                 scope: "definer_processor".to_string(),

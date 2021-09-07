@@ -4,6 +4,7 @@ pub mod caller;
 pub mod class;
 pub mod condition;
 pub mod constructor;
+pub mod enum_type;
 pub mod file_key;
 pub mod for_loop;
 pub mod function;
@@ -32,6 +33,7 @@ pub enum Collecting {
     Getter(getter::Getter),
     Setter(setter::Setter),
     NativeClass,
+    Enum(enum_type::EnumType),
     NativeFunction(native_function::NativeFunction),
     None,
 }

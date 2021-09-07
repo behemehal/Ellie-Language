@@ -1,7 +1,7 @@
 use crate::parser;
 use crate::syntax::{
-    caller, class, condition, constructor, file_key, for_loop, function, getter, import, ret,
-    setter, types, variable,
+    caller, class, condition, constructor, enum_type, file_key, for_loop, function, getter, import,
+    ret, setter, types, variable,
 };
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};
@@ -115,6 +115,16 @@ pub fn collect_type<F>(
             ..Default::default()
         });
         parser.keyword_catch = String::new();
+    } else if (keyword == "enum " || keyword == "pub enum " || keyword == "pri enum ")
+        && parser.options.enums
+    {
+        parser.current = parser::Collecting::Enum(enum_type::EnumTypeCollector {
+            data: enum_type::EnumType {
+                public: keyword == "pub enum ",
+                ..Default::default()
+            },
+            ..Default::default()
+        });
     } else if (keyword == "fn " || keyword == "pub fn " || keyword == "pri fn ")
         && parser.options.functions
     {

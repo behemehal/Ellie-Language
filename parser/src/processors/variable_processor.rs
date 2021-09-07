@@ -6,12 +6,6 @@ use alloc::string::{String, ToString};
 use alloc::vec;
 use alloc::vec::Vec;
 
-#[derive(Clone)]
-pub struct CollectorResponse<F> {
-    parser: parser::Parser<F>,
-    data: crate::parser::Collecting,
-}
-
 pub fn collect_variable_value<F>(
     parser: &mut parser::Parser<F>,
     errors: &mut Vec<error::Error>,

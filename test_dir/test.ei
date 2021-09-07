@@ -1,5 +1,4 @@
-class test {
-    g test : string {
-        
-    }
+enum test {
+    test,
+    test: string
 }

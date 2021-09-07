@@ -34,6 +34,7 @@ pub fn parse(contents: String, file_name: String) -> ellie_parser::parser::Parse
             loops: true,
             conditions: true,
             classes: true,
+            enums: true,
             dynamics: true,
             global_variables: true,
             getters: true,
