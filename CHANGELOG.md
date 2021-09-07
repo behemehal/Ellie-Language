@@ -61,7 +61,7 @@
     * Improve import resolver
 
 
-# v3.5.1
+# v3.5.0
   - Parser v1.6.0
     * Getter & setter implemented
     * Enum implemented
