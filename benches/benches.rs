@@ -29,6 +29,7 @@ fn variable_benchmark(c: &mut Criterion) {
             loops: true,
             conditions: true,
             classes: true,
+            enums: true,
             dynamics: true,
             global_variables: true,
             getters: true,
