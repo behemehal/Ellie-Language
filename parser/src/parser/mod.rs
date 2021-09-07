@@ -908,7 +908,8 @@ where
                                             errors.push(error::Error {
                                                 path: self.options.path.clone(),
                                                 scope: self.scope.scope_name.clone(),
-                                                debug_message: "74e76688c642c18e7bd9339e60b65bef".to_string(),
+                                                debug_message: "74e76688c642c18e7bd9339e60b65bef"
+                                                    .to_string(),
                                                 title: error::errorList::error_s4.title.clone(),
                                                 code: error::errorList::error_s4.code,
                                                 message: error::errorList::error_s4.message.clone(),
