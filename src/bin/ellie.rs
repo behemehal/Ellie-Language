@@ -2,6 +2,7 @@ use ellie_core::definite;
 use ellie_parser::parser;
 use fs::File;
 use std::env;
+use std::time::{SystemTime, UNIX_EPOCH};
 use std::{fs, io::Read};
 
 fn main() {
@@ -52,6 +53,11 @@ fn main() {
             let visualize_code = env::args().any(|x| x == "--parser-ws" || x == "-pw");
             let ignore_errors = env::args().any(|x| x == "-i");
             let non_definite = env::args().any(|x| x == "-e");
+
+            let start_time = SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_millis();
 
             if ignore_errors && !File::open("./DEBUG_HEADERS.eidbg").is_ok() {
                 std::println!(
@@ -115,6 +121,11 @@ fn main() {
                             );
                             std::process::exit(0);
                         } else {
+                            let end_time = SystemTime::now()
+                                .duration_since(UNIX_EPOCH)
+                                .unwrap()
+                                .as_millis();
+                            println!("CODE HAS BEEN RED at: {}", end_time - start_time);
                             let mut parser = parser::Parser::new(
                                 code.clone(),
                                 ellie_engine::cli_utils::resolve_import,
@@ -183,17 +194,18 @@ fn main() {
                                 if env::args().any(|x| x == "-je" || x == "--json-errors") {
                                     print!("*");
                                 }
-                                for error in
-                                    &ellie_engine::cli_utils::zip_errors(mapped.syntax_errors.clone())
-                                {
+                                for error in &ellie_engine::cli_utils::zip_errors(
+                                    mapped.syntax_errors.clone(),
+                                ) {
                                     if env::args().any(|x| x == "-je" || x == "--json-errors") {
                                         println!(
                                             "+\n{:?}\n",
                                             serde_json::to_string(error).unwrap()
                                         );
                                     } else {
-                                        match ellie_engine::cli_utils::read_file(&error.path.clone())
-                                        {
+                                        match ellie_engine::cli_utils::read_file(
+                                            &error.path.clone(),
+                                        ) {
                                             Ok(targeted_error_file) => {
                                                 if error.pos.range_start.0 != error.pos.range_end.0
                                                 {
@@ -560,9 +572,9 @@ fn main() {
                                 if env::args().any(|x| x == "-je" || x == "--json-errors") {
                                     print!("*");
                                 }
-                                for error in
-                                    &ellie_engine::cli_utils::zip_errors(mapped.syntax_errors.clone())
-                                {
+                                for error in &ellie_engine::cli_utils::zip_errors(
+                                    mapped.syntax_errors.clone(),
+                                ) {
                                     if env::args().any(|x| x == "-je" || x == "--json-errors") {
                                         println!(
                                             "+\n{:?}\n",

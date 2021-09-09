@@ -19,14 +19,24 @@ pub fn emulate_value_processor(
     };
     let mut syntax_errors = vec![];
     emulated_collector_data.data.dynamic = true;
-    for (index, char) in code.chars().enumerate() {
+    let content = code.chars().collect::<Vec<_>>();
+    for i in 0..content.len() {
+        let char = content[i];
         if char == '\n' || char == '\r' {
             continue;
         }
 
         let letter_char = &char.to_string();
-        let last_char = &ellie_core::utils::get_letter(code.to_string(), index, false).to_owned();
-        let next_char = &ellie_core::utils::get_letter(code.to_string(), index, true).to_owned();
+        let last_char = if i == 0 {
+            "".to_string()
+        } else {
+            content[i - 1].to_string()
+        };
+        let next_char = if i + 1 > content.len() - 1 {
+            "".to_string()
+        } else {
+            content[i + 1].to_string()
+        };
         let itered = ellie_parser::processors::value_processor::collect_value(
             emulated_parser.clone(),
             &mut emulated_collector_data,
@@ -75,14 +85,25 @@ pub fn emulate_value_processor_operator(
     let mut emulated_collector_data = ellie_parser::syntax::variable::VariableCollector::default();
     let mut syntax_errors = vec![];
     emulated_collector_data.data.dynamic = true;
-    for (index, char) in code.chars().enumerate() {
+    let content = code.chars().collect::<Vec<_>>();
+
+    for i in 0..content.len() {
+        let char = content[i];
         if char == '\n' || char == '\r' {
             continue;
         }
 
         let letter_char = &char.to_string();
-        let last_char = &ellie_core::utils::get_letter(code.to_string(), index, false).to_owned();
-        let next_char = &ellie_core::utils::get_letter(code.to_string(), index, true).to_owned();
+        let last_char = if i == 0 {
+            "".to_string()
+        } else {
+            content[i - 1].to_string()
+        };
+        let next_char = if i + 1 > content.len() - 1 {
+            "".to_string()
+        } else {
+            content[i + 1].to_string()
+        };
         let itered = ellie_parser::processors::value_processor::collect_value(
             emulated_parser.clone(),
             &mut emulated_collector_data,

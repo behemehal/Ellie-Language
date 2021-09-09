@@ -13,7 +13,7 @@ use crate::syntax::{
     caller, class, condition, constructor, definers, enum_type, file_key, for_loop, function,
     getter, import, import_item, native_function, ret, setter, types, variable,
 };
-use ellie_core::{com, definite, defs, error, utils};
+use ellie_core::{com, definite, defs, error};
 
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
 pub struct Parsed {
@@ -268,14 +268,23 @@ where
     pub fn map(mut self) -> ParserResponse {
         let mut errors: Vec<error::Error> = Vec::new();
 
-        for (index, char) in self.code.clone().chars().enumerate() {
+        let content = self.code.chars().collect::<Vec<_>>();
+        for i in 0..content.len() {
+            let char = content[i];
             let letter_char = &char.to_string();
-            let last_char =
-                &utils::get_letter(self.code.clone().to_string(), index, false).to_string();
-            let next_char =
-                &utils::get_letter(self.code.clone().to_string(), index, true).to_string();
+            let last_char = if i == 0 {
+                "".to_string()
+            } else {
+                content[i - 1].to_string()
+            };
+            let next_char = if i + 1 > content.len() - 1 {
+                "".to_string()
+            } else {
+                content[i + 1].to_string()
+            };
 
             if self.pos.1 == 1 {
+                /*
                 (self.emit_message)(ellie_core::com::Message {
                     id: ellie_core::utils::generate_hash(),
                     message_type: ellie_core::com::MessageType::ParserLineExec,
@@ -283,6 +292,7 @@ where
                     from_chain: None,
                     message_data: alloc::format!("{:?}", self.pos.clone()),
                 });
+                */
             }
 
             if char != '\n'
@@ -314,7 +324,7 @@ where
         }
 
         if self.current != Collecting::None || !self.keyword_catch.trim().is_empty() {
-            std::println!("{:#?}", self.current);
+            std::println!("{:#?} {:#?}", self.current, self.keyword_catch);
             errors.push(error::Error {
                 path: self.options.path.clone(),
                 scope: "definer_processor".to_string(),
@@ -328,6 +338,7 @@ where
                 pos: self.keyword_pos,
             });
         }
+        /*
         (self.emit_message)(ellie_core::com::Message {
             id: ellie_core::utils::generate_hash(),
             message_type: ellie_core::com::MessageType::ParseComplete,
@@ -335,6 +346,7 @@ where
             from_chain: None,
             message_data: alloc::format!(""),
         });
+        */
         ParserResponse {
             parsed: Parsed {
                 name: self.scope.scope_name,

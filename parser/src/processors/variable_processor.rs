@@ -377,12 +377,9 @@ pub fn collect_variable_value<F>(
                     if variable_data.data.dynamic {
                         #[cfg(feature = "std")]
                         std::println!(
-                                "[ParserError]: This is a error please report at: https://github.com/behemehal/Ellie-Language/issues/new?title=ParserError-{}+Dynamic+Variable+Not+Handled+Correctly&labels=bug,parser",
+                                "\u{001b}[31m[ParserError]\u{001b}[0m: This is a error please report at: https://github.com/behemehal/Ellie-Language/issues/new?title=ParserError-{}+Dynamic+Variable+Not+Handled+Correctly&labels=bug,parser&template=bug_report.md",
                                 variable_data.data.value.get_type(),
                             );
-
-                        #[cfg(feature = "std")]
-                        std::process::exit(1);
                     }
 
                     if variable_data.data.rtype.raw_name() == "nullAble" {
@@ -426,9 +423,6 @@ pub fn collect_variable_value<F>(
                             });
                         }
                     } else {
-                        std::println!(
-                            "[ParserWarning] Working blind, type checks are not type safe ()"
-                        );
                         errors.push(error::Error {
                             path: parser.options.path.clone(),
                             scope: parser.scope.scope_name.clone(),

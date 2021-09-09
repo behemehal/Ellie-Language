@@ -151,6 +151,13 @@ pub fn collect_array<F>(
                             });
                         }
                     }
+                } else {
+                    //let mut available_types: Vec<String> = data.data.collective.into_iter().map(|x| x.value.get_type()).collect();
+                    //if available_types.dedup().len() == 1 {
+                    //    itered_data.data.rtype = definers::DefinerCollecting::Array(
+                    //        rtype: definers::DefinerCollecting::Array()
+                    //    );
+                    //}
                 }
 
                 data.comma = true;

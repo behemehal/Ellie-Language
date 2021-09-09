@@ -15,13 +15,23 @@ fn main() {
     collective(string, dyn)
     ";
 
-    for (index, char) in code.chars().enumerate() {
+    let content = code.chars().collect::<Vec<_>>();
+    for i in 0..content.len() {
+        let char = content[i];
         if char == '\n' || char == '\r' {
             continue;
         }
         let letter_char = &char.to_string();
-        let last_char = &ellie_core::utils::get_letter(code.to_string(), index, false).to_owned();
-        let next_char = &ellie_core::utils::get_letter(code.to_string(), index, true).to_owned();
+        let last_char = if i == 0 {
+            "".to_string()
+        } else {
+            content[i - 1].to_string()
+        };
+        let next_char = if i + 1 > content.len() - 1 {
+            "".to_string()
+        } else {
+            content[i + 1].to_string()
+        };
         ellie_parser::processors::definer_processor::collect_definer(
             emulated_parser.clone(),
             &mut emulated_collector_data,
@@ -37,9 +47,13 @@ fn main() {
             "{}{}Error[{:#04x}]{} - {}{}{}: {} |  {}-{}",
             format!(
                 "{}[{}]{} ",
-                ellie_engine::terminal_colors::get_color(ellie_engine::terminal_colors::Colors::Yellow),
+                ellie_engine::terminal_colors::get_color(
+                    ellie_engine::terminal_colors::Colors::Yellow
+                ),
                 error.debug_message,
-                ellie_engine::terminal_colors::get_color(ellie_engine::terminal_colors::Colors::Reset)
+                ellie_engine::terminal_colors::get_color(
+                    ellie_engine::terminal_colors::Colors::Reset
+                )
             ),
             ellie_engine::terminal_colors::get_color(ellie_engine::terminal_colors::Colors::Red),
             &error.code,

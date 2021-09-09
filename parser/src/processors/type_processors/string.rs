@@ -47,6 +47,7 @@ pub fn collect_string<F>(
                     },
                 });
             } else {
+                string_data.data.value_pos.range_end = parser.pos.clone().pop_char(1);
                 string_data.data.comma_end_pos = defs::Cursor {
                     range_start: parser.pos.clone().pop_char(1),
                     range_end: parser.pos,
@@ -57,7 +58,6 @@ pub fn collect_string<F>(
             if string_data.data.value.is_empty() {
                 string_data.data.value_pos.range_start = parser.pos;
             }
-            string_data.data.value_pos.range_end = parser.pos;
             string_data.data.value += letter_char;
         } else if letter_char == "." {
             itered_data.data.value =

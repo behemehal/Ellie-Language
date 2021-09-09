@@ -21,16 +21,23 @@ mod variable_value_tests {
 
         ";
 
-        for (index, char) in code.chars().enumerate() {
+        let content = code.chars().collect::<Vec<_>>();
+        for i in 0..content.len() {
+            let char = content[i];
+            let letter_char = &char.to_string();
+            let last_char = if i == 0 {
+                "".to_string()
+            } else {
+                content[i - 1].to_string()
+            };
+            let next_char = if i + 1 > content.len() - 1 {
+                "".to_string()
+            } else {
+                content[i + 1].to_string()
+            };
             if char == '\n' || char == '\r' {
                 continue;
             }
-
-            let letter_char = &char.to_string();
-            let last_char =
-                &ellie_core::utils::get_letter(code.to_string(), index, false).to_owned();
-            let next_char =
-                &ellie_core::utils::get_letter(code.to_string(), index, true).to_owned();
             let itered = ellie_parser::processors::value_processor::collect_value(
                 emulated_parser.clone(),
                 &mut emulated_collector_data,
@@ -71,16 +78,23 @@ mod variable_value_tests {
 
         ";
 
-        for (index, char) in code.chars().enumerate() {
+        let content = code.chars().collect::<Vec<_>>();
+        for i in 0..content.len() {
+            let char = content[i];
+            let letter_char = &char.to_string();
+            let last_char = if i == 0 {
+                "".to_string()
+            } else {
+                content[i - 1].to_string()
+            };
+            let next_char = if i + 1 > content.len() - 1 {
+                "".to_string()
+            } else {
+                content[i + 1].to_string()
+            };
             if char == '\n' || char == '\r' {
                 continue;
             }
-
-            let letter_char = &char.to_string();
-            let last_char =
-                &ellie_core::utils::get_letter(code.to_string(), index, false).to_owned();
-            let next_char =
-                &ellie_core::utils::get_letter(code.to_string(), index, true).to_owned();
             let itered = ellie_parser::processors::value_processor::collect_value(
                 emulated_parser.clone(),
                 &mut emulated_collector_data,
@@ -120,16 +134,23 @@ mod variable_value_tests {
 
         ";
 
-        for (index, char) in code.chars().enumerate() {
+        let content = code.chars().collect::<Vec<_>>();
+        for i in 0..content.len() {
+            let char = content[i];
+            let letter_char = &char.to_string();
+            let last_char = if i == 0 {
+                "".to_string()
+            } else {
+                content[i - 1].to_string()
+            };
+            let next_char = if i + 1 > content.len() - 1 {
+                "".to_string()
+            } else {
+                content[i + 1].to_string()
+            };
             if char == '\n' || char == '\r' {
                 continue;
             }
-
-            let letter_char = &char.to_string();
-            let last_char =
-                &ellie_core::utils::get_letter(code.to_string(), index, false).to_owned();
-            let next_char =
-                &ellie_core::utils::get_letter(code.to_string(), index, true).to_owned();
             let itered = ellie_parser::processors::value_processor::collect_value(
                 emulated_parser.clone(),
                 &mut emulated_collector_data,
@@ -167,16 +188,24 @@ mod variable_value_tests {
             test + test_second
         ";
 
-        for (index, char) in code.chars().enumerate() {
+        let content = code.chars().collect::<Vec<_>>();
+        for i in 0..content.len() {
+            let char = content[i];
+            let letter_char = &char.to_string();
+            let last_char = if i == 0 {
+                "".to_string()
+            } else {
+                content[i - 1].to_string()
+            };
+            let next_char = if i + 1 > content.len() - 1 {
+                "".to_string()
+            } else {
+                content[i + 1].to_string()
+            };
             if char == '\n' || char == '\r' {
                 continue;
             }
 
-            let letter_char = &char.to_string();
-            let last_char =
-                &ellie_core::utils::get_letter(code.to_string(), index, false).to_owned();
-            let next_char =
-                &ellie_core::utils::get_letter(code.to_string(), index, true).to_owned();
             let itered = ellie_parser::processors::value_processor::collect_value(
                 emulated_parser.clone(),
                 &mut emulated_collector_data,
