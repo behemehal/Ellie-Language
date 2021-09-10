@@ -19,7 +19,8 @@ pub mod reference_type;
 pub mod string_type;
 pub mod variable_type;
 
-use alloc::string::{String, ToString};
+use crate::alloc::borrow::ToOwned;
+use alloc::string::String;
 use ellie_core::definite;
 use enum_as_inner::EnumAsInner;
 use serde::{Deserialize, Serialize};
@@ -70,23 +71,23 @@ impl Types {
 
     pub fn get_type(&self) -> String {
         match *self {
-            Types::Integer(_) => "int".to_string(),
-            Types::Float(_) => "float".to_string(),
-            Types::Bool(_) => "bool".to_string(),
-            Types::String(_) => "string".to_string(),
-            Types::Char(_) => "char".to_string(),
-            Types::Collective(_) => "collective".to_string(),
-            Types::Reference(_) => "reference".to_string(),
-            Types::Operator(_) => "operator".to_string(),
-            Types::Array(_) => "array".to_string(),
-            Types::Cloak(_) => "cloak".to_string(),
-            Types::ArrowFunction(_) => "arrowFunction".to_string(),
-            Types::FunctionCall(_) => "functionCall".to_string(),
-            Types::ConstructedClass(_) => "classCall".to_string(),
-            Types::VariableType(_) => "variable".to_string(),
-            Types::Negative(_) => "negative".to_string(),
-            Types::Void => "void".to_string(),
-            Types::Null => "null".to_string(),
+            Types::Integer(_) => "int".to_owned(),
+            Types::Float(_) => "float".to_owned(),
+            Types::Bool(_) => "bool".to_owned(),
+            Types::String(_) => "string".to_owned(),
+            Types::Char(_) => "char".to_owned(),
+            Types::Collective(_) => "collective".to_owned(),
+            Types::Reference(_) => "reference".to_owned(),
+            Types::Operator(_) => "operator".to_owned(),
+            Types::Array(_) => "array".to_owned(),
+            Types::Cloak(_) => "cloak".to_owned(),
+            Types::ArrowFunction(_) => "arrowFunction".to_owned(),
+            Types::FunctionCall(_) => "functionCall".to_owned(),
+            Types::ConstructedClass(_) => "classCall".to_owned(),
+            Types::VariableType(_) => "variable".to_owned(),
+            Types::Negative(_) => "negative".to_owned(),
+            Types::Void => "void".to_owned(),
+            Types::Null => "null".to_owned(),
         }
     }
 

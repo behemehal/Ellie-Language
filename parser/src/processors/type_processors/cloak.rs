@@ -1,20 +1,20 @@
+use crate::alloc::borrow::ToOwned;
 use crate::parser;
 use crate::processors::{type_processors, value_processor};
 use crate::syntax::{definers, types, variable};
-use ellie_core::{defs, error};
-
 use alloc::boxed::Box;
-use alloc::string::{String, ToString};
+use alloc::string::ToString;
 use alloc::vec;
 use alloc::vec::Vec;
+use ellie_core::{defs, error};
 
 pub fn collect_cloak<F>(
     parser: parser::Parser<F>,
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
-    next_char: String,
-    last_char: String,
+    next_char: &str,
+    last_char: &str,
 ) where
     F: FnMut(ellie_core::com::Message) + Clone + Sized,
 {
@@ -30,15 +30,15 @@ pub fn collect_cloak<F>(
             if !cloak_data.comma && last_entry != 0 {
                 errors.push(error::Error {
                     path: parser.options.path.clone(),
-                    scope: "cloak_processor".to_string(),
-                    debug_message: "475b7b33af65e9dd8cc2dc7b11b83932".to_string(),
+                    scope: "cloak_processor".to_owned(),
+                    debug_message: "475b7b33af65e9dd8cc2dc7b11b83932".to_owned(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
                     builded_message: error::Error::build(
                         error::errorList::error_s1.message.clone(),
                         vec![error::ErrorBuildField {
-                            key: "token".to_string(),
+                            key: "token".to_owned(),
                             value: letter_char.to_string(),
                         }],
                     ),
@@ -80,15 +80,15 @@ pub fn collect_cloak<F>(
             if cloak_data.complete {
                 errors.push(error::Error {
                     path: parser.options.path.clone(),
-                    scope: "cloak_processor".to_string(),
-                    debug_message: "9a4c2d33662fbfcf01d9a193a0b8599c".to_string(),
+                    scope: "cloak_processor".to_owned(),
+                    debug_message: "9a4c2d33662fbfcf01d9a193a0b8599c".to_owned(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
                     builded_message: error::Error::build(
                         error::errorList::error_s1.message.clone(),
                         vec![error::ErrorBuildField {
-                            key: "token".to_string(),
+                            key: "token".to_owned(),
                             value: letter_char.to_string(),
                         }],
                     ),
@@ -100,15 +100,15 @@ pub fn collect_cloak<F>(
             } else if cloak_data.comma {
                 errors.push(error::Error {
                     path: parser.options.path.clone(),
-                    scope: "cloak_processor".to_string(),
-                    debug_message: "f97a37d6420f18d795ed119b076566b4".to_string(),
+                    scope: "cloak_processor".to_owned(),
+                    debug_message: "f97a37d6420f18d795ed119b076566b4".to_owned(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
                     builded_message: error::Error::build(
                         error::errorList::error_s1.message.clone(),
                         vec![error::ErrorBuildField {
-                            key: "token".to_string(),
+                            key: "token".to_owned(),
                             value: letter_char.to_string(),
                         }],
                     ),
@@ -138,7 +138,7 @@ pub fn collect_cloak<F>(
                             errors.push(error::Error {
                                 path: parser.options.path.clone(),
                                 scope: parser.scope.scope_name.clone(),
-                                debug_message: "61629bcde0c1dbe08d1f789ed8c4d43f".to_string(),
+                                debug_message: "61629bcde0c1dbe08d1f789ed8c4d43f".to_owned(),
                                 title: error::errorList::error_s3.title.clone(),
                                 code: error::errorList::error_s3.code,
                                 message: error::errorList::error_s3.message.clone(),
@@ -146,11 +146,11 @@ pub fn collect_cloak<F>(
                                     error::errorList::error_s3.message.clone(),
                                     vec![
                                         error::ErrorBuildField {
-                                            key: "token1".to_string(),
+                                            key: "token1".to_owned(),
                                             value: cloak_defining.rtype[last_entry - 1].raw_name(),
                                         },
                                         error::ErrorBuildField {
-                                            key: "token2".to_string(),
+                                            key: "token2".to_owned(),
                                             value: entry_type,
                                         },
                                     ],
@@ -172,15 +172,15 @@ pub fn collect_cloak<F>(
             if cloak_data.comma {
                 errors.push(error::Error {
                     path: parser.options.path.clone(),
-                    scope: "cloak_processor".to_string(),
-                    debug_message: "4868d96122d5692c6dfb807226ce3c07".to_string(),
+                    scope: "cloak_processor".to_owned(),
+                    debug_message: "4868d96122d5692c6dfb807226ce3c07".to_owned(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
                     builded_message: error::Error::build(
                         error::errorList::error_s1.message.clone(),
                         vec![error::ErrorBuildField {
-                            key: "token".to_string(),
+                            key: "token".to_owned(),
                             value: letter_char.to_string(),
                         }],
                     ),
@@ -192,15 +192,15 @@ pub fn collect_cloak<F>(
             } else if cloak_data.complete {
                 errors.push(error::Error {
                     path: parser.options.path.clone(),
-                    scope: "cloak_processor".to_string(),
-                    debug_message: "860f8ba1c0099cd2ef852655cedb56f8".to_string(),
+                    scope: "cloak_processor".to_owned(),
+                    debug_message: "860f8ba1c0099cd2ef852655cedb56f8".to_owned(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
                     builded_message: error::Error::build(
                         error::errorList::error_s1.message.clone(),
                         vec![error::ErrorBuildField {
-                            key: "token".to_string(),
+                            key: "token".to_owned(),
                             value: letter_char.to_string(),
                         }],
                     ),
@@ -236,7 +236,7 @@ pub fn collect_cloak<F>(
                             errors.push(error::Error {
                                 path: parser.options.path.clone(),
                                 scope: parser.scope.scope_name.clone(),
-                                debug_message: "b796cc238354e7fa61b70d90728737c2".to_string(),
+                                debug_message: "b796cc238354e7fa61b70d90728737c2".to_owned(),
                                 title: error::errorList::error_s3.title.clone(),
                                 code: error::errorList::error_s3.code,
                                 message: error::errorList::error_s3.message.clone(),
@@ -244,11 +244,11 @@ pub fn collect_cloak<F>(
                                     error::errorList::error_s3.message.clone(),
                                     vec![
                                         error::ErrorBuildField {
-                                            key: "token1".to_string(),
+                                            key: "token1".to_owned(),
                                             value: cloak_defining.rtype[last_entry - 1].raw_name(),
                                         },
                                         error::ErrorBuildField {
-                                            key: "token2".to_string(),
+                                            key: "token2".to_owned(),
                                             value: entry_type,
                                         },
                                     ],
@@ -403,22 +403,22 @@ pub fn collect_cloak<F>(
                 };
             }
 
-            let itered_cloak_vector = Box::new(value_processor::collect_value(
+            value_processor::collect_value(
                 parser.clone(),
                 &mut will_be_itered,
+                errors,
                 letter_char,
                 next_char,
                 last_char,
-            ));
+            );
 
-            if let types::Types::Cloak(ref acloak_data) = itered_cloak_vector.itered_data.data.value
-            {
+            if let types::Types::Cloak(ref acloak_data) = will_be_itered.data.value {
                 if acloak_data.complete {
                     cloak_data.child_start = false;
                 }
             }
 
-            let itered_entry = match itered_cloak_vector.itered_data.data.value {
+            let itered_entry = match will_be_itered.data.value {
                 types::Types::Integer(match_cloak_data) => types::cloak_type::CloakEntry {
                     value_complete: match_cloak_data.complete,
                     value: Box::new(types::Types::Integer(match_cloak_data)),
@@ -732,10 +732,6 @@ pub fn collect_cloak<F>(
                 },
             };
 
-            if !itered_cloak_vector.errors.is_empty() {
-                errors.extend(itered_cloak_vector.errors);
-            }
-
             if cloak_data.data.collective.is_empty() {
                 cloak_data.data.collective.push(itered_entry);
                 last_entry = 1;
@@ -751,8 +747,8 @@ pub fn collect_cloak<F>(
                 if cloak_def.rtype.len() < cloak_data.data.collective.len() && letter_char != " " {
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
-                        scope: "cloak_processor".to_string(),
-                        debug_message: "39183247e141e0606b72340a6a8ff49f".to_string(),
+                        scope: "cloak_processor".to_owned(),
+                        debug_message: "39183247e141e0606b72340a6a8ff49f".to_owned(),
                         title: error::errorList::error_s19.title.clone(),
                         code: error::errorList::error_s19.code,
                         message: error::errorList::error_s19.message.clone(),
@@ -760,11 +756,11 @@ pub fn collect_cloak<F>(
                             error::errorList::error_s19.message.clone(),
                             vec![
                                 error::ErrorBuildField {
-                                    key: "token".to_string(),
+                                    key: "token".to_owned(),
                                     value: cloak_def.rtype.len().to_string(),
                                 },
                                 error::ErrorBuildField {
-                                    key: "token2".to_string(),
+                                    key: "token2".to_owned(),
                                     value: cloak_data.data.collective.len().to_string(),
                                 },
                             ],

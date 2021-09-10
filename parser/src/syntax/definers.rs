@@ -1,3 +1,4 @@
+use crate::alloc::borrow::ToOwned;
 use alloc::boxed::Box;
 use alloc::format;
 use alloc::string::{String, ToString};
@@ -294,34 +295,32 @@ impl DefinerCollecting {
 
     pub fn raw_name(&self) -> String {
         match self {
-            DefinerCollecting::Array(_) => "array".to_string(),
-            DefinerCollecting::GrowableArray(_) => "dynamicArray".to_string(),
-            DefinerCollecting::Nullable(_) => "nullAble".to_string(),
+            DefinerCollecting::Array(_) => "array".to_owned(),
+            DefinerCollecting::GrowableArray(_) => "growableArray".to_owned(),
+            DefinerCollecting::Nullable(_) => "nullAble".to_owned(),
             DefinerCollecting::Generic(data) => data.rtype.clone(),
-            DefinerCollecting::Function(_) => "function".to_string(),
-            DefinerCollecting::Cloak(_) => "cloak".to_string(),
-            DefinerCollecting::Collective(_) => "collective".to_string(),
-            DefinerCollecting::Dynamic => "dyn".to_string(),
+            DefinerCollecting::Function(_) => "function".to_owned(),
+            DefinerCollecting::Cloak(_) => "cloak".to_owned(),
+            DefinerCollecting::Collective(_) => "collective".to_owned(),
+            DefinerCollecting::Dynamic => "dyn".to_owned(),
         }
     }
 
     pub fn raw_name_with_extensions(&self) -> String {
         match self {
             DefinerCollecting::Array(e) => {
-                "array(".to_string()
+                "array(".to_owned()
                     + &e.len.raw.to_string()
-                    + &",".to_string()
+                    + &",".to_owned()
                     + &*e.rtype.raw_name_with_extensions()
-                    + &")".to_string()
+                    + &")".to_owned()
             }
             DefinerCollecting::GrowableArray(e) => {
-                "dynamicArray(".to_string()
+                "growableArray(".to_owned()
                     + &*e.rtype.raw_name_with_extensions().to_string()
-                    + &")".to_string()
+                    + &")".to_owned()
             }
-            DefinerCollecting::Nullable(e) => {
-                "_".to_string() + &*e.value.raw_name_with_extensions()
-            }
+            DefinerCollecting::Nullable(e) => "_".to_owned() + &*e.value.raw_name_with_extensions(),
             DefinerCollecting::Generic(data) => data.rtype.clone(),
             DefinerCollecting::Function(e) => {
                 let mut params = String::new();
@@ -329,9 +328,9 @@ impl DefinerCollecting {
                     params += &format!("{},", i.raw_name_with_extensions().to_string()).to_string();
                 }
 
-                "fn(".to_string()
+                "fn(".to_owned()
                     + &params
-                    + &")::".to_string()
+                    + &")::".to_owned()
                     + &*e.returning.raw_name_with_extensions().to_string()
             }
             DefinerCollecting::Cloak(e) => {
@@ -339,14 +338,14 @@ impl DefinerCollecting {
                 for i in &e.rtype {
                     params += &format!("{},", i.raw_name_with_extensions()).to_string();
                 }
-                "fn(".to_string() + &params + &")".to_string()
+                "fn(".to_owned() + &params + &")".to_owned()
             }
             DefinerCollecting::Collective(e) => format!(
                 "collective({}, {})",
                 e.key.raw_name_with_extensions(),
                 e.value.raw_name_with_extensions()
             ),
-            DefinerCollecting::Dynamic => "dyn".to_string(),
+            DefinerCollecting::Dynamic => "dyn".to_owned(),
         }
     }
 }

@@ -1,19 +1,18 @@
+use crate::alloc::borrow::ToOwned;
 use crate::parser;
 use crate::processors::type_processors;
 use crate::syntax::{definers, types, variable};
-use ellie_core::{defs, error};
-
 use alloc::boxed::Box;
-use alloc::string::{String, ToString};
 use alloc::vec::Vec;
+use ellie_core::{defs, error};
 
 pub fn collect_null<F>(
     parser: parser::Parser<F>,
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
-    next_char: String,
-    last_char: String,
+    next_char: &str,
+    last_char: &str,
 ) where
     F: FnMut(ellie_core::com::Message) + Clone + Sized,
 {
@@ -22,17 +21,11 @@ pub fn collect_null<F>(
             if letter_char == "." {
                 itered_data.data.value =
                     types::Types::Float(types::float_type::FloatTypeCollector {
-                        base: "0".to_string(),
+                        base: "0".to_owned(),
                         at_point: true,
                         ..Default::default()
                     });
             } else if letter_char == "\"" {
-                if itered_data.data.dynamic {
-                    itered_data.data.rtype =
-                        definers::DefinerCollecting::Generic(definers::GenericType {
-                            rtype: "string".to_string(),
-                        });
-                }
                 itered_data.data.value =
                     types::Types::String(types::string_type::StringTypeCollector {
                         data: types::string_type::StringType {
@@ -45,12 +38,6 @@ pub fn collect_null<F>(
                         ..Default::default()
                     });
             } else if letter_char == "'" {
-                if itered_data.data.dynamic {
-                    itered_data.data.rtype =
-                        definers::DefinerCollecting::Generic(definers::GenericType {
-                            rtype: "char".to_string(),
-                        });
-                }
                 itered_data.data.value = types::Types::Char(types::char_type::CharType::default());
             } else if (itered_data.raw_value.clone() + letter_char)
                 .parse::<i64>()

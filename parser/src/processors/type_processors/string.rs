@@ -1,10 +1,11 @@
+use crate::alloc::borrow::ToOwned;
 use crate::parser;
 use crate::processors::type_processors;
 use crate::syntax::{definers, types, variable};
 use ellie_core::{defs, error};
 
 use alloc::boxed::Box;
-use alloc::string::{String, ToString};
+use alloc::string::ToString;
 use alloc::vec;
 use alloc::vec::Vec;
 
@@ -13,15 +14,15 @@ pub fn collect_string<F>(
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
-    next_char: String,
-    last_char: String,
+    next_char: &str,
+    last_char: &str,
 ) where
     F: FnMut(ellie_core::com::Message) + core::clone::Clone,
 {
     if let types::Types::String(ref mut string_data) = itered_data.data.value {
         if itered_data.data.dynamic {
             itered_data.data.rtype = definers::DefinerCollecting::Generic(definers::GenericType {
-                rtype: "string".to_string(),
+                rtype: "string".to_owned(),
             });
         }
 
@@ -29,15 +30,15 @@ pub fn collect_string<F>(
             if string_data.complete {
                 errors.push(error::Error {
                     path: parser.options.path.clone(),
-                    scope: "string_processor".to_string(),
-                    debug_message: "a460eb7943b47caf6382c7669d8e1b5a".to_string(),
+                    scope: "string_processor".to_owned(),
+                    debug_message: "a460eb7943b47caf6382c7669d8e1b5a".to_owned(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
                     builded_message: error::Error::build(
                         error::errorList::error_s1.message.clone(),
                         vec![error::ErrorBuildField {
-                            key: "token".to_string(),
+                            key: "token".to_owned(),
                             value: letter_char.to_string(),
                         }],
                     ),
@@ -47,6 +48,7 @@ pub fn collect_string<F>(
                     },
                 });
             } else {
+                string_data.data.value_pos.range_end = parser.pos.clone().pop_char(1);
                 string_data.data.comma_end_pos = defs::Cursor {
                     range_start: parser.pos.clone().pop_char(1),
                     range_end: parser.pos,
@@ -57,8 +59,7 @@ pub fn collect_string<F>(
             if string_data.data.value.is_empty() {
                 string_data.data.value_pos.range_start = parser.pos;
             }
-            string_data.data.value_pos.range_end = parser.pos;
-            string_data.data.value += letter_char;
+            string_data.data.value.push_str(letter_char);
         } else if letter_char == "." {
             itered_data.data.value =
                 types::Types::Reference(types::reference_type::ReferenceTypeCollector {
@@ -139,15 +140,15 @@ pub fn collect_string<F>(
         } else if letter_char != " " {
             errors.push(error::Error {
                 path: parser.options.path.clone(),
-                scope: "string_processor".to_string(),
-                debug_message: "5eaa78a7e35034bcba933911de7dbeb6".to_string(),
+                scope: "string_processor".to_owned(),
+                debug_message: "5eaa78a7e35034bcba933911de7dbeb6".to_owned(),
                 title: error::errorList::error_s1.title.clone(),
                 code: error::errorList::error_s1.code,
                 message: error::errorList::error_s1.message.clone(),
                 builded_message: error::Error::build(
                     error::errorList::error_s1.message.clone(),
                     vec![error::ErrorBuildField {
-                        key: "token".to_string(),
+                        key: "token".to_owned(),
                         value: letter_char.to_string(),
                     }],
                 ),

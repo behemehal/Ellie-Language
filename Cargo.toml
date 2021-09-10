@@ -5,6 +5,7 @@ version = "3.5.0"
 authors = ["Ahmetcan Aksu <ahmetcanaksu@behemehal.net>"]
 edition = "2018"
 license-file = "LICENSE"
+default-run = "ellie"
 
 [dependencies]
 lazy_static = { version = "1.4.0", features = ["spin_no_std"] }

@@ -1,18 +1,15 @@
 use crate::parser;
 use crate::processors::value_processor;
 use crate::syntax::variable;
-use ellie_core::error;
-
-use alloc::boxed::Box;
-use alloc::string::String;
 use alloc::vec::Vec;
+use ellie_core::error;
 
 pub fn collect_ret<F>(
     parser: &mut parser::Parser<F>,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
-    next_char: String,
-    last_char: String,
+    next_char: &str,
+    last_char: &str,
 ) where
     F: FnMut(ellie_core::com::Message) + Clone + Sized,
 {
@@ -30,18 +27,16 @@ pub fn collect_ret<F>(
                 },
                 ..variable::VariableCollector::default()
             };
-            let itered_ret_vector = Box::new(value_processor::collect_value(
+            value_processor::collect_value(
                 parser_clone.clone(),
                 &mut will_be_itered,
+                errors,
                 letter_char,
                 next_char,
                 last_char,
-            ));
-            if !itered_ret_vector.errors.is_empty() {
-                errors.extend(itered_ret_vector.errors);
-            }
+            );
 
-            data.value = itered_ret_vector.itered_data.data.value;
+            data.value = will_be_itered.data.value;
         }
     }
 }

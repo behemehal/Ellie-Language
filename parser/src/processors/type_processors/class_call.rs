@@ -13,8 +13,8 @@ pub fn collect_class_call<F,E>(
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
-    next_char: String,
-    last_char: String,
+    next_char: &str,
+    last_char: &str,
 ) where
         F: FnMut(ellie_core::com::Message) + Clone + Sized,
     
@@ -34,15 +34,15 @@ pub fn collect_class_call<F,E>(
             {
                                 errors.push(error::Error {
                     path: parser.options.path.clone(),
-                    scope: "function_call_processor".to_string(),
-                    debug_message: "92dad599da8f896b7f972942e8337c06".to_string(),
+                    scope: "function_call_processor".to_owned(),
+                    debug_message: "92dad599da8f896b7f972942e8337c06".to_owned(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
                     builded_message: error::Error::build(
                         error::errorList::error_s1.message.clone(),
                         vec![error::ErrorBuildField {
-                            key: "token".to_string(),
+                            key: "token".to_owned(),
                             value: letter_char.to_string(),
                         }],
                     ),
@@ -70,15 +70,15 @@ pub fn collect_class_call<F,E>(
                 if class_call_data.data.name.is_empty() {
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
-                        scope: "function_call_processor".to_string(),
-                        debug_message: "c9725ab18b112bbe71e3d2ff2ee60c0c".to_string(),
+                        scope: "function_call_processor".to_owned(),
+                        debug_message: "c9725ab18b112bbe71e3d2ff2ee60c0c".to_owned(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
                         builded_message: error::Error::build(
                             error::errorList::error_s1.message.clone(),
                             vec![error::ErrorBuildField {
-                                key: "token".to_string(),
+                                key: "token".to_owned(),
                                 value: letter_char.to_string(),
                             }],
                         ),
@@ -93,15 +93,15 @@ pub fn collect_class_call<F,E>(
             } else if letter_char != " " {
                                 errors.push(error::Error {
                     path: parser.options.path.clone(),
-                    scope: "function_call_processor".to_string(),
-                    debug_message: "0d27b8f6b7a72f5bb39e259bdfb00f7a".to_string(),
+                    scope: "function_call_processor".to_owned(),
+                    debug_message: "0d27b8f6b7a72f5bb39e259bdfb00f7a".to_owned(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
                     builded_message: error::Error::build(
                         error::errorList::error_s1.message.clone(),
                         vec![error::ErrorBuildField {
-                            key: "token".to_string(),
+                            key: "token".to_owned(),
                             value: letter_char.to_string(),
                         }],
                     ),
@@ -122,15 +122,15 @@ pub fn collect_class_call<F,E>(
                 if class_call_data.complete {
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
-                        scope: "function_call_processor".to_string(),
-                        debug_message: "a44a0320412d8a18b5c5ab62c2b4e6f9".to_string(),
+                        scope: "function_call_processor".to_owned(),
+                        debug_message: "a44a0320412d8a18b5c5ab62c2b4e6f9".to_owned(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
                         builded_message: error::Error::build(
                             error::errorList::error_s1.message.clone(),
                             vec![error::ErrorBuildField {
-                                key: "token".to_string(),
+                                key: "token".to_owned(),
                                 value: letter_char.to_string(),
                             }],
                         ),
@@ -142,15 +142,15 @@ pub fn collect_class_call<F,E>(
                 } else if class_call_data.comma {
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
-                        scope: "function_call_processor".to_string(),
-                        debug_message: "260f4d37ef5e555b1c13178932dce908".to_string(),
+                        scope: "function_call_processor".to_owned(),
+                        debug_message: "260f4d37ef5e555b1c13178932dce908".to_owned(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
                         builded_message: error::Error::build(
                             error::errorList::error_s1.message.clone(),
                             vec![error::ErrorBuildField {
-                                key: "token".to_string(),
+                                key: "token".to_owned(),
                                 value: letter_char.to_string(),
                             }],
                         ),

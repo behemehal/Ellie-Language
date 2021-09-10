@@ -1,18 +1,16 @@
 use crate::parser;
 use crate::processors;
 use crate::syntax::condition;
-use ellie_core::error;
-
 use alloc::boxed::Box;
-use alloc::string::{String, ToString};
 use alloc::vec::Vec;
+use ellie_core::error;
 
 pub fn collect_condition<F>(
     parser: &mut parser::Parser<F>,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
-    next_char: String,
-    last_char: String,
+    next_char: &str,
+    last_char: &str,
 ) where
     F: FnMut(ellie_core::com::Message) + Clone + Sized,
 {
@@ -51,17 +49,14 @@ pub fn collect_condition<F>(
                 condition_data.data.chains[chain_length].condition =
                     Box::new(condition_data.cloak_itered_data.data.value.clone());
             } else {
-                let collected = processors::value_processor::collect_value(
+                processors::value_processor::collect_value(
                     parser_clone,
                     &mut condition_data.cloak_itered_data,
+                    errors,
                     letter_char,
                     next_char,
                     last_char,
                 );
-                for i in collected.errors {
-                    errors.push(i)
-                }
-                condition_data.cloak_itered_data = collected.itered_data;
             }
         } else if letter_char == "}" {
             if condition_data.inside_object_start {
@@ -88,12 +83,12 @@ pub fn collect_condition<F>(
                 parser.current = parser::Collecting::None;
             }
         } else {
-            let code_letter = if last_char.clone() == "\n" || last_char.clone() == "\r" {
-                last_char + letter_char //Make sure we get the lines correctly
-            } else {
-                letter_char.to_string()
-            };
-            condition_data.inside_code_string += &code_letter;
+            //let code_letter = if last_char.clone() == "\n" || last_char.clone() == "\r" {
+            //    last_char + letter_char //Make sure we get the lines correctly
+            //} else {
+            //    letter_char.to_string()
+            //};
+            //condition_data.inside_code_string += &code_letter;
         }
     }
 }

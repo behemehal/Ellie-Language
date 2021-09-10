@@ -1,7 +1,6 @@
 use crate::parser;
 use crate::processors;
 use crate::syntax::variable;
-use alloc::string::String;
 use alloc::vec::Vec;
 use ellie_core::error;
 
@@ -9,8 +8,8 @@ pub fn collect_caller<F>(
     parser: &mut parser::Parser<F>,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
-    next_char: String,
-    last_char: String,
+    next_char: &str,
+    last_char: &str,
 ) where
     F: FnMut(ellie_core::com::Message) + Clone + Sized,
 {
@@ -30,18 +29,15 @@ pub fn collect_caller<F>(
                 ..Default::default()
             };
 
-            let collected = processors::value_processor::collect_value(
+            processors::value_processor::collect_value(
                 parser_clone.clone(),
                 &mut emulated_collector_data,
+                errors,
                 letter_char,
                 next_char,
                 last_char,
             );
-
-            for i in collected.errors {
-                errors.push(i)
-            }
-            caller_data.value = collected.itered_data.data.value;
+            caller_data.value = emulated_collector_data.data.value;
         }
     }
 }

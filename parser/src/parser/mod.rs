@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 pub mod iterator;
 pub mod scope;
 
+use crate::alloc::borrow::ToOwned;
 use crate::alloc::boxed::Box;
 use crate::alloc::string::{String, ToString};
 use crate::alloc::vec;
@@ -13,7 +14,7 @@ use crate::syntax::{
     caller, class, condition, constructor, definers, enum_type, file_key, for_loop, function,
     getter, import, import_item, native_function, ret, setter, types, variable,
 };
-use ellie_core::{com, definite, defs, error, utils};
+use ellie_core::{com, definite, defs, error};
 
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
 pub struct Parsed {
@@ -192,7 +193,7 @@ pub enum ResolvedFileContent {
 
 impl Default for ResolvedFileContent {
     fn default() -> Self {
-        ResolvedFileContent::Raw("".to_string())
+        ResolvedFileContent::Raw("".to_owned())
     }
 }
 
@@ -268,12 +269,19 @@ where
     pub fn map(mut self) -> ParserResponse {
         let mut errors: Vec<error::Error> = Vec::new();
 
-        for (index, char) in self.code.clone().chars().enumerate() {
-            let letter_char = &char.to_string();
-            let last_char =
-                &utils::get_letter(self.code.clone().to_string(), index, false).to_string();
-            let next_char =
-                &utils::get_letter(self.code.clone().to_string(), index, true).to_string();
+        let code = self.code.clone();
+        let mut content = code.split("").collect::<Vec<_>>();
+        content.remove(0);
+        content.remove(content.len() - 1);
+        for i in 0..content.len() {
+            let char = content[i].chars().nth(0).unwrap_or('\0');
+            let letter_char = content[i];
+            let last_char = if i == 0 { "" } else { content[i - 1] };
+            let next_char = if i + 1 > content.len() - 1 {
+                ""
+            } else {
+                content[i + 1]
+            };
 
             if self.pos.1 == 1 {
                 (self.emit_message)(ellie_core::com::Message {
@@ -291,13 +299,7 @@ where
                 && (letter_char != "/" || next_char != "/")
                 && !self.on_line_comment
             {
-                iterator::iter(
-                    &mut self,
-                    &mut errors,
-                    letter_char,
-                    next_char.to_string(),
-                    last_char.to_string(),
-                );
+                iterator::iter(&mut self, &mut errors, letter_char, next_char, last_char);
                 self.pos.1 += 1;
             } else if letter_char == "/"
                 && next_char == "/"
@@ -314,11 +316,10 @@ where
         }
 
         if self.current != Collecting::None || !self.keyword_catch.trim().is_empty() {
-            std::println!("{:#?}", self.current);
             errors.push(error::Error {
                 path: self.options.path.clone(),
-                scope: "definer_processor".to_string(),
-                debug_message: "ae1e06a9f420f6bff3caa473400245fe".to_string(),
+                scope: "definer_processor".to_owned(),
+                debug_message: "ae1e06a9f420f6bff3caa473400245fe".to_owned(),
                 title: error::errorList::error_s26.title.clone(),
                 code: error::errorList::error_s26.code,
                 message: error::errorList::error_s26.message.clone(),
@@ -431,16 +432,16 @@ where
 
     pub fn resolve_variable(&self, target: types::Types) -> String {
         match target {
-            types::Types::Integer(_) => "int".to_string(),
-            types::Types::Float(_) => "float".to_string(),
-            types::Types::String(_) => "string".to_string(),
-            types::Types::Char(_) => "char".to_string(),
-            types::Types::Bool(_) => "bool".to_string(),
-            types::Types::Negative(_) => "bool".to_string(),
-            types::Types::Collective(_) => "collective".to_string(),
-            types::Types::Cloak(_) => "cloak".to_string(),
-            types::Types::Array(_) => "array".to_string(),
-            types::Types::Void => "void".to_string(),
+            types::Types::Integer(_) => "int".to_owned(),
+            types::Types::Float(_) => "float".to_owned(),
+            types::Types::String(_) => "string".to_owned(),
+            types::Types::Char(_) => "char".to_owned(),
+            types::Types::Bool(_) => "bool".to_owned(),
+            types::Types::Negative(_) => "bool".to_owned(),
+            types::Types::Collective(_) => "collective".to_owned(),
+            types::Types::Cloak(_) => "cloak".to_owned(),
+            types::Types::Array(_) => "array".to_owned(),
+            types::Types::Void => "void".to_owned(),
             types::Types::Reference(_) => {
                 //let q = self.resolve_reference_call(e);
 
@@ -450,34 +451,34 @@ where
                     if let NameCheckResponseType::Variable(v_data) = vr_found.found_type {
                         v_data.data.rtype.raw_name()
                     } else if let NameCheckResponseType::Function(_) = vr_found.found_type {
-                        "function".to_string()
+                        "function".to_owned()
                     } else if let NameCheckResponseType::Class(_) = vr_found.found_type {
-                        "class".to_string()
+                        "class".to_owned()
                     } else {
-                        "nen".to_string()
+                        "nen".to_owned()
                     }
                 } else {
-                    "nen".to_string()
+                    "nen".to_owned()
                 }
                 */
-                "nen".to_string()
+                "nen".to_owned()
             }
             types::Types::Operator(_) => {
                 #[cfg(feature = "std")]
                 std::println!("Not implemented for: types {:#?}", target);
-                "".to_string()
+                "".to_owned()
             }
 
-            types::Types::ArrowFunction(_) => "function".to_string(),
+            types::Types::ArrowFunction(_) => "function".to_owned(),
             types::Types::ConstructedClass(e) => {
                 if let Ok(resolved) = self.resolve_new_call(e) {
                     if let Collecting::Class(e) = resolved {
                         e.data.name
                     } else {
-                        "nen".to_string()
+                        "nen".to_owned()
                     }
                 } else {
-                    "nen".to_string()
+                    "nen".to_owned()
                 }
             }
             types::Types::FunctionCall(e) => {
@@ -490,13 +491,13 @@ where
                         if let definers::DefinerCollecting::Function(fn_type) = v_data.data.rtype {
                             fn_type.returning.raw_name()
                         } else {
-                            "nen".to_string()
+                            "nen".to_owned()
                         }
                     } else {
-                        "nen".to_string()
+                        "nen".to_owned()
                     }
                 } else {
-                    "nen".to_string()
+                    "nen".to_owned()
                 }
             }
             types::Types::VariableType(e) => {
@@ -506,17 +507,17 @@ where
                     if let NameCheckResponseType::Variable(v_data) = vr_found.found_type {
                         v_data.data.rtype.raw_name()
                     } else if let NameCheckResponseType::Function(_) = vr_found.found_type {
-                        "function".to_string()
+                        "function".to_owned()
                     } else if let NameCheckResponseType::Class(_) = vr_found.found_type {
-                        "class".to_string()
+                        "class".to_owned()
                     } else {
-                        "nen".to_string()
+                        "nen".to_owned()
                     }
                 } else {
-                    "nen".to_string()
+                    "nen".to_owned()
                 }
             }
-            types::Types::Null => "null".to_string(),
+            types::Types::Null => "null".to_owned(),
         }
     }
 
@@ -573,10 +574,10 @@ where
                                             _ => {
                                                 errors.push(error::Error {
                                                     path: self.options.path.clone(),
-                                                    scope: "function_call_processor".to_string(),
+                                                    scope: "function_call_processor".to_owned(),
                                                     debug_message:
                                                         "cd5e55a2e9b088bbd6f453d7593d6d94"
-                                                            .to_string(),
+                                                            .to_owned(),
                                                     title: error::errorList::error_s31
                                                         .title
                                                         .clone(),
@@ -587,7 +588,7 @@ where
                                                     builded_message: error::Error::build(
                                                         error::errorList::error_s31.message.clone(),
                                                         vec![error::ErrorBuildField {
-                                                            key: "token".to_string(),
+                                                            key: "token".to_owned(),
                                                             value: caller_data.raw_value.clone(),
                                                         }],
                                                     ),
@@ -599,16 +600,16 @@ where
                                     _ => {
                                         errors.push(error::Error {
                                             path: self.options.path.clone(),
-                                            scope: "function_call_processor".to_string(),
+                                            scope: "function_call_processor".to_owned(),
                                             debug_message: "19ea33c3bda3028a9591234081b2b35d"
-                                                .to_string(),
+                                                .to_owned(),
                                             title: error::errorList::error_s31.title.clone(),
                                             code: error::errorList::error_s31.code,
                                             message: error::errorList::error_s31.message.clone(),
                                             builded_message: error::Error::build(
                                                 error::errorList::error_s31.message.clone(),
                                                 vec![error::ErrorBuildField {
-                                                    key: "token".to_string(),
+                                                    key: "token".to_owned(),
                                                     value: caller_data.raw_value.clone(),
                                                 }],
                                             ),
@@ -632,15 +633,15 @@ where
                 found = true;
                 errors.push(error::Error {
                     path: self.options.path.clone(),
-                    scope: "function_call_processor".to_string(),
-                    debug_message: "5206de755371342f1106d7811596f3fb".to_string(),
+                    scope: "function_call_processor".to_owned(),
+                    debug_message: "5206de755371342f1106d7811596f3fb".to_owned(),
                     title: error::errorList::error_s31.title.clone(),
                     code: error::errorList::error_s31.code,
                     message: error::errorList::error_s31.message.clone(),
                     builded_message: error::Error::build(
                         error::errorList::error_s31.message.clone(),
                         vec![error::ErrorBuildField {
-                            key: "token".to_string(),
+                            key: "token".to_owned(),
                             value: caller_data.raw_value.clone(),
                         }],
                     ),
@@ -653,14 +654,14 @@ where
             errors.push(error::Error {
                 path: self.options.path.clone(),
                 scope: self.scope.scope_name.clone(),
-                debug_message: "9e23fc07c12b35a73080780b55613e4c".to_string(),
+                debug_message: "9e23fc07c12b35a73080780b55613e4c".to_owned(),
                 title: error::errorList::error_s6.title.clone(),
                 code: error::errorList::error_s6.code,
                 message: error::errorList::error_s6.message.clone(),
                 builded_message: error::Error::build(
                     error::errorList::error_s6.message.clone(),
                     vec![error::ErrorBuildField {
-                        key: "token".to_string(),
+                        key: "token".to_owned(),
                         value: caller_data.raw_value.clone(),
                     }],
                 ),
@@ -691,7 +692,7 @@ where
                                 errors.push(error::Error {
                                     path: self.options.path.clone(),
                                     scope: self.scope.scope_name.clone(),
-                                    debug_message: "e19cd0910a22ef136c9fde4dee3660a6".to_string(),
+                                    debug_message: "e19cd0910a22ef136c9fde4dee3660a6".to_owned(),
                                     title: error::errorList::error_s7.title.clone(),
                                     code: error::errorList::error_s7.code,
                                     message: error::errorList::error_s7.message.clone(),
@@ -699,15 +700,15 @@ where
                                         error::errorList::error_s7.message.clone(),
                                         vec![
                                             error::ErrorBuildField {
-                                                key: "name".to_string(),
-                                                value: "Function".to_string(),
+                                                key: "name".to_owned(),
+                                                value: "Function".to_owned(),
                                             },
                                             error::ErrorBuildField {
-                                                key: "token".to_string(),
+                                                key: "token".to_owned(),
                                                 value: fn_type.params.len().to_string(),
                                             },
                                             error::ErrorBuildField {
-                                                key: "token2".to_string(),
+                                                key: "token2".to_owned(),
                                                 value: caller_data.data.params.len().to_string(),
                                             },
                                         ],
@@ -739,7 +740,7 @@ where
                                                     scope: self.scope.scope_name.clone(),
                                                     debug_message:
                                                         "d4824ea474c0c2675d16029f0708f38f"
-                                                            .to_string(),
+                                                            .to_owned(),
                                                     title: error::errorList::error_s3.title.clone(),
                                                     code: error::errorList::error_s3.code,
                                                     message: error::errorList::error_s3
@@ -749,11 +750,11 @@ where
                                                         error::errorList::error_s3.message.clone(),
                                                         vec![
                                                             error::ErrorBuildField {
-                                                                key: "token1".to_string(),
+                                                                key: "token1".to_owned(),
                                                                 value: e.rtype,
                                                             },
                                                             error::ErrorBuildField {
-                                                                key: "token2".to_string(),
+                                                                key: "token2".to_owned(),
                                                                 value: resolved_type,
                                                             },
                                                         ],
@@ -785,14 +786,14 @@ where
                             errors.push(error::Error {
                                 path: self.options.path.clone(),
                                 scope: self.scope.scope_name.clone(),
-                                debug_message: "5d34bb80f6e42282ba3e7b7df6a600b8".to_string(),
+                                debug_message: "5d34bb80f6e42282ba3e7b7df6a600b8".to_owned(),
                                 title: error::errorList::error_s25.title.clone(),
                                 code: error::errorList::error_s25.code,
                                 message: error::errorList::error_s25.message.clone(),
                                 builded_message: error::Error::build(
                                     error::errorList::error_s25.message.clone(),
                                     vec![error::ErrorBuildField {
-                                        key: "token".to_string(),
+                                        key: "token".to_owned(),
                                         value: caller_data.data.name.clone(),
                                     }],
                                 ),
@@ -812,7 +813,7 @@ where
                             errors.push(error::Error {
                                 path: self.options.path.clone(),
                                 scope: self.scope.scope_name.clone(),
-                                debug_message: "a6a12b65ef67371f40c21fe42d3d2db8".to_string(),
+                                debug_message: "a6a12b65ef67371f40c21fe42d3d2db8".to_owned(),
                                 title: error::errorList::error_s7.title.clone(),
                                 code: error::errorList::error_s7.code,
                                 message: error::errorList::error_s7.message.clone(),
@@ -820,15 +821,15 @@ where
                                     error::errorList::error_s7.message.clone(),
                                     vec![
                                         error::ErrorBuildField {
-                                            key: "name".to_string(),
-                                            value: "Function".to_string(),
+                                            key: "name".to_owned(),
+                                            value: "Function".to_owned(),
                                         },
                                         error::ErrorBuildField {
-                                            key: "token".to_string(),
+                                            key: "token".to_owned(),
                                             value: e.data.parameters.len().to_string(),
                                         },
                                         error::ErrorBuildField {
-                                            key: "token2".to_string(),
+                                            key: "token2".to_owned(),
                                             value: caller_data.data.params.len().to_string(),
                                         },
                                     ],
@@ -867,7 +868,7 @@ where
                                                 path: self.options.path.clone(),
                                                 scope: self.scope.scope_name.clone(),
                                                 debug_message: "c19a4b727ef44a45f9ca006b0ee45fe2"
-                                                    .to_string(),
+                                                    .to_owned(),
                                                 title: error::errorList::error_s3.title.clone(),
                                                 code: error::errorList::error_s3.code,
                                                 message: error::errorList::error_s3.message.clone(),
@@ -875,11 +876,11 @@ where
                                                     error::errorList::error_s3.message.clone(),
                                                     vec![
                                                         error::ErrorBuildField {
-                                                            key: "token1".to_string(),
+                                                            key: "token1".to_owned(),
                                                             value: e.rtype,
                                                         },
                                                         error::ErrorBuildField {
-                                                            key: "token2".to_string(),
+                                                            key: "token2".to_owned(),
                                                             value: resolved_type,
                                                         },
                                                     ],
@@ -909,14 +910,14 @@ where
                                                 path: self.options.path.clone(),
                                                 scope: self.scope.scope_name.clone(),
                                                 debug_message: "74e76688c642c18e7bd9339e60b65bef"
-                                                    .to_string(),
+                                                    .to_owned(),
                                                 title: error::errorList::error_s4.title.clone(),
                                                 code: error::errorList::error_s4.code,
                                                 message: error::errorList::error_s4.message.clone(),
                                                 builded_message: error::Error::build(
                                                     error::errorList::error_s4.message.clone(),
                                                     vec![error::ErrorBuildField {
-                                                        key: "token".to_string(),
+                                                        key: "token".to_owned(),
                                                         value: caller_param
                                                             .value
                                                             .as_variable_type()
@@ -941,14 +942,14 @@ where
                         errors.push(error::Error {
                             path: self.options.path.clone(),
                             scope: self.scope.scope_name.clone(),
-                            debug_message: "974221bc69b9607dcbf0b7a3b9a3bc43".to_string(),
+                            debug_message: "974221bc69b9607dcbf0b7a3b9a3bc43".to_owned(),
                             title: error::errorList::error_s25.title.clone(),
                             code: error::errorList::error_s25.code,
                             message: error::errorList::error_s25.message.clone(),
                             builded_message: error::Error::build(
                                 error::errorList::error_s25.message.clone(),
                                 vec![error::ErrorBuildField {
-                                    key: "token".to_string(),
+                                    key: "token".to_owned(),
                                     value: caller_data.data.name.clone(),
                                 }],
                             ),
@@ -964,14 +965,14 @@ where
             errors.push(error::Error {
                 path: self.options.path.clone(),
                 scope: self.scope.scope_name.clone(),
-                debug_message: "a5adad2e8801c07747287c29b3ed1f15".to_string(),
+                debug_message: "a5adad2e8801c07747287c29b3ed1f15".to_owned(),
                 title: error::errorList::error_s6.title.clone(),
                 code: error::errorList::error_s6.code,
                 message: error::errorList::error_s6.message.clone(),
                 builded_message: error::Error::build(
                     error::errorList::error_s6.message.clone(),
                     vec![error::ErrorBuildField {
-                        key: "token".to_string(),
+                        key: "token".to_owned(),
                         value: caller_data.data.name.clone(),
                     }],
                 ),

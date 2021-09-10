@@ -3,8 +3,9 @@ use crate::processors::value_processor;
 use crate::syntax::{types, variable};
 use ellie_core::{defs, error};
 
+use crate::alloc::borrow::ToOwned;
 use alloc::boxed::Box;
-use alloc::string::{String, ToString};
+use alloc::string::ToString;
 use alloc::vec;
 use alloc::vec::Vec;
 
@@ -13,8 +14,8 @@ pub fn collect_operator<F>(
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
-    next_char: String,
-    last_char: String,
+    next_char: &str,
+    last_char: &str,
 ) where
     F: FnMut(ellie_core::com::Message) + core::clone::Clone,
 {
@@ -45,15 +46,15 @@ pub fn collect_operator<F>(
                     } else {
                         errors.push(error::Error {
                             path: parser.options.path.clone(),
-                            scope: "operator_processor".to_string(),
-                            debug_message: "73aa0b0b8ee6fbe72fba2111b485627d".to_string(),
+                            scope: "operator_processor".to_owned(),
+                            debug_message: "73aa0b0b8ee6fbe72fba2111b485627d".to_owned(),
                             title: error::errorList::error_s13.title.clone(),
                             code: error::errorList::error_s13.code,
                             message: error::errorList::error_s13.message.clone(),
                             builded_message: error::Error::build(
                                 error::errorList::error_s13.message.clone(),
                                 vec![error::ErrorBuildField {
-                                    key: "token".to_string(),
+                                    key: "token".to_owned(),
                                     value: letter_char.to_string(),
                                 }],
                             ),
@@ -86,19 +87,17 @@ pub fn collect_operator<F>(
                     data.operator_collected = true;
                     let mut will_be_itered = data.itered_cache.clone();
                     data.second_is_not_null = true;
-                    let itered_child = value_processor::collect_value(
+                    value_processor::collect_value(
                         parser.clone(),
                         &mut will_be_itered,
+                        errors,
                         letter_char,
                         next_char,
                         last_char,
                     );
-                    if itered_child.errors.is_empty() {
-                        errors.extend(itered_child.errors);
-                    }
 
                     if let types::Types::Operator(child_operator) =
-                        itered_child.itered_data.data.value.clone()
+                        will_be_itered.data.value.clone()
                     {
                         if child_operator.data.operator == data.data.operator {
                             itered_data.data.value = types::Types::Operator(
@@ -166,28 +165,27 @@ pub fn collect_operator<F>(
                                     )
                                 }
                                 _ => {
-                                    data.data.second =
-                                        Box::new(itered_child.itered_data.data.value.clone());
-                                    data.itered_cache = Box::new(itered_child.itered_data);
+                                    data.data.second = Box::new(will_be_itered.data.value.clone());
+                                    data.itered_cache = will_be_itered;
                                 }
                             }
                         }
                     } else {
-                        data.itered_cache = Box::new(itered_child.itered_data.clone());
-                        data.data.second = Box::new(itered_child.itered_data.data.value);
+                        data.itered_cache = will_be_itered.clone();
+                        data.data.second = Box::new(will_be_itered.data.value);
                     }
                 } else {
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
-                        scope: "operator_processor".to_string(),
-                        debug_message: "76350a93bd7d5723ff4fd4635f161365".to_string(),
+                        scope: "operator_processor".to_owned(),
+                        debug_message: "76350a93bd7d5723ff4fd4635f161365".to_owned(),
                         title: error::errorList::error_s13.title.clone(),
                         code: error::errorList::error_s13.code,
                         message: error::errorList::error_s13.message.clone(),
                         builded_message: error::Error::build(
                             error::errorList::error_s13.message.clone(),
                             vec![error::ErrorBuildField {
-                                key: "token".to_string(),
+                                key: "token".to_owned(),
                                 value: letter_char.to_string(),
                             }],
                         ),
@@ -202,20 +200,16 @@ pub fn collect_operator<F>(
             //Second
             let mut will_be_itered = data.itered_cache.clone();
             data.second_is_not_null = true;
-            let itered_child = value_processor::collect_value(
+            value_processor::collect_value(
                 parser.clone(),
                 &mut will_be_itered,
+                errors,
                 letter_char,
                 next_char,
                 last_char,
             );
-            if itered_child.errors.is_empty() {
-                errors.extend(itered_child.errors);
-            }
 
-            if let types::Types::Operator(child_operator) =
-                itered_child.itered_data.data.value.clone()
-            {
+            if let types::Types::Operator(child_operator) = will_be_itered.data.value.clone() {
                 if child_operator.data.operator == data.data.operator {
                     itered_data.data.value =
                         types::Types::Operator(types::operator_type::OperatorTypeCollector {
@@ -276,15 +270,14 @@ pub fn collect_operator<F>(
                             )
                         }
                         _ => {
-                            data.data.second =
-                                Box::new(itered_child.itered_data.data.value.clone());
-                            data.itered_cache = Box::new(itered_child.itered_data);
+                            data.data.second = Box::new(will_be_itered.data.value.clone());
+                            data.itered_cache = will_be_itered;
                         }
                     }
                 }
             } else {
-                data.itered_cache = Box::new(itered_child.itered_data.clone());
-                data.data.second = Box::new(itered_child.itered_data.data.value);
+                data.itered_cache = will_be_itered.clone();
+                data.data.second = Box::new(will_be_itered.data.value);
             }
         }
     }

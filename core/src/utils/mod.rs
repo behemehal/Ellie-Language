@@ -90,31 +90,6 @@ pub fn reliable_name_range(range: ReliableNameRanges, value: String) -> Reliable
     }
 }
 
-pub fn get_letter(letter: String, index: usize, turn: bool) -> String {
-    if turn {
-        // Next char
-        if index == letter.len() {
-            "".to_string()
-        } else {
-            let sliced: Vec<char> = letter.chars().skip(index + 1).take(1).collect();
-            if sliced.is_empty() {
-                "".to_string()
-            } else {
-                sliced[0].to_string()
-            }
-        }
-    } else if index == 0 {
-        "".to_string()
-    } else {
-        let sliced: Vec<char> = letter.chars().skip(index - 1).take(1).collect();
-        if sliced.is_empty() {
-            "".to_string()
-        } else {
-            sliced[0].to_string()
-        }
-    }
-}
-
 pub fn trim_good(line: String) -> String {
     let mut fixed = String::new();
     for i in 0..line.len() {

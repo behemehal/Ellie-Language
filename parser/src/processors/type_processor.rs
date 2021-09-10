@@ -1,3 +1,4 @@
+use crate::alloc::borrow::ToOwned;
 use crate::parser;
 use crate::syntax::{
     caller, class, condition, constructor, enum_type, file_key, for_loop, function, getter, import,
@@ -13,8 +14,8 @@ pub fn collect_type<F>(
     parser: &mut parser::Parser<F>,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
-    last_char: String,
-    next_char: String,
+    last_char: &str,
+    next_char: &str,
 ) where
     F: FnMut(ellie_core::com::Message) + Clone + Sized,
 {
@@ -223,15 +224,15 @@ pub fn collect_type<F>(
         } else {
             errors.push(error::Error {
                 path: parser.options.path.clone(),
-                scope: "definer_processor".to_string(),
-                debug_message: "e649d850cd39327f0184c5ae7888443f".to_string(),
+                scope: "definer_processor".to_owned(),
+                debug_message: "e649d850cd39327f0184c5ae7888443f".to_owned(),
                 title: error::errorList::error_s1.title.clone(),
                 code: error::errorList::error_s1.code,
                 message: error::errorList::error_s1.message.clone(),
                 builded_message: error::Error::build(
                     error::errorList::error_s1.message.clone(),
                     vec![error::ErrorBuildField {
-                        key: "token".to_string(),
+                        key: "token".to_owned(),
                         value: keyword,
                     }],
                 ),
@@ -247,15 +248,15 @@ pub fn collect_type<F>(
         if collected_length == 0 {
             errors.push(error::Error {
                 path: parser.options.path.clone(),
-                scope: "definer_processor".to_string(),
-                debug_message: "cc0a8ee9b89335c9171876051b452a11".to_string(),
+                scope: "definer_processor".to_owned(),
+                debug_message: "cc0a8ee9b89335c9171876051b452a11".to_owned(),
                 title: error::errorList::error_s1.title.clone(),
                 code: error::errorList::error_s1.code,
                 message: error::errorList::error_s1.message.clone(),
                 builded_message: error::Error::build(
                     error::errorList::error_s1.message.clone(),
                     vec![error::ErrorBuildField {
-                        key: "token".to_string(),
+                        key: "token".to_owned(),
                         value: keyword,
                     }],
                 ),

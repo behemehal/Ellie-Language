@@ -1,19 +1,17 @@
 use crate::parser;
 use crate::processors::value_processor;
 use crate::syntax::{types, variable};
-use ellie_core::error;
-
 use alloc::boxed::Box;
-use alloc::string::String;
 use alloc::vec::Vec;
+use ellie_core::error;
 
 pub fn collect_negative<F>(
     parser: parser::Parser<F>,
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
-    next_char: String,
-    last_char: String,
+    next_char: &str,
+    last_char: &str,
 ) where
     F: FnMut(ellie_core::com::Message) + Clone + Sized,
 {
@@ -26,17 +24,15 @@ pub fn collect_negative<F>(
             ..variable::VariableCollector::default()
         };
 
-        let itered_negative_vector = Box::new(value_processor::collect_value(
+        Box::new(value_processor::collect_value(
             parser.clone(),
             &mut will_be_itered,
+            errors,
             letter_char,
             next_char,
             last_char,
         ));
 
-        if !itered_negative_vector.errors.is_empty() {
-            errors.extend(itered_negative_vector.errors);
-        }
-        negative_data.value = Box::new(itered_negative_vector.itered_data.data.value);
+        negative_data.value = Box::new(will_be_itered.data.value);
     }
 }

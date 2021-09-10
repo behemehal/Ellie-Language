@@ -1,3 +1,4 @@
+use crate::alloc::borrow::ToOwned;
 use alloc::format;
 use alloc::string::{String, ToString};
 use core::any::Any;
@@ -70,7 +71,7 @@ impl FloatTypeCollector {
     }
 
     pub fn collect(&self) -> String {
-        (self.base.to_string() + &(".".to_string())) + &self.point
+        (self.base.to_string() + &(".".to_owned())) + &self.point
     }
 
     pub fn build<T: Any>(raw: T) -> FloatType {

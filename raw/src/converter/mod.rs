@@ -112,7 +112,7 @@ impl Converter {
                             },
                             name: index,
                             has_initial: false,
-                            initial_data: "".to_string(),
+                            initial_data: "".to_owned(),
                             has_inner_scope: true,
                             inner_scope_name: index,
                             ..Default::default()
@@ -183,7 +183,7 @@ impl Converter {
             let mut raw_scope = String::new();
 
             raw_scope += &format!("{}{}:\n", "@", scope.scope_name).to_owned();
-            raw_scope += &"\tT:\n".to_string();
+            raw_scope += &"\tT:\n".to_owned();
 
             for item in scope.items {
                 let get_com_rest = match item.rtype {
@@ -196,7 +196,7 @@ impl Converter {
                         if item.has_type {
                             " ".to_owned() + &item.type_id.to_string()
                         } else {
-                            "".to_string()
+                            "".to_owned()
                         },
                         item.name
                     ),
@@ -205,7 +205,7 @@ impl Converter {
                         if item.has_type {
                             " ".to_owned() + &item.type_id.to_string()
                         } else {
-                            "".to_string()
+                            "".to_owned()
                         },
                         item.name
                     ),
@@ -237,13 +237,13 @@ impl Converter {
                     &format!("\t\t{:?} {} {}\n", item.rtype, item.name, get_com_rest).to_owned();
             }
 
-            raw_scope += &"\tH:\n".to_string();
+            raw_scope += &"\tH:\n".to_owned();
 
             for item in scope.headers {
                 raw_scope += &format!("\t\t{} {}\n", item.0, item.1).to_owned();
             }
 
-            raw_scope += &"\tI:\n".to_string();
+            raw_scope += &"\tI:\n".to_owned();
             for item in scope.initials {
                 raw_scope += &format!("\t\t{} {} {}\n", item.0, item.1, item.2).to_owned();
             }

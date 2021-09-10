@@ -36,7 +36,7 @@ mod variable_tests {
         let parsed = emulated_parser.map();
         assert!(
             parsed.syntax_errors.len() == 1
-                && matches!(parsed.syntax_errors[0].clone(),x if x.code == 39 && x.builded_message.fields[0].value == "string".to_string())
+                && matches!(parsed.syntax_errors[0].clone(),x if x.code == 39 && x.builded_message.fields[0].value == "string".to_owned())
         );
     }
 }

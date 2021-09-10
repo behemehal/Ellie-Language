@@ -1,3 +1,4 @@
+use crate::alloc::borrow::ToOwned;
 use crate::syntax::types;
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};
@@ -59,7 +60,7 @@ impl CollectiveCollector {
                 types::Types::Integer(e) => e.raw,
                 types::Types::Char(e) => e.value.to_string(),
                 types::Types::Float(e) => e.data.raw,
-                _ => "".to_string(),
+                _ => "".to_owned(),
             };
 
             if existent_names.contains(&current_key) {

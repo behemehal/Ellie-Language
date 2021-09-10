@@ -15,7 +15,7 @@ mod negative_tests {
                                 ),
                                 rtype: ellie_parser::syntax::types::integer_type::IntegerTypes::I8,
                             },
-                            raw: "123".to_string(),
+                            raw: "123".to_owned(),
                             complete: true
                         },
                     )),
@@ -35,10 +35,10 @@ mod negative_tests {
                             data: ellie_parser::syntax::types::float_type::FloatType {
                                 value: ellie_parser::syntax::types::float_type::FloatSize::F32(0.1,),
                                 rtype: ellie_parser::syntax::types::float_type::FloatTypes::F32,
-                                raw: "".to_string(),
+                                raw: "".to_owned(),
                             },
-                            base: "0".to_string(),
-                            point: "1".to_string(),
+                            base: "0".to_owned(),
+                            point: "1".to_owned(),
                             at_point: true,
                             complete: true,
                         },
@@ -57,7 +57,7 @@ mod negative_tests {
                     value: Box::new(ellie_parser::syntax::types::Types::Bool(
                         ellie_parser::syntax::types::bool_type::BoolType {
                             value: true,
-                            raw: "true".to_string(),
+                            raw: "true".to_owned(),
                         },
                     )),
                 },
@@ -74,7 +74,7 @@ mod negative_tests {
                     value: Box::new(ellie_parser::syntax::types::Types::String(
                         ellie_parser::syntax::types::string_type::StringTypeCollector {
                             data: ellie_parser::syntax::types::string_type::StringType {
-                                value: "ok".to_string(),
+                                value: "ok".to_owned(),
                                 comma_start_pos: ellie_core::defs::Cursor {
                                     range_start: ellie_core::defs::CursorPosition(0, 0),
                                     range_end: ellie_core::defs::CursorPosition(0, 1)
@@ -124,7 +124,7 @@ mod negative_tests {
                     value: Box::new(ellie_parser::syntax::types::Types::VariableType(
                         ellie_parser::syntax::types::variable_type::VariableTypeCollector {
                             data: ellie_parser::syntax::types::variable_type::VariableType {
-                                value: "test".to_string(),
+                                value: "test".to_owned(),
                                 pos: ellie_core::defs::Cursor {
                                     range_start: ellie_core::defs::CursorPosition(0, 1),
                                     range_end: ellie_core::defs::CursorPosition(0, 5)

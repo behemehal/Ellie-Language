@@ -2,7 +2,8 @@ use crate::parser;
 use crate::processors;
 use ellie_core::{defs, error, utils};
 
-use alloc::string::{String, ToString};
+use crate::alloc::borrow::ToOwned;
+use alloc::string::ToString;
 use alloc::vec;
 use alloc::vec::Vec;
 
@@ -10,8 +11,8 @@ pub fn collect_variable_value<F>(
     parser: &mut parser::Parser<F>,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
-    next_char: String,
-    last_char: String,
+    next_char: &str,
+    last_char: &str,
 ) where
     F: FnMut(ellie_core::com::Message) + Clone + Sized,
 {
@@ -23,14 +24,14 @@ pub fn collect_variable_value<F>(
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
                         scope: parser.scope.scope_name.clone(),
-                        debug_message: "12d9e6d35de90e859c49a8cfd1a54426".to_string(),
+                        debug_message: "12d9e6d35de90e859c49a8cfd1a54426".to_owned(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
                         builded_message: error::Error::build(
                             error::errorList::error_s1.message.clone(),
                             vec![error::ErrorBuildField {
-                                key: "token".to_string(),
+                                key: "token".to_owned(),
                                 value: letter_char.to_string(),
                             }],
                         ),
@@ -45,7 +46,7 @@ pub fn collect_variable_value<F>(
                         errors.push(error::Error {
                             path: parser.options.path.clone(),
                             scope: parser.scope.scope_name.clone(),
-                            debug_message: "0aa67f3519d68dfa5a103accc9f60c72".to_string(),
+                            debug_message: "0aa67f3519d68dfa5a103accc9f60c72".to_owned(),
                             title: error::errorList::error_s11.title.clone(),
                             code: error::errorList::error_s11.code,
                             message: error::errorList::error_s11.message.clone(),
@@ -63,14 +64,14 @@ pub fn collect_variable_value<F>(
                         errors.push(error::Error {
                             path: parser.options.path.clone(),
                             scope: parser.scope.scope_name.clone(),
-                            debug_message: "fcdd1bb5114d68a3a0d929333c8e557d".to_string(),
+                            debug_message: "fcdd1bb5114d68a3a0d929333c8e557d".to_owned(),
                             title: error::errorList::error_s21.title.clone(),
                             code: error::errorList::error_s21.code,
                             message: error::errorList::error_s21.message.clone(),
                             builded_message: error::Error::build(
                                 error::errorList::error_s21.message.clone(),
                                 vec![error::ErrorBuildField {
-                                    key: "token".to_string(),
+                                    key: "token".to_owned(),
                                     value: variable_data.data.name.clone(),
                                 }],
                             ),
@@ -88,14 +89,14 @@ pub fn collect_variable_value<F>(
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
                         scope: parser.scope.scope_name.clone(),
-                        debug_message: "78aa88c271978386b56caecc50da4f56".to_string(),
+                        debug_message: "78aa88c271978386b56caecc50da4f56".to_owned(),
                         title: error::errorList::error_s24.title.clone(),
                         code: error::errorList::error_s24.code,
                         message: error::errorList::error_s24.message.clone(),
                         builded_message: error::Error::build(
                             error::errorList::error_s24.message.clone(),
                             vec![error::ErrorBuildField {
-                                key: "token".to_string(),
+                                key: "token".to_owned(),
                                 value: variable_data.data.name.clone(),
                             }],
                         ),
@@ -107,7 +108,7 @@ pub fn collect_variable_value<F>(
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
                         scope: parser.scope.scope_name.clone(),
-                        debug_message: "381b5cb08b2a3e9f84a0326dc9894ff0".to_string(),
+                        debug_message: "381b5cb08b2a3e9f84a0326dc9894ff0".to_owned(),
                         title: error::errorList::error_s8.title.clone(),
                         code: error::errorList::error_s8.code,
                         message: error::errorList::error_s8.message.clone(),
@@ -131,14 +132,14 @@ pub fn collect_variable_value<F>(
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
                         scope: parser.scope.scope_name.clone(),
-                        debug_message: "6801f15330985014e3ec4825fee1200f".to_string(),
+                        debug_message: "6801f15330985014e3ec4825fee1200f".to_owned(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
                         builded_message: error::Error::build(
                             error::errorList::error_s1.message.clone(),
                             vec![error::ErrorBuildField {
-                                key: "token".to_string(),
+                                key: "token".to_owned(),
                                 value: letter_char.to_string(),
                             }],
                         ),
@@ -152,14 +153,14 @@ pub fn collect_variable_value<F>(
                         errors.push(error::Error {
                             path: parser.options.path.clone(),
                             scope: parser.scope.scope_name.clone(),
-                            debug_message: "7a75e541ddb1d56267433aab0bf6631c".to_string(),
+                            debug_message: "7a75e541ddb1d56267433aab0bf6631c".to_owned(),
                             title: error::errorList::error_s21.title.clone(),
                             code: error::errorList::error_s21.code,
                             message: error::errorList::error_s21.message.clone(),
                             builded_message: error::Error::build(
                                 error::errorList::error_s21.message.clone(),
                                 vec![error::ErrorBuildField {
-                                    key: "token".to_string(),
+                                    key: "token".to_owned(),
                                     value: variable_data.data.name.clone(),
                                 }],
                             ),
@@ -173,14 +174,14 @@ pub fn collect_variable_value<F>(
                         errors.push(error::Error {
                             path: parser.options.path.clone(),
                             scope: parser.scope.scope_name.clone(),
-                            debug_message: "aa58d0a249b80c38da16b1ae1b731b16".to_string(),
+                            debug_message: "aa58d0a249b80c38da16b1ae1b731b16".to_owned(),
                             title: error::errorList::error_s6.title.clone(),
                             code: error::errorList::error_s6.code,
                             message: error::errorList::error_s6.message.clone(),
                             builded_message: error::Error::build(
                                 error::errorList::error_s6.message.clone(),
                                 vec![error::ErrorBuildField {
-                                    key: "token".to_string(),
+                                    key: "token".to_owned(),
                                     value: variable_data.data.rtype.raw_name(),
                                 }],
                             ),
@@ -201,14 +202,14 @@ pub fn collect_variable_value<F>(
                         errors.push(error::Error {
                             path: parser.options.path.clone(),
                             scope: parser.scope.scope_name.clone(),
-                            debug_message: "02f91cd62e6cc4f67cdfbb609d92f8a8".to_string(),
+                            debug_message: "02f91cd62e6cc4f67cdfbb609d92f8a8".to_owned(),
                             title: error::errorList::error_s1.title.clone(),
                             code: error::errorList::error_s1.code,
                             message: error::errorList::error_s1.message.clone(),
                             builded_message: error::Error::build(
                                 error::errorList::error_s1.message.clone(),
                                 vec![error::ErrorBuildField {
-                                    key: "token".to_string(),
+                                    key: "token".to_owned(),
                                     value: letter_char.to_string(),
                                 }],
                             ),
@@ -232,14 +233,14 @@ pub fn collect_variable_value<F>(
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
                         scope: parser.scope.scope_name.clone(),
-                        debug_message: "5bb837cd31f5dc828abde77518527973".to_string(),
+                        debug_message: "5bb837cd31f5dc828abde77518527973".to_owned(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
                         builded_message: error::Error::build(
                             error::errorList::error_s1.message.clone(),
                             vec![error::ErrorBuildField {
-                                key: "token".to_string(),
+                                key: "token".to_owned(),
                                 value: letter_char.to_string(),
                             }],
                         ),
@@ -258,14 +259,14 @@ pub fn collect_variable_value<F>(
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
                         scope: parser.scope.scope_name.clone(),
-                        debug_message: "97bd92f8aa278250963446f941fe3fc7".to_string(),
+                        debug_message: "97bd92f8aa278250963446f941fe3fc7".to_owned(),
                         title: error::errorList::error_s6.title.clone(),
                         code: error::errorList::error_s6.code,
                         message: error::errorList::error_s6.message.clone(),
                         builded_message: error::Error::build(
                             error::errorList::error_s6.message.clone(),
                             vec![error::ErrorBuildField {
-                                key: "token".to_string(),
+                                key: "token".to_owned(),
                                 value: variable_data.data.rtype.raw_name(),
                             }],
                         ),
@@ -282,14 +283,14 @@ pub fn collect_variable_value<F>(
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
                         scope: parser.scope.scope_name.clone(),
-                        debug_message: "711bb7fd50ff06cf58733769708c64a8".to_string(),
+                        debug_message: "711bb7fd50ff06cf58733769708c64a8".to_owned(),
                         title: error::errorList::error_s24.title.clone(),
                         code: error::errorList::error_s24.code,
                         message: error::errorList::error_s24.message.clone(),
                         builded_message: error::Error::build(
                             error::errorList::error_s24.message.clone(),
                             vec![error::ErrorBuildField {
-                                key: "token".to_string(),
+                                key: "token".to_owned(),
                                 value: variable_data.data.name.clone(),
                             }],
                         ),
@@ -304,14 +305,14 @@ pub fn collect_variable_value<F>(
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
                         scope: parser.scope.scope_name.clone(),
-                        debug_message: "4447d6fe44d3142264fbbb0f5a6326b8".to_string(),
+                        debug_message: "4447d6fe44d3142264fbbb0f5a6326b8".to_owned(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
                         builded_message: error::Error::build(
                             error::errorList::error_s1.message.clone(),
                             vec![error::ErrorBuildField {
-                                key: "token".to_string(),
+                                key: "token".to_owned(),
                                 value: letter_char.to_string(),
                             }],
                         ),
@@ -327,14 +328,14 @@ pub fn collect_variable_value<F>(
                         errors.push(error::Error {
                             path: parser.options.path.clone(),
                             scope: parser.scope.scope_name.clone(),
-                            debug_message: "06d089dc2240b4e98da7000523ae245a".to_string(),
+                            debug_message: "06d089dc2240b4e98da7000523ae245a".to_owned(),
                             title: error::errorList::error_s6.title.clone(),
                             code: error::errorList::error_s6.code,
                             message: error::errorList::error_s6.message.clone(),
                             builded_message: error::Error::build(
                                 error::errorList::error_s6.message.clone(),
                                 vec![error::ErrorBuildField {
-                                    key: "token".to_string(),
+                                    key: "token".to_owned(),
                                     value: variable_data.data.rtype.raw_name(),
                                 }],
                             ),
@@ -372,17 +373,16 @@ pub fn collect_variable_value<F>(
                 //nen means cannot resolve type
                 if variable_data.data.rtype.raw_name() != resolved_type_name
                     && resolved_type_name != "nen"
+                    && (resolved_type_name == "array"
+                        && variable_data.data.rtype.raw_name() != "growableArray")
                 {
                     //We should resolve inner value
                     if variable_data.data.dynamic {
                         #[cfg(feature = "std")]
                         std::println!(
-                                "[ParserError]: This is a error please report at: https://github.com/behemehal/Ellie-Language/issues/new?title=ParserError-{}+Dynamic+Variable+Not+Handled+Correctly&labels=bug,parser",
+                                "\u{001b}[31m[ParserError]\u{001b}[0m: This is a error please report at: https://github.com/behemehal/Ellie-Language/issues/new?title=ParserError-{}+Dynamic+Variable+Not+Handled+Correctly&labels=bug,parser&template=bug_report.md",
                                 variable_data.data.value.get_type(),
                             );
-
-                        #[cfg(feature = "std")]
-                        std::process::exit(1);
                     }
 
                     if variable_data.data.rtype.raw_name() == "nullAble" {
@@ -398,7 +398,7 @@ pub fn collect_variable_value<F>(
                             errors.push(error::Error {
                                 path: parser.options.path.clone(),
                                 scope: parser.scope.scope_name.clone(),
-                                debug_message: "0f2473d59ade4e9c976fc4bd6d0e90e1".to_string(),
+                                debug_message: "0f2473d59ade4e9c976fc4bd6d0e90e1".to_owned(),
                                 title: error::errorList::error_s3.title.clone(),
                                 code: error::errorList::error_s3.code,
                                 message: error::errorList::error_s3.message.clone(),
@@ -406,8 +406,8 @@ pub fn collect_variable_value<F>(
                                     error::errorList::error_s3.message.clone(),
                                     vec![
                                         error::ErrorBuildField {
-                                            key: "token1".to_string(),
-                                            value: "_".to_string()
+                                            key: "token1".to_owned(),
+                                            value: "_".to_owned()
                                                 + &(variable_data
                                                     .data
                                                     .rtype
@@ -417,7 +417,7 @@ pub fn collect_variable_value<F>(
                                                     .raw_name()),
                                         },
                                         error::ErrorBuildField {
-                                            key: "token2".to_string(),
+                                            key: "token2".to_owned(),
                                             value: resolved_type_name,
                                         },
                                     ],
@@ -426,13 +426,10 @@ pub fn collect_variable_value<F>(
                             });
                         }
                     } else {
-                        std::println!(
-                            "[ParserWarning] Working blind, type checks are not type safe ()"
-                        );
                         errors.push(error::Error {
                             path: parser.options.path.clone(),
                             scope: parser.scope.scope_name.clone(),
-                            debug_message: "ab7130a2cff08658bfd326d80040e0bf".to_string(),
+                            debug_message: "ab7130a2cff08658bfd326d80040e0bf".to_owned(),
                             title: error::errorList::error_s3.title.clone(),
                             code: error::errorList::error_s3.code,
                             message: error::errorList::error_s3.message.clone(),
@@ -440,11 +437,11 @@ pub fn collect_variable_value<F>(
                                 error::errorList::error_s3.message.clone(),
                                 vec![
                                     error::ErrorBuildField {
-                                        key: "token1".to_string(),
+                                        key: "token1".to_owned(),
                                         value: variable_data.data.rtype.raw_name(),
                                     },
                                     error::ErrorBuildField {
-                                        key: "token2".to_string(),
+                                        key: "token2".to_owned(),
                                         value: resolved_type_name,
                                     },
                                 ],
@@ -457,7 +454,7 @@ pub fn collect_variable_value<F>(
                         errors.push(error::Error {
                             path: parser.options.path.clone(),
                             scope: parser.scope.scope_name.clone(),
-                            debug_message: "7dcc87b479f901f6487968246f82e4fd".to_string(),
+                            debug_message: "7dcc87b479f901f6487968246f82e4fd".to_owned(),
                             title: error::errorList::error_s27.title.clone(),
                             code: error::errorList::error_s27.code,
                             message: error::errorList::error_s27.message.clone(),
@@ -475,14 +472,14 @@ pub fn collect_variable_value<F>(
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
                         scope: parser.scope.scope_name.clone(),
-                        debug_message: "17cabcda06bde97d11a6414834b57942".to_string(),
+                        debug_message: "17cabcda06bde97d11a6414834b57942".to_owned(),
                         title: error::errorList::error_s24.title.clone(),
                         code: error::errorList::error_s24.code,
                         message: error::errorList::error_s24.message.clone(),
                         builded_message: error::Error::build(
                             error::errorList::error_s24.message.clone(),
                             vec![error::ErrorBuildField {
-                                key: "token".to_string(),
+                                key: "token".to_owned(),
                                 value: variable_data.data.name.clone(),
                             }],
                         ),
@@ -493,14 +490,14 @@ pub fn collect_variable_value<F>(
                 errors.push(error::Error {
                     path: parser.options.path.clone(),
                     scope: parser.scope.scope_name.clone(),
-                    debug_message: "eb6ffe0005876a95111fd577e86d3ad4".to_string(),
+                    debug_message: "eb6ffe0005876a95111fd577e86d3ad4".to_owned(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
                     builded_message: error::Error::build(
                         error::errorList::error_s1.message.clone(),
                         vec![error::ErrorBuildField {
-                            key: "token".to_string(),
+                            key: "token".to_owned(),
                             value: letter_char.to_string(),
                         }],
                     ),
@@ -510,6 +507,7 @@ pub fn collect_variable_value<F>(
                     },
                 });
             }
+            variable_data.data.value_pos.range_end = parser.pos;
             parser.collected.push(parser.current.clone());
             parser.current = parser::Collecting::None;
         } else {
@@ -521,24 +519,24 @@ pub fn collect_variable_value<F>(
             }
 
             if (variable_data.collected_value == "" && letter_char != " ")
-                || variable_data.collected_value != ""
+                || variable_data.collected_value != "" && variable_data.collected_value.len() == 5
             {
                 variable_data.collected_value += letter_char;
+                if variable_data.collected_value.len() == 5 {
+                    variable_data.collected_value += "..."
+                }
             }
 
             let mut cd = variable_data.clone();
-            let collected = processors::value_processor::collect_value(
+            processors::value_processor::collect_value(
                 parser_clone,
                 &mut cd,
+                errors,
                 letter_char.clone(),
                 next_char,
                 last_char,
             );
-            for i in collected.errors {
-                errors.push(i)
-            }
-            variable_data.data.value_pos.range_end = parser.pos;
-            parser.current = parser::Collecting::Variable(collected.itered_data);
+            parser.current = parser::Collecting::Variable(cd);
         }
     }
 }

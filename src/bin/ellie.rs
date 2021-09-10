@@ -165,9 +165,9 @@ fn main() {
                                     getters: true,
                                     setters: true,
                                     line_ending: if env::consts::OS == "windows" {
-                                        "\\r\\n".to_string()
+                                        "\\r\\n".to_owned()
                                     } else {
-                                        "\\n".to_string()
+                                        "\\n".to_owned()
                                     },
                                     collectives: true,
                                     variables: true,
@@ -176,24 +176,25 @@ fn main() {
                                     allow_import: true,
                                 },
                             );
-                            parser.scope.scope_name = "ellie_core".to_string();
+                            parser.scope.scope_name = "ellie_core".to_owned();
                             let mapped = parser.map();
 
                             if !mapped.syntax_errors.is_empty() {
                                 if env::args().any(|x| x == "-je" || x == "--json-errors") {
                                     print!("*");
                                 }
-                                for error in
-                                    &ellie_engine::cli_utils::zip_errors(mapped.syntax_errors.clone())
-                                {
+                                for error in &ellie_engine::cli_utils::zip_errors(
+                                    mapped.syntax_errors.clone(),
+                                ) {
                                     if env::args().any(|x| x == "-je" || x == "--json-errors") {
                                         println!(
                                             "+\n{:?}\n",
                                             serde_json::to_string(error).unwrap()
                                         );
                                     } else {
-                                        match ellie_engine::cli_utils::read_file(&error.path.clone())
-                                        {
+                                        match ellie_engine::cli_utils::read_file(
+                                            &error.path.clone(),
+                                        ) {
                                             Ok(targeted_error_file) => {
                                                 if error.pos.range_start.0 != error.pos.range_end.0
                                                 {
@@ -224,7 +225,7 @@ fn main() {
                                                                 )
                                                             )
                                                         } else {
-                                                            "".to_string()
+                                                            "".to_owned()
                                                         },
                                                         ellie_engine::terminal_colors::get_color(
                                                             ellie_engine::terminal_colors::Colors::Red
@@ -280,7 +281,7 @@ fn main() {
                                                                     )
                                                                 )
                                                         } else {
-                                                            "".to_string()
+                                                            "".to_owned()
                                                         },
                                                         ellie_engine::terminal_colors::get_color(
                                                             ellie_engine::terminal_colors::Colors::Red
@@ -395,7 +396,7 @@ fn main() {
                                     #[cfg(feature = "raw")]
                                     {
                                         let mut raw_conv = ellie_raw::converter::Converter::new(
-                                            "ellie_core".to_string(),
+                                            "ellie_core".to_owned(),
                                             ellie_raw::converter::ConverterOptions {
                                                 apply_comments: true,
                                                 lib_name: file_arg.to_string(),
@@ -531,7 +532,7 @@ fn main() {
                                     }
                                 },
                                 ellie_core::defs::ParserOptions {
-                                    path: "<eval>".to_string(),
+                                    path: "<eval>".to_owned(),
                                     functions: true,
                                     break_on_error: false,
                                     loops: true,
@@ -543,9 +544,9 @@ fn main() {
                                     getters: true,
                                     setters: true,
                                     line_ending: if env::consts::OS == "windows" {
-                                        "\\r\\n".to_string()
+                                        "\\r\\n".to_owned()
                                     } else {
-                                        "\\n".to_string()
+                                        "\\n".to_owned()
                                     },
                                     collectives: true,
                                     variables: true,
@@ -560,9 +561,9 @@ fn main() {
                                 if env::args().any(|x| x == "-je" || x == "--json-errors") {
                                     print!("*");
                                 }
-                                for error in
-                                    &ellie_engine::cli_utils::zip_errors(mapped.syntax_errors.clone())
-                                {
+                                for error in &ellie_engine::cli_utils::zip_errors(
+                                    mapped.syntax_errors.clone(),
+                                ) {
                                     if env::args().any(|x| x == "-je" || x == "--json-errors") {
                                         println!(
                                             "+\n{:?}\n",
@@ -597,7 +598,7 @@ fn main() {
                                                         )
                                                     )
                                                 } else {
-                                                    "".to_string()
+                                                    "".to_owned()
                                                 },
                                                 ellie_engine::terminal_colors::get_color(
                                                     ellie_engine::terminal_colors::Colors::Red
@@ -653,7 +654,7 @@ fn main() {
                                                         )
                                                     )
                                                 } else {
-                                                    "".to_string()
+                                                    "".to_owned()
                                                 },
                                                 ellie_engine::terminal_colors::get_color(
                                                     ellie_engine::terminal_colors::Colors::Red
@@ -751,7 +752,7 @@ fn main() {
                                     #[cfg(feature = "raw")]
                                     {
                                         let mut raw_conv = ellie_raw::converter::Converter::new(
-                                            "ellie_core".to_string(),
+                                            "ellie_core".to_owned(),
                                             ellie_raw::converter::ConverterOptions {
                                                 apply_comments: true,
                                                 lib_name: file_arg.to_string(),

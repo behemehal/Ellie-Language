@@ -5,7 +5,7 @@ fn main() {
     let mut pos = ellie_core::defs::CursorPosition(0, 0);
     let mut errors: Vec<ellie_core::error::Error> = vec![];
     let emulated_parser = ellie_parser::parser::Parser::new(
-        "".to_string(),
+        "".to_owned(),
         |_, _, _| ellie_parser::parser::ResolvedImport::default(),
         |_| {},
         ellie_core::defs::ParserOptions::default(),
@@ -15,20 +15,28 @@ fn main() {
     collective(string, dyn)
     ";
 
-    for (index, char) in code.chars().enumerate() {
+    let mut content = code.split("").collect::<Vec<_>>();
+    content.remove(0);
+    content.remove(content.len() - 1);
+    for i in 0..content.len() {
+        let char = content[i].chars().next().unwrap();
         if char == '\n' || char == '\r' {
             continue;
         }
-        let letter_char = &char.to_string();
-        let last_char = &ellie_core::utils::get_letter(code.to_string(), index, false).to_owned();
-        let next_char = &ellie_core::utils::get_letter(code.to_string(), index, true).to_owned();
+        let letter_char = char.to_string();
+        let last_char = if i == 0 { "" } else { content[i - 1] };
+        let next_char = if i + 1 > content.len() - 1 {
+            ""
+        } else {
+            content[i + 1]
+        };
         ellie_parser::processors::definer_processor::collect_definer(
             emulated_parser.clone(),
             &mut emulated_collector_data,
             &mut errors,
             letter_char.to_string(),
-            next_char.to_string(),
-            last_char.to_string(),
+            next_char,
+            last_char,
         );
         pos.0 += 1;
     }
@@ -37,9 +45,13 @@ fn main() {
             "{}{}Error[{:#04x}]{} - {}{}{}: {} |  {}-{}",
             format!(
                 "{}[{}]{} ",
-                ellie_engine::terminal_colors::get_color(ellie_engine::terminal_colors::Colors::Yellow),
+                ellie_engine::terminal_colors::get_color(
+                    ellie_engine::terminal_colors::Colors::Yellow
+                ),
                 error.debug_message,
-                ellie_engine::terminal_colors::get_color(ellie_engine::terminal_colors::Colors::Reset)
+                ellie_engine::terminal_colors::get_color(
+                    ellie_engine::terminal_colors::Colors::Reset
+                )
             ),
             ellie_engine::terminal_colors::get_color(ellie_engine::terminal_colors::Colors::Red),
             &error.code,

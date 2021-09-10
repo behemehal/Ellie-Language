@@ -1,8 +1,9 @@
+use crate::alloc::borrow::ToOwned;
 use crate::parser;
 use crate::processors::value_processor;
 use crate::syntax::{definers, types, variable};
 use alloc::boxed::Box;
-use alloc::string::{String, ToString};
+use alloc::string::ToString;
 use alloc::vec;
 use alloc::vec::Vec;
 use ellie_core::defs;
@@ -13,8 +14,8 @@ pub fn collect_new_call<F>(
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
-    next_char: String,
-    last_char: String,
+    next_char: &str,
+    last_char: &str,
 ) where
     F: FnMut(ellie_core::com::Message) + Clone + Sized,
 {
@@ -34,15 +35,15 @@ pub fn collect_new_call<F>(
             {
                 errors.push(error::Error {
                     path: parser.options.path.clone(),
-                    scope: "function_call_processor".to_string(),
-                    debug_message: "166d25697eaa7119cba059a5edd0abb3".to_string(),
+                    scope: "function_call_processor".to_owned(),
+                    debug_message: "166d25697eaa7119cba059a5edd0abb3".to_owned(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
                     builded_message: error::Error::build(
                         error::errorList::error_s1.message.clone(),
                         vec![error::ErrorBuildField {
-                            key: "token".to_string(),
+                            key: "token".to_owned(),
                             value: letter_char.to_string(),
                         }],
                     ),
@@ -67,20 +68,17 @@ pub fn collect_new_call<F>(
                     },
                     ..Default::default()
                 };
-                let itered_ncall_vector = Box::new(value_processor::collect_value(
+                value_processor::collect_value(
                     parser.clone(),
                     &mut will_be_itered,
+                    errors,
                     letter_char,
                     next_char.clone(),
                     last_char,
-                ));
-
-                if !itered_ncall_vector.errors.is_empty() {
-                    errors.extend(itered_ncall_vector.errors);
-                }
+                );
 
                 new_call_data.raw_value += "letter_char";
-                new_call_data.data.value = Box::new(itered_ncall_vector.itered_data.data.value);
+                new_call_data.data.value = Box::new(will_be_itered.data.value);
                 new_call_data.data.value_pos.range_end = parser.pos.clone().skip_char(1);
             }
         } else if !new_call_data.complete {
@@ -94,15 +92,15 @@ pub fn collect_new_call<F>(
                 if new_call_data.complete {
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
-                        scope: "function_call_processor".to_string(),
-                        debug_message: "803571a755c67ec57f078f98ca675894".to_string(),
+                        scope: "function_call_processor".to_owned(),
+                        debug_message: "803571a755c67ec57f078f98ca675894".to_owned(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
                         builded_message: error::Error::build(
                             error::errorList::error_s1.message.clone(),
                             vec![error::ErrorBuildField {
-                                key: "token".to_string(),
+                                key: "token".to_owned(),
                                 value: letter_char.to_string(),
                             }],
                         ),
@@ -114,15 +112,15 @@ pub fn collect_new_call<F>(
                 } else if new_call_data.comma {
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
-                        scope: "function_call_processor".to_string(),
-                        debug_message: "c8263770d363007c3e24a65a21a35e4d".to_string(),
+                        scope: "function_call_processor".to_owned(),
+                        debug_message: "c8263770d363007c3e24a65a21a35e4d".to_owned(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
                         builded_message: error::Error::build(
                             error::errorList::error_s1.message.clone(),
                             vec![error::ErrorBuildField {
-                                key: "token".to_string(),
+                                key: "token".to_owned(),
                                 value: letter_char.to_string(),
                             }],
                         ),
@@ -214,15 +212,16 @@ pub fn collect_new_call<F>(
                     };
                 }
 
-                let itered_fcall_vector = Box::new(value_processor::collect_value(
+                value_processor::collect_value(
                     parser.clone(),
                     &mut will_be_itered,
+                    errors,
                     letter_char,
                     next_char,
                     last_char,
-                ));
+                );
 
-                let itered_entry = match itered_fcall_vector.itered_data.data.value {
+                let itered_entry = match will_be_itered.data.value {
                     types::Types::Integer(match_data) => {
                         types::constructed_class::ConstructedClassParameter {
                             value: types::Types::Integer(match_data),
@@ -391,9 +390,6 @@ pub fn collect_new_call<F>(
                     },
                 };
 
-                if !itered_fcall_vector.errors.is_empty() {
-                    errors.extend(itered_fcall_vector.errors);
-                }
                 if new_call_data.data.params.is_empty() {
                     new_call_data.data.params.push(itered_entry);
 

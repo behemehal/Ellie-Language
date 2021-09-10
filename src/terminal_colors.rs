@@ -31,4 +31,4 @@ pub fn get_color(selected: Colors) -> String {
 
 //pub const RED: char = '\u{00e9}';
 //pub const RED: char = '\u{00e9}';
-//pub const RESET: String = "0m".to_string();
+//pub const RESET: String = "0m".to_owned();
