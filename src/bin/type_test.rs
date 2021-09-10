@@ -5,7 +5,7 @@ fn main() {
     let mut pos = ellie_core::defs::CursorPosition(0, 0);
     let mut errors: Vec<ellie_core::error::Error> = vec![];
     let emulated_parser = ellie_parser::parser::Parser::new(
-        "".to_string(),
+        "".to_owned(),
         |_, _, _| ellie_parser::parser::ResolvedImport::default(),
         |_| {},
         ellie_core::defs::ParserOptions::default(),
@@ -15,30 +15,28 @@ fn main() {
     collective(string, dyn)
     ";
 
-    let content = code.chars().collect::<Vec<_>>();
+    let mut content = code.split("").collect::<Vec<_>>();
+    content.remove(0);
+    content.remove(content.len() - 1);
     for i in 0..content.len() {
-        let char = content[i];
+        let char = content[i].chars().next().unwrap();
         if char == '\n' || char == '\r' {
             continue;
         }
-        let letter_char = &char.to_string();
-        let last_char = if i == 0 {
-            "".to_string()
-        } else {
-            content[i - 1].to_string()
-        };
+        let letter_char = char.to_string();
+        let last_char = if i == 0 { "" } else { content[i - 1] };
         let next_char = if i + 1 > content.len() - 1 {
-            "".to_string()
+            ""
         } else {
-            content[i + 1].to_string()
+            content[i + 1]
         };
         ellie_parser::processors::definer_processor::collect_definer(
             emulated_parser.clone(),
             &mut emulated_collector_data,
             &mut errors,
             letter_char.to_string(),
-            next_char.to_string(),
-            last_char.to_string(),
+            next_char,
+            last_char,
         );
         pos.0 += 1;
     }

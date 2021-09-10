@@ -1,5 +1,6 @@
+use crate::alloc::borrow::ToOwned;
 use crate::alloc::boxed::Box;
-use crate::alloc::string::{String, ToString};
+use crate::alloc::string::ToString;
 use crate::alloc::vec;
 use crate::alloc::vec::Vec;
 use crate::parser;
@@ -11,8 +12,8 @@ pub fn collect_function<F>(
     parser: &mut parser::Parser<F>,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
-    next_char: String,
-    last_char: String,
+    next_char: &str,
+    last_char: &str,
 ) where
     F: FnMut(ellie_core::com::Message) + Clone + Sized,
 {
@@ -37,14 +38,14 @@ pub fn collect_function<F>(
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
                         scope: parser.scope.scope_name.clone(),
-                        debug_message: "21b2c28dd8f898ee55b4a8d3630af986".to_string(),
+                        debug_message: "21b2c28dd8f898ee55b4a8d3630af986".to_owned(),
                         title: error::errorList::error_s21.title.clone(),
                         code: error::errorList::error_s21.code,
                         message: error::errorList::error_s21.message.clone(),
                         builded_message: error::Error::build(
                             error::errorList::error_s21.message.clone(),
                             vec![error::ErrorBuildField {
-                                key: "token".to_string(),
+                                key: "token".to_owned(),
                                 value: function_data.data.name.clone(),
                             }],
                         ),
@@ -57,14 +58,14 @@ pub fn collect_function<F>(
                 errors.push(error::Error {
                     path: parser.options.path.clone(),
                     scope: parser.scope.scope_name.clone(),
-                    debug_message: "0612e322767c616fc69de089227cd635".to_string(),
+                    debug_message: "0612e322767c616fc69de089227cd635".to_owned(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
                     builded_message: error::Error::build(
                         error::errorList::error_s1.message.clone(),
                         vec![error::ErrorBuildField {
-                            key: "token".to_string(),
+                            key: "token".to_owned(),
                             value: letter_char.to_string(),
                         }],
                     ),
@@ -131,14 +132,14 @@ pub fn collect_function<F>(
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
                         scope: parser.scope.scope_name.clone(),
-                        debug_message: "69fc83e094ce242e0c5e3d107b287717".to_string(),
+                        debug_message: "69fc83e094ce242e0c5e3d107b287717".to_owned(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
                         builded_message: error::Error::build(
                             error::errorList::error_s1.message.clone(),
                             vec![error::ErrorBuildField {
-                                key: "token".to_string(),
+                                key: "token".to_owned(),
                                 value: letter_char.to_string(),
                             }],
                         ),
@@ -155,7 +156,7 @@ pub fn collect_function<F>(
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
                         scope: parser.scope.scope_name.clone(),
-                        debug_message: "110b48897ff6608f9e04ccd516389088".to_string(),
+                        debug_message: "110b48897ff6608f9e04ccd516389088".to_owned(),
                         title: error::errorList::error_s10.title.clone(),
                         code: error::errorList::error_s10.code,
                         message: error::errorList::error_s10.message.clone(),
@@ -170,7 +171,7 @@ pub fn collect_function<F>(
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
                         scope: parser.scope.scope_name.clone(),
-                        debug_message: "866b679ee405e610fa707009f052cc3a".to_string(),
+                        debug_message: "866b679ee405e610fa707009f052cc3a".to_owned(),
                         title: error::errorList::error_s35.title.clone(),
                         code: error::errorList::error_s35.code,
                         message: error::errorList::error_s35.message.clone(),
@@ -188,14 +189,14 @@ pub fn collect_function<F>(
                         errors.push(error::Error {
                             path: parser.options.path.clone(),
                             scope: parser.scope.scope_name.clone(),
-                            debug_message: "ca07144710e43267a209a3a8bc2f2a6d".to_string(),
+                            debug_message: "ca07144710e43267a209a3a8bc2f2a6d".to_owned(),
                             title: error::errorList::error_s6.title.clone(),
                             code: error::errorList::error_s6.code,
                             message: error::errorList::error_s6.message.clone(),
                             builded_message: error::Error::build(
                                 error::errorList::error_s6.message.clone(),
                                 vec![error::ErrorBuildField {
-                                    key: "token".to_string(),
+                                    key: "token".to_owned(),
                                     value: name.rtype.clone(),
                                 }],
                             ),
@@ -213,7 +214,7 @@ pub fn collect_function<F>(
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
                         scope: parser.scope.scope_name.clone(),
-                        debug_message: "1e1167ba76e04b96ad2c9f569f76a77b".to_string(),
+                        debug_message: "1e1167ba76e04b96ad2c9f569f76a77b".to_owned(),
                         title: error::errorList::error_s10.title.clone(),
                         code: error::errorList::error_s10.code,
                         message: error::errorList::error_s10.message.clone(),
@@ -227,7 +228,7 @@ pub fn collect_function<F>(
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
                         scope: parser.scope.scope_name.clone(),
-                        debug_message: "4d9f61a77f8abf111b39e9ab52e52920".to_string(),
+                        debug_message: "4d9f61a77f8abf111b39e9ab52e52920".to_owned(),
                         title: error::errorList::error_s35.title.clone(),
                         code: error::errorList::error_s35.code,
                         message: error::errorList::error_s35.message.clone(),
@@ -244,14 +245,14 @@ pub fn collect_function<F>(
                         errors.push(error::Error {
                             path: parser.options.path.clone(),
                             scope: parser.scope.scope_name.clone(),
-                            debug_message: "8853fde6c3af0ff1316f362c2893516a".to_string(),
+                            debug_message: "8853fde6c3af0ff1316f362c2893516a".to_owned(),
                             title: error::errorList::error_s6.title.clone(),
                             code: error::errorList::error_s6.code,
                             message: error::errorList::error_s6.message.clone(),
                             builded_message: error::Error::build(
                                 error::errorList::error_s6.message.clone(),
                                 vec![error::ErrorBuildField {
-                                    key: "token".to_string(),
+                                    key: "token".to_owned(),
                                     value: name.rtype.clone(),
                                 }],
                             ),
@@ -311,21 +312,21 @@ pub fn collect_function<F>(
                 } else if letter_char == "{" {
                     function_data.data.return_type =
                         definers::DefinerCollecting::Generic(definers::GenericType {
-                            rtype: "void".to_string(),
+                            rtype: "void".to_owned(),
                         });
                     function_data.return_typed = true;
                 } else if letter_char != " " {
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
                         scope: parser.scope.scope_name.clone(),
-                        debug_message: "dcc6e00d6424a71d39164f24d74e8032".to_string(),
+                        debug_message: "dcc6e00d6424a71d39164f24d74e8032".to_owned(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
                         builded_message: error::Error::build(
                             error::errorList::error_s1.message.clone(),
                             vec![error::ErrorBuildField {
-                                key: "token".to_string(),
+                                key: "token".to_owned(),
                                 value: letter_char.to_string(),
                             }],
                         ),
@@ -351,14 +352,14 @@ pub fn collect_function<F>(
                         errors.push(error::Error {
                             path: parser.options.path.clone(),
                             scope: parser.scope.scope_name.clone(),
-                            debug_message: "02d73e1371fd08efb8e69bb5b13fee3f".to_string(),
+                            debug_message: "02d73e1371fd08efb8e69bb5b13fee3f".to_owned(),
                             title: error::errorList::error_s6.title.clone(),
                             code: error::errorList::error_s6.code,
                             message: error::errorList::error_s6.message.clone(),
                             builded_message: error::Error::build(
                                 error::errorList::error_s6.message.clone(),
                                 vec![error::ErrorBuildField {
-                                    key: "token".to_string(),
+                                    key: "token".to_owned(),
                                     value: name.rtype.clone(),
                                 }],
                             ),
@@ -389,14 +390,14 @@ pub fn collect_function<F>(
                 errors.push(error::Error {
                     path: parser.options.path.clone(),
                     scope: parser.scope.scope_name.clone(),
-                    debug_message: "05386cd89e55c3e973369dc21bd08b50".to_string(),
+                    debug_message: "05386cd89e55c3e973369dc21bd08b50".to_owned(),
                     title: error::errorList::error_s24.title.clone(),
                     code: error::errorList::error_s24.code,
                     message: error::errorList::error_s24.message.clone(),
                     builded_message: error::Error::build(
                         error::errorList::error_s24.message.clone(),
                         vec![error::ErrorBuildField {
-                            key: "token".to_string(),
+                            key: "token".to_owned(),
                             value: function_data.data.name.clone(),
                         }],
                     ),
@@ -436,7 +437,7 @@ pub fn collect_function<F>(
                     //Import variables as temporary for syntax support, we will remove them after collecting complete
                     child_parser.collected.push(parser::Collecting::ImportItem(
                         import_item::ImportItem {
-                            from_path: "<temporary>".to_string(),
+                            from_path: "<temporary>".to_owned(),
                             public: true,
                             item: Box::new(item),
                         },
@@ -447,7 +448,7 @@ pub fn collect_function<F>(
                     //Import variables as temporary for syntax support, we will remove them after collecting complete
                     child_parser.collected.push(parser::Collecting::ImportItem(
                         import_item::ImportItem {
-                            from_path: "<temporary>".to_string(),
+                            from_path: "<temporary>".to_owned(),
                             public: true,
                             item: Box::new(parser::Collecting::Variable(if param.multi_capture {
                                 variable::VariableCollector {
@@ -462,7 +463,7 @@ pub fn collect_function<F>(
                                                 ..Default::default()
                                             },
                                         ),
-                                        hash: "not_required".to_string(),
+                                        hash: "not_required".to_owned(),
                                         ..Default::default()
                                     },
                                     ..Default::default()
@@ -475,7 +476,7 @@ pub fn collect_function<F>(
                                         name_pos: param.name_pos,
                                         rtype: param.rtype,
                                         name: param.name,
-                                        hash: "not_required".to_string(),
+                                        hash: "not_required".to_owned(),
                                         ..Default::default()
                                     },
                                     ..Default::default()
@@ -489,7 +490,7 @@ pub fn collect_function<F>(
             child_parser.options = parser.options.clone();
             child_parser.options.parser_type = defs::ParserType::RawParser;
             child_parser.pos = parser.pos;
-            child_parser.scope.scope_name = "core/function_processor".to_string();
+            child_parser.scope.scope_name = "core/function_processor".to_owned();
             child_parser.current = function_data.code.current.clone();
             child_parser.keyword_catch = function_data.code.keyword_catch.clone();
             child_parser.keyword_cache = function_data.code.keyword_cache.clone();

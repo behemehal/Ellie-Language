@@ -37,10 +37,10 @@ fn resolve_import(
         lib_name,
         terminal_colors::get_color(terminal_colors::Colors::Reset),
     );
-    match read_file(&("./lib/".to_string() + &lib_name + &".ei".to_string())) {
+    match read_file(&("./lib/".to_owned() + &lib_name + &".ei".to_owned())) {
         Ok(e) => ellie_parser::parser::ResolvedImport {
             found: true,
-            resolved_path: ("./lib/".to_string() + &lib_name + &".ei".to_string()),
+            resolved_path: ("./lib/".to_owned() + &lib_name + &".ei".to_owned()),
             file_content: ellie_parser::parser::ResolvedFileContent::Raw(e),
             ..Default::default()
         },
@@ -72,7 +72,7 @@ fn parse(contents: String, file_name: String) -> ellie_parser::parser::ParserRes
         resolve_import,
         |_| {},
         ellie_core::defs::ParserOptions {
-            path: "./lib/".to_string() + &file_name.to_string(),
+            path: "./lib/".to_owned() + &file_name.to_string(),
             functions: true,
             break_on_error: false,
             loops: true,
@@ -83,7 +83,7 @@ fn parse(contents: String, file_name: String) -> ellie_parser::parser::ParserRes
             global_variables: true,
             getters: true,
             setters: true,
-            line_ending: "\\n".to_string(),
+            line_ending: "\\n".to_owned(),
             collectives: true,
             variables: true,
             constants: true,
@@ -116,7 +116,7 @@ fn parse(contents: String, file_name: String) -> ellie_parser::parser::ParserRes
 }
 
 fn main() {
-    match read_file(&("./Cargo.toml".to_string())) {
+    match read_file(&("./Cargo.toml".to_owned())) {
         Ok(cargo_toml) => {
             let ellie_lang_toml = cargo_toml.parse::<Value>().unwrap();
             //panic!("{:#?}", ellie_lang_toml);
@@ -128,7 +128,7 @@ fn main() {
                 if let Some(raw_version) = &ellie_lang_toml["dependencies"].get("ellie_raw") {
                     raw_version["version"].to_string()
                 } else {
-                    "UnPlugged".to_string()
+                    "UnPlugged".to_owned()
                 };
             let core_version = &ellie_lang_toml["dependencies"]["ellie_core"]["version"];
 
@@ -154,9 +154,9 @@ fn main() {
         }
     }
 
-    match read_file(&("./lib/ellie.ei".to_string())) {
+    match read_file(&("./lib/ellie.ei".to_owned())) {
         Ok(ellie_lib) => {
-            match read_file(&("./core/src/builded_libraries.rs".to_string())) {
+            match read_file(&("./core/src/builded_libraries.rs".to_owned())) {
                 Ok(current_lib) => {
                     //@version *=\\s*\"\\^|\\~?(\\d|x|\\*)+\\.(\\d|x|\\*)+\\.(\\d|x|\\*)
                     let version_line_regex = Regex::new(
@@ -184,8 +184,7 @@ fn main() {
                                     terminal_colors::get_color(terminal_colors::Colors::Reset),
                                 );
                             } else {
-                                let ellie_lib =
-                                    parse(ellie_lib.clone(), "ellie".to_string()).parsed;
+                                let ellie_lib = parse(ellie_lib.clone(), "ellie".to_owned()).parsed;
 
                                 eprintln!(
                                     "\nCompiling Ellie standard library {}v{}{} complete",

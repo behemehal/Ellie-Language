@@ -4,7 +4,7 @@ mod string_tests {
     #[test]
     fn string_collected_with_no_error() {
         let mut emulated_parser = ellie_parser::parser::Parser::new(
-            "".to_string(),
+            "".to_owned(),
             |_, _, _| ellie_parser::parser::ResolvedImport::default(),
             |_| {},
             ellie_core::defs::ParserOptions::default(),
@@ -19,36 +19,31 @@ mod string_tests {
 
         ";
 
-        let content = code.chars().collect::<Vec<_>>();
+        let mut content = code.split("").collect::<Vec<_>>();
+        content.remove(0);
+        content.remove(content.len() - 1);
         for i in 0..content.len() {
-            let char = content[i];
-            let letter_char = &char.to_string();
-            let last_char = if i == 0 {
-                "".to_string()
-            } else {
-                content[i - 1].to_string()
-            };
+            let char = content[i].chars().nth(0).unwrap_or('\0');
+            let letter_char = content[i];
+            let last_char = if i == 0 { "" } else { content[i - 1] };
             let next_char = if i + 1 > content.len() - 1 {
-                "".to_string()
+                ""
             } else {
-                content[i + 1].to_string()
+                content[i + 1]
             };
             if char == '\n' || char == '\r' {
                 continue;
             }
-            let itered = ellie_parser::processors::value_processor::collect_value(
+
+            ellie_parser::processors::value_processor::collect_value(
                 emulated_parser.clone(),
                 &mut emulated_collector_data,
+                &mut syntax_errors,
                 letter_char,
-                next_char.to_string(),
-                last_char.to_string(),
+                next_char,
+                last_char,
             );
-
-            for error in itered.errors {
-                syntax_errors.push(error);
-            }
             emulated_parser.pos.1 += 1;
-            emulated_collector_data = itered.itered_data;
         }
         assert_eq!(syntax_errors.len(), 0);
         assert!(emulated_collector_data.data.value.is_string());
@@ -62,7 +57,7 @@ mod string_tests {
         #[test]
         fn string_prototype_collected() {
             let emulated_parser = ellie_parser::parser::Parser::new(
-            "".to_string(),
+            "".to_owned(),
             |_, _, _| ellie_parser::parser::ResolvedImport::default(),
             |_| {},
             ellie_core::defs::ParserOptions::default(),
@@ -82,12 +77,12 @@ mod string_tests {
         let char = content[i];
         let letter_char = &char.to_string();
         let last_char = if i == 0 {
-            "".to_string()
+            "".to_owned()
         } else {
             content[i - 1].to_string()
         };
         let next_char = if i + 1 > content.len() - 1 {
-            "".to_string()
+            "".to_owned()
         } else {
             content[i + 1].to_string()
         };
@@ -116,14 +111,14 @@ mod string_tests {
     #[test]
     fn string_operators_collected() {
         let mut emulated_parser = ellie_parser::parser::Parser::new(
-            "".to_string(),
+            "".to_owned(),
             |_, _, _| ellie_parser::parser::ResolvedImport::default(),
             |_| {},
             ellie_core::defs::ParserOptions::default(),
         );
         let mut emulated_collector_data =
             ellie_parser::syntax::variable::VariableCollector::default();
-        let mut syntax_errors = vec![];
+        let mut syntax_errors: Vec<ellie_core::error::Error> = vec![];
         emulated_collector_data.data.dynamic = true;
         let code = "
 
@@ -131,35 +126,30 @@ mod string_tests {
 
         ";
 
-        let content = code.chars().collect::<Vec<_>>();
+        let mut content = code.split("").collect::<Vec<_>>();
+        content.remove(0);
+        content.remove(content.len() - 1);
         for i in 0..content.len() {
-            let char = content[i];
-            let letter_char = &char.to_string();
-            let last_char = if i == 0 {
-                "".to_string()
-            } else {
-                content[i - 1].to_string()
-            };
+            let char = content[i].chars().nth(0).unwrap_or('\0');
+            let letter_char = content[i];
+            let last_char = if i == 0 { "" } else { content[i - 1] };
             let next_char = if i + 1 > content.len() - 1 {
-                "".to_string()
+                ""
             } else {
-                content[i + 1].to_string()
+                content[i + 1]
             };
             if char == '\n' || char == '\r' {
                 continue;
             }
-            let itered = ellie_parser::processors::value_processor::collect_value(
+
+            ellie_parser::processors::value_processor::collect_value(
                 emulated_parser.clone(),
                 &mut emulated_collector_data,
+                &mut syntax_errors,
                 letter_char,
-                next_char.to_string(),
-                last_char.to_string(),
+                next_char,
+                last_char,
             );
-
-            for error in itered.errors {
-                syntax_errors.push(error);
-            }
-            emulated_collector_data = itered.itered_data;
             emulated_parser.pos.1 += 1;
         }
         assert_eq!(syntax_errors.len(), 0);

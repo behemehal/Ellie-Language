@@ -1,23 +1,4 @@
 {
     "editor.wordWrap": "off",
-    "editor.ruler": 180,
-    "files.associations": {
-        "*.toml": "toml",
-        "random": "cpp"
-    },
-    "C_Cpp.errorSquiggles": "Disabled",
-    "cSpell.words": [
-        "ellieraw",
-        "fcall",
-        "ncall",
-        "rustfmt"
-    ],
-    "cSpell.language": "en,tr-TR",
-    "cSpell.enableFiletypes": [
-        "!fsharp",
-        "!go",
-        "!graphql",
-        "ellie",
-        "elliedebugheaders"
-    ]
+    "editor.ruler": 180
 }

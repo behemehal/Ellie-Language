@@ -1,21 +1,20 @@
+use crate::alloc::borrow::ToOwned;
 use crate::parser;
-use crate::syntax::{types, variable};
-use ellie_core::{defs, error, utils};
-
 use crate::processors::type_processors;
-
+use crate::syntax::{types, variable};
 use alloc::boxed::Box;
-use alloc::string::{String, ToString};
+use alloc::string::ToString;
 use alloc::vec;
 use alloc::vec::Vec;
+use ellie_core::{defs, error, utils};
 
 pub fn collect_variable<F>(
     parser: parser::Parser<F>,
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
-    next_char: String,
-    last_char: String,
+    next_char: &str,
+    last_char: &str,
 ) where
     F: FnMut(ellie_core::com::Message) + Clone + Sized,
 {
@@ -23,7 +22,7 @@ pub fn collect_variable<F>(
     if let types::Types::VariableType(ref mut variable_data) = itered_data.data.value {
         let current_reliability = utils::reliable_name_range(
             utils::ReliableNameRanges::VariableName,
-            letter_char.to_string(),
+            letter_char.to_owned(),
         );
 
         if !variable_data.value_complete {
@@ -31,15 +30,15 @@ pub fn collect_variable<F>(
                 if last_char == " " && !variable_data.data.value.is_empty() {
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
-                        scope: "variable_processor".to_string(),
-                        debug_message: "3414020dfb3829ef398304711b58e579".to_string(),
+                        scope: "variable_processor".to_owned(),
+                        debug_message: "3414020dfb3829ef398304711b58e579".to_owned(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
                         builded_message: error::Error::build(
                             error::errorList::error_s1.message.clone(),
                             vec![error::ErrorBuildField {
-                                key: "token".to_string(),
+                                key: "token".to_owned(),
                                 value: current_reliability.found.to_string(),
                             }],
                         ),
@@ -62,15 +61,15 @@ pub fn collect_variable<F>(
                         if !found_target.found {
                             errors.push(error::Error {
                                 path: parser.options.path.clone(),
-                                scope: "variable_processor".to_string(),
-                                debug_message: "caa74f109f0e2db549da845829de2919".to_string(),
+                                scope: "variable_processor".to_owned(),
+                                debug_message: "caa74f109f0e2db549da845829de2919".to_owned(),
                                 title: error::errorList::error_s6.title.clone(),
                                 code: error::errorList::error_s6.code,
                                 message: error::errorList::error_s6.message.clone(),
                                 builded_message: error::Error::build(
                                     error::errorList::error_s6.message.clone(),
                                     vec![error::ErrorBuildField {
-                                        key: "token".to_string(),
+                                        key: "token".to_owned(),
                                         value: variable_data.data.value.clone(),
                                     }],
                                 ),
@@ -98,14 +97,14 @@ pub fn collect_variable<F>(
                                                 error::errorList::error_s3.message.clone(),
                                                 vec![
                                                     error::ErrorBuildField {
-                                                        key: "token1".to_string(),
+                                                        key: "token1".to_owned(),
                                                         value: itered_data
                                                             .data
                                                             .rtype
                                                             .raw_name_with_extensions(),
                                                     },
                                                     error::ErrorBuildField {
-                                                        key: "token2".to_string(),
+                                                        key: "token2".to_owned(),
                                                         value: variable_type
                                                             .data
                                                             .rtype
@@ -256,15 +255,15 @@ pub fn collect_variable<F>(
                 } else if letter_char != " " {
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
-                        scope: "variable_processor".to_string(),
-                        debug_message: "90a2e3d388da82b9bf97b4070fd8d7f2".to_string(),
+                        scope: "variable_processor".to_owned(),
+                        debug_message: "90a2e3d388da82b9bf97b4070fd8d7f2".to_owned(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
                         builded_message: error::Error::build(
                             error::errorList::error_s1.message.clone(),
                             vec![error::ErrorBuildField {
-                                key: "token".to_string(),
+                                key: "token".to_owned(),
                                 value: current_reliability.found.to_string(),
                             }],
                         ),
@@ -277,15 +276,15 @@ pub fn collect_variable<F>(
             } else if letter_char != " " {
                 errors.push(error::Error {
                     path: parser.options.path.clone(),
-                    scope: "variable_processor".to_string(),
-                    debug_message: "4f5f6ca726ba5bc9076e58d0aa819b53".to_string(),
+                    scope: "variable_processor".to_owned(),
+                    debug_message: "4f5f6ca726ba5bc9076e58d0aa819b53".to_owned(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
                     builded_message: error::Error::build(
                         error::errorList::error_s1.message.clone(),
                         vec![error::ErrorBuildField {
-                            key: "token".to_string(),
+                            key: "token".to_owned(),
                             value: current_reliability.found.to_string(),
                         }],
                     ),

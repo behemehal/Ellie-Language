@@ -1,17 +1,17 @@
+use crate::alloc::borrow::ToOwned;
+use crate::alloc::string::String;
+use crate::alloc::vec;
+use crate::alloc::vec::Vec;
 use crate::parser;
 use crate::processors;
 use ellie_core::{defs, error};
-
-use crate::alloc::string::{String, ToString};
-use crate::alloc::vec;
-use crate::alloc::vec::Vec;
 
 pub fn iter<F>(
     parser: &mut parser::Parser<F>,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
-    next_char: String,
-    last_char: String,
+    next_char: &str,
+    last_char: &str,
 ) where
     F: FnMut(ellie_core::com::Message) + Clone + Sized,
 {
@@ -24,14 +24,14 @@ pub fn iter<F>(
             errors.push(error::Error {
                 path: parser.options.path.clone(),
                 scope: parser.scope.scope_name.clone(),
-                debug_message: "7d65bd077fd6ed2318be45cd6ebccebc".to_string(),
+                debug_message: "7d65bd077fd6ed2318be45cd6ebccebc".to_owned(),
                 title: error::errorList::error_s23.title.clone(),
                 code: error::errorList::error_s23.code,
                 message: error::errorList::error_s23.message.clone(),
                 builded_message: error::Error::build(
                     error::errorList::error_s23.message.clone(),
                     vec![error::ErrorBuildField {
-                        key: "token".to_string(),
+                        key: "token".to_owned(),
                         value: parser.keyword_catch.clone(),
                     }],
                 ),

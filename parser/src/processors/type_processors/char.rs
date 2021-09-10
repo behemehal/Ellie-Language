@@ -1,20 +1,20 @@
+use crate::alloc::borrow::ToOwned;
 use crate::parser;
 use crate::processors::type_processors;
 use crate::syntax::{types, variable};
-use ellie_core::{defs, error};
-
 use alloc::boxed::Box;
-use alloc::string::{String, ToString};
+use alloc::string::ToString;
 use alloc::vec;
 use alloc::vec::Vec;
+use ellie_core::{defs, error};
 
 pub fn collect_char<F>(
     parser: parser::Parser<F>,
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
-    next_char: String,
-    last_char: String,
+    next_char: &str,
+    last_char: &str,
 ) where
     F: FnMut(ellie_core::com::Message) + Clone + Sized,
 {
@@ -22,7 +22,7 @@ pub fn collect_char<F>(
         if itered_data.data.dynamic {
             itered_data.data.rtype = crate::syntax::definers::DefinerCollecting::Generic(
                 crate::syntax::definers::GenericType {
-                    rtype: "char".to_string(),
+                    rtype: "char".to_owned(),
                 },
             );
         }
@@ -31,8 +31,8 @@ pub fn collect_char<F>(
             if data.value == '\0' {
                 errors.push(error::Error {
                     path: parser.options.path.clone(),
-                    scope: "char_function".to_string(),
-                    debug_message: "074b5bb6dc988350527b820e864c35a6".to_string(),
+                    scope: "char_function".to_owned(),
+                    debug_message: "074b5bb6dc988350527b820e864c35a6".to_owned(),
                     title: error::errorList::error_s14.title.clone(),
                     code: error::errorList::error_s14.code,
                     message: error::errorList::error_s14.message.clone(),
@@ -50,8 +50,8 @@ pub fn collect_char<F>(
             if data.value != '\0' {
                 errors.push(error::Error {
                     path: parser.options.path.clone(),
-                    scope: "char_function".to_string(),
-                    debug_message: "c5ad88d77c2f412032d99a7fee8af90c".to_string(),
+                    scope: "char_function".to_owned(),
+                    debug_message: "c5ad88d77c2f412032d99a7fee8af90c".to_owned(),
                     title: error::errorList::error_s15.title.clone(),
                     code: error::errorList::error_s15.code,
                     message: error::errorList::error_s15.message.clone(),
@@ -146,15 +146,15 @@ pub fn collect_char<F>(
         } else if letter_char != " " {
             errors.push(error::Error {
                 path: parser.options.path.clone(),
-                scope: "char_function".to_string(),
-                debug_message: "4bec45a87be657a5b723eb707fa861ff".to_string(),
+                scope: "char_function".to_owned(),
+                debug_message: "4bec45a87be657a5b723eb707fa861ff".to_owned(),
                 title: error::errorList::error_s1.title.clone(),
                 code: error::errorList::error_s1.code,
                 message: error::errorList::error_s1.message.clone(),
                 builded_message: error::Error::build(
                     error::errorList::error_s1.message.clone(),
                     vec![error::ErrorBuildField {
-                        key: "token".to_string(),
+                        key: "token".to_owned(),
                         value: letter_char.to_string(),
                     }],
                 ),

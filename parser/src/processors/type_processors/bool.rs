@@ -1,9 +1,10 @@
 #![allow(clippy::unnecessary_unwrap)]
+use crate::alloc::borrow::ToOwned;
 use crate::parser;
 use crate::processors::type_processors;
 use crate::syntax::{types, variable};
 use alloc::boxed::Box;
-use alloc::string::{String, ToString};
+use alloc::string::ToString;
 use alloc::vec;
 use alloc::vec::Vec;
 use ellie_core::{defs, error};
@@ -13,8 +14,8 @@ pub fn collect_bool<F>(
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
-    next_char: String,
-    last_char: String,
+    next_char: &str,
+    last_char: &str,
 ) where
     F: FnMut(ellie_core::com::Message) + Clone + Sized,
 {
@@ -22,7 +23,7 @@ pub fn collect_bool<F>(
         if itered_data.data.dynamic {
             itered_data.data.rtype = crate::syntax::definers::DefinerCollecting::Generic(
                 crate::syntax::definers::GenericType {
-                    rtype: "bool".to_string(),
+                    rtype: "bool".to_owned(),
                 },
             );
         }
@@ -109,15 +110,15 @@ pub fn collect_bool<F>(
         } else if letter_char != " " {
             errors.push(error::Error {
                 path: parser.options.path.clone(),
-                scope: "bool_function".to_string(),
-                debug_message: "7b3c79306a778f958fc8d6e0fc9266f6".to_string(),
+                scope: "bool_function".to_owned(),
+                debug_message: "7b3c79306a778f958fc8d6e0fc9266f6".to_owned(),
                 title: error::errorList::error_s1.title.clone(),
                 code: error::errorList::error_s1.code,
                 message: error::errorList::error_s1.message.clone(),
                 builded_message: error::Error::build(
                     error::errorList::error_s1.message.clone(),
                     vec![error::ErrorBuildField {
-                        key: "token".to_string(),
+                        key: "token".to_owned(),
                         value: (data.raw).to_string(),
                     }],
                 ),

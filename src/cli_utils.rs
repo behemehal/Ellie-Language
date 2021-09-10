@@ -39,7 +39,7 @@ pub fn parse(contents: String, file_name: String) -> ellie_parser::parser::Parse
             global_variables: true,
             getters: true,
             setters: true,
-            line_ending: "\\n".to_string(),
+            line_ending: "\\n".to_owned(),
             collectives: true,
             variables: true,
             constants: true,
@@ -98,7 +98,7 @@ pub fn resolve_import(
     if lib_name == "ellie" {
         ellie_parser::parser::ResolvedImport {
             found: true,
-            resolved_path: "<virtual>".to_string(),
+            resolved_path: "<virtual>".to_owned(),
             file_content: ellie_parser::parser::ResolvedFileContent::Raw(
                 ellie_core::builded_libraries::ELLIE_STANDARD_LIBRARY.to_string(),
             ),
@@ -114,7 +114,7 @@ pub fn resolve_import(
         {
             ellie_parser::parser::ResolvedImport {
                 found: false,
-                resolve_error: "Importing this file causes infinite loop".to_string(),
+                resolve_error: "Importing this file causes infinite loop".to_owned(),
                 ..Default::default()
             }
         } else {
@@ -228,7 +228,7 @@ pub fn draw_error(line: String, pos: defs::CursorPosition) -> String {
 fn generate_blank(size: usize) -> String {
     let mut blank: String = String::new();
     for _ in 0..size + 1 {
-        blank += &" ".to_string();
+        blank += &" ".to_owned();
     }
     blank
 }

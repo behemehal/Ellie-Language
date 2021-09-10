@@ -1,4 +1,5 @@
-use alloc::string::{String, ToString};
+use crate::alloc::borrow::ToOwned;
+use alloc::string::String;
 use serde::{Deserialize, Serialize};
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
@@ -38,7 +39,7 @@ pub struct ParserOptions {
 impl Default for ParserOptions {
     fn default() -> Self {
         ParserOptions {
-            path: "".to_string(),
+            path: "".to_owned(),
             functions: true,
             break_on_error: false,
             loops: true,
@@ -48,7 +49,7 @@ impl Default for ParserOptions {
             classes: true,
             enums: true,
             global_variables: true,
-            line_ending: "\\r\\n".to_string(),
+            line_ending: "\\r\\n".to_owned(),
             dynamics: true,
             collectives: true,
             variables: true,

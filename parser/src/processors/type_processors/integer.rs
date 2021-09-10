@@ -1,27 +1,27 @@
+use crate::alloc::borrow::ToOwned;
 use crate::parser;
 use crate::processors::type_processors;
 use crate::syntax::{definers, types, variable};
-use ellie_core::{defs, error};
-
 use alloc::boxed::Box;
-use alloc::string::{String, ToString};
+use alloc::string::ToString;
 use alloc::vec;
 use alloc::vec::Vec;
+use ellie_core::{defs, error};
 
 pub fn collect_integer<F>(
     parser: parser::Parser<F>,
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
-    next_char: String,
-    last_char: String,
+    next_char: &str,
+    last_char: &str,
 ) where
     F: FnMut(ellie_core::com::Message) + Clone + Sized,
 {
     if let types::Types::Integer(ref mut data) = itered_data.data.value {
         if itered_data.data.dynamic {
             itered_data.data.rtype = definers::DefinerCollecting::Generic(definers::GenericType {
-                rtype: "int".to_string(),
+                rtype: "int".to_owned(),
             });
         }
 
@@ -34,15 +34,15 @@ pub fn collect_integer<F>(
             if data.complete && last_char.parse::<isize>().is_err() && last_char != "x" {
                 errors.push(error::Error {
                     path: parser.options.path.clone(),
-                    scope: "integer_processor".to_string(),
-                    debug_message: "98a2c367826acc1a81e7633ba5fc66a4".to_string(),
+                    scope: "integer_processor".to_owned(),
+                    debug_message: "98a2c367826acc1a81e7633ba5fc66a4".to_owned(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
                     builded_message: error::Error::build(
                         error::errorList::error_s1.message.clone(),
                         vec![error::ErrorBuildField {
-                            key: "token".to_string(),
+                            key: "token".to_owned(),
                             value: letter_char.to_string(),
                         }],
                     ),
@@ -76,15 +76,15 @@ pub fn collect_integer<F>(
                 } else {
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
-                        scope: "integer_processor".to_string(),
-                        debug_message: "0b4d61197748fd608649e1d8c924128f".to_string(),
+                        scope: "integer_processor".to_owned(),
+                        debug_message: "0b4d61197748fd608649e1d8c924128f".to_owned(),
                         title: error::errorList::error_s16.title.clone(),
                         code: error::errorList::error_s16.code,
                         message: error::errorList::error_s16.message.clone(),
                         builded_message: error::Error::build(
                             error::errorList::error_s16.message.clone(),
                             vec![error::ErrorBuildField {
-                                key: "val".to_string(),
+                                key: "val".to_owned(),
                                 value: data.raw.clone(),
                             }],
                         ),
@@ -189,15 +189,15 @@ pub fn collect_integer<F>(
         } else if letter_char != " " {
             errors.push(error::Error {
                 path: parser.options.path.clone(),
-                scope: "integer_processor".to_string(),
-                debug_message: "9328a5ccf9f00473a4eda88568a2edcf".to_string(),
+                scope: "integer_processor".to_owned(),
+                debug_message: "9328a5ccf9f00473a4eda88568a2edcf".to_owned(),
                 title: error::errorList::error_s1.title.clone(),
                 code: error::errorList::error_s1.code,
                 message: error::errorList::error_s1.message.clone(),
                 builded_message: error::Error::build(
                     error::errorList::error_s1.message.clone(),
                     vec![error::ErrorBuildField {
-                        key: "token".to_string(),
+                        key: "token".to_owned(),
                         value: letter_char.to_string(),
                     }],
                 ),

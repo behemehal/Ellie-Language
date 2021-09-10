@@ -1,13 +1,13 @@
+use crate::alloc::borrow::ToOwned;
 use crate::parser;
 use crate::processors::value_processor;
 use crate::syntax;
+use crate::syntax::types::collective_type;
 use crate::syntax::{definers, types, variable};
 use alloc::boxed::Box;
-use alloc::string::{String, ToString};
+use alloc::string::ToString;
 use alloc::vec;
 use alloc::vec::Vec;
-
-use crate::syntax::types::collective_type;
 
 use ellie_core::{defs, error};
 
@@ -16,8 +16,8 @@ pub fn collect_collective<F>(
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
-    next_char: String,
-    last_char: String,
+    next_char: &str,
+    last_char: &str,
 ) where
     F: FnMut(ellie_core::com::Message) + Clone + Sized,
 {
@@ -62,14 +62,14 @@ pub fn collect_collective<F>(
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
                         scope: parser.scope.scope_name.clone(),
-                        debug_message: "91ed80b69400ab01cd8f0e491bda7612".to_string(),
+                        debug_message: "91ed80b69400ab01cd8f0e491bda7612".to_owned(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
                         builded_message: error::Error::build(
                             error::errorList::error_s1.message.clone(),
                             vec![error::ErrorBuildField {
-                                key: "token".to_string(),
+                                key: "token".to_owned(),
                                 value: letter_char.to_string(),
                             }],
                         ),
@@ -97,7 +97,7 @@ pub fn collect_collective<F>(
                             errors.push(error::Error {
                                 path: parser.options.path.clone(),
                                 scope: parser.scope.scope_name.clone(),
-                                debug_message: "2a95585e5d28c497251ef64b53f7ee82".to_string(),
+                                debug_message: "2a95585e5d28c497251ef64b53f7ee82".to_owned(),
                                 title: error::errorList::error_s3.title.clone(),
                                 code: error::errorList::error_s3.code,
                                 message: error::errorList::error_s3.message.clone(),
@@ -105,11 +105,11 @@ pub fn collect_collective<F>(
                                     error::errorList::error_s3.message.clone(),
                                     vec![
                                         error::ErrorBuildField {
-                                            key: "token1".to_string(),
+                                            key: "token1".to_owned(),
                                             value: collective_defining.key.raw_name(),
                                         },
                                         error::ErrorBuildField {
-                                            key: "token2".to_string(),
+                                            key: "token2".to_owned(),
                                             value: entry_type,
                                         },
                                     ],
@@ -129,14 +129,14 @@ pub fn collect_collective<F>(
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
                         scope: parser.scope.scope_name.clone(),
-                        debug_message: "5c11749ae5f81149abf5bb3c146e605e".to_string(),
+                        debug_message: "5c11749ae5f81149abf5bb3c146e605e".to_owned(),
                         title: error::errorList::error_s36.title.clone(),
                         code: error::errorList::error_s36.code,
                         message: error::errorList::error_s36.message.clone(),
                         builded_message: error::Error::build(
                             error::errorList::error_s36.message.clone(),
                             vec![error::ErrorBuildField {
-                                key: "token".to_string(),
+                                key: "token".to_owned(),
                                 value: (*last_entry.data.key.get_type().clone()).to_string(),
                             }],
                         ),
@@ -154,19 +154,15 @@ pub fn collect_collective<F>(
                     ..Default::default()
                 };
 
-                let itered_key_vector = Box::new(value_processor::collect_value(
+                value_processor::collect_value(
                     clone_parser,
                     &mut will_be_itered,
+                    errors,
                     letter_char,
                     next_char,
                     last_char,
-                ));
-
-                if !itered_key_vector.errors.is_empty() {
-                    errors.extend(itered_key_vector.errors);
-                }
-
-                last_entry.data.key = Box::new(itered_key_vector.itered_data.data.value);
+                );
+                last_entry.data.key = Box::new(will_be_itered.data.value);
             }
         } else {
             //Collecting last entry's value
@@ -183,7 +179,7 @@ pub fn collect_collective<F>(
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
                         scope: parser.scope.scope_name.clone(),
-                        debug_message: "ee819adfc50f85804f624d16e60d7556".to_string(),
+                        debug_message: "ee819adfc50f85804f624d16e60d7556".to_owned(),
                         title: error::errorList::error_s10.title.clone(),
                         code: error::errorList::error_s10.code,
                         message: error::errorList::error_s10.message.clone(),
@@ -211,7 +207,7 @@ pub fn collect_collective<F>(
                             errors.push(error::Error {
                                 path: parser.options.path.clone(),
                                 scope: parser.scope.scope_name.clone(),
-                                debug_message: "11cbf989b630f82cea83946f83b4aa0e".to_string(),
+                                debug_message: "11cbf989b630f82cea83946f83b4aa0e".to_owned(),
                                 title: error::errorList::error_s3.title.clone(),
                                 code: error::errorList::error_s3.code,
                                 message: error::errorList::error_s3.message.clone(),
@@ -219,11 +215,11 @@ pub fn collect_collective<F>(
                                     error::errorList::error_s3.message.clone(),
                                     vec![
                                         error::ErrorBuildField {
-                                            key: "token1".to_string(),
+                                            key: "token1".to_owned(),
                                             value: collective_defining.value.raw_name(),
                                         },
                                         error::ErrorBuildField {
-                                            key: "token2".to_string(),
+                                            key: "token2".to_owned(),
                                             value: entry_type,
                                         },
                                     ],
@@ -247,14 +243,14 @@ pub fn collect_collective<F>(
                         errors.push(error::Error {
                             path: parser.options.path.clone(),
                             scope: parser.scope.scope_name.clone(),
-                            debug_message: "8809454f026758923c46efa28a21216d".to_string(),
+                            debug_message: "8809454f026758923c46efa28a21216d".to_owned(),
                             title: error::errorList::error_s1.title.clone(),
                             code: error::errorList::error_s1.code,
                             message: error::errorList::error_s1.message.clone(),
                             builded_message: error::Error::build(
                                 error::errorList::error_s1.message.clone(),
                                 vec![error::ErrorBuildField {
-                                    key: "token".to_string(),
+                                    key: "token".to_owned(),
                                     value: letter_char.to_string(),
                                 }],
                             ),
@@ -298,19 +294,16 @@ pub fn collect_collective<F>(
                     }
                 };
 
-                let itered_key_vector = Box::new(value_processor::collect_value(
+                value_processor::collect_value(
                     clone_parser.clone(),
                     &mut will_be_itered,
+                    errors,
                     letter_char,
                     next_char,
                     last_char,
-                ));
+                );
 
-                if !itered_key_vector.errors.is_empty() {
-                    errors.extend(itered_key_vector.errors);
-                }
-
-                last_entry.data.value = Box::new(itered_key_vector.itered_data.data.value);
+                last_entry.data.value = Box::new(will_be_itered.data.value);
                 last_entry.data.value_pos.range_end = clone_parser.pos.clone().skip_char(1);
                 //Set the range end
             }

@@ -8,7 +8,7 @@ pub fn emulate_value_processor(
     Vec<ellie_core::error::Error>,
 ) {
     let mut emulated_parser = Parser::new(
-        "".to_string(),
+        "".to_owned(),
         |_, _, _| ResolvedImport::default(),
         |_| {},
         defs::ParserOptions::default(),
@@ -19,36 +19,30 @@ pub fn emulate_value_processor(
     };
     let mut syntax_errors = vec![];
     emulated_collector_data.data.dynamic = true;
-    let content = code.chars().collect::<Vec<_>>();
+    let mut content = code.split("").collect::<Vec<_>>();
+    content.remove(0);
+    content.remove(content.len() - 1);
     for i in 0..content.len() {
-        let char = content[i];
+        let char = content[i].chars().next().unwrap();
         if char == '\n' || char == '\r' {
             continue;
         }
 
         let letter_char = &char.to_string();
-        let last_char = if i == 0 {
-            "".to_string()
-        } else {
-            content[i - 1].to_string()
-        };
+        let last_char = if i == 0 { "" } else { content[i - 1] };
         let next_char = if i + 1 > content.len() - 1 {
-            "".to_string()
+            ""
         } else {
-            content[i + 1].to_string()
+            content[i + 1]
         };
-        let itered = ellie_parser::processors::value_processor::collect_value(
+        ellie_parser::processors::value_processor::collect_value(
             emulated_parser.clone(),
             &mut emulated_collector_data,
+            &mut syntax_errors,
             letter_char,
-            next_char.to_string(),
-            last_char.to_string(),
+            next_char,
+            last_char,
         );
-
-        for error in itered.errors {
-            syntax_errors.push(error);
-        }
-        emulated_collector_data = itered.itered_data;
         emulated_parser.pos.1 += 1;
     }
     (emulated_collector_data.data.value, syntax_errors)
@@ -76,8 +70,8 @@ pub fn emulate_value_processor_operator(
     ellie_parser::syntax::types::operator_type::OperatorType,
     Vec<ellie_core::error::Error>,
 ) {
-    let emulated_parser = Parser::new(
-        "".to_string(),
+    let mut emulated_parser = Parser::new(
+        "".to_owned(),
         |_, _, _| ResolvedImport::default(),
         |_| {},
         defs::ParserOptions::default(),
@@ -85,37 +79,31 @@ pub fn emulate_value_processor_operator(
     let mut emulated_collector_data = ellie_parser::syntax::variable::VariableCollector::default();
     let mut syntax_errors = vec![];
     emulated_collector_data.data.dynamic = true;
-    let content = code.chars().collect::<Vec<_>>();
-
+    let mut content = code.split("").collect::<Vec<_>>();
+    content.remove(0);
+    content.remove(content.len() - 1);
     for i in 0..content.len() {
-        let char = content[i];
+        let char = content[i].chars().next().unwrap();
         if char == '\n' || char == '\r' {
             continue;
         }
 
         let letter_char = &char.to_string();
-        let last_char = if i == 0 {
-            "".to_string()
-        } else {
-            content[i - 1].to_string()
-        };
+        let last_char = if i == 0 { "" } else { content[i - 1] };
         let next_char = if i + 1 > content.len() - 1 {
-            "".to_string()
+            ""
         } else {
-            content[i + 1].to_string()
+            content[i + 1]
         };
-        let itered = ellie_parser::processors::value_processor::collect_value(
+        ellie_parser::processors::value_processor::collect_value(
             emulated_parser.clone(),
             &mut emulated_collector_data,
+            &mut syntax_errors,
             letter_char,
-            next_char.to_string(),
-            last_char.to_string(),
+            next_char,
+            last_char,
         );
-
-        for error in itered.errors {
-            syntax_errors.push(error);
-        }
-        emulated_collector_data = itered.itered_data;
+        emulated_parser.pos.1 += 1;
     }
 
     let mut found = ellie_parser::syntax::types::operator_type::OperatorType::default();

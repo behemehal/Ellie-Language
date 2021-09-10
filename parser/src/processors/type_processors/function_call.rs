@@ -1,27 +1,27 @@
+use crate::alloc::borrow::ToOwned;
 use crate::parser;
 use crate::processors::{type_processors, value_processor};
 use crate::syntax::{definers, types, variable};
-use ellie_core::{defs, error, utils};
-
 use alloc::boxed::Box;
-use alloc::string::{String, ToString};
+use alloc::string::ToString;
 use alloc::vec;
 use alloc::vec::Vec;
+use ellie_core::{defs, error, utils};
 
 pub fn collect_function_caller<F>(
     parser: parser::Parser<F>,
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
-    next_char: String,
-    last_char: String,
+    next_char: &str,
+    last_char: &str,
 ) where
     F: FnMut(ellie_core::com::Message) + Clone + Sized,
 {
     if let types::Types::FunctionCall(ref mut function_call_data) = itered_data.data.value {
         if itered_data.data.dynamic {
             itered_data.data.rtype = definers::DefinerCollecting::Generic(definers::GenericType {
-                rtype: "functionCall".to_string(),
+                rtype: "functionCall".to_owned(),
             });
         }
 
@@ -41,15 +41,15 @@ pub fn collect_function_caller<F>(
                 if function_call_data.data.name.is_empty() {
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
-                        scope: "function_call_processor".to_string(),
-                        debug_message: "ef7f4cc4c10cc69387cc6d6fb8ee7906".to_string(),
+                        scope: "function_call_processor".to_owned(),
+                        debug_message: "ef7f4cc4c10cc69387cc6d6fb8ee7906".to_owned(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
                         builded_message: error::Error::build(
                             error::errorList::error_s1.message.clone(),
                             vec![error::ErrorBuildField {
-                                key: "token".to_string(),
+                                key: "token".to_owned(),
                                 value: letter_char.to_string(),
                             }],
                         ),
@@ -64,15 +64,15 @@ pub fn collect_function_caller<F>(
             } else if letter_char != " " {
                 errors.push(error::Error {
                     path: parser.options.path.clone(),
-                    scope: "function_call_processor".to_string(),
-                    debug_message: "64c5fd362abbc4c5779c1199d8313cc0".to_string(),
+                    scope: "function_call_processor".to_owned(),
+                    debug_message: "64c5fd362abbc4c5779c1199d8313cc0".to_owned(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
                     builded_message: error::Error::build(
                         error::errorList::error_s1.message.clone(),
                         vec![error::ErrorBuildField {
-                            key: "token".to_string(),
+                            key: "token".to_owned(),
                             value: letter_char.to_string(),
                         }],
                     ),
@@ -93,15 +93,15 @@ pub fn collect_function_caller<F>(
                 if function_call_data.complete {
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
-                        scope: "function_call_processor".to_string(),
-                        debug_message: "7e97ee260b3f2bc168ba01d313ec47c0".to_string(),
+                        scope: "function_call_processor".to_owned(),
+                        debug_message: "7e97ee260b3f2bc168ba01d313ec47c0".to_owned(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
                         builded_message: error::Error::build(
                             error::errorList::error_s1.message.clone(),
                             vec![error::ErrorBuildField {
-                                key: "token".to_string(),
+                                key: "token".to_owned(),
                                 value: letter_char.to_string(),
                             }],
                         ),
@@ -113,15 +113,15 @@ pub fn collect_function_caller<F>(
                 } else if function_call_data.comma {
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
-                        scope: "function_call_processor".to_string(),
-                        debug_message: "113f1de44126b9b796064625c2d24ef8".to_string(),
+                        scope: "function_call_processor".to_owned(),
+                        debug_message: "113f1de44126b9b796064625c2d24ef8".to_owned(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
                         builded_message: error::Error::build(
                             error::errorList::error_s1.message.clone(),
                             vec![error::ErrorBuildField {
-                                key: "token".to_string(),
+                                key: "token".to_owned(),
                                 value: letter_char.to_string(),
                             }],
                         ),
@@ -204,15 +204,16 @@ pub fn collect_function_caller<F>(
                     };
                 }
 
-                let itered_fcall_vector = Box::new(value_processor::collect_value(
+                value_processor::collect_value(
                     parser.clone(),
                     &mut will_be_itered,
+                    errors,
                     letter_char,
                     next_char,
                     last_char,
-                ));
+                );
 
-                let itered_entry = match itered_fcall_vector.itered_data.data.value {
+                let itered_entry = match will_be_itered.data.value {
                     types::Types::Integer(match_data) => {
                         types::function_call::FunctionCallParameter {
                             value: types::Types::Integer(match_data),
@@ -377,9 +378,6 @@ pub fn collect_function_caller<F>(
                     },
                 };
 
-                if !itered_fcall_vector.errors.is_empty() {
-                    errors.extend(itered_fcall_vector.errors);
-                }
                 if function_call_data.data.params.is_empty() {
                     function_call_data.data.params.push(itered_entry);
 

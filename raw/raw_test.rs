@@ -34,7 +34,7 @@ fn main() {
             classes: true,
             dynamics: true,
             global_variables: true,
-            line_ending: "\\n".to_string(),
+            line_ending: "\\n".to_owned(),
             collectives: true,
             variables: true,
             constants: true,
@@ -165,7 +165,7 @@ fn main() {
             }
         }
     } else {
-        let raw_converter = converter::Converter::new("main".to_string(), "./main.ei".to_string(), 0);
+        let raw_converter = converter::Converter::new("main".to_owned(), "./main.ei".to_owned(), 0);
         raw_converter.convert(mapped.parsed);
     }
 }

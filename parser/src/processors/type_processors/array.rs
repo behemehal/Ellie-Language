@@ -1,24 +1,33 @@
+use crate::alloc::borrow::ToOwned;
 use crate::parser;
 use crate::processors::{type_processors, value_processor};
 use crate::syntax::{definers, types, variable};
-use ellie_core::{defs, error};
-
 use alloc::boxed::Box;
-use alloc::string::{String, ToString};
+use alloc::string::ToString;
 use alloc::vec;
 use alloc::vec::Vec;
+use ellie_core::{defs, error};
 
 pub fn collect_array<F>(
     parser: parser::Parser<F>,
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
-    next_char: String,
-    last_char: String,
+    next_char: &str,
+    last_char: &str,
 ) where
     F: FnMut(ellie_core::com::Message) + Clone + Sized,
 {
     if let types::Types::Array(ref mut data) = itered_data.data.value {
+        if itered_data.data.dynamic {
+            itered_data.data.rtype = crate::syntax::definers::DefinerCollecting::GrowableArray(
+                crate::syntax::definers::GrowableArrayType {
+                    rtype: Box::new(crate::syntax::definers::DefinerCollecting::Dynamic),
+                    ..Default::default()
+                },
+            );
+        }
+
         let mut last_entry = data.clone().data.collective.len();
 
         let is_s_n = last_entry == 0
@@ -30,15 +39,15 @@ pub fn collect_array<F>(
             if !data.comma && last_entry != 0 {
                 errors.push(error::Error {
                     path: parser.options.path.clone(),
-                    scope: "array_processor".to_string(),
-                    debug_message: "a6fe6c0bd9679430ad8112f0db692a39".to_string(),
+                    scope: "array_processor".to_owned(),
+                    debug_message: "a6fe6c0bd9679430ad8112f0db692a39".to_owned(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
                     builded_message: error::Error::build(
                         error::errorList::error_s1.message.clone(),
                         vec![error::ErrorBuildField {
-                            key: "token".to_string(),
+                            key: "token".to_owned(),
                             value: letter_char.to_string(),
                         }],
                     ),
@@ -77,15 +86,15 @@ pub fn collect_array<F>(
             if data.complete {
                 errors.push(error::Error {
                     path: parser.options.path.clone(),
-                    scope: "array_processor".to_string(),
-                    debug_message: "b896692eab597bc65c3fe22a0d5e88c6".to_string(),
+                    scope: "array_processor".to_owned(),
+                    debug_message: "b896692eab597bc65c3fe22a0d5e88c6".to_owned(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
                     builded_message: error::Error::build(
                         error::errorList::error_s1.message.clone(),
                         vec![error::ErrorBuildField {
-                            key: "token".to_string(),
+                            key: "token".to_owned(),
                             value: letter_char.to_string(),
                         }],
                     ),
@@ -97,15 +106,15 @@ pub fn collect_array<F>(
             } else if data.comma {
                 errors.push(error::Error {
                     path: parser.options.path.clone(),
-                    scope: "array_processor".to_string(),
-                    debug_message: "beb8e99e2b7db373a1abc2e2f06464d6".to_string(),
+                    scope: "array_processor".to_owned(),
+                    debug_message: "beb8e99e2b7db373a1abc2e2f06464d6".to_owned(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
                     builded_message: error::Error::build(
                         error::errorList::error_s1.message.clone(),
                         vec![error::ErrorBuildField {
-                            key: "token".to_string(),
+                            key: "token".to_owned(),
                             value: letter_char.to_string(),
                         }],
                     ),
@@ -130,7 +139,7 @@ pub fn collect_array<F>(
                             errors.push(error::Error {
                                 path: parser.options.path.clone(),
                                 scope: parser.scope.scope_name.clone(),
-                                debug_message: "15b268c471e09a3cf793958a7fa35980".to_string(),
+                                debug_message: "15b268c471e09a3cf793958a7fa35980".to_owned(),
                                 title: error::errorList::error_s3.title.clone(),
                                 code: error::errorList::error_s3.code,
                                 message: error::errorList::error_s3.message.clone(),
@@ -138,11 +147,11 @@ pub fn collect_array<F>(
                                     error::errorList::error_s3.message.clone(),
                                     vec![
                                         error::ErrorBuildField {
-                                            key: "token1".to_string(),
+                                            key: "token1".to_owned(),
                                             value: array_defining.rtype.raw_name(),
                                         },
                                         error::ErrorBuildField {
-                                            key: "token2".to_string(),
+                                            key: "token2".to_owned(),
                                             value: entry_type,
                                         },
                                     ],
@@ -170,15 +179,15 @@ pub fn collect_array<F>(
             if data.comma {
                 errors.push(error::Error {
                     path: parser.options.path.clone(),
-                    scope: "array_processor".to_string(),
-                    debug_message: "27fab0d8588d1244589bb005e84aaabf".to_string(),
+                    scope: "array_processor".to_owned(),
+                    debug_message: "27fab0d8588d1244589bb005e84aaabf".to_owned(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
                     builded_message: error::Error::build(
                         error::errorList::error_s1.message.clone(),
                         vec![error::ErrorBuildField {
-                            key: "token".to_string(),
+                            key: "token".to_owned(),
                             value: letter_char.to_string(),
                         }],
                     ),
@@ -190,15 +199,15 @@ pub fn collect_array<F>(
             } else if data.complete {
                 errors.push(error::Error {
                     path: parser.options.path.clone(),
-                    scope: "array_processor".to_string(),
-                    debug_message: "2b1a3d7fe6f04c51b7271f9d8710c202".to_string(),
+                    scope: "array_processor".to_owned(),
+                    debug_message: "2b1a3d7fe6f04c51b7271f9d8710c202".to_owned(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
                     builded_message: error::Error::build(
                         error::errorList::error_s1.message.clone(),
                         vec![error::ErrorBuildField {
-                            key: "token".to_string(),
+                            key: "token".to_owned(),
                             value: letter_char.to_string(),
                         }],
                     ),
@@ -226,7 +235,7 @@ pub fn collect_array<F>(
                             errors.push(error::Error {
                                 path: parser.options.path.clone(),
                                 scope: parser.scope.scope_name.clone(),
-                                debug_message: "abce163873d769c215f01382aef67aba".to_string(),
+                                debug_message: "abce163873d769c215f01382aef67aba".to_owned(),
                                 title: error::errorList::error_s3.title.clone(),
                                 code: error::errorList::error_s3.code,
                                 message: error::errorList::error_s3.message.clone(),
@@ -234,11 +243,11 @@ pub fn collect_array<F>(
                                     error::errorList::error_s3.message.clone(),
                                     vec![
                                         error::ErrorBuildField {
-                                            key: "token1".to_string(),
+                                            key: "token1".to_owned(),
                                             value: array_defining.rtype.raw_name(),
                                         },
                                         error::ErrorBuildField {
-                                            key: "token2".to_string(),
+                                            key: "token2".to_owned(),
                                             value: entry_type,
                                         },
                                     ],
@@ -402,22 +411,22 @@ pub fn collect_array<F>(
                 //std::println!("[ParserError:0x1]: This shouldn't have happened");
             }
 
-            let itered_array_vector = Box::new(value_processor::collect_value(
+            value_processor::collect_value(
                 parser.clone(),
                 &mut will_be_itered,
+                errors,
                 letter_char,
                 next_char,
                 last_char,
-            ));
+            );
 
-            if let types::Types::Array(ref array_data) = itered_array_vector.itered_data.data.value
-            {
+            if let types::Types::Array(ref array_data) = will_be_itered.data.value {
                 if array_data.complete {
                     data.child_start = false;
                 }
             }
 
-            let itered_entry = match itered_array_vector.itered_data.data.value {
+            let itered_entry = match will_be_itered.data.value {
                 types::Types::Integer(match_data) => types::array_type::ArrayEntry {
                     value_complete: match_data.complete,
                     value: Box::new(types::Types::Integer(match_data)),
@@ -648,10 +657,6 @@ pub fn collect_array<F>(
                 },
             };
 
-            if !itered_array_vector.errors.is_empty() {
-                errors.extend(itered_array_vector.errors);
-            }
-
             if data.data.collective.is_empty() {
                 data.data.collective.push(itered_entry);
                 last_entry += 1;
@@ -671,8 +676,8 @@ pub fn collect_array<F>(
                 {
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
-                        scope: "array_processor".to_string(),
-                        debug_message: "9e23bb1264de0c461104297f24bce1e8".to_string(),
+                        scope: "array_processor".to_owned(),
+                        debug_message: "9e23bb1264de0c461104297f24bce1e8".to_owned(),
                         title: error::errorList::error_s19.title.clone(),
                         code: error::errorList::error_s19.code,
                         message: error::errorList::error_s19.message.clone(),
@@ -680,11 +685,11 @@ pub fn collect_array<F>(
                             error::errorList::error_s19.message.clone(),
                             vec![
                                 error::ErrorBuildField {
-                                    key: "token".to_string(),
+                                    key: "token".to_owned(),
                                     value: array_def.len.data.value.get_val(),
                                 },
                                 error::ErrorBuildField {
-                                    key: "token2".to_string(),
+                                    key: "token2".to_owned(),
                                     value: data.data.collective.len().to_string(),
                                 },
                             ],

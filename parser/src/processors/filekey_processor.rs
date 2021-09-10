@@ -1,18 +1,18 @@
-use crate::alloc::string::{String, ToString};
+use crate::alloc::borrow::ToOwned;
+use crate::alloc::string::ToString;
 use crate::alloc::vec;
 use crate::alloc::vec::Vec;
 use crate::parser;
 use crate::processors::value_processor;
 use crate::syntax;
-use alloc::boxed::Box;
 use ellie_core::{defs, error, utils};
 
 pub fn collect_filekey<F>(
     parser: &mut parser::Parser<F>,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
-    next_char: String,
-    last_char: String,
+    next_char: &str,
+    last_char: &str,
 ) where
     F: FnMut(ellie_core::com::Message) + Clone + Sized,
 {
@@ -43,15 +43,15 @@ pub fn collect_filekey<F>(
                 {
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
-                        scope: "filekey_processor".to_string(),
-                        debug_message: "5eef5e3a2d6885dc24e7b225fdd8c4a9".to_string(),
+                        scope: "filekey_processor".to_owned(),
+                        debug_message: "5eef5e3a2d6885dc24e7b225fdd8c4a9".to_owned(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
                         builded_message: error::Error::build(
                             error::errorList::error_s1.message.clone(),
                             vec![error::ErrorBuildField {
-                                key: "token".to_string(),
+                                key: "token".to_owned(),
                                 value: letter_char.to_string(),
                             }],
                         ),
@@ -66,15 +66,15 @@ pub fn collect_filekey<F>(
             if clone_parser.check_key_keyword(file_key_data.data.key_name.clone()) {
                 errors.push(error::Error {
                     path: parser.options.path.clone(),
-                    scope: "filekey_processor".to_string(),
-                    debug_message: "c46a3065b46f307cb06070b25debe936".to_string(),
+                    scope: "filekey_processor".to_owned(),
+                    debug_message: "c46a3065b46f307cb06070b25debe936".to_owned(),
                     title: error::errorList::error_s24.title.clone(),
                     code: error::errorList::error_s24.code,
                     message: error::errorList::error_s24.message.clone(),
                     builded_message: error::Error::build(
                         error::errorList::error_s24.message.clone(),
                         vec![error::ErrorBuildField {
-                            key: "token".to_string(),
+                            key: "token".to_owned(),
                             value: file_key_data.data.key_name.clone(),
                         }],
                     ),
@@ -102,23 +102,20 @@ pub fn collect_filekey<F>(
                 ..Default::default()
             };
 
-            let itered_filekey_vector = Box::new(value_processor::collect_value(
+            value_processor::collect_value(
                 clone_parser,
                 &mut will_be_itered,
+                errors,
                 letter_char,
                 next_char,
                 last_char,
-            ));
-
-            if !itered_filekey_vector.errors.is_empty() {
-                errors.extend(itered_filekey_vector.errors);
-            }
+            );
 
             if file_key_data.data.value_location.is_zero() {
                 file_key_data.data.value_location.range_start = parser.pos;
             }
 
-            file_key_data.data.value = itered_filekey_vector.itered_data.data.value;
+            file_key_data.data.value = will_be_itered.data.value;
             file_key_data.data.value_location.range_end = parser.pos;
         }
     }

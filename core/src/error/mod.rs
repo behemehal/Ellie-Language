@@ -1,3 +1,4 @@
+use crate::alloc::borrow::ToOwned;
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 use core::clone::Clone;
@@ -42,7 +43,7 @@ impl Error {
         let mut builded_message = body.to_string();
         let mut used_fields = Vec::new();
         for field in fields.clone() {
-            let key: String = '$'.to_string() + &field.key.to_string();
+            let key: String = '$'.to_string() + &field.key.to_owned();
             if let Some(pos) = builded_message.find(&key) {
                 used_fields.push(ErrorBuildField {
                     key: field.key.clone(),
@@ -63,12 +64,12 @@ impl Error {
 impl Default for Error {
     fn default() -> Error {
         Error {
-            path: "".to_string(),
-            debug_message: "".to_string(),
+            path: "".to_owned(),
+            debug_message: "".to_owned(),
             code: 0x00,
-            scope: "".to_string(),
-            title: "".to_string(),
-            message: "".to_string(),
+            scope: "".to_owned(),
+            title: "".to_owned(),
+            message: "".to_owned(),
             builded_message: BuildedError::default(),
             pos: crate::defs::Cursor {
                 range_start: crate::defs::CursorPosition(0, 0),

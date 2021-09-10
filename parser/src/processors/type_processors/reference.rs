@@ -1,9 +1,8 @@
+use crate::alloc::borrow::ToOwned;
 use crate::parser;
 use crate::processors::value_processor;
 use crate::syntax::{types, variable};
-
-use alloc::boxed::Box;
-use alloc::string::{String, ToString};
+use alloc::string::ToString;
 use alloc::vec;
 use alloc::vec::Vec;
 use ellie_core::{defs, error};
@@ -13,8 +12,8 @@ pub fn collect_reference<F>(
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
-    next_char: String,
-    last_char: String,
+    next_char: &str,
+    last_char: &str,
 ) where
     F: FnMut(ellie_core::com::Message) + Clone + Sized,
 {
@@ -33,15 +32,15 @@ pub fn collect_reference<F>(
                 if deep_scan == parser::DeepCallResponse::NoElement {
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
-                        scope: "function_call_processor".to_string(),
-                        debug_message: "e9a8b52fe39c1492c5ba7213fbbdb242".to_string(),
+                        scope: "function_call_processor".to_owned(),
+                        debug_message: "e9a8b52fe39c1492c5ba7213fbbdb242".to_owned(),
                         title: error::errorList::error_s6.title.clone(),
                         code: error::errorList::error_s6.code,
                         message: error::errorList::error_s6.message.clone(),
                         builded_message: error::Error::build(
                             error::errorList::error_s6.message.clone(),
                             vec![error::ErrorBuildField {
-                                key: "token".to_string(),
+                                key: "token".to_owned(),
                                 value: (*reference_data.data.reference.get_type()).to_string(),
                             }],
                         ),
@@ -89,17 +88,14 @@ pub fn collect_reference<F>(
                 }
             };
 
-            let itered_reference_call_vector = Box::new(value_processor::collect_value(
+            value_processor::collect_value(
                 parser.clone(),
                 &mut will_be_itered,
+                errors,
                 letter_char,
                 next_char,
                 last_char,
-            ));
-
-            if !itered_reference_call_vector.errors.is_empty() {
-                errors.extend(itered_reference_call_vector.errors);
-            }
+            );
 
             if last_entry == 0 {
                 reference_data
@@ -110,21 +106,16 @@ pub fn collect_reference<F>(
                             range_start: parser.pos,
                             range_end: parser.pos,
                         },
-                        value: itered_reference_call_vector.itered_data.data.value.clone(),
+                        value: will_be_itered.data.value.clone(),
                     });
             } else {
-                reference_data.data.chain[last_entry - 1].value =
-                    itered_reference_call_vector.itered_data.data.value.clone();
+                reference_data.data.chain[last_entry - 1].value = will_be_itered.data.value.clone();
                 if reference_data.data.chain[last_entry - 1].pos.is_zero() {
                     reference_data.data.chain[last_entry - 1].pos.range_start = parser.pos;
                 }
                 reference_data.data.chain[last_entry - 1].pos.range_end = parser.pos;
             }
-            reference_data.complete = itered_reference_call_vector
-                .itered_data
-                .data
-                .value
-                .is_type_complete();
+            reference_data.complete = will_be_itered.data.value.is_type_complete();
         }
     }
 }

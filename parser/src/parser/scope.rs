@@ -1,4 +1,5 @@
-use crate::alloc::string::{String, ToString};
+use crate::alloc::borrow::ToOwned;
+use crate::alloc::string::String;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -22,7 +23,7 @@ pub struct Scope {
 impl Default for Scope {
     fn default() -> Self {
         Scope {
-            scope_name: "core".to_string(),
+            scope_name: "core".to_owned(),
         }
     }
 }

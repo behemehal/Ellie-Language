@@ -1,4 +1,5 @@
-use crate::alloc::string::{String, ToString};
+use crate::alloc::borrow::ToOwned;
+use crate::alloc::string::ToString;
 use crate::alloc::vec;
 use crate::alloc::vec::Vec;
 use crate::parser;
@@ -10,8 +11,8 @@ pub fn collect_enum<F>(
     parser: &mut parser::Parser<F>,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
-    next_char: String,
-    last_char: String,
+    next_char: &str,
+    last_char: &str,
 ) where
     F: FnMut(ellie_core::com::Message) + Clone + Sized,
 {
@@ -45,11 +46,11 @@ pub fn collect_enum<F>(
                     builded_message: error::Error::build(
                         error::errorList::error_s1.message.clone(),
                         vec![error::ErrorBuildField {
-                            key: "token".to_string(),
+                            key: "token".to_owned(),
                             value: letter_char.to_string(),
                         }],
                     ),
-                    debug_message: "28bdd8ef9ee46b592524e8a29ac4f527".to_string(),
+                    debug_message: "28bdd8ef9ee46b592524e8a29ac4f527".to_owned(),
                     pos: defs::Cursor {
                         range_start: parser.pos,
                         range_end: parser.pos.clone().skip_char(1),
@@ -83,11 +84,11 @@ pub fn collect_enum<F>(
                         builded_message: error::Error::build(
                             error::errorList::error_s1.message.clone(),
                             vec![error::ErrorBuildField {
-                                key: "token".to_string(),
+                                key: "token".to_owned(),
                                 value: letter_char.to_string(),
                             }],
                         ),
-                        debug_message: "76a898403701ecfdeb379b1b20e6c2b4".to_string(),
+                        debug_message: "76a898403701ecfdeb379b1b20e6c2b4".to_owned(),
                         pos: defs::Cursor {
                             range_start: parser.pos,
                             range_end: parser.pos.clone().skip_char(1),
@@ -115,7 +116,7 @@ pub fn collect_enum<F>(
                             errors.push(error::Error {
                                 path: parser.options.path.clone(),
                                 scope: parser.scope.scope_name.clone(),
-                                debug_message: "12e6fc5ff5d273fa13fecd7cf2551743".to_string(),
+                                debug_message: "12e6fc5ff5d273fa13fecd7cf2551743".to_owned(),
                                 title: error::errorList::error_s10.title.clone(),
                                 code: error::errorList::error_s10.code,
                                 message: error::errorList::error_s10.message.clone(),
@@ -132,7 +133,7 @@ pub fn collect_enum<F>(
                             errors.push(error::Error {
                                 path: parser.options.path.clone(),
                                 scope: parser.scope.scope_name.clone(),
-                                debug_message: "6f129c7d8281a87b70de7ad59bc6cd16".to_string(),
+                                debug_message: "6f129c7d8281a87b70de7ad59bc6cd16".to_owned(),
                                 title: error::errorList::error_s10.title.clone(),
                                 code: error::errorList::error_s10.code,
                                 message: error::errorList::error_s10.message.clone(),
@@ -156,11 +157,11 @@ pub fn collect_enum<F>(
                             builded_message: error::Error::build(
                                 error::errorList::error_s1.message.clone(),
                                 vec![error::ErrorBuildField {
-                                    key: "token".to_string(),
+                                    key: "token".to_owned(),
                                     value: letter_char.to_string(),
                                 }],
                             ),
-                            debug_message: "64e34ca515d6f2bad51cb94f1435421c".to_string(),
+                            debug_message: "64e34ca515d6f2bad51cb94f1435421c".to_owned(),
                             pos: defs::Cursor {
                                 range_start: parser.pos,
                                 range_end: parser.pos.clone().skip_char(1),
@@ -173,7 +174,7 @@ pub fn collect_enum<F>(
                             errors.push(error::Error {
                                 path: parser.options.path.clone(),
                                 scope: parser.scope.scope_name.clone(),
-                                debug_message: "164829a19a4ded86a9def4dfcaa78855".to_string(),
+                                debug_message: "164829a19a4ded86a9def4dfcaa78855".to_owned(),
                                 title: error::errorList::error_s10.title.clone(),
                                 code: error::errorList::error_s10.code,
                                 message: error::errorList::error_s10.message.clone(),
@@ -192,7 +193,7 @@ pub fn collect_enum<F>(
                             errors.push(error::Error {
                                 path: parser.options.path.clone(),
                                 scope: parser.scope.scope_name.clone(),
-                                debug_message: "af26c33a95b406bca24aae3e0ad8b4ad".to_string(),
+                                debug_message: "af26c33a95b406bca24aae3e0ad8b4ad".to_owned(),
                                 title: error::errorList::error_s10.title.clone(),
                                 code: error::errorList::error_s10.code,
                                 message: error::errorList::error_s10.message.clone(),

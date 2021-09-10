@@ -1,4 +1,5 @@
-use crate::alloc::string::{String, ToString};
+use crate::alloc::borrow::ToOwned;
+use crate::alloc::string::ToString;
 use crate::alloc::vec;
 use crate::alloc::vec::Vec;
 use crate::parser;
@@ -9,8 +10,8 @@ pub fn collect_constructor<F>(
     parser: &mut parser::Parser<F>,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
-    _next_char: String,
-    last_char: String,
+    _next_char: &str,
+    last_char: &str,
 ) where
     F: FnMut(ellie_core::com::Message) + Clone + Sized,
 {
@@ -38,14 +39,14 @@ pub fn collect_constructor<F>(
                 errors.push(error::Error {
                     path: parser.options.path.clone(),
                     scope: parser.scope.scope_name.clone(),
-                    debug_message: "5d37e441a81baededf8c6f47fda66d1b".to_string(),
+                    debug_message: "5d37e441a81baededf8c6f47fda66d1b".to_owned(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
                     builded_message: error::Error::build(
                         error::errorList::error_s1.message.clone(),
                         vec![error::ErrorBuildField {
-                            key: "token".to_string(),
+                            key: "token".to_owned(),
                             value: letter_char.to_string(),
                         }],
                     ),
@@ -98,14 +99,14 @@ pub fn collect_constructor<F>(
                 errors.push(error::Error {
                     path: parser.options.path.clone(),
                     scope: parser.scope.scope_name.clone(),
-                    debug_message: "8c168beeb42a21da3ca3e13f0265f100".to_string(),
+                    debug_message: "8c168beeb42a21da3ca3e13f0265f100".to_owned(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
                     builded_message: error::Error::build(
                         error::errorList::error_s1.message.clone(),
                         vec![error::ErrorBuildField {
-                            key: "token".to_string(),
+                            key: "token".to_owned(),
                             value: letter_char.to_string(),
                         }],
                     ),
@@ -126,14 +127,14 @@ pub fn collect_constructor<F>(
                 errors.push(error::Error {
                     path: parser.options.path.clone(),
                     scope: parser.scope.scope_name.clone(),
-                    debug_message: "df10ea59deabbf9d0222916baa8fed69".to_string(),
+                    debug_message: "df10ea59deabbf9d0222916baa8fed69".to_owned(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
                     builded_message: error::Error::build(
                         error::errorList::error_s1.message.clone(),
                         vec![error::ErrorBuildField {
-                            key: "token".to_string(),
+                            key: "token".to_owned(),
                             value: letter_char.to_string(),
                         }],
                     ),
@@ -154,12 +155,12 @@ pub fn collect_constructor<F>(
                 constructor_data.brace_count -= 1;
             }
 
-            let code_letter = if last_char.clone() == "\n" || last_char.clone() == "\r" {
-                last_char + letter_char //Make sure we get the lines correctly
-            } else {
-                letter_char.to_string()
-            };
-            constructor_data.code += &code_letter;
+            //let code_letter = if last_char.clone() == "\n" || last_char.clone() == "\r" {
+            //    last_char + letter_char //Make sure we get the lines correctly
+            //} else {
+            //    letter_char.to_string()
+            //};
+            //constructor_data.code += &code_letter;
         }
     }
 }

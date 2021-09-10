@@ -2,7 +2,6 @@ use ellie_core::definite;
 use ellie_parser::parser;
 use fs::File;
 use std::env;
-use std::time::{SystemTime, UNIX_EPOCH};
 use std::{fs, io::Read};
 
 fn main() {
@@ -53,11 +52,6 @@ fn main() {
             let visualize_code = env::args().any(|x| x == "--parser-ws" || x == "-pw");
             let ignore_errors = env::args().any(|x| x == "-i");
             let non_definite = env::args().any(|x| x == "-e");
-
-            let start_time = SystemTime::now()
-                .duration_since(UNIX_EPOCH)
-                .unwrap()
-                .as_millis();
 
             if ignore_errors && !File::open("./DEBUG_HEADERS.eidbg").is_ok() {
                 std::println!(
@@ -121,11 +115,6 @@ fn main() {
                             );
                             std::process::exit(0);
                         } else {
-                            let end_time = SystemTime::now()
-                                .duration_since(UNIX_EPOCH)
-                                .unwrap()
-                                .as_millis();
-                            println!("CODE HAS BEEN RED at: {}", end_time - start_time);
                             let mut parser = parser::Parser::new(
                                 code.clone(),
                                 ellie_engine::cli_utils::resolve_import,
@@ -176,9 +165,9 @@ fn main() {
                                     getters: true,
                                     setters: true,
                                     line_ending: if env::consts::OS == "windows" {
-                                        "\\r\\n".to_string()
+                                        "\\r\\n".to_owned()
                                     } else {
-                                        "\\n".to_string()
+                                        "\\n".to_owned()
                                     },
                                     collectives: true,
                                     variables: true,
@@ -187,7 +176,7 @@ fn main() {
                                     allow_import: true,
                                 },
                             );
-                            parser.scope.scope_name = "ellie_core".to_string();
+                            parser.scope.scope_name = "ellie_core".to_owned();
                             let mapped = parser.map();
 
                             if !mapped.syntax_errors.is_empty() {
@@ -236,7 +225,7 @@ fn main() {
                                                                 )
                                                             )
                                                         } else {
-                                                            "".to_string()
+                                                            "".to_owned()
                                                         },
                                                         ellie_engine::terminal_colors::get_color(
                                                             ellie_engine::terminal_colors::Colors::Red
@@ -292,7 +281,7 @@ fn main() {
                                                                     )
                                                                 )
                                                         } else {
-                                                            "".to_string()
+                                                            "".to_owned()
                                                         },
                                                         ellie_engine::terminal_colors::get_color(
                                                             ellie_engine::terminal_colors::Colors::Red
@@ -407,7 +396,7 @@ fn main() {
                                     #[cfg(feature = "raw")]
                                     {
                                         let mut raw_conv = ellie_raw::converter::Converter::new(
-                                            "ellie_core".to_string(),
+                                            "ellie_core".to_owned(),
                                             ellie_raw::converter::ConverterOptions {
                                                 apply_comments: true,
                                                 lib_name: file_arg.to_string(),
@@ -543,7 +532,7 @@ fn main() {
                                     }
                                 },
                                 ellie_core::defs::ParserOptions {
-                                    path: "<eval>".to_string(),
+                                    path: "<eval>".to_owned(),
                                     functions: true,
                                     break_on_error: false,
                                     loops: true,
@@ -555,9 +544,9 @@ fn main() {
                                     getters: true,
                                     setters: true,
                                     line_ending: if env::consts::OS == "windows" {
-                                        "\\r\\n".to_string()
+                                        "\\r\\n".to_owned()
                                     } else {
-                                        "\\n".to_string()
+                                        "\\n".to_owned()
                                     },
                                     collectives: true,
                                     variables: true,
@@ -609,7 +598,7 @@ fn main() {
                                                         )
                                                     )
                                                 } else {
-                                                    "".to_string()
+                                                    "".to_owned()
                                                 },
                                                 ellie_engine::terminal_colors::get_color(
                                                     ellie_engine::terminal_colors::Colors::Red
@@ -665,7 +654,7 @@ fn main() {
                                                         )
                                                     )
                                                 } else {
-                                                    "".to_string()
+                                                    "".to_owned()
                                                 },
                                                 ellie_engine::terminal_colors::get_color(
                                                     ellie_engine::terminal_colors::Colors::Red
@@ -763,7 +752,7 @@ fn main() {
                                     #[cfg(feature = "raw")]
                                     {
                                         let mut raw_conv = ellie_raw::converter::Converter::new(
-                                            "ellie_core".to_string(),
+                                            "ellie_core".to_owned(),
                                             ellie_raw::converter::ConverterOptions {
                                                 apply_comments: true,
                                                 lib_name: file_arg.to_string(),

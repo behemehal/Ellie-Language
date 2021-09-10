@@ -13,7 +13,6 @@ fn main() {
         if code_string.is_err() {
             println!("Unable to read file ~./test_dir/test.ei")
         } else if let Ok(_code) = code_string {
-            
         }
     }
 }

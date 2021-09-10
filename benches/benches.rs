@@ -19,11 +19,11 @@ fn variable_benchmark(c: &mut Criterion) {
                 'e'
             ];
         "
-        .to_string(),
+        .to_owned(),
         |_, _, _| ellie_parser::parser::ResolvedImport::default(),
         |_| {},
         ellie_core::defs::ParserOptions {
-            path: "<benchmark>".to_string(),
+            path: "<benchmark>".to_owned(),
             functions: true,
             break_on_error: false,
             loops: true,
@@ -35,9 +35,9 @@ fn variable_benchmark(c: &mut Criterion) {
             getters: true,
             setters: true,
             line_ending: if env::consts::OS == "windows" {
-                "\\r\\n".to_string()
+                "\\r\\n".to_owned()
             } else {
-                "\\n".to_string()
+                "\\n".to_owned()
             },
             collectives: true,
             variables: true,

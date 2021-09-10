@@ -1,3 +1,4 @@
+use crate::alloc::borrow::ToOwned;
 use crate::alloc::string::{String, ToString};
 use crate::alloc::vec;
 use crate::alloc::vec::Vec;
@@ -11,8 +12,8 @@ pub fn collect_definer<F>(
     type_data: &mut DefinerCollecting,
     errors: &mut Vec<error::Error>,
     letter_char: String,
-    next_char: String,
-    last_char: String,
+    next_char: &str,
+    last_char: &str,
 ) where
     F: FnMut(ellie_core::com::Message) + Clone + Sized,
 {
@@ -65,7 +66,7 @@ pub fn collect_definer<F>(
                         value: syntax::types::Types::Integer(data.len.clone()),
                         rtype: syntax::definers::DefinerCollecting::Generic(
                             syntax::definers::GenericType {
-                                rtype: "int".to_string(),
+                                rtype: "int".to_owned(),
                             },
                         ),
                         ..Default::default()
@@ -73,22 +74,20 @@ pub fn collect_definer<F>(
                     ..Default::default()
                 };
 
-                let processed_data = crate::processors::value_processor::collect_value(
+                crate::processors::value_processor::collect_value(
                     parser.clone(),
                     &mut emulated_collector_data,
+                    errors,
                     &letter_char,
                     next_char,
                     last_char,
                 );
-                for i in processed_data.errors {
-                    errors.push(i)
-                }
 
                 if !emulated_collector_data.data.value.is_integer() && letter_char != " " {
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
-                        scope: "definer_processor".to_string(),
-                        debug_message: "8a9bbcbd33c35f9c9e385aa2de50b3a9".to_string(),
+                        scope: "definer_processor".to_owned(),
+                        debug_message: "8a9bbcbd33c35f9c9e385aa2de50b3a9".to_owned(),
                         title: error::errorList::error_s20.title.clone(),
                         code: error::errorList::error_s20.code,
                         message: error::errorList::error_s20.message.clone(),
@@ -152,15 +151,15 @@ pub fn collect_definer<F>(
             {
                 errors.push(error::Error {
                     path: parser.options.path.clone(),
-                    scope: "definer_processor".to_string(),
-                    debug_message: "71b87d73fe307e82fb7dd8d0ac434985".to_string(),
+                    scope: "definer_processor".to_owned(),
+                    debug_message: "71b87d73fe307e82fb7dd8d0ac434985".to_owned(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
                     builded_message: error::Error::build(
                         error::errorList::error_s1.message.clone(),
                         vec![error::ErrorBuildField {
-                            key: "token".to_string(),
+                            key: "token".to_owned(),
                             value: letter_char,
                         }],
                     ),
@@ -180,15 +179,15 @@ pub fn collect_definer<F>(
                 } else if letter_char != " " {
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
-                        scope: "definer_processor".to_string(),
-                        debug_message: "6f072524541ac1f1cb6d4893263d9db8".to_string(),
+                        scope: "definer_processor".to_owned(),
+                        debug_message: "6f072524541ac1f1cb6d4893263d9db8".to_owned(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
                         builded_message: error::Error::build(
                             error::errorList::error_s1.message.clone(),
                             vec![error::ErrorBuildField {
-                                key: "token".to_string(),
+                                key: "token".to_owned(),
                                 value: letter_char,
                             }],
                         ),
@@ -218,15 +217,15 @@ pub fn collect_definer<F>(
                     //This should have been filled If everything were right
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
-                        scope: "definer_processor".to_string(),
-                        debug_message: "b64e22b04fa03218866c7605ed39e690".to_string(),
+                        scope: "definer_processor".to_owned(),
+                        debug_message: "b64e22b04fa03218866c7605ed39e690".to_owned(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
                         builded_message: error::Error::build(
                             error::errorList::error_s1.message.clone(),
                             vec![error::ErrorBuildField {
-                                key: "token".to_string(),
+                                key: "token".to_owned(),
                                 value: letter_char,
                             }],
                         ),
@@ -256,15 +255,15 @@ pub fn collect_definer<F>(
                     if letter_char != ":" {
                         errors.push(error::Error {
                             path: parser.options.path.clone(),
-                            scope: "definer_processor".to_string(),
-                            debug_message: "e91983016e6721a5f7948b8e08708b04".to_string(),
+                            scope: "definer_processor".to_owned(),
+                            debug_message: "e91983016e6721a5f7948b8e08708b04".to_owned(),
                             title: error::errorList::error_s1.title.clone(),
                             code: error::errorList::error_s1.code,
                             message: error::errorList::error_s1.message.clone(),
                             builded_message: error::Error::build(
                                 error::errorList::error_s1.message.clone(),
                                 vec![error::ErrorBuildField {
-                                    key: "token".to_string(),
+                                    key: "token".to_owned(),
                                     value: letter_char,
                                 }],
                             ),

@@ -1,9 +1,8 @@
-use crate::alloc::string::String;
+use crate::alloc::borrow::ToOwned;
 use crate::alloc::vec::Vec;
 use crate::parser;
 use crate::processors;
 use alloc::boxed::Box;
-use alloc::string::ToString;
 use alloc::vec;
 use ellie_core::error;
 
@@ -11,8 +10,8 @@ pub fn collect_for<F>(
     parser: &mut parser::Parser<F>,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
-    next_char: String,
-    last_char: String,
+    next_char: &str,
+    last_char: &str,
 ) where
     F: FnMut(ellie_core::com::Message) + Clone + Sized,
 {
@@ -37,14 +36,14 @@ pub fn collect_for<F>(
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
                         scope: parser.scope.scope_name.clone(),
-                        debug_message: "4b73048110014ed518fae964d0734f05".to_string(),
+                        debug_message: "4b73048110014ed518fae964d0734f05".to_owned(),
                         title: error::errorList::error_s29.title.clone(),
                         code: error::errorList::error_s29.code,
                         message: error::errorList::error_s29.message.clone(),
                         builded_message: error::Error::build(
                             error::errorList::error_s29.message.clone(),
                             vec![error::ErrorBuildField {
-                                key: "token".to_string(),
+                                key: "token".to_owned(),
                                 value: for_loop_data.cloak_itered_data.data.value.get_type(),
                             }],
                         ),
@@ -60,18 +59,14 @@ pub fn collect_for<F>(
                 }
                 for_loop_data.data.parameter_pos.range_end = parser_clone.pos.clone();
 
-                let collected = processors::value_processor::collect_value(
+                processors::value_processor::collect_value(
                     parser_clone,
                     &mut for_loop_data.cloak_itered_data,
+                    errors,
                     letter_char,
                     next_char,
                     last_char,
                 );
-                for i in collected.errors {
-                    errors.push(i)
-                }
-
-                for_loop_data.cloak_itered_data = collected.itered_data;
             }
         } else if letter_char == "}" {
             if for_loop_data.inside_object_start {
@@ -98,13 +93,12 @@ pub fn collect_for<F>(
                 parser.current = parser::Collecting::None;
             }
         } else {
-            let code_letter = if last_char.clone() == "\n" || last_char.clone() == "\r" {
-                last_char + letter_char //Make sure we get the lines correctly
-            } else {
-                letter_char.to_string()
-            };
-
-            for_loop_data.inside_code_string += &code_letter;
+            //let code_letter = if last_char.clone() == "\n" || last_char.clone() == "\r" {
+            //    last_char + letter_char //Make sure we get the lines correctly
+            //} else {
+            //    letter_char.to_string()
+            //};
+            //for_loop_data.inside_code_string += &code_letter;
         }
     }
 }

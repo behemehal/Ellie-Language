@@ -1,18 +1,18 @@
+use crate::alloc::borrow::ToOwned;
 use crate::parser;
 use crate::processors;
-use ellie_core::{defs, error, utils};
-
 use alloc::boxed::Box;
-use alloc::string::{String, ToString};
+use alloc::string::ToString;
 use alloc::vec;
 use alloc::vec::Vec;
+use ellie_core::{defs, error, utils};
 
 pub fn collect_setter_value<F>(
     parser: &mut parser::Parser<F>,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
-    next_char: String,
-    last_char: String,
+    next_char: &str,
+    last_char: &str,
 ) where
     F: FnMut(ellie_core::com::Message) + Clone + Sized,
 {
@@ -37,14 +37,14 @@ pub fn collect_setter_value<F>(
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
                         scope: parser.scope.scope_name.clone(),
-                        debug_message: "c70452bb499b5d9b1214da0097e1cf37".to_string(),
+                        debug_message: "c70452bb499b5d9b1214da0097e1cf37".to_owned(),
                         title: error::errorList::error_s21.title.clone(),
                         code: error::errorList::error_s21.code,
                         message: error::errorList::error_s21.message.clone(),
                         builded_message: error::Error::build(
                             error::errorList::error_s21.message.clone(),
                             vec![error::ErrorBuildField {
-                                key: "token".to_string(),
+                                key: "token".to_owned(),
                                 value: setter_data.data.name.clone(),
                             }],
                         ),
@@ -56,14 +56,14 @@ pub fn collect_setter_value<F>(
                 errors.push(error::Error {
                     path: parser.options.path.clone(),
                     scope: parser.scope.scope_name.clone(),
-                    debug_message: "22e5f035c56aeae2b9758732bf35fe74".to_string(),
+                    debug_message: "22e5f035c56aeae2b9758732bf35fe74".to_owned(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
                     builded_message: error::Error::build(
                         error::errorList::error_s1.message.clone(),
                         vec![error::ErrorBuildField {
-                            key: "token".to_string(),
+                            key: "token".to_owned(),
                             value: letter_char.to_string(),
                         }],
                     ),
@@ -120,7 +120,7 @@ pub fn collect_setter_value<F>(
                     //Import variables as temporary for syntax support, we will remove them after collecting complete
                     child_parser.collected.push(parser::Collecting::ImportItem(
                         crate::syntax::import_item::ImportItem {
-                            from_path: "<temporary>".to_string(),
+                            from_path: "<temporary>".to_owned(),
                             public: true,
                             item: Box::new(item),
                         },
@@ -131,7 +131,7 @@ pub fn collect_setter_value<F>(
             child_parser.options = parser.options.clone();
             child_parser.options.parser_type = defs::ParserType::RawParser;
             child_parser.pos = parser.pos;
-            child_parser.scope.scope_name = "core/function_processor".to_string();
+            child_parser.scope.scope_name = "core/function_processor".to_owned();
             child_parser.current = setter_data.inside_code.current.clone();
             child_parser.keyword_catch = setter_data.inside_code.keyword_catch.clone();
             child_parser.keyword_cache = setter_data.inside_code.keyword_cache.clone();
