@@ -74,7 +74,7 @@ echo -e "\e[33m[Info]\e[0m Creating shasum"
     windows_s=`sha256sum -b ./ellie.exe`
     linux_s=`sha256sum -b ./ellie`
     file="EllieBuild: v${ver[2]//\"}\\n\\t$windows_s\\n\\t$linux_s"
-    printf "$file" > ./Release/SHASUMS256.txt
+    printf "$file" > ./SHASUMS256.txt
     echo -e "\e[32m[Info]\e[0m Release complete"
     exit 0
 } || { 

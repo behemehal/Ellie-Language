@@ -6,4 +6,4 @@ edition = "2018"
 license = "MIT"
 
 [dependencies]
-ellie_parser = {path = "../parser", version = "1.1.1"}
+ellie_parser = {path = "../parser", version = "1.6.2"}

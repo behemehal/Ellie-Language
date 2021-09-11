@@ -68,3 +68,8 @@
   - CLI
     * Fix eval bugs
     * Initialize runtime
+
+# v3.5.1
+  - Parser v1.6.2
+    * Performance bug resolved
+    * Array type definition error fixed

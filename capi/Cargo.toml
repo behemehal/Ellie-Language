@@ -10,8 +10,8 @@ edition = "2018"
 crate-type = ["cdylib"]
 
 [dependencies]
-ellie_core = {path = "../core", version = "0.1.0"}
-ellie_parser = {path = "../parser", version = "0.1.0"}
+ellie_core = {path = "../core", version = "1.0.0"}
+ellie_parser = {path = "../parser", version = "1.6.2"}
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 libc = "0.2.14"
