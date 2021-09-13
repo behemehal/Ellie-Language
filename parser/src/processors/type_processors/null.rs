@@ -102,7 +102,7 @@ pub fn collect_null<F>(
                             value: itered_data.raw_value.clone() + letter_char,
                             pos: defs::Cursor {
                                 range_start: parser.pos,
-                                ..Default::default()
+                                range_end: parser.pos.clone().skip_char(1),
                             },
                         },
                     });
