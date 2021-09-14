@@ -27,7 +27,7 @@ fn read_file(file_dir: &str) -> Result<String, String> {
 fn resolve_import(
     _: ellie_core::defs::ParserOptions,
     lib_name: String,
-    _native_header: bool,
+    native_header: bool,
 ) -> ellie_parser::parser::ResolvedImport {
     std::eprintln!(
         "{}[ReadingFile]{}: {}~./lib/{}.ei{}",
@@ -37,20 +37,26 @@ fn resolve_import(
         lib_name,
         terminal_colors::get_color(terminal_colors::Colors::Reset),
     );
-    match read_file(&("./lib/".to_owned() + &lib_name + &".ei".to_owned())) {
+    let file_extension = if native_header {
+        ".eih".to_owned()
+    } else {
+        ".ei".to_owned()
+    };
+    match read_file(&("./lib/".to_owned() + &lib_name + &file_extension)) {
         Ok(e) => ellie_parser::parser::ResolvedImport {
             found: true,
-            resolved_path: ("./lib/".to_owned() + &lib_name + &".ei".to_owned()),
+            resolved_path: ("./lib/".to_owned() + &lib_name + &file_extension),
             file_content: ellie_parser::parser::ResolvedFileContent::Raw(e),
             ..Default::default()
         },
         Err(err) => {
             panic!(
-                "{}[Fail]{}: Cannot read file {}~./lib/{}.ei{}\n{:#?}",
+                "{}[Fail]{}: Cannot read file {}~./lib/{}{}{}\n{:#?}",
                 terminal_colors::get_color(terminal_colors::Colors::Red),
                 terminal_colors::get_color(terminal_colors::Colors::Reset),
                 terminal_colors::get_color(terminal_colors::Colors::Yellow),
                 lib_name,
+                file_extension,
                 terminal_colors::get_color(terminal_colors::Colors::Reset),
                 err
             );
@@ -104,12 +110,13 @@ fn parse(contents: String, file_name: String) -> ellie_parser::parser::ParserRes
         );
     } else {
         panic!(
-            "{}[ParsingFailed]{}: {}~./lib/{}.ei{}",
+            "{}[ParsingFailed]{}: {}~./lib/{}.ei{}\n{:#?}",
             terminal_colors::get_color(terminal_colors::Colors::Red),
             terminal_colors::get_color(terminal_colors::Colors::Reset),
             terminal_colors::get_color(terminal_colors::Colors::Yellow),
             file_name,
             terminal_colors::get_color(terminal_colors::Colors::Reset),
+            parsed.syntax_errors
         );
     }
     parsed
