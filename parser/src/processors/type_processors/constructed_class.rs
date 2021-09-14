@@ -399,7 +399,7 @@ pub fn collect_new_call<F>(
                     new_call_data.data.params[0].pos.range_end = parser.pos;
                 } else {
                     new_call_data.data.params[last_entry - 1] = itered_entry;
-                    if new_call_data.data.params[last_entry - 1].pos.is_zero() {
+                    if new_call_data.data.params[last_entry - 1].pos.range_start.is_zero() && letter_char != " "{
                         new_call_data.data.params[last_entry - 1].pos.range_start = parser.pos;
                     }
                     new_call_data.data.params[last_entry - 1].pos.range_end = parser.pos;
