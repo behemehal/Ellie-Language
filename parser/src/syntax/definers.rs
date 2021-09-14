@@ -54,6 +54,21 @@ pub struct ArrayType {
     pub typed: bool,
 }
 
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
+pub struct FutureType {
+    pub complete: bool,
+    pub brace_started: bool,
+    pub value: Box<DefinerCollecting>,
+}
+
+impl FutureType {
+    pub fn to_definite(self) -> definite::definers::FutureType {
+        definite::definers::FutureType {
+            value: Box::new(self.value.to_definite()),
+        }
+    }
+}
+
 impl ArrayType {
     pub fn to_definite(self) -> definite::definers::ArrayType {
         definite::definers::ArrayType {
@@ -123,6 +138,7 @@ impl NullableType {
 #[derive(PartialEq, Debug, Clone, Serialize, EnumAsInner, Deserialize)]
 pub enum DefinerCollecting {
     Array(ArrayType),
+    Future(FutureType),
     GrowableArray(GrowableArrayType),
     Generic(GenericType),
     Function(FunctionType),
@@ -143,6 +159,9 @@ impl DefinerCollecting {
         match self {
             DefinerCollecting::Array(e) => {
                 definite::definers::DefinerCollecting::Array(e.to_definite())
+            }
+            DefinerCollecting::Future(e) => {
+                definite::definers::DefinerCollecting::Future(e.to_definite())
             }
             DefinerCollecting::GrowableArray(e) => {
                 definite::definers::DefinerCollecting::GrowableArray(e.to_definite())
@@ -172,6 +191,13 @@ impl DefinerCollecting {
                 DefinerCollecting::Array(data) => {
                     if let DefinerCollecting::Array(other_data) = other {
                         other_data.len.raw == data.len.raw && other_data.rtype.same_as(*data.rtype)
+                    } else {
+                        false
+                    }
+                }
+                DefinerCollecting::Future(data) => {
+                    if let DefinerCollecting::Future(other_data) = other {
+                        other_data.value.same_as(*data.value)
                     } else {
                         false
                     }
@@ -250,6 +276,7 @@ impl DefinerCollecting {
     pub fn is_type_empty(&self) -> bool {
         match self {
             DefinerCollecting::Array(data) => !data.complete,
+            DefinerCollecting::Future(data) => data.value.is_type_empty(),
             DefinerCollecting::GrowableArray(data) => !data.complete,
             DefinerCollecting::Nullable(data) => data.value.is_type_empty(),
             DefinerCollecting::Generic(data) => data.rtype.is_empty(),
@@ -263,6 +290,7 @@ impl DefinerCollecting {
     pub fn is_definer_complete(&self) -> bool {
         match self {
             DefinerCollecting::Array(data) => data.complete,
+            DefinerCollecting::Future(data) => data.value.is_definer_complete(),
             DefinerCollecting::GrowableArray(data) => data.complete,
             DefinerCollecting::Nullable(data) => data.value.is_definer_complete(),
             DefinerCollecting::Generic(data) => !data.rtype.is_empty(),
@@ -275,14 +303,8 @@ impl DefinerCollecting {
 
     pub fn is_generic(&self) -> bool {
         match self {
-            DefinerCollecting::Array(_) => false,
-            DefinerCollecting::GrowableArray(_) => false,
-            DefinerCollecting::Nullable(_) => false,
             DefinerCollecting::Generic(_) => true,
-            DefinerCollecting::Function(_) => false,
-            DefinerCollecting::Cloak(_) => false,
-            DefinerCollecting::Collective(_) => false,
-            DefinerCollecting::Dynamic => true,
+            _ => false,
         }
     }
 
@@ -296,6 +318,7 @@ impl DefinerCollecting {
     pub fn raw_name(&self) -> String {
         match self {
             DefinerCollecting::Array(_) => "array".to_owned(),
+            DefinerCollecting::Future(_) => "future".to_owned(),
             DefinerCollecting::GrowableArray(_) => "growableArray".to_owned(),
             DefinerCollecting::Nullable(_) => "nullAble".to_owned(),
             DefinerCollecting::Generic(data) => data.rtype.clone(),
@@ -314,6 +337,9 @@ impl DefinerCollecting {
                     + &",".to_owned()
                     + &*e.rtype.raw_name_with_extensions()
                     + &")".to_owned()
+            }
+            DefinerCollecting::Future(e) => {
+                "future(".to_owned() + &*e.value.raw_name_with_extensions() + &")".to_owned()
             }
             DefinerCollecting::GrowableArray(e) => {
                 "growableArray(".to_owned()

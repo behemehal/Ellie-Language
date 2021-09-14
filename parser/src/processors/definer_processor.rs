@@ -34,6 +34,20 @@ pub fn collect_definer<F>(
                 )
             }
         }
+        DefinerCollecting::Future(ref mut data) => {
+            if letter_char == ")" && data.value.is_definer_complete() {
+                data.complete = true;
+            } else {
+                collect_definer(
+                    parser,
+                    &mut data.value,
+                    errors,
+                    letter_char,
+                    next_char,
+                    last_char,
+                )
+            }
+        }
         DefinerCollecting::Nullable(ref mut data) => collect_definer(
             parser,
             &mut data.value,
@@ -122,6 +136,11 @@ pub fn collect_definer<F>(
             } else if letter_char == "(" && data.rtype == "array" {
                 *type_data = DefinerCollecting::Array(syntax::definers::ArrayType {
                     bracket_inserted: true,
+                    ..Default::default()
+                });
+            } else if letter_char == "(" && data.rtype == "future" {
+                *type_data = DefinerCollecting::Future(syntax::definers::FutureType {
+                    brace_started: true,
                     ..Default::default()
                 });
             } else if letter_char == "(" && data.rtype == "cloak" {

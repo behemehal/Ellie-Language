@@ -10,6 +10,11 @@ pub struct ArrayType {
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
+pub struct FutureType {
+    pub value: Box<DefinerCollecting>,
+}
+
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct GrowableArrayType {
     pub rtype: Box<DefinerCollecting>,
 }
@@ -44,6 +49,7 @@ pub struct NullableType {
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub enum DefinerCollecting {
     Array(ArrayType),
+    Future(FutureType),
     GrowableArray(GrowableArrayType),
     Generic(GenericType),
     Function(FunctionType),
