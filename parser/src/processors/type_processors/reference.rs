@@ -27,39 +27,10 @@ pub fn collect_reference<F>(
                     .value
                     .is_type_complete())
         {
-            if last_entry == 0 {
-                let deep_scan = parser.resolve_deep_call(*reference_data.data.reference.clone());
-                if deep_scan == parser::DeepCallResponse::NoElement {
-                    errors.push(error::Error {
-                        path: parser.options.path.clone(),
-                        scope: "function_call_processor".to_owned(),
-                        debug_message: "e9a8b52fe39c1492c5ba7213fbbdb242".to_owned(),
-                        title: error::errorList::error_s6.title.clone(),
-                        code: error::errorList::error_s6.code,
-                        message: error::errorList::error_s6.message.clone(),
-                        builded_message: error::Error::build(
-                            error::errorList::error_s6.message.clone(),
-                            vec![error::ErrorBuildField {
-                                key: "token".to_owned(),
-                                value: (*reference_data.data.reference.get_type()).to_string(),
-                            }],
-                        ),
-                        pos: reference_data.data.reference_pos,
-                    });
-                } else {
-                    reference_data.root_available = true;
-                }
-            } else if reference_data.root_available {
-                let resolved_reference = parser
-                    .clone()
-                    .resolve_reference_call(reference_data.clone());
-
-                if let Some(resolved_errors) = resolved_reference {
-                    errors.extend(resolved_errors)
-                } else {
-                    reference_data
-                        .data
-                        .chain
+            reference_data.on_dot = true;
+            reference_data
+                .data
+                .chain
                         .push(types::reference_type::Chain {
                             pos: defs::Cursor {
                                 range_start: parser.pos.clone().skip_char(1),
