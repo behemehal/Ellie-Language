@@ -145,6 +145,102 @@ pub fn collect_new_call<F>(
                 if last_entry != 0 {
                     new_call_data.data.params[last_entry - 1].pos.range_end = parser.pos;
                 }
+                let class_call_resolve = parser.resolve_new_call(new_call_data.clone());
+                match class_call_resolve {
+                    Ok(resolved) => {
+                        if let parser::Collecting::Class(class_collector) = resolved {
+                            if class_collector.data.constructor.parameters.len()
+                                != new_call_data.data.params.len()
+                            {
+                                errors.push(error::Error {
+                                    path: parser.options.path.clone(),
+                                    scope: parser.scope.scope_name.clone(),
+                                    debug_message: "replace_parser_577".to_owned(),
+                                    title: error::errorList::error_s19.title.clone(),
+                                    code: error::errorList::error_s19.code,
+                                    message: error::errorList::error_s19.message.clone(),
+                                    builded_message: error::Error::build(
+                                        error::errorList::error_s19.message.clone(),
+                                        vec![
+                                            error::ErrorBuildField {
+                                                key: "token".to_owned(),
+                                                value: class_collector
+                                                    .data
+                                                    .constructor
+                                                    .parameters
+                                                    .len()
+                                                    .to_string(),
+                                            },
+                                            error::ErrorBuildField {
+                                                key: "token2".to_owned(),
+                                                value: new_call_data.data.params.len().to_string(),
+                                            },
+                                        ],
+                                    ),
+                                    pos: new_call_data.data.value_pos,
+                                });
+                            } else {
+                                let mut has_faulty_param = false;
+                                for (pos, param) in
+                                    new_call_data.data.params.clone().into_iter().enumerate()
+                                {
+                                    let constructor_param =
+                                        &class_collector.data.constructor.parameters[pos];
+                                    let properties = class_collector
+                                        .data
+                                        .properties
+                                        .iter()
+                                        .filter(|e| e.name == constructor_param.name)
+                                        .collect::<Vec<&variable::Variable>>();
+
+                                    if properties.len() != 0 {
+                                        let property = properties[0];
+                                        if property.rtype.raw_name() != param.value.get_type() {
+                                            errors.push(error::Error {
+                                                path: parser.options.path.clone(),
+                                                scope: parser.scope.scope_name.clone(),
+                                                debug_message: "replace_parser_640".to_owned(),
+                                                title: error::errorList::error_s3.title.clone(),
+                                                code: error::errorList::error_s3.code,
+                                                message: error::errorList::error_s3.message.clone(),
+                                                builded_message: error::Error::build(
+                                                    error::errorList::error_s3.message.clone(),
+                                                    vec![
+                                                        error::ErrorBuildField {
+                                                            key: "token1".to_owned(),
+                                                            value: property.rtype.raw_name(),
+                                                        },
+                                                        error::ErrorBuildField {
+                                                            key: "token2".to_owned(),
+                                                            value: param.value.get_type(),
+                                                        },
+                                                    ],
+                                                ),
+                                                pos: param.pos,
+                                            });
+                                        }
+                                    }
+                                }
+
+                                for param in class_collector.data.constructor.parameters {
+                                    let properties = class_collector
+                                        .data
+                                        .properties
+                                        .iter()
+                                        .filter(|e| e.name == param.name)
+                                        .collect::<Vec<&variable::Variable>>();
+
+                                    if properties.len() != 0 {
+                                        let property = properties[0];
+                                    }
+                                }
+                            }
+                        } else {
+                            panic!("Unexpected parser behaviour")
+                        }
+                    }
+                    Err(e) => errors.extend(e),
+                }
                 new_call_data.complete = true;
             } else {
                 if letter_char != " " {

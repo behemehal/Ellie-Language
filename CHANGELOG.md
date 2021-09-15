@@ -75,6 +75,8 @@
     * Array type definition error fixed
 
 # v3.6.2
-  - Parser v1.7.1
+  - Parser v1.7.3
     * Future type introduced
     * Reference resolver implemented
+    * Fix dynamic type assignment error in collective
+    * Fix class constructor parameter type mismatch

@@ -5,24 +5,6 @@
 
 use alloc::string::String;
 
-pub enum RuntimeItem {
-    ImportItem,
-    Variable,
-    Function,
-    ForLoop,
-    Condition,
-    Class,
-    Ret,
-    Constructor,
-    Caller,
-    Import,
-    FileKey,
-    Getter,
-    Setter,
-    NativeClass,
-    NativeFunction,
-}
-
 pub struct Runtime {
     pub start_point: String,
 }

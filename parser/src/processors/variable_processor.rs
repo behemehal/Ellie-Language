@@ -372,28 +372,24 @@ pub fn collect_variable_value<F>(
 
                 if let Ok(resolved_type_name) = resolved_type_name_option {
                     //nen means cannot resolve type
-                    if variable_data.data.rtype.raw_name() != resolved_type_name
-                        && resolved_type_name != "nen"
-                        && (resolved_type_name == "array"
-                            && variable_data.data.rtype.raw_name() != "growableArray")
+                    if variable_data.data.rtype != resolved_type_name
+                        && (resolved_type_name.raw_name() != "array"
+                            || (resolved_type_name.raw_name() == "array"
+                                && variable_data.data.rtype.raw_name() != "growableArray"))
+                        && (resolved_type_name.raw_name() != "growableArray"
+                            || (resolved_type_name.raw_name() == "growableArray"
+                                && variable_data.data.rtype.raw_name() != "array"))
                     {
-                        //We should resolve inner value
                         if variable_data.data.dynamic {
                             #[cfg(feature = "std")]
                             std::println!(
-                            "\u{001b}[31m[ParserError]\u{001b}[0m: This is a error please report at: https://github.com/behemehal/Ellie-Language/issues/new?title=ParserError-{}+Dynamic+Variable+Not+Handled+Correctly&labels=bug,parser&template=bug_report.md",
-                            variable_data.data.value.get_type(),
-                        );
+                                "\u{001b}[31m[ParserError]\u{001b}[0m: This is a error please report at: https://github.com/behemehal/Ellie-Language/issues/new?title=ParserError-{}+Dynamic+Variable+Not+Handled+Correctly&labels=bug,parser&template=bug_report.md",
+                                variable_data.data.value.get_type(),
+                            );
                         }
 
                         if variable_data.data.rtype.raw_name() == "nullAble" {
-                            if variable_data
-                                .data
-                                .rtype
-                                .as_nullable()
-                                .unwrap()
-                                .value
-                                .raw_name()
+                            if *variable_data.data.rtype.as_nullable().unwrap().value
                                 != resolved_type_name
                             {
                                 errors.push(error::Error {
@@ -419,7 +415,8 @@ pub fn collect_variable_value<F>(
                                             },
                                             error::ErrorBuildField {
                                                 key: "token2".to_owned(),
-                                                value: resolved_type_name,
+                                                value: resolved_type_name
+                                                    .raw_name_with_extensions(),
                                             },
                                         ],
                                     ),
@@ -439,11 +436,11 @@ pub fn collect_variable_value<F>(
                                     vec![
                                         error::ErrorBuildField {
                                             key: "token1".to_owned(),
-                                            value: variable_data.data.rtype.raw_name(),
+                                            value: variable_data.data.rtype.raw_name_with_extensions(),
                                         },
                                         error::ErrorBuildField {
                                             key: "token2".to_owned(),
-                                            value: resolved_type_name,
+                                            value: resolved_type_name.raw_name_with_extensions(),
                                         },
                                     ],
                                 ),

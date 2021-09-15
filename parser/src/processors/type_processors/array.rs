@@ -137,7 +137,7 @@ pub fn collect_array<F>(
                             .resolve_variable(*data.data.collective[last_entry - 1].value.clone());
 
                         if let Ok(entry_type) = entry_type_option {
-                            if array_defining.rtype.raw_name() != entry_type {
+                            if *array_defining.rtype != entry_type {
                                 errors.push(error::Error {
                                     path: parser.options.path.clone(),
                                     scope: parser.scope.scope_name.clone(),
@@ -154,7 +154,7 @@ pub fn collect_array<F>(
                                             },
                                             error::ErrorBuildField {
                                                 key: "token2".to_owned(),
-                                                value: entry_type,
+                                                value: entry_type.raw_name_with_extensions(),
                                             },
                                         ],
                                     ),
@@ -238,7 +238,7 @@ pub fn collect_array<F>(
                             .resolve_variable(*data.data.collective[last_entry - 1].value.clone());
 
                         if let Ok(entry_type) = entry_type_option {
-                            if array_defining.rtype.raw_name() != entry_type {
+                            if *array_defining.rtype != entry_type {
                                 errors.push(error::Error {
                                     path: parser.options.path.clone(),
                                     scope: parser.scope.scope_name.clone(),
@@ -255,7 +255,7 @@ pub fn collect_array<F>(
                                             },
                                             error::ErrorBuildField {
                                                 key: "token2".to_owned(),
-                                                value: entry_type,
+                                                value: entry_type.raw_name_with_extensions(),
                                             },
                                         ],
                                     ),

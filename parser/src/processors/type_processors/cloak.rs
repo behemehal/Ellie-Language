@@ -135,7 +135,7 @@ pub fn collect_cloak<F>(
 
                         if let Ok(entry_type) = entry_type_option {
                             if cloak_defining.rtype.len() > last_entry - 1
-                                && cloak_defining.rtype[last_entry - 1].raw_name() != entry_type
+                                && cloak_defining.rtype[last_entry - 1] != entry_type
                             {
                                 errors.push(error::Error {
                                     path: parser.options.path.clone(),
@@ -154,7 +154,7 @@ pub fn collect_cloak<F>(
                                             },
                                             error::ErrorBuildField {
                                                 key: "token2".to_owned(),
-                                                value: entry_type,
+                                                value: entry_type.raw_name_with_extensions(),
                                             },
                                         ],
                                     ),
@@ -239,7 +239,7 @@ pub fn collect_cloak<F>(
 
                         if let Ok(entry_type) = entry_type_option {
                             if cloak_defining.rtype.len() > last_entry - 1
-                                && cloak_defining.rtype[last_entry - 1].raw_name() != entry_type
+                                && cloak_defining.rtype[last_entry - 1] != entry_type
                             {
                                 errors.push(error::Error {
                                     path: parser.options.path.clone(),
@@ -258,7 +258,7 @@ pub fn collect_cloak<F>(
                                             },
                                             error::ErrorBuildField {
                                                 key: "token2".to_owned(),
-                                                value: entry_type,
+                                                value: entry_type.raw_name_with_extensions(),
                                             },
                                         ],
                                     ),
