@@ -399,7 +399,6 @@ pub fn collect_class<F>(
                             },
                         ));
                     }
-
                 }
             }
 

@@ -161,7 +161,7 @@ pub fn collect_import<F>(
                                                         },
                                                     ));
                                                 }
-                                            },
+                                            }
                                             crate::parser::Collecting::NativeFunction(e) => {
                                                 if e.public {
                                                     parser

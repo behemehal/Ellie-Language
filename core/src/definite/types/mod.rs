@@ -12,11 +12,11 @@ pub mod function_call;
 pub mod integer;
 pub mod logical_type;
 pub mod negative;
+pub mod null_resolver;
 pub mod operator;
 pub mod reference;
 pub mod string;
 pub mod variable;
-pub mod null_resolver;
 
 use serde::{Deserialize, Serialize};
 

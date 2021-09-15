@@ -1,4 +1,4 @@
-use crate::syntax::{types, definers};
+use crate::syntax::{definers, types};
 use ellie_core::defs;
 use serde::{Deserialize, Serialize};
 

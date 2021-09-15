@@ -436,7 +436,10 @@ pub fn collect_variable_value<F>(
                                     vec![
                                         error::ErrorBuildField {
                                             key: "token1".to_owned(),
-                                            value: variable_data.data.rtype.raw_name_with_extensions(),
+                                            value: variable_data
+                                                .data
+                                                .rtype
+                                                .raw_name_with_extensions(),
                                         },
                                         error::ErrorBuildField {
                                             key: "token2".to_owned(),

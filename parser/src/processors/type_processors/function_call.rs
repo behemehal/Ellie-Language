@@ -149,14 +149,12 @@ pub fn collect_function_caller<F>(
 
                 let fn_exists = parser.resolve_function_call(function_call_data.clone());
                 match fn_exists {
-                    Ok(return_type) => {
-                        function_call_data.return_type = return_type
-                    },
+                    Ok(return_type) => function_call_data.return_type = return_type,
                     Err(type_errors) => {
                         for error in type_errors {
                             errors.push(error);
                         }
-                    },
+                    }
                 }
                 function_call_data.complete = true;
             } else {
