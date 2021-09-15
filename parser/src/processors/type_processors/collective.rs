@@ -34,16 +34,6 @@ pub fn collect_collective<F>(
             last_entry_ind = 1;
         }
 
-        if itered_data.data.dynamic {
-            itered_data.data.rtype =
-                definers::DefinerCollecting::Collective(definers::CollectiveType {
-                    complete: true,
-                    key: Box::new(definers::DefinerCollecting::Dynamic),
-                    value: Box::new(definers::DefinerCollecting::Dynamic),
-                    ..Default::default()
-                })
-        }
-
         let has_dedup = collective_data.clone().has_dedup();
         let ref mut last_entry = collective_data.data.entries[last_entry_ind - 1];
 
@@ -81,6 +71,44 @@ pub fn collect_collective<F>(
                 }
                 collective_data.complete = true;
                 collective_data.data.entries = vec![];
+
+                if itered_data.data.dynamic {
+                    let mut keys = collective_data
+                        .data
+                        .entries
+                        .clone()
+                        .into_iter()
+                        .map(|x| x.data.key.to_definer())
+                        .collect::<Vec<_>>();
+                    keys.dedup();
+                    let mut values = collective_data
+                        .data
+                        .entries
+                        .clone()
+                        .into_iter()
+                        .map(|x| x.data.value.to_definer())
+                        .collect::<Vec<_>>();
+                    values.dedup();
+
+                    let key_type = if keys.len() > 1 || keys.len() == 0 {
+                        crate::syntax::definers::DefinerCollecting::Dynamic
+                    } else {
+                        keys[0].clone()
+                    };
+
+                    let value_type = if values.len() > 1 || values.len() == 0 {
+                        crate::syntax::definers::DefinerCollecting::Dynamic
+                    } else {
+                        values[0].clone()
+                    };
+                    itered_data.data.rtype = crate::syntax::definers::DefinerCollecting::Collective(
+                        crate::syntax::definers::CollectiveType {
+                            key: Box::new(key_type),
+                            value: Box::new(value_type),
+                            ..Default::default()
+                        },
+                    );
+                }
             } else if letter_char == ":" && last_entry.data.key.is_type_complete() {
                 //If current char is splitter and collected key is complete
 
@@ -93,7 +121,7 @@ pub fn collect_collective<F>(
                             parser.resolve_variable(*last_entry.data.key.clone());
 
                         if let Ok(entry_type) = entry_type_option {
-                            if collective_defining.key.raw_name() != entry_type
+                            if *collective_defining.key != entry_type
                                 && !collective_defining.value.is_dynamic()
                             {
                                 errors.push(error::Error {
@@ -112,7 +140,7 @@ pub fn collect_collective<F>(
                                             },
                                             error::ErrorBuildField {
                                                 key: "token2".to_owned(),
-                                                value: entry_type,
+                                                value: entry_type.raw_name_with_extensions(),
                                             },
                                         ],
                                     ),
@@ -207,8 +235,8 @@ pub fn collect_collective<F>(
                         );
 
                         if let Ok(entry_type) = entry_type_option {
-                            if collective_defining.value.raw_name() != entry_type
-                                && collective_defining.value.raw_name() != "dyn"
+                            if *collective_defining.value != entry_type
+                                && !collective_defining.value.is_dynamic()
                             {
                                 errors.push(error::Error {
                                     path: parser.options.path.clone(),
@@ -226,7 +254,7 @@ pub fn collect_collective<F>(
                                             },
                                             error::ErrorBuildField {
                                                 key: "token2".to_owned(),
-                                                value: entry_type,
+                                                value: entry_type.raw_name_with_extensions(),
                                             },
                                         ],
                                     ),
@@ -237,6 +265,45 @@ pub fn collect_collective<F>(
                             }
                         } else {
                             panic!("Unexpected parser error");
+                        }
+
+                        if itered_data.data.dynamic {
+                            let mut keys = collective_data
+                                .data
+                                .entries
+                                .clone()
+                                .into_iter()
+                                .map(|x| x.data.key.to_definer())
+                                .collect::<Vec<_>>();
+                            keys.dedup();
+                            let mut values = collective_data
+                                .data
+                                .entries
+                                .clone()
+                                .into_iter()
+                                .map(|x| x.data.value.to_definer())
+                                .collect::<Vec<_>>();
+                            values.dedup();
+
+                            let key_type = if keys.len() > 1 || keys.len() == 0 {
+                                crate::syntax::definers::DefinerCollecting::Dynamic
+                            } else {
+                                keys[0].clone()
+                            };
+
+                            let value_type = if values.len() > 1 || values.len() == 0 {
+                                crate::syntax::definers::DefinerCollecting::Dynamic
+                            } else {
+                                values[0].clone()
+                            };
+                            itered_data.data.rtype =
+                                crate::syntax::definers::DefinerCollecting::Collective(
+                                    crate::syntax::definers::CollectiveType {
+                                        key: Box::new(key_type),
+                                        value: Box::new(value_type),
+                                        ..Default::default()
+                                    },
+                                );
                         }
                     }
                 }
@@ -270,6 +337,45 @@ pub fn collect_collective<F>(
                         });
                     }
                     collective_data.complete = true;
+
+                    if itered_data.data.dynamic {
+                        let mut keys = collective_data
+                            .data
+                            .entries
+                            .clone()
+                            .into_iter()
+                            .map(|x| x.data.key.to_definer())
+                            .collect::<Vec<_>>();
+                        keys.dedup();
+                        let mut values = collective_data
+                            .data
+                            .entries
+                            .clone()
+                            .into_iter()
+                            .map(|x| x.data.value.to_definer())
+                            .collect::<Vec<_>>();
+                        values.dedup();
+
+                        let key_type = if keys.len() > 1 || keys.len() == 0 {
+                            crate::syntax::definers::DefinerCollecting::Dynamic
+                        } else {
+                            keys[0].clone()
+                        };
+
+                        let value_type = if values.len() > 1 || values.len() == 0 {
+                            crate::syntax::definers::DefinerCollecting::Dynamic
+                        } else {
+                            values[0].clone()
+                        };
+                        itered_data.data.rtype =
+                            crate::syntax::definers::DefinerCollecting::Collective(
+                                crate::syntax::definers::CollectiveType {
+                                    key: Box::new(key_type),
+                                    value: Box::new(value_type),
+                                    ..Default::default()
+                                },
+                            );
+                    }
                 }
             } else {
                 let mut will_be_itered = if itered_data.data.dynamic {
