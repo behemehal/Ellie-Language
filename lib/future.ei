@@ -1,0 +1,10 @@
+import int;
+importNative thread;
+
+pub class future<T> {
+    pub v type : T;
+
+    pub fn delay(millisecond: int, callback: int) {
+        sleep(millisecond);
+    }
+}

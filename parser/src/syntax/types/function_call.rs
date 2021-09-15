@@ -1,4 +1,4 @@
-use crate::syntax::types;
+use crate::syntax::{types, definers};
 use ellie_core::defs;
 use serde::{Deserialize, Serialize};
 
@@ -22,6 +22,7 @@ pub struct FunctionCall {
 #[derive(PartialEq, Default, Debug, Clone, Serialize, Deserialize)]
 pub struct FunctionCallCollector {
     pub data: FunctionCall,
+    pub return_type: definers::DefinerCollecting,
     pub name_collected: bool,
     pub comma: bool,
     pub complete: bool,

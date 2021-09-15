@@ -33,6 +33,7 @@ fn main() {
             println!("Development Options:");
             println!("\t-i                                   : Ignore errors");
             println!("\t-e                                   : Show non-definite items");
+            println!("\t-fi                                  : Filter out imports");
         }
     } else {
         let args = env::args()
@@ -378,6 +379,13 @@ fn main() {
                                     .items
                                     .clone()
                                     .into_iter()
+                                    .filter(|x| {
+                                        if env::args().any(|x| x == "-fi") {
+                                            !matches!(x, parser::Collecting::ImportItem(_))
+                                        } else {
+                                            true
+                                        }
+                                    })
                                     .map(|x| x.to_definite());
                                 let collected_definite_items: Vec<definite::items::Collecting> =
                                     collected_items.collect();
@@ -734,6 +742,13 @@ fn main() {
                                     .items
                                     .clone()
                                     .into_iter()
+                                    .filter(|x| {
+                                        if env::args().any(|x| x == "-fi") {
+                                            !matches!(x, parser::Collecting::ImportItem(_))
+                                        } else {
+                                            true
+                                        }
+                                    })
                                     .map(|x| x.to_definite());
                                 let collected_definite_items: Vec<definite::items::Collecting> =
                                     collected_items.collect();

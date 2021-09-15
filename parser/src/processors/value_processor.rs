@@ -71,6 +71,14 @@ pub fn collect_value<F>(
             next_char,
             last_char,
         ),
+        types::Types::NullResolver(_) => type_processors::null_resolver::collect_null_resolver(
+            parser,
+            itered_data,
+            errors,
+            letter_char,
+            next_char,
+            last_char,
+        ),
         types::Types::Negative(_) => type_processors::negative::collect_negative(
             parser,
             itered_data,

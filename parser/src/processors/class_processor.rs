@@ -382,13 +382,24 @@ pub fn collect_class<F>(
 
                 for item in parser.collected.clone() {
                     //Import variables as temporary for syntax support, we will remove them after collecting complete
-                    child_parser.collected.push(parser::Collecting::ImportItem(
-                        import_item::ImportItem {
-                            from_path: "<temporary>".to_owned(),
-                            public: true,
-                            item: Box::new(item),
-                        },
-                    ));
+                    if let parser::Collecting::ImportItem(import) = item {
+                        child_parser.collected.push(parser::Collecting::ImportItem(
+                            import_item::ImportItem {
+                                from_path: "<temporary>".to_owned(),
+                                public: true,
+                                item: import.item,
+                            },
+                        ));
+                    } else {
+                        child_parser.collected.push(parser::Collecting::ImportItem(
+                            import_item::ImportItem {
+                                from_path: "<temporary>".to_owned(),
+                                public: true,
+                                item: Box::new(item),
+                            },
+                        ));
+                    }
+
                 }
             }
 

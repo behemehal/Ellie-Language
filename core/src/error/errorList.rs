@@ -221,4 +221,22 @@ lazy_static! {
         message: "'$token' cannot be used as collective parameter".to_owned(),
         ..Default::default()
     };
+    pub static ref error_s37: crate::error::Error = crate::error::Error {
+        code: 0x36,
+        title: "SyntaxError".to_owned(),
+        message: "'$token' cannot be used as reference pointer".to_owned(),
+        ..Default::default()
+    };
+    pub static ref error_s38: crate::error::Error = crate::error::Error {
+        code: 0x37,
+        title: "SyntaxError".to_owned(),
+        message: "'$token' required in scope".to_owned(),
+        ..Default::default()
+    };
+    pub static ref error_s39: crate::error::Error = crate::error::Error {
+        code: 0x38,
+        title: "SyntaxError".to_owned(),
+        message: "Cannot define built-in types".to_owned(),
+        ..Default::default()
+    };
 }

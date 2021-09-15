@@ -16,6 +16,7 @@ pub mod operator;
 pub mod reference;
 pub mod string;
 pub mod variable;
+pub mod null_resolver;
 
 use serde::{Deserialize, Serialize};
 
@@ -35,6 +36,7 @@ pub enum Types {
     ConstructedClass(constructed_class::ConstructedClass),
     FunctionCall(function_call::FunctionCall),
     Void,
+    NullResolver(null_resolver::NullResolver),
     Negative(negative::Negative),
     VariableType(variable::VariableType),
     Null,

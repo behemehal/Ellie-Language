@@ -1,9 +1,6 @@
-use crate::alloc::borrow::ToOwned;
 use crate::parser;
 use crate::processors::value_processor;
 use crate::syntax::{types, variable};
-use alloc::string::ToString;
-use alloc::vec;
 use alloc::vec::Vec;
 use ellie_core::{defs, error};
 
@@ -31,16 +28,7 @@ pub fn collect_reference<F>(
             reference_data
                 .data
                 .chain
-                        .push(types::reference_type::Chain {
-                            pos: defs::Cursor {
-                                range_start: parser.pos.clone().skip_char(1),
-                                ..Default::default()
-                            },
-                            ..Default::default()
-                        });
-                }
-            }
-            reference_data.on_dot = true;
+                .push(types::reference_type::Chain::default())
         } else {
             reference_data.on_dot = false;
             let mut will_be_itered = if last_entry == 0 {
@@ -84,7 +72,8 @@ pub fn collect_reference<F>(
                 if reference_data.data.chain[last_entry - 1].pos.is_zero() {
                     reference_data.data.chain[last_entry - 1].pos.range_start = parser.pos;
                 }
-                reference_data.data.chain[last_entry - 1].pos.range_end = parser.pos;
+                reference_data.data.chain[last_entry - 1].pos.range_end =
+                    parser.pos.clone().skip_char(1);
             }
             reference_data.complete = will_be_itered.data.value.is_type_complete();
         }

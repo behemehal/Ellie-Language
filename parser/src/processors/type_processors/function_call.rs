@@ -148,10 +148,15 @@ pub fn collect_function_caller<F>(
                 }
 
                 let fn_exists = parser.resolve_function_call(function_call_data.clone());
-                if let Some(type_errors) = fn_exists {
-                    for error in type_errors {
-                        errors.push(error);
-                    }
+                match fn_exists {
+                    Ok(return_type) => {
+                        function_call_data.return_type = return_type
+                    },
+                    Err(type_errors) => {
+                        for error in type_errors {
+                            errors.push(error);
+                        }
+                    },
                 }
                 function_call_data.complete = true;
             } else {
@@ -283,6 +288,16 @@ pub fn collect_function_caller<F>(
                     types::Types::Reference(match_data) => {
                         types::function_call::FunctionCallParameter {
                             value: types::Types::Reference(match_data),
+                            pos: if last_entry == 0 {
+                                defs::Cursor::default()
+                            } else {
+                                function_call_data.data.params[last_entry - 1].pos
+                            },
+                        }
+                    }
+                    types::Types::NullResolver(match_data) => {
+                        types::function_call::FunctionCallParameter {
+                            value: types::Types::NullResolver(match_data),
                             pos: if last_entry == 0 {
                                 defs::Cursor::default()
                             } else {

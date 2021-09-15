@@ -1,0 +1,12 @@
+pub import ../lib/ellie;
+
+pub class test {
+    pub v query : string;
+}
+
+pub class Person {
+    co Person(name, surname, age);
+    pub v name : string;
+    pub v surname : string;
+    pub v age : test;
+}

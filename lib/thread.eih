@@ -1,0 +1,7 @@
+import int;
+@compile_output = "thread";
+pub fn sleep(time: int);
+
+pub fn sleep(time: int) {
+    
+}

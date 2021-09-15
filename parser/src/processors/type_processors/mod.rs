@@ -14,3 +14,4 @@ pub mod operator;
 pub mod reference;
 pub mod string;
 pub mod variable;
+pub mod null_resolver;

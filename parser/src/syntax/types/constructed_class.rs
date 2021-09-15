@@ -1,7 +1,7 @@
 use crate::syntax::types;
-use alloc::boxed::Box;
 use alloc::string::String;
 use alloc::vec::Vec;
+use alloc::{borrow::ToOwned, boxed::Box};
 use ellie_core::{definite, defs};
 use serde::{Deserialize, Serialize};
 
@@ -17,6 +17,31 @@ pub struct ConstructedClass {
     pub keyword_pos: defs::Cursor,
     pub value_pos: defs::Cursor,
     pub params: Vec<ConstructedClassParameter>,
+}
+
+impl ConstructedClass {
+    pub fn class_name(self) -> String {
+        match *self.value {
+            types::Types::Integer(_) => "int".to_owned(),
+            types::Types::Float(_) => "float".to_owned(),
+            types::Types::Bool(_) => "bool".to_owned(),
+            types::Types::String(_) => "string".to_owned(),
+            types::Types::Char(_) => "char".to_owned(),
+            types::Types::Collective(_) => "collective".to_owned(),
+            types::Types::Reference(_) => "reference".to_owned(),
+            types::Types::Operator(_) => panic!("UNEXPECTED BEHAVIOUR"),
+            types::Types::Cloak(_) => "cloak".to_owned(),
+            types::Types::Array(_) => "array".to_owned(),
+            types::Types::ArrowFunction(_) => "function".to_owned(),
+            types::Types::ConstructedClass(e) => e.data.class_name(),
+            types::Types::FunctionCall(e) => e.return_type.raw_name(),
+            types::Types::Void => "void".to_owned(),
+            types::Types::NullResolver(e) => "nullResolver".to_owned(),
+            types::Types::Negative(_) => "bool".to_owned(),
+            types::Types::VariableType(e) => e.data.value,
+            types::Types::Null => "null".to_owned(),
+        }
+    }
 }
 
 #[derive(PartialEq, Default, Debug, Clone, Serialize, Deserialize)]

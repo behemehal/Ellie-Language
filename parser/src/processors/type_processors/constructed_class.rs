@@ -77,7 +77,7 @@ pub fn collect_new_call<F>(
                     last_char,
                 );
 
-                new_call_data.raw_value += "letter_char";
+                new_call_data.raw_value += letter_char;
                 new_call_data.data.value = Box::new(will_be_itered.data.value);
                 new_call_data.data.value_pos.range_end = parser.pos.clone().skip_char(1);
             }
@@ -145,22 +145,6 @@ pub fn collect_new_call<F>(
                 if last_entry != 0 {
                     new_call_data.data.params[last_entry - 1].pos.range_end = parser.pos;
                 }
-
-                let resolved_new_call = parser.resolve_new_call(new_call_data.clone());
-                if let Err(e) = resolved_new_call {
-                    errors.extend(e);
-                } else if let Ok(e) = resolved_new_call {
-                    std::println!("![ParserError] Working blind: {:#?}", e);
-                }
-
-                /*
-                let fn_exists = parser.resolve_function_call(new_call_data.clone());
-                if let Some(type_errors) = fn_exists {
-                    for error in type_errors {
-                        errors.push(error);
-                    }
-                }
-                */
                 new_call_data.complete = true;
             } else {
                 if letter_char != " " {
@@ -302,6 +286,16 @@ pub fn collect_new_call<F>(
                             },
                         }
                     }
+                    types::Types::NullResolver(match_data) => {
+                        types::constructed_class::ConstructedClassParameter {
+                            value: types::Types::NullResolver(match_data),
+                            pos: if last_entry == 0 {
+                                defs::Cursor::default()
+                            } else {
+                                new_call_data.data.params[last_entry - 1].pos
+                            },
+                        }
+                    }
                     types::Types::Negative(match_data) => {
                         types::constructed_class::ConstructedClassParameter {
                             value: types::Types::Negative(match_data),
@@ -312,6 +306,7 @@ pub fn collect_new_call<F>(
                             },
                         }
                     }
+
                     types::Types::Array(match_data) => {
                         types::constructed_class::ConstructedClassParameter {
                             value: types::Types::Array(match_data),
@@ -399,12 +394,29 @@ pub fn collect_new_call<F>(
                     new_call_data.data.params[0].pos.range_end = parser.pos;
                 } else {
                     new_call_data.data.params[last_entry - 1] = itered_entry;
-                    if new_call_data.data.params[last_entry - 1].pos.range_start.is_zero() && letter_char != " "{
+                    if new_call_data.data.params[last_entry - 1]
+                        .pos
+                        .range_start
+                        .is_zero()
+                        && letter_char != " "
+                    {
                         new_call_data.data.params[last_entry - 1].pos.range_start = parser.pos;
                     }
                     new_call_data.data.params[last_entry - 1].pos.range_end = parser.pos;
                 }
             }
+        } else if letter_char == "." {
+            itered_data.data.value =
+                types::Types::Reference(types::reference_type::ReferenceTypeCollector {
+                    data: types::reference_type::ReferenceType {
+                        reference_pos: itered_data.data.value_pos,
+                        reference: Box::new(itered_data.data.value.clone()),
+                        chain: Vec::new(),
+                    },
+                    root_available: false,
+                    on_dot: false,
+                    complete: false,
+                });
         }
     }
 }

@@ -133,31 +133,36 @@ pub fn collect_array<F>(
                     if let definers::DefinerCollecting::Array(array_defining) =
                         itered_data.data.rtype.clone()
                     {
-                        let entry_type = parser
+                        let entry_type_option = parser
                             .resolve_variable(*data.data.collective[last_entry - 1].value.clone());
-                        if array_defining.rtype.raw_name() != entry_type {
-                            errors.push(error::Error {
-                                path: parser.options.path.clone(),
-                                scope: parser.scope.scope_name.clone(),
-                                debug_message: "15b268c471e09a3cf793958a7fa35980".to_owned(),
-                                title: error::errorList::error_s3.title.clone(),
-                                code: error::errorList::error_s3.code,
-                                message: error::errorList::error_s3.message.clone(),
-                                builded_message: error::Error::build(
-                                    error::errorList::error_s3.message.clone(),
-                                    vec![
-                                        error::ErrorBuildField {
-                                            key: "token1".to_owned(),
-                                            value: array_defining.rtype.raw_name(),
-                                        },
-                                        error::ErrorBuildField {
-                                            key: "token2".to_owned(),
-                                            value: entry_type,
-                                        },
-                                    ],
-                                ),
-                                pos: data.data.collective[last_entry - 1].location,
-                            });
+
+                        if let Ok(entry_type) = entry_type_option {
+                            if array_defining.rtype.raw_name() != entry_type {
+                                errors.push(error::Error {
+                                    path: parser.options.path.clone(),
+                                    scope: parser.scope.scope_name.clone(),
+                                    debug_message: "15b268c471e09a3cf793958a7fa35980".to_owned(),
+                                    title: error::errorList::error_s3.title.clone(),
+                                    code: error::errorList::error_s3.code,
+                                    message: error::errorList::error_s3.message.clone(),
+                                    builded_message: error::Error::build(
+                                        error::errorList::error_s3.message.clone(),
+                                        vec![
+                                            error::ErrorBuildField {
+                                                key: "token1".to_owned(),
+                                                value: array_defining.rtype.raw_name(),
+                                            },
+                                            error::ErrorBuildField {
+                                                key: "token2".to_owned(),
+                                                value: entry_type,
+                                            },
+                                        ],
+                                    ),
+                                    pos: data.data.collective[last_entry - 1].location,
+                                });
+                            }
+                        } else {
+                            panic!("Unexpected parser error");
                         }
                     }
                 } else {
@@ -229,31 +234,36 @@ pub fn collect_array<F>(
                     if let definers::DefinerCollecting::Array(array_defining) =
                         itered_data.data.rtype.clone()
                     {
-                        let entry_type = parser
+                        let entry_type_option = parser
                             .resolve_variable(*data.data.collective[last_entry - 1].value.clone());
-                        if array_defining.rtype.raw_name() != entry_type {
-                            errors.push(error::Error {
-                                path: parser.options.path.clone(),
-                                scope: parser.scope.scope_name.clone(),
-                                debug_message: "abce163873d769c215f01382aef67aba".to_owned(),
-                                title: error::errorList::error_s3.title.clone(),
-                                code: error::errorList::error_s3.code,
-                                message: error::errorList::error_s3.message.clone(),
-                                builded_message: error::Error::build(
-                                    error::errorList::error_s3.message.clone(),
-                                    vec![
-                                        error::ErrorBuildField {
-                                            key: "token1".to_owned(),
-                                            value: array_defining.rtype.raw_name(),
-                                        },
-                                        error::ErrorBuildField {
-                                            key: "token2".to_owned(),
-                                            value: entry_type,
-                                        },
-                                    ],
-                                ),
-                                pos: data.data.collective[last_entry - 1].location,
-                            });
+
+                        if let Ok(entry_type) = entry_type_option {
+                            if array_defining.rtype.raw_name() != entry_type {
+                                errors.push(error::Error {
+                                    path: parser.options.path.clone(),
+                                    scope: parser.scope.scope_name.clone(),
+                                    debug_message: "abce163873d769c215f01382aef67aba".to_owned(),
+                                    title: error::errorList::error_s3.title.clone(),
+                                    code: error::errorList::error_s3.code,
+                                    message: error::errorList::error_s3.message.clone(),
+                                    builded_message: error::Error::build(
+                                        error::errorList::error_s3.message.clone(),
+                                        vec![
+                                            error::ErrorBuildField {
+                                                key: "token1".to_owned(),
+                                                value: array_defining.rtype.raw_name(),
+                                            },
+                                            error::ErrorBuildField {
+                                                key: "token2".to_owned(),
+                                                value: entry_type,
+                                            },
+                                        ],
+                                    ),
+                                    pos: data.data.collective[last_entry - 1].location,
+                                });
+                            }
+                        } else {
+                            panic!("Unexpected parser error");
                         }
                     }
                 }
@@ -614,6 +624,20 @@ pub fn collect_array<F>(
                 types::Types::Negative(match_data) => types::array_type::ArrayEntry {
                     value_complete: true,
                     value: Box::new(types::Types::Negative(match_data)),
+                    location: defs::Cursor {
+                        range_start: if data.data.collective.len() != 0
+                            && !data.data.collective[last_entry - 1].location.is_zero()
+                        {
+                            data.data.collective[last_entry - 1].location.range_start
+                        } else {
+                            parser.pos
+                        },
+                        ..Default::default()
+                    },
+                },
+                types::Types::NullResolver(match_data) => types::array_type::ArrayEntry {
+                    value_complete: true,
+                    value: Box::new(types::Types::NullResolver(match_data)),
                     location: defs::Cursor {
                         range_start: if data.data.collective.len() != 0
                             && !data.data.collective[last_entry - 1].location.is_zero()

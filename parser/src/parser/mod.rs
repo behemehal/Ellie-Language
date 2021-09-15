@@ -384,7 +384,9 @@ where
                 }
             }
             Collecting::ImportItem(c) => {
-                found_item = self.look_up_for_item(*c.item, target);
+                if c.public {
+                    found_item = self.look_up_for_item(*c.item, target);
+                }
             }
             _ => found_item = None,
         }
@@ -407,11 +409,47 @@ where
             types::Types::Reference(_) => todo!(),
             types::Types::Operator(_) => todo!(),
             types::Types::ArrowFunction(_) => todo!(),
-            types::Types::ConstructedClass(_) => todo!(),
+            types::Types::ConstructedClass(e) => {
+                let name = match *e.data.value {
+                    types::Types::Integer(_) => "int".to_owned(),
+                    types::Types::Float(_) => "float".to_owned(),
+                    types::Types::Bool(_) => "bool".to_owned(),
+                    types::Types::String(_) => "string".to_owned(),
+                    types::Types::Char(_) => "char".to_owned(),
+                    types::Types::Collective(_) => "collective".to_owned(),
+                    types::Types::Reference(_) => todo!(),
+                    types::Types::Operator(_) => todo!(),
+                    types::Types::Cloak(_) => todo!(),
+                    types::Types::Array(_) => todo!(),
+                    types::Types::ArrowFunction(_) => todo!(),
+                    types::Types::ConstructedClass(_) => todo!(),
+                    types::Types::FunctionCall(_) => todo!(),
+                    types::Types::Void => "void".to_owned(),
+                    types::Types::NullResolver(_) => todo!(),
+                    types::Types::Negative(_) => "bool".to_owned(),
+                    types::Types::VariableType(e) => e.data.value,
+                    types::Types::Null => "null".to_owned(),
+                };
+                let vr_found = self.check_keyword(name, false);
+                if vr_found.found {
+                    if let NameCheckResponseType::Variable(v_data) = vr_found.found_type {
+                        self.resolve_deep_call(v_data.data.value)
+                    } else if let NameCheckResponseType::Function(f_data) = vr_found.found_type {
+                        DeepCallResponse::ElementResponse(Collecting::Function(f_data))
+                    } else if let NameCheckResponseType::Class(c_data) = vr_found.found_type {
+                        DeepCallResponse::ElementResponse(Collecting::Class(c_data))
+                    } else {
+                        DeepCallResponse::NoElement
+                    }
+                } else {
+                    DeepCallResponse::NoElement
+                }
+            }
             types::Types::FunctionCall(_) => todo!(),
+            types::Types::NullResolver(_) => todo!(),
             types::Types::Negative(_) => todo!(),
             types::Types::VariableType(e) => {
-                let vr_found = self.check_keyword(e.data.value);
+                let vr_found = self.check_keyword(e.data.value, false);
 
                 if vr_found.found {
                     if let NameCheckResponseType::Variable(v_data) = vr_found.found_type {
@@ -430,94 +468,455 @@ where
         }
     }
 
-    pub fn resolve_variable(&self, target: types::Types) -> String {
+    pub fn resolve_variable(
+        &self,
+        target: types::Types,
+    ) -> Result<String, Vec<ellie_core::error::Error>> {
         match target {
-            types::Types::Integer(_) => "int".to_owned(),
-            types::Types::Float(_) => "float".to_owned(),
-            types::Types::String(_) => "string".to_owned(),
-            types::Types::Char(_) => "char".to_owned(),
-            types::Types::Bool(_) => "bool".to_owned(),
-            types::Types::Negative(_) => "bool".to_owned(),
-            types::Types::Collective(_) => "collective".to_owned(),
-            types::Types::Cloak(_) => "cloak".to_owned(),
-            types::Types::Array(_) => "array".to_owned(),
-            types::Types::Void => "void".to_owned(),
-            types::Types::Reference(_) => {
-                //let q = self.resolve_reference_call(e);
+            types::Types::Integer(_) => Ok("int".to_owned()),
+            types::Types::Float(_) => Ok("float".to_owned()),
+            types::Types::String(_) => Ok("string".to_owned()),
+            types::Types::Char(_) => Ok("char".to_owned()),
+            types::Types::Bool(_) => Ok("bool".to_owned()),
+            types::Types::NullResolver(e) => Ok(e.value.get_type()),
+            types::Types::Negative(_) => Ok("bool".to_owned()),
+            types::Types::Collective(_) => Ok("collective".to_owned()),
+            types::Types::Cloak(_) => Ok("cloak".to_owned()),
+            types::Types::Array(_) => Ok("array".to_owned()),
+            types::Types::Void => Ok("void".to_owned()),
+            types::Types::Reference(reference_data) => {
+                let mut errors = Vec::new();
+                let deep_scan = self.resolve_deep_call(*reference_data.data.reference.clone());
+                let mut found: String = String::new();
 
-                /*
-                let vr_found = self.check_keyword(*e.data.reference);
-                if vr_found.found {
-                    if let NameCheckResponseType::Variable(v_data) = vr_found.found_type {
-                        v_data.data.rtype.raw_name()
-                    } else if let NameCheckResponseType::Function(_) = vr_found.found_type {
-                        "function".to_owned()
-                    } else if let NameCheckResponseType::Class(_) = vr_found.found_type {
-                        "class".to_owned()
-                    } else {
-                        "nen".to_owned()
+                match deep_scan {
+                    DeepCallResponse::TypeResponse(_) => {
+                        panic!("Direct type reference is not ready")
                     }
-                } else {
-                    "nen".to_owned()
+                    DeepCallResponse::ElementResponse(target) => {
+                        let mut last: definers::DefinerCollecting =
+                            definers::DefinerCollecting::Dynamic;
+
+                        fn resolve_reference_chain(
+                            target: Collecting,
+                            chain: types::Types,
+                        ) -> Result<definers::DefinerCollecting, (String, i8)>
+                        {
+                            /*
+                                Error codes:
+                                0 => cannot used as refferencer,
+                                1 => not exists as parameter
+                            */
+                            match target {
+                                Collecting::Variable(_) => todo!(),
+                                Collecting::Function(_) => todo!(),
+                                Collecting::Class(targeted_item) => {
+                                    let properties = targeted_item
+                                        .data
+                                        .properties
+                                        .into_iter()
+                                        .map(|x| {
+                                            (
+                                                x.name,
+                                                if x.dynamic {
+                                                    x.value.to_definer()
+                                                } else {
+                                                    x.rtype
+                                                },
+                                            )
+                                        })
+                                        .collect::<Vec<_>>();
+                                    let getters = targeted_item
+                                        .data
+                                        .getters
+                                        .into_iter()
+                                        .map(|x| (x.name, x.rtype))
+                                        .collect::<Vec<_>>();
+                                    let setters = targeted_item
+                                        .data
+                                        .setters
+                                        .into_iter()
+                                        .map(|x| (x.name, x.rtype))
+                                        .collect::<Vec<_>>();
+                                    let methods = targeted_item
+                                        .data
+                                        .methods
+                                        .into_iter()
+                                        .map(|x| (x.name, x.return_type))
+                                        .collect::<Vec<_>>();
+                                    let mut all_properties = vec![];
+                                    all_properties.extend(properties);
+                                    all_properties.extend(getters);
+                                    all_properties.extend(setters);
+                                    all_properties.extend(methods);
+
+                                    match chain {
+                                        types::Types::VariableType(chain_variable) => {
+                                            let found_property = all_properties
+                                                .into_iter()
+                                                .find(|e| e.0 == chain_variable.data.value);
+                                            match found_property {
+                                                Some(e) => Ok(e.1),
+                                                None => Err((chain_variable.data.value, 1)),
+                                            }
+                                        }
+                                        e => Err((e.get_type(), 0)),
+                                    }
+                                }
+                                Collecting::Caller(_) => todo!(),
+                                Collecting::Getter(_) => todo!(),
+                                Collecting::Setter(_) => todo!(),
+                                Collecting::NativeClass => todo!(),
+                                Collecting::Enum(_) => todo!(),
+                                Collecting::NativeFunction(_) => todo!(),
+                                Collecting::None => todo!(),
+                                _ => panic!("Unexpected parser behaviour: {:?}", target),
+                            }
+                        }
+
+                        for (layer, chain) in reference_data.data.chain.into_iter().enumerate() {
+                            if layer == 0 {
+                                let resolved_reference_chain =
+                                    resolve_reference_chain(target.clone(), chain.value);
+
+                                match resolved_reference_chain {
+                                    Ok(e) => {
+                                        last = e;
+                                    }
+                                    Err(e) => {
+                                        if e.1 == 0 {
+                                            errors.push(error::Error {
+                                                path: self.options.path.clone(),
+                                                scope: self.scope.scope_name.clone(),
+                                                debug_message: "replace_parser_537".to_owned(),
+                                                title: error::errorList::error_s37.title.clone(),
+                                                code: error::errorList::error_s37.code,
+                                                message: error::errorList::error_s37
+                                                    .message
+                                                    .clone(),
+                                                builded_message: error::Error::build(
+                                                    error::errorList::error_s37.message.clone(),
+                                                    vec![error::ErrorBuildField {
+                                                        key: "token".to_owned(),
+                                                        value: e.0,
+                                                    }],
+                                                ),
+                                                pos: chain.pos,
+                                            });
+                                        } else {
+                                            errors.push(error::Error {
+                                                path: self.options.path.clone(),
+                                                scope: self.scope.scope_name.clone(),
+                                                debug_message: "replace_parser_609".to_owned(),
+                                                title: error::errorList::error_s34.title.clone(),
+                                                code: error::errorList::error_s34.code,
+                                                message: error::errorList::error_s34
+                                                    .message
+                                                    .clone(),
+                                                builded_message: error::Error::build(
+                                                    error::errorList::error_s34.message.clone(),
+                                                    vec![error::ErrorBuildField {
+                                                        key: "token".to_owned(),
+                                                        value: e.0,
+                                                    }],
+                                                ),
+                                                pos: chain.pos,
+                                            });
+                                        }
+                                    }
+                                }
+                            } else {
+                                match last.clone() {
+                                    definers::DefinerCollecting::Array(_) => todo!(),
+                                    definers::DefinerCollecting::Cloak(_) => todo!(),
+                                    definers::DefinerCollecting::Future(_) => todo!(),
+                                    definers::DefinerCollecting::Nullable(_) => todo!(),
+                                    definers::DefinerCollecting::GrowableArray(_) => todo!(),
+                                    definers::DefinerCollecting::Generic(e) => {
+                                        let found_generic = self.check_keyword(e.rtype.clone(), true);
+
+                                        if found_generic.found {
+                                            match found_generic.found_type {
+                                                NameCheckResponseType::Class(target) => {
+                                                    let resolved_reference_chain =
+                                                        resolve_reference_chain(
+                                                            Collecting::Class(target),
+                                                            chain.value,
+                                                        );
+
+                                                    match resolved_reference_chain {
+                                                        Ok(e) => {
+                                                            last = e;
+                                                        }
+                                                        Err(e) => {
+                                                            if e.1 == 0 {
+                                                                errors.push(error::Error {
+                                                    path: self.options.path.clone(),
+                                                    scope: self.scope.scope_name.clone(),
+                                                    debug_message: "replace_parser_537".to_owned(),
+                                                    title: error::errorList::error_s37.title.clone(),
+                                                    code: error::errorList::error_s37.code,
+                                                    message: error::errorList::error_s37
+                                                        .message
+                                                        .clone(),
+                                                    builded_message: error::Error::build(
+                                                        error::errorList::error_s37.message.clone(),
+                                                        vec![error::ErrorBuildField {
+                                                            key: "token".to_owned(),
+                                                            value: e.0,
+                                                        }],
+                                                    ),
+                                                    pos: chain.pos,
+                                                });
+                                                            } else {
+                                                                errors.push(error::Error {
+                                                    path: self.options.path.clone(),
+                                                    scope: self.scope.scope_name.clone(),
+                                                    debug_message: "replace_parser_674".to_owned(),
+                                                    title: error::errorList::error_s34.title.clone(),
+                                                    code: error::errorList::error_s34.code,
+                                                    message: error::errorList::error_s34
+                                                        .message
+                                                        .clone(),
+                                                    builded_message: error::Error::build(
+                                                        error::errorList::error_s34.message.clone(),
+                                                        vec![error::ErrorBuildField {
+                                                            key: "token".to_owned(),
+                                                            value: e.0,
+                                                        }],
+                                                    ),
+                                                    pos: chain.pos,
+                                                });
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                                _ => panic!("Unexpected parser behaviour"),
+                                            }
+                                        } else {
+                                            errors.push(error::Error {
+                                                path: self.options.path.clone(),
+                                                scope: self.scope.scope_name.clone(),
+                                                debug_message: "replace_parser_700".to_owned(),
+                                                title: error::errorList::error_s38.title.clone(),
+                                                code: error::errorList::error_s38.code,
+                                                message: error::errorList::error_s38
+                                                    .message
+                                                    .clone(),
+                                                builded_message: error::Error::build(
+                                                    error::errorList::error_s38.message.clone(),
+                                                    vec![error::ErrorBuildField {
+                                                        key: "token".to_owned(),
+                                                        value: e.rtype,
+                                                    }],
+                                                ),
+                                                pos: chain.pos,
+                                            });
+                                        }
+                                    }
+                                    definers::DefinerCollecting::Function(_) => todo!(),
+                                    definers::DefinerCollecting::Collective(_) => todo!(),
+                                    definers::DefinerCollecting::Dynamic => todo!(),
+                                }
+                            }
+                        }
+                    }
+                    DeepCallResponse::NoElement => match *reference_data.data.reference.clone() {
+                        types::Types::VariableType(e) => {
+                            errors.push(error::Error {
+                                path: self.options.path.clone(),
+                                scope: self.scope.scope_name.clone(),
+                                debug_message: "replace_parser_727".to_owned(),
+                                title: error::errorList::error_s6.title.clone(),
+                                code: error::errorList::error_s6.code,
+                                message: error::errorList::error_s6.message.clone(),
+                                builded_message: error::Error::build(
+                                    error::errorList::error_s6.message.clone(),
+                                    vec![error::ErrorBuildField {
+                                        key: "token".to_owned(),
+                                        value: e.data.value.to_string(),
+                                    }],
+                                ),
+                                pos: reference_data.data.reference_pos,
+                            });
+                        }
+                        types::Types::ConstructedClass(e) => {
+                            errors.push(error::Error {
+                                path: self.options.path.clone(),
+                                scope: self.scope.scope_name.clone(),
+                                debug_message: "replace_parser_727".to_owned(),
+                                title: error::errorList::error_s6.title.clone(),
+                                code: error::errorList::error_s6.code,
+                                message: error::errorList::error_s6.message.clone(),
+                                builded_message: error::Error::build(
+                                    error::errorList::error_s6.message.clone(),
+                                    vec![error::ErrorBuildField {
+                                        key: "token".to_owned(),
+                                        value: e.data.class_name(),
+                                    }],
+                                ),
+                                pos: reference_data.data.reference_pos,
+                            });
+                        }
+                        e => panic!(
+                            "Unexpected parser behaviour, '{}' not supported for now",
+                            e.get_type()
+                        ),
+                    },
                 }
-                */
-                "nen".to_owned()
+
+                if errors.len() == 0 {
+                    Ok(found)
+                } else {
+                    Err(errors)
+                }
             }
             types::Types::Operator(_) => {
                 #[cfg(feature = "std")]
                 std::println!("Not implemented for: types {:#?}", target);
-                "".to_owned()
+                Ok("".to_owned())
             }
+            types::Types::ArrowFunction(_) => Ok("function".to_owned()),
+            types::Types::ConstructedClass(constructed_class) => {
+                if let Ok(resolved) = self.resolve_new_call(constructed_class.clone()) {
+                    let mut errors = vec![];
+                    if let Collecting::Class(class_collector) = resolved {
+                        if class_collector.data.constructor.parameters.len()
+                            != constructed_class.data.params.len()
+                        {
+                            Err(vec![error::Error {
+                                path: self.options.path.clone(),
+                                scope: self.scope.scope_name.clone(),
+                                debug_message: "replace_parser_577".to_owned(),
+                                title: error::errorList::error_s19.title.clone(),
+                                code: error::errorList::error_s19.code,
+                                message: error::errorList::error_s19.message.clone(),
+                                builded_message: error::Error::build(
+                                    error::errorList::error_s19.message.clone(),
+                                    vec![
+                                        error::ErrorBuildField {
+                                            key: "token".to_owned(),
+                                            value: class_collector
+                                                .data
+                                                .constructor
+                                                .parameters
+                                                .len()
+                                                .to_string(),
+                                        },
+                                        error::ErrorBuildField {
+                                            key: "token2".to_owned(),
+                                            value: constructed_class.data.params.len().to_string(),
+                                        },
+                                    ],
+                                ),
+                                pos: constructed_class.data.value_pos,
+                            }])
+                        } else {
+                            let mut has_faulty_param = false;
+                            for (pos, param) in
+                                constructed_class.data.params.into_iter().enumerate()
+                            {
+                                let constructor_param =
+                                    &class_collector.data.constructor.parameters[pos];
+                                let properties = class_collector
+                                    .data
+                                    .properties
+                                    .iter()
+                                    .filter(|e| e.name == constructor_param.name)
+                                    .collect::<Vec<&variable::Variable>>();
 
-            types::Types::ArrowFunction(_) => "function".to_owned(),
-            types::Types::ConstructedClass(e) => {
-                if let Ok(resolved) = self.resolve_new_call(e) {
-                    if let Collecting::Class(e) = resolved {
-                        e.data.name
+                                if properties.len() != 0 {
+                                    let property = properties[0];
+                                    if property.rtype.raw_name() != param.value.get_type() {
+                                        errors.push(error::Error {
+                                            path: self.options.path.clone(),
+                                            scope: self.scope.scope_name.clone(),
+                                            debug_message: "replace_parser_640".to_owned(),
+                                            title: error::errorList::error_s3.title.clone(),
+                                            code: error::errorList::error_s3.code,
+                                            message: error::errorList::error_s3.message.clone(),
+                                            builded_message: error::Error::build(
+                                                error::errorList::error_s3.message.clone(),
+                                                vec![
+                                                    error::ErrorBuildField {
+                                                        key: "token1".to_owned(),
+                                                        value: property.rtype.raw_name(),
+                                                    },
+                                                    error::ErrorBuildField {
+                                                        key: "token2".to_owned(),
+                                                        value: param.value.get_type(),
+                                                    },
+                                                ],
+                                            ),
+                                            pos: param.pos,
+                                        });
+                                    }
+                                }
+                            }
+
+                            for param in class_collector.data.constructor.parameters {
+                                let properties = class_collector
+                                    .data
+                                    .properties
+                                    .iter()
+                                    .filter(|e| e.name == param.name)
+                                    .collect::<Vec<&variable::Variable>>();
+
+                                if properties.len() != 0 {
+                                    let property = properties[0];
+                                }
+                            }
+
+                            if errors.is_empty() {
+                                Ok(class_collector.data.name)
+                            } else {
+                                Err(errors)
+                            }
+                        }
                     } else {
-                        "nen".to_owned()
+                        panic!("Unexpected parser behaviour")
                     }
                 } else {
-                    "nen".to_owned()
+                    Ok("nen".to_owned())
                 }
             }
             types::Types::FunctionCall(e) => {
-                let fn_found = self.check_keyword(e.data.name);
+                let fn_found = self.check_keyword(e.data.name, false);
 
                 if fn_found.found {
                     if let NameCheckResponseType::Function(fn_data) = fn_found.found_type {
-                        fn_data.data.return_type.raw_name()
+                        Ok(fn_data.data.return_type.raw_name())
                     } else if let NameCheckResponseType::Variable(v_data) = fn_found.found_type {
                         if let definers::DefinerCollecting::Function(fn_type) = v_data.data.rtype {
-                            fn_type.returning.raw_name()
+                            Ok(fn_type.returning.raw_name())
                         } else {
-                            "nen".to_owned()
+                            Ok("nen".to_owned())
                         }
                     } else {
-                        "nen".to_owned()
+                        Ok("nen".to_owned())
                     }
                 } else {
-                    "nen".to_owned()
+                    Ok("nen".to_owned())
                 }
             }
             types::Types::VariableType(e) => {
-                let vr_found = self.check_keyword(e.data.value);
+                let vr_found = self.check_keyword(e.data.value, false);
 
                 if vr_found.found {
                     if let NameCheckResponseType::Variable(v_data) = vr_found.found_type {
-                        v_data.data.rtype.raw_name()
+                        Ok(v_data.data.rtype.raw_name())
                     } else if let NameCheckResponseType::Function(_) = vr_found.found_type {
-                        "function".to_owned()
+                        Ok("function".to_owned())
                     } else if let NameCheckResponseType::Class(_) = vr_found.found_type {
-                        "class".to_owned()
+                        Ok("class".to_owned())
                     } else {
-                        "nen".to_owned()
+                        Ok("nen".to_owned())
                     }
                 } else {
-                    "nen".to_owned()
+                    Ok("nen".to_owned())
                 }
             }
-            types::Types::Null => "null".to_owned(),
+            types::Types::Null => Ok("null".to_owned()),
         }
     }
 
@@ -530,8 +929,31 @@ where
 
     pub fn resolve_reference_call(
         self,
-        _reference_data_collector: types::reference_type::ReferenceTypeCollector,
+        reference_data_collector: types::reference_type::ReferenceTypeCollector,
     ) -> Option<Vec<ellie_core::error::Error>> {
+        let mut errors = Vec::new();
+        let deep_scan = self.resolve_deep_call(*reference_data_collector.data.reference.clone());
+        if deep_scan == DeepCallResponse::NoElement {
+            errors.push(error::Error {
+                path: self.options.path.clone(),
+                scope: "function_call_processor".to_owned(),
+                debug_message: "replace_parser_915".to_owned(),
+                title: error::errorList::error_s6.title.clone(),
+                code: error::errorList::error_s6.code,
+                message: error::errorList::error_s6.message.clone(),
+                builded_message: error::Error::build(
+                    error::errorList::error_s6.message.clone(),
+                    vec![error::ErrorBuildField {
+                        key: "token".to_owned(),
+                        value: (*reference_data_collector.data.reference.get_type()).to_string(),
+                    }],
+                ),
+                pos: reference_data_collector.data.reference_pos,
+            });
+        } else {
+            panic!("TODO");
+        }
+
         /*
         let mut errors = Vec::new();
         let deep_scan = self.resolve_deep_call(*reference_data_collector.data.reference.clone());
@@ -676,64 +1098,70 @@ where
         }
     }
 
-    pub fn resolve_function_call(
+    pub fn deep_function_call_resolver(
         &self,
         caller_data: types::function_call::FunctionCallCollector,
-    ) -> Option<Vec<ellie_core::error::Error>> {
+        item: Collecting,
+        errors: &mut Vec<ellie_core::error::Error>,
+    ) -> Option<definers::DefinerCollecting> {
         let mut found = false;
-        let mut errors = Vec::new();
-        for item in self.collected.clone() {
-            match item {
-                Collecting::Variable(e) => {
-                    if e.data.name == caller_data.data.name {
+        let mut found_type = definers::DefinerCollecting::Dynamic;
+        match item {
+            Collecting::Variable(e) => {
+                if e.data.name == caller_data.data.name {
+                    if let definers::DefinerCollecting::Function(fn_type) = e.data.rtype {
+                        found_type = *fn_type.returning;
                         found = true;
-                        if let definers::DefinerCollecting::Function(fn_type) = e.data.rtype {
-                            if caller_data.data.params.len() != fn_type.params.len() {
-                                errors.push(error::Error {
-                                    path: self.options.path.clone(),
-                                    scope: self.scope.scope_name.clone(),
-                                    debug_message: "e19cd0910a22ef136c9fde4dee3660a6".to_owned(),
-                                    title: error::errorList::error_s7.title.clone(),
-                                    code: error::errorList::error_s7.code,
-                                    message: error::errorList::error_s7.message.clone(),
-                                    builded_message: error::Error::build(
-                                        error::errorList::error_s7.message.clone(),
-                                        vec![
-                                            error::ErrorBuildField {
-                                                key: "name".to_owned(),
-                                                value: "Function".to_owned(),
-                                            },
-                                            error::ErrorBuildField {
-                                                key: "token".to_owned(),
-                                                value: fn_type.params.len().to_string(),
-                                            },
-                                            error::ErrorBuildField {
-                                                key: "token2".to_owned(),
-                                                value: caller_data.data.params.len().to_string(),
-                                            },
-                                        ],
-                                    ),
-                                    pos: caller_data.data.name_pos,
-                                });
-                            } else {
-                                for (index, caller_param) in
-                                    caller_data.data.params.into_iter().enumerate()
-                                {
-                                    match fn_type.params[index].clone() {
-                                        definers::DefinerCollecting::Array(_) => {
-                                            panic!("Definer Resolving on 'Array' is not supported");
-                                        }
-                                        definers::DefinerCollecting::GrowableArray(_) => {
-                                            panic!("Definer Resolving on 'GrowableArray' is not supported");
-                                        }
-                                        definers::DefinerCollecting::Nullable(_) => {
-                                            panic!(
-                                                "Definer Resolving on 'Nullable' is not supported"
-                                            );
-                                        }
-                                        definers::DefinerCollecting::Generic(e) => {
-                                            let resolved_type =
-                                                self.resolve_variable(caller_param.value);
+                        if caller_data.data.params.len() != fn_type.params.len() {
+                            errors.push(error::Error {
+                                path: self.options.path.clone(),
+                                scope: self.scope.scope_name.clone(),
+                                debug_message: "e19cd0910a22ef136c9fde4dee3660a6".to_owned(),
+                                title: error::errorList::error_s7.title.clone(),
+                                code: error::errorList::error_s7.code,
+                                message: error::errorList::error_s7.message.clone(),
+                                builded_message: error::Error::build(
+                                    error::errorList::error_s7.message.clone(),
+                                    vec![
+                                        error::ErrorBuildField {
+                                            key: "name".to_owned(),
+                                            value: "Function".to_owned(),
+                                        },
+                                        error::ErrorBuildField {
+                                            key: "token".to_owned(),
+                                            value: fn_type.params.len().to_string(),
+                                        },
+                                        error::ErrorBuildField {
+                                            key: "token2".to_owned(),
+                                            value: caller_data.data.params.len().to_string(),
+                                        },
+                                    ],
+                                ),
+                                pos: caller_data.data.name_pos,
+                            });
+                        } else {
+                            for (index, caller_param) in
+                                caller_data.data.params.into_iter().enumerate()
+                            {
+                                match fn_type.params[index].clone() {
+                                    definers::DefinerCollecting::Array(_) => {
+                                        panic!("Definer Resolving on 'Array' is not supported");
+                                    }
+                                    definers::DefinerCollecting::Future(_) => {
+                                        panic!("Definer Resolving on 'Future' is not supported");
+                                    }
+                                    definers::DefinerCollecting::GrowableArray(_) => {
+                                        panic!(
+                                            "Definer Resolving on 'GrowableArray' is not supported"
+                                        );
+                                    }
+                                    definers::DefinerCollecting::Nullable(_) => {
+                                        panic!("Definer Resolving on 'Nullable' is not supported");
+                                    }
+                                    definers::DefinerCollecting::Generic(e) => {
+                                        let resolved_type_option =
+                                            self.resolve_variable(caller_param.value);
+                                        if let Ok(resolved_type) = resolved_type_option {
                                             if resolved_type != e.rtype {
                                                 errors.push(error::Error {
                                                     path: self.options.path.clone(),
@@ -762,107 +1190,110 @@ where
                                                     pos: caller_data.data.name_pos,
                                                 });
                                             }
+                                        } else {
+                                            panic!("Unexpected parser error");
                                         }
-                                        definers::DefinerCollecting::Function(_) => {
-                                            panic!(
-                                                "Definer Resolving on 'Function' is not supported"
-                                            );
-                                        }
-                                        definers::DefinerCollecting::Cloak(_) => {
-                                            panic!("Definer Resolving on 'Cloak' is not supported");
-                                        }
-                                        definers::DefinerCollecting::Collective(_) => {
-                                            panic!("Definer Resolving on 'Collective' is not supported");
-                                        }
-                                        definers::DefinerCollecting::Dynamic => {
-                                            panic!(
-                                                "Definer Resolving on 'Dynamic' is not supported"
-                                            );
-                                        }
+                                    }
+                                    definers::DefinerCollecting::Function(_) => {
+                                        panic!("Definer Resolving on 'Function' is not supported");
+                                    }
+                                    definers::DefinerCollecting::Cloak(_) => {
+                                        panic!("Definer Resolving on 'Cloak' is not supported");
+                                    }
+                                    definers::DefinerCollecting::Collective(_) => {
+                                        panic!(
+                                            "Definer Resolving on 'Collective' is not supported"
+                                        );
+                                    }
+                                    definers::DefinerCollecting::Dynamic => {
+                                        panic!("Definer Resolving on 'Dynamic' is not supported");
                                     }
                                 }
                             }
-                        } else {
-                            errors.push(error::Error {
-                                path: self.options.path.clone(),
-                                scope: self.scope.scope_name.clone(),
-                                debug_message: "5d34bb80f6e42282ba3e7b7df6a600b8".to_owned(),
-                                title: error::errorList::error_s25.title.clone(),
-                                code: error::errorList::error_s25.code,
-                                message: error::errorList::error_s25.message.clone(),
-                                builded_message: error::Error::build(
-                                    error::errorList::error_s25.message.clone(),
-                                    vec![error::ErrorBuildField {
-                                        key: "token".to_owned(),
-                                        value: caller_data.data.name.clone(),
-                                    }],
-                                ),
-                                pos: caller_data.data.name_pos,
-                            });
                         }
-                        break;
+                    } else {
+                        errors.push(error::Error {
+                            path: self.options.path.clone(),
+                            scope: self.scope.scope_name.clone(),
+                            debug_message: "5d34bb80f6e42282ba3e7b7df6a600b8".to_owned(),
+                            title: error::errorList::error_s25.title.clone(),
+                            code: error::errorList::error_s25.code,
+                            message: error::errorList::error_s25.message.clone(),
+                            builded_message: error::Error::build(
+                                error::errorList::error_s25.message.clone(),
+                                vec![error::ErrorBuildField {
+                                    key: "token".to_owned(),
+                                    value: caller_data.data.name.clone(),
+                                }],
+                            ),
+                            pos: caller_data.data.name_pos,
+                        });
                     }
                 }
-                Collecting::Function(e) => {
-                    if e.data.name == caller_data.data.name {
-                        found = true;
-                        if caller_data.data.params.len() != e.data.parameters.len()
-                            && (caller_data.data.params.len() > 0
-                                && !e.data.parameters[e.data.parameters.len() - 1].multi_capture)
+            }
+            Collecting::Function(e) => {
+                if e.data.name == caller_data.data.name {
+                    found_type = e.data.return_type;
+                    found = true;
+                    if caller_data.data.params.len() != e.data.parameters.len()
+                        && (caller_data.data.params.len() > 0
+                            && !e.data.parameters[e.data.parameters.len() - 1].multi_capture)
+                    {
+                        errors.push(error::Error {
+                            path: self.options.path.clone(),
+                            scope: self.scope.scope_name.clone(),
+                            debug_message: "a6a12b65ef67371f40c21fe42d3d2db8".to_owned(),
+                            title: error::errorList::error_s7.title.clone(),
+                            code: error::errorList::error_s7.code,
+                            message: error::errorList::error_s7.message.clone(),
+                            builded_message: error::Error::build(
+                                error::errorList::error_s7.message.clone(),
+                                vec![
+                                    error::ErrorBuildField {
+                                        key: "name".to_owned(),
+                                        value: "Function".to_owned(),
+                                    },
+                                    error::ErrorBuildField {
+                                        key: "token".to_owned(),
+                                        value: e.data.parameters.len().to_string(),
+                                    },
+                                    error::ErrorBuildField {
+                                        key: "token2".to_owned(),
+                                        value: caller_data.data.params.len().to_string(),
+                                    },
+                                ],
+                            ),
+                            pos: caller_data.data.name_pos,
+                        });
+                    } else {
+                        for (index, caller_param) in
+                            caller_data.data.params.clone().into_iter().enumerate()
                         {
-                            errors.push(error::Error {
-                                path: self.options.path.clone(),
-                                scope: self.scope.scope_name.clone(),
-                                debug_message: "a6a12b65ef67371f40c21fe42d3d2db8".to_owned(),
-                                title: error::errorList::error_s7.title.clone(),
-                                code: error::errorList::error_s7.code,
-                                message: error::errorList::error_s7.message.clone(),
-                                builded_message: error::Error::build(
-                                    error::errorList::error_s7.message.clone(),
-                                    vec![
-                                        error::ErrorBuildField {
-                                            key: "name".to_owned(),
-                                            value: "Function".to_owned(),
-                                        },
-                                        error::ErrorBuildField {
-                                            key: "token".to_owned(),
-                                            value: e.data.parameters.len().to_string(),
-                                        },
-                                        error::ErrorBuildField {
-                                            key: "token2".to_owned(),
-                                            value: caller_data.data.params.len().to_string(),
-                                        },
-                                    ],
-                                ),
-                                pos: caller_data.data.name_pos,
-                            });
-                        } else {
-                            for (index, caller_param) in
-                                caller_data.data.params.clone().into_iter().enumerate()
-                            {
-                                let to_match = if index > e.data.parameters.len() - 1 {
-                                    //If multi capturer function
-                                    e.data.parameters[e.data.parameters.len() - 1].rtype.clone()
-                                } else {
-                                    e.data.parameters[index].rtype.clone()
-                                };
+                            let to_match = if index > e.data.parameters.len() - 1 {
+                                //If multi capturer function
+                                e.data.parameters[e.data.parameters.len() - 1].rtype.clone()
+                            } else {
+                                e.data.parameters[index].rtype.clone()
+                            };
 
-                                match to_match {
-                                    definers::DefinerCollecting::Array(_) => {
-                                        panic!("Definer Resolving on 'Array' is not supported");
-                                    }
-                                    definers::DefinerCollecting::GrowableArray(_) => {
-                                        panic!(
-                                            "Definer Resolving on 'GrowableArray' is not supported"
-                                        );
-                                    }
-                                    definers::DefinerCollecting::Nullable(_) => {
-                                        panic!("Definer Resolving on 'Nullable' is not supported");
-                                    }
-                                    definers::DefinerCollecting::Generic(e) => {
-                                        let resolved_type =
-                                            self.resolve_variable(caller_param.value);
+                            match to_match {
+                                definers::DefinerCollecting::Array(_) => {
+                                    panic!("Definer Resolving on 'Array' is not supported");
+                                }
+                                definers::DefinerCollecting::GrowableArray(_) => {
+                                    panic!("Definer Resolving on 'GrowableArray' is not supported");
+                                }
+                                definers::DefinerCollecting::Nullable(_) => {
+                                    panic!("Definer Resolving on 'Nullable' is not supported");
+                                }
+                                definers::DefinerCollecting::Future(_) => {
+                                    panic!("Definer Resolving on 'Future' is not supported");
+                                }
+                                definers::DefinerCollecting::Generic(e) => {
+                                    let resolved_type_option =
+                                        self.resolve_variable(caller_param.value);
 
+                                    if let Ok(resolved_type) = resolved_type_option {
                                         if resolved_type != e.rtype {
                                             errors.push(error::Error {
                                                 path: self.options.path.clone(),
@@ -888,21 +1319,26 @@ where
                                                 pos: caller_param.pos,
                                             });
                                         }
+                                    } else {
+                                        panic!("Unexpected parser error");
                                     }
-                                    definers::DefinerCollecting::Function(_) => {
-                                        panic!("Definer Resolving on 'Function' is not supported");
-                                    }
-                                    definers::DefinerCollecting::Cloak(_) => {
-                                        panic!("Definer Resolving on 'Cloak' is not supported");
-                                    }
-                                    definers::DefinerCollecting::Collective(_) => {
-                                        panic!("Definer Resolving on 'Cloak' is not supported");
-                                    }
-                                    definers::DefinerCollecting::Dynamic => {
-                                        #[cfg(feature = "std")]
-                                        std::println!("\u{001b}[33m[Experimental]\u{001b}[0m: Resolving type as dynamic");
-                                        let resolved_type =
-                                            self.resolve_variable(caller_param.value.clone());
+                                }
+                                definers::DefinerCollecting::Function(_) => {
+                                    panic!("Definer Resolving on 'Function' is not supported");
+                                }
+                                definers::DefinerCollecting::Cloak(_) => {
+                                    panic!("Definer Resolving on 'Cloak' is not supported");
+                                }
+                                definers::DefinerCollecting::Collective(_) => {
+                                    panic!("Definer Resolving on 'Cloak' is not supported");
+                                }
+                                definers::DefinerCollecting::Dynamic => {
+                                    #[cfg(feature = "std")]
+                                    std::println!("\u{001b}[33m[Experimental]\u{001b}[0m: Resolving type as dynamic");
+                                    let resolved_type_option =
+                                        self.resolve_variable(caller_param.value.clone());
+
+                                    if let Ok(resolved_type) = resolved_type_option {
                                         if resolved_type == "nen"
                                             && caller_param.value.clone().get_type() == "variable"
                                         {
@@ -930,32 +1366,210 @@ where
                                                 pos: caller_param.pos,
                                             });
                                         }
+                                    } else {
+                                        panic!("Unexpected parser error");
                                     }
                                 }
                             }
                         }
                     }
                 }
-                Collecting::Class(e) => {
-                    if e.data.name == caller_data.data.name {
-                        found = true;
+            }
+            Collecting::Class(e) => {
+                if e.data.name == caller_data.data.name {
+                    errors.push(error::Error {
+                        path: self.options.path.clone(),
+                        scope: self.scope.scope_name.clone(),
+                        debug_message: "974221bc69b9607dcbf0b7a3b9a3bc43".to_owned(),
+                        title: error::errorList::error_s25.title.clone(),
+                        code: error::errorList::error_s25.code,
+                        message: error::errorList::error_s25.message.clone(),
+                        builded_message: error::Error::build(
+                            error::errorList::error_s25.message.clone(),
+                            vec![error::ErrorBuildField {
+                                key: "token".to_owned(),
+                                value: caller_data.data.name.clone(),
+                            }],
+                        ),
+                        pos: caller_data.data.name_pos,
+                    });
+                }
+            }
+            Collecting::NativeFunction(e) => {
+                if e.name == caller_data.data.name {
+                    found_type = e.return_type;
+                    found = true;
+                    if caller_data.data.params.len() != e.parameters.len()
+                        && (caller_data.data.params.len() > 0
+                            && !e.parameters[e.parameters.len() - 1].multi_capture)
+                    {
                         errors.push(error::Error {
                             path: self.options.path.clone(),
                             scope: self.scope.scope_name.clone(),
-                            debug_message: "974221bc69b9607dcbf0b7a3b9a3bc43".to_owned(),
-                            title: error::errorList::error_s25.title.clone(),
-                            code: error::errorList::error_s25.code,
-                            message: error::errorList::error_s25.message.clone(),
+                            debug_message: "a6a12b65ef67371f40c21fe42d3d2db8".to_owned(),
+                            title: error::errorList::error_s7.title.clone(),
+                            code: error::errorList::error_s7.code,
+                            message: error::errorList::error_s7.message.clone(),
                             builded_message: error::Error::build(
-                                error::errorList::error_s25.message.clone(),
-                                vec![error::ErrorBuildField {
-                                    key: "token".to_owned(),
-                                    value: caller_data.data.name.clone(),
-                                }],
+                                error::errorList::error_s7.message.clone(),
+                                vec![
+                                    error::ErrorBuildField {
+                                        key: "name".to_owned(),
+                                        value: "Function".to_owned(),
+                                    },
+                                    error::ErrorBuildField {
+                                        key: "token".to_owned(),
+                                        value: e.parameters.len().to_string(),
+                                    },
+                                    error::ErrorBuildField {
+                                        key: "token2".to_owned(),
+                                        value: caller_data.data.params.len().to_string(),
+                                    },
+                                ],
                             ),
                             pos: caller_data.data.name_pos,
                         });
+                    } else {
+                        for (index, caller_param) in
+                            caller_data.data.params.clone().into_iter().enumerate()
+                        {
+                            let to_match = if index > e.parameters.len() - 1 {
+                                //If multi capturer function
+                                e.parameters[e.parameters.len() - 1].rtype.clone()
+                            } else {
+                                e.parameters[index].rtype.clone()
+                            };
+
+                            match to_match {
+                                definers::DefinerCollecting::Array(_) => {
+                                    panic!("Definer Resolving on 'Array' is not supported");
+                                }
+                                definers::DefinerCollecting::GrowableArray(_) => {
+                                    panic!("Definer Resolving on 'GrowableArray' is not supported");
+                                }
+                                definers::DefinerCollecting::Nullable(_) => {
+                                    panic!("Definer Resolving on 'Nullable' is not supported");
+                                }
+                                definers::DefinerCollecting::Future(_) => {
+                                    panic!("Definer Resolving on 'Future' is not supported");
+                                }
+                                definers::DefinerCollecting::Generic(e) => {
+                                    let resolved_type_option =
+                                        self.resolve_variable(caller_param.value);
+
+                                    if let Ok(resolved_type) = resolved_type_option {
+                                        if resolved_type != e.rtype && resolved_type != "nen" {
+                                            errors.push(error::Error {
+                                                path: self.options.path.clone(),
+                                                scope: self.scope.scope_name.clone(),
+                                                debug_message: "c19a4b727ef44a45f9ca006b0ee45fe2"
+                                                    .to_owned(),
+                                                title: error::errorList::error_s3.title.clone(),
+                                                code: error::errorList::error_s3.code,
+                                                message: error::errorList::error_s3.message.clone(),
+                                                builded_message: error::Error::build(
+                                                    error::errorList::error_s3.message.clone(),
+                                                    vec![
+                                                        error::ErrorBuildField {
+                                                            key: "token1".to_owned(),
+                                                            value: e.rtype,
+                                                        },
+                                                        error::ErrorBuildField {
+                                                            key: "token2".to_owned(),
+                                                            value: resolved_type,
+                                                        },
+                                                    ],
+                                                ),
+                                                pos: caller_param.pos,
+                                            });
+                                        }
+                                    } else {
+                                        panic!("Unexpected parser error");
+                                    }
+                                }
+                                definers::DefinerCollecting::Function(_) => {
+                                    panic!("Definer Resolving on 'Function' is not supported");
+                                }
+                                definers::DefinerCollecting::Cloak(_) => {
+                                    panic!("Definer Resolving on 'Cloak' is not supported");
+                                }
+                                definers::DefinerCollecting::Collective(_) => {
+                                    panic!("Definer Resolving on 'Cloak' is not supported");
+                                }
+                                definers::DefinerCollecting::Dynamic => {
+                                    #[cfg(feature = "std")]
+                                    std::println!("\u{001b}[33m[Experimental]\u{001b}[0m: Resolving type as dynamic");
+                                    let resolved_type_option =
+                                        self.resolve_variable(caller_param.value.clone());
+
+                                    if let Ok(resolved_type) = resolved_type_option {
+                                        if resolved_type == "nen"
+                                            && caller_param.value.clone().get_type() == "variable"
+                                        {
+                                            errors.push(error::Error {
+                                                path: self.options.path.clone(),
+                                                scope: self.scope.scope_name.clone(),
+                                                debug_message: "74e76688c642c18e7bd9339e60b65bef"
+                                                    .to_owned(),
+                                                title: error::errorList::error_s4.title.clone(),
+                                                code: error::errorList::error_s4.code,
+                                                message: error::errorList::error_s4.message.clone(),
+                                                builded_message: error::Error::build(
+                                                    error::errorList::error_s4.message.clone(),
+                                                    vec![error::ErrorBuildField {
+                                                        key: "token".to_owned(),
+                                                        value: caller_param
+                                                            .value
+                                                            .as_variable_type()
+                                                            .unwrap()
+                                                            .data
+                                                            .value
+                                                            .clone(),
+                                                    }],
+                                                ),
+                                                pos: caller_param.pos,
+                                            });
+                                        }
+                                    } else {
+                                        panic!("Unexpected parser error");
+                                    }
+                                }
+                            }
+                        }
                     }
+                }
+            }
+            Collecting::ImportItem(e) => {
+                match self.deep_function_call_resolver(caller_data.clone(), *e.item, errors) {
+                    Some(e) => {
+                        found_type = e;
+                        found = true;
+                    }
+                    _ => (),
+                }
+            }
+            _ => (),
+        };
+        if found {
+            Some(found_type)
+        } else {
+            None
+        }
+    }
+
+    pub fn resolve_function_call(
+        &self,
+        caller_data: types::function_call::FunctionCallCollector,
+    ) -> Result<definers::DefinerCollecting, Vec<ellie_core::error::Error>> {
+        let mut found_type = definers::DefinerCollecting::Dynamic;
+        let mut found = false;
+        let mut errors = Vec::new();
+        'scp: for item in self.collected.clone() {
+            match self.deep_function_call_resolver(caller_data.clone(), item, &mut errors) {
+                Some(e) => {
+                    found_type = e;
+                    found = true;
+                    break 'scp;
                 }
                 _ => (),
             }
@@ -981,9 +1595,9 @@ where
         }
 
         if errors.is_empty() {
-            None
+            Ok(found_type)
         } else {
-            Some(errors)
+            Err(errors)
         }
     }
 
@@ -1034,55 +1648,74 @@ where
         found
     }
 
-    pub fn check_keyword(&self, name: String) -> NameCheckResponse {
+    pub fn deep_check_keyword(
+        &self,
+        item: Collecting,
+        name: String,
+        contain_private: bool,
+    ) -> (bool, Collecting) {
+        let mut found = false;
+        let mut found_item: Collecting = Collecting::None;
+        match item.clone() {
+            Collecting::Variable(e) => {
+                if e.data.name == name {
+                    found = true;
+                    found_item = item;
+                }
+            }
+            Collecting::Setter(e) => {
+                if e.data.name == name {
+                    found = true;
+                    found_item = item;
+                }
+            }
+            Collecting::Getter(e) => {
+                if e.data.name == name {
+                    found = true;
+                    found_item = item;
+                }
+            }
+            Collecting::Function(e) => {
+                if e.data.name == name {
+                    found = true;
+                    found_item = item;
+                }
+            }
+            Collecting::Class(e) => {
+                if e.data.name == name {
+                    found = true;
+                    found_item = item;
+                }
+            }
+            Collecting::FileKey(e) => {
+                if e.data.key_name == name {
+                    found = true;
+                    found_item = item;
+                }
+            }
+            Collecting::ImportItem(e) => {
+                if e.public || contain_private {
+                    let (is_found, found_item_target) = self.deep_check_keyword(*e.item, name, contain_private);
+                    found = is_found;
+                    found_item = found_item_target;
+                }
+            }
+            _ => (),
+        };
+        (found, found_item)
+    }
+
+    pub fn check_keyword(&self, name: String, contain_private: bool) -> NameCheckResponse {
         let mut found = false;
         let mut found_item: Collecting = Collecting::None;
 
         for item in self.collected.clone() {
-            match item.clone() {
-                Collecting::Variable(e) => {
-                    if e.data.name == name {
-                        found = true;
-                        found_item = item;
-                        break;
-                    }
-                }
-                Collecting::Setter(e) => {
-                    if e.data.name == name {
-                        found = true;
-                        found_item = item;
-                        break;
-                    }
-                }
-                Collecting::Getter(e) => {
-                    if e.data.name == name {
-                        found = true;
-                        found_item = item;
-                        break;
-                    }
-                }
-                Collecting::Function(e) => {
-                    if e.data.name == name {
-                        found = true;
-                        found_item = item;
-                        break;
-                    }
-                }
-                Collecting::Class(e) => {
-                    if e.data.name == name {
-                        found = true;
-                        found_item = item;
-                        break;
-                    }
-                }
-                Collecting::FileKey(e) => {
-                    if e.data.key_name == name {
-                        found = true;
-                        found_item = item;
-                        break;
-                    }
-                }
-                _ => (),
+            let (is_found, found_item_target) =
+                self.deep_check_keyword(item, name.clone(), contain_private);
+            found = is_found;
+            found_item = found_item_target;
+            if found {
+                break;
             }
         }
 

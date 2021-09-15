@@ -39,13 +39,11 @@ pub fn collect_null<F>(
                     });
             } else if letter_char == "'" {
                 itered_data.data.value = types::Types::Char(types::char_type::CharType::default());
-            } else if (itered_data.raw_value.clone() + letter_char)
-                .parse::<i64>()
-                .is_ok()
-            {
+            } else if letter_char.parse::<i64>().is_ok() {
                 // Default integer
                 itered_data.data.value =
                     types::Types::Integer(types::integer_type::IntegerTypeCollector::default());
+                //TODO PERFORMANCE BUG
                 type_processors::integer::collect_integer(
                     parser.clone(),
                     itered_data,
@@ -83,6 +81,9 @@ pub fn collect_null<F>(
             } else if letter_char == "!" {
                 itered_data.data.value =
                     types::Types::Negative(types::negative_type::Negative::default());
+            } else if letter_char == "?" {
+                itered_data.data.value =
+                    types::Types::NullResolver(types::null_resolver::NullResolver::default());
             } else if letter_char == "(" {
                 itered_data.data.value =
                     types::Types::Cloak(types::cloak_type::CloakTypeCollector {

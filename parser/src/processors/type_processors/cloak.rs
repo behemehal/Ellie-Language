@@ -129,34 +129,40 @@ pub fn collect_cloak<F>(
                     if let definers::DefinerCollecting::Cloak(cloak_defining) =
                         itered_data.data.rtype.clone()
                     {
-                        let entry_type = parser.resolve_variable(
+                        let entry_type_option = parser.resolve_variable(
                             *cloak_data.data.collective[last_entry - 1].value.clone(),
                         );
-                        if cloak_defining.rtype.len() > last_entry - 1
-                            && cloak_defining.rtype[last_entry - 1].raw_name() != entry_type
-                        {
-                            errors.push(error::Error {
-                                path: parser.options.path.clone(),
-                                scope: parser.scope.scope_name.clone(),
-                                debug_message: "61629bcde0c1dbe08d1f789ed8c4d43f".to_owned(),
-                                title: error::errorList::error_s3.title.clone(),
-                                code: error::errorList::error_s3.code,
-                                message: error::errorList::error_s3.message.clone(),
-                                builded_message: error::Error::build(
-                                    error::errorList::error_s3.message.clone(),
-                                    vec![
-                                        error::ErrorBuildField {
-                                            key: "token1".to_owned(),
-                                            value: cloak_defining.rtype[last_entry - 1].raw_name(),
-                                        },
-                                        error::ErrorBuildField {
-                                            key: "token2".to_owned(),
-                                            value: entry_type,
-                                        },
-                                    ],
-                                ),
-                                pos: cloak_data.data.collective[last_entry - 1].location,
-                            });
+
+                        if let Ok(entry_type) = entry_type_option {
+                            if cloak_defining.rtype.len() > last_entry - 1
+                                && cloak_defining.rtype[last_entry - 1].raw_name() != entry_type
+                            {
+                                errors.push(error::Error {
+                                    path: parser.options.path.clone(),
+                                    scope: parser.scope.scope_name.clone(),
+                                    debug_message: "61629bcde0c1dbe08d1f789ed8c4d43f".to_owned(),
+                                    title: error::errorList::error_s3.title.clone(),
+                                    code: error::errorList::error_s3.code,
+                                    message: error::errorList::error_s3.message.clone(),
+                                    builded_message: error::Error::build(
+                                        error::errorList::error_s3.message.clone(),
+                                        vec![
+                                            error::ErrorBuildField {
+                                                key: "token1".to_owned(),
+                                                value: cloak_defining.rtype[last_entry - 1]
+                                                    .raw_name(),
+                                            },
+                                            error::ErrorBuildField {
+                                                key: "token2".to_owned(),
+                                                value: entry_type,
+                                            },
+                                        ],
+                                    ),
+                                    pos: cloak_data.data.collective[last_entry - 1].location,
+                                });
+                            }
+                        } else {
+                            panic!("Unexpected parser error");
                         }
                     }
                 }
@@ -227,34 +233,40 @@ pub fn collect_cloak<F>(
                     if let definers::DefinerCollecting::Cloak(cloak_defining) =
                         itered_data.data.rtype.clone()
                     {
-                        let entry_type = parser.resolve_variable(
+                        let entry_type_option = parser.resolve_variable(
                             *cloak_data.data.collective[last_entry - 1].value.clone(),
                         );
-                        if cloak_defining.rtype.len() > last_entry - 1
-                            && cloak_defining.rtype[last_entry - 1].raw_name() != entry_type
-                        {
-                            errors.push(error::Error {
-                                path: parser.options.path.clone(),
-                                scope: parser.scope.scope_name.clone(),
-                                debug_message: "b796cc238354e7fa61b70d90728737c2".to_owned(),
-                                title: error::errorList::error_s3.title.clone(),
-                                code: error::errorList::error_s3.code,
-                                message: error::errorList::error_s3.message.clone(),
-                                builded_message: error::Error::build(
-                                    error::errorList::error_s3.message.clone(),
-                                    vec![
-                                        error::ErrorBuildField {
-                                            key: "token1".to_owned(),
-                                            value: cloak_defining.rtype[last_entry - 1].raw_name(),
-                                        },
-                                        error::ErrorBuildField {
-                                            key: "token2".to_owned(),
-                                            value: entry_type,
-                                        },
-                                    ],
-                                ),
-                                pos: cloak_data.data.collective[last_entry - 1].location,
-                            });
+
+                        if let Ok(entry_type) = entry_type_option {
+                            if cloak_defining.rtype.len() > last_entry - 1
+                                && cloak_defining.rtype[last_entry - 1].raw_name() != entry_type
+                            {
+                                errors.push(error::Error {
+                                    path: parser.options.path.clone(),
+                                    scope: parser.scope.scope_name.clone(),
+                                    debug_message: "b796cc238354e7fa61b70d90728737c2".to_owned(),
+                                    title: error::errorList::error_s3.title.clone(),
+                                    code: error::errorList::error_s3.code,
+                                    message: error::errorList::error_s3.message.clone(),
+                                    builded_message: error::Error::build(
+                                        error::errorList::error_s3.message.clone(),
+                                        vec![
+                                            error::ErrorBuildField {
+                                                key: "token1".to_owned(),
+                                                value: cloak_defining.rtype[last_entry - 1]
+                                                    .raw_name(),
+                                            },
+                                            error::ErrorBuildField {
+                                                key: "token2".to_owned(),
+                                                value: entry_type,
+                                            },
+                                        ],
+                                    ),
+                                    pos: cloak_data.data.collective[last_entry - 1].location,
+                                });
+                            }
+                        } else {
+                            panic!("Unexpected parser error");
                         }
                     }
                 }
@@ -552,6 +564,24 @@ pub fn collect_cloak<F>(
                 types::Types::Reference(match_cloak_data) => types::cloak_type::CloakEntry {
                     value_complete: true,
                     value: Box::new(types::Types::Reference(match_cloak_data)),
+                    location: defs::Cursor {
+                        range_start: if cloak_data.data.collective.len() != 0
+                            && !cloak_data.data.collective[last_entry - 1]
+                                .location
+                                .is_zero()
+                        {
+                            cloak_data.data.collective[last_entry - 1]
+                                .location
+                                .range_start
+                        } else {
+                            parser.pos
+                        },
+                        ..Default::default()
+                    },
+                },
+                types::Types::NullResolver(match_cloak_data) => types::cloak_type::CloakEntry {
+                    value_complete: true,
+                    value: Box::new(types::Types::NullResolver(match_cloak_data)),
                     location: defs::Cursor {
                         range_start: if cloak_data.data.collective.len() != 0
                             && !cloak_data.data.collective[last_entry - 1]

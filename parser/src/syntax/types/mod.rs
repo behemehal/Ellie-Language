@@ -14,13 +14,13 @@ pub mod function_call;
 pub mod integer_type;
 pub mod logical_type;
 pub mod negative_type;
+pub mod null_resolver;
 pub mod operator_type;
 pub mod reference_type;
 pub mod string_type;
 pub mod variable_type;
 
-use crate::alloc::borrow::ToOwned;
-use alloc::string::String;
+use alloc::{borrow::ToOwned, boxed::Box, string::String, vec::Vec};
 use ellie_core::definite;
 use enum_as_inner::EnumAsInner;
 use serde::{Deserialize, Serialize};
@@ -41,6 +41,7 @@ pub enum Types {
     ConstructedClass(constructed_class::ConstructedClassCollector),
     FunctionCall(function_call::FunctionCallCollector),
     Void,
+    NullResolver(null_resolver::NullResolver),
     Negative(negative_type::Negative),
     VariableType(variable_type::VariableTypeCollector),
     Null,
@@ -62,15 +63,196 @@ impl Types {
             Types::ArrowFunction(e) => definite::types::Types::ArrowFunction(e.to_definite()),
             Types::ConstructedClass(e) => definite::types::Types::ConstructedClass(e.to_definite()),
             Types::FunctionCall(e) => definite::types::Types::FunctionCall(e.to_definite()),
-            Types::Void => definite::types::Types::Void,
+            Types::NullResolver(e) => definite::types::Types::NullResolver(e.to_definite()),
             Types::Negative(e) => definite::types::Types::Negative(e.to_definite()),
             Types::VariableType(e) => definite::types::Types::VariableType(e.to_definite()),
+            Types::Void => definite::types::Types::Void,
             Types::Null => definite::types::Types::Null,
         }
     }
 
+    pub fn to_definer(self) -> crate::syntax::definers::DefinerCollecting {
+        match self {
+            Types::Integer(_) => crate::syntax::definers::DefinerCollecting::Generic(
+                crate::syntax::definers::GenericType {
+                    rtype: "int".to_owned(),
+                },
+            ),
+            Types::Float(_) => crate::syntax::definers::DefinerCollecting::Generic(
+                crate::syntax::definers::GenericType {
+                    rtype: "float".to_owned(),
+                },
+            ),
+            Types::Bool(_) => crate::syntax::definers::DefinerCollecting::Generic(
+                crate::syntax::definers::GenericType {
+                    rtype: "bool".to_owned(),
+                },
+            ),
+            Types::String(_) => crate::syntax::definers::DefinerCollecting::Generic(
+                crate::syntax::definers::GenericType {
+                    rtype: "string".to_owned(),
+                },
+            ),
+            Types::Char(_) => crate::syntax::definers::DefinerCollecting::Generic(
+                crate::syntax::definers::GenericType {
+                    rtype: "char".to_owned(),
+                },
+            ),
+            Types::Collective(e) => {
+                let mut keys = e
+                    .data
+                    .entries
+                    .clone()
+                    .into_iter()
+                    .map(|x| x.data.key.to_definer())
+                    .collect::<Vec<_>>();
+                keys.dedup();
+                let mut values = e
+                    .data
+                    .entries
+                    .clone()
+                    .into_iter()
+                    .map(|x| x.data.value.to_definer())
+                    .collect::<Vec<_>>();
+                values.dedup();
+
+                let key_type = if keys.len() > 1 || keys.len() == 0 {
+                    crate::syntax::definers::DefinerCollecting::Dynamic
+                } else {
+                    keys[0].clone()
+                };
+
+                let value_type = if values.len() > 1 || values.len() == 0 {
+                    crate::syntax::definers::DefinerCollecting::Dynamic
+                } else {
+                    values[0].clone()
+                };
+
+                crate::syntax::definers::DefinerCollecting::Collective(
+                    crate::syntax::definers::CollectiveType {
+                        key: Box::new(key_type),
+                        value: Box::new(value_type),
+                        ..Default::default()
+                    },
+                )
+            }
+            Types::Reference(_) => todo!(),
+            Types::Operator(_) => todo!(),
+            Types::Cloak(e) => {
+                let rtype = e
+                    .data
+                    .collective
+                    .into_iter()
+                    .map(|x| x.value.to_definer())
+                    .collect::<Vec<_>>();
+                crate::syntax::definers::DefinerCollecting::Cloak(
+                    crate::syntax::definers::CloakType {
+                        rtype,
+                        ..Default::default()
+                    },
+                )
+            }
+            Types::Array(e) => {
+                let mut array_values = e
+                    .data
+                    .collective
+                    .clone()
+                    .into_iter()
+                    .map(|x| x.value.to_definer())
+                    .collect::<Vec<_>>();
+                array_values.dedup();
+
+                let array_type = if array_values.len() > 1 || array_values.len() == 0 {
+                    crate::syntax::definers::DefinerCollecting::Dynamic
+                } else {
+                    array_values[0].clone()
+                };
+
+                crate::syntax::definers::DefinerCollecting::Array(
+                    crate::syntax::definers::ArrayType {
+                        rtype: Box::new(array_type),
+                        len: crate::syntax::types::integer_type::IntegerTypeCollector::build(
+                            e.data.collective.len(),
+                        ),
+                        ..Default::default()
+                    },
+                )
+            }
+            Types::ArrowFunction(e) => crate::syntax::definers::DefinerCollecting::Function(
+                crate::syntax::definers::FunctionType {
+                    params: e
+                        .data
+                        .parameters
+                        .into_iter()
+                        .map(|x| x.rtype)
+                        .collect::<Vec<_>>(),
+                    returning: Box::new(e.data.return_type),
+                    ..Default::default()
+                },
+            ),
+            Types::ConstructedClass(_) => todo!(),
+            Types::FunctionCall(e) => e.return_type,
+            Types::Void => crate::syntax::definers::DefinerCollecting::Generic(
+                crate::syntax::definers::GenericType {
+                    rtype: "void".to_owned(),
+                },
+            ),
+            Types::NullResolver(e) => e.value.to_definer(),
+            Types::Negative(_) => crate::syntax::definers::DefinerCollecting::Generic(
+                crate::syntax::definers::GenericType {
+                    rtype: "bool".to_owned(),
+                },
+            ),
+            Types::VariableType(_) => todo!(),
+            Types::Null => crate::syntax::definers::DefinerCollecting::Generic(
+                crate::syntax::definers::GenericType {
+                    rtype: "null".to_owned(),
+                },
+            ),
+        }
+    }
+
+    pub fn same_as_type(self, target: crate::syntax::definers::DefinerCollecting) -> bool {
+        match self {
+            Types::Integer(_) => {
+                target.raw_name() == "generic" && target.as_generic().unwrap().rtype == "int"
+            }
+            Types::Float(_) => {
+                target.raw_name() == "generic" && target.as_generic().unwrap().rtype == "float"
+            }
+            Types::Bool(_) => {
+                target.raw_name() == "generic" && target.as_generic().unwrap().rtype == "bool"
+            }
+            Types::String(_) => {
+                target.raw_name() == "generic" && target.as_generic().unwrap().rtype == "string"
+            }
+            Types::Char(_) => {
+                target.raw_name() == "generic" && target.as_generic().unwrap().rtype == "char"
+            }
+            Types::Collective(_) => todo!(),
+            Types::Reference(_) => todo!(),
+            Types::Operator(_) => todo!(),
+            Types::Array(_) => todo!(),
+            Types::Cloak(_) => todo!(),
+            Types::ArrowFunction(_) => todo!(),
+            Types::FunctionCall(_) => todo!(),
+            Types::ConstructedClass(_) => todo!(), //e.data.value.same_as_type(target),
+            Types::VariableType(_) => todo!(),
+            Types::NullResolver(_) => todo!(),
+            Types::Negative(_) => {
+                target.raw_name() == "generic" && target.as_generic().unwrap().rtype == "bool"
+            }
+            Types::Void => {
+                target.raw_name() == "generic" && target.as_generic().unwrap().rtype == "void"
+            }
+            Types::Null => {
+                target.raw_name() == "generic" && target.as_generic().unwrap().rtype == "null"
+            }
+        }
+    }
+
     pub fn get_type(&self) -> String {
-        match *self {
+        match &*self {
             Types::Integer(_) => "int".to_owned(),
             Types::Float(_) => "float".to_owned(),
             Types::Bool(_) => "bool".to_owned(),
@@ -85,14 +267,15 @@ impl Types {
             Types::FunctionCall(_) => "functionCall".to_owned(),
             Types::ConstructedClass(_) => "classCall".to_owned(),
             Types::VariableType(_) => "variable".to_owned(),
-            Types::Negative(_) => "negative".to_owned(),
+            Types::Negative(_) => "bool".to_owned(),
+            Types::NullResolver(e) => e.value.clone().get_type(),
             Types::Void => "void".to_owned(),
             Types::Null => "null".to_owned(),
         }
     }
 
     pub fn is_type_complete(&self) -> bool {
-        match &*self {
+        match self {
             Types::Integer(e) => e.complete,
             Types::Float(e) => e.complete,
             Types::Bool(_) => true,
@@ -100,7 +283,6 @@ impl Types {
             Types::Char(data) => data.complete,
             Types::Collective(e) => e.complete,
             Types::Reference(data) => !data.on_dot && data.complete,
-
             Types::Operator(e) => {
                 e.first_filled
                     && e.data.operator != operator_type::Operators::Null
@@ -111,6 +293,7 @@ impl Types {
             Types::ArrowFunction(data) => data.complete,
             Types::FunctionCall(data) => data.complete,
             Types::ConstructedClass(_) => true,
+            Types::NullResolver(_) => true,
             Types::VariableType(_) => true,
             Types::Negative(e) => e.value.is_type_complete(),
             Types::Void => false,
@@ -119,7 +302,7 @@ impl Types {
     }
 
     pub fn is_array(&self) -> bool {
-        match *self {
+        match self {
             Types::Integer(_) => false, //Always complete
             Types::Float(_) => false,   //Always complete
             Types::Bool(_) => false,
@@ -127,7 +310,6 @@ impl Types {
             Types::Char(_) => false,
             Types::Collective(_) => false,
             Types::Reference(_) => false,
-
             Types::Operator(_) => false,
             Types::Array(_) => true,
             Types::Cloak(_) => false,
@@ -135,6 +317,9 @@ impl Types {
             Types::FunctionCall(_) => false,
             Types::ConstructedClass(_) => false,
             Types::VariableType(_) => false,
+            Types::NullResolver(e) => {
+                e.value.get_type() == "array" || e.value.get_type() == "growableArray"
+            }
             Types::Negative(_) => false,
             Types::Void => false,
             Types::Null => false,
@@ -142,7 +327,7 @@ impl Types {
     }
 
     pub fn is_integer(&self) -> bool {
-        match *self {
+        match self {
             Types::Integer(_) => true, //Always complete
             Types::Float(_) => false,  //Always complete
             Types::Bool(_) => false,
@@ -150,7 +335,6 @@ impl Types {
             Types::Char(_) => false,
             Types::Collective(_) => false,
             Types::Reference(_) => false,
-
             Types::Operator(_) => false,
             Types::Array(_) => false,
             Types::Cloak(_) => false,
@@ -158,6 +342,7 @@ impl Types {
             Types::FunctionCall(_) => false,
             Types::ConstructedClass(_) => false,
             Types::VariableType(_) => false,
+            Types::NullResolver(e) => e.value.get_type() == "int",
             Types::Negative(_) => false,
             Types::Void => false,
             Types::Null => false,
@@ -165,7 +350,7 @@ impl Types {
     }
 
     pub fn is_float(&self) -> bool {
-        match *self {
+        match self {
             Types::Integer(_) => false, //Always complete
             Types::Float(_) => true,    //Always complete
             Types::Bool(_) => false,
@@ -173,7 +358,6 @@ impl Types {
             Types::Char(_) => false,
             Types::Collective(_) => false,
             Types::Reference(_) => false,
-
             Types::Operator(_) => false,
             Types::Array(_) => false,
             Types::Cloak(_) => false,
@@ -181,6 +365,7 @@ impl Types {
             Types::FunctionCall(_) => false,
             Types::ConstructedClass(_) => false,
             Types::VariableType(_) => false,
+            Types::NullResolver(e) => e.value.get_type() == "float",
             Types::Negative(_) => false,
             Types::Void => false,
             Types::Null => false,
@@ -188,7 +373,7 @@ impl Types {
     }
 
     pub fn is_bool(&self) -> bool {
-        match *self {
+        match self {
             Types::Integer(_) => false, //Always complete
             Types::Float(_) => false,   //Always complete
             Types::Bool(_) => true,
@@ -196,7 +381,6 @@ impl Types {
             Types::Char(_) => false,
             Types::Collective(_) => false,
             Types::Reference(_) => false,
-
             Types::Operator(_) => false,
             Types::Array(_) => false,
             Types::Cloak(_) => false,
@@ -204,6 +388,7 @@ impl Types {
             Types::FunctionCall(_) => false,
             Types::ConstructedClass(_) => false,
             Types::VariableType(_) => false,
+            Types::NullResolver(e) => e.value.get_type() == "bool",
             Types::Negative(_) => false,
             Types::Void => false,
             Types::Null => false,
@@ -211,7 +396,7 @@ impl Types {
     }
 
     pub fn is_string(&self) -> bool {
-        match *self {
+        match self {
             Types::Integer(_) => false, //Always complete
             Types::Float(_) => false,   //Always complete
             Types::Bool(_) => false,
@@ -219,7 +404,6 @@ impl Types {
             Types::Char(_) => false,
             Types::Collective(_) => false,
             Types::Reference(_) => false,
-
             Types::Operator(_) => false,
             Types::Array(_) => false,
             Types::Cloak(_) => false,
@@ -227,6 +411,7 @@ impl Types {
             Types::FunctionCall(_) => false,
             Types::ConstructedClass(_) => false,
             Types::VariableType(_) => true,
+            Types::NullResolver(e) => e.value.get_type() == "string",
             Types::Negative(_) => false,
             Types::Void => false,
             Types::Null => false,
@@ -249,6 +434,7 @@ impl Types {
             Types::FunctionCall(_) => (),
             Types::ConstructedClass(_) => (),
             Types::VariableType(_) => (),
+            Types::NullResolver(_) => (),
             Types::Negative(_) => (),
             Types::Void => (),
             Types::Null => (),

@@ -83,7 +83,7 @@ pub fn collect_variable_value<F>(
                 }
             } else if letter_char == ";" {
                 if parser_clone
-                    .check_keyword(variable_data.data.name.clone())
+                    .check_keyword(variable_data.data.name.clone(), false)
                     .found
                 {
                     errors.push(error::Error {
@@ -277,7 +277,7 @@ pub fn collect_variable_value<F>(
                     });
                 }
                 if parser_clone
-                    .check_keyword(variable_data.data.name.clone())
+                    .check_keyword(variable_data.data.name.clone(), false)
                     .found
                 {
                     errors.push(error::Error {
@@ -367,38 +367,70 @@ pub fn collect_variable_value<F>(
                 variable_data.data.pos.range_end = parser.pos;
                 variable_data.data.value_pos.range_end = parser.pos;
 
-                let resolved_type_name =
+                let resolved_type_name_option =
                     parser_clone.resolve_variable(variable_data.data.value.clone());
 
-                //nen means cannot resolve type
-                if variable_data.data.rtype.raw_name() != resolved_type_name
-                    && resolved_type_name != "nen"
-                    && (resolved_type_name == "array"
-                        && variable_data.data.rtype.raw_name() != "growableArray")
-                {
-                    //We should resolve inner value
-                    if variable_data.data.dynamic {
-                        #[cfg(feature = "std")]
-                        std::println!(
-                                "\u{001b}[31m[ParserError]\u{001b}[0m: This is a error please report at: https://github.com/behemehal/Ellie-Language/issues/new?title=ParserError-{}+Dynamic+Variable+Not+Handled+Correctly&labels=bug,parser&template=bug_report.md",
-                                variable_data.data.value.get_type(),
-                            );
-                    }
+                if let Ok(resolved_type_name) = resolved_type_name_option {
+                    //nen means cannot resolve type
+                    if variable_data.data.rtype.raw_name() != resolved_type_name
+                        && resolved_type_name != "nen"
+                        && (resolved_type_name == "array"
+                            && variable_data.data.rtype.raw_name() != "growableArray")
+                    {
+                        //We should resolve inner value
+                        if variable_data.data.dynamic {
+                            #[cfg(feature = "std")]
+                            std::println!(
+                            "\u{001b}[31m[ParserError]\u{001b}[0m: This is a error please report at: https://github.com/behemehal/Ellie-Language/issues/new?title=ParserError-{}+Dynamic+Variable+Not+Handled+Correctly&labels=bug,parser&template=bug_report.md",
+                            variable_data.data.value.get_type(),
+                        );
+                        }
 
-                    if variable_data.data.rtype.raw_name() == "nullAble" {
-                        if variable_data
-                            .data
-                            .rtype
-                            .as_nullable()
-                            .unwrap()
-                            .value
-                            .raw_name()
-                            != resolved_type_name
-                        {
+                        if variable_data.data.rtype.raw_name() == "nullAble" {
+                            if variable_data
+                                .data
+                                .rtype
+                                .as_nullable()
+                                .unwrap()
+                                .value
+                                .raw_name()
+                                != resolved_type_name
+                            {
+                                errors.push(error::Error {
+                                    path: parser.options.path.clone(),
+                                    scope: parser.scope.scope_name.clone(),
+                                    debug_message: "0f2473d59ade4e9c976fc4bd6d0e90e1".to_owned(),
+                                    title: error::errorList::error_s3.title.clone(),
+                                    code: error::errorList::error_s3.code,
+                                    message: error::errorList::error_s3.message.clone(),
+                                    builded_message: error::Error::build(
+                                        error::errorList::error_s3.message.clone(),
+                                        vec![
+                                            error::ErrorBuildField {
+                                                key: "token1".to_owned(),
+                                                value: "_".to_owned()
+                                                    + &(variable_data
+                                                        .data
+                                                        .rtype
+                                                        .as_nullable()
+                                                        .unwrap()
+                                                        .value
+                                                        .raw_name()),
+                                            },
+                                            error::ErrorBuildField {
+                                                key: "token2".to_owned(),
+                                                value: resolved_type_name,
+                                            },
+                                        ],
+                                    ),
+                                    pos: variable_data.data.value_pos,
+                                });
+                            }
+                        } else {
                             errors.push(error::Error {
                                 path: parser.options.path.clone(),
                                 scope: parser.scope.scope_name.clone(),
-                                debug_message: "0f2473d59ade4e9c976fc4bd6d0e90e1".to_owned(),
+                                debug_message: "ab7130a2cff08658bfd326d80040e0bf".to_owned(),
                                 title: error::errorList::error_s3.title.clone(),
                                 code: error::errorList::error_s3.code,
                                 message: error::errorList::error_s3.message.clone(),
@@ -407,14 +439,7 @@ pub fn collect_variable_value<F>(
                                     vec![
                                         error::ErrorBuildField {
                                             key: "token1".to_owned(),
-                                            value: "_".to_owned()
-                                                + &(variable_data
-                                                    .data
-                                                    .rtype
-                                                    .as_nullable()
-                                                    .unwrap()
-                                                    .value
-                                                    .raw_name()),
+                                            value: variable_data.data.rtype.raw_name(),
                                         },
                                         error::ErrorBuildField {
                                             key: "token2".to_owned(),
@@ -425,48 +450,28 @@ pub fn collect_variable_value<F>(
                                 pos: variable_data.data.value_pos,
                             });
                         }
-                    } else {
-                        errors.push(error::Error {
-                            path: parser.options.path.clone(),
-                            scope: parser.scope.scope_name.clone(),
-                            debug_message: "ab7130a2cff08658bfd326d80040e0bf".to_owned(),
-                            title: error::errorList::error_s3.title.clone(),
-                            code: error::errorList::error_s3.code,
-                            message: error::errorList::error_s3.message.clone(),
-                            builded_message: error::Error::build(
-                                error::errorList::error_s3.message.clone(),
-                                vec![
-                                    error::ErrorBuildField {
-                                        key: "token1".to_owned(),
-                                        value: variable_data.data.rtype.raw_name(),
-                                    },
-                                    error::ErrorBuildField {
-                                        key: "token2".to_owned(),
-                                        value: resolved_type_name,
-                                    },
-                                ],
-                            ),
-                            pos: variable_data.data.value_pos,
-                        });
-                    }
 
-                    if parser_clone.generic_type_exists(variable_data.data.rtype.raw_name()) {
-                        errors.push(error::Error {
-                            path: parser.options.path.clone(),
-                            scope: parser.scope.scope_name.clone(),
-                            debug_message: "7dcc87b479f901f6487968246f82e4fd".to_owned(),
-                            title: error::errorList::error_s27.title.clone(),
-                            code: error::errorList::error_s27.code,
-                            message: error::errorList::error_s27.message.clone(),
-                            builded_message: error::BuildedError::build_from_string(
-                                error::errorList::error_s27.message.clone(),
-                            ),
-                            pos: variable_data.data.value_pos,
-                        });
+                        if parser_clone.generic_type_exists(variable_data.data.rtype.raw_name()) {
+                            errors.push(error::Error {
+                                path: parser.options.path.clone(),
+                                scope: parser.scope.scope_name.clone(),
+                                debug_message: "7dcc87b479f901f6487968246f82e4fd".to_owned(),
+                                title: error::errorList::error_s27.title.clone(),
+                                code: error::errorList::error_s27.code,
+                                message: error::errorList::error_s27.message.clone(),
+                                builded_message: error::BuildedError::build_from_string(
+                                    error::errorList::error_s27.message.clone(),
+                                ),
+                                pos: variable_data.data.value_pos,
+                            });
+                        }
                     }
+                } else if let Err(found_errors) = resolved_type_name_option {
+                    errors.extend(found_errors)
                 }
+
                 if parser_clone
-                    .check_keyword(variable_data.data.name.clone())
+                    .check_keyword(variable_data.data.name.clone(), false)
                     .found
                 {
                     errors.push(error::Error {

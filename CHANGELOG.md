@@ -73,3 +73,8 @@
   - Parser v1.6.2
     * Performance bug resolved
     * Array type definition error fixed
+
+# v3.6.2
+  - Parser v1.7.1
+    * Future type introduced
+    * Reference resolver implemented

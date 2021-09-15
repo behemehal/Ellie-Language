@@ -89,33 +89,38 @@ pub fn collect_collective<F>(
                     if let definers::DefinerCollecting::Collective(collective_defining) =
                         itered_data.data.rtype.clone()
                     {
-                        let entry_type = parser.resolve_variable(*last_entry.data.key.clone());
+                        let entry_type_option =
+                            parser.resolve_variable(*last_entry.data.key.clone());
 
-                        if collective_defining.key.raw_name() != entry_type
-                            && !collective_defining.value.is_dynamic()
-                        {
-                            errors.push(error::Error {
-                                path: parser.options.path.clone(),
-                                scope: parser.scope.scope_name.clone(),
-                                debug_message: "2a95585e5d28c497251ef64b53f7ee82".to_owned(),
-                                title: error::errorList::error_s3.title.clone(),
-                                code: error::errorList::error_s3.code,
-                                message: error::errorList::error_s3.message.clone(),
-                                builded_message: error::Error::build(
-                                    error::errorList::error_s3.message.clone(),
-                                    vec![
-                                        error::ErrorBuildField {
-                                            key: "token1".to_owned(),
-                                            value: collective_defining.key.raw_name(),
-                                        },
-                                        error::ErrorBuildField {
-                                            key: "token2".to_owned(),
-                                            value: entry_type,
-                                        },
-                                    ],
-                                ),
-                                pos: last_entry.data.key_pos,
-                            });
+                        if let Ok(entry_type) = entry_type_option {
+                            if collective_defining.key.raw_name() != entry_type
+                                && !collective_defining.value.is_dynamic()
+                            {
+                                errors.push(error::Error {
+                                    path: parser.options.path.clone(),
+                                    scope: parser.scope.scope_name.clone(),
+                                    debug_message: "2a95585e5d28c497251ef64b53f7ee82".to_owned(),
+                                    title: error::errorList::error_s3.title.clone(),
+                                    code: error::errorList::error_s3.code,
+                                    message: error::errorList::error_s3.message.clone(),
+                                    builded_message: error::Error::build(
+                                        error::errorList::error_s3.message.clone(),
+                                        vec![
+                                            error::ErrorBuildField {
+                                                key: "token1".to_owned(),
+                                                value: collective_defining.key.raw_name(),
+                                            },
+                                            error::ErrorBuildField {
+                                                key: "token2".to_owned(),
+                                                value: entry_type,
+                                            },
+                                        ],
+                                    ),
+                                    pos: last_entry.data.key_pos,
+                                });
+                            }
+                        } else {
+                            panic!("Unexpected parser error");
                         }
                     }
                 }
@@ -194,40 +199,44 @@ pub fn collect_collective<F>(
                     if let definers::DefinerCollecting::Collective(collective_defining) =
                         itered_data.data.rtype.clone()
                     {
-                        let entry_type = parser.resolve_variable(
+                        let entry_type_option = parser.resolve_variable(
                             *collective_data.data.entries[last_entry_ind - 1]
                                 .data
                                 .value
                                 .clone(),
                         );
 
-                        if collective_defining.value.raw_name() != entry_type
-                            && collective_defining.value.raw_name() != "dyn"
-                        {
-                            errors.push(error::Error {
-                                path: parser.options.path.clone(),
-                                scope: parser.scope.scope_name.clone(),
-                                debug_message: "11cbf989b630f82cea83946f83b4aa0e".to_owned(),
-                                title: error::errorList::error_s3.title.clone(),
-                                code: error::errorList::error_s3.code,
-                                message: error::errorList::error_s3.message.clone(),
-                                builded_message: error::Error::build(
-                                    error::errorList::error_s3.message.clone(),
-                                    vec![
-                                        error::ErrorBuildField {
-                                            key: "token1".to_owned(),
-                                            value: collective_defining.value.raw_name(),
-                                        },
-                                        error::ErrorBuildField {
-                                            key: "token2".to_owned(),
-                                            value: entry_type,
-                                        },
-                                    ],
-                                ),
-                                pos: collective_data.data.entries[last_entry_ind - 1]
-                                    .data
-                                    .value_pos,
-                            });
+                        if let Ok(entry_type) = entry_type_option {
+                            if collective_defining.value.raw_name() != entry_type
+                                && collective_defining.value.raw_name() != "dyn"
+                            {
+                                errors.push(error::Error {
+                                    path: parser.options.path.clone(),
+                                    scope: parser.scope.scope_name.clone(),
+                                    debug_message: "11cbf989b630f82cea83946f83b4aa0e".to_owned(),
+                                    title: error::errorList::error_s3.title.clone(),
+                                    code: error::errorList::error_s3.code,
+                                    message: error::errorList::error_s3.message.clone(),
+                                    builded_message: error::Error::build(
+                                        error::errorList::error_s3.message.clone(),
+                                        vec![
+                                            error::ErrorBuildField {
+                                                key: "token1".to_owned(),
+                                                value: collective_defining.value.raw_name(),
+                                            },
+                                            error::ErrorBuildField {
+                                                key: "token2".to_owned(),
+                                                value: entry_type,
+                                            },
+                                        ],
+                                    ),
+                                    pos: collective_data.data.entries[last_entry_ind - 1]
+                                        .data
+                                        .value_pos,
+                                });
+                            }
+                        } else {
+                            panic!("Unexpected parser error");
                         }
                     }
                 }

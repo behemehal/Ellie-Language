@@ -131,7 +131,7 @@ pub fn collect_import<F>(
                                                         crate::syntax::import_item::ImportItem {
                                                             from_path: import_data.path.clone(),
                                                             item: Box::new(item),
-                                                            public: import_data.public,
+                                                            public: true,
                                                         },
                                                     ));
                                                 }
@@ -144,7 +144,7 @@ pub fn collect_import<F>(
                                                         crate::syntax::import_item::ImportItem {
                                                             from_path: import_data.path.clone(),
                                                             item: Box::new(item),
-                                                            public: import_data.public,
+                                                            public: true,
                                                         },
                                                     ));
                                                 }
@@ -157,7 +157,20 @@ pub fn collect_import<F>(
                                                         crate::syntax::import_item::ImportItem {
                                                             from_path: import_data.path.clone(),
                                                             item: Box::new(item),
-                                                            public: import_data.public,
+                                                            public: true,
+                                                        },
+                                                    ));
+                                                }
+                                            },
+                                            crate::parser::Collecting::NativeFunction(e) => {
+                                                if e.public {
+                                                    parser
+                                                        .collected
+                                                        .push(crate::parser::Collecting::ImportItem(
+                                                        crate::syntax::import_item::ImportItem {
+                                                            from_path: import_data.path.clone(),
+                                                            item: Box::new(item),
+                                                            public: true,
                                                         },
                                                     ));
                                                 }
@@ -292,7 +305,7 @@ pub fn collect_import<F>(
                                                         crate::syntax::import_item::ImportItem {
                                                             from_path: import_data.path.clone(),
                                                             item: Box::new(item),
-                                                            public: import_data.public,
+                                                            public: true,
                                                         },
                                                     ));
                                                 }
@@ -305,7 +318,7 @@ pub fn collect_import<F>(
                                                         crate::syntax::import_item::ImportItem {
                                                             from_path: import_data.path.clone(),
                                                             item: Box::new(item),
-                                                            public: import_data.public,
+                                                            public: true,
                                                         },
                                                     ));
                                                 }
@@ -318,7 +331,7 @@ pub fn collect_import<F>(
                                                         crate::syntax::import_item::ImportItem {
                                                             from_path: import_data.path.clone(),
                                                             item: Box::new(item),
-                                                            public: import_data.public,
+                                                            public: true,
                                                         },
                                                     ));
                                                 }
