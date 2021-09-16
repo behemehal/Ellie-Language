@@ -239,4 +239,10 @@ lazy_static! {
         message: "Cannot define built-in types".to_owned(),
         ..Default::default()
     };
+    pub static ref error_s40: crate::error::Error = crate::error::Error {
+        code: 0x39,
+        title: "ParserError".to_owned(),
+        message: "Parser messages value can only be string, but found '$token'".to_owned(),
+        ..Default::default()
+    };
 }

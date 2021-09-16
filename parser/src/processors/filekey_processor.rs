@@ -25,7 +25,7 @@ pub fn collect_filekey<F>(
             );
 
             if current_reliability.reliable {
-                if file_key_data.data.key_name.is_empty() {
+                if file_key_data.data.key_name.is_empty() && letter_char != " " {
                     file_key_data.data.key_name_location.range_start = parser.pos;
                 }
 
@@ -34,7 +34,7 @@ pub fn collect_filekey<F>(
                 }
 
                 file_key_data.data.key_name += letter_char;
-                file_key_data.data.key_name_location.range_end = parser.pos;
+                file_key_data.data.key_name_location.range_end = parser.pos.clone().skip_char(1);
             } else {
                 if letter_char == "=" && !file_key_data.data.key_name.is_empty() {
                     file_key_data.key_name_collected = true;
@@ -91,7 +91,58 @@ pub fn collect_filekey<F>(
             }
             file_key_data.data.pos.range_end = parser.pos.clone().skip_char(1);
             file_key_data.value_collected = true;
-            parser.collected.push(parser.current.clone());
+            if file_key_data.data.key_name == "parserWarn"
+                || file_key_data.data.key_name == "parserAbort"
+                || file_key_data.data.key_name == "parserInfo"
+            {
+                match file_key_data.data.value.clone() {
+                    syntax::types::Types::String(e) => {
+                        #[cfg(feature = "std")]
+                        std::println!(
+                            "\u{001b}{}[ParserMessage - {}]\u{001b}[0m: {} - {}:{}:{}",
+                            if file_key_data.data.key_name == "parserWarn" {
+                                "[33m"
+                            } else if file_key_data.data.key_name == "parserAbort" {
+                                "[31m"
+                            } else if file_key_data.data.key_name == "parserInfo" {
+                                "[34m"
+                            } else {
+                                "[34m"
+                            },
+                            file_key_data.data.key_name.split("parser").last().unwrap(),
+                            e.data.value,
+                            parser.options.path,
+                            parser.pos.0 + 1,
+                            0
+                        );
+                    }
+                    _ => {
+                        errors.push(error::Error {
+                            path: parser.options.path.clone(),
+                            scope: "filekey_processor".to_owned(),
+                            debug_message: "replace_filekey_120".to_owned(),
+                            title: error::errorList::error_s40.title.clone(),
+                            code: error::errorList::error_s40.code,
+                            message: error::errorList::error_s40.message.clone(),
+                            builded_message: error::Error::build(
+                                error::errorList::error_s40.message.clone(),
+                                vec![error::ErrorBuildField {
+                                    key: "token".to_owned(),
+                                    value: file_key_data
+                                        .data
+                                        .value
+                                        .clone()
+                                        .to_definer()
+                                        .raw_name_with_extensions(),
+                                }],
+                            ),
+                            pos: file_key_data.data.value_location,
+                        });
+                    }
+                }
+            } else {
+                parser.collected.push(parser.current.clone());
+            }
             parser.current = parser::Collecting::None;
         } else {
             let mut will_be_itered = syntax::variable::VariableCollector {
@@ -111,12 +162,12 @@ pub fn collect_filekey<F>(
                 last_char,
             );
 
-            if file_key_data.data.value_location.is_zero() {
+            if file_key_data.data.value_location.range_start.is_zero() && letter_char != " " {
                 file_key_data.data.value_location.range_start = parser.pos;
             }
 
             file_key_data.data.value = will_be_itered.data.value;
-            file_key_data.data.value_location.range_end = parser.pos;
+            file_key_data.data.value_location.range_end = parser.pos.clone().skip_char(1);
         }
     }
 }
