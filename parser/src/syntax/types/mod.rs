@@ -136,7 +136,7 @@ impl Types {
                     },
                 )
             }
-            Types::Reference(_) => todo!(),
+            Types::Reference(e) => e.last_entry,
             Types::Operator(_) => todo!(),
             Types::Cloak(e) => {
                 let rtype = e
@@ -190,7 +190,11 @@ impl Types {
                     ..Default::default()
                 },
             ),
-            Types::ConstructedClass(_) => todo!(),
+            Types::ConstructedClass(e) => crate::syntax::definers::DefinerCollecting::Generic(
+                crate::syntax::definers::GenericType {
+                    rtype: e.data.class_name(),
+                },
+            ),
             Types::FunctionCall(e) => e.return_type,
             Types::Void => crate::syntax::definers::DefinerCollecting::Generic(
                 crate::syntax::definers::GenericType {
@@ -203,7 +207,11 @@ impl Types {
                     rtype: "bool".to_owned(),
                 },
             ),
-            Types::VariableType(_) => todo!(),
+            Types::VariableType(e) => crate::syntax::definers::DefinerCollecting::Generic(
+                crate::syntax::definers::GenericType {
+                    rtype: e.data.value,
+                },
+            ),
             Types::Null => crate::syntax::definers::DefinerCollecting::Generic(
                 crate::syntax::definers::GenericType {
                     rtype: "null".to_owned(),
@@ -292,7 +300,7 @@ impl Types {
             Types::Cloak(data) => data.complete,
             Types::ArrowFunction(data) => data.complete,
             Types::FunctionCall(data) => data.complete,
-            Types::ConstructedClass(_) => true,
+            Types::ConstructedClass(e) => e.complete,
             Types::NullResolver(_) => true,
             Types::VariableType(_) => true,
             Types::Negative(e) => e.value.is_type_complete(),

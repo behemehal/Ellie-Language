@@ -1,4 +1,4 @@
-use crate::syntax::types;
+use crate::syntax::{definers, types};
 use ellie_core::{definite, defs};
 use serde::{Deserialize, Serialize};
 
@@ -21,6 +21,7 @@ pub struct ReferenceType {
 #[derive(PartialEq, Default, Debug, Clone, Serialize, Deserialize)]
 pub struct ReferenceTypeCollector {
     pub data: ReferenceType,
+    pub last_entry: definers::DefinerCollecting,
     pub on_dot: bool,
     pub root_available: bool,
     pub complete: bool,

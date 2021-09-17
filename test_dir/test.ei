@@ -1,8 +1,5 @@
 import ./second;
 
 
-v adam : Person = new Person("ahmetcan", "aksu", new AgeBuilder(13, 04, 2001));
-
-v ad = adam.name;
-v soyad = adam.surname;
-v yas = adam.birthDay.age;
+v adam = new Person("ahmetcan", "aksu", new BirthDay(13, 04, 2001));
+v yas : string = Person.birthDay.age;

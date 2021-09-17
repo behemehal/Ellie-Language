@@ -117,9 +117,6 @@ pub fn collect_import<F>(
                                                         .import_exists(&e.from_path)
                                                     {
                                                         parser.collected.push(item);
-                                                    } else {
-                                                        #[cfg(feature = "std")]
-                                                        std::println!("\u{001b}[33m[ParserInfo]\u{001b}[0m: Ignore {:#?} from {}", e.from_path, parser.options.path);
                                                     }
                                                 }
                                             }

@@ -1,6 +1,6 @@
 use crate::alloc::borrow::ToOwned;
 use crate::parser;
-use crate::processors::{type_processors, value_processor};
+use crate::processors::value_processor;
 use crate::syntax::{definers, types, variable};
 use alloc::boxed::Box;
 use alloc::string::ToString;
@@ -419,15 +419,8 @@ pub fn collect_function_caller<F>(
                     root_available: false,
                     on_dot: false,
                     complete: false,
+                    last_entry: itered_data.data.value.clone().to_definer(),
                 });
-            type_processors::reference::collect_reference(
-                parser,
-                itered_data,
-                errors,
-                letter_char,
-                next_char,
-                last_char,
-            )
         } else if types::logical_type::LogicalOperators::is_logical_operator(letter_char)
             || types::logical_type::LogicalOperators::is_logical_operator(
                 &(letter_char.to_string() + &next_char),

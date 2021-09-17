@@ -1,7 +1,6 @@
 #![allow(clippy::unnecessary_unwrap)]
 use crate::alloc::borrow::ToOwned;
 use crate::parser;
-use crate::processors::type_processors;
 use crate::syntax::{types, variable};
 use alloc::boxed::Box;
 use alloc::string::ToString;
@@ -15,7 +14,7 @@ pub fn collect_bool<F>(
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     next_char: &str,
-    last_char: &str,
+    _last_char: &str,
 ) where
     F: FnMut(ellie_core::com::Message) + Clone + Sized,
 {
@@ -44,15 +43,8 @@ pub fn collect_bool<F>(
                     root_available: false,
                     on_dot: false,
                     complete: false,
+                    last_entry: itered_data.data.value.clone().to_definer(),
                 });
-            type_processors::reference::collect_reference(
-                parser.clone(),
-                itered_data,
-                errors,
-                letter_char,
-                next_char,
-                last_char,
-            )
         } else if types::logical_type::LogicalOperators::is_logical_operator(letter_char)
             || types::logical_type::LogicalOperators::is_logical_operator(
                 &(letter_char.to_string() + &next_char),

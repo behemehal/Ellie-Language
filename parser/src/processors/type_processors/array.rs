@@ -283,6 +283,7 @@ pub fn collect_array<F>(
                     root_available: false,
                     on_dot: false,
                     complete: false,
+                    last_entry: itered_data.data.value.clone().to_definer(),
                 });
 
             type_processors::reference::collect_reference(

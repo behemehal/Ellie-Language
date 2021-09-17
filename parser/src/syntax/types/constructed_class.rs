@@ -36,7 +36,7 @@ impl ConstructedClass {
             types::Types::ConstructedClass(e) => e.data.class_name(),
             types::Types::FunctionCall(e) => e.return_type.raw_name(),
             types::Types::Void => "void".to_owned(),
-            types::Types::NullResolver(e) => "nullResolver".to_owned(),
+            types::Types::NullResolver(_) => "nullResolver".to_owned(),
             types::Types::Negative(_) => "bool".to_owned(),
             types::Types::VariableType(e) => e.data.value,
             types::Types::Null => "null".to_owned(),

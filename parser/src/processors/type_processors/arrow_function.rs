@@ -461,15 +461,8 @@ pub fn collect_arrow<F>(
                     root_available: false,
                     on_dot: false,
                     complete: false,
+                    last_entry: itered_data.data.value.clone().to_definer(),
                 });
-            processors::type_processors::reference::collect_reference(
-                parser.clone(),
-                itered_data,
-                errors,
-                letter_char,
-                next_char,
-                last_char,
-            )
         } else if function_data.complete
             && types::logical_type::LogicalOperators::is_logical_operator(letter_char)
             || types::logical_type::LogicalOperators::is_logical_operator(
