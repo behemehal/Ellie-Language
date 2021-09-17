@@ -180,58 +180,122 @@ pub fn collect_new_call<F>(
                                     pos: new_call_data.data.value_pos,
                                 });
                             } else {
-                                let mut has_faulty_param = false;
                                 for (pos, param) in
                                     new_call_data.data.params.clone().into_iter().enumerate()
                                 {
-                                    let constructor_param =
-                                        &class_collector.data.constructor.parameters[pos];
                                     let properties = class_collector
+                                        .clone()
                                         .data
                                         .properties
-                                        .iter()
-                                        .filter(|e| e.name == constructor_param.name)
-                                        .collect::<Vec<&variable::Variable>>();
+                                        .into_iter()
+                                        .map(|x| {
+                                            (
+                                                x.name,
+                                                if x.dynamic {
+                                                    x.value.to_definer()
+                                                } else {
+                                                    x.rtype
+                                                },
+                                            )
+                                        })
+                                        .collect::<Vec<_>>();
+                                    let getters = class_collector
+                                        .clone()
+                                        .data
+                                        .getters
+                                        .into_iter()
+                                        .map(|x| (x.name, x.rtype))
+                                        .collect::<Vec<_>>();
+                                    let setters = class_collector
+                                        .clone()
+                                        .data
+                                        .setters
+                                        .into_iter()
+                                        .map(|x| (x.name, x.rtype))
+                                        .collect::<Vec<_>>();
+                                    let methods = class_collector
+                                        .clone()
+                                        .data
+                                        .methods
+                                        .into_iter()
+                                        .map(|x| (x.name, x.return_type))
+                                        .collect::<Vec<_>>();
+                                    let mut all_properties = vec![];
+                                    all_properties.extend(properties);
+                                    all_properties.extend(getters);
+                                    all_properties.extend(setters);
+                                    all_properties.extend(methods);
 
-                                    if properties.len() != 0 {
-                                        let property = properties[0];
-                                        if property.rtype.raw_name() != param.value.get_type() {
+                                    let constructor_param =
+                                        &class_collector.data.constructor.parameters[pos];
+
+                                    let found_property_index_q = all_properties
+                                        .clone()
+                                        .into_iter()
+                                        .position(|e| e.0 == constructor_param.name);
+
+                                    match found_property_index_q {
+                                        Some(found_property_index) => {
+                                            let expected =
+                                                all_properties[found_property_index].1.clone();
+                                            let found = new_call_data.data.params
+                                                [found_property_index]
+                                                .value
+                                                .clone()
+                                                .to_definer();
+                                            if expected != found {
+                                                errors.push(error::Error {
+                                                    path: parser.options.path.clone(),
+                                                    scope: parser.scope.scope_name.clone(),
+                                                    debug_message:
+                                                        "803571a755c67ec57f078f98ca675894"
+                                                            .to_owned(),
+                                                    title: error::errorList::error_s3.title.clone(),
+                                                    code: error::errorList::error_s3.code,
+                                                    message: error::errorList::error_s3
+                                                        .message
+                                                        .clone(),
+                                                    builded_message: error::Error::build(
+                                                        error::errorList::error_s3.message.clone(),
+                                                        vec![
+                                                            error::ErrorBuildField {
+                                                                key: "token1".to_owned(),
+                                                                value: expected
+                                                                    .raw_name_with_extensions(),
+                                                            },
+                                                            error::ErrorBuildField {
+                                                                key: "token2".to_owned(),
+                                                                value: found
+                                                                    .raw_name_with_extensions(),
+                                                            },
+                                                        ],
+                                                    ),
+                                                    pos: new_call_data.data.params
+                                                        [found_property_index]
+                                                        .pos,
+                                                });
+                                            }
+                                        }
+                                        None => {
                                             errors.push(error::Error {
                                                 path: parser.options.path.clone(),
                                                 scope: parser.scope.scope_name.clone(),
-                                                debug_message: "replace_parser_640".to_owned(),
-                                                title: error::errorList::error_s3.title.clone(),
-                                                code: error::errorList::error_s3.code,
-                                                message: error::errorList::error_s3.message.clone(),
+                                                debug_message: "replace_parser_609".to_owned(),
+                                                title: error::errorList::error_s34.title.clone(),
+                                                code: error::errorList::error_s34.code,
+                                                message: error::errorList::error_s34
+                                                    .message
+                                                    .clone(),
                                                 builded_message: error::Error::build(
-                                                    error::errorList::error_s3.message.clone(),
-                                                    vec![
-                                                        error::ErrorBuildField {
-                                                            key: "token1".to_owned(),
-                                                            value: property.rtype.raw_name(),
-                                                        },
-                                                        error::ErrorBuildField {
-                                                            key: "token2".to_owned(),
-                                                            value: param.value.get_type(),
-                                                        },
-                                                    ],
+                                                    error::errorList::error_s34.message.clone(),
+                                                    vec![error::ErrorBuildField {
+                                                        key: "token".to_owned(),
+                                                        value: constructor_param.name.clone(),
+                                                    }],
                                                 ),
                                                 pos: param.pos,
                                             });
-                                        }
-                                    }
-                                }
-
-                                for param in class_collector.data.constructor.parameters {
-                                    let properties = class_collector
-                                        .data
-                                        .properties
-                                        .iter()
-                                        .filter(|e| e.name == param.name)
-                                        .collect::<Vec<&variable::Variable>>();
-
-                                    if properties.len() != 0 {
-                                        let property = properties[0];
+                                        } //Err((chain_variable.data.value, 1)),
                                     }
                                 }
                             }
@@ -240,6 +304,12 @@ pub fn collect_new_call<F>(
                         }
                     }
                     Err(e) => errors.extend(e),
+                }
+                if itered_data.data.dynamic {
+                    itered_data.data.rtype =
+                        definers::DefinerCollecting::Generic(definers::GenericType {
+                            rtype: new_call_data.data.clone().class_name(),
+                        });
                 }
                 new_call_data.complete = true;
             } else {
@@ -512,6 +582,7 @@ pub fn collect_new_call<F>(
                     root_available: false,
                     on_dot: false,
                     complete: false,
+                    last_entry: itered_data.data.value.clone().to_definer(),
                 });
         }
     }
