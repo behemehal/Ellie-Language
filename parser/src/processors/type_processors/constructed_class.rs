@@ -280,7 +280,8 @@ pub fn collect_new_call<F>(
                                             errors.push(error::Error {
                                                 path: parser.options.path.clone(),
                                                 scope: parser.scope.scope_name.clone(),
-                                                debug_message: "ee9c5b75837c80835fe88e3a338d647f".to_owned(),
+                                                debug_message: "ee9c5b75837c80835fe88e3a338d647f"
+                                                    .to_owned(),
                                                 title: error::errorList::error_s34.title.clone(),
                                                 code: error::errorList::error_s34.code,
                                                 message: error::errorList::error_s34

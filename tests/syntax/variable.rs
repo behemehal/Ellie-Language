@@ -30,7 +30,7 @@ mod variable_tests {
                 constants: true,
                 parser_type: ellie_core::defs::ParserType::RawParser,
                 allow_import: true,
-            }
+            },
         );
         let parsed = emulated_parser.map();
         assert!(
@@ -68,7 +68,7 @@ mod variable_tests {
                 constants: true,
                 parser_type: ellie_core::defs::ParserType::RawParser,
                 allow_import: true,
-            }
+            },
         );
         let parsed = emulated_parser.map();
         assert!(
@@ -106,7 +106,7 @@ mod variable_tests {
                 constants: true,
                 parser_type: ellie_core::defs::ParserType::RawParser,
                 allow_import: true,
-            }
+            },
         );
         let parsed = emulated_parser.map();
         assert!(
@@ -144,7 +144,7 @@ mod variable_tests {
                 constants: true,
                 parser_type: ellie_core::defs::ParserType::RawParser,
                 allow_import: true,
-            }
+            },
         );
         let parsed = emulated_parser.map();
         assert!(
@@ -182,7 +182,7 @@ mod variable_tests {
                 constants: true,
                 parser_type: ellie_core::defs::ParserType::RawParser,
                 allow_import: true,
-            }
+            },
         );
         let parsed = emulated_parser.map();
         assert!(
@@ -219,7 +219,7 @@ mod variable_tests {
                 constants: true,
                 parser_type: ellie_core::defs::ParserType::RawParser,
                 allow_import: true,
-            }
+            },
         );
         let parsed = emulated_parser.map();
         assert!(

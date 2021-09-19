@@ -26,7 +26,7 @@ mod variable_value_tests {
                 constants: true,
                 parser_type: ellie_core::defs::ParserType::RawParser,
                 allow_import: true,
-            }
+            },
         );
         let mut emulated_collector_data = ellie_parser::syntax::variable::VariableCollector {
             ignore_existence: true,
@@ -96,7 +96,7 @@ mod variable_value_tests {
                 constants: true,
                 parser_type: ellie_core::defs::ParserType::RawParser,
                 allow_import: true,
-            }
+            },
         );
         let mut emulated_collector_data = ellie_parser::syntax::variable::VariableCollector {
             ignore_existence: true,
@@ -169,7 +169,7 @@ mod variable_value_tests {
                 constants: true,
                 parser_type: ellie_core::defs::ParserType::RawParser,
                 allow_import: true,
-            }
+            },
         );
         let mut emulated_collector_data = ellie_parser::syntax::variable::VariableCollector {
             ignore_existence: true,
@@ -242,7 +242,7 @@ mod variable_value_tests {
                 constants: true,
                 parser_type: ellie_core::defs::ParserType::RawParser,
                 allow_import: true,
-            }
+            },
         );
         let mut emulated_collector_data = ellie_parser::syntax::variable::VariableCollector {
             ignore_existence: true,
