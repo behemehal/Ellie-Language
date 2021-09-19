@@ -62,6 +62,7 @@ pub struct ComparisonType {
 impl ComparisonType {
     pub fn to_definite(self) -> definite::types::comparison_type::ComparisonType {
         definite::types::comparison_type::ComparisonType {
+            cloaked: self.cloaked,
             first: Box::new(self.first.to_definite()),
             second: Box::new(self.second.to_definite()),
             operator: match self.operator {
@@ -87,6 +88,39 @@ impl ComparisonType {
                     definite::types::comparison_type::ComparisonOperators::Null
                 }
             },
+        }
+    }
+
+    pub fn from_definite(self, from: definite::types::comparison_type::ComparisonType) -> Self {
+        ComparisonType {
+            cloaked: from.cloaked,
+            first: Box::new(types::Types::default().from_definite(*from.first.clone())),
+            first_filled: true,
+            second: Box::new(types::Types::default().from_definite(*from.first.clone())),
+            operator: match from.operator {
+                definite::types::comparison_type::ComparisonOperators::Equal => {
+                    ComparisonOperators::Equal
+                }
+                definite::types::comparison_type::ComparisonOperators::NotEqual => {
+                    ComparisonOperators::NotEqual
+                }
+                definite::types::comparison_type::ComparisonOperators::GreaterThan => {
+                    ComparisonOperators::GreaterThan
+                }
+                definite::types::comparison_type::ComparisonOperators::LessThan => {
+                    ComparisonOperators::LessThan
+                }
+                definite::types::comparison_type::ComparisonOperators::GreaterThanOrEqual => {
+                    ComparisonOperators::GreaterThanOrEqual
+                }
+                definite::types::comparison_type::ComparisonOperators::LessThanOrEqual => {
+                    ComparisonOperators::LessThanOrEqual
+                }
+                definite::types::comparison_type::ComparisonOperators::Null => {
+                    ComparisonOperators::Null
+                }
+            },
+            ..Default::default()
         }
     }
 }

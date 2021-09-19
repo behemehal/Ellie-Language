@@ -23,6 +23,10 @@ impl Setter {
             name: self.name,
             rtype: self.rtype.to_definite(),
             code: self.code.into_iter().map(|x| x.to_definite()).collect(),
+            name_pos: self.name_pos,
+            rtype_pos: self.rtype_pos,
+            bracket_start_pos: self.bracket_start_pos,
+            bracket_end_pos: self.bracket_end_pos,
         }
     }
 }
@@ -40,5 +44,24 @@ pub struct SetterCollector {
 impl SetterCollector {
     pub fn to_definite(self) -> definite::items::setter::Setter {
         self.data.to_definite()
+    }
+
+    pub fn from_definite(self, from: definite::items::setter::Setter) -> Self {
+        SetterCollector {
+            data: Setter {
+                name: from.name,
+                name_pos: from.name_pos,
+                rtype: definers::DefinerCollecting::default().from_definite(from.rtype),
+                rtype_pos: from.rtype_pos,
+                bracket_start_pos: from.bracket_start_pos,
+                bracket_end_pos: from.bracket_end_pos,
+                code: from
+                    .code
+                    .into_iter()
+                    .map(|x| Collecting::default().from_definite(x))
+                    .collect(),
+            },
+            ..Default::default()
+        }
     }
 }

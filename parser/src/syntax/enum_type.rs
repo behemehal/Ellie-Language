@@ -61,6 +61,31 @@ impl EnumTypeCollector {
         self.data.to_definite()
     }
 
+    pub fn from_definite(self, from: definite::items::enum_type::EnumType) -> Self {
+        EnumTypeCollector {
+            data: EnumType {
+                public: from.public,
+                name: from.name,
+                items: from
+                    .items
+                    .into_iter()
+                    .map(|x| EnumItem {
+                        has_type: x.has_type,
+                        identifier: x.identifier,
+                        enum_type: definers::DefinerCollecting::default()
+                            .from_definite(x.enum_type),
+                        identifier_pos: x.identifier_pos,
+                        type_pos: x.type_pos,
+                    })
+                    .collect(),
+                name_pos: from.name_pos,
+                brace_start_pos: from.brace_start_pos,
+                brace_end_pos: from.brace_end_pos,
+            },
+            ..Default::default()
+        }
+    }
+
     pub fn has_dedup(&self) -> bool {
         let mut existent_names: Vec<String> = Vec::with_capacity(self.data.items.len());
         let mut duplicate = false;

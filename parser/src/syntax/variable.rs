@@ -52,4 +52,26 @@ impl VariableCollector {
     pub fn to_definite(self) -> definite::items::variable::Variable {
         self.data.to_definite()
     }
+
+    pub fn from_definite(self, from: definite::items::variable::Variable) -> Self {
+        VariableCollector {
+            named: true,
+            typed: true,
+            value_complete: true,
+            data: Variable {
+                name: from.name,
+                dynamic: from.dynamic,
+                constant: from.constant,
+                public: from.public,
+                value: types::Types::default().from_definite(from.value),
+                pos: from.pos,
+                name_pos: from.name_pos,
+                value_pos: from.value_pos,
+                type_pos: from.type_pos,
+                rtype: definers::DefinerCollecting::default().from_definite(from.rtype),
+                hash: from.hash,
+            },
+            ..Default::default()
+        }
+    }
 }

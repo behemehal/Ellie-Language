@@ -8,7 +8,7 @@ pub enum Callers {
     ConstructedClass(types::constructed_class::ConstructedClass),
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
 pub struct Caller {
     pub value: types::Types,
     pub pos: defs::Cursor,
@@ -19,6 +19,13 @@ impl Caller {
         definite::items::caller::Caller {
             value: self.value.to_definite(),
             pos: self.pos,
+        }
+    }
+
+    pub fn from_definite(self, from: definite::items::caller::Caller) -> Self {
+        Caller {
+            value: types::Types::default().from_definite(from.value),
+            pos: from.pos,
         }
     }
 }

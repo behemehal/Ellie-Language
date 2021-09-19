@@ -82,6 +82,49 @@ impl ClassCollector {
         }
     }
 
+    pub fn from_definite(self, from: definite::items::class::Class) -> Self {
+        ClassCollector {
+            data: Class {
+                name: from.name,
+                public: from.public,
+                constructor: constructor::ConstructorCollector::default()
+                    .from_definite(from.constructor)
+                    .data,
+                generic_definings: from
+                    .generic_definings
+                    .into_iter()
+                    .map(|x| GenericDefining {
+                        name: x.name,
+                        pos: x.pos,
+                    })
+                    .collect(),
+                properties: from
+                    .properties
+                    .into_iter()
+                    .map(|x| variable::VariableCollector::default().from_definite(x).data)
+                    .collect(),
+                getters: from
+                    .getters
+                    .into_iter()
+                    .map(|x| getter::GetterCollector::default().from_definite(x).data)
+                    .collect(),
+                setters: from
+                    .setters
+                    .into_iter()
+                    .map(|x| setter::SetterCollector::default().from_definite(x).data)
+                    .collect(),
+                methods: from
+                    .methods
+                    .into_iter()
+                    .map(|x| function::FunctionCollector::default().from_definite(x).data)
+                    .collect(),
+                name_pos: from.name_pos,
+                pos: from.pos,
+            },
+            ..Default::default()
+        }
+    }
+
     pub fn has_dedup(&self) -> bool {
         let mut existent_names: Vec<String> = Vec::with_capacity(self.data.generic_definings.len());
         let mut duplicate = false;

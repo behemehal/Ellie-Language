@@ -25,4 +25,16 @@ impl StringTypeCollector {
             value_pos: self.data.value_pos,
         }
     }
+
+    pub fn from_definite(self, from: definite::types::string::StringType) -> Self {
+        StringTypeCollector {
+            data: StringType {
+                value: from.value,
+                comma_start_pos: from.comma_start_pos,
+                comma_end_pos: from.comma_end_pos,
+                value_pos: from.value_pos,
+            },
+            complete: true,
+        }
+    }
 }

@@ -11,4 +11,11 @@ impl CharType {
     pub fn to_definite(self) -> definite::types::ellie_char::CharType {
         definite::types::ellie_char::CharType { value: self.value }
     }
+
+    pub fn from_definite(self, from: definite::types::ellie_char::CharType) -> Self {
+        CharType {
+            value: from.value,
+            complete: true,
+        }
+    }
 }

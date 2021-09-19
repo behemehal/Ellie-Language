@@ -71,6 +71,61 @@ impl Types {
         }
     }
 
+    pub fn from_definite(self, from: definite::types::Types) -> Self {
+        match from {
+            definite::types::Types::Integer(e) => {
+                Types::Integer(integer_type::IntegerTypeCollector::default().from_definite(e))
+            }
+            definite::types::Types::Float(e) => {
+                Types::Float(float_type::FloatTypeCollector::default().from_definite(e))
+            }
+            definite::types::Types::Bool(e) => {
+                Types::Bool(bool_type::BoolType::default().from_definite(e))
+            }
+            definite::types::Types::String(e) => {
+                Types::String(string_type::StringTypeCollector::default().from_definite(e))
+            }
+            definite::types::Types::Char(e) => {
+                Types::Char(char_type::CharType::default().from_definite(e))
+            }
+            definite::types::Types::Collective(e) => {
+                Types::Collective(collective_type::CollectiveCollector::default().from_definite(e))
+            }
+            definite::types::Types::Reference(e) => {
+                Types::Reference(reference_type::ReferenceTypeCollector::default().from_definite(e))
+            }
+            definite::types::Types::Operator(e) => {
+                Types::Operator(operator_type::OperatorTypeCollector::default().from_definite(e))
+            }
+            definite::types::Types::Cloak(e) => {
+                Types::Cloak(cloak_type::CloakTypeCollector::default().from_definite(e))
+            }
+            definite::types::Types::Array(e) => {
+                Types::Array(array_type::ArrayTypeCollector::default().from_definite(e))
+            }
+            definite::types::Types::ArrowFunction(e) => Types::ArrowFunction(
+                arrow_function::ArrowFunctionCollector::default().from_definite(e),
+            ),
+            definite::types::Types::ConstructedClass(e) => Types::ConstructedClass(
+                constructed_class::ConstructedClassCollector::default().from_definite(e),
+            ),
+            definite::types::Types::FunctionCall(e) => Types::FunctionCall(
+                function_call::FunctionCallCollector::default().from_definite(e),
+            ),
+            definite::types::Types::NullResolver(e) => {
+                Types::NullResolver(null_resolver::NullResolver::default().from_definite(e))
+            }
+            definite::types::Types::Void => Types::Void,
+            definite::types::Types::Negative(e) => {
+                Types::Negative(negative_type::Negative::default().from_definite(e))
+            }
+            definite::types::Types::VariableType(e) => Types::VariableType(
+                variable_type::VariableTypeCollector::default().from_definite(e),
+            ),
+            definite::types::Types::Null => Types::Null,
+        }
+    }
+
     pub fn to_definer(self) -> crate::syntax::definers::DefinerCollecting {
         match self {
             Types::Integer(_) => crate::syntax::definers::DefinerCollecting::Generic(

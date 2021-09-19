@@ -44,4 +44,23 @@ impl FunctionCallCollector {
                 .collect(),
         }
     }
+
+    pub fn from_definite(self, from: definite::types::function_call::FunctionCall) -> Self {
+        FunctionCallCollector {
+            data: FunctionCall {
+                name: from.name,
+                name_pos: from.name_pos,
+                params: from
+                    .params
+                    .into_iter()
+                    .map(|x| FunctionCallParameter {
+                        value: types::Types::default().from_definite(x.value),
+                        pos: x.pos,
+                    })
+                    .collect(),
+            },
+            complete: true,
+            ..Default::default()
+        }
+    }
 }

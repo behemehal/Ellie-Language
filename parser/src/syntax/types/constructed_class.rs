@@ -74,4 +74,24 @@ impl ConstructedClassCollector {
                 .collect(),
         }
     }
+
+    pub fn from_definite(self, from: definite::types::constructed_class::ConstructedClass) -> Self {
+        ConstructedClassCollector {
+            data: ConstructedClass {
+                value: Box::new(types::Types::default().from_definite(*from.value)),
+                keyword_pos: from.keyword_pos,
+                value_pos: from.value_pos,
+                params: from
+                    .params
+                    .into_iter()
+                    .map(|x| ConstructedClassParameter {
+                        value: types::Types::default().from_definite(x.value),
+                        pos: x.pos,
+                    })
+                    .collect(),
+            },
+            complete: true,
+            ..Default::default()
+        }
+    }
 }

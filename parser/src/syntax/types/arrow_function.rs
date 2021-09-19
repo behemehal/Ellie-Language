@@ -53,6 +53,34 @@ impl ArrowFunctionCollector {
         }
     }
 
+    pub fn from_definite(self, from: definite::types::arrow_function::ArrowFunction) -> Self {
+        ArrowFunctionCollector {
+            complete: true,
+            data: ArrowFunction {
+                parameters: from
+                    .parameters
+                    .into_iter()
+                    .map(|x| function::FunctionParameter {
+                        name: x.name,
+                        rtype: definers::DefinerCollecting::default().from_definite(x.rtype),
+                        pos: x.pos,
+                        multi_capture: x.multi_capture,
+                        name_pos: x.name_pos,
+                        type_pos: x.type_pos,
+                    })
+                    .collect(),
+                return_type: definers::DefinerCollecting::default().from_definite(from.return_type),
+                inside_code: from
+                    .inside_code
+                    .into_iter()
+                    .map(|x| Collecting::default().from_definite(x))
+                    .collect(),
+                return_pos: from.return_pos,
+            },
+            ..Default::default()
+        }
+    }
+
     pub fn has_dedup(&self) -> bool {
         let mut existent_names: Vec<String> = Vec::with_capacity(self.data.parameters.len());
         let mut duplicate = false;

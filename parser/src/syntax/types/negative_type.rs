@@ -14,4 +14,10 @@ impl Negative {
             value: Box::new(self.value.to_definite()),
         }
     }
+
+    pub fn from_definite(self, from: definite::types::negative::Negative) -> Self {
+        Negative {
+            value: Box::new(types::Types::default().from_definite(*from.value)),
+        }
+    }
 }

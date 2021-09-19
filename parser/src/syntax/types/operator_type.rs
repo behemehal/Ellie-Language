@@ -138,4 +138,53 @@ impl OperatorTypeCollector {
             },
         }
     }
+
+    pub fn from_definite(self, from: definite::types::operator::OperatorType) -> Self {
+        OperatorTypeCollector {
+            data: OperatorType {
+                cloaked: from.cloaked,
+                first: Box::new(types::Types::default().from_definite(*from.first)),
+                second: Box::new(types::Types::default().from_definite(*from.second)),
+                operator: match from.operator {
+                    definite::types::operator::Operators::ComparisonType(e) => {
+                        Operators::ComparisonType(match e {
+                            definite::types::comparison_type::ComparisonOperators::Equal => ComparisonOperators::Equal,
+                            definite::types::comparison_type::ComparisonOperators::NotEqual => ComparisonOperators::NotEqual,
+                            definite::types::comparison_type::ComparisonOperators::GreaterThan => ComparisonOperators::GreaterThan,
+                            definite::types::comparison_type::ComparisonOperators::LessThan => ComparisonOperators::LessThan,
+                            definite::types::comparison_type::ComparisonOperators::GreaterThanOrEqual => ComparisonOperators::GreaterThanOrEqual,
+                            definite::types::comparison_type::ComparisonOperators::LessThanOrEqual => ComparisonOperators::LessThanOrEqual,
+                            definite::types::comparison_type::ComparisonOperators::Null => ComparisonOperators::Null,
+                        })
+                    }
+                    definite::types::operator::Operators::LogicalType(e) => {
+                        Operators::LogicalType(
+                            match e {
+                                definite::types::logical_type::LogicalOperators::And => LogicalOperators::And,
+                                definite::types::logical_type::LogicalOperators::Or => LogicalOperators::Or,
+                                definite::types::logical_type::LogicalOperators::Null => LogicalOperators::Null,
+                            }
+                        )
+                    }
+                    definite::types::operator::Operators::ArithmeticType(e) => {
+                        Operators::ArithmeticType(match e {
+                            definite::types::arithmetic_type::ArithmeticOperators::Addition => ArithmeticOperators::Addition,
+                            definite::types::arithmetic_type::ArithmeticOperators::Subtraction => ArithmeticOperators::Subtraction,
+                            definite::types::arithmetic_type::ArithmeticOperators::Multiplication => ArithmeticOperators::Multiplication,
+                            definite::types::arithmetic_type::ArithmeticOperators::Exponentiation => ArithmeticOperators::Exponentiation,
+                            definite::types::arithmetic_type::ArithmeticOperators::Division => ArithmeticOperators::Division,
+                            definite::types::arithmetic_type::ArithmeticOperators::Modulus => ArithmeticOperators::Modulus,
+                            definite::types::arithmetic_type::ArithmeticOperators::Null => ArithmeticOperators::Null,
+                        })
+                    }
+                    definite::types::operator::Operators::Null => Operators::Null,
+                },
+            },
+            cloaked: from.cloaked,
+            first_filled: true,
+            second_is_not_null: true,
+            operator_collected: true,
+            ..Default::default()
+        }
+    }
 }

@@ -51,6 +51,29 @@ impl CollectiveCollector {
         }
     }
 
+    pub fn from_definite(self, from: definite::types::collective::Collective) -> Self {
+        CollectiveCollector {
+            complete: true,
+            at_comma: false,
+            data: Collective {
+                entries: from
+                    .entries
+                    .into_iter()
+                    .map(|x| CollectiveEntryCollector {
+                        data: CollectiveEntry {
+                            key: Box::new(types::Types::default().from_definite(*x.key)),
+                            value: Box::new(types::Types::default().from_definite(*x.value)),
+                            key_pos: x.key_pos,
+                            value_pos: x.value_pos,
+                        },
+                        key_collected: true,
+                        value_collected: true,
+                    })
+                    .collect::<Vec<_>>(),
+            },
+        }
+    }
+
     pub fn has_dedup(&self) -> bool {
         let mut existent_names: Vec<String> = Vec::with_capacity(self.data.entries.len());
         let mut duplicate = false;

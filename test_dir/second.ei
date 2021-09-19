@@ -1,5 +1,3 @@
-pub import ../lib/ellie;
-
 pub class BirthDay {
     co BirthDay(day, month, year);
     pub v day : int;

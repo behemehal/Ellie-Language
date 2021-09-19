@@ -15,6 +15,7 @@ pub enum ArithmeticOperators {
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct ArithmeticType {
+    pub cloaked: bool,
     pub first: Box<types::Types>,
     pub second: Box<types::Types>,
     pub operator: ArithmeticOperators,

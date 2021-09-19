@@ -15,6 +15,7 @@ pub enum ComparisonOperators {
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct ComparisonType {
+    pub cloaked: bool,
     pub first: Box<types::Types>,
     pub second: Box<types::Types>,
     pub operator: ComparisonOperators,

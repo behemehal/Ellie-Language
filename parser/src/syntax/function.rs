@@ -90,6 +90,40 @@ impl FunctionCollector {
         self.data.to_definite()
     }
 
+    pub fn from_definite(self, from: definite::items::function::Function) -> Self {
+        FunctionCollector {
+            data: Function {
+                name: from.name,
+                parameters: from
+                    .parameters
+                    .into_iter()
+                    .map(|x| FunctionParameter {
+                        name: x.name,
+                        rtype: definers::DefinerCollecting::default().from_definite(x.rtype),
+                        pos: x.pos,
+                        multi_capture: x.multi_capture,
+                        name_pos: x.name_pos,
+                        type_pos: x.type_pos,
+                    })
+                    .collect(),
+                return_type: definers::DefinerCollecting::default().from_definite(from.return_type),
+                public: from.public,
+                inside_code: from
+                    .inside_code
+                    .into_iter()
+                    .map(|x| Collecting::default().from_definite(x))
+                    .collect(),
+                name_pos: from.name_pos,
+                code_bracket_start: from.code_bracket_start,
+                code_bracket_end: from.code_bracket_end,
+                parameters_pos: from.parameters_pos,
+                return_pos: from.return_pos,
+                pos: from.pos,
+            },
+            ..Default::default()
+        }
+    }
+
     pub fn has_dedup(&self) -> bool {
         let mut existent_names: Vec<String> = Vec::with_capacity(self.data.parameters.len());
         let mut duplicate = false;

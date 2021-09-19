@@ -29,4 +29,17 @@ impl FileKeyCollector {
             pos: self.data.pos,
         }
     }
+
+    pub fn from_definite(self, from: definite::items::file_key::FileKey) -> Self {
+        FileKeyCollector {
+            data: FileKey {
+                key_name: from.key_name,
+                value: types::Types::default().from_definite(from.value),
+                key_name_location: from.key_name_location,
+                value_location: from.value_location,
+                pos: from.pos,
+            },
+            ..Default::default()
+        }
+    }
 }

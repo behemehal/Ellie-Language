@@ -32,6 +32,7 @@ pub fn parse(contents: String, file_name: String) -> ellie_parser::parser::Parse
             functions: true,
             break_on_error: false,
             loops: true,
+            import_std: true,
             conditions: true,
             classes: true,
             enums: true,

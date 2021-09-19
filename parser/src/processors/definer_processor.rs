@@ -4,7 +4,8 @@ use crate::alloc::vec;
 use crate::alloc::vec::Vec;
 use crate::parser;
 use crate::syntax;
-use crate::syntax::definers::DefinerCollecting;
+use crate::syntax::definers::{DefinerCollecting, GenericType};
+use alloc::boxed::Box;
 use ellie_core::{defs, error, utils};
 
 pub fn collect_definer<F>(
@@ -128,9 +129,9 @@ pub fn collect_definer<F>(
             if letter_char == "(" && data.rtype.trim() == "fn" {
                 *type_data = DefinerCollecting::Function(syntax::definers::FunctionType {
                     bracket_inserted: true,
-                    params: vec![DefinerCollecting::Generic(
-                        syntax::definers::GenericType::default(),
-                    )],
+                    returning: alloc::boxed::Box::new(DefinerCollecting::Generic(GenericType {
+                        rtype: "void".to_owned(),
+                    })),
                     ..Default::default()
                 });
             } else if letter_char == "(" && data.rtype == "array" {
@@ -222,9 +223,6 @@ pub fn collect_definer<F>(
             if !data.parameter_collected {
                 if letter_char == "(" && !data.bracket_inserted {
                     data.bracket_inserted = true;
-                    data.params.push(DefinerCollecting::Generic(
-                        syntax::definers::GenericType::default(),
-                    ));
                 } else if letter_char == ")" && data.bracket_inserted {
                     data.parameter_collected = true;
                 } else if letter_char == "," && !data.params.is_empty() && !data.at_comma {
@@ -255,6 +253,11 @@ pub fn collect_definer<F>(
                     });
                 } else if data.bracket_inserted {
                     data.at_comma = false;
+                    if data.params.clone().len() == 0 {
+                        data.params.push(DefinerCollecting::Generic(
+                            syntax::definers::GenericType::default(),
+                        ));
+                    }
                     let len = data.params.clone().len();
                     collect_definer(
                         parser,
@@ -293,6 +296,7 @@ pub fn collect_definer<F>(
                         });
                     }
                     data.return_keyword += 1;
+                    data.returning = Box::new(DefinerCollecting::Generic(GenericType::default()));
                 } else {
                     data.complete = true;
                     collect_definer(

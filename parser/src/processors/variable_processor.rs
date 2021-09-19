@@ -372,7 +372,11 @@ pub fn collect_variable_value<F>(
 
                 if let Ok(resolved_type_name) = resolved_type_name_option {
                     //nen means cannot resolve type
-                    if variable_data.data.rtype != resolved_type_name
+                    if !variable_data
+                        .data
+                        .rtype
+                        .clone()
+                        .same_as(resolved_type_name.clone())
                         && (resolved_type_name.raw_name() != "array"
                             || (resolved_type_name.raw_name() == "array"
                                 && variable_data.data.rtype.raw_name() != "growableArray"))

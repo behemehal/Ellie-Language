@@ -63,6 +63,7 @@ pub struct ArithmeticType {
 impl ArithmeticType {
     pub fn to_definite(self) -> definite::types::arithmetic_type::ArithmeticType {
         definite::types::arithmetic_type::ArithmeticType {
+            cloaked: self.cloaked,
             first: Box::new(self.first.to_definite()),
             second: Box::new(self.second.to_definite()),
             operator: match self.operator {
@@ -88,6 +89,39 @@ impl ArithmeticType {
                     definite::types::arithmetic_type::ArithmeticOperators::Null
                 }
             },
+        }
+    }
+
+    pub fn from_definite(self, from: definite::types::arithmetic_type::ArithmeticType) -> Self {
+        ArithmeticType {
+            first: Box::new(types::Types::default().from_definite(*from.first)),
+            second: Box::new(types::Types::default().from_definite(*from.second)),
+            operator: match from.operator {
+                definite::types::arithmetic_type::ArithmeticOperators::Addition => {
+                    ArithmeticOperators::Addition
+                }
+                definite::types::arithmetic_type::ArithmeticOperators::Subtraction => {
+                    ArithmeticOperators::Subtraction
+                }
+                definite::types::arithmetic_type::ArithmeticOperators::Multiplication => {
+                    ArithmeticOperators::Multiplication
+                }
+                definite::types::arithmetic_type::ArithmeticOperators::Exponentiation => {
+                    ArithmeticOperators::Exponentiation
+                }
+                definite::types::arithmetic_type::ArithmeticOperators::Division => {
+                    ArithmeticOperators::Division
+                }
+                definite::types::arithmetic_type::ArithmeticOperators::Modulus => {
+                    ArithmeticOperators::Modulus
+                }
+                definite::types::arithmetic_type::ArithmeticOperators::Null => {
+                    ArithmeticOperators::Null
+                }
+            },
+            first_filled: true,
+            operator_collected: true,
+            ..Default::default()
         }
     }
 }

@@ -34,6 +34,7 @@ fn main() {
             println!("\t-i                                   : Ignore errors");
             println!("\t-e                                   : Show non-definite items");
             println!("\t-fi                                  : Filter out imports");
+            println!("\t-dstd                                : Don't import std");
         }
     } else {
         let args = env::args()
@@ -162,6 +163,7 @@ fn main() {
                                     classes: true,
                                     enums: true,
                                     dynamics: true,
+                                    import_std: !env::args().any(|x| x == "-dstd"),
                                     global_variables: true,
                                     getters: true,
                                     setters: true,
@@ -543,6 +545,7 @@ fn main() {
                                     path: "<eval>".to_owned(),
                                     functions: true,
                                     break_on_error: false,
+                                    import_std: !env::args().any(|x| x == "-dstd"),
                                     loops: true,
                                     conditions: true,
                                     classes: true,

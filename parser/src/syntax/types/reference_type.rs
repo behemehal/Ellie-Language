@@ -43,4 +43,23 @@ impl ReferenceTypeCollector {
                 .collect(),
         }
     }
+
+    pub fn from_definite(self, from: definite::types::reference::ReferenceType) -> Self {
+        ReferenceTypeCollector {
+            data: ReferenceType {
+                reference: Box::new(types::Types::default().from_definite(*from.reference)),
+                reference_pos: from.reference_pos,
+                chain: from
+                    .chain
+                    .into_iter()
+                    .map(|x| Chain {
+                        pos: x.pos,
+                        value: types::Types::default().from_definite(x.value),
+                    })
+                    .collect::<Vec<_>>(),
+            },
+            complete: true,
+            ..Default::default()
+        }
+    }
 }

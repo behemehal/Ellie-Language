@@ -11,9 +11,7 @@ fn main() {
         ellie_core::defs::ParserOptions::default(),
     );
     let mut emulated_collector_data = ellie_parser::syntax::definers::DefinerCollecting::default();
-    let code = "
-    collective(string, dyn)
-    ";
+    let code = "fn()";
 
     let mut content = code.split("").collect::<Vec<_>>();
     content.remove(0);

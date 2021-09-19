@@ -1,5 +1,11 @@
-import ./second;
+//import ./second;
 
 
-v adam = new Person("ahmetcan", "aksu", new BirthDay(13, 04, 2001));
-v yas : string = Person.birthDay.age;
+
+
+import ../lib/ellie.ei;
+
+
+
+v adam = 123;
+v yas : fn()::string = adam.toString;

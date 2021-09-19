@@ -83,4 +83,28 @@ impl NativeFunction {
             pos: func.pos,
         }
     }
+
+    pub fn from_definite(self, from: definite::items::native_function::NativeFunction) -> Self {
+        NativeFunction {
+            name: from.name,
+            parameters: from
+                .parameters
+                .into_iter()
+                .map(|x| NativeFunctionParameter {
+                    name: x.name,
+                    rtype: definers::DefinerCollecting::default().from_definite(x.rtype),
+                    pos: x.pos,
+                    multi_capture: x.multi_capture,
+                    name_pos: x.name_pos,
+                    type_pos: x.type_pos,
+                })
+                .collect(),
+            return_type: definers::DefinerCollecting::default().from_definite(from.return_type),
+            public: from.public,
+            name_pos: from.name_pos,
+            parameters_pos: from.parameters_pos,
+            return_pos: from.return_pos,
+            pos: from.pos,
+        }
+    }
 }

@@ -22,6 +22,26 @@ pub struct Parsed {
     pub items: Vec<Collecting>,
 }
 
+impl Parsed {
+    pub fn to_definite(self) -> definite::DefiniteParsed {
+        definite::DefiniteParsed {
+            name: self.name,
+            items: self.items.into_iter().map(|x| x.to_definite()).collect(),
+        }
+    }
+
+    pub fn from_definite(self, from: definite::DefiniteParsed) -> Self {
+        Parsed {
+            name: from.name,
+            items: from
+                .items
+                .into_iter()
+                .map(|x| Collecting::default().from_definite(x))
+                .collect(),
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ParserResponse {
     pub parsed: Parsed,
@@ -71,6 +91,58 @@ impl Collecting {
                 definite::items::Collecting::NativeFunction(e.to_definite())
             }
             Collecting::None => definite::items::Collecting::None,
+        }
+    }
+
+    pub fn from_definite(self, from: definite::items::Collecting) -> Self {
+        match from {
+            definite::items::Collecting::ImportItem(e) => {
+                Collecting::ImportItem(import_item::ImportItem::default().from_definite(e))
+            }
+            definite::items::Collecting::Variable(e) => {
+                Collecting::Variable(variable::VariableCollector::default().from_definite(e))
+            }
+            definite::items::Collecting::Function(e) => {
+                Collecting::Function(function::FunctionCollector::default().from_definite(e))
+            }
+            definite::items::Collecting::ForLoop(e) => {
+                Collecting::ForLoop(for_loop::ForLoopCollector::default().from_definite(e))
+            }
+            definite::items::Collecting::Condition(e) => {
+                Collecting::Condition(condition::ConditionCollector::default().from_definite(e))
+            }
+            definite::items::Collecting::Class(e) => {
+                Collecting::Class(class::ClassCollector::default().from_definite(e))
+            }
+            definite::items::Collecting::Ret(e) => {
+                Collecting::Ret(ret::Ret::default().from_definite(e))
+            }
+            definite::items::Collecting::Constructor(e) => Collecting::Constructor(
+                constructor::ConstructorCollector::default().from_definite(e),
+            ),
+            definite::items::Collecting::Caller(e) => {
+                Collecting::Caller(caller::Caller::default().from_definite(e))
+            }
+            definite::items::Collecting::Import(e) => {
+                Collecting::Import(import::Import::default().from_definite(e))
+            }
+            definite::items::Collecting::FileKey(e) => {
+                Collecting::FileKey(file_key::FileKeyCollector::default().from_definite(e))
+            }
+            definite::items::Collecting::Getter(e) => {
+                Collecting::Getter(getter::GetterCollector::default().from_definite(e))
+            }
+            definite::items::Collecting::Setter(e) => {
+                Collecting::Setter(setter::SetterCollector::default().from_definite(e))
+            }
+            definite::items::Collecting::Enum(e) => {
+                Collecting::Enum(enum_type::EnumTypeCollector::default().from_definite(e))
+            }
+            definite::items::Collecting::NativeFunction(e) => Collecting::NativeFunction(
+                native_function::NativeFunction::default().from_definite(e),
+            ),
+            definite::items::Collecting::NativeClass => Collecting::NativeClass,
+            definite::items::Collecting::None => todo!(),
         }
     }
 }
@@ -268,8 +340,12 @@ where
     }
 
     pub fn map(mut self) -> ParserResponse {
-        let mut errors: Vec<error::Error> = Vec::new();
+        if self.options.import_std {
+            let build_std: ellie_core::definite::DefiniteParsed = serde_json::from_str(ellie_core::builded_libraries::ELLIE_STANDARD_LIBRARY).unwrap();
+            self.collected = Parsed::default().from_definite(build_std).items;
+        }
 
+        let mut errors: Vec<error::Error> = Vec::new();
         let code = self.code.clone();
         let mut content = code.split("").collect::<Vec<_>>();
         content.remove(0);

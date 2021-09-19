@@ -57,4 +57,24 @@ impl CloakTypeCollector {
                 .collect(),
         }
     }
+
+    pub fn from_definite(self, from: definite::types::cloak::CloakType) -> Self {
+        CloakTypeCollector {
+            data: CloakType {
+                layer_size: from.layer_size,
+                collective: from
+                    .collective
+                    .into_iter()
+                    .map(|x| CloakEntry {
+                        value_complete: true,
+                        value: Box::new(types::Types::default().from_definite(*x.value)),
+                        location: x.location,
+                    })
+                    .collect(),
+            },
+            complete: true,
+            comma: false,
+            child_start: false,
+        }
+    }
 }

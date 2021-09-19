@@ -75,4 +75,34 @@ impl ConditionCollector {
             cloak_pos: self.data.cloak_pos,
         }
     }
+
+    pub fn from_definite(self, from: definite::items::condition::Condition) -> Self {
+        ConditionCollector {
+            data: Condition {
+                chains: from
+                    .chains
+                    .into_iter()
+                    .map(|x| ConditionChain {
+                        rtype: match x.rtype {
+                            definite::items::condition::ConditionType::If => ConditionType::If,
+                            definite::items::condition::ConditionType::ElseIf => {
+                                ConditionType::ElseIf
+                            }
+                            definite::items::condition::ConditionType::Else => ConditionType::Else,
+                        },
+                        condition: Box::new(types::Types::default().from_definite(*x.condition)),
+                        inside_code: x
+                            .inside_code
+                            .into_iter()
+                            .map(|e| Collecting::default().from_definite(e))
+                            .collect(),
+                    })
+                    .collect(),
+                keyword_pos: from.keyword_pos,
+                cloak_pos: from.cloak_pos,
+            },
+            complete: true,
+            ..Default::default()
+        }
+    }
 }

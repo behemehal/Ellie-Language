@@ -23,4 +23,15 @@ impl Import {
             pos: self.pos,
         }
     }
+
+    pub fn from_definite(self, from: definite::items::import::Import) -> Self {
+        Import {
+            path: from.path,
+            pri_keyword: from.pri_keyword,
+            native: from.native,
+            public: from.public,
+            path_pos: from.path_pos,
+            pos: from.pos,
+        }
+    }
 }

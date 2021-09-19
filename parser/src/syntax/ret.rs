@@ -19,4 +19,13 @@ impl Ret {
             pos: self.pos,
         }
     }
+
+    pub fn from_definite(self, from: definite::items::ret::Ret) -> Self {
+        Ret {
+            value: types::Types::default().from_definite(from.value),
+            keyword_pos: from.keyword_pos,
+            value_position: from.value_position,
+            pos: from.pos,
+        }
+    }
 }

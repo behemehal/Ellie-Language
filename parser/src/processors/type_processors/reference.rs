@@ -66,7 +66,23 @@ where
                             .data
                             .methods
                             .into_iter()
-                            .map(|x| (x.name, x.return_type))
+                            .map(|x| {
+                                (
+                                    x.name,
+                                    types::Types::ArrowFunction(
+                                        types::arrow_function::ArrowFunctionCollector {
+                                            data: types::arrow_function::ArrowFunction {
+                                                parameters: x.parameters,
+                                                return_type: x.return_type,
+                                                inside_code: x.inside_code,
+                                                return_pos: x.return_pos,
+                                            },
+                                            ..Default::default()
+                                        },
+                                    )
+                                    .to_definer(),
+                                )
+                            })
                             .collect::<Vec<_>>();
                         let mut all_properties = vec![];
                         all_properties.extend(properties);
@@ -74,7 +90,7 @@ where
                         all_properties.extend(setters);
                         all_properties.extend(methods);
 
-                        match chain {
+                        match chain.clone() {
                             types::Types::VariableType(chain_variable) => {
                                 let found_property = all_properties
                                     .into_iter()
@@ -111,6 +127,10 @@ where
                                 found = e;
                             }
                             Err(e) => {
+                                found =
+                                    definers::DefinerCollecting::Generic(definers::GenericType {
+                                        rtype: "null".to_owned(),
+                                    });
                                 if e.1 == 0 {
                                     errors.push(error::Error {
                                         path: parser.options.path.clone(),

@@ -22,4 +22,14 @@ impl VariableTypeCollector {
             pos: self.data.pos,
         }
     }
+
+    pub fn from_definite(self, from: definite::types::variable::VariableType) -> Self {
+        VariableTypeCollector {
+            data: VariableType {
+                value: from.value,
+                pos: from.pos,
+            },
+            value_complete: true,
+        }
+    }
 }

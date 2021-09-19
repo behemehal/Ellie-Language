@@ -14,4 +14,10 @@ impl NullResolver {
             value: Box::new(self.value.to_definite()),
         }
     }
+
+    pub fn from_definite(self, from: definite::types::null_resolver::NullResolver) -> Self {
+        NullResolver {
+            value: Box::new(types::Types::default().from_definite(*from.value)),
+        }
+    }
 }

@@ -61,6 +61,31 @@ impl ConstructorCollector {
         self.data.to_definite()
     }
 
+    pub fn from_definite(self, from: definite::items::constructor::Constructor) -> Self {
+        ConstructorCollector {
+            data: Constructor {
+                name: from.name,
+                parameters: from
+                    .parameters
+                    .into_iter()
+                    .map(|x| ConstructorParameter {
+                        name: x.name,
+                        pos: x.pos,
+                    })
+                    .collect(),
+                inside_code: from
+                    .inside_code
+                    .into_iter()
+                    .map(|x| Collecting::default().from_definite(x))
+                    .collect(),
+                name_pos: from.name_pos,
+                parameters_pos: from.parameters_pos,
+                pos: from.pos,
+            },
+            ..Default::default()
+        }
+    }
+
     pub fn is_parameters_complete(&self) -> bool {
         if self.data.parameters.is_empty() {
             true

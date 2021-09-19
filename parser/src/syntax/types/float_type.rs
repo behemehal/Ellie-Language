@@ -1,6 +1,7 @@
 use crate::alloc::borrow::ToOwned;
 use alloc::format;
 use alloc::string::{String, ToString};
+use alloc::vec::Vec;
 use core::any::Any;
 use core::any::TypeId;
 use ellie_core::definite;
@@ -31,6 +32,13 @@ impl FloatSize {
         let bracket_offset = q.find('(').unwrap_or_else(|| q.len());
         q.replace_range(bracket_offset.., "");
         q
+    }
+
+    pub fn get_val(&self) -> String {
+        let mut q: String = format!("{:?}", self);
+        let bracket_open_offset = q.find('(').unwrap_or_else(|| q.len());
+        q.replace_range(..bracket_open_offset + 1, "");
+        q.replace(")", "")
     }
 }
 
@@ -67,6 +75,30 @@ impl FloatTypeCollector {
                 FloatTypes::F32 => definite::types::float::FloatTypes::F32,
                 FloatTypes::F64 => definite::types::float::FloatTypes::F64,
             },
+        }
+    }
+
+    pub fn from_definite(self, from: definite::types::float::FloatType) -> Self {
+        let value = match from.value {
+            definite::types::float::FloatSize::F32(e) => FloatSize::F32(e),
+            definite::types::float::FloatSize::F64(e) => FloatSize::F64(e),
+        };
+        let raw = value.get_type().to_string();
+        let partitions = raw.split(".").collect::<Vec<_>>();
+
+        FloatTypeCollector {
+            data: FloatType {
+                value,
+                rtype: match from.rtype {
+                    definite::types::float::FloatTypes::F32 => FloatTypes::F32,
+                    definite::types::float::FloatTypes::F64 => FloatTypes::F64,
+                },
+                raw: raw.clone(),
+            },
+            base: partitions[0].to_owned(),
+            point: partitions[1].to_owned(),
+            at_point: true,
+            complete: true,
         }
     }
 

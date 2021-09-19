@@ -36,4 +36,16 @@ impl ForLoopCollector {
             pos: self.data.pos,
         }
     }
+
+    pub fn from_definite(self, from: definite::items::for_loop::ForLoop) -> Self {
+        ForLoopCollector {
+            data: ForLoop {
+                parameter: Box::new(types::Types::default().from_definite(*from.parameter)),
+                parameter_pos: from.parameter_pos,
+                code: from.code,
+                pos: from.pos,
+            },
+            ..Default::default()
+        }
+    }
 }

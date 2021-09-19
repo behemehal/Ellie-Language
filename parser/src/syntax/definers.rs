@@ -1,4 +1,4 @@
-use crate::alloc::borrow::ToOwned;
+use alloc::borrow::ToOwned;
 use alloc::boxed::Box;
 use alloc::format;
 use alloc::string::{String, ToString};
@@ -26,6 +26,19 @@ impl FunctionType {
             returning: Box::new(self.returning.to_definite()),
         }
     }
+
+    pub fn from_definite(self, from: definite::definers::FunctionType) -> Self {
+        FunctionType {
+            complete: true,
+            params: from
+                .params
+                .into_iter()
+                .map(|x| DefinerCollecting::default().from_definite(x))
+                .collect(),
+            returning: Box::new(DefinerCollecting::default().from_definite(*from.returning)),
+            ..Default::default()
+        }
+    }
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
@@ -40,6 +53,19 @@ impl CloakType {
     pub fn to_definite(self) -> definite::definers::CloakType {
         definite::definers::CloakType {
             rtype: self.rtype.into_iter().map(|x| x.to_definite()).collect(),
+        }
+    }
+
+    pub fn from_definite(self, from: definite::definers::CloakType) -> Self {
+        CloakType {
+            complete: true,
+            rtype: from
+                .rtype
+                .into_iter()
+                .map(|x| DefinerCollecting::default().from_definite(x))
+                .collect(),
+            bracket_inserted: true,
+            at_comma: true,
         }
     }
 }
@@ -67,6 +93,14 @@ impl FutureType {
             value: Box::new(self.value.to_definite()),
         }
     }
+
+    pub fn from_definite(self, from: definite::definers::FutureType) -> Self {
+        FutureType {
+            complete: true,
+            brace_started: true,
+            value: Box::new(DefinerCollecting::default().from_definite(*from.value)),
+        }
+    }
 }
 
 impl ArrayType {
@@ -74,6 +108,16 @@ impl ArrayType {
         definite::definers::ArrayType {
             rtype: Box::new(self.rtype.to_definite()),
             len: self.len.to_definite(),
+        }
+    }
+
+    pub fn from_definite(self, from: definite::definers::ArrayType) -> Self {
+        ArrayType {
+            complete: true,
+            rtype: Box::new(DefinerCollecting::default().from_definite(*from.rtype)),
+            len: crate::syntax::types::integer_type::IntegerTypeCollector::default()
+                .from_definite(from.len),
+            ..Default::default()
         }
     }
 }
@@ -91,6 +135,14 @@ impl GrowableArrayType {
             rtype: Box::new(self.rtype.to_definite()),
         }
     }
+
+    pub fn from_definite(self, from: definite::definers::GrowableArrayType) -> Self {
+        GrowableArrayType {
+            complete: true,
+            rtype: Box::new(DefinerCollecting::default().from_definite(*from.rtype)),
+            bracket_inserted: true,
+        }
+    }
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
@@ -101,6 +153,10 @@ pub struct GenericType {
 impl GenericType {
     pub fn to_definite(self) -> definite::definers::GenericType {
         definite::definers::GenericType { rtype: self.rtype }
+    }
+
+    pub fn from_definite(self, from: definite::definers::GenericType) -> Self {
+        GenericType { rtype: from.rtype }
     }
 }
 
@@ -120,6 +176,16 @@ impl CollectiveType {
             value: Box::new(self.value.to_definite()),
         }
     }
+
+    pub fn from_definite(self, from: definite::definers::CollectiveType) -> Self {
+        CollectiveType {
+            complete: true,
+            key: Box::new(DefinerCollecting::default().from_definite(*from.key)),
+            value: Box::new(DefinerCollecting::default().from_definite(*from.value)),
+            at_comma: false,
+            has_key: false,
+        }
+    }
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
@@ -131,6 +197,12 @@ impl NullableType {
     pub fn to_definite(self) -> definite::definers::NullableType {
         definite::definers::NullableType {
             value: Box::new(self.value.to_definite()),
+        }
+    }
+
+    pub fn from_definite(self, from: definite::definers::NullableType) -> Self {
+        NullableType {
+            value: Box::new(DefinerCollecting::default().from_definite(*from.value)),
         }
     }
 }
@@ -185,91 +257,120 @@ impl DefinerCollecting {
         }
     }
 
+    pub fn from_definite(self, from: definite::definers::DefinerCollecting) -> Self {
+        match from {
+            definite::definers::DefinerCollecting::Array(e) => {
+                DefinerCollecting::Array(ArrayType::default().from_definite(e))
+            }
+            definite::definers::DefinerCollecting::Future(e) => {
+                DefinerCollecting::Future(FutureType::default().from_definite(e))
+            }
+            definite::definers::DefinerCollecting::GrowableArray(e) => {
+                DefinerCollecting::GrowableArray(GrowableArrayType::default().from_definite(e))
+            }
+            definite::definers::DefinerCollecting::Generic(e) => {
+                DefinerCollecting::Generic(GenericType::default().from_definite(e))
+            }
+            definite::definers::DefinerCollecting::Function(e) => {
+                DefinerCollecting::Function(FunctionType::default().from_definite(e))
+            }
+            definite::definers::DefinerCollecting::Cloak(e) => {
+                DefinerCollecting::Cloak(CloakType::default().from_definite(e))
+            }
+            definite::definers::DefinerCollecting::Collective(e) => {
+                DefinerCollecting::Collective(CollectiveType::default().from_definite(e))
+            }
+            definite::definers::DefinerCollecting::Nullable(e) => {
+                DefinerCollecting::Nullable(NullableType::default().from_definite(e))
+            }
+            definite::definers::DefinerCollecting::Dynamic => DefinerCollecting::Dynamic,
+        }
+    }
+
     pub fn same_as(self, other: DefinerCollecting) -> bool {
-        if self == other {
-            match self {
-                DefinerCollecting::Array(data) => {
-                    if let DefinerCollecting::Array(other_data) = other {
-                        other_data.len.raw == data.len.raw && other_data.rtype.same_as(*data.rtype)
-                    } else {
-                        false
-                    }
+        match self {
+            DefinerCollecting::Array(data) => {
+                if let DefinerCollecting::Array(other_data) = other {
+                    other_data.len.raw == data.len.raw && other_data.rtype.same_as(*data.rtype)
+                } else {
+                    false
                 }
-                DefinerCollecting::Future(data) => {
-                    if let DefinerCollecting::Future(other_data) = other {
-                        other_data.value.same_as(*data.value)
-                    } else {
-                        false
-                    }
+            }
+            DefinerCollecting::Future(data) => {
+                if let DefinerCollecting::Future(other_data) = other {
+                    other_data.value.same_as(*data.value)
+                } else {
+                    false
                 }
-                DefinerCollecting::GrowableArray(data) => {
-                    if let DefinerCollecting::GrowableArray(other_data) = other {
-                        other_data.rtype.same_as(*data.rtype)
-                    } else {
-                        false
-                    }
+            }
+            DefinerCollecting::GrowableArray(data) => {
+                if let DefinerCollecting::GrowableArray(other_data) = other {
+                    other_data.rtype.same_as(*data.rtype)
+                } else {
+                    false
                 }
-                DefinerCollecting::Nullable(data) => {
-                    if let DefinerCollecting::Nullable(other_data) = other {
-                        other_data.value.same_as(*data.value)
-                    } else {
-                        false
-                    }
+            }
+            DefinerCollecting::Nullable(data) => {
+                if let DefinerCollecting::Nullable(other_data) = other {
+                    other_data.value.same_as(*data.value)
+                } else {
+                    false
                 }
-                DefinerCollecting::Generic(data) => {
-                    if let DefinerCollecting::Generic(other_data) = other {
-                        other_data.rtype == data.rtype
-                    } else {
-                        false
-                    }
+            }
+            DefinerCollecting::Generic(data) => {
+                if let DefinerCollecting::Generic(other_data) = other {
+                    let other = other_data.rtype;
+                    let curr = data.rtype;
+                    let same = other == curr;
+                    same
+                } else {
+                    false
                 }
-                DefinerCollecting::Function(data) => {
-                    if let DefinerCollecting::Function(other_data) = other {
-                        if other_data.returning.same_as(*data.returning) {
-                            let mut have_changes = false;
-
-                            for i in 0..other_data.params.len() {
-                                if !other_data.params[i].clone().same_as(data.params[i].clone()) {
-                                    have_changes = true;
-                                    break;
-                                }
-                            }
-
-                            have_changes
-                        } else {
-                            false
-                        }
-                    } else {
-                        false
-                    }
-                }
-                DefinerCollecting::Cloak(data) => {
-                    if let DefinerCollecting::Cloak(other_data) = other {
+            }
+            DefinerCollecting::Function(data) => {
+                if let DefinerCollecting::Function(other_data) = other {
+                    if other_data.returning.same_as(*data.returning) {
                         let mut have_changes = false;
 
-                        for i in 0..other_data.rtype.len() {
-                            if !other_data.rtype[i].clone().same_as(data.rtype[i].clone()) {
+                        for i in 0..other_data.params.len() {
+                            if !other_data.params[i].clone().same_as(data.params[i].clone()) {
                                 have_changes = true;
                                 break;
                             }
                         }
 
-                        have_changes
+                        !have_changes
                     } else {
                         false
                     }
+                } else {
+                    false
                 }
-                DefinerCollecting::Collective(data) => {
-                    if let DefinerCollecting::Collective(other_data) = other {
-                        other_data.key.same_as(*data.key) && other_data.value.same_as(*data.value)
-                    } else {
-                        false
-                    }
-                }
-                DefinerCollecting::Dynamic => true,
             }
-        } else {
-            false
+            DefinerCollecting::Cloak(data) => {
+                if let DefinerCollecting::Cloak(other_data) = other {
+                    let mut have_changes = false;
+
+                    for i in 0..other_data.rtype.len() {
+                        if !other_data.rtype[i].clone().same_as(data.rtype[i].clone()) {
+                            have_changes = true;
+                            break;
+                        }
+                    }
+
+                    have_changes
+                } else {
+                    false
+                }
+            }
+            DefinerCollecting::Collective(data) => {
+                if let DefinerCollecting::Collective(other_data) = other {
+                    other_data.key.same_as(*data.key) && other_data.value.same_as(*data.value)
+                } else {
+                    false
+                }
+            }
+            DefinerCollecting::Dynamic => true,
         }
     }
 

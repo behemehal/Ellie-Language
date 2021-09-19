@@ -84,6 +84,7 @@ fn parse(contents: String, file_name: String) -> ellie_parser::parser::ParserRes
             loops: true,
             conditions: true,
             classes: true,
+            import_std: false,
             enums: true,
             dynamics: true,
             global_variables: true,
@@ -126,7 +127,6 @@ fn main() {
     match read_file(&("./Cargo.toml".to_owned())) {
         Ok(cargo_toml) => {
             let ellie_lang_toml = cargo_toml.parse::<Value>().unwrap();
-            //panic!("{:#?}", ellie_lang_toml);
             let ellie_version = &ellie_lang_toml["package"]["version"];
             let ellie_version_name = &ellie_lang_toml["package"]["version_code"];
             let parser_version = &ellie_lang_toml["dependencies"]["ellie_parser"]["version"];
@@ -191,7 +191,9 @@ fn main() {
                                     terminal_colors::get_color(terminal_colors::Colors::Reset),
                                 );
                             } else {
-                                let ellie_lib = parse(ellie_lib.clone(), "ellie".to_owned()).parsed;
+                                let ellie_lib = parse(ellie_lib.clone(), "ellie".to_owned())
+                                    .parsed
+                                    .to_definite();
 
                                 eprintln!(
                                     "\nCompiling Ellie standard library {}v{}{} complete",

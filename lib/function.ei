@@ -22,10 +22,4 @@
     SOFTWARE.
 */
 
-import string;
-
-@compile_output = "console";
-pub fn print(toBeFormatted: string, *args: dyn);
-pub fn println(toBeFormatted: string, *args: dyn);
-pub fn setProcessTitle(title: string);
-pub fn readLine() > string;
+pub class function {}
