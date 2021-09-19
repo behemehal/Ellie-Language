@@ -39,7 +39,7 @@ pub fn collect_constructor<F>(
                 errors.push(error::Error {
                     path: parser.options.path.clone(),
                     scope: parser.scope.scope_name.clone(),
-                    debug_message: "5d37e441a81baededf8c6f47fda66d1b".to_owned(),
+                    debug_message: "7a31d17a9d55f44f4e2335e695404197".to_owned(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -99,7 +99,7 @@ pub fn collect_constructor<F>(
                 errors.push(error::Error {
                     path: parser.options.path.clone(),
                     scope: parser.scope.scope_name.clone(),
-                    debug_message: "8c168beeb42a21da3ca3e13f0265f100".to_owned(),
+                    debug_message: "7d77ec46d2ce94e8243225818969613c".to_owned(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -127,7 +127,7 @@ pub fn collect_constructor<F>(
                 errors.push(error::Error {
                     path: parser.options.path.clone(),
                     scope: parser.scope.scope_name.clone(),
-                    debug_message: "df10ea59deabbf9d0222916baa8fed69".to_owned(),
+                    debug_message: "57c4131ee50fc7d516cab8a399c6c062".to_owned(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),

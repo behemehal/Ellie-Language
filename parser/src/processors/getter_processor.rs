@@ -37,7 +37,7 @@ pub fn collect_getter_value<F>(
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
                         scope: parser.scope.scope_name.clone(),
-                        debug_message: "51c85bdbfa79c0dde9bca429875e3b7c".to_owned(),
+                        debug_message: "0884083f4f2deed51a8db54eea0b0029".to_owned(),
                         title: error::errorList::error_s21.title.clone(),
                         code: error::errorList::error_s21.code,
                         message: error::errorList::error_s21.message.clone(),
@@ -56,7 +56,7 @@ pub fn collect_getter_value<F>(
                 errors.push(error::Error {
                     path: parser.options.path.clone(),
                     scope: parser.scope.scope_name.clone(),
-                    debug_message: "68d4247654bd81b0777168ee1b920c2f".to_owned(),
+                    debug_message: "7a8f847ac2d7d8f90b9ba7dc5e879174".to_owned(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),

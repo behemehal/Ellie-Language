@@ -135,7 +135,7 @@ where
                                     errors.push(error::Error {
                                         path: parser.options.path.clone(),
                                         scope: parser.scope.scope_name.clone(),
-                                        debug_message: "replace_parser_537".to_owned(),
+                                        debug_message: "ce95796e35010ebe0e46e4a8f05bde13".to_owned(),
                                         title: error::errorList::error_s37.title.clone(),
                                         code: error::errorList::error_s37.code,
                                         message: error::errorList::error_s37.message.clone(),
@@ -152,7 +152,7 @@ where
                                     errors.push(error::Error {
                                         path: parser.options.path.clone(),
                                         scope: parser.scope.scope_name.clone(),
-                                        debug_message: "reference_137".to_owned(),
+                                        debug_message: "d694fee1d772992e7d3e20ce6333ab31".to_owned(),
                                         title: error::errorList::error_s34.title.clone(),
                                         code: error::errorList::error_s34.code,
                                         message: error::errorList::error_s34.message.clone(),
@@ -200,7 +200,7 @@ where
                 errors.push(error::Error {
                     path: parser.options.path.clone(),
                     scope: parser.scope.scope_name.clone(),
-                    debug_message: "replace_parser_700".to_owned(),
+                    debug_message: "22f6c5cabea80aaffa81819df4325677".to_owned(),
                     title: error::errorList::error_s38.title.clone(),
                     code: error::errorList::error_s38.code,
                     message: error::errorList::error_s38.message.clone(),
