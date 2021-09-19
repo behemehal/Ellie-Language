@@ -341,7 +341,9 @@ where
 
     pub fn map(mut self) -> ParserResponse {
         if self.options.import_std {
-            let build_std: ellie_core::definite::DefiniteParsed = serde_json::from_str(ellie_core::builded_libraries::ELLIE_STANDARD_LIBRARY).unwrap();
+            let build_std: ellie_core::definite::DefiniteParsed =
+                serde_json::from_str(ellie_core::builded_libraries::ELLIE_STANDARD_LIBRARY)
+                    .unwrap();
             self.collected = Parsed::default().from_definite(build_std).items;
         }
 

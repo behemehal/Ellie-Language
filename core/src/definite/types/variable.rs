@@ -7,4 +7,3 @@ pub struct VariableType {
     pub value: String,
     pub pos: defs::Cursor,
 }
-
