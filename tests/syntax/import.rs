@@ -13,7 +13,26 @@ mod variable_tests {
                 ..Default::default()
             },
             |_| {},
-            ellie_core::defs::ParserOptions::default(),
+            ellie_core::defs::ParserOptions {
+                path: "<virtual>".to_string(),
+                functions: true,
+                break_on_error: true,
+                loops: true,
+                enums: true,
+                classes: true,
+                getters: true,
+                setters: true,
+                conditions: true,
+                global_variables: true,
+                line_ending: "\n\r".to_string(),
+                dynamics: true,
+                collectives: true,
+                variables: true,
+                import_std: false,
+                constants: true,
+                parser_type: ellie_core::defs::ParserType::RawParser,
+                allow_import: true,
+            },
         );
         let parsed = emulated_parser.map();
         assert!(
@@ -31,7 +50,26 @@ mod variable_tests {
             code.to_string(),
             |_, _, _| ellie_parser::parser::ResolvedImport::default(),
             |_| {},
-            ellie_core::defs::ParserOptions::default(),
+            ellie_core::defs::ParserOptions {
+                path: "<virtual>".to_string(),
+                functions: true,
+                break_on_error: true,
+                loops: true,
+                enums: true,
+                classes: true,
+                getters: true,
+                setters: true,
+                conditions: true,
+                global_variables: true,
+                line_ending: "\n\r".to_string(),
+                dynamics: true,
+                collectives: true,
+                variables: true,
+                import_std: false,
+                constants: true,
+                parser_type: ellie_core::defs::ParserType::RawParser,
+                allow_import: true,
+            }
         );
         let parsed = emulated_parser.map();
         assert!(
