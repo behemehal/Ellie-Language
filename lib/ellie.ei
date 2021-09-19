@@ -22,7 +22,7 @@
     SOFTWARE.
 */
 
-@version = "1.4.0"; //Changing this triggers build.rs
+@version = "1.4.1"; //Changing this triggers build.rs
 @parserInfo = "This is prebuilt library";
 pub import string;
 pub import void;
