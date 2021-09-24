@@ -13,8 +13,6 @@ pub enum Commands {
     PV, //Public variable
     RT, //Private constant
     PT, //Public constant
-    RD, //Private dynamic
-    PD, //Public dynamic
     RF, //Private function
     PF, //Public function
     RU, //Private native function
@@ -23,11 +21,29 @@ pub enum Commands {
     PC, //Public class
     RL, //Private native class
     PL, //Public native class
+    RG, //Private Getter
+    PG, //Pubic Getter
+    RS, //Private Setter
+    PS, //Pubic Setter
+    RM, //Private enum
+    PM, //Public enum
+    CO, //Constructor
+    FC, //Function call
+
+    AD, //Addition
+    SS, //Subtraction
+    MU, //Multiplication
+    EX, //Exponentiation
+    DI, //Division
+    MO, //Modulus
+
+    PR, //Parameter
+
     IF, //If
     EF, //Else if
     EL, //Else
     FO, //For
-    RE  //Ret
+    RE, //Ret
 }
 
 impl Default for Commands {
@@ -35,7 +51,6 @@ impl Default for Commands {
         Commands::PI
     }
 }
-
 
 #[derive(Default, Clone, Debug)]
 pub struct Item {
@@ -50,7 +65,5 @@ pub struct Item {
     pub has_initial: bool,
     pub initial_data: String,
     pub has_inner_scope: bool,
-    pub inner_scope_name: usize
+    pub inner_scope_name: usize,
 }
-
-

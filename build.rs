@@ -131,23 +131,18 @@ fn main() {
             let ellie_version_name = &ellie_lang_toml["package"]["version_code"];
             let parser_version = &ellie_lang_toml["dependencies"]["ellie_parser"]["version"];
             let runtime_version = &ellie_lang_toml["dependencies"]["ellie_runtime"]["version"];
-            let raw_version =
-                if let Some(raw_version) = &ellie_lang_toml["dependencies"].get("ellie_raw") {
-                    raw_version["version"].to_string()
-                } else {
-                    "UnPlugged".to_owned()
-                };
-            let core_version = &ellie_lang_toml["dependencies"]["ellie_core"]["version"];
+            let byte_code_version = &ellie_lang_toml["dependencies"]["ellie_runtime"]["version"];
+            let core_version = &ellie_lang_toml["dependencies"]["ellie_byte_code"]["version"];
 
             fs::write(
                 "./src/cli_constants.rs",
                 format!(
-                    "pub static ELLIE_VERSION: &'static str = &{};\npub static ELLIE_VERSION_NAME: &'static str = &{};\npub static ELLIE_PARSER_VERSION: &'static str = &{};\npub static ELLIE_RUNTIME_VERSION: &'static str = &{};\npub static ELLIE_RAW_VERSION: &'static str = &{};\npub static ELLIE_CORE_VERSION: &'static str = &{};\n",
+                    "pub static ELLIE_VERSION: &'static str = &{};\npub static ELLIE_VERSION_NAME: &'static str = &{};\npub static ELLIE_PARSER_VERSION: &'static str = &{};\npub static ELLIE_RUNTIME_VERSION: &'static str = &{};\npub static ELLIE_BYTE_CODE_VERSION: &'static str = &{};\npub static ELLIE_CORE_VERSION: &'static str = &{};\n",
                     ellie_version,
                     ellie_version_name,
                     parser_version,
                     runtime_version,
-                    raw_version,
+                    byte_code_version,
                     core_version),
             )
             .unwrap();

@@ -1,2 +1,1 @@
 v adam = 123;
-v yas : fn()::string = adam.toString;

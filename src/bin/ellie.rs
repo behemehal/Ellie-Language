@@ -2,6 +2,7 @@ use ellie_core::definite;
 use ellie_parser::parser;
 use fs::File;
 use std::env;
+use std::path::Path;
 use std::{fs, io::Read};
 
 fn main() {
@@ -9,7 +10,7 @@ fn main() {
     if env::args().any(|x| x == "-v" || x == "--version" || x == "-dv" || x == "--detailed-version")
     {
         if env::args().any(|x| x == "-dv" || x == "--detailed-version") {
-            println!("Ellie v{} - Code: {}\n\nParser Version: {}\nRuntime Version: {}\nEllie RawByteCode Version: {}\n", ellie_engine::cli_constants::ELLIE_VERSION, ellie_engine::cli_constants::ELLIE_VERSION_NAME, ellie_engine::cli_constants::ELLIE_PARSER_VERSION, ellie_engine::cli_constants::ELLIE_RUNTIME_VERSION, ellie_engine::cli_constants::ELLIE_RAW_VERSION);
+            println!("Ellie v{} - Code: {}\n\nParser Version: {}\nRuntime Version: {}\nEllie RawByteCode Version: {}\n", ellie_engine::cli_constants::ELLIE_VERSION, ellie_engine::cli_constants::ELLIE_VERSION_NAME, ellie_engine::cli_constants::ELLIE_PARSER_VERSION, ellie_engine::cli_constants::ELLIE_RUNTIME_VERSION, ellie_engine::cli_constants::ELLIE_BYTE_CODE_VERSION);
         } else {
             println!(
                 "Ellie v{} - Code: {}",
@@ -24,11 +25,15 @@ fn main() {
         println!("\t--help                       || -h   : Show Help");
         println!("\t--debug                      || -d   : Show debug headers");
         println!("\t--to-json                    || -tj  : Compiles ellie to ellie json");
+        println!("\t--to-byte-code               || -tb  : Compiles ellie to byte code");
         println!("\t--show-errors                || -se  : Linter code for errors");
         println!("\t--json-errors                || -je  : Linter code for errors as json");
         println!("\t--eval-code                  || -ec  : Evaluate code from parameters");
         println!("\t--parser-ws                  || -pw  : Visualize parsing process");
         println!("\t--parser-messages            || -pm  : Show parser messages");
+        println!("Disabled Options:");
+        println!("\t--disable-webm               || -dw  : Disable web modules ");
+        println!("\t--disable-gist               || -dg  : Disable gist modules ");
         if File::open("./DEBUG_HEADERS.eidbg").is_ok() {
             println!("Development Options:");
             println!("\t-i                                   : Ignore errors");
@@ -392,41 +397,30 @@ fn main() {
                                 let collected_definite_items: Vec<definite::items::Collecting> =
                                     collected_items.collect();
 
-                                if env::args().any(|x| x == "-rw" || x == "--raw-compile") {
-                                    if !cfg!(feature = "raw") {
-                                        println!(
-                                            "{}[WrongConfig]{}: Config is not correct, raw feature must be enabled",
-                                            ellie_engine::terminal_colors::get_color(
-                                                ellie_engine::terminal_colors::Colors::Red
-                                            ),
-                                            ellie_engine::terminal_colors::get_color(ellie_engine::terminal_colors::Colors::Reset),
-                                        )
-                                    }
-
-                                    #[cfg(feature = "raw")]
-                                    {
-                                        let mut raw_conv = ellie_raw::converter::Converter::new(
+                                if env::args().any(|x| x == "-tb" || x == "--to-byte-code") {
+                                    let mut ellie_byte_conv =
+                                        ellie_byte_code::converter::Converter::new(
                                             "ellie_core".to_owned(),
-                                            ellie_raw::converter::ConverterOptions {
+                                            ellie_byte_code::converter::ConverterOptions {
                                                 apply_comments: true,
                                                 lib_name: file_arg.to_string(),
                                             },
                                             false,
                                         );
-                                        raw_conv.convert(mapped.parsed);
-                                        println!("-----RAW---\n{:#?}", raw_conv.clone());
-                                        let path_to_w = format!(
-                                            "./raw_{}.eiw",
-                                            Path::new(&file_arg.to_string())
-                                                .extension()
-                                                .unwrap()
-                                                .to_str()
-                                                .unwrap()
-                                        );
-                                        if let Err(e) =
-                                            fs::write(path_to_w.clone(), raw_conv.to_string())
-                                        {
-                                            println!(
+                                    ellie_byte_conv.convert(mapped.parsed.to_definite());
+                                    println!("-----RAW---\n{:#?}", ellie_byte_conv.clone());
+                                    let path_to_w = format!(
+                                        "./raw_{}.eiw",
+                                        Path::new(&file_arg.to_string())
+                                            .extension()
+                                            .unwrap()
+                                            .to_str()
+                                            .unwrap()
+                                    );
+                                    if let Err(e) =
+                                        fs::write(path_to_w.clone(), ellie_byte_conv.to_string())
+                                    {
+                                        println!(
                                                 "{}[WriteError]{}: Cannot write raw file {}'{}'{}, {}{}{}",
                                                 ellie_engine::terminal_colors::get_color(
                                                     ellie_engine::terminal_colors::Colors::Red
@@ -441,7 +435,6 @@ fn main() {
                                                 e.to_string(),
                                                 ellie_engine::terminal_colors::get_color(ellie_engine::terminal_colors::Colors::Reset),
                                             )
-                                        }
                                     }
                                 } else if env::args().any(|x| x == "-tj" || x == "--to-json") {
                                     print!("/");
@@ -756,42 +749,30 @@ fn main() {
                                 let collected_definite_items: Vec<definite::items::Collecting> =
                                     collected_items.collect();
 
-                                if env::args().any(|x| x == "-rw" || x == "--raw-compile") {
-                                    if !cfg!(feature = "raw") {
-                                        println!(
-                                            "{}[WrongConfig]{}: Config is not correct, raw feature must be enabled",
-                                            ellie_engine::terminal_colors::get_color(
-                                                ellie_engine::terminal_colors::Colors::Red
-                                            ),
-                                            ellie_engine::terminal_colors::get_color(ellie_engine::terminal_colors::Colors::Reset),
-                                        )
-                                    }
-
-                                    #[cfg(feature = "raw")]
+                                if env::args().any(|x| x == "-tb" || x == "--to-byte-code") {
+                                    let mut raw_conv = ellie_byte_code::converter::Converter::new(
+                                        "ellie_core".to_owned(),
+                                        ellie_byte_code::converter::ConverterOptions {
+                                            apply_comments: true,
+                                            lib_name: "<eval>".to_owned(),
+                                        },
+                                        false,
+                                    );
+                                    raw_conv.convert(mapped.parsed.to_definite());
+                                    println!("-----RAW---\n{:#?}", raw_conv.clone());
+                                    let path_to_w = format!(
+                                        "./raw_{}.eiw",
+                                        Path::new(&"eval".to_owned())
+                                            .extension()
+                                            .unwrap()
+                                            .to_str()
+                                            .unwrap()
+                                    );
+                                    if let Err(e) =
+                                        fs::write(path_to_w.clone(), raw_conv.to_string())
                                     {
-                                        let mut raw_conv = ellie_raw::converter::Converter::new(
-                                            "ellie_core".to_owned(),
-                                            ellie_raw::converter::ConverterOptions {
-                                                apply_comments: true,
-                                                lib_name: file_arg.to_string(),
-                                            },
-                                            false,
-                                        );
-                                        raw_conv.convert(mapped.parsed);
-                                        println!("-----RAW---\n{:#?}", raw_conv.clone());
-                                        let path_to_w = format!(
-                                            "./raw_{}.eiw",
-                                            Path::new(&file_arg.to_string())
-                                                .extension()
-                                                .unwrap()
-                                                .to_str()
-                                                .unwrap()
-                                        );
-                                        if let Err(e) =
-                                            fs::write(path_to_w.clone(), raw_conv.to_string())
-                                        {
-                                            println!(
-                                                "{}[WriteError]{}: Cannot write raw file {}'{}'{}, {}{}{}",
+                                        println!(
+                                                "{}[WriteError]{}: Cannot write byte code file {}'{}'{}, {}{}{}",
                                                 ellie_engine::terminal_colors::get_color(
                                                     ellie_engine::terminal_colors::Colors::Red
                                                 ),
@@ -805,7 +786,6 @@ fn main() {
                                                 e.to_string(),
                                                 ellie_engine::terminal_colors::get_color(ellie_engine::terminal_colors::Colors::Reset),
                                             )
-                                        }
                                     }
                                 } else if env::args().any(|x| x == "-tj" || x == "--to-json") {
                                     print!("/");

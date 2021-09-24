@@ -3,14 +3,14 @@
 //    import_item, native_function, ret, types, variable,
 //};
 
-use alloc::string::String;
+use alloc::vec::Vec;
+use crate::heap;
+use crate::stack;
+use crate::thread;
 
-pub struct Runtime {
-    pub start_point: String,
+pub struct Runtime<F, E> {
+
+    pub threads: Vec<thread::Thread<F, E>>
 }
 
-impl Runtime {
-    pub fn new(main: String) -> Runtime {
-        Runtime { start_point: main }
-    }
-}
+impl<F, E> Runtime<F, E> {}
