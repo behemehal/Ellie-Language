@@ -90,7 +90,7 @@ where
                     let frame_response = (self.controller.require_frame)(self.current_stack);
 
                 },
-                None => ,
+                None => panic!(""),
             }
 
         }
