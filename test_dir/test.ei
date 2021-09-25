@@ -1,4 +1,4 @@
 v adam = 123;
 
 
-adam = 3;
+adam == 3;

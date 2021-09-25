@@ -1,5 +1,5 @@
 use crate::alloc::format;
-use ellie_core::definite::{items, types, DefiniteParsed};
+use ellie_core::definite::{items, DefiniteParsed};
 
 pub struct InitialEntryCollector {
     pub key: usize,
@@ -67,7 +67,7 @@ impl Converter {
                 items::Collecting::ImportItem(_) => (),
                 items::Collecting::Variable(e) => {
                     if let Some(scope_pos) = self.clone().scope_pos(parsed.name.clone()).clone() {
-                        let mut scope = &mut self.scopes[scope_pos];
+                        let scope = &mut self.scopes[scope_pos];
                         scope.headers.push((index, e.name.clone()));
                         scope.initials.push((
                             index,
@@ -102,6 +102,7 @@ impl Converter {
                 items::Collecting::Getter(_) => todo!(),
                 items::Collecting::Setter(_) => todo!(),
                 items::Collecting::NativeClass => todo!(),
+                items::Collecting::ValueCall(_) => todo!(),
                 items::Collecting::Enum(_) => todo!(),
                 items::Collecting::NativeFunction(_) => todo!(),
                 items::Collecting::None => todo!(),
@@ -124,7 +125,7 @@ impl Converter {
             raw_scope += &"\tT:\n".to_owned();
 
             for item in scope.items {
-                let get_com_rest = match item.rtype {
+                let _get_com_rest = match item.rtype {
                     crate::Commands::RI => todo!(),
                     crate::Commands::PI => todo!(),
                     crate::Commands::RN => todo!(),

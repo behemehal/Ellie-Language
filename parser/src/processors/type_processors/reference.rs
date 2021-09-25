@@ -339,6 +339,7 @@ pub fn collect_reference<F>(
                             parser::Collecting::Getter(_) => todo!(),
                             parser::Collecting::Setter(_) => todo!(),
                             parser::Collecting::NativeClass => todo!(),
+                            parser::Collecting::ValueCall(_) => todo!(),
                             parser::Collecting::Enum(_) => todo!(),
                             parser::Collecting::NativeFunction(_) => todo!(),
                             parser::Collecting::None => todo!(),

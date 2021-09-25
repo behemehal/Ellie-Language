@@ -33,6 +33,7 @@ pub enum Collecting {
     Getter(getter::Getter),
     Setter(setter::Setter),
     NativeClass,
+    ValueCall(crate::definite::types::Types),
     Enum(enum_type::EnumType),
     NativeFunction(native_function::NativeFunction),
     None,

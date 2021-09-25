@@ -459,9 +459,8 @@ fn main() {
                                     }
                                     std::process::exit(0);
                                 } else {
-                                    let mut c = 1;
                                     let mut runtime = runtime::Runtime::spawn(Box::new(
-                                        |e: runtime::RuntimeEventMessage| {
+                                        |_: runtime::RuntimeEventMessage| {
                                             runtime::RuntimeEventResponse::None
                                         },
                                     ));

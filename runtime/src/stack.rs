@@ -1,5 +1,4 @@
 use alloc::{borrow::ToOwned, format, string::String, vec::Vec};
-use ellie_core::definite;
 
 #[derive(Debug)]
 pub enum StackElement {

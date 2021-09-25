@@ -42,6 +42,8 @@ pub fn iter<F>(
             });
             parser.keyword_pos.range_start = parser.pos;
             parser.keyword_catch = String::new();
+            parser.keyword_errors = Vec::new();
+            parser.keyword_cache = crate::syntax::variable::VariableCollector::default();
         } else {
             if parser.keyword_catch.trim().is_empty() && letter_char != " " {
                 parser.keyword_pos.range_start = parser.pos;
@@ -50,7 +52,6 @@ pub fn iter<F>(
                 parser.keyword_pos.range_end = parser.pos.clone().skip_char(1);
             }
             parser.keyword_catch += letter_char;
-
             processors::type_processor::collect_type(
                 parser,
                 errors,
@@ -58,10 +59,30 @@ pub fn iter<F>(
                 last_char.clone(),
                 next_char.clone(),
             );
+
+            if parser.current == parser::Collecting::None {
+                if parser.keyword_cache.data.value.is_type_complete() && letter_char == ";" {
+                    parser.collected.push(parser::Collecting::ValueCall(
+                        parser.keyword_cache.data.value.clone(),
+                    ));
+                    parser.keyword_catch = "".to_owned();
+                } else {
+                    processors::value_processor::collect_value(
+                        parser.clone(),
+                        &mut parser.keyword_cache,
+                        &mut parser.keyword_errors,
+                        letter_char,
+                        next_char,
+                        last_char,
+                    );
+                }
+            }
         }
     } else {
         parser.keyword_pos.range_start = parser.pos;
         parser.keyword_catch = String::new();
+        parser.keyword_errors = Vec::new();
+        parser.keyword_cache = crate::syntax::variable::VariableCollector::default();
     }
 
     match parser.current {

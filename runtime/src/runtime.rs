@@ -1,10 +1,3 @@
-//use ellie_parser::syntax::{
-//    caller, class, condition, constructor, definers, file_key, for_loop, function, import,
-//    import_item, native_function, ret, types, variable,
-//};
-
-use core::borrow::Borrow;
-
 use crate::heap;
 use crate::stack;
 use crate::thread;

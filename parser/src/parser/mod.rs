@@ -64,6 +64,7 @@ pub enum Collecting {
     Getter(getter::GetterCollector),
     Setter(setter::SetterCollector),
     NativeClass,
+    ValueCall(types::Types),
     Enum(enum_type::EnumTypeCollector),
     NativeFunction(native_function::NativeFunction),
     None,
@@ -86,6 +87,7 @@ impl Collecting {
             Collecting::Getter(e) => definite::items::Collecting::Getter(e.to_definite()),
             Collecting::Setter(e) => definite::items::Collecting::Setter(e.to_definite()),
             Collecting::NativeClass => definite::items::Collecting::NativeClass,
+            Collecting::ValueCall(e) => definite::items::Collecting::ValueCall(e.to_definite()),
             Collecting::Enum(e) => definite::items::Collecting::Enum(e.to_definite()),
             Collecting::NativeFunction(e) => {
                 definite::items::Collecting::NativeFunction(e.to_definite())
@@ -142,6 +144,9 @@ impl Collecting {
                 native_function::NativeFunction::default().from_definite(e),
             ),
             definite::items::Collecting::NativeClass => Collecting::NativeClass,
+            definite::items::Collecting::ValueCall(e) => {
+                Collecting::ValueCall(types::Types::default().from_definite(e))
+            }
             definite::items::Collecting::None => todo!(),
         }
     }
@@ -192,6 +197,7 @@ pub struct RawParser {
     pub keyword_pos: defs::Cursor,
     pub keyword_catch: String,
     pub keyword_cache: variable::VariableCollector,
+    pub keyword_errors: Vec<error::Error>,
 }
 
 impl RawParser {
@@ -215,6 +221,7 @@ impl RawParser {
             keyword_pos: self.keyword_pos,
             keyword_catch: self.keyword_catch,
             keyword_cache: self.keyword_cache,
+            keyword_errors: self.keyword_errors,
         }
     }
 
@@ -235,6 +242,7 @@ impl RawParser {
             keyword_pos: self.keyword_pos,
             keyword_catch: self.keyword_catch,
             keyword_cache: self.keyword_cache,
+            keyword_errors: self.keyword_errors,
         }
     }
 }
@@ -256,6 +264,7 @@ pub struct Parser<F> {
     pub keyword_pos: defs::Cursor,
     pub keyword_catch: String,
     pub keyword_cache: variable::VariableCollector,
+    pub keyword_errors: Vec<error::Error>,
 }
 
 #[derive(Debug)]
@@ -304,6 +313,7 @@ where
             current: Collecting::None,
             keyword_catch: String::new(),
             keyword_cache: variable::VariableCollector::default(),
+            keyword_errors: Vec::new(),
         }
     }
 
@@ -336,6 +346,7 @@ where
             keyword_pos: self.keyword_pos,
             keyword_catch: self.keyword_catch,
             keyword_cache: self.keyword_cache,
+            keyword_errors: self.keyword_errors,
         }
     }
 
@@ -395,6 +406,10 @@ where
         }
 
         if self.current != Collecting::None || !self.keyword_catch.trim().is_empty() {
+            std::println!("{:#?}", self.current);
+            std::println!("{:#?}", self.keyword_catch);
+            std::println!("{:#?}", self.keyword_cache);
+            std::println!("{:#?}", self.keyword_errors);
             errors.push(error::Error {
                 path: self.options.path.clone(),
                 scope: "definer_processor".to_owned(),

@@ -1,6 +1,5 @@
 use alloc::boxed::Box;
 use alloc::collections::BTreeMap;
-use alloc::format;
 use alloc::vec;
 use alloc::vec::Vec;
 
@@ -112,7 +111,7 @@ impl Thread {
             let current_job = self.tasks.last().unwrap().clone();
             match self.stack.get_mut(&current_job) {
                 Some(stack) => {
-                    let frame_response = self
+                    let _frame_response = self
                         .controller
                         .require_frame
                         .call((current_job, stack.step));
