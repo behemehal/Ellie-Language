@@ -1,22 +1,29 @@
+use alloc::boxed::Box;
 use alloc::collections::BTreeMap;
+use alloc::format;
+use alloc::vec;
 use alloc::vec::Vec;
 
 use crate::heap;
 use crate::stack;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum NotifierMessageType {
-    StackFault,
+    StackIdFault,
     HeapIdFault,
     CommandFault,
-    StackHang,
+    StackPaused,
     StackResume,
     StackCrash,
+    StackComplete,
+    ThreadStopped,
+    StackStep,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct NotifierMessage {
     pub stack_id: usize,
+    pub stack_step: usize,
     pub message_type: NotifierMessageType,
 }
 
@@ -26,73 +33,134 @@ pub enum ThreadMessage {
     HALT,
 }
 
-#[derive(Default)]
-pub struct ThreadController<F, E> {
-    pub notifier: F,
-    pub require_frame: E,
+pub trait NotifierFn {
+    fn call(&mut self, args: NotifierMessage);
+}
+
+impl<T> NotifierFn for T
+where
+    T: FnMut(NotifierMessage) + Sized,
+{
+    fn call(&mut self, args: NotifierMessage) {
+        self(args)
+    }
+}
+
+pub trait FrameFn {
+    fn call(&mut self, args: (usize, usize)) -> ThreadMessage;
+}
+
+impl<T> FrameFn for T
+where
+    T: FnMut((usize, usize)) -> ThreadMessage + Sized,
+{
+    fn call(&mut self, args: (usize, usize)) -> ThreadMessage {
+        self(args)
+    }
+}
+
+pub struct ThreadController {
+    pub notifier: Box<dyn NotifierFn>,
+    pub require_frame: Box<dyn FrameFn>,
     pub wait_next_frame: bool,
 }
 
-impl<F, E> ThreadController<F, E>
-where
-    E: FnMut(usize) + Clone + Sized,
-    F: FnMut(NotifierMessage) -> ThreadMessage + Clone + Sized,
-{
-    pub fn new(
-        notifier: F,
-        require_frame: E,
-    ) -> ThreadController<
-        impl FnMut(NotifierMessage) -> ThreadMessage + Clone + Sized,
-        impl FnMut(usize) + Clone + Sized,
-    > {
+impl ThreadController {
+    pub fn new() -> Self {
         ThreadController {
-            notifier,
-            require_frame,
+            notifier: Box::new(|_| {}),
+            require_frame: Box::new(|_| ThreadMessage::CONTINUE),
             wait_next_frame: true,
         }
     }
 }
 
-pub struct Thread<F, E> {
+pub struct Thread {
     pub id: usize,
     pub stack: BTreeMap<usize, stack::Stack>,
     pub heap: heap::Heap,
-    pub controller: ThreadController<F, E>,
-    pub current_stack: usize,
+    pub controller: ThreadController,
+    pub tasks: Vec<usize>,
     pub hang: bool,
 }
 
-impl<F, E> Thread<F, E>
-where
-    E: FnMut(usize) + Clone + Sized,
-    F: FnMut(NotifierMessage) -> ThreadMessage + Clone + Sized,
-{
+impl Thread {
     pub fn new(
         id: usize,
         stack: BTreeMap<usize, stack::Stack>,
         heap: heap::Heap,
-        thread_controller: ThreadController<F, E>,
-    ) -> Thread<F, E> {
+        thread_controller: ThreadController,
+    ) -> Thread {
         Thread {
             id,
             stack,
             heap,
-            current_stack: 0,
+            tasks: vec![0],
             hang: true,
             controller: thread_controller,
         }
     }
 
     pub fn run(&mut self) {
-        if !self.hang {
-            match self.stack.get(&self.current_stack) {
+        if self.tasks.len() == 0 {
+            self.controller.notifier.call(NotifierMessage {
+                stack_id: 0,
+                stack_step: 0,
+                message_type: NotifierMessageType::ThreadStopped,
+            });
+        } else {
+            let current_job = self.tasks.last().unwrap().clone();
+            match self.stack.get_mut(&current_job) {
                 Some(stack) => {
-                    let frame_response = (self.controller.require_frame)(self.current_stack);
-
-                },
-                None => panic!(""),
+                    let frame_response = self
+                        .controller
+                        .require_frame
+                        .call((current_job, stack.step));
+                    match stack.elements.get(stack.step) {
+                        Some(element) => {
+                            std::println!("THREAD RUN COMMAND: {:#?}", element);
+                            //match element {
+                            //    stack::StackElements::Function(_) => todo!(),
+                            //    stack::StackElements::Class(_) => todo!(),
+                            //    stack::StackElements::Variable(e) => {},
+                            //};
+                            stack.step += 1;
+                            if stack.elements.len() == stack.step {
+                                self.tasks.pop();
+                                self.controller.notifier.call(NotifierMessage {
+                                    stack_id: current_job,
+                                    stack_step: 0,
+                                    message_type: NotifierMessageType::StackComplete,
+                                });
+                            } else {
+                                self.controller.notifier.call(NotifierMessage {
+                                    stack_id: current_job,
+                                    stack_step: 0,
+                                    message_type: NotifierMessageType::StackStep,
+                                });
+                            }
+                        }
+                        None => {
+                            self.controller.notifier.call(NotifierMessage {
+                                stack_id: current_job,
+                                stack_step: 0,
+                                message_type: NotifierMessageType::CommandFault,
+                            });
+                            self.tasks = vec![];
+                        }
+                    }
+                }
+                None => {
+                    self.controller.notifier.call(NotifierMessage {
+                        stack_id: current_job,
+                        stack_step: 0,
+                        message_type: NotifierMessageType::StackIdFault,
+                    });
+                    self.tasks = vec![];
+                }
             }
-
         }
+
+        if !self.hang {}
     }
 }

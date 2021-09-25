@@ -1,5 +1,6 @@
 use ellie_core::definite;
 use ellie_parser::parser;
+use ellie_runtime::runtime;
 use fs::File;
 use std::env;
 use std::path::Path;
@@ -25,6 +26,7 @@ fn main() {
         println!("\t--help                       || -h   : Show Help");
         println!("\t--debug                      || -d   : Show debug headers");
         println!("\t--to-json                    || -tj  : Compiles ellie to ellie json");
+        println!("\t--render-console             || -rc  : Compiles ellie render to console");
         println!("\t--to-byte-code               || -tb  : Compiles ellie to byte code");
         println!("\t--show-errors                || -se  : Linter code for errors");
         println!("\t--json-errors                || -je  : Linter code for errors as json");
@@ -442,7 +444,8 @@ fn main() {
                                         print!("-\n{:#?}\n", serde_json::to_string(&item).unwrap());
                                     }
                                     std::process::exit(0);
-                                } else {
+                                } else if env::args().any(|x| x == "-rc" || x == "--render-console")
+                                {
                                     if env::args().any(|x| x == "-e") {
                                         print!(
                                             "Collected non-definite items: {:#?}",
@@ -455,6 +458,15 @@ fn main() {
                                         );
                                     }
                                     std::process::exit(0);
+                                } else {
+                                    let mut c = 1;
+                                    let mut runtime = runtime::Runtime::spawn(Box::new(
+                                        |e: runtime::RuntimeEventMessage| {
+                                            runtime::RuntimeEventResponse::None
+                                        },
+                                    ));
+
+                                    runtime.run(mapped.parsed.to_definite().items)
                                 }
                             }
 

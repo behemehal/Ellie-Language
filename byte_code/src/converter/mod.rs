@@ -69,12 +69,14 @@ impl Converter {
                     if let Some(scope_pos) = self.clone().scope_pos(parsed.name.clone()).clone() {
                         let mut scope = &mut self.scopes[scope_pos];
                         scope.headers.push((index, e.name.clone()));
-                            scope.initials.push((
-                                index,
-                                ellie_parser::syntax::types::Types::default().from_definite(e.value.clone()).get_type(),
-                                "e.collected_value.clone()".to_string(),
-                            ));
-                        
+                        scope.initials.push((
+                            index,
+                            ellie_parser::syntax::types::Types::default()
+                                .from_definite(e.value.clone())
+                                .get_type(),
+                            "e.collected_value.clone()".to_string(),
+                        ));
+
                         scope.items.push(crate::Item {
                             rtype: if e.public {
                                 crate::Commands::PV
@@ -87,7 +89,7 @@ impl Converter {
                             ..Default::default()
                         })
                     }
-                },
+                }
                 items::Collecting::Function(_) => todo!(),
                 items::Collecting::ForLoop(_) => todo!(),
                 items::Collecting::Condition(_) => todo!(),
