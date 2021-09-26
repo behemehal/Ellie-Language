@@ -72,7 +72,7 @@ impl Stack {
         parameters: Vec<(usize, StackElement)>,
         return_type: StackElement,
     ) -> usize {
-        let id = self.elements.len() + 1;
+        let id = self.elements.len();
         self.elements.push(StackElements::Function(Function {
             id,
             parameters,
@@ -87,7 +87,7 @@ impl Stack {
         value: Option<usize>,
         dynamic: bool,
     ) -> usize {
-        let id = self.elements.len() + 1;
+        let id = self.elements.len();
         self.elements.push(StackElements::Variable(Variable {
             id,
             rtype,
@@ -98,7 +98,7 @@ impl Stack {
     }
 
     pub fn register_class(&mut self, inner_page_id: usize, generics: Vec<usize>) -> usize {
-        let id = self.elements.len() + 1;
+        let id = self.elements.len();
         self.elements.push(StackElements::Class(Class {
             id,
             inner_page_id,
@@ -142,8 +142,7 @@ impl Stack {
                         .join(", "),
                 )),
                 StackElements::Variable(i) => lines.push(format!(
-                    "\t\t{} {:#04x} : {}{}",
-                    if i.dynamic { "dyn " } else { "" },
+                    "\t\t{:#04x} : {}{}",
                     i.id,
                     match i.rtype {
                         StackElement::Type(e) => format!("t({:#04x})", e),

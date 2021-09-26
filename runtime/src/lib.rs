@@ -22,7 +22,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#![feature(allocator_api)]
 #![no_std]
 #![allow(unused_assignments)]
 #![allow(unknown_lints)]

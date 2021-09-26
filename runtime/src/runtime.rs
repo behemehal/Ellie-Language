@@ -163,7 +163,7 @@ impl Runtime {
                         page.headers.insert(
                             page.stack.register_variable(
                                 stack::StackElement::Type(0),
-                                Some(add_data_to_heap(&mut page.heap, variable.value).clone()),
+                                Some(add_data_to_heap(&mut page.heap, variable.value).clone() - 1),
                                 variable.dynamic,
                             ),
                             variable.name,
@@ -211,7 +211,7 @@ impl Runtime {
                                 .collect::<Vec<_>>(),
                         );
 
-                        let page_id = current_pages_len;
+                        let page_id = current_pages_len + 1;
 
                         let mut generics = Vec::new();
                         let mut child_headers: BTreeMap<usize, String> = BTreeMap::new();
@@ -305,19 +305,19 @@ impl Runtime {
 
         //Ring zero
         pages.insert(
-            0,
+            1,
             thread::Page {
-                page_id: 0,
+                page_id: 1,
                 headers: BTreeMap::new(),
                 heap: heap::Heap::new(),
-                stack: stack::Stack::new(0),
+                stack: stack::Stack::new(1),
                 step: 0,
             },
         );
 
         for item in code {
             //Split code to pages
-            loop_item(&mut pages, item, 0);
+            loop_item(&mut pages, item, 1);
         }
 
         /*

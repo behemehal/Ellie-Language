@@ -77,7 +77,11 @@ impl Heap {
     }
 
     pub fn dump(self) -> String {
-        let values: Vec<HeapTypes> = self.values.into_values().collect();
+        let mut values: Vec<HeapTypes> = Vec::new();
+	for i in self.values {
+		values.push(i.1);
+	}
+
         let mut lines: Vec<String> = Vec::with_capacity(values.len());
 
         for i in 0..values.len() {
