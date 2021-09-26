@@ -348,15 +348,17 @@ pub fn collect_reference<F>(
                     }
                 }
 
-                match resolve_chain(
-                    parser.clone(),
-                    reference_data.data.chain[last_entry - 1].clone(),
-                    reference_data.last_entry.clone(),
-                ) {
-                    Ok(e) => {
-                        reference_data.last_entry = e;
+                if last_entry != 0 {
+                    match resolve_chain(
+                        parser.clone(),
+                        reference_data.data.chain[last_entry - 1].clone(),
+                        reference_data.last_entry.clone(),
+                    ) {
+                        Ok(e) => {
+                            reference_data.last_entry = e;
+                        }
+                        Err(e) => errors.extend(e),
                     }
-                    Err(e) => errors.extend(e),
                 }
             }
         }

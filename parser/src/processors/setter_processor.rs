@@ -121,6 +121,7 @@ pub fn collect_setter_value<F>(
                     child_parser.collected.push(parser::Collecting::ImportItem(
                         crate::syntax::import_item::ImportItem {
                             from_path: "<temporary>".to_owned(),
+                            resolution_id: 0,
                             public: true,
                             item: Box::new(item),
                         },

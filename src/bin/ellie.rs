@@ -465,7 +465,30 @@ fn main() {
                                         },
                                     ));
 
-                                    runtime.run(mapped.parsed.to_definite().items)
+                                    runtime.run(mapped.parsed.to_definite().items);
+                                    println!("DUMPING RUNTIME");
+                                    let path_to_w = format!(
+                                        "./{}.dmp",
+                                        Path::new(&file_arg.to_string())
+                                            .extension()
+                                            .unwrap()
+                                            .to_str()
+                                            .unwrap()
+                                    );
+                                    match fs::write(path_to_w.clone(), runtime.dump()) {
+                                        Ok(_) => {
+                                            println!(
+                                                "DUMP DATA SUCCESSFULLY WRITTEN TO `{}`",
+                                                path_to_w
+                                            );
+                                        }
+                                        Err(e) => {
+                                            println!(
+                                                "FAILED TO WRITE DUMP DATA ({})",
+                                                e.to_string()
+                                            );
+                                        }
+                                    };
                                 }
                             }
 
@@ -804,7 +827,8 @@ fn main() {
                                         print!("-\n{:#?}\n", serde_json::to_string(&item).unwrap());
                                     }
                                     std::process::exit(0);
-                                } else {
+                                } else if env::args().any(|x| x == "-rc" || x == "--render-console")
+                                {
                                     if env::args().any(|x| x == "-e") {
                                         print!(
                                             "Collected non-definite items: {:#?}",
@@ -817,6 +841,36 @@ fn main() {
                                         );
                                     }
                                     std::process::exit(0);
+                                } else {
+                                    let mut runtime = runtime::Runtime::spawn(Box::new(
+                                        |_: runtime::RuntimeEventMessage| {
+                                            runtime::RuntimeEventResponse::None
+                                        },
+                                    ));
+                                    runtime.run(mapped.parsed.to_definite().items);
+                                    println!("DUMPING RUNTIME");
+                                    let path_to_w = format!(
+                                        "./{}.dmp",
+                                        Path::new(&"eval".to_owned())
+                                            .extension()
+                                            .unwrap()
+                                            .to_str()
+                                            .unwrap()
+                                    );
+                                    match fs::write(path_to_w.clone(), runtime.dump()) {
+                                        Ok(_) => {
+                                            println!(
+                                                "DUMP DATA SUCCESSFULLY WRITTEN TO `{}`",
+                                                path_to_w
+                                            );
+                                        }
+                                        Err(e) => {
+                                            println!(
+                                                "FAILED TO WRITE DUMP DATA ({})",
+                                                e.to_string()
+                                            );
+                                        }
+                                    };
                                 }
                             }
 

@@ -1,5 +1,6 @@
 use alloc::boxed::Box;
 use alloc::collections::BTreeMap;
+use alloc::string::String;
 use alloc::vec;
 use alloc::vec::Vec;
 
@@ -21,7 +22,7 @@ pub enum NotifierMessageType {
 
 #[derive(Debug, Clone)]
 pub struct NotifierMessage {
-    pub stack_id: usize,
+    pub stack_id: u64,
     pub stack_step: usize,
     pub message_type: NotifierMessageType,
 }
@@ -46,14 +47,14 @@ where
 }
 
 pub trait FrameFn {
-    fn call(&mut self, args: (usize, usize)) -> ThreadMessage;
+    fn call(&mut self, args: (u64, usize)) -> ThreadMessage;
 }
 
 impl<T> FrameFn for T
 where
-    T: FnMut((usize, usize)) -> ThreadMessage + Sized,
+    T: FnMut((u64, usize)) -> ThreadMessage + Sized,
 {
-    fn call(&mut self, args: (usize, usize)) -> ThreadMessage {
+    fn call(&mut self, args: (u64, usize)) -> ThreadMessage {
         self(args)
     }
 }
@@ -74,26 +75,32 @@ impl ThreadController {
     }
 }
 
+#[derive(Debug, Clone)]
+pub struct Page {
+    pub page_id: u64,
+    pub headers: BTreeMap<usize, String>,
+    pub heap: heap::Heap,
+    pub stack: stack::Stack,
+    pub step: usize,
+}
+
 pub struct Thread {
     pub id: usize,
-    pub stack: BTreeMap<usize, stack::Stack>,
-    pub heap: heap::Heap,
+    pub pages: BTreeMap<u64, Page>,
     pub controller: ThreadController,
-    pub tasks: Vec<usize>,
+    pub tasks: Vec<u64>,
     pub hang: bool,
 }
 
 impl Thread {
     pub fn new(
         id: usize,
-        stack: BTreeMap<usize, stack::Stack>,
-        heap: heap::Heap,
+        pages: BTreeMap<u64, Page>,
         thread_controller: ThreadController,
     ) -> Thread {
         Thread {
             id,
-            stack,
-            heap,
+            pages,
             tasks: vec![0],
             hang: true,
             controller: thread_controller,
@@ -109,13 +116,11 @@ impl Thread {
             });
         } else {
             let current_job = self.tasks.last().unwrap().clone();
-            match self.stack.get_mut(&current_job) {
-                Some(stack) => {
-                    let _frame_response = self
-                        .controller
-                        .require_frame
-                        .call((current_job, stack.step));
-                    match stack.elements.get(stack.step) {
+            match self.pages.get_mut(&current_job) {
+                Some(page) => {
+                    let _frame_response =
+                        self.controller.require_frame.call((current_job, page.step));
+                    match page.stack.elements.get(page.step) {
                         Some(element) => {
                             std::println!("THREAD RUN COMMAND: {:#?}", element);
                             //match element {
@@ -123,8 +128,8 @@ impl Thread {
                             //    stack::StackElements::Class(_) => todo!(),
                             //    stack::StackElements::Variable(e) => {},
                             //};
-                            stack.step += 1;
-                            if stack.elements.len() == stack.step {
+                            page.step += 1;
+                            if page.stack.elements.len() == page.step {
                                 self.tasks.pop();
                                 self.controller.notifier.call(NotifierMessage {
                                     stack_id: current_job,

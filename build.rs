@@ -47,6 +47,7 @@ fn resolve_import(
             found: true,
             resolved_path: ("./lib/".to_owned() + &lib_name + &file_extension),
             file_content: ellie_parser::parser::ResolvedFileContent::Raw(e),
+            resolution_id: 0,
             ..Default::default()
         },
         Err(err) => {

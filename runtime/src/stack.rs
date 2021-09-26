@@ -1,41 +1,40 @@
 use alloc::{borrow::ToOwned, format, string::String, vec::Vec};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum StackElement {
     Type(usize),
     Generic(usize),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Function {
     pub id: usize,
     pub parameters: Vec<(usize, StackElement)>,
     pub return_type: StackElement,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Variable {
     pub id: usize,
     pub rtype: StackElement,
     pub dynamic: bool,
-    pub raw_value: Option<ellie_parser::syntax::types::Types>,
     pub value: Option<usize>, //A heap storage id
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Class {
     pub id: usize,
-    pub inner_stack_id: usize,
+    pub inner_page_id: usize,
     pub generics: Vec<usize>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Addition {
     pub target_heap: usize,
     pub value: usize,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum StackElements {
     Function(Function),
     Class(Class),
@@ -45,10 +44,9 @@ pub enum StackElements {
     //Collective
 }
 
-#[derive(Default)]
+#[derive(Default, Debug, Clone)]
 pub struct Stack {
     pub id: usize,
-    pub step: usize,
     pub elements: Vec<StackElements>,
 }
 
@@ -86,7 +84,6 @@ impl Stack {
     pub fn register_variable(
         &mut self,
         rtype: StackElement,
-        raw_value: Option<ellie_parser::syntax::types::Types>,
         value: Option<usize>,
         dynamic: bool,
     ) -> usize {
@@ -95,17 +92,16 @@ impl Stack {
             id,
             rtype,
             dynamic,
-            raw_value,
             value,
         }));
         id
     }
 
-    pub fn register_class(&mut self, inner_stack_id: usize, generics: Vec<usize>) -> usize {
+    pub fn register_class(&mut self, inner_page_id: usize, generics: Vec<usize>) -> usize {
         let id = self.elements.len() + 1;
         self.elements.push(StackElements::Class(Class {
             id,
-            inner_stack_id,
+            inner_page_id,
             generics,
         }));
         id
@@ -138,7 +134,7 @@ impl Stack {
                 StackElements::Class(i) => lines.push(format!(
                     "{:#04x} : {:#04x} : {}",
                     i.id,
-                    i.inner_stack_id,
+                    i.inner_page_id,
                     i.generics
                         .into_iter()
                         .map(|x| format!("{:#04x}", x))

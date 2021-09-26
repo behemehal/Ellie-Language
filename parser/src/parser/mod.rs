@@ -284,6 +284,7 @@ pub struct ResolvedImport {
     pub found: bool,
     pub resolve_error: String,
     pub resolved_path: String,
+    pub resolution_id: u64,
     pub file_content: ResolvedFileContent,
 }
 
@@ -405,11 +406,8 @@ where
             }
         }
 
+        errors.extend(self.keyword_errors);
         if self.current != Collecting::None || !self.keyword_catch.trim().is_empty() {
-            std::println!("{:#?}", self.current);
-            std::println!("{:#?}", self.keyword_catch);
-            std::println!("{:#?}", self.keyword_cache);
-            std::println!("{:#?}", self.keyword_errors);
             errors.push(error::Error {
                 path: self.options.path.clone(),
                 scope: "definer_processor".to_owned(),

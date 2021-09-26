@@ -43,7 +43,6 @@ pub fn collect_type<F>(
     {
         parser.current = parser::Collecting::Import(import::Import {
             public: keyword == "pub import " || keyword == "pub importNative ",
-            pri_keyword: keyword == "pri import " || keyword == "pri importNative ",
             native: keyword == "importNative "
                 || keyword == "pub importNative "
                 || keyword == "pri importNative ",

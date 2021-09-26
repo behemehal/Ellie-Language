@@ -34,6 +34,7 @@ pub fn collect_import<F>(
                         import_data.path.clone(),
                         import_data.native,
                     );
+                    import_data.resolution_id = response.resolution_id.clone();
 
                     if !response.found {
                         if response.resolve_error == "" {
@@ -126,6 +127,9 @@ pub fn collect_import<F>(
                                                         .collected
                                                         .push(crate::parser::Collecting::ImportItem(
                                                         crate::syntax::import_item::ImportItem {
+                                                            resolution_id: response
+                                                                .resolution_id
+                                                                .clone(),
                                                             from_path: import_data.path.clone(),
                                                             item: Box::new(item),
                                                             public: true,
@@ -139,6 +143,9 @@ pub fn collect_import<F>(
                                                         .collected
                                                         .push(crate::parser::Collecting::ImportItem(
                                                         crate::syntax::import_item::ImportItem {
+                                                            resolution_id: response
+                                                                .resolution_id
+                                                                .clone(),
                                                             from_path: import_data.path.clone(),
                                                             item: Box::new(item),
                                                             public: true,
@@ -152,6 +159,9 @@ pub fn collect_import<F>(
                                                         .collected
                                                         .push(crate::parser::Collecting::ImportItem(
                                                         crate::syntax::import_item::ImportItem {
+                                                            resolution_id: import_data
+                                                                .resolution_id
+                                                                .clone(),
                                                             from_path: import_data.path.clone(),
                                                             item: Box::new(item),
                                                             public: true,
@@ -165,6 +175,9 @@ pub fn collect_import<F>(
                                                         .collected
                                                         .push(crate::parser::Collecting::ImportItem(
                                                         crate::syntax::import_item::ImportItem {
+                                                            resolution_id: import_data
+                                                                .resolution_id
+                                                                .clone(),
                                                             from_path: import_data.path.clone(),
                                                             item: Box::new(item),
                                                             public: true,
@@ -176,6 +189,9 @@ pub fn collect_import<F>(
                                                 parser.collected.push(
                                                     crate::parser::Collecting::ImportItem(
                                                         crate::syntax::import_item::ImportItem {
+                                                            resolution_id: import_data
+                                                                .resolution_id
+                                                                .clone(),
                                                             from_path: import_data.path.clone(),
                                                             item: Box::new(item),
                                                             public: import_data.public,
@@ -300,6 +316,9 @@ pub fn collect_import<F>(
                                                         .collected
                                                         .push(crate::parser::Collecting::ImportItem(
                                                         crate::syntax::import_item::ImportItem {
+                                                            resolution_id: import_data
+                                                                .resolution_id
+                                                                .clone(),
                                                             from_path: import_data.path.clone(),
                                                             item: Box::new(item),
                                                             public: true,
@@ -313,6 +332,9 @@ pub fn collect_import<F>(
                                                         .collected
                                                         .push(crate::parser::Collecting::ImportItem(
                                                         crate::syntax::import_item::ImportItem {
+                                                            resolution_id: import_data
+                                                                .resolution_id
+                                                                .clone(),
                                                             from_path: import_data.path.clone(),
                                                             item: Box::new(item),
                                                             public: true,
@@ -326,6 +348,9 @@ pub fn collect_import<F>(
                                                         .collected
                                                         .push(crate::parser::Collecting::ImportItem(
                                                         crate::syntax::import_item::ImportItem {
+                                                            resolution_id: import_data
+                                                                .resolution_id
+                                                                .clone(),
                                                             from_path: import_data.path.clone(),
                                                             item: Box::new(item),
                                                             public: true,
@@ -337,6 +362,9 @@ pub fn collect_import<F>(
                                                 parser.collected.push(
                                                     crate::parser::Collecting::ImportItem(
                                                         crate::syntax::import_item::ImportItem {
+                                                            resolution_id: import_data
+                                                                .resolution_id
+                                                                .clone(),
                                                             from_path: import_data.path.clone(),
                                                             item: Box::new(item),
                                                             public: import_data.public,

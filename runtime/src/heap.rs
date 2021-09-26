@@ -8,7 +8,7 @@ pub enum HeapWarning {
 }
 */
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum HeapIntegerSize {
     U8(u8),
     U16(u16),
@@ -24,18 +24,19 @@ pub enum HeapIntegerSize {
     Isize(isize),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum HeapFloatSize {
     F32(f32),
     F64(f64),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum HeapTypes {
     Integer(HeapIntegerSize),
     Float(HeapFloatSize),
     Bool(bool),
     String(&'static str),
+    Null
     /*
     Char(char),
     Collective,
@@ -56,7 +57,7 @@ pub struct HeapElement {
     pub rtype: BTreeMap<usize, HeapTypes>,
 }
 
-#[derive(Default)]
+#[derive(Default, Debug, Clone)]
 pub struct Heap {
     pub id: usize,
     pub values: BTreeMap<usize, HeapTypes>,
@@ -81,7 +82,7 @@ impl Heap {
         let mut lines: Vec<String> = Vec::with_capacity(values.len());
 
         for i in 0..values.len() {
-            lines.push(format!("{:#04x} : {:#?}", i, values[i]));
+            lines.push(format!("{:#04x} : {:?}", i, values[i]));
         }
         lines.join("\n\r")
     }

@@ -1,5 +1,11 @@
-use std::path::Path;
-use std::{fs::File, io::Read};
+use std::{
+    collections::hash_map::DefaultHasher,
+    fs::File,
+    hash::{Hash, Hasher},
+    io::Read,
+    path::Path,
+};
+
 extern crate path_absolutize;
 
 use crate::terminal_colors;
@@ -103,6 +109,7 @@ pub fn resolve_import(
             file_content: ellie_parser::parser::ResolvedFileContent::Raw(
                 ellie_core::builded_libraries::ELLIE_STANDARD_LIBRARY.to_string(),
             ),
+            resolution_id: 0,
             ..Default::default()
         }
     } else {
@@ -120,17 +127,23 @@ pub fn resolve_import(
             }
         } else {
             match read_file(Path::new(&path).absolutize().unwrap().to_str().unwrap()) {
-                Ok(file) => ellie_parser::parser::ResolvedImport {
-                    found: true,
-                    file_content: ellie_parser::parser::ResolvedFileContent::Raw(file),
-                    resolved_path: Path::new(&path)
-                        .absolutize()
-                        .unwrap()
-                        .to_str()
-                        .unwrap()
-                        .to_string(),
-                    ..Default::default()
-                },
+                Ok(file) => {
+                    let mut hasher = DefaultHasher::new();
+                    file.hash(&mut hasher);
+
+                    ellie_parser::parser::ResolvedImport {
+                        found: true,
+                        file_content: ellie_parser::parser::ResolvedFileContent::Raw(file),
+                        resolved_path: Path::new(&path)
+                            .absolutize()
+                            .unwrap()
+                            .to_str()
+                            .unwrap()
+                            .to_string(),
+                        resolution_id: hasher.finish(),
+                        ..Default::default()
+                    }
+                }
                 Err(c) => ellie_parser::parser::ResolvedImport {
                     found: false,
                     resolve_error: format!(

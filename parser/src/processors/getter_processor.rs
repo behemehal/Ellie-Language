@@ -120,6 +120,7 @@ pub fn collect_getter_value<F>(
                     //Import variables as temporary for syntax support, we will remove them after collecting complete
                     child_parser.collected.push(parser::Collecting::ImportItem(
                         crate::syntax::import_item::ImportItem {
+                            resolution_id: 0,
                             from_path: "<temporary>".to_owned(),
                             public: true,
                             item: Box::new(item),

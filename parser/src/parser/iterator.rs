@@ -60,7 +60,10 @@ pub fn iter<F>(
                 next_char.clone(),
             );
 
-            if parser.current == parser::Collecting::None {
+            if parser.current == parser::Collecting::None
+                && !parser.on_comment
+                && !parser.on_line_comment
+            {
                 if parser.keyword_cache.data.value.is_type_complete() && letter_char == ";" {
                     parser.collected.push(parser::Collecting::ValueCall(
                         parser.keyword_cache.data.value.clone(),

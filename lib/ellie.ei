@@ -23,7 +23,6 @@
 */
 
 @version = "1.4.1"; //Changing this triggers build.rs
-@parserInfo = "This is prebuilt library";
 pub import string;
 pub import void;
 pub import int;

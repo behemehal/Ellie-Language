@@ -385,6 +385,7 @@ pub fn collect_class<F>(
                     if let parser::Collecting::ImportItem(import) = item {
                         child_parser.collected.push(parser::Collecting::ImportItem(
                             import_item::ImportItem {
+                                resolution_id: 0,
                                 from_path: "<temporary>".to_owned(),
                                 public: true,
                                 item: import.item,
@@ -393,6 +394,7 @@ pub fn collect_class<F>(
                     } else {
                         child_parser.collected.push(parser::Collecting::ImportItem(
                             import_item::ImportItem {
+                                resolution_id: 0,
                                 from_path: "<temporary>".to_owned(),
                                 public: true,
                                 item: Box::new(item),

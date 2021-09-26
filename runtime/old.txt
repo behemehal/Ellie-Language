@@ -1,0 +1,110 @@
+        /*
+        fn add_data_to_heap(
+            pages: &mut BTreeMap<u64, thread::Page>,
+            page_id: u64,
+            data: definite::types::Types,
+        ) -> usize {
+            match data {
+                definite::types::Types::Integer(e) => match pages.get_mut(&page_id) {
+                    Some(page) => page.heap.insert(heap::HeapTypes::Integer(match e.value {
+                        definite::types::integer::IntegerSize::U8(e) => {
+                            heap::HeapIntegerSize::U8(e)
+                        }
+                        definite::types::integer::IntegerSize::U16(e) => {
+                            heap::HeapIntegerSize::U16(e)
+                        }
+                        definite::types::integer::IntegerSize::U32(e) => {
+                            heap::HeapIntegerSize::U32(e)
+                        }
+                        definite::types::integer::IntegerSize::U64(e) => {
+                            heap::HeapIntegerSize::U64(e)
+                        }
+                        definite::types::integer::IntegerSize::U128(e) => {
+                            heap::HeapIntegerSize::U128(e)
+                        }
+                        definite::types::integer::IntegerSize::Usize(e) => {
+                            heap::HeapIntegerSize::Usize(e)
+                        }
+                        definite::types::integer::IntegerSize::I8(e) => {
+                            heap::HeapIntegerSize::I8(e)
+                        }
+                        definite::types::integer::IntegerSize::I16(e) => {
+                            heap::HeapIntegerSize::I16(e)
+                        }
+                        definite::types::integer::IntegerSize::I32(e) => {
+                            heap::HeapIntegerSize::I32(e)
+                        }
+                        definite::types::integer::IntegerSize::I64(e) => {
+                            heap::HeapIntegerSize::I64(e)
+                        }
+                        definite::types::integer::IntegerSize::I128(e) => {
+                            heap::HeapIntegerSize::I128(e)
+                        }
+                        definite::types::integer::IntegerSize::Isize(e) => {
+                            heap::HeapIntegerSize::Isize(e)
+                        }
+                    })),
+                    None => panic!("UNEXPECTED BEHAVIOUR: CANNOT FIND PAGE"),
+                },
+                definite::types::Types::Float(e) => match pages.get_mut(&page_id) {
+                    Some(page) => page.heap.insert(heap::HeapTypes::Float(match e.value {
+                        definite::types::float::FloatSize::F32(e) => heap::HeapFloatSize::F32(e),
+                        definite::types::float::FloatSize::F64(e) => heap::HeapFloatSize::F64(e),
+                    })),
+                    None => panic!("UNEXPECTED BEHAVIOUR: CANNOT FIND PAGE"),
+                },
+                definite::types::Types::Bool(_) => todo!(),
+                definite::types::Types::String(_) => todo!(),
+                definite::types::Types::Char(_) => todo!(),
+                definite::types::Types::Collective(_) => todo!(),
+                definite::types::Types::Reference(_) => todo!(),
+                definite::types::Types::Operator(_) => todo!(),
+                definite::types::Types::Cloak(_) => todo!(),
+                definite::types::Types::Array(_) => todo!(),
+                definite::types::Types::ArrowFunction(_) => todo!(),
+                definite::types::Types::ConstructedClass(_) => todo!(),
+                definite::types::Types::FunctionCall(_) => todo!(),
+                definite::types::Types::Void => todo!(),
+                definite::types::Types::NullResolver(_) => todo!(),
+                definite::types::Types::Negative(_) => todo!(),
+                definite::types::Types::VariableType(_) => todo!(),
+                definite::types::Types::Null => todo!(),
+            }
+        };
+
+        fn add_item_to_stack(
+            pages: &mut BTreeMap<u64, thread::Page>,
+            page_id: u64,
+            x: definite::items::Collecting,
+        ) {
+            match x {
+                definite::items::Collecting::Variable(e) => match pages.get_mut(&page_id) {
+                    Some(page) => {
+                        page.headers.insert(page.headers.len(), e.name);
+
+                        page.stack.register_variable(
+                            stack::StackElement::Type(0),
+                            Some(add_data_to_heap(pages, page_id, e.value)),
+                            e.dynamic,
+                        )
+                    }
+                    None => panic!("UNEXPECTED RUNTIME BEHAVIOUR"),
+                },
+                definite::items::Collecting::Function(_) => todo!(),
+                definite::items::Collecting::ForLoop(_) => todo!(),
+                definite::items::Collecting::Condition(_) => todo!(),
+                definite::items::Collecting::Class(_) => todo!(),
+                definite::items::Collecting::Ret(_) => todo!(),
+                definite::items::Collecting::Constructor(_) => todo!(),
+                definite::items::Collecting::Caller(_) => todo!(),
+                definite::items::Collecting::FileKey(_) => todo!(),
+                definite::items::Collecting::Getter(_) => todo!(),
+                definite::items::Collecting::Setter(_) => todo!(),
+                definite::items::Collecting::NativeClass => todo!(),
+                definite::items::Collecting::ValueCall(_) => todo!(),
+                definite::items::Collecting::Enum(_) => todo!(),
+                definite::items::Collecting::NativeFunction(_) => todo!(),
+                _ => panic!("Unexpected behaviour"),
+            };
+        }
+        */
