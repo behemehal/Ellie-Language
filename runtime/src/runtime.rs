@@ -144,8 +144,20 @@ impl Runtime {
             match pages.get_mut(&page_id) {
                 Some(page) => match item {
                     definite::items::Collecting::ImportItem(e) => {
-                        let child_page_id = page.page_id.clone();
-                        loop_item(pages, *e.item, child_page_id);
+                        if !pages.contains_key(&e.resolution_id) {
+                            pages.insert(
+                                e.resolution_id.clone(),
+                                thread::Page {
+                                    page_id: e.resolution_id,
+                                    headers: BTreeMap::new(),
+                                    heap: heap::Heap::new(),
+                                    stack: stack::Stack::new(e.resolution_id.clone() as usize),
+                                    step: 0,
+                                },
+                            );
+                        }
+
+                        loop_item(pages, *e.item, e.resolution_id);
                     }
                     definite::items::Collecting::Variable(variable) => {
                         page.headers.insert(
@@ -164,17 +176,6 @@ impl Runtime {
                     definite::items::Collecting::ForLoop(_) => todo!(),
                     definite::items::Collecting::Condition(_) => todo!(),
                     definite::items::Collecting::Class(class) => {
-                        let generics = class
-                            .generic_definings
-                            .clone()
-                            .into_iter()
-                            .map(|x| {
-                                let id = page.headers.len();
-                                page.headers.insert(id, x.name);
-                                id
-                            })
-                            .collect::<Vec<_>>();
-
                         let mut class_items: Vec<definite::items::Collecting> =
                             vec![definite::items::Collecting::Constructor(class.constructor)];
 
@@ -210,14 +211,17 @@ impl Runtime {
                                 .collect::<Vec<_>>(),
                         );
 
-                        let page_id = current_pages_len + 1;
+                        let page_id = current_pages_len;
+
+                        let mut generics = Vec::new();
+                        let mut child_headers: BTreeMap<usize, String> = BTreeMap::new();
+                        for (id, generic) in class.generic_definings.into_iter().enumerate() {
+                            child_headers.insert(id, generic.name.clone());
+                            generics.push(id);
+                        }
+
                         page.headers
                             .insert(page.stack.register_class(page_id, generics), class.name);
-                        let mut child_headers: BTreeMap<usize, String> = BTreeMap::new();
-
-                        for (id, generic) in class.generic_definings.into_iter().enumerate() {
-                            child_headers.insert(id, generic.name);
-                        }
 
                         pages.insert(
                             page_id as u64,
@@ -271,6 +275,7 @@ impl Runtime {
                 },
                 None => match item {
                     definite::items::Collecting::ImportItem(e) => {
+                        std::println!("NEW PAGE: {} for {:#?}", e.resolution_id, e);
                         let stack_id = pages.len() + 1;
                         pages.insert(
                             e.resolution_id.clone(),
@@ -278,7 +283,7 @@ impl Runtime {
                                 page_id: e.resolution_id,
                                 headers: BTreeMap::new(),
                                 heap: heap::Heap::new(),
-                                stack: stack::Stack::new(stack_id),
+                                stack: stack::Stack::new(e.resolution_id.clone() as usize),
                                 step: page_id as usize,
                             },
                         );
@@ -297,6 +302,18 @@ impl Runtime {
                 },
             }
         }
+
+        //Ring zero
+        pages.insert(
+            0,
+            thread::Page {
+                page_id: 0,
+                headers: BTreeMap::new(),
+                heap: heap::Heap::new(),
+                stack: stack::Stack::new(0),
+                step: 0,
+            },
+        );
 
         for item in code {
             //Split code to pages
@@ -588,25 +605,26 @@ impl Runtime {
     }
 
     pub fn dump(&self) -> String {
-        let mut dump_data = "DUMP:\r\n---\n\r".to_owned();
+        let mut dump_data = "DUMP: Şükür kavuşturana\r\n---\n\r".to_owned();
         for thread in &self.threads {
             let mut stack_dump = String::new();
-
-            let thread_id = thread.id.clone();
-
             for stack in thread.pages.clone() {
+                let mut headers = String::new();
+
+                for item in stack.1.headers {
+                    headers += &format!("\t\t\t{:#04x} : {}\n", item.0, item.1)
+                }
+
                 stack_dump += &format!(
-                    "Stack {:#04x}:\n\r{}\n\rHEAP:\n\r{}",
+                    "\t---\n\tPage {:#04x}:\n\t\tHeaders:\n{}\n\t\tStack:\n\t{}\n\t\tHEAP:\n{}\n",
                     stack.0,
+                    headers,
                     stack.1.stack.dump(),
                     stack.1.heap.clone().dump()
                 );
             }
 
-            dump_data += &format!(
-                "Thread {:#04x}:\n\rSTACKS:\n\r{}\n\r\n\r---",
-                thread_id, stack_dump
-            );
+            dump_data += &format!("Pages:\n{}\n\t---", stack_dump);
         }
         dump_data
     }

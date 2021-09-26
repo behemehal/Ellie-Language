@@ -112,7 +112,7 @@ impl Stack {
         for element in self.elements {
             match element {
                 StackElements::Function(i) => lines.push(format!(
-                    "{:#04x} : <{}> : {}",
+                    "\t\t{:#04x} : <{}> : {}",
                     i.id,
                     i.parameters
                         .into_iter()
@@ -132,7 +132,7 @@ impl Stack {
                     },
                 )),
                 StackElements::Class(i) => lines.push(format!(
-                    "{:#04x} : {:#04x} : {}",
+                    "\t\t{:#04x} : {:#04x} : {}",
                     i.id,
                     i.inner_page_id,
                     i.generics
@@ -142,7 +142,7 @@ impl Stack {
                         .join(", "),
                 )),
                 StackElements::Variable(i) => lines.push(format!(
-                    "{} {:#04x} : {}{}",
+                    "\t\t{} {:#04x} : {}{}",
                     if i.dynamic { "dyn " } else { "" },
                     i.id,
                     match i.rtype {
@@ -156,10 +156,10 @@ impl Stack {
                     },
                 )),
                 StackElements::Addition(i) => {
-                    lines.push(format!("@{:#04x} =+ {:#04x}", i.target_heap, i.value))
+                    lines.push(format!("\t\t@{:#04x} =+ {:#04x}", i.target_heap, i.value))
                 }
             }
         }
-        lines.join("\n\r")
+        lines.join("\n\t")
     }
 }
