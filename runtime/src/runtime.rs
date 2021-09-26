@@ -160,7 +160,7 @@ impl Runtime {
                     definite::items::Collecting::Function(function) => {
                         std::println!("'Function' NOT YET IMPLEMENTED, REFERENCED HEAP REQUIRED");
                         ()
-                    },
+                    }
                     definite::items::Collecting::ForLoop(_) => todo!(),
                     definite::items::Collecting::Condition(_) => todo!(),
                     definite::items::Collecting::Class(class) => {
@@ -267,7 +267,7 @@ impl Runtime {
                         std::println!("'NativeFunction' NOT YET IMPLEMENTED");
                         ()
                     }
-                    _ => () //Ignore rest of the elements, because they do not have a corresponding task to do
+                    _ => (), //Ignore rest of the elements, because they do not have a corresponding task to do
                 },
                 None => match item {
                     definite::items::Collecting::ImportItem(e) => {

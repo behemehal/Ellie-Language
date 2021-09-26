@@ -36,21 +36,20 @@ pub enum HeapTypes {
     Float(HeapFloatSize),
     Bool(bool),
     String(&'static str),
-    Null
-    /*
-    Char(char),
-    Collective,
-    Reference,
-    Operator,
-    ArrowFunction,
-    ConstructedClass,
-    FunctionCall,
-    Void,
-    NullResolver,
-    Negative,
-    VariableType,
-    Null
-    */
+    Null, /*
+          Char(char),
+          Collective,
+          Reference,
+          Operator,
+          ArrowFunction,
+          ConstructedClass,
+          FunctionCall,
+          Void,
+          NullResolver,
+          Negative,
+          VariableType,
+          Null
+          */
 }
 
 pub struct HeapElement {
