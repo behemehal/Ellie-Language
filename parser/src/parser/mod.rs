@@ -285,6 +285,7 @@ pub struct ResolvedImport {
     pub resolve_error: String,
     pub resolved_path: String,
     pub resolution_id: u64,
+    pub id: u64,
     pub file_content: ResolvedFileContent,
 }
 
@@ -528,6 +529,7 @@ where
     pub fn resolve_variable(
         &self,
         target: types::Types,
+        contain_private: bool,
     ) -> Result<definers::DefinerCollecting, Vec<ellie_core::error::Error>> {
         match target.clone() {
             types::Types::ConstructedClass(constructed_class) => {
@@ -561,7 +563,7 @@ where
                 }
             }
             types::Types::FunctionCall(e) => {
-                let fn_found = self.check_keyword(e.data.name.clone(), false);
+                let fn_found = self.check_keyword(e.data.name.clone(), contain_private);
 
                 if fn_found.found.clone() {
                     if let NameCheckResponseType::Function(_) = fn_found.found_type {
@@ -595,7 +597,7 @@ where
                 }
             }
             types::Types::VariableType(e) => {
-                let vr_found = self.check_keyword(e.data.value.clone(), false);
+                let vr_found = self.check_keyword(e.data.value.clone(), contain_private);
 
                 if vr_found.found {
                     match vr_found.found_type {
@@ -696,17 +698,17 @@ where
 
         match item.clone() {
             Collecting::Variable(c) => {
-                if target == c.data.name {
+                if target == c.data.name && c.data.public {
                     found_item = Some(item);
                 }
             }
             Collecting::Function(c) => {
-                if target == c.data.name {
+                if target == c.data.name && c.data.public {
                     found_item = Some(item);
                 }
             }
             Collecting::Class(c) => {
-                if target == c.data.name {
+                if target == c.data.name && c.data.public {
                     found_item = Some(item);
                 }
             }
@@ -867,7 +869,7 @@ where
         let mut found_type = definers::DefinerCollecting::Dynamic;
         match item {
             Collecting::Variable(e) => {
-                if e.data.name == caller_data.data.name {
+                if e.data.name == caller_data.data.name && e.data.public {
                     if let definers::DefinerCollecting::Function(fn_type) = e.data.rtype {
                         found_type = *fn_type.returning;
                         found = true;
@@ -919,7 +921,7 @@ where
                                     }
                                     definers::DefinerCollecting::Generic(e) => {
                                         let resolved_type_option =
-                                            self.resolve_variable(caller_param.value);
+                                            self.resolve_variable(caller_param.value, true);
                                         if let Ok(resolved_type) = resolved_type_option {
                                             if !resolved_type.is_generic()
                                                 || resolved_type.is_generic()
@@ -996,7 +998,7 @@ where
                 }
             }
             Collecting::Function(e) => {
-                if e.data.name == caller_data.data.name {
+                if e.data.name == caller_data.data.name && e.data.public {
                     found_type = e.data.return_type;
                     found = true;
                     if caller_data.data.params.len() != e.data.parameters.len()
@@ -1055,7 +1057,7 @@ where
                                 }
                                 definers::DefinerCollecting::Generic(e) => {
                                     let resolved_type_option =
-                                        self.resolve_variable(caller_param.value);
+                                        self.resolve_variable(caller_param.value, false);
 
                                     if let Ok(resolved_type) = resolved_type_option {
                                         if !resolved_type.is_generic()
@@ -1103,7 +1105,7 @@ where
                                     #[cfg(feature = "std")]
                                     std::println!("\u{001b}[33m[Experimental]\u{001b}[0m: Resolving type as dynamic");
                                     let resolved_type_option =
-                                        self.resolve_variable(caller_param.value.clone());
+                                        self.resolve_variable(caller_param.value.clone(), false);
 
                                     if let Ok(_) = resolved_type_option {
                                         if caller_param.value.clone().get_type() == "variable" {
@@ -1141,7 +1143,7 @@ where
                 }
             }
             Collecting::Class(e) => {
-                if e.data.name == caller_data.data.name {
+                if e.data.name == caller_data.data.name && e.data.public {
                     errors.push(error::Error {
                         path: self.options.path.clone(),
                         scope: self.scope.scope_name.clone(),
@@ -1161,7 +1163,7 @@ where
                 }
             }
             Collecting::NativeFunction(e) => {
-                if e.name == caller_data.data.name {
+                if e.name == caller_data.data.name && e.public {
                     found_type = e.return_type;
                     found = true;
                     if caller_data.data.params.len() != e.parameters.len()
@@ -1220,39 +1222,44 @@ where
                                 }
                                 definers::DefinerCollecting::Generic(e) => {
                                     let resolved_type_option =
-                                        self.resolve_variable(caller_param.value);
+                                        self.resolve_variable(caller_param.value.clone(), false);
 
-                                    if let Ok(resolved_type) = resolved_type_option {
-                                        if !resolved_type.is_generic()
-                                            && resolved_type.as_generic().unwrap().rtype != e.rtype
-                                        {
-                                            errors.push(error::Error {
-                                                path: self.options.path.clone(),
-                                                scope: self.scope.scope_name.clone(),
-                                                debug_message: "de2ef18362c26ce3204dac5a07ee4c31"
-                                                    .to_owned(),
-                                                title: error::errorList::error_s3.title.clone(),
-                                                code: error::errorList::error_s3.code,
-                                                message: error::errorList::error_s3.message.clone(),
-                                                builded_message: error::Error::build(
-                                                    error::errorList::error_s3.message.clone(),
-                                                    vec![
-                                                        error::ErrorBuildField {
-                                                            key: "token1".to_owned(),
-                                                            value: e.rtype,
-                                                        },
-                                                        error::ErrorBuildField {
-                                                            key: "token2".to_owned(),
-                                                            value: resolved_type
-                                                                .raw_name_with_extensions(),
-                                                        },
-                                                    ],
-                                                ),
-                                                pos: caller_param.pos,
-                                            });
+                                    match resolved_type_option {
+                                        Ok(resolved_type) => {
+                                            if !resolved_type.is_generic()
+                                                && resolved_type.as_generic().unwrap().rtype
+                                                    != e.rtype
+                                            {
+                                                errors.push(error::Error {
+                                                    path: self.options.path.clone(),
+                                                    scope: self.scope.scope_name.clone(),
+                                                    debug_message:
+                                                        "de2ef18362c26ce3204dac5a07ee4c31"
+                                                            .to_owned(),
+                                                    title: error::errorList::error_s3.title.clone(),
+                                                    code: error::errorList::error_s3.code,
+                                                    message: error::errorList::error_s3
+                                                        .message
+                                                        .clone(),
+                                                    builded_message: error::Error::build(
+                                                        error::errorList::error_s3.message.clone(),
+                                                        vec![
+                                                            error::ErrorBuildField {
+                                                                key: "token1".to_owned(),
+                                                                value: e.rtype,
+                                                            },
+                                                            error::ErrorBuildField {
+                                                                key: "token2".to_owned(),
+                                                                value: resolved_type
+                                                                    .raw_name_with_extensions(),
+                                                            },
+                                                        ],
+                                                    ),
+                                                    pos: caller_param.pos,
+                                                });
+                                            }
                                         }
-                                    } else {
-                                        panic!("Unexpected parser error");
+                                        Err(found_errors) => errors.extend(found_errors),
                                     }
                                 }
                                 definers::DefinerCollecting::Function(_) => {
@@ -1268,7 +1275,7 @@ where
                                     #[cfg(feature = "std")]
                                     std::println!("\u{001b}[33m[Experimental]\u{001b}[0m: Resolving type as dynamic");
                                     let resolved_type_option =
-                                        self.resolve_variable(caller_param.value.clone());
+                                        self.resolve_variable(caller_param.value.clone(), false);
 
                                     if let Ok(_) = resolved_type_option {
                                         if caller_param.value.clone().get_type() == "variable" {
@@ -1382,13 +1389,13 @@ where
         let mut found = false;
         for item in self.collected.clone() {
             if let Collecting::Class(ref e) = item {
-                if e.data.name == name {
+                if e.data.name == name && e.data.public {
                     found = e.data.name == name;
                     break;
                 }
             } else if let Collecting::ImportItem(ref e) = item {
                 if let Collecting::Class(class) = *e.item.clone() {
-                    if class.data.name == name {
+                    if class.data.name == name && class.data.public {
                         found = class.data.name == name;
                         break;
                     }
@@ -1424,31 +1431,31 @@ where
         let mut found_item: Collecting = Collecting::None;
         match item.clone() {
             Collecting::Variable(e) => {
-                if e.data.name == name {
+                if e.data.name == name && (e.data.public || contain_private) {
                     found = true;
                     found_item = item;
                 }
             }
             Collecting::Setter(e) => {
-                if e.data.name == name {
+                if e.data.name == name && (e.data.public || contain_private) {
                     found = true;
                     found_item = item;
                 }
             }
             Collecting::Getter(e) => {
-                if e.data.name == name {
+                if e.data.name == name && (e.data.public || contain_private) {
                     found = true;
                     found_item = item;
                 }
             }
             Collecting::Function(e) => {
-                if e.data.name == name {
+                if e.data.name == name && (e.data.public || contain_private) {
                     found = true;
                     found_item = item;
                 }
             }
             Collecting::Class(e) => {
-                if e.data.name == name {
+                if e.data.name == name && (e.data.public || contain_private) {
                     found = true;
                     found_item = item;
                 }

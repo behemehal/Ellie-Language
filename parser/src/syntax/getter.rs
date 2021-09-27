@@ -11,6 +11,7 @@ use serde::{Deserialize, Serialize};
 pub struct Getter {
     pub name: String,
     pub name_pos: defs::Cursor,
+    pub public: bool,
     pub rtype: definers::DefinerCollecting,
     pub rtype_pos: defs::Cursor,
     pub bracket_start_pos: defs::Cursor,
@@ -25,6 +26,7 @@ impl Getter {
             rtype: self.rtype.to_definite(),
             code: self.code.into_iter().map(|x| x.to_definite()).collect(),
             name_pos: self.name_pos,
+            public: self.public,
             rtype_pos: self.rtype_pos,
             bracket_start_pos: self.bracket_start_pos,
             bracket_end_pos: self.bracket_end_pos,
@@ -54,6 +56,7 @@ impl GetterCollector {
                 name_pos: from.name_pos,
                 rtype: definers::DefinerCollecting::default().from_definite(from.rtype),
                 rtype_pos: from.rtype_pos,
+                public: from.public,
                 bracket_start_pos: from.bracket_start_pos,
                 bracket_end_pos: from.bracket_end_pos,
                 code: from

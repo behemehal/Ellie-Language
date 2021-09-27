@@ -7,7 +7,9 @@ use toml::Value;
 mod terminal_colors;
 //use serde_json;
 use std::{
+    collections::hash_map::DefaultHasher,
     fs::{self, File},
+    hash::{Hash, Hasher},
     io::Read,
 };
 
@@ -43,13 +45,19 @@ fn resolve_import(
         ".ei".to_owned()
     };
     match read_file(&("./lib/".to_owned() + &lib_name + &file_extension)) {
-        Ok(e) => ellie_parser::parser::ResolvedImport {
-            found: true,
-            resolved_path: ("./lib/".to_owned() + &lib_name + &file_extension),
-            file_content: ellie_parser::parser::ResolvedFileContent::Raw(e),
-            resolution_id: 0,
-            ..Default::default()
-        },
+        Ok(e) => {
+            let mut id_hasher = DefaultHasher::new();
+            ellie_core::utils::generate_hash().hash(&mut id_hasher);
+
+            ellie_parser::parser::ResolvedImport {
+                found: true,
+                resolved_path: ("./lib/".to_owned() + &lib_name + &file_extension),
+                file_content: ellie_parser::parser::ResolvedFileContent::Raw(e),
+                resolution_id: 0,
+                id: id_hasher.finish(),
+                ..Default::default()
+            }
+        }
         Err(err) => {
             panic!(
                 "{}[Fail]{}: Cannot read file {}~./lib/{}{}{}\n{:#?}",

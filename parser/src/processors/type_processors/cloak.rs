@@ -131,6 +131,7 @@ pub fn collect_cloak<F>(
                     {
                         let entry_type_option = parser.resolve_variable(
                             *cloak_data.data.collective[last_entry - 1].value.clone(),
+                            false,
                         );
 
                         if let Ok(entry_type) = entry_type_option {
@@ -235,6 +236,7 @@ pub fn collect_cloak<F>(
                     {
                         let entry_type_option = parser.resolve_variable(
                             *cloak_data.data.collective[last_entry - 1].value.clone(),
+                            false,
                         );
 
                         if let Ok(entry_type) = entry_type_option {

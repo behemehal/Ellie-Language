@@ -103,13 +103,18 @@ pub fn resolve_import(
         };
 
     if lib_name == "ellie" {
+        let mut id_hasher = DefaultHasher::new();
+        ellie_core::utils::generate_hash().hash(&mut id_hasher);
+        let mut hasher = DefaultHasher::new();
+        ellie_core::builded_libraries::ELLIE_STANDARD_LIBRARY.hash(&mut hasher);
         ellie_parser::parser::ResolvedImport {
             found: true,
             resolved_path: "<virtual>".to_owned(),
             file_content: ellie_parser::parser::ResolvedFileContent::Raw(
                 ellie_core::builded_libraries::ELLIE_STANDARD_LIBRARY.to_string(),
             ),
-            resolution_id: 0,
+            resolution_id: hasher.finish(),
+            id: id_hasher.finish(),
             ..Default::default()
         }
     } else {
@@ -131,6 +136,9 @@ pub fn resolve_import(
                     let mut hasher = DefaultHasher::new();
                     file.hash(&mut hasher);
 
+                    let mut id_hasher = DefaultHasher::new();
+                    ellie_core::utils::generate_hash().hash(&mut id_hasher);
+
                     ellie_parser::parser::ResolvedImport {
                         found: true,
                         file_content: ellie_parser::parser::ResolvedFileContent::Raw(file),
@@ -141,6 +149,7 @@ pub fn resolve_import(
                             .unwrap()
                             .to_string(),
                         resolution_id: hasher.finish(),
+                        id: id_hasher.finish(),
                         ..Default::default()
                     }
                 }

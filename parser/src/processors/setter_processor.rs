@@ -122,6 +122,7 @@ pub fn collect_setter_value<F>(
                         crate::syntax::import_item::ImportItem {
                             from_path: "<temporary>".to_owned(),
                             resolution_id: 0,
+                            from_import: 0,
                             public: true,
                             item: Box::new(item),
                         },

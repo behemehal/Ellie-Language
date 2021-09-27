@@ -438,6 +438,7 @@ pub fn collect_function<F>(
                     child_parser.collected.push(parser::Collecting::ImportItem(
                         import_item::ImportItem {
                             resolution_id: 0,
+                            from_import: 0,
                             from_path: "<temporary>".to_owned(),
                             public: true,
                             item: Box::new(item),
@@ -450,6 +451,7 @@ pub fn collect_function<F>(
                     child_parser.collected.push(parser::Collecting::ImportItem(
                         import_item::ImportItem {
                             resolution_id: 0,
+                            from_import: 0,
                             from_path: "<temporary>".to_owned(),
                             public: true,
                             item: Box::new(parser::Collecting::Variable(if param.multi_capture {
@@ -465,6 +467,7 @@ pub fn collect_function<F>(
                                                 ..Default::default()
                                             },
                                         ),
+                                        public: true,
                                         hash: "not_required".to_owned(),
                                         ..Default::default()
                                     },
@@ -478,6 +481,7 @@ pub fn collect_function<F>(
                                         name_pos: param.name_pos,
                                         rtype: param.rtype,
                                         name: param.name,
+                                        public: true,
                                         hash: "not_required".to_owned(),
                                         ..Default::default()
                                     },

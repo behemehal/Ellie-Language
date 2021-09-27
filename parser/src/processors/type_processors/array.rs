@@ -133,8 +133,10 @@ pub fn collect_array<F>(
                     if let definers::DefinerCollecting::Array(array_defining) =
                         itered_data.data.rtype.clone()
                     {
-                        let entry_type_option = parser
-                            .resolve_variable(*data.data.collective[last_entry - 1].value.clone());
+                        let entry_type_option = parser.resolve_variable(
+                            *data.data.collective[last_entry - 1].value.clone(),
+                            false,
+                        );
 
                         if let Ok(entry_type) = entry_type_option {
                             if *array_defining.rtype != entry_type {
@@ -234,8 +236,10 @@ pub fn collect_array<F>(
                     if let definers::DefinerCollecting::Array(array_defining) =
                         itered_data.data.rtype.clone()
                     {
-                        let entry_type_option = parser
-                            .resolve_variable(*data.data.collective[last_entry - 1].value.clone());
+                        let entry_type_option = parser.resolve_variable(
+                            *data.data.collective[last_entry - 1].value.clone(),
+                            false,
+                        );
 
                         if let Ok(entry_type) = entry_type_option {
                             if *array_defining.rtype != entry_type {

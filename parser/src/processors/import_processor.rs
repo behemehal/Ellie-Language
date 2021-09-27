@@ -35,6 +35,7 @@ pub fn collect_import<F>(
                         import_data.native,
                     );
                     import_data.resolution_id = response.resolution_id.clone();
+                    import_data.id = response.id.clone();
 
                     if !response.found {
                         if response.resolve_error == "" {
@@ -112,78 +113,67 @@ pub fn collect_import<F>(
                                         let parser_iter_clone = parser_clone.clone();
                                         match item.clone() {
                                             crate::parser::Collecting::ImportItem(e) => {
-                                                if e.public {
-                                                    if !parser_iter_clone
-                                                        .clone()
-                                                        .import_exists(&e.from_path)
-                                                    {
-                                                        parser.collected.push(item);
-                                                    }
-                                                }
+                                                parser.collected.push(item);
                                             }
                                             crate::parser::Collecting::Variable(e) => {
-                                                if e.data.public {
-                                                    parser
-                                                        .collected
-                                                        .push(crate::parser::Collecting::ImportItem(
+                                                parser.collected.push(
+                                                    crate::parser::Collecting::ImportItem(
                                                         crate::syntax::import_item::ImportItem {
                                                             resolution_id: response
                                                                 .resolution_id
                                                                 .clone(),
+                                                            from_import: response.id,
                                                             from_path: import_data.path.clone(),
                                                             item: Box::new(item),
-                                                            public: true,
+                                                            public: e.data.public,
                                                         },
-                                                    ));
-                                                }
+                                                    ),
+                                                );
                                             }
                                             crate::parser::Collecting::Function(e) => {
-                                                if e.data.public {
-                                                    parser
-                                                        .collected
-                                                        .push(crate::parser::Collecting::ImportItem(
+                                                parser.collected.push(
+                                                    crate::parser::Collecting::ImportItem(
                                                         crate::syntax::import_item::ImportItem {
                                                             resolution_id: response
                                                                 .resolution_id
                                                                 .clone(),
+                                                            from_import: response.id,
                                                             from_path: import_data.path.clone(),
                                                             item: Box::new(item),
-                                                            public: true,
+                                                            public: e.data.public,
                                                         },
-                                                    ));
-                                                }
+                                                    ),
+                                                );
                                             }
                                             crate::parser::Collecting::Class(e) => {
-                                                if e.data.public {
-                                                    parser
-                                                        .collected
-                                                        .push(crate::parser::Collecting::ImportItem(
+                                                parser.collected.push(
+                                                    crate::parser::Collecting::ImportItem(
                                                         crate::syntax::import_item::ImportItem {
                                                             resolution_id: import_data
                                                                 .resolution_id
                                                                 .clone(),
+                                                            from_import: response.id,
                                                             from_path: import_data.path.clone(),
                                                             item: Box::new(item),
-                                                            public: true,
+                                                            public: e.data.public,
                                                         },
-                                                    ));
-                                                }
+                                                    ),
+                                                );
                                             }
                                             crate::parser::Collecting::NativeFunction(e) => {
-                                                if e.public {
-                                                    parser
-                                                        .collected
-                                                        .push(crate::parser::Collecting::ImportItem(
+                                                parser.collected.push(
+                                                    crate::parser::Collecting::ImportItem(
                                                         crate::syntax::import_item::ImportItem {
                                                             resolution_id: import_data
                                                                 .resolution_id
                                                                 .clone(),
+                                                            from_import: response.id,
                                                             from_path: import_data.path.clone(),
                                                             item: Box::new(item),
-                                                            public: true,
+                                                            public: e.public,
                                                         },
-                                                    ));
-                                                }
+                                                    ),
+                                                );
                                             }
                                             _ => {
                                                 parser.collected.push(
@@ -192,6 +182,7 @@ pub fn collect_import<F>(
                                                             resolution_id: import_data
                                                                 .resolution_id
                                                                 .clone(),
+                                                            from_import: response.id,
                                                             from_path: import_data.path.clone(),
                                                             item: Box::new(item),
                                                             public: import_data.public,
@@ -298,73 +289,61 @@ pub fn collect_import<F>(
                                         let parser_iter_clone = parser_clone.clone();
                                         match item.clone() {
                                             crate::parser::Collecting::ImportItem(e) => {
-                                                if e.public {
-                                                    if !parser_iter_clone
-                                                        .clone()
-                                                        .import_exists(&e.from_path)
-                                                    {
-                                                        parser.collected.push(item);
-                                                    } else {
-                                                        #[cfg(feature = "std")]
-                                                        std::println!("\u{001b}[33m[ParserInfo]\u{001b}[0m: Ignore {:#?} from {}", e.from_path, parser.options.path);
-                                                    }
-                                                }
+                                                parser.collected.push(item);
                                             }
                                             crate::parser::Collecting::Variable(e) => {
-                                                if e.data.public {
-                                                    parser
-                                                        .collected
-                                                        .push(crate::parser::Collecting::ImportItem(
+                                                parser.collected.push(
+                                                    crate::parser::Collecting::ImportItem(
                                                         crate::syntax::import_item::ImportItem {
-                                                            resolution_id: import_data
+                                                            resolution_id: response
                                                                 .resolution_id
                                                                 .clone(),
+                                                            from_import: response.id,
                                                             from_path: import_data.path.clone(),
                                                             item: Box::new(item),
-                                                            public: true,
+                                                            public: e.data.public,
                                                         },
-                                                    ));
-                                                }
+                                                    ),
+                                                );
                                             }
                                             crate::parser::Collecting::Function(e) => {
-                                                if e.data.public {
-                                                    parser
-                                                        .collected
-                                                        .push(crate::parser::Collecting::ImportItem(
+                                                parser.collected.push(
+                                                    crate::parser::Collecting::ImportItem(
                                                         crate::syntax::import_item::ImportItem {
-                                                            resolution_id: import_data
+                                                            resolution_id: response
                                                                 .resolution_id
                                                                 .clone(),
+                                                            from_import: response.id,
                                                             from_path: import_data.path.clone(),
                                                             item: Box::new(item),
-                                                            public: true,
+                                                            public: e.data.public,
                                                         },
-                                                    ));
-                                                }
+                                                    ),
+                                                );
                                             }
                                             crate::parser::Collecting::Class(e) => {
-                                                if e.data.public {
-                                                    parser
-                                                        .collected
-                                                        .push(crate::parser::Collecting::ImportItem(
+                                                parser.collected.push(
+                                                    crate::parser::Collecting::ImportItem(
                                                         crate::syntax::import_item::ImportItem {
-                                                            resolution_id: import_data
+                                                            resolution_id: response
                                                                 .resolution_id
                                                                 .clone(),
+                                                            from_import: response.id,
                                                             from_path: import_data.path.clone(),
                                                             item: Box::new(item),
-                                                            public: true,
+                                                            public: e.data.public,
                                                         },
-                                                    ));
-                                                }
+                                                    ),
+                                                );
                                             }
                                             _ => {
                                                 parser.collected.push(
                                                     crate::parser::Collecting::ImportItem(
                                                         crate::syntax::import_item::ImportItem {
-                                                            resolution_id: import_data
+                                                            resolution_id: response
                                                                 .resolution_id
                                                                 .clone(),
+                                                            from_import: response.id,
                                                             from_path: import_data.path.clone(),
                                                             item: Box::new(item),
                                                             public: import_data.public,

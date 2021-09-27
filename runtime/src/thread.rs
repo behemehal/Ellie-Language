@@ -6,6 +6,7 @@ use alloc::vec::Vec;
 
 use crate::heap;
 use crate::stack;
+use crate::stack::StackElements;
 
 #[derive(Debug, Clone)]
 pub enum NotifierMessageType {
@@ -84,6 +85,25 @@ pub struct Page {
     pub step: usize,
 }
 
+impl Page {
+    pub fn header_exists(&self, target_name: &str) -> Option<usize> {
+        let mut found = false;
+        let mut found_id = 0;
+        for (id, name) in self.headers.clone() {
+            if name == target_name {
+                found = true;
+                found_id = id;
+                break;
+            }
+        }
+        if found {
+            Some(found_id)
+        } else {
+            None
+        }
+    }
+}
+
 pub struct Thread {
     pub id: usize,
     pub pages: BTreeMap<u64, Page>,
@@ -93,17 +113,141 @@ pub struct Thread {
 }
 
 impl Thread {
-    pub fn new(
-        id: usize,
-        pages: BTreeMap<u64, Page>,
-        thread_controller: ThreadController,
-    ) -> Thread {
+    pub fn new(id: usize, thread_controller: ThreadController) -> Thread {
+        let mut pages: BTreeMap<u64, Page> = BTreeMap::new();
+        //Ring zero
+        pages.insert(
+            1,
+            Page {
+                page_id: 1,
+                headers: BTreeMap::new(),
+                heap: heap::Heap::new(),
+                stack: stack::Stack::new(1),
+                step: 0,
+            },
+        );
+
         Thread {
             id,
             pages,
             tasks: vec![0],
             hang: true,
             controller: thread_controller,
+        }
+    }
+
+    pub fn glb_look_up_for_item_by_name(&self, name: &str) -> Option<stack::StackElements> {
+        let mut found = false;
+        let mut found_type = stack::StackElements::None;
+
+        'page_loop: for (_, current_page) in self.pages.clone() {
+            match current_page.header_exists(name) {
+                Some(id) => {
+                    //If current page has the type
+                     match current_page.stack.clone().element_exists(id) {
+                        Some(element_exists) => {
+                            found_type = element_exists;
+                            found = true;
+                            break 'page_loop;
+                        },
+                        _ => ()
+                    }
+                }
+                None => {
+                    //Else look up in imported pages
+                    for i in current_page.stack.elements.clone() {
+                        if let stack::StackElements::Reference(reference) = i {
+                            match self.pages.get(&(reference.page_id as u64)) {
+                                Some(page) => match page.header_exists(name) {
+                                    Some(e) => match page.stack.clone().element_exists(e) {
+                                        Some(found_rtype) => {
+                                            found = true;
+                                            found_type = found_rtype;
+                                            break 'page_loop;
+                                        }
+                                        None => panic!("UNEXPECTED RUNTIME BEHAVIOUR"),
+                                    },
+                                    None => (),
+                                },
+                                None => panic!("UNEXPECTED BRIDGE ERROR"),
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if found {
+            Some(found_type)
+        } else {
+            None
+        }
+    }
+
+    pub fn _look_up_for_item_by_name(
+        &self,
+        name: &str,
+        current_page_id: u64,
+    ) -> Option<stack::StackElements> {
+        match self.pages.get(&current_page_id.clone()) {
+            Some(current_page) => {
+                match current_page.header_exists(name) {
+                    Some(id) => {
+                        //If current page has the type
+                        current_page.stack.clone().element_exists(id)
+                    }
+                    None => {
+                        //Else look up in imported pages
+
+                        let mut found = false;
+                        let mut found_type = stack::StackElements::None;
+
+                        'search: for i in current_page.stack.elements.clone() {
+                            if let stack::StackElements::Reference(reference) = i {
+                                match self.pages.get(&(reference.page_id as u64)) {
+                                    Some(page) => match page.header_exists(name) {
+                                        Some(e) => match page.stack.clone().element_exists(e) {
+                                            Some(found_rtype) => {
+                                                found = true;
+                                                found_type = found_rtype;
+                                                break 'search;
+                                            }
+                                            None => panic!("UNEXPECTED RUNTIME BEHAVIOUR"),
+                                        },
+                                        None => (),
+                                    },
+                                    None => panic!("UNEXPECTED BRIDGE ERROR"),
+                                }
+                            }
+                        }
+
+                        if found {
+                            Some(found_type)
+                        } else {
+                            None
+                        }
+                    }
+                }
+            }
+            None => None,
+        }
+    }
+
+    pub fn look_up_for_item(&self, page_id: u64, target: usize) -> Option<stack::StackElements> {
+        match self.pages.get(&page_id) {
+            Some(page) => {
+                let element = page.stack.clone().element_exists(target);
+                match element.clone() {
+                    Some(e) => match e {
+                        stack::StackElements::Reference(e) => {
+                            self.look_up_for_item(e.page_id as u64, e.type_id)
+                        }
+                        _ => element,
+                    },
+                    None => None,
+                }
+            }
+            None => None,
         }
     }
 

@@ -368,7 +368,7 @@ pub fn collect_variable_value<F>(
                 variable_data.data.value_pos.range_end = parser.pos;
 
                 let resolved_type_name_option =
-                    parser_clone.resolve_variable(variable_data.data.value.clone());
+                    parser_clone.resolve_variable(variable_data.data.value.clone(), false);
 
                 if let Ok(resolved_type_name) = resolved_type_name_option {
                     //nen means cannot resolve type

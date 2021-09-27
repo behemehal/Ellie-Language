@@ -118,7 +118,7 @@ pub fn collect_collective<F>(
                         itered_data.data.rtype.clone()
                     {
                         let entry_type_option =
-                            parser.resolve_variable(*last_entry.data.key.clone());
+                            parser.resolve_variable(*last_entry.data.key.clone(), false);
 
                         if let Ok(entry_type) = entry_type_option {
                             if *collective_defining.key != entry_type
@@ -232,6 +232,7 @@ pub fn collect_collective<F>(
                                 .data
                                 .value
                                 .clone(),
+                            false,
                         );
 
                         if let Ok(entry_type) = entry_type_option {

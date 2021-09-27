@@ -1,2 +1,6 @@
-v adam = 123;
-adam += 3;
+import ./part.ei;
+import ./second;
+class Test {}
+v fileSecondFirst: Second;
+c fileSecondSecond: Part;
+

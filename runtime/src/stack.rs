@@ -1,4 +1,5 @@
 use alloc::{borrow::ToOwned, format, string::String, vec::Vec};
+use enum_as_inner::EnumAsInner;
 
 #[derive(Debug, Clone)]
 pub enum StackElement {
@@ -35,13 +36,36 @@ pub struct Addition {
 }
 
 #[derive(Debug, Clone)]
+pub struct Parameter {
+    pub id: usize,
+    pub type_id: StackElement,
+    pub heap_id: Option<usize>,
+}
+
+#[derive(Debug, Clone)]
+pub struct Generic {
+    pub id: usize,
+    pub header_id: usize,
+}
+
+#[derive(Debug, Clone)]
+pub struct Reference {
+    //Bridge between pages
+    pub page_id: usize,
+    pub type_id: usize,
+}
+
+#[derive(Debug, Clone, EnumAsInner)]
 pub enum StackElements {
     Function(Function),
     Class(Class),
     Variable(Variable),
     Addition(Addition),
-    //Array
-    //Collective
+    Parameter(Parameter),
+    Generic(Generic),
+    Reference(Reference),
+    None, //Array
+          //Collective
 }
 
 #[derive(Default, Debug, Clone)]
@@ -63,6 +87,9 @@ impl Stack {
             StackElements::Function(e) => e.id == id,
             StackElements::Class(e) => e.id == id,
             StackElements::Variable(e) => e.id == id,
+            StackElements::Parameter(e) => e.id == id,
+            StackElements::Reference(e) => e.type_id == id,
+            StackElements::Generic(e) => e.id == id,
             _ => false,
         })
     }
@@ -97,6 +124,32 @@ impl Stack {
         id
     }
 
+    pub fn register_reference(&mut self, page: usize, type_id: usize) -> usize {
+        let id = self.elements.len();
+        self.elements.push(StackElements::Reference(Reference {
+            type_id,
+            page_id: page,
+        }));
+        id
+    }
+
+    pub fn register_parameter(&mut self, rtype: StackElement) -> usize {
+        let id = self.elements.len();
+        self.elements.push(StackElements::Parameter(Parameter {
+            id,
+            type_id: rtype,
+            heap_id: None,
+        }));
+        id
+    }
+
+    pub fn register_generic(&mut self, header_id: usize) -> usize {
+        let id = self.elements.len();
+        self.elements
+            .push(StackElements::Generic(Generic { id, header_id }));
+        id
+    }
+
     pub fn register_class(&mut self, inner_page_id: usize, generics: Vec<usize>) -> usize {
         let id = self.elements.len();
         self.elements.push(StackElements::Class(Class {
@@ -112,7 +165,7 @@ impl Stack {
         for element in self.elements {
             match element {
                 StackElements::Function(i) => lines.push(format!(
-                    "\t\t{:#04x} : <{}> : {}",
+                    "\t\t0 = {:#04x} : <{}> : {}",
                     i.id,
                     i.parameters
                         .into_iter()
@@ -132,7 +185,7 @@ impl Stack {
                     },
                 )),
                 StackElements::Class(i) => lines.push(format!(
-                    "\t\t{:#04x} : {:#04x} : {}",
+                    "\t\t1 = {:#04x} : {:#04x} : {}",
                     i.id,
                     i.inner_page_id,
                     i.generics
@@ -142,7 +195,7 @@ impl Stack {
                         .join(", "),
                 )),
                 StackElements::Variable(i) => lines.push(format!(
-                    "\t\t{:#04x} : {}{}",
+                    "\t\t2 = {:#04x} : {}{}",
                     i.id,
                     match i.rtype {
                         StackElement::Type(e) => format!("t({:#04x})", e),
@@ -154,9 +207,30 @@ impl Stack {
                         "".to_owned()
                     },
                 )),
-                StackElements::Addition(i) => {
-                    lines.push(format!("\t\t@{:#04x} =+ {:#04x}", i.target_heap, i.value))
-                }
+                StackElements::Addition(i) => lines.push(format!(
+                    "\t\t3 = {:#04x} =+ {:#04x}",
+                    i.target_heap, i.value
+                )),
+                StackElements::Parameter(i) => lines.push(format!(
+                    "\t\t4 = {:#04x} : {}{}",
+                    i.id,
+                    match i.type_id {
+                        StackElement::Type(e) => format!("t({:#04x})", e),
+                        StackElement::Generic(e) => format!("g({:#04x})", e),
+                    },
+                    if let Some(e) = i.heap_id {
+                        format!(" : {:#04x}", e)
+                    } else {
+                        "".to_owned()
+                    },
+                )),
+                StackElements::Reference(i) => {
+                    lines.push(format!("\t\t5 = {:#04x}>{:#04x}", i.page_id, i.type_id))
+                },
+                StackElements::Generic(i) => {
+                    lines.push(format!("\t\t6 = {:#04x} : {:#04x}", i.id, i.header_id))
+                },
+                _ => (),
             }
         }
         lines.join("\n\t")

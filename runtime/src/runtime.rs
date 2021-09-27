@@ -5,11 +5,11 @@ use alloc::borrow::ToOwned;
 use alloc::boxed::Box;
 use alloc::collections::BTreeMap;
 use alloc::format;
+use alloc::rc;
 use alloc::string::String;
 use alloc::vec;
 use alloc::vec::Vec;
 use ellie_core::definite;
-
 pub enum RuntimeEventMessage {
     None,
 }
@@ -49,8 +49,6 @@ impl Runtime {
     }
 
     pub fn run(&mut self, code: Vec<definite::items::Collecting>) {
-        let mut pages: BTreeMap<u64, thread::Page> = BTreeMap::new();
-
         let mut thread_controller = thread::ThreadController::new();
         thread_controller.notifier = Box::new(move |x: thread::NotifierMessage| {
             std::println!(
@@ -135,47 +133,184 @@ impl Runtime {
             }
         }
 
+        //Adds element to stack returns id of it
+
         pub fn loop_item(
-            pages: &mut BTreeMap<u64, thread::Page>,
+            thread: &mut thread::Thread,
             item: definite::items::Collecting,
             page_id: u64,
-        ) {
-            let current_pages_len = pages.len();
-            match pages.get_mut(&page_id) {
-                Some(page) => match item {
-                    definite::items::Collecting::ImportItem(e) => {
-                        if !pages.contains_key(&e.resolution_id) {
-                            pages.insert(
-                                e.resolution_id.clone(),
-                                thread::Page {
-                                    page_id: e.resolution_id,
-                                    headers: BTreeMap::new(),
-                                    heap: heap::Heap::new(),
-                                    stack: stack::Stack::new(e.resolution_id.clone() as usize),
-                                    step: 0,
-                                },
+        ) -> Option<(usize, bool)> {
+            let current_pages_len = thread.pages.len();
+
+            match item {
+                definite::items::Collecting::ImportItem(import_item) => {
+                    if !thread.pages.contains_key(&(import_item.from_import as u64)) {
+                        thread.pages.insert(
+                            import_item.from_import.clone() as u64,
+                            thread::Page {
+                                page_id: import_item.from_import as u64,
+                                headers: BTreeMap::new(),
+                                heap: heap::Heap::new(),
+                                stack: stack::Stack::new(import_item.from_import.clone() as usize),
+                                step: 0,
+                            },
+                        );
+                    }
+
+                    let ret = loop_item(thread, *import_item.item, import_item.from_import);
+                    if let Some(element_id) = ret {
+                        match thread.pages.get_mut(&page_id) {
+                            Some(page) => {
+                                if element_id.1 {
+                                    page.stack.register_reference(
+                                        import_item.from_import as usize,
+                                        element_id.0,
+                                    );
+                                }
+                            }
+                            None => {
+                                pub fn dumper(thread: &thread::Thread) -> String {
+                                    let mut dump_data = "\r\n---\n\r".to_owned();
+                                    let mut stack_dump = String::new();
+                                    for stack in thread.pages.clone() {
+                                        let mut headers = String::new();
+
+                                        for item in stack.1.headers {
+                                            headers +=
+                                                &format!("\t\t\t{:#04x} : {}\n", item.0, item.1)
+                                        }
+
+                                        stack_dump += &format!(
+                                            "\t---\n\tPage {:#04x}:\n\t\tHeaders:\n{}\n\t\tStack:\n\t{}\n\t\tHEAP:\n{}\n",
+                                            stack.0,
+                                            headers,
+                                            stack.1.stack.dump(),
+                                            stack.1.heap.clone().dump()
+                                        );
+                                    }
+
+                                    dump_data += &format!("Pages:\n{}\n\t---", stack_dump);
+                                    dump_data
+                                }
+
+                                let copy_dump = dumper(&*thread);
+                                panic!(
+                                    "UNEXPECTED RUNTIME BEHAVIOUR Pageid: {}\n\n: {}",
+                                    page_id, copy_dump
+                                )
+                            }
+                        }
+                    }
+                    //ret
+
+                    Some((import_item.from_import as usize, import_item.public))
+                }
+                definite::items::Collecting::Variable(variable) => {
+                    let type_name = match variable.rtype {
+                        definite::definers::DefinerCollecting::Array(_) => "array".to_owned(),
+                        definite::definers::DefinerCollecting::Future(_) => "future".to_owned(),
+                        definite::definers::DefinerCollecting::GrowableArray(_) => {
+                            "growableArray".to_owned()
+                        }
+                        definite::definers::DefinerCollecting::Generic(e) => e.rtype,
+                        definite::definers::DefinerCollecting::Function(_) => "function".to_owned(),
+                        definite::definers::DefinerCollecting::Cloak(_) => "cloak".to_owned(),
+                        definite::definers::DefinerCollecting::Collective(_) => {
+                            "collective".to_owned()
+                        }
+                        definite::definers::DefinerCollecting::Nullable(_) => "nullAble".to_owned(),
+                        definite::definers::DefinerCollecting::Dynamic => "dyn".to_owned(),
+                    };
+
+                    pub fn dumper(thread: &thread::Thread) -> String {
+                        let mut dump_data = "\r\n---\n\r".to_owned();
+                        let mut stack_dump = String::new();
+                        for stack in thread.pages.clone() {
+                            let mut headers = String::new();
+
+                            for item in stack.1.headers {
+                                headers += &format!("\t\t\t{:#04x} : {}\n", item.0, item.1)
+                            }
+
+                            stack_dump += &format!(
+                                "\t---\n\tPage {:#04x}:\n\t\tHeaders:\n{}\n\t\tStack:\n\t{}\n\t\tHEAP:\n{}\n",
+                                stack.0,
+                                headers,
+                                stack.1.stack.dump(),
+                                stack.1.heap.clone().dump()
                             );
                         }
 
-                        loop_item(pages, *e.item, e.resolution_id);
+                        dump_data += &format!("Pages:\n{}\n\t---", stack_dump);
+                        dump_data
                     }
-                    definite::items::Collecting::Variable(variable) => {
-                        page.headers.insert(
-                            page.stack.register_variable(
-                                stack::StackElement::Type(0),
-                                Some(add_data_to_heap(&mut page.heap, variable.value).clone() - 1),
-                                variable.dynamic,
-                            ),
-                            variable.name,
-                        );
+
+                    let copy_dump = dumper(&*thread);
+                    let type_id = thread.glb_look_up_for_item_by_name(&type_name);
+                    match thread.pages.get_mut(&page_id) {
+                        Some(page) => match type_id {
+                            Some(type_element) => {
+                                let rtype = match type_element {
+                                    stack::StackElements::Class(class) => {
+                                        stack::StackElement::Type(class.id)
+                                    }
+                                    stack::StackElements::Generic(generic) => {
+                                        stack::StackElement::Generic(generic.id)
+                                    }
+                                    _ => panic!("Unexpected runtime behaviour"),
+                                };
+
+                                let element_id = page.stack.register_variable(
+                                    rtype,
+                                    Some(
+                                        add_data_to_heap(&mut page.heap, variable.value).clone()
+                                            - 1,
+                                    ),
+                                    variable.dynamic,
+                                );
+                                page.headers.insert(element_id, variable.name);
+                                Some((element_id, variable.public))
+                            }
+                            None => {
+                                pub fn dumper(thread: &thread::Thread) -> String {
+                                    let mut dump_data = "\r\n---\n\r".to_owned();
+                                    let mut stack_dump = String::new();
+                                    for stack in thread.pages.clone() {
+                                        let mut headers = String::new();
+
+                                        for item in stack.1.headers {
+                                            headers +=
+                                                &format!("\t\t\t{:#04x} : {}\n", item.0, item.1)
+                                        }
+
+                                        stack_dump += &format!(
+                                            "\t---\n\tPage {:#04x}:\n\t\tHeaders:\n{}\n\t\tStack:\n\t{}\n\t\tHEAP:\n{}\n",
+                                            stack.0,
+                                            headers,
+                                            stack.1.stack.dump(),
+                                            stack.1.heap.clone().dump()
+                                        );
+                                    }
+
+                                    dump_data += &format!("Pages:\n{}\n\t---", stack_dump);
+                                    dump_data
+                                }
+
+                                panic!(
+                                    "?? {:#?}, {:#?} - {:#04x}\n\nDUMP: {}",
+                                    type_id, &type_name, page_id as u64, copy_dump
+                                );
+                                panic!("UNEXPECTED RUNTIME ERROR");
+                            }
+                        },
+                        None => panic!("UNEXPECTED RUNTIME ERROR: CANNOT FIND PAGE"),
                     }
-                    definite::items::Collecting::Function(function) => {
-                        std::println!("'Function' NOT YET IMPLEMENTED, REFERENCED HEAP REQUIRED");
-                        ()
-                    }
-                    definite::items::Collecting::ForLoop(_) => todo!(),
-                    definite::items::Collecting::Condition(_) => todo!(),
-                    definite::items::Collecting::Class(class) => {
+                }
+                definite::items::Collecting::Function(_) => Some((0, false)),
+                definite::items::Collecting::ForLoop(_) => Some((0, false)),
+                definite::items::Collecting::Condition(_) => Some((0, false)),
+                definite::items::Collecting::Class(class) => match thread.pages.get_mut(&page_id) {
+                    Some(page) => {
                         let mut class_items: Vec<definite::items::Collecting> =
                             vec![definite::items::Collecting::Constructor(class.constructor)];
 
@@ -215,109 +350,69 @@ impl Runtime {
 
                         let mut generics = Vec::new();
                         let mut child_headers: BTreeMap<usize, String> = BTreeMap::new();
+                        let mut child_stack = stack::Stack::new(page_id);
                         for (id, generic) in class.generic_definings.into_iter().enumerate() {
                             child_headers.insert(id, generic.name.clone());
                             generics.push(id);
+                            child_stack.register_generic(id);
                         }
 
-                        page.headers
-                            .insert(page.stack.register_class(page_id, generics), class.name);
+                        let element_id = page.stack.register_class(page_id, generics);
 
-                        pages.insert(
+                        page.headers.insert(element_id, class.name);
+
+                        thread.pages.insert(
                             page_id as u64,
                             thread::Page {
                                 page_id: page_id as u64,
                                 headers: child_headers,
                                 heap: heap::Heap::new(),
-                                stack: stack::Stack::new(page_id),
+                                stack: child_stack,
                                 step: page_id as usize,
                             },
                         );
 
                         for item in class_items {
-                            loop_item(pages, item, page_id as u64);
+                            loop_item(thread, item, page_id as u64);
                         }
+                        Some((element_id, class.public))
                     }
-                    definite::items::Collecting::Ret(_) => todo!(),
-                    definite::items::Collecting::Constructor(_) => {
-                        std::println!("'Constructor' NOT YET IMPLEMENTED");
-                        ()
-                    }
-                    definite::items::Collecting::Caller(_) => {
-                        std::println!("'Caller' NOT YET IMPLEMENTED");
-                        ()
-                    }
-                    definite::items::Collecting::Getter(_) => {
-                        std::println!("'Getter' NOT YET IMPLEMENTED");
-                        ()
-                    }
-                    definite::items::Collecting::Setter(_) => {
-                        std::println!("'Setter' NOT YET IMPLEMENTED");
-                        ()
-                    }
-                    definite::items::Collecting::NativeClass => {
-                        std::println!("'NativeClass' NOT YET IMPLEMENTED");
-                        ()
-                    }
-                    definite::items::Collecting::ValueCall(_) => {
-                        std::println!("'ValueCall' NOT YET IMPLEMENTED");
-                        ()
-                    }
-                    definite::items::Collecting::Enum(_) => {
-                        std::println!("'Enum' NOT YET IMPLEMENTED");
-                        ()
-                    }
-                    definite::items::Collecting::NativeFunction(_) => {
-                        std::println!("'NativeFunction' NOT YET IMPLEMENTED");
-                        ()
-                    }
-                    _ => (), //Ignore rest of the elements, because they do not have a corresponding task to do
+                    None => panic!("CANNOT FIND PAGE"),
                 },
-                None => match item {
-                    definite::items::Collecting::ImportItem(e) => {
-                        std::println!("NEW PAGE: {} for {:#?}", e.resolution_id, e);
-                        let stack_id = pages.len() + 1;
-                        pages.insert(
-                            e.resolution_id.clone(),
+                definite::items::Collecting::Ret(_) => Some((0, false)),
+                definite::items::Collecting::Constructor(_) => Some((0, false)),
+                definite::items::Collecting::Caller(_) => Some((0, false)),
+                definite::items::Collecting::Import(import) => {
+                    if !thread.pages.contains_key(&(import.id as u64)) {
+                        thread.pages.insert(
+                            import.id.clone() as u64,
                             thread::Page {
-                                page_id: e.resolution_id,
+                                page_id: import.id as u64,
                                 headers: BTreeMap::new(),
                                 heap: heap::Heap::new(),
-                                stack: stack::Stack::new(e.resolution_id.clone() as usize),
-                                step: page_id as usize,
+                                stack: stack::Stack::new(import.id.clone() as usize),
+                                step: 0,
                             },
                         );
                     }
-                    definite::items::Collecting::Import(_) => (),
-                    definite::items::Collecting::FileKey(_) => (),
-                    definite::items::Collecting::None => (),
-                    _ => {
-                        //Page required elements
-                        panic!(
-                                "UNEXPECTED PARSER BEHAVIOUR, PAGE '{}' SHOULD HAVE BEEN EXISTED; {:#?}",
-                                page_id,
-                                item
-                            )
-                    }
-                },
+                    Some((import.id as usize, import.public))
+                }
+                definite::items::Collecting::FileKey(_) => Some((0, false)),
+                definite::items::Collecting::Getter(_) => Some((0, false)),
+                definite::items::Collecting::Setter(_) => Some((0, false)),
+                definite::items::Collecting::NativeClass => Some((0, false)),
+                definite::items::Collecting::ValueCall(_) => Some((0, false)),
+                definite::items::Collecting::Enum(_) => Some((0, false)),
+                definite::items::Collecting::NativeFunction(_) => Some((0, false)),
+                definite::items::Collecting::None => Some((0, false)),
             }
         }
 
-        //Ring zero
-        pages.insert(
-            1,
-            thread::Page {
-                page_id: 1,
-                headers: BTreeMap::new(),
-                heap: heap::Heap::new(),
-                stack: stack::Stack::new(1),
-                step: 0,
-            },
-        );
+        let mut main_thread = thread::Thread::new(0, thread_controller);
 
         for item in code {
             //Split code to pages
-            loop_item(&mut pages, item, 1);
+            loop_item(&mut main_thread, item, 1);
         }
 
         /*
@@ -600,7 +695,6 @@ impl Runtime {
         }
 
         */
-        let main_thread = thread::Thread::new(0, pages, thread_controller);
         self.threads.push(main_thread);
     }
 

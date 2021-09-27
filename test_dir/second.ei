@@ -1,3 +1,8 @@
+import ./part.ei;
+pub class Second {}
+c fileSecond: Part;
+
+/*
 pub class BirthDay {
     co BirthDay(day, month, year);
     pub v day : int;
@@ -15,4 +20,4 @@ pub class Person {
     pub v surname : string;
     pub v birthDay : BirthDay;
 }
-
+*/
