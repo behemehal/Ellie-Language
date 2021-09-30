@@ -23,4 +23,5 @@
 */
 
 import int;
+import void;
 pub fn sleep(seconds: int);
