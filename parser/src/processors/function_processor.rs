@@ -304,6 +304,10 @@ pub fn collect_function<F>(
                 } else if letter_char == ";"
                     && parser.options.parser_type == ellie_core::defs::ParserType::HeaderParser
                 {
+                    function_data.data.return_type =
+                        definers::DefinerCollecting::Generic(definers::GenericType {
+                            rtype: "void".to_owned(),
+                        });
                     function_data.data.pos.range_end = parser.pos.clone().skip_char(1);
                     parser.collected.push(parser::Collecting::NativeFunction(
                         native_function::NativeFunction::from_runtime(function_data.data.clone()),
