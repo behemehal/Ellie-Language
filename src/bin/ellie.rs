@@ -27,6 +27,7 @@ fn main() {
         println!("\t--debug                      || -d   : Show debug headers");
         println!("\t--to-json                    || -tj  : Compiles ellie to ellie json");
         println!("\t--render-console             || -rc  : Compiles ellie render to console");
+        println!("\t--render-file                || -rf  : Compiles ellie render to file");
         println!("\t--to-byte-code               || -tb  : Compiles ellie to byte code");
         println!("\t--show-errors                || -se  : Linter code for errors");
         println!("\t--json-errors                || -je  : Linter code for errors as json");
@@ -457,6 +458,33 @@ fn main() {
                                             collected_definite_items
                                         );
                                     }
+                                    std::process::exit(0);
+                                } else if env::args().any(|x| x == "-rf" || x == "--render-file") {
+                                    let path_to_w = format!(
+                                        "./{}.json",
+                                        Path::new(&file_arg.to_string())
+                                            .extension()
+                                            .unwrap()
+                                            .to_str()
+                                            .unwrap()
+                                    );
+                                    match fs::write(
+                                        path_to_w.clone(),
+                                        serde_json::to_string(&collected_definite_items).unwrap(),
+                                    ) {
+                                        Ok(_) => {
+                                            println!(
+                                                "RAW DATA SUCCESSFULLY WRITTEN TO `{}`",
+                                                path_to_w
+                                            );
+                                        }
+                                        Err(e) => {
+                                            println!(
+                                                "FAILED TO WRITE RAW DATA ({})",
+                                                e.to_string()
+                                            );
+                                        }
+                                    };
                                     std::process::exit(0);
                                 } else {
                                     let mut runtime = runtime::Runtime::spawn(Box::new(
