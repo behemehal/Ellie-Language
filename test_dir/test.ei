@@ -1,6 +1,4 @@
-import ./part.ei;
+//import ../lib/future.ei;
+import ./first;
 import ./second;
-class Test {}
-v fileSecondFirst: Second;
-c fileSecondSecond: Part;
-
+import ./third;

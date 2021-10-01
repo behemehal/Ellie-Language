@@ -47,13 +47,15 @@ fn resolve_import(
     match read_file(&("./lib/".to_owned() + &lib_name + &file_extension)) {
         Ok(e) => {
             let mut id_hasher = DefaultHasher::new();
+            let mut resolution_id_hasher = DefaultHasher::new();
+            e.hash(&mut resolution_id_hasher);
             ellie_core::utils::generate_hash().hash(&mut id_hasher);
 
             ellie_parser::parser::ResolvedImport {
                 found: true,
                 resolved_path: ("./lib/".to_owned() + &lib_name + &file_extension),
                 file_content: ellie_parser::parser::ResolvedFileContent::Raw(e),
-                resolution_id: 0,
+                resolution_id: resolution_id_hasher.finish(),
                 id: id_hasher.finish(),
                 ..Default::default()
             }

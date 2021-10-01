@@ -1,6 +1,17 @@
+/*
+    Copyright (c) 2020 Behemehal. See license file for details
+*/
+
 import int;
+import void;
 importNative thread;
 
+
+pub fn delay(millisecond: int, callback: int) {
+    //sleep(millisecond);
+}
+
+/*
 pub class future<T> {
     pub v type : T;
 
@@ -8,3 +19,4 @@ pub class future<T> {
         sleep(millisecond);
     }
 }
+*/

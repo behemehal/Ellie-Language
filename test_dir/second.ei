@@ -1,23 +1,4 @@
-import ./part.ei;
-pub class Second {}
-c fileSecond: Part;
+import ./third.ei;
 
-/*
-pub class BirthDay {
-    co BirthDay(day, month, year);
-    pub v day : int;
-    pub v month : int;
-    pub v year : int;
 
-    pub g age : int {
-        ret 2021 - year;
-    }
-}
-
-pub class Person {
-    co Person(name, surname, birthDay);
-    pub v name : string;
-    pub v surname : string;
-    pub v birthDay : BirthDay;
-}
-*/
+pub class second {}
