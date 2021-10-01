@@ -61,7 +61,7 @@ pub fn collect_variable<F>(
                         || next_char == "{"
                         || next_char == "}")
                         && !itered_data_clone.ignore_existence
-                        && variable_data.data.value != "new"
+                        && (variable_data.data.value != "new" && variable_data.data.value != "true" && variable_data.data.value != "false")
                     {
                         let found_target =
                             parser.check_keyword(variable_data.data.value.clone(), false);
