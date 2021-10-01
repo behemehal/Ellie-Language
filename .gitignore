@@ -8,7 +8,7 @@ build.js
 wasm
 Cargo.lock
 Release
-test_dir/first.ei
 .gitignore
 ei.dmp
 .gitignore
+test_dir
