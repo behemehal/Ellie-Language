@@ -164,7 +164,8 @@ impl Runtime {
             thread: &mut thread::Thread,
             item: definite::items::Collecting,
             page_id: u64,
-        ) -> Option<(usize, bool, bool)> { //id, publicity, is_import
+        ) -> Option<(usize, bool, bool)> {
+            //id, publicity, is_import
             match item {
                 definite::items::Collecting::ImportItem(import_item) => {
                     if !thread

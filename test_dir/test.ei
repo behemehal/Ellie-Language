@@ -1,4 +1,0 @@
-//import ../lib/future.ei;
-import ./first;
-import ./second;
-import ./third;

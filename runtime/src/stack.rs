@@ -130,11 +130,12 @@ impl Stack {
         return_type: StackElement,
     ) -> usize {
         let id = self.elements.len();
-        self.elements.push(StackElements::NativeFunction(NativeFunction {
-            id,
-            parameters,
-            return_type,
-        }));
+        self.elements
+            .push(StackElements::NativeFunction(NativeFunction {
+                id,
+                parameters,
+                return_type,
+            }));
         id
     }
 

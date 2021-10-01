@@ -112,9 +112,7 @@ pub fn collect_import<F>(
                                     for item in inner_parser.parsed.items {
                                         match item.clone() {
                                             crate::parser::Collecting::ImportItem(e) => {
-                                                if e.public {
-                                                    parser.collected.push(item);
-                                                }
+                                                parser.collected.push(item);
                                             }
                                             crate::parser::Collecting::Variable(e) => {
                                                 parser.collected.push(
@@ -292,9 +290,7 @@ pub fn collect_import<F>(
                                     for item in inner_parser.parsed.items {
                                         match item.clone() {
                                             crate::parser::Collecting::ImportItem(e) => {
-                                                if e.public {
-                                                    parser.collected.push(item);
-                                                }
+                                                parser.collected.push(item);
                                             }
                                             crate::parser::Collecting::Variable(e) => {
                                                 parser.collected.push(
