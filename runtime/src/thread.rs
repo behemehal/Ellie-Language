@@ -6,7 +6,6 @@ use alloc::vec::Vec;
 
 use crate::heap;
 use crate::stack;
-use crate::stack::StackElements;
 
 #[derive(Debug, Clone)]
 pub enum NotifierMessageType {

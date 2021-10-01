@@ -190,11 +190,6 @@ impl Runtime {
                         match thread.pages.get_mut(&page_id) {
                             Some(page) => {
                                 if element_id.1 && !element_id.2 {
-                                    std::println!(
-                                        "IMPORTING BRIDGE: {}, to {}",
-                                        import_item.resolution_id,
-                                        page.page_id,
-                                    );
                                     page.stack.register_bridge_reference(
                                         import_item.resolution_id as usize,
                                         element_id.0,
@@ -215,7 +210,6 @@ impl Runtime {
                             "UNEXPECTED RUNTIME BEHAVIOUR, UNRESPONSIVE ELEMENT: {:#?}",
                             import_item.item
                         );
-                        None
                     }
                 }
                 definite::items::Collecting::Variable(variable) => {
@@ -514,7 +508,6 @@ impl Runtime {
                 definite::items::Collecting::Constructor(_) => Some((0, false, false)),
                 definite::items::Collecting::Caller(_) => Some((0, false, false)),
                 definite::items::Collecting::Import(import) => {
-                    std::println!("IMPORT KEY: {}, res_id: {}", page_id, import.resolution_id);
                     if !thread.pages.contains_key(&(import.resolution_id as u64)) {
                         thread.pages.insert(
                             import.resolution_id.clone() as u64,
@@ -695,7 +688,7 @@ impl Runtime {
                 }
 
                 stack_dump += &format!(
-                    "\t---\n\tPage {:#04x}:\n\t\tHeaders:\n{}\n\t\tStack:\n\t{}\n\t\tHEAP:\n{}\n",
+                    "\t---\n\tPage {:#04x}:\n\t\tHeaders:\n{}\n\t\tStack:\n\t{}\n\t\tHEAP:\n\t{}\n",
                     stack.0,
                     headers,
                     stack.1.stack.dump(),

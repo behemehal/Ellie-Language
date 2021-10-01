@@ -85,7 +85,7 @@ impl Heap {
         let mut lines: Vec<String> = Vec::with_capacity(values.len());
 
         for i in 0..values.len() {
-            lines.push(format!("\t\t\t{:#04x} : {:?}", i, values[i]));
+            lines.push(format!("\t\t{:#04x} : {:?}", i, values[i]));
         }
         lines.join("\n\t")
     }

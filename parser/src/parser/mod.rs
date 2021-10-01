@@ -164,6 +164,7 @@ pub enum NameCheckResponseType {
     Getter(getter::GetterCollector),
     Setter(setter::SetterCollector),
     Function(function::FunctionCollector),
+    NativeFunction(native_function::NativeFunction),
     Class(class::ClassCollector),
     None,
 }
@@ -494,6 +495,10 @@ where
                         self.resolve_deep_call(v_data.data.value)
                     } else if let NameCheckResponseType::Function(f_data) = vr_found.found_type {
                         DeepCallResponse::ElementResponse(Collecting::Function(f_data))
+                    } else if let NameCheckResponseType::NativeFunction(f_data) =
+                        vr_found.found_type
+                    {
+                        DeepCallResponse::ElementResponse(Collecting::NativeFunction(f_data))
                     } else if let NameCheckResponseType::Class(c_data) = vr_found.found_type {
                         DeepCallResponse::ElementResponse(Collecting::Class(c_data))
                     } else {
@@ -514,6 +519,10 @@ where
                         self.resolve_deep_call(v_data.data.value)
                     } else if let NameCheckResponseType::Function(f_data) = vr_found.found_type {
                         DeepCallResponse::ElementResponse(Collecting::Function(f_data))
+                    } else if let NameCheckResponseType::NativeFunction(f_data) =
+                        vr_found.found_type
+                    {
+                        DeepCallResponse::ElementResponse(Collecting::NativeFunction(f_data))
                     } else if let NameCheckResponseType::Class(c_data) = vr_found.found_type {
                         DeepCallResponse::ElementResponse(Collecting::Class(c_data))
                     } else {
@@ -568,6 +577,8 @@ where
                 if fn_found.found.clone() {
                     if let NameCheckResponseType::Function(_) = fn_found.found_type {
                         Ok(target.to_definer())
+                    } else if let NameCheckResponseType::NativeFunction(_) = fn_found.found_type {
+                        Ok(target.to_definer())
                     } else if let NameCheckResponseType::Variable(v_data) = fn_found.found_type {
                         if let definers::DefinerCollecting::Function(_) = v_data.data.rtype {
                             Ok(v_data.data.rtype)
@@ -609,6 +620,17 @@ where
                                 returning: Box::new(f_data.data.return_type),
                                 params: f_data
                                     .data
+                                    .parameters
+                                    .into_iter()
+                                    .map(|x| x.rtype)
+                                    .collect::<Vec<_>>(),
+                                ..Default::default()
+                            }),
+                        ),
+                        NameCheckResponseType::NativeFunction(f_data) => Ok(
+                            definers::DefinerCollecting::Function(definers::FunctionType {
+                                returning: Box::new(f_data.return_type),
+                                params: f_data
                                     .parameters
                                     .into_iter()
                                     .map(|x| x.rtype)
@@ -1454,6 +1476,12 @@ where
                     found_item = item;
                 }
             }
+            Collecting::NativeFunction(e) => {
+                if e.name == name && (e.public || contain_private) {
+                    found = true;
+                    found_item = item;
+                }
+            }
             Collecting::Class(e) => {
                 if e.data.name == name && (e.data.public || contain_private) {
                     found = true;
@@ -1509,6 +1537,10 @@ where
             Collecting::Function(e) => NameCheckResponse {
                 found,
                 found_type: NameCheckResponseType::Function(e),
+            },
+            Collecting::NativeFunction(e) => NameCheckResponse {
+                found,
+                found_type: NameCheckResponseType::NativeFunction(e),
             },
             Collecting::Class(e) => NameCheckResponse {
                 found,
