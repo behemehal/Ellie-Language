@@ -137,6 +137,7 @@ impl Thread {
     }
 
     pub fn glb_look_up_for_item_by_name(&self, name: &str) -> Option<stack::StackElements> {
+        std::println!("[WARNING] NOT IDEAL TO REQUIRE ITEM FROM OTHER SCOPES");
         let mut found = false;
         let mut found_type = stack::StackElements::None;
 
@@ -144,20 +145,20 @@ impl Thread {
             match current_page.header_exists(name) {
                 Some(id) => {
                     //If current page has the type
-                     match current_page.stack.clone().element_exists(id) {
+                    match current_page.stack.clone().element_exists(id) {
                         Some(element_exists) => {
                             found_type = element_exists;
                             found = true;
                             break 'page_loop;
-                        },
-                        _ => ()
+                        }
+                        _ => (),
                     }
                 }
                 None => {
                     //Else look up in imported pages
                     for i in current_page.stack.elements.clone() {
-                        if let stack::StackElements::Reference(reference) = i {
-                            match self.pages.get(&(reference.page_id as u64)) {
+                        if let stack::StackElements::Bridge(bridge) = i {
+                            match self.pages.get(&(bridge.page_id as u64)) {
                                 Some(page) => match page.header_exists(name) {
                                     Some(e) => match page.stack.clone().element_exists(e) {
                                         Some(found_rtype) => {
@@ -184,32 +185,38 @@ impl Thread {
         }
     }
 
-    pub fn _look_up_for_item_by_name(
+    pub fn look_up_for_item_by_name(
         &self,
         name: &str,
         current_page_id: u64,
-    ) -> Option<stack::StackElements> {
+    ) -> Option<(stack::StackElements, usize)> {
         match self.pages.get(&current_page_id.clone()) {
             Some(current_page) => {
                 match current_page.header_exists(name) {
                     Some(id) => {
                         //If current page has the type
-                        current_page.stack.clone().element_exists(id)
+                        if let Some(element) = current_page.stack.clone().element_exists(id) {
+                            Some((element, current_page_id as usize))
+                        } else {
+                            None
+                        }
                     }
                     None => {
                         //Else look up in imported pages
 
+                        let mut found_bridge = 0;
                         let mut found = false;
                         let mut found_type = stack::StackElements::None;
 
                         'search: for i in current_page.stack.elements.clone() {
-                            if let stack::StackElements::Reference(reference) = i {
-                                match self.pages.get(&(reference.page_id as u64)) {
+                            if let stack::StackElements::Bridge(bridge) = i {
+                                match self.pages.get(&(bridge.page_id as u64)) {
                                     Some(page) => match page.header_exists(name) {
                                         Some(e) => match page.stack.clone().element_exists(e) {
                                             Some(found_rtype) => {
                                                 found = true;
                                                 found_type = found_rtype;
+                                                found_bridge = bridge.page_id;
                                                 break 'search;
                                             }
                                             None => panic!("UNEXPECTED RUNTIME BEHAVIOUR"),
@@ -222,7 +229,7 @@ impl Thread {
                         }
 
                         if found {
-                            Some(found_type)
+                            Some((found_type, found_bridge))
                         } else {
                             None
                         }
@@ -239,8 +246,8 @@ impl Thread {
                 let element = page.stack.clone().element_exists(target);
                 match element.clone() {
                     Some(e) => match e {
-                        stack::StackElements::Reference(e) => {
-                            self.look_up_for_item(e.page_id as u64, e.type_id)
+                        stack::StackElements::Bridge(e) => {
+                            self.look_up_for_item(e.page_id as u64, target)
                         }
                         _ => element,
                     },

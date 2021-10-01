@@ -35,7 +35,7 @@ pub enum HeapTypes {
     Integer(HeapIntegerSize),
     Float(HeapFloatSize),
     Bool(bool),
-    String(&'static str),
+    String(*const u8),
     Null, /*
           Char(char),
           Collective,

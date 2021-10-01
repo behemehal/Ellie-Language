@@ -5,11 +5,12 @@ use alloc::borrow::ToOwned;
 use alloc::boxed::Box;
 use alloc::collections::BTreeMap;
 use alloc::format;
-use alloc::rc;
 use alloc::string::String;
 use alloc::vec;
 use alloc::vec::Vec;
 use ellie_core::definite;
+use rand;
+
 pub enum RuntimeEventMessage {
     None,
 }
@@ -37,6 +38,29 @@ pub struct Runtime {
     initialized: bool,
 }
 
+pub fn panic_dumper(thread: &thread::Thread) -> String {
+    let mut dump_data = "\r\n---\n\r".to_owned();
+    let mut stack_dump = String::new();
+    for stack in thread.pages.clone() {
+        let mut headers = String::new();
+
+        for item in stack.1.headers {
+            headers += &format!("\t\t\t{:#04x} : {}\n", item.0, item.1)
+        }
+
+        stack_dump += &format!(
+            "\t---\n\tPage {:#04x}:\n\t\tHeaders:\n{}\n\t\tStack:\n\t{}\n\t\tHEAP:\n{}\n",
+            stack.0,
+            headers,
+            stack.1.stack.dump(),
+            stack.1.heap.clone().dump()
+        );
+    }
+
+    dump_data += &format!("Pages:\n{}\n\t---", stack_dump);
+    dump_data
+}
+
 impl Runtime {
     pub fn spawn(event_listener: Box<dyn RuntimeEventFn>) -> Runtime {
         let mut runtime = Runtime {
@@ -61,7 +85,7 @@ impl Runtime {
 
         thread_controller.require_frame =
             Box::new(move |(stack_id, stack_step)| -> thread::ThreadMessage {
-                std::println!("require_frame: stackid: {} STEP: {}", stack_id, stack_step);
+                std::println!("require_frame: stack_id: {} STEP: {}", stack_id, stack_step);
                 //self.events.call(RuntimeEventMessage::None);
                 thread::ThreadMessage::CONTINUE
             });
@@ -115,7 +139,9 @@ impl Runtime {
                     }))
                 }
                 definite::types::Types::Bool(_) => todo!(),
-                definite::types::Types::String(_) => todo!(),
+                definite::types::Types::String(e) => {
+                    heap.insert(heap::HeapTypes::String(e.value.as_ptr()))
+                }
                 definite::types::Types::Char(_) => todo!(),
                 definite::types::Types::Collective(_) => todo!(),
                 definite::types::Types::Reference(_) => todo!(),
@@ -134,76 +160,62 @@ impl Runtime {
         }
 
         //Adds element to stack returns id of it
-
         pub fn loop_item(
             thread: &mut thread::Thread,
             item: definite::items::Collecting,
             page_id: u64,
-        ) -> Option<(usize, bool)> {
-            let current_pages_len = thread.pages.len();
-
+        ) -> Option<(usize, bool, bool)> { //id, publicity, is_import
             match item {
                 definite::items::Collecting::ImportItem(import_item) => {
-                    if !thread.pages.contains_key(&(import_item.from_import as u64)) {
+                    if !thread
+                        .pages
+                        .contains_key(&(import_item.resolution_id as u64))
+                    {
                         thread.pages.insert(
-                            import_item.from_import.clone() as u64,
+                            import_item.resolution_id.clone() as u64,
                             thread::Page {
-                                page_id: import_item.from_import as u64,
+                                page_id: import_item.resolution_id as u64,
                                 headers: BTreeMap::new(),
                                 heap: heap::Heap::new(),
-                                stack: stack::Stack::new(import_item.from_import.clone() as usize),
+                                stack: stack::Stack::new(import_item.resolution_id.clone() as usize),
                                 step: 0,
                             },
                         );
                     }
 
-                    let ret = loop_item(thread, *import_item.item, import_item.from_import);
+                    let ret =
+                        loop_item(thread, *import_item.item.clone(), import_item.resolution_id);
                     if let Some(element_id) = ret {
                         match thread.pages.get_mut(&page_id) {
                             Some(page) => {
-                                if element_id.1 {
-                                    page.stack.register_reference(
-                                        import_item.from_import as usize,
+                                if element_id.1 && !element_id.2 {
+                                    std::println!(
+                                        "IMPORTING BRIDGE: {}, to {}",
+                                        import_item.resolution_id,
+                                        page.page_id,
+                                    );
+                                    page.stack.register_bridge_reference(
+                                        import_item.resolution_id as usize,
                                         element_id.0,
                                     );
                                 }
+                                Some((element_id.0, element_id.1, true))
                             }
                             None => {
-                                pub fn dumper(thread: &thread::Thread) -> String {
-                                    let mut dump_data = "\r\n---\n\r".to_owned();
-                                    let mut stack_dump = String::new();
-                                    for stack in thread.pages.clone() {
-                                        let mut headers = String::new();
-
-                                        for item in stack.1.headers {
-                                            headers +=
-                                                &format!("\t\t\t{:#04x} : {}\n", item.0, item.1)
-                                        }
-
-                                        stack_dump += &format!(
-                                            "\t---\n\tPage {:#04x}:\n\t\tHeaders:\n{}\n\t\tStack:\n\t{}\n\t\tHEAP:\n{}\n",
-                                            stack.0,
-                                            headers,
-                                            stack.1.stack.dump(),
-                                            stack.1.heap.clone().dump()
-                                        );
-                                    }
-
-                                    dump_data += &format!("Pages:\n{}\n\t---", stack_dump);
-                                    dump_data
-                                }
-
-                                let copy_dump = dumper(&*thread);
                                 panic!(
-                                    "UNEXPECTED RUNTIME BEHAVIOUR Pageid: {}\n\n: {}",
-                                    page_id, copy_dump
-                                )
+                                    "UNEXPECTED RUNTIME BEHAVIOUR Pageid: {:#04x}\n\n: {}",
+                                    page_id,
+                                    panic_dumper(&*thread)
+                                );
                             }
                         }
+                    } else {
+                        panic!(
+                            "UNEXPECTED RUNTIME BEHAVIOUR, UNRESPONSIVE ELEMENT: {:#?}",
+                            import_item.item
+                        );
+                        None
                     }
-                    //ret
-
-                    Some((import_item.from_import as usize, import_item.public))
                 }
                 definite::items::Collecting::Variable(variable) => {
                     let type_name = match variable.rtype {
@@ -221,41 +233,17 @@ impl Runtime {
                         definite::definers::DefinerCollecting::Nullable(_) => "nullAble".to_owned(),
                         definite::definers::DefinerCollecting::Dynamic => "dyn".to_owned(),
                     };
-
-                    pub fn dumper(thread: &thread::Thread) -> String {
-                        let mut dump_data = "\r\n---\n\r".to_owned();
-                        let mut stack_dump = String::new();
-                        for stack in thread.pages.clone() {
-                            let mut headers = String::new();
-
-                            for item in stack.1.headers {
-                                headers += &format!("\t\t\t{:#04x} : {}\n", item.0, item.1)
-                            }
-
-                            stack_dump += &format!(
-                                "\t---\n\tPage {:#04x}:\n\t\tHeaders:\n{}\n\t\tStack:\n\t{}\n\t\tHEAP:\n{}\n",
-                                stack.0,
-                                headers,
-                                stack.1.stack.dump(),
-                                stack.1.heap.clone().dump()
-                            );
-                        }
-
-                        dump_data += &format!("Pages:\n{}\n\t---", stack_dump);
-                        dump_data
-                    }
-
-                    let copy_dump = dumper(&*thread);
-                    let type_id = thread.glb_look_up_for_item_by_name(&type_name);
+                    let type_id = thread.look_up_for_item_by_name(&type_name, page_id);
+                    let copy_dump = panic_dumper(&*thread);
                     match thread.pages.get_mut(&page_id) {
                         Some(page) => match type_id {
                             Some(type_element) => {
-                                let rtype = match type_element {
+                                let rtype = match type_element.0 {
                                     stack::StackElements::Class(class) => {
-                                        stack::StackElement::Type(class.id)
+                                        stack::StackElement::Type((class.id, type_element.1))
                                     }
                                     stack::StackElements::Generic(generic) => {
-                                        stack::StackElement::Generic(generic.id)
+                                        stack::StackElement::Generic((generic.id, type_element.1))
                                     }
                                     _ => panic!("Unexpected runtime behaviour"),
                                 };
@@ -269,432 +257,428 @@ impl Runtime {
                                     variable.dynamic,
                                 );
                                 page.headers.insert(element_id, variable.name);
-                                Some((element_id, variable.public))
+                                Some((element_id, variable.public, false))
                             }
                             None => {
-                                pub fn dumper(thread: &thread::Thread) -> String {
-                                    let mut dump_data = "\r\n---\n\r".to_owned();
-                                    let mut stack_dump = String::new();
-                                    for stack in thread.pages.clone() {
-                                        let mut headers = String::new();
-
-                                        for item in stack.1.headers {
-                                            headers +=
-                                                &format!("\t\t\t{:#04x} : {}\n", item.0, item.1)
-                                        }
-
-                                        stack_dump += &format!(
-                                            "\t---\n\tPage {:#04x}:\n\t\tHeaders:\n{}\n\t\tStack:\n\t{}\n\t\tHEAP:\n{}\n",
-                                            stack.0,
-                                            headers,
-                                            stack.1.stack.dump(),
-                                            stack.1.heap.clone().dump()
-                                        );
-                                    }
-
-                                    dump_data += &format!("Pages:\n{}\n\t---", stack_dump);
-                                    dump_data
-                                }
-
                                 panic!(
-                                    "?? {:#?}, {:#?} - {:#04x}\n\nDUMP: {}",
-                                    type_id, &type_name, page_id as u64, copy_dump
+                                    "Runtime failed to find element '{:#?}' in page '{:#04x}'\n\nDUMP: {}",
+                                    type_name,
+                                    page_id as u64,
+                                    copy_dump
                                 );
-                                panic!("UNEXPECTED RUNTIME ERROR");
                             }
                         },
-                        None => panic!("UNEXPECTED RUNTIME ERROR: CANNOT FIND PAGE"),
+                        None => panic!(
+                            "Runtime failed to find page: '{}';\n\nDUMP: {}",
+                            page_id as u64,
+                            panic_dumper(&*thread)
+                        ),
                     }
                 }
-                definite::items::Collecting::Function(_) => Some((0, false)),
-                definite::items::Collecting::ForLoop(_) => Some((0, false)),
-                definite::items::Collecting::Condition(_) => Some((0, false)),
+                definite::items::Collecting::Function(function) => {
+                    let mut child_stack = stack::Stack::new((page_id + 1) as usize);
+                    let mut child_headers: BTreeMap<usize, String> = BTreeMap::new();
+
+                    let mut params: Vec<(stack::StackElement, usize)> = Vec::new(); //((type, referenced_page), inner_page_pos)
+                    let mut ret: stack::StackElement = stack::StackElement::Type((0, 0));
+
+                    for (id, param) in function.parameters.into_iter().enumerate() {
+                        /*
+                            Find referenced type data in pages, register header and param data in inner_page
+                        */
+                        let rtype = match param.rtype {
+                            definite::definers::DefinerCollecting::Array(_) => "array".to_owned(),
+                            definite::definers::DefinerCollecting::Future(_) => "future".to_owned(),
+                            definite::definers::DefinerCollecting::GrowableArray(_) => {
+                                "growableArray".to_owned()
+                            }
+                            definite::definers::DefinerCollecting::Generic(e) => e.rtype,
+                            definite::definers::DefinerCollecting::Function(_) => {
+                                "function".to_owned()
+                            }
+                            definite::definers::DefinerCollecting::Cloak(_) => "cloak".to_owned(),
+                            definite::definers::DefinerCollecting::Collective(_) => {
+                                "collective".to_owned()
+                            }
+                            definite::definers::DefinerCollecting::Nullable(_) => {
+                                "nullAble".to_owned()
+                            }
+                            definite::definers::DefinerCollecting::Dynamic => "dyn".to_owned(),
+                        };
+                        let type_id = thread.look_up_for_item_by_name(&rtype, page_id as u64);
+                        match type_id {
+                            Some(type_element) => {
+                                let rtype = match type_element.0 {
+                                    stack::StackElements::Class(class) => {
+                                        stack::StackElement::Type((class.id, type_element.1))
+                                    }
+                                    stack::StackElements::Generic(generic) => {
+                                        stack::StackElement::Generic((generic.id, type_element.1))
+                                    }
+                                    _ => panic!("Unexpected runtime behaviour"),
+                                };
+                                child_headers.insert(
+                                    child_stack.register_parameter(rtype.clone()),
+                                    param.name,
+                                );
+                                params.push((rtype.clone(), id));
+                            }
+                            None => {
+                                panic!(
+                                            "Runtime failed to find element for function parameter: '{}', page_id: {:#04x};\n\nDUMP: {}",
+                                            rtype,
+                                            page_id,
+                                            panic_dumper(&*thread)
+                                        )
+                            }
+                        }
+                    }
+
+                    let rtype = match function.return_type {
+                        definite::definers::DefinerCollecting::Array(_) => "array".to_owned(),
+                        definite::definers::DefinerCollecting::Future(_) => "future".to_owned(),
+                        definite::definers::DefinerCollecting::GrowableArray(_) => {
+                            "growableArray".to_owned()
+                        }
+                        definite::definers::DefinerCollecting::Generic(e) => e.rtype,
+                        definite::definers::DefinerCollecting::Function(_) => "function".to_owned(),
+                        definite::definers::DefinerCollecting::Cloak(_) => "cloak".to_owned(),
+                        definite::definers::DefinerCollecting::Collective(_) => {
+                            "collective".to_owned()
+                        }
+                        definite::definers::DefinerCollecting::Nullable(_) => "nullAble".to_owned(),
+                        definite::definers::DefinerCollecting::Dynamic => "dyn".to_owned(),
+                    };
+                    //Match return type with pages, register to function
+                    let type_id = thread.look_up_for_item_by_name(&rtype, page_id as u64);
+                    match type_id {
+                        Some(type_element) => {
+                            ret = match type_element.0 {
+                                stack::StackElements::Class(class) => {
+                                    stack::StackElement::Type((class.id, type_element.1))
+                                }
+                                stack::StackElements::Generic(generic) => {
+                                    stack::StackElement::Generic((generic.id, type_element.1))
+                                }
+                                _ => panic!("Unexpected runtime behaviour"),
+                            };
+                        }
+                        None => {
+                            panic!(
+                                "Runtime failed to find element for return type: '{}';\n\nDUMP: {}",
+                                &rtype,
+                                panic_dumper(&*thread)
+                            )
+                        }
+                    }
+                    match thread.pages.get_mut(&page_id) {
+                        Some(page) => {
+                            let inner_page_id = rand::random::<u64>();
+                            let element_id =
+                                page.stack
+                                    .register_function(params, inner_page_id as usize, ret);
+                            page.headers.insert(element_id, function.name);
+
+                            //Import upper imports to inner scope
+                            for element in page.stack.elements.clone() {
+                                if let stack::StackElements::Bridge(bridge) = element {
+                                    child_stack.register_bridge(bridge.page_id, None);
+                                    for i in bridge.targets {
+                                        child_stack.register_bridge_reference(bridge.page_id, i);
+                                    }
+                                }
+                            }
+
+                            thread.pages.insert(
+                                inner_page_id,
+                                thread::Page {
+                                    page_id: inner_page_id,
+                                    headers: child_headers,
+                                    heap: heap::Heap::new(),
+                                    stack: child_stack,
+                                    step: 0,
+                                },
+                            );
+
+                            for item in function.inside_code {
+                                loop_item(thread, item, inner_page_id);
+                            }
+                            Some((element_id, function.public, false))
+                        }
+                        None => {
+                            panic!(
+                                "Runtime failed to find page: '{}';\n\nDUMP: {}",
+                                page_id as u64,
+                                panic_dumper(&*thread)
+                            );
+                        }
+                    }
+                }
+                definite::items::Collecting::ForLoop(_) => Some((0, false, false)),
+                definite::items::Collecting::Condition(_) => Some((0, false, false)),
                 definite::items::Collecting::Class(class) => match thread.pages.get_mut(&page_id) {
                     Some(page) => {
-                        let mut class_items: Vec<definite::items::Collecting> =
-                            vec![definite::items::Collecting::Constructor(class.constructor)];
+                        match page.header_exists(&class.name) {
+                            Some(e) => Some((e, class.public, false)),
+                            None => {
+                                let mut class_items: Vec<definite::items::Collecting> =
+                                    vec![definite::items::Collecting::Constructor(
+                                        class.constructor,
+                                    )];
 
-                        class_items.extend(
-                            class
-                                .getters
-                                .into_iter()
-                                .map(|x| definite::items::Collecting::Getter(x))
-                                .collect::<Vec<_>>(),
-                        );
+                                class_items.extend(
+                                    class
+                                        .getters
+                                        .into_iter()
+                                        .map(|x| definite::items::Collecting::Getter(x))
+                                        .collect::<Vec<_>>(),
+                                );
 
-                        class_items.extend(
-                            class
-                                .setters
-                                .into_iter()
-                                .map(|x| definite::items::Collecting::Setter(x))
-                                .collect::<Vec<_>>(),
-                        );
+                                class_items.extend(
+                                    class
+                                        .setters
+                                        .into_iter()
+                                        .map(|x| definite::items::Collecting::Setter(x))
+                                        .collect::<Vec<_>>(),
+                                );
 
-                        class_items.extend(
-                            class
-                                .methods
-                                .into_iter()
-                                .map(|x| definite::items::Collecting::Function(x))
-                                .collect::<Vec<_>>(),
-                        );
+                                class_items.extend(
+                                    class
+                                        .methods
+                                        .into_iter()
+                                        .map(|x| definite::items::Collecting::Function(x))
+                                        .collect::<Vec<_>>(),
+                                );
 
-                        class_items.extend(
-                            class
-                                .properties
-                                .into_iter()
-                                .map(|x| definite::items::Collecting::Variable(x))
-                                .collect::<Vec<_>>(),
-                        );
+                                class_items.extend(
+                                    class
+                                        .properties
+                                        .into_iter()
+                                        .map(|x| definite::items::Collecting::Variable(x))
+                                        .collect::<Vec<_>>(),
+                                );
+                                let inner_page_id = rand::random::<u64>();
 
-                        let page_id = current_pages_len + 1;
+                                let mut generics = Vec::new();
+                                let mut child_headers: BTreeMap<usize, String> = BTreeMap::new();
+                                let mut child_stack = stack::Stack::new(inner_page_id as usize);
 
-                        let mut generics = Vec::new();
-                        let mut child_headers: BTreeMap<usize, String> = BTreeMap::new();
-                        let mut child_stack = stack::Stack::new(page_id);
-                        for (id, generic) in class.generic_definings.into_iter().enumerate() {
-                            child_headers.insert(id, generic.name.clone());
-                            generics.push(id);
-                            child_stack.register_generic(id);
+                                for (id, generic) in class.generic_definings.into_iter().enumerate()
+                                {
+                                    child_headers.insert(id, generic.name.clone());
+                                    generics.push(id);
+                                    child_stack.register_generic(id);
+                                }
+
+                                //Import upper imports to inner scope
+                                for element in page.stack.elements.clone() {
+                                    if let stack::StackElements::Bridge(bridge) = element {
+                                        child_stack.register_bridge(bridge.page_id, None);
+                                        for i in bridge.targets {
+                                            child_stack
+                                                .register_bridge_reference(bridge.page_id, i);
+                                        }
+                                    }
+                                }
+
+                                let element_id =
+                                    page.stack.register_class(inner_page_id as usize, generics);
+                                page.headers.insert(element_id, class.name.clone());
+
+                                thread.pages.insert(
+                                    inner_page_id,
+                                    thread::Page {
+                                        page_id: inner_page_id,
+                                        headers: child_headers,
+                                        heap: heap::Heap::new(),
+                                        stack: child_stack,
+                                        step: 0,
+                                    },
+                                );
+
+                                for item in class_items {
+                                    loop_item(thread, item, inner_page_id);
+                                }
+                                Some((element_id, class.public, false))
+                            }
                         }
-
-                        let element_id = page.stack.register_class(page_id, generics);
-
-                        page.headers.insert(element_id, class.name);
-
-                        thread.pages.insert(
-                            page_id as u64,
-                            thread::Page {
-                                page_id: page_id as u64,
-                                headers: child_headers,
-                                heap: heap::Heap::new(),
-                                stack: child_stack,
-                                step: page_id as usize,
-                            },
-                        );
-
-                        for item in class_items {
-                            loop_item(thread, item, page_id as u64);
-                        }
-                        Some((element_id, class.public))
                     }
-                    None => panic!("CANNOT FIND PAGE"),
+                    None => panic!(
+                        "Runtime failed to find page: '{}';\n\nDUMP: {}",
+                        page_id as u64,
+                        panic_dumper(&*thread)
+                    ),
                 },
-                definite::items::Collecting::Ret(_) => Some((0, false)),
-                definite::items::Collecting::Constructor(_) => Some((0, false)),
-                definite::items::Collecting::Caller(_) => Some((0, false)),
+                definite::items::Collecting::Ret(_) => Some((0, false, false)),
+                definite::items::Collecting::Constructor(_) => Some((0, false, false)),
+                definite::items::Collecting::Caller(_) => Some((0, false, false)),
                 definite::items::Collecting::Import(import) => {
-                    if !thread.pages.contains_key(&(import.id as u64)) {
+                    std::println!("IMPORT KEY: {}, res_id: {}", page_id, import.resolution_id);
+                    if !thread.pages.contains_key(&(import.resolution_id as u64)) {
                         thread.pages.insert(
-                            import.id.clone() as u64,
+                            import.resolution_id.clone() as u64,
                             thread::Page {
-                                page_id: import.id as u64,
+                                page_id: import.resolution_id as u64,
                                 headers: BTreeMap::new(),
                                 heap: heap::Heap::new(),
-                                stack: stack::Stack::new(import.id.clone() as usize),
+                                stack: stack::Stack::new(import.resolution_id.clone() as usize),
                                 step: 0,
                             },
                         );
                     }
-                    Some((import.id as usize, import.public))
+
+                    match thread.pages.get_mut(&page_id) {
+                        Some(page) => {
+                            if page
+                                .stack
+                                .clone()
+                                .element_exists(import.resolution_id as usize)
+                                .is_none()
+                            {
+                                page.stack
+                                    .register_bridge(import.resolution_id as usize, None);
+                            }
+                        }
+                        None => panic!(
+                            "Runtime failed to find page: '{}';\n\nDUMP: {}",
+                            page_id as u64,
+                            panic_dumper(&*thread)
+                        ),
+                    }
+                    Some((import.id as usize, import.public, true))
                 }
-                definite::items::Collecting::FileKey(_) => Some((0, false)),
-                definite::items::Collecting::Getter(_) => Some((0, false)),
-                definite::items::Collecting::Setter(_) => Some((0, false)),
-                definite::items::Collecting::NativeClass => Some((0, false)),
-                definite::items::Collecting::ValueCall(_) => Some((0, false)),
-                definite::items::Collecting::Enum(_) => Some((0, false)),
-                definite::items::Collecting::NativeFunction(_) => Some((0, false)),
-                definite::items::Collecting::None => Some((0, false)),
+                definite::items::Collecting::FileKey(_) => Some((0, false, false)),
+                definite::items::Collecting::Getter(_) => Some((0, false, false)),
+                definite::items::Collecting::Setter(_) => Some((0, false, false)),
+                definite::items::Collecting::NativeClass => Some((0, false, false)),
+                definite::items::Collecting::ValueCall(_) => Some((0, false, false)),
+                definite::items::Collecting::Enum(_) => Some((0, false, false)),
+                definite::items::Collecting::NativeFunction(function) => {
+                    let mut params: Vec<(stack::StackElement, usize, String)> = Vec::new(); //((type, referenced_page), param_name)
+                    let mut ret: stack::StackElement = stack::StackElement::Type((0, 0));
+
+                    for (id, param) in function.parameters.into_iter().enumerate() {
+                        /*
+                            Find referenced type data in pages, register header and param data in inner_page
+                        */
+                        let rtype = match param.rtype {
+                            definite::definers::DefinerCollecting::Array(_) => "array".to_owned(),
+                            definite::definers::DefinerCollecting::Future(_) => "future".to_owned(),
+                            definite::definers::DefinerCollecting::GrowableArray(_) => {
+                                "growableArray".to_owned()
+                            }
+                            definite::definers::DefinerCollecting::Generic(e) => e.rtype,
+                            definite::definers::DefinerCollecting::Function(_) => {
+                                "function".to_owned()
+                            }
+                            definite::definers::DefinerCollecting::Cloak(_) => "cloak".to_owned(),
+                            definite::definers::DefinerCollecting::Collective(_) => {
+                                "collective".to_owned()
+                            }
+                            definite::definers::DefinerCollecting::Nullable(_) => {
+                                "nullAble".to_owned()
+                            }
+                            definite::definers::DefinerCollecting::Dynamic => "dyn".to_owned(),
+                        };
+                        let type_id = thread.look_up_for_item_by_name(&rtype, page_id as u64);
+                        match type_id {
+                            Some(type_element) => {
+                                let rtype = match type_element.0 {
+                                    stack::StackElements::Class(class) => {
+                                        stack::StackElement::Type((class.id, type_element.1))
+                                    }
+                                    stack::StackElements::Generic(generic) => {
+                                        stack::StackElement::Generic((generic.id, type_element.1))
+                                    }
+                                    _ => panic!("Unexpected runtime behaviour"),
+                                };
+                                params.push((rtype.clone(), id, param.name));
+                            }
+                            None => {
+                                panic!(
+                                            "Runtime failed to find element for function parameter: '{}', page_id: {:#04x},page_id: {}, page: {:#?};\n\nDUMP: {}",
+                                            rtype,
+                                            page_id,
+                                            page_id,
+                                            thread.pages.get(&page_id),
+                                            panic_dumper(&*thread)
+                                        )
+                            }
+                        }
+                    }
+
+                    let rtype = match function.return_type {
+                        definite::definers::DefinerCollecting::Array(_) => "array".to_owned(),
+                        definite::definers::DefinerCollecting::Future(_) => "future".to_owned(),
+                        definite::definers::DefinerCollecting::GrowableArray(_) => {
+                            "growableArray".to_owned()
+                        }
+                        definite::definers::DefinerCollecting::Generic(e) => e.rtype,
+                        definite::definers::DefinerCollecting::Function(_) => "function".to_owned(),
+                        definite::definers::DefinerCollecting::Cloak(_) => "cloak".to_owned(),
+                        definite::definers::DefinerCollecting::Collective(_) => {
+                            "collective".to_owned()
+                        }
+                        definite::definers::DefinerCollecting::Nullable(_) => "nullAble".to_owned(),
+                        definite::definers::DefinerCollecting::Dynamic => "dyn".to_owned(),
+                    };
+                    //Match return type with pages, register to function
+                    let type_id = thread.look_up_for_item_by_name(&rtype, page_id as u64);
+                    match type_id {
+                        Some(type_element) => {
+                            ret = match type_element.0 {
+                                stack::StackElements::Class(class) => {
+                                    stack::StackElement::Type((class.id, type_element.1))
+                                }
+                                stack::StackElements::Generic(generic) => {
+                                    stack::StackElement::Generic((generic.id, type_element.1))
+                                }
+                                _ => panic!("Unexpected runtime behaviour"),
+                            };
+                        }
+                        None => {
+                            panic!(
+                                "Runtime failed to find element for return type: '{}';\n\nDUMP: {}",
+                                &rtype,
+                                panic_dumper(&*thread)
+                            )
+                        }
+                    }
+
+                    match thread.pages.get_mut(&page_id) {
+                        Some(page) => {
+                            let mut rebuilded_params: Vec<(stack::StackElement, usize)> =
+                                Vec::new();
+
+                            for param in params {
+                                rebuilded_params.push((param.0, param.1));
+                                page.headers.insert(param.1, param.2);
+                            }
+
+                            let element_id =
+                                page.stack.register_native_function(rebuilded_params, ret);
+                            page.headers.insert(element_id as usize, function.name);
+                            Some((element_id, function.public, false))
+                        }
+                        None => {
+                            panic!(
+                                "Runtime failed to find page: '{}';\n\nDUMP: {}",
+                                page_id as u64,
+                                panic_dumper(&*thread)
+                            );
+                        }
+                    }
+                }
+                definite::items::Collecting::None => Some((0, false, false)),
             }
         }
 
-        let mut main_thread = thread::Thread::new(0, thread_controller);
+        let mut main_thread = thread::Thread::new(1, thread_controller);
 
         for item in code {
             //Split code to pages
             loop_item(&mut main_thread, item, 1);
         }
-
-        /*
-
-        for element in code {
-            return ();
-            match element {
-                definite::items::Collecting::ImportItem(_) => {
-                    #[cfg(feature = "std")]
-                    std::println!("'Function' IS NOT SUPPORTED ELEMENT");
-                    ()
-                }
-                definite::items::Collecting::Variable(e) => {
-                    //headers.insert(main_stack.register_variable(
-                    //    stack::StackElement::Type(0),
-                    //    Some(add_data_to_heap(e.value).clone()),
-                    //    e.dynamic,
-                    //),e.name);
-                }
-                definite::items::Collecting::Function(_) => {
-                    #[cfg(feature = "std")]
-                    std::println!("'Function' IS NOT SUPPORTED ELEMENT");
-                    ()
-                }
-                definite::items::Collecting::ForLoop(_) => {
-                    #[cfg(feature = "std")]
-                    std::println!("'ForLoop' IS NOT SUPPORTED ELEMENT");
-                    ()
-                }
-                definite::items::Collecting::Condition(_) => {
-                    #[cfg(feature = "std")]
-                    std::println!("'Condition' IS NOT SUPPORTED ELEMENT");
-                    ()
-                }
-                definite::items::Collecting::Class(_) => {
-                    #[cfg(feature = "std")]
-                    std::println!("'Class' IS NOT SUPPORTED ELEMENT");
-                    ()
-                }
-                definite::items::Collecting::Ret(_) => {
-                    #[cfg(feature = "std")]
-                    std::println!("'Ret' IS NOT SUPPORTED ELEMENT");
-                    ()
-                }
-                definite::items::Collecting::Constructor(_) => {
-                    #[cfg(feature = "std")]
-                    std::println!("'Constructor' IS NOT SUPPORTED ELEMENT");
-                    ()
-                }
-                definite::items::Collecting::Caller(_) => {
-                    #[cfg(feature = "std")]
-                    std::println!("'Caller' IS NOT SUPPORTED ELEMENT");
-                    ()
-                }
-                definite::items::Collecting::Import(_) => {
-                    #[cfg(feature = "std")]
-                    std::println!("'Import' IS NOT SUPPORTED ELEMENT");
-                    ()
-                }
-                definite::items::Collecting::FileKey(_) => {
-                    #[cfg(feature = "std")]
-                    std::println!("'FileKey' IS NOT SUPPORTED ELEMENT");
-                    ()
-                }
-                definite::items::Collecting::Getter(_) => {
-                    #[cfg(feature = "std")]
-                    std::println!("'Getter' IS NOT SUPPORTED ELEMENT");
-                    ()
-                }
-                definite::items::Collecting::Setter(_) => {
-                    #[cfg(feature = "std")]
-                    std::println!("'Setter' IS NOT SUPPORTED ELEMENT");
-                    ()
-                }
-                definite::items::Collecting::NativeClass => {
-                    #[cfg(feature = "std")]
-                    std::println!("'NativeClass' IS NOT SUPPORTED ELEMENT");
-                    ()
-                }
-                definite::items::Collecting::ValueCall(value) => match value {
-                    definite::types::Types::Integer(_) => (),
-                    definite::types::Types::Float(_) => (),
-                    definite::types::Types::Bool(_) => (),
-                    definite::types::Types::String(_) => (),
-                    definite::types::Types::Char(_) => (),
-                    definite::types::Types::Collective(_) => (),
-                    definite::types::Types::Reference(_) => (),
-                    definite::types::Types::Cloak(_) => (),
-                    definite::types::Types::Array(_) => (),
-                    definite::types::Types::ArrowFunction(_) => (),
-                    definite::types::Types::ConstructedClass(_) => {
-                        #[cfg(feature = "std")]
-                        std::println!("'ConstructedClass' IS NOT SUPPORTED ELEMENT");
-                        ()
-                    }
-                    definite::types::Types::Operator(operator_data) => {
-                        match operator_data.operator {
-                            definite::types::operator::Operators::ComparisonType(
-                                comparison_type,
-                            ) => {
-                                #[cfg(feature = "std")]
-                                std::println!(
-                                    "Operator->'ComparisonType' IS NOT SUPPORTED ELEMENT"
-                                );
-                                ()
-                            }
-                            definite::types::operator::Operators::LogicalType(logical_type) => {
-                                #[cfg(feature = "std")]
-                                std::println!("Operator->'LogicalType' IS NOT SUPPORTED ELEMENT");
-                                ()
-                            }
-                            definite::types::operator::Operators::ArithmeticType(
-                                arithmetic_type,
-                            ) => {
-                                match arithmetic_type {
-                                    definite::types::arithmetic_type::ArithmeticOperators::Addition => {
-                                        //heap.values.get_mut()
-
-                                        match *operator_data.first {
-                                            definite::types::Types::Integer(_) => {
-                                                #[cfg(feature = "std")]
-                                                std::println!("Operator->Addition->First('Integer') IS NOT SUPPORTED ELEMENT");
-                                            },
-                                            definite::types::Types::Float(_) => {
-                                                #[cfg(feature = "std")]
-                                                std::println!("Operator->Addition->First('Float') IS NOT SUPPORTED ELEMENT");
-                                            },
-                                            definite::types::Types::Bool(_) => {
-                                                #[cfg(feature = "std")]
-                                                std::println!("Operator->Addition->First('Bool') IS NOT SUPPORTED ELEMENT");
-                                            },
-                                            definite::types::Types::String(_) => {
-                                                #[cfg(feature = "std")]
-                                                std::println!("Operator->Addition->First('String') IS NOT SUPPORTED ELEMENT");
-                                            },
-                                            definite::types::Types::Char(_) => {
-                                                #[cfg(feature = "std")]
-                                                std::println!("Operator->Addition->First('Char') IS NOT SUPPORTED ELEMENT");
-                                            },
-                                            definite::types::Types::Collective(_) => {
-                                                #[cfg(feature = "std")]
-                                                std::println!("Operator->Addition->First('Collective') IS NOT SUPPORTED ELEMENT");
-                                            },
-                                            definite::types::Types::Reference(_) => {
-                                                #[cfg(feature = "std")]
-                                                std::println!("Operator->Addition->First('Reference') IS NOT SUPPORTED ELEMENT");
-                                            },
-                                            definite::types::Types::Operator(_) => {
-                                                #[cfg(feature = "std")]
-                                                std::println!("Operator->Addition->First('Operator') IS NOT SUPPORTED ELEMENT");
-                                            },
-                                            definite::types::Types::Cloak(_) => {
-                                                #[cfg(feature = "std")]
-                                                std::println!("Operator->Addition->First('Cloak') IS NOT SUPPORTED ELEMENT");
-                                            },
-                                            definite::types::Types::Array(_) => {
-                                                #[cfg(feature = "std")]
-                                                std::println!("Operator->Addition->First('Array') IS NOT SUPPORTED ELEMENT");
-                                            },
-                                            definite::types::Types::ArrowFunction(_) => {
-                                                #[cfg(feature = "std")]
-                                                std::println!("Operator->Addition->First('ArrowFunction') IS NOT SUPPORTED ELEMENT");
-                                            },
-                                            definite::types::Types::ConstructedClass(_) => {
-                                                #[cfg(feature = "std")]
-                                                std::println!("Operator->Addition->First('ConstructedClass') IS NOT SUPPORTED ELEMENT");
-                                            },
-                                            definite::types::Types::FunctionCall(_) => {
-                                                #[cfg(feature = "std")]
-                                                std::println!("Operator->Addition->First('FunctionCall') IS NOT SUPPORTED ELEMENT");
-                                            },
-                                            definite::types::Types::Void => {
-                                                #[cfg(feature = "std")]
-                                                std::println!("Operator->Addition->First('Void') IS NOT SUPPORTED ELEMENT");
-                                            },
-                                            definite::types::Types::NullResolver(_) => {
-                                                #[cfg(feature = "std")]
-                                                std::println!("Operator->Addition->First('NullResolver') IS NOT SUPPORTED ELEMENT");
-                                            },
-                                            definite::types::Types::Negative(_) => {
-                                                #[cfg(feature = "std")]
-                                                std::println!("Operator->Addition->First('Negative') IS NOT SUPPORTED ELEMENT");
-                                            },
-                                            definite::types::Types::VariableType(e) => {
-                                                panic!("{:#?}", e)
-
-                                            },
-                                            definite::types::Types::Null => {
-                                                #[cfg(feature = "std")]
-                                                std::println!("Operator->Addition->First('Null') IS NOT SUPPORTED ELEMENT");
-                                            },
-                                        }
-
-                                    },
-                                    definite::types::arithmetic_type::ArithmeticOperators::Subtraction => {
-                                        #[cfg(feature = "std")]
-                                        std::println!("Operator->ArithmeticType->'Addition' IS NOT SUPPORTED ELEMENT");
-                                        ()
-                                    },
-                                    definite::types::arithmetic_type::ArithmeticOperators::Multiplication => {
-                                        #[cfg(feature = "std")]
-                                        std::println!("Operator->ArithmeticType->'Addition' IS NOT SUPPORTED ELEMENT");
-                                        ()
-                                    },
-                                    definite::types::arithmetic_type::ArithmeticOperators::Exponentiation => {
-                                        #[cfg(feature = "std")]
-                                        std::println!("Operator->ArithmeticType->'Addition' IS NOT SUPPORTED ELEMENT");
-                                        ()
-                                    },
-                                    definite::types::arithmetic_type::ArithmeticOperators::Division => {
-                                        #[cfg(feature = "std")]
-                                        std::println!("Operator->ArithmeticType->'Addition' IS NOT SUPPORTED ELEMENT");
-                                        ()
-                                    },
-                                    definite::types::arithmetic_type::ArithmeticOperators::Modulus => {
-                                        #[cfg(feature = "std")]
-                                        std::println!("Operator->ArithmeticType->'Addition' IS NOT SUPPORTED ELEMENT");
-                                        ()
-                                    },
-                                    definite::types::arithmetic_type::ArithmeticOperators::Null => {
-                                        #[cfg(feature = "std")]
-                                        std::println!("Operator->ArithmeticType->'Addition' IS NOT SUPPORTED ELEMENT");
-                                        ()
-                                    },
-                                }
-                            }
-                            definite::types::operator::Operators::Null => {
-                                panic!("UNEXPECTED PARSER RESPONSE");
-                            }
-                        }
-                        ()
-                    }
-                    definite::types::Types::FunctionCall(_) => {
-                        #[cfg(feature = "std")]
-                        std::println!("'FunctionCall' IS NOT SUPPORTED ELEMENT");
-                        ()
-                    }
-                    definite::types::Types::Void => {
-                        #[cfg(feature = "std")]
-                        std::println!("'Void' IS NOT SUPPORTED ELEMENT");
-                        ()
-                    }
-                    definite::types::Types::NullResolver(_) => {
-                        #[cfg(feature = "std")]
-                        std::println!("'NullResolver' IS NOT SUPPORTED ELEMENT");
-                        ()
-                    }
-                    definite::types::Types::Negative(_) => {
-                        #[cfg(feature = "std")]
-                        std::println!("'Negative' IS NOT SUPPORTED ELEMENT");
-                        ()
-                    }
-                    definite::types::Types::VariableType(_) => {
-                        #[cfg(feature = "std")]
-                        std::println!("'VariableType' IS NOT SUPPORTED ELEMENT");
-                        ()
-                    }
-                    definite::types::Types::Null => {
-                        #[cfg(feature = "std")]
-                        std::println!("'Null' IS NOT SUPPORTED ELEMENT");
-                        ()
-                    }
-                },
-                definite::items::Collecting::Enum(_) => {
-                    #[cfg(feature = "std")]
-                    std::println!("'Enum' IS NOT SUPPORTED ELEMENT");
-                    ()
-                }
-                definite::items::Collecting::NativeFunction(_) => {
-                    #[cfg(feature = "std")]
-                    std::println!("'NativeFunction' IS NOT SUPPORTED ELEMENT");
-                    ()
-                }
-                definite::items::Collecting::None => {
-                    #[cfg(feature = "std")]
-                    std::println!("'None' IS NOT SUPPORTED ELEMENT");
-                    ()
-                }
-            }
-        }
-
-        */
         self.threads.push(main_thread);
     }
 

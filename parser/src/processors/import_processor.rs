@@ -110,10 +110,11 @@ pub fn collect_import<F>(
                                     });
                                 } else {
                                     for item in inner_parser.parsed.items {
-                                        let parser_iter_clone = parser_clone.clone();
                                         match item.clone() {
                                             crate::parser::Collecting::ImportItem(e) => {
-                                                parser.collected.push(item);
+                                                if e.public {
+                                                    parser.collected.push(item);
+                                                }
                                             }
                                             crate::parser::Collecting::Variable(e) => {
                                                 parser.collected.push(
@@ -214,6 +215,9 @@ pub fn collect_import<F>(
                         import_data.native,
                     );
 
+                    import_data.resolution_id = response.resolution_id.clone();
+                    import_data.id = response.id.clone();
+
                     if !response.found {
                         if response.resolve_error == "" {
                             errors.push(error::Error {
@@ -286,10 +290,11 @@ pub fn collect_import<F>(
                                     });
                                 } else {
                                     for item in inner_parser.parsed.items {
-                                        let parser_iter_clone = parser_clone.clone();
                                         match item.clone() {
                                             crate::parser::Collecting::ImportItem(e) => {
-                                                parser.collected.push(item);
+                                                if e.public {
+                                                    parser.collected.push(item);
+                                                }
                                             }
                                             crate::parser::Collecting::Variable(e) => {
                                                 parser.collected.push(

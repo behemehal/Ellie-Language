@@ -1,6 +1,0 @@
-%S=ellie_core
-%L=.\test_dir\test.ei
-@ellie_core:
-	T:
-	H:
-	I:

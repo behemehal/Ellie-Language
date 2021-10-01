@@ -38,3 +38,28 @@ pub enum Collecting {
     NativeFunction(native_function::NativeFunction),
     None,
 }
+
+impl Collecting {
+    pub fn is_pub(self) -> bool {
+        match self {
+            Collecting::ImportItem(e) => e.public,
+            Collecting::Variable(e) => e.public,
+            Collecting::Function(e) => e.public,
+            Collecting::ForLoop(_) => false,
+            Collecting::Condition(_) => false,
+            Collecting::Class(e) => e.public,
+            Collecting::Ret(_) => false,
+            Collecting::Constructor(_) => false,
+            Collecting::Caller(_) => false,
+            Collecting::Import(e) => e.public,
+            Collecting::FileKey(_) => false,
+            Collecting::Getter(e) => e.public,
+            Collecting::Setter(e) => e.public,
+            Collecting::NativeClass => true,
+            Collecting::ValueCall(_) => false,
+            Collecting::Enum(e) => e.public,
+            Collecting::NativeFunction(e) => e.public,
+            Collecting::None => false,
+        }
+    }
+}

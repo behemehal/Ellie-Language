@@ -15,7 +15,7 @@
           "kind": "bin"
         }
       },
-      "args": [".\\test_dir\\test.ei", "--debug"],
+      "args": [".\\test_dir\\test.ei", "-dstd", "-d"],
       "cwd": "${workspaceFolder}"
     },
   ]
