@@ -34,7 +34,7 @@ pub enum HeapFloatSize {
 pub enum HeapTypes {
     Integer(HeapIntegerSize),
     Float(HeapFloatSize),
-    Bool(bool),
+    Bool(u8),
     String(*const u8),
     Null, /*
           Char(char),

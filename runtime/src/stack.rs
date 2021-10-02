@@ -68,6 +68,11 @@ pub struct Bridge {
     pub targets: Vec<usize>,
 }
 
+#[derive(Debug, Clone, PartialEq)]
+pub struct Ret {
+    pub target_heap: usize,
+}
+
 #[derive(Debug, Clone, EnumAsInner, PartialEq)]
 pub enum StackElements {
     Function(Function),
@@ -78,6 +83,7 @@ pub enum StackElements {
     Parameter(Parameter),
     Generic(Generic),
     Bridge(Bridge),
+    Ret(Ret),
     None, //Array
           //Collective
 }
@@ -106,6 +112,12 @@ impl Stack {
             StackElements::Bridge(e) => e.page_id == id,
             _ => false,
         })
+    }
+
+    pub fn register_ret(&mut self, target_heap: usize) -> usize {
+        let id = self.elements.len();
+        self.elements.push(StackElements::Ret(Ret { target_heap }));
+        id
     }
 
     pub fn register_function(

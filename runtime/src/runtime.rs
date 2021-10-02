@@ -138,9 +138,11 @@ impl Runtime {
                         definite::types::float::FloatSize::F64(e) => heap::HeapFloatSize::F64(e),
                     }))
                 }
-                definite::types::Types::Bool(_) => todo!(),
-                definite::types::Types::String(e) => {
-                    heap.insert(heap::HeapTypes::String(e.value.as_ptr()))
+                definite::types::Types::Bool(bool_type) => {
+                    heap.insert(heap::HeapTypes::Bool(if bool_type.value { 1 } else { 0 }))
+                }
+                definite::types::Types::String(string_type) => {
+                    heap.insert(heap::HeapTypes::String(string_type.value.as_ptr()))
                 }
                 definite::types::Types::Char(_) => todo!(),
                 definite::types::Types::Collective(_) => todo!(),
@@ -153,7 +155,77 @@ impl Runtime {
                 definite::types::Types::FunctionCall(_) => todo!(),
                 definite::types::Types::Void => todo!(),
                 definite::types::Types::NullResolver(_) => todo!(),
-                definite::types::Types::Negative(_) => todo!(),
+                definite::types::Types::Negative(negative) => {
+                    pub fn resolve_negative(value: definite::types::Types) -> u8 {
+                        match value {
+                            definite::types::Types::Integer(integer_type) => {
+                                if match integer_type.value {
+                                    definite::types::integer::IntegerSize::U8(e) => e == 0,
+                                    definite::types::integer::IntegerSize::U16(e) => e == 0,
+                                    definite::types::integer::IntegerSize::U32(e) => e == 0,
+                                    definite::types::integer::IntegerSize::U64(e) => e == 0,
+                                    definite::types::integer::IntegerSize::U128(e) => e == 0,
+                                    definite::types::integer::IntegerSize::Usize(e) => e == 0,
+                                    definite::types::integer::IntegerSize::I8(e) => e == 0,
+                                    definite::types::integer::IntegerSize::I16(e) => e == 0,
+                                    definite::types::integer::IntegerSize::I32(e) => e == 0,
+                                    definite::types::integer::IntegerSize::I64(e) => e == 0,
+                                    definite::types::integer::IntegerSize::I128(e) => e == 0,
+                                    definite::types::integer::IntegerSize::Isize(e) => e == 0,
+                                } {
+                                    1
+                                } else {
+                                    0
+                                }
+                            }
+                            definite::types::Types::Float(float_type) => {
+                                if match float_type.value {
+                                    definite::types::float::FloatSize::F32(e) => e == 0.0,
+                                    definite::types::float::FloatSize::F64(e) => e == 0.0,
+                                } {
+                                    1
+                                } else {
+                                    0
+                                }
+                            }
+                            definite::types::Types::Bool(bool_type) => {
+                                if bool_type.value {
+                                    0
+                                } else {
+                                    1
+                                }
+                            }
+                            definite::types::Types::String(string_type) => {
+                                if string_type.value == "" {
+                                    1
+                                } else {
+                                    0
+                                }
+                            }
+                            definite::types::Types::Char(char_type) => {
+                                if char_type.value == '\0' {
+                                    1
+                                } else {
+                                    0
+                                }
+                            }
+                            definite::types::Types::Reference(_) => todo!(),
+                            definite::types::Types::Operator(_) => todo!(),
+                            definite::types::Types::ConstructedClass(_) => todo!(),
+                            definite::types::Types::FunctionCall(_) => todo!(),
+                            definite::types::Types::Void => 1,
+                            definite::types::Types::NullResolver(_) => todo!(),
+                            definite::types::Types::Negative(negative_type) => {
+                                resolve_negative(*negative_type.value)
+                            }
+                            definite::types::Types::VariableType(_) => todo!(),
+                            definite::types::Types::Null => 1,
+                            _ => 0,
+                        }
+                    }
+                    heap.insert(heap::HeapTypes::Bool(resolve_negative(*negative.value)))
+                }
+
                 definite::types::Types::VariableType(_) => todo!(),
                 definite::types::Types::Null => heap.insert(heap::HeapTypes::Null),
             }
@@ -504,7 +576,19 @@ impl Runtime {
                         panic_dumper(&*thread)
                     ),
                 },
-                definite::items::Collecting::Ret(_) => Some((0, false, false)),
+                definite::items::Collecting::Ret(ret) => match thread.pages.get_mut(&page_id) {
+                    Some(page) => {
+                        let element_id = page
+                            .stack
+                            .register_ret(add_data_to_heap(&mut page.heap, ret.value).clone() - 1);
+                        Some((element_id, true, false))
+                    }
+                    None => panic!(
+                        "Runtime failed to find page: '{}';\n\nDUMP: {}",
+                        page_id as u64,
+                        panic_dumper(&*thread)
+                    ),
+                },
                 definite::items::Collecting::Constructor(_) => Some((0, false, false)),
                 definite::items::Collecting::Caller(_) => Some((0, false, false)),
                 definite::items::Collecting::Import(import) => {
