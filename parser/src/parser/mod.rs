@@ -439,17 +439,45 @@ where
         }
     }
 
-    pub fn is_iterable(&self, target: DeepCallResponse) -> bool {
+    pub fn type_is_iterable(&self, target_type: types::Types) -> bool {
+        match target_type {
+            types::Types::Integer(_) => true,
+            types::Types::String(_) => true,
+            types::Types::Array(_) => true,
+            types::Types::Collective(_) => todo!(),
+            types::Types::Reference(_) => todo!(),
+            types::Types::FunctionCall(_) => todo!(),
+            types::Types::NullResolver(_) => todo!(),
+            types::Types::VariableType(_) => todo!(),
+            _ => false
+        }
+    }
+
+    pub fn is_iterable(&self, target: DeepCallResponse) -> Option<i8> {
         match target {
             DeepCallResponse::TypeResponse(e) => match e {
-                types::Types::Integer(_) => true,
-                types::Types::Float(_) => false,
-                types::Types::Bool(_) => true,
-                types::Types::String(_) => true,
-                _ => todo!(),
+                types::Types::Cloak(cloak) => {
+                    let mut iterable = true;
+                    if cloak.data.collective.is_empty() || cloak.data.collective.len() != 2 {
+                        Some(1)
+                    } else {
+                        let first_entry = cloak.data.collective[0].clone();
+                        let second_entry = cloak.data.collective[1].clone();
+
+                        if let types::Types::VariableType(_) = *first_entry.value {
+                            if self.type_is_iterable(*second_entry.value) {
+                                None
+                            } else {
+                                Some(0)
+                            }
+                        } else {
+                            Some(1)
+                        }
+                    }
+                },
+                _ => Some(1),
             },
-            DeepCallResponse::ElementResponse(_e) => false,
-            DeepCallResponse::NoElement => false,
+            _ => Some(1)
         }
     }
 
@@ -464,7 +492,7 @@ where
             types::Types::Void => DeepCallResponse::TypeResponse(target),
             types::Types::Collective(_) => DeepCallResponse::TypeResponse(target),
             types::Types::Array(_) => todo!(),
-            types::Types::Cloak(_) => todo!(),
+            types::Types::Cloak(_) => DeepCallResponse::TypeResponse(target),
             types::Types::Reference(_) => todo!(),
             types::Types::Operator(_) => todo!(),
             types::Types::ArrowFunction(_) => todo!(),

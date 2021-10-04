@@ -66,7 +66,8 @@ pub fn collect_variable<F>(
                         let found_target =
                             parser.check_keyword(variable_data.data.value.clone(), false);
 
-                        if !found_target.found {
+                            std::println!("??: {}", itered_data.ignore_existence);
+                        if !found_target.found && !itered_data.ignore_existence {
                             errors.push(error::Error {
                                 path: parser.options.path.clone(),
                                 scope: "variable_processor".to_owned(),
