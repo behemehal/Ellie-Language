@@ -362,6 +362,7 @@ pub fn collect_cloak<F>(
             {
                 will_be_itered = if cloak_data.data.collective.is_empty() {
                     variable::VariableCollector {
+                        ignore_existence: itered_data.ignore_existence,
                         data: variable::Variable {
                             rtype: cloak_cloak_data.rtype[0].clone(),
                             ..Default::default()
@@ -370,6 +371,7 @@ pub fn collect_cloak<F>(
                     }
                 } else if cloak_cloak_data.rtype.len() == cloak_data.data.collective.len() {
                     variable::VariableCollector {
+                        ignore_existence: itered_data.ignore_existence,
                         data: variable::Variable {
                             value: *cloak_data.data.collective
                                 [cloak_data.data.collective.len() - 1]
@@ -383,6 +385,7 @@ pub fn collect_cloak<F>(
                     }
                 } else {
                     variable::VariableCollector {
+                        ignore_existence: itered_data.ignore_existence,
                         data: variable::Variable {
                             value: *cloak_data.data.collective
                                 [cloak_data.data.collective.len() - 1]
@@ -395,9 +398,13 @@ pub fn collect_cloak<F>(
                 }
             } else {
                 will_be_itered = if cloak_data.data.collective.is_empty() {
-                    variable::VariableCollector::default()
+                    variable::VariableCollector {
+                        ignore_existence: itered_data.ignore_existence,
+                        ..Default::default(),
+                    }
                 } else {
                     variable::VariableCollector {
+                        ignore_existence: itered_data.ignore_existence,
                         data: variable::Variable {
                             value: *cloak_data.data.collective
                                 [cloak_data.data.collective.len() - 1]
@@ -795,5 +802,7 @@ pub fn collect_cloak<F>(
                 }
             }
         }
+    } else {
+        panic!("Unexpected parser behaviour")
     }
 }
