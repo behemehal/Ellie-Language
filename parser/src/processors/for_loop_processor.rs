@@ -3,7 +3,6 @@ use crate::alloc::vec::Vec;
 use crate::parser;
 use crate::processors;
 use crate::syntax::definers;
-use crate::syntax::for_loop;
 use crate::syntax::import_item;
 use crate::syntax::types;
 use crate::syntax::variable;

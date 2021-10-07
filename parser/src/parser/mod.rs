@@ -1438,7 +1438,7 @@ where
         let mut found = false;
         for item in self.collected.clone() {
             if let Collecting::Class(ref e) = item {
-                if e.data.name == name && e.data.public {
+                if e.data.name == name {
                     found = e.data.name == name;
                     break;
                 }
