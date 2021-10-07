@@ -433,6 +433,11 @@ impl Stack {
                 _ => (),
             }
         }
+
+        if self.elements.is_empty() {
+            lines.push("\t\tEMPTY".to_owned());
+        }
+
         lines.join("\n\t")
     }
 }

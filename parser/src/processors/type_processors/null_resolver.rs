@@ -34,5 +34,7 @@ pub fn collect_null_resolver<F>(
         ));
 
         null_resolver_data.value = Box::new(will_be_itered.data.value);
+    } else {
+        panic!("Unexpected parser behaviour")
     }
 }

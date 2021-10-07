@@ -17,6 +17,7 @@ pub fn collect_negative<F>(
 {
     if let types::Types::Negative(ref mut negative_data) = itered_data.data.value {
         let mut will_be_itered = variable::VariableCollector {
+            ignore_existence: itered_data.ignore_existence,
             data: variable::Variable {
                 value: *negative_data.value.clone(),
                 ..Default::default()
@@ -34,5 +35,7 @@ pub fn collect_negative<F>(
         ));
 
         negative_data.value = Box::new(will_be_itered.data.value);
+    } else {
+        panic!("Unexpected parser behaviour")
     }
 }

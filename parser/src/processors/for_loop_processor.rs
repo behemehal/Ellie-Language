@@ -2,7 +2,11 @@ use crate::alloc::borrow::ToOwned;
 use crate::alloc::vec::Vec;
 use crate::parser;
 use crate::processors;
+use crate::syntax::definers;
+use crate::syntax::for_loop;
 use crate::syntax::import_item;
+use crate::syntax::types;
+use crate::syntax::variable;
 use alloc::boxed::Box;
 use alloc::string::String;
 use alloc::vec;
@@ -48,7 +52,9 @@ pub fn collect_for<F>(
                                 error::errorList::error_s1.message.clone(),
                                 vec![error::ErrorBuildField {
                                     key: "token".to_owned(),
-                                    value: ellie_core::utils::trim_good(for_loop_data.raw_parameter.clone()),
+                                    value: ellie_core::utils::trim_good(
+                                        for_loop_data.raw_parameter.clone(),
+                                    ),
                                 }],
                             ),
                             pos: for_loop_data.data.parameter_pos,
@@ -81,8 +87,6 @@ pub fn collect_for<F>(
                     for_loop_data.raw_parameter = String::new();
                 }
                 for_loop_data.data.parameter_pos.range_end = parser_clone.pos.clone();
-
-                std::println!("??: {}", for_loop_data.cloak_itered_data.ignore_existence);
                 for_loop_data.raw_parameter += letter_char;
                 processors::value_processor::collect_value(
                     parser_clone,
@@ -121,6 +125,35 @@ pub fn collect_for<F>(
             if for_loop_data.code.pos.is_zero() {
                 //Make sure upper scope imported once
 
+                if let types::Types::Cloak(param) = *for_loop_data.data.parameter.clone() {
+                    if let types::Types::VariableType(first_param) =
+                        *param.data.collective[0].value.clone()
+                    {
+                        child_parser.collected.push(parser::Collecting::ImportItem(
+                            import_item::ImportItem {
+                                resolution_id: 0,
+                                from_import: 0,
+                                from_path: "<temporary>".to_owned(),
+                                public: true,
+                                item: Box::new(parser::Collecting::Variable(
+                                    variable::VariableCollector {
+                                        data: variable::Variable {
+                                            name: first_param.data.value,
+                                            dynamic: true,
+                                            constant: true,
+                                            public: true,
+                                            rtype: definers::DefinerCollecting::Dynamic,
+                                            ..Default::default()
+                                        },
+                                        ..Default::default()
+                                    },
+                                )),
+                            },
+                        ));
+                        std::println!("PARAM IMPORTED: {:#?}", child_parser.collected);
+                    }
+                }
+
                 for item in parser.collected.clone() {
                     //Import variables as temporary for syntax support, we will remove them after collecting complete
                     child_parser.collected.push(parser::Collecting::ImportItem(
@@ -138,7 +171,7 @@ pub fn collect_for<F>(
             child_parser.options = parser.options.clone();
             child_parser.options.parser_type = defs::ParserType::RawParser;
             child_parser.pos = parser.pos;
-            child_parser.scope.scope_name = "core/function_processor".to_owned();
+            child_parser.scope.scope_name = "core/for_loop_processor".to_owned();
             child_parser.current = for_loop_data.code.current.clone();
             child_parser.keyword_catch = for_loop_data.code.keyword_catch.clone();
             child_parser.keyword_cache = for_loop_data.code.keyword_cache.clone();
@@ -157,5 +190,7 @@ pub fn collect_for<F>(
 
             for_loop_data.code = Box::new(child_parser.to_raw());
         }
+    } else {
+        panic!("Unexpected parser behaviour")
     }
 }

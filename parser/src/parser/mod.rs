@@ -449,7 +449,7 @@ where
             types::Types::FunctionCall(_) => todo!(),
             types::Types::NullResolver(_) => todo!(),
             types::Types::VariableType(_) => todo!(),
-            _ => false
+            _ => false,
         }
     }
 
@@ -457,7 +457,6 @@ where
         match target {
             DeepCallResponse::TypeResponse(e) => match e {
                 types::Types::Cloak(cloak) => {
-                    let mut iterable = true;
                     if cloak.data.collective.is_empty() || cloak.data.collective.len() != 2 {
                         Some(1)
                     } else {
@@ -474,10 +473,10 @@ where
                             Some(1)
                         }
                     }
-                },
+                }
                 _ => Some(1),
             },
-            _ => Some(1)
+            _ => Some(1),
         }
     }
 

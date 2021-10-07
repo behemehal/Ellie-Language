@@ -199,5 +199,7 @@ pub fn collect_integer<F>(
                 },
             });
         }
+    } else {
+        panic!("Unexpected parser behaviour")
     }
 }

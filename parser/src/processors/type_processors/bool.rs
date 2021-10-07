@@ -120,5 +120,7 @@ pub fn collect_bool<F>(
                 },
             });
         }
+    } else {
+        panic!("Unexpected parser behaviour")
     }
 }

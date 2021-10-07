@@ -280,5 +280,7 @@ pub fn collect_operator<F>(
                 data.data.second = Box::new(will_be_itered.data.value);
             }
         }
+    } else {
+        panic!("Unexpected parser behaviour")
     }
 }

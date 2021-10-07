@@ -180,6 +180,7 @@ pub fn collect_collective<F>(
                 }
             } else {
                 let mut will_be_itered = syntax::variable::VariableCollector {
+                    ignore_existence: itered_data.ignore_existence,
                     data: syntax::variable::Variable {
                         value: *last_entry.data.key.clone(),
                         ..Default::default()
@@ -381,6 +382,7 @@ pub fn collect_collective<F>(
             } else {
                 let mut will_be_itered = if itered_data.data.dynamic {
                     syntax::variable::VariableCollector {
+                        ignore_existence: itered_data.ignore_existence,
                         data: syntax::variable::Variable {
                             value: *last_entry.data.value.clone(),
                             ..Default::default()
@@ -424,5 +426,7 @@ pub fn collect_collective<F>(
                 //Set the range end
             }
         }
+    } else {
+        panic!("Unexpected parser behaviour")
     }
 }

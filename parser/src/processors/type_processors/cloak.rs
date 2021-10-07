@@ -400,7 +400,7 @@ pub fn collect_cloak<F>(
                 will_be_itered = if cloak_data.data.collective.is_empty() {
                     variable::VariableCollector {
                         ignore_existence: itered_data.ignore_existence,
-                        ..Default::default(),
+                        ..Default::default()
                     }
                 } else {
                     variable::VariableCollector {

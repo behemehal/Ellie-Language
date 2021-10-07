@@ -390,5 +390,7 @@ pub fn collect_import<F>(
                 },
             });
         }
+    } else {
+        panic!("Unexpected parser behaviour")
     }
 }

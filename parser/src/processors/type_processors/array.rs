@@ -365,6 +365,7 @@ pub fn collect_array<F>(
             if let definers::DefinerCollecting::Array(array_data) = itered_data.data.rtype.clone() {
                 will_be_itered = if data.data.collective.is_empty() {
                     variable::VariableCollector {
+                        ignore_existence: itered_data.ignore_existence,
                         data: variable::Variable {
                             rtype: *array_data.rtype.clone(),
                             ..Default::default()
@@ -373,6 +374,7 @@ pub fn collect_array<F>(
                     }
                 } else {
                     variable::VariableCollector {
+                        ignore_existence: itered_data.ignore_existence,
                         data: variable::Variable {
                             value: *data.data.collective[data.data.collective.len() - 1]
                                 .value
@@ -388,6 +390,7 @@ pub fn collect_array<F>(
             {
                 will_be_itered = if data.data.collective.is_empty() {
                     variable::VariableCollector {
+                        ignore_existence: itered_data.ignore_existence,
                         data: variable::Variable {
                             rtype: *array_data.rtype.clone(),
                             ..Default::default()
@@ -396,6 +399,7 @@ pub fn collect_array<F>(
                     }
                 } else {
                     variable::VariableCollector {
+                        ignore_existence: itered_data.ignore_existence,
                         data: variable::Variable {
                             value: *data.data.collective[data.data.collective.len() - 1]
                                 .value
@@ -409,10 +413,12 @@ pub fn collect_array<F>(
             } else {
                 will_be_itered = if data.data.collective.is_empty() {
                     variable::VariableCollector {
+                        ignore_existence: itered_data.ignore_existence,
                         ..variable::VariableCollector::default()
                     }
                 } else {
                     variable::VariableCollector {
+                        ignore_existence: itered_data.ignore_existence,
                         data: variable::Variable {
                             value: *data.data.collective[data.data.collective.len() - 1]
                                 .value
@@ -422,8 +428,6 @@ pub fn collect_array<F>(
                         ..variable::VariableCollector::default()
                     }
                 };
-                //#[cfg(feature = "std")]
-                //std::println!("[ParserError:0x1]: This shouldn't have happened");
             }
 
             value_processor::collect_value(
@@ -728,5 +732,7 @@ pub fn collect_array<F>(
                 }
             }
         }
+    } else {
+        panic!("Unexpected parser behaviour")
     }
 }

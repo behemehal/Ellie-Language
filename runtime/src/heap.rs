@@ -1,4 +1,4 @@
-use alloc::{collections::BTreeMap, format, string::String, vec::Vec};
+use alloc::{borrow::ToOwned, collections::BTreeMap, format, string::String, vec::Vec};
 
 /*
 pub enum HeapWarning {
@@ -87,6 +87,11 @@ impl Heap {
         for i in 0..values.len() {
             lines.push(format!("\t\t{:#04x} : {:?}", i, values[i]));
         }
+
+        if values.is_empty() {
+            lines.push("\t\tEMPTY".to_owned());
+        }
+
         lines.join("\n\t")
     }
 }

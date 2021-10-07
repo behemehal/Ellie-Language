@@ -761,11 +761,15 @@ impl Runtime {
     }
 
     pub fn dump(&self) -> String {
-        let mut dump_data = "DUMP: Şükür kavuşturana\r\n---\n\r".to_owned();
+        let mut dump_data = "DUMP:\r\n---\n\r".to_owned();
         for thread in &self.threads {
             let mut stack_dump = String::new();
             for stack in thread.pages.clone() {
                 let mut headers = String::new();
+
+                if stack.1.headers.is_empty() {
+                    headers += "\t\t\tEMPTY";
+                }
 
                 for item in stack.1.headers {
                     headers += &format!("\t\t\t{:#04x} : {}\n", item.0, item.1)

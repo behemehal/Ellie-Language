@@ -362,5 +362,7 @@ pub fn collect_reference<F>(
                 }
             }
         }
+    } else {
+        panic!("Unexpected parser behaviour")
     }
 }

@@ -90,5 +90,7 @@ pub fn collect_condition<F>(
             //};
             //condition_data.inside_code_string += &code_letter;
         }
+    } else {
+        panic!("Unexpected parser behaviour")
     }
 }

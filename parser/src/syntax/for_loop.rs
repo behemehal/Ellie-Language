@@ -1,6 +1,6 @@
 use crate::alloc::boxed::Box;
-use crate::alloc::vec::Vec;
 use crate::alloc::string::String;
+use crate::alloc::vec::Vec;
 use crate::parser::Collecting;
 use crate::syntax::{types, variable};
 use ellie_core::{definite, defs};
@@ -32,9 +32,12 @@ impl ForLoopCollector {
         definite::items::for_loop::ForLoop {
             parameter: Box::new(self.data.parameter.to_definite()),
             parameter_pos: self.data.parameter_pos,
-            code: self.data.code.into_iter()
-            .map(|x| x.to_definite())
-            .collect(),
+            code: self
+                .data
+                .code
+                .into_iter()
+                .map(|x| x.to_definite())
+                .collect(),
             pos: self.data.pos,
         }
     }
@@ -45,10 +48,10 @@ impl ForLoopCollector {
                 parameter: Box::new(types::Types::default().from_definite(*from.parameter)),
                 parameter_pos: from.parameter_pos,
                 code: from
-                .code
-                .into_iter()
-                .map(|x| Collecting::default().from_definite(x))
-                .collect(),
+                    .code
+                    .into_iter()
+                    .map(|x| Collecting::default().from_definite(x))
+                    .collect(),
                 pos: from.pos,
             },
             ..Default::default()

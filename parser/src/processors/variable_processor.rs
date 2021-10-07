@@ -547,5 +547,7 @@ pub fn collect_variable_value<F>(
             );
             parser.current = parser::Collecting::Variable(cd);
         }
+    } else {
+        panic!("Unexpected parser behaviour")
     }
 }

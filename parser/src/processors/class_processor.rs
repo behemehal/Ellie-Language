@@ -428,5 +428,7 @@ pub fn collect_class<F>(
             }
             class_data.code = Box::new(child_parser.to_raw());
         }
+    } else {
+        panic!("Unexpected parser behaviour")
     }
 }

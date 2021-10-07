@@ -39,5 +39,7 @@ pub fn collect_caller<F>(
             );
             caller_data.value = emulated_collector_data.data.value;
         }
+    } else {
+        panic!("Unexpected parser behaviour")
     }
 }

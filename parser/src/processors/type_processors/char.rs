@@ -156,5 +156,7 @@ pub fn collect_char<F>(
                 },
             });
         }
+    } else {
+        panic!("Unexpected parser behaviour")
     }
 }

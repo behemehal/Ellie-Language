@@ -38,5 +38,7 @@ pub fn collect_ret<F>(
 
             data.value = will_be_itered.data.value;
         }
+    } else {
+        panic!("Unexpected parser behaviour")
     }
 }

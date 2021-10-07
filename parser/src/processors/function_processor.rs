@@ -519,5 +519,7 @@ pub fn collect_function<F>(
 
             function_data.code = Box::new(child_parser.to_raw());
         }
+    } else {
+        panic!("Unexpected parser behaviour")
     }
 }

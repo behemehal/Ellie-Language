@@ -96,17 +96,17 @@ pub fn collect_null<F>(
                         },
                     });
             } else if letter_char != " " {
-                itered_data.data.value =
-                    types::Types::VariableType(types::variable_type::VariableTypeCollector {
-                        value_complete: false,
-                        data: types::variable_type::VariableType {
-                            value: itered_data.raw_value.clone() + letter_char,
-                            pos: defs::Cursor {
-                                range_start: parser.pos,
-                                range_end: parser.pos.clone().skip_char(1),
-                            },
-                        },
-                    });
+                itered_data.data.value = types::Types::VariableType(
+                    types::variable_type::VariableTypeCollector::default(),
+                );
+                type_processors::variable::collect_variable(
+                    parser.clone(),
+                    itered_data,
+                    errors,
+                    letter_char,
+                    next_char,
+                    last_char,
+                )
             }
         } else if letter_char != " " {
             if (next_char == ";" || next_char == " ")
@@ -116,5 +116,7 @@ pub fn collect_null<F>(
             }
             itered_data.raw_value += &letter_char;
         }
+    } else {
+        panic!("Unexpected parser behaviour")
     }
 }

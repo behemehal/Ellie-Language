@@ -228,5 +228,7 @@ pub fn collect_float<F>(
                 },
             });
         }
+    } else {
+        panic!("Unexpected parser behaviour")
     }
 }

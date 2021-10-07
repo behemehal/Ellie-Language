@@ -218,5 +218,7 @@ pub fn collect_enum<F>(
                 }
             }
         }
+    } else {
+        panic!("Unexpected parser behaviour")
     }
 }

@@ -169,5 +169,7 @@ pub fn collect_filekey<F>(
             file_key_data.data.value = will_be_itered.data.value;
             file_key_data.data.value_location.range_end = parser.pos.clone().skip_char(1);
         }
+    } else {
+        panic!("Unexpected parser behaviour")
     }
 }

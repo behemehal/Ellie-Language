@@ -170,6 +170,7 @@ pub fn collect_function_caller<F>(
                 {
                     will_be_itered = if function_call_data.data.params.is_empty() {
                         variable::VariableCollector {
+                            ignore_existence: itered_data.ignore_existence,
                             data: variable::Variable {
                                 rtype: cloak_data.rtype[0].clone(),
                                 ..Default::default()
@@ -192,7 +193,10 @@ pub fn collect_function_caller<F>(
                     };
                 } else {
                     will_be_itered = if function_call_data.data.params.is_empty() {
-                        variable::VariableCollector::default()
+                        variable::VariableCollector {
+                            ignore_existence: itered_data.ignore_existence,
+                            ..Default::default()
+                        }
                     } else {
                         variable::VariableCollector {
                             data: variable::Variable {
@@ -476,5 +480,7 @@ pub fn collect_function_caller<F>(
                     ..Default::default()
                 });
         }
+    } else {
+        panic!("Unexpected parser behaviour")
     }
 }

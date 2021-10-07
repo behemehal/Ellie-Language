@@ -162,5 +162,7 @@ pub fn collect_constructor<F>(
             //};
             //constructor_data.code += &code_letter;
         }
+    } else {
+        panic!("Unexpected parser behaviour")
     }
 }

@@ -150,5 +150,7 @@ pub fn collect_string<F>(
                 },
             });
         }
+    } else {
+        panic!("Unexpected parser behaviour")
     }
 }

@@ -151,5 +151,7 @@ pub fn collect_setter_value<F>(
             }
             setter_data.inside_code = Box::new(child_parser.to_raw());
         }
+    } else {
+        panic!("Unexpected parser behaviour")
     }
 }
