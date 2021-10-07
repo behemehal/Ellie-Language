@@ -19,12 +19,6 @@ pub fn collect_function_caller<F>(
     F: FnMut(ellie_core::com::Message) + Clone + Sized,
 {
     if let types::Types::FunctionCall(ref mut function_call_data) = itered_data.data.value {
-        if itered_data.data.dynamic {
-            itered_data.data.rtype = definers::DefinerCollecting::Generic(definers::GenericType {
-                rtype: "functionCall".to_owned(),
-            });
-        }
-
         if !function_call_data.name_collected {
             let current_reliability = utils::reliable_name_range(
                 utils::ReliableNameRanges::VariableName,
@@ -149,7 +143,12 @@ pub fn collect_function_caller<F>(
 
                 let fn_exists = parser.resolve_function_call(function_call_data.clone());
                 match fn_exists {
-                    Ok(return_type) => function_call_data.return_type = return_type,
+                    Ok(return_type) => {
+                        if itered_data.data.dynamic {
+                            itered_data.data.rtype = return_type.clone();
+                        }
+                        function_call_data.return_type = return_type;
+                    }
                     Err(type_errors) => {
                         for error in type_errors {
                             errors.push(error);

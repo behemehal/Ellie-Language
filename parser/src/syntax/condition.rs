@@ -24,7 +24,8 @@ impl Default for ConditionType {
 pub struct ConditionChain {
     pub rtype: ConditionType,
     pub condition: Box<types::Types>,
-    pub inside_code: Vec<Collecting>,
+    pub code: Vec<Collecting>,
+    pub pos: defs::Cursor,
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
@@ -44,7 +45,7 @@ pub struct Condition {
 pub struct ConditionCollector {
     pub data: Condition,
     pub cloak_itered_data: variable::VariableCollector,
-    pub inside_code_string: String,
+    pub brace_count: usize,
     pub might_be_else_if: bool,
     pub else_if_keyword_collector: String,
     pub initialized: bool,
@@ -52,6 +53,7 @@ pub struct ConditionCollector {
     pub inside_object_count: i64,
     pub cloak_collected: bool,
     pub complete: bool, //Fill this when end bracket placed
+    pub code: Box<crate::parser::RawParser>,
 }
 
 impl ConditionCollector {
@@ -68,7 +70,8 @@ impl ConditionCollector {
                         ConditionType::Else => definite::items::condition::ConditionType::Else,
                     },
                     condition: Box::new(x.condition.to_definite()),
-                    inside_code: x.inside_code.into_iter().map(|x| x.to_definite()).collect(),
+                    code: x.code.into_iter().map(|x| x.to_definite()).collect(),
+                    pos: x.pos,
                 })
                 .collect(),
             keyword_pos: self.data.keyword_pos,
@@ -91,11 +94,12 @@ impl ConditionCollector {
                             definite::items::condition::ConditionType::Else => ConditionType::Else,
                         },
                         condition: Box::new(types::Types::default().from_definite(*x.condition)),
-                        inside_code: x
-                            .inside_code
+                        code: x
+                            .code
                             .into_iter()
                             .map(|e| Collecting::default().from_definite(e))
                             .collect(),
+                        pos: x.pos,
                     })
                     .collect(),
                 keyword_pos: from.keyword_pos,
