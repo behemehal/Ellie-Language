@@ -38,7 +38,7 @@ pub fn collect_function<F>(
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
                         scope: parser.scope.scope_name.clone(),
-                        debug_message: "46dccbe0ece7b03ee4faa0619b52a644".to_owned(),
+                        debug_message: "47e4317b0d180d51b67a4eeee7ae0ea3".to_owned(),
                         title: error::errorList::error_s21.title.clone(),
                         code: error::errorList::error_s21.code,
                         message: error::errorList::error_s21.message.clone(),
@@ -58,7 +58,7 @@ pub fn collect_function<F>(
                 errors.push(error::Error {
                     path: parser.options.path.clone(),
                     scope: parser.scope.scope_name.clone(),
-                    debug_message: "d9f23e707b858291c9ebc42065535139".to_owned(),
+                    debug_message: "104dc6061824862299e178c2984199a4".to_owned(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -132,7 +132,7 @@ pub fn collect_function<F>(
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
                         scope: parser.scope.scope_name.clone(),
-                        debug_message: "05ff839f0fcbd1815b40fb978cfc442c".to_owned(),
+                        debug_message: "0937b19f551b7112f0c09aa19e549509".to_owned(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -156,7 +156,7 @@ pub fn collect_function<F>(
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
                         scope: parser.scope.scope_name.clone(),
-                        debug_message: "23eb01c3b07c99bd6a7ca5282be3afc3".to_owned(),
+                        debug_message: "259e48b8c3235d11f849b05a724b4f44".to_owned(),
                         title: error::errorList::error_s10.title.clone(),
                         code: error::errorList::error_s10.code,
                         message: error::errorList::error_s10.message.clone(),
@@ -171,7 +171,7 @@ pub fn collect_function<F>(
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
                         scope: parser.scope.scope_name.clone(),
-                        debug_message: "8b859fb73ba8878030c3856967f2b03a".to_owned(),
+                        debug_message: "7faef22a9a497077d4ef6e7c9e768b74".to_owned(),
                         title: error::errorList::error_s35.title.clone(),
                         code: error::errorList::error_s35.code,
                         message: error::errorList::error_s35.message.clone(),
@@ -189,7 +189,7 @@ pub fn collect_function<F>(
                         errors.push(error::Error {
                             path: parser.options.path.clone(),
                             scope: parser.scope.scope_name.clone(),
-                            debug_message: "6078faea26fb7baf90bdb1f112d48a64".to_owned(),
+                            debug_message: "3409d4c2d54d6433a6c236ff06bd07a1".to_owned(),
                             title: error::errorList::error_s6.title.clone(),
                             code: error::errorList::error_s6.code,
                             message: error::errorList::error_s6.message.clone(),
@@ -214,7 +214,7 @@ pub fn collect_function<F>(
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
                         scope: parser.scope.scope_name.clone(),
-                        debug_message: "ff273ccd9b65009cdb153a8d0c0b0a21".to_owned(),
+                        debug_message: "f0c7248c8ad0010f26b96a2d9915f016".to_owned(),
                         title: error::errorList::error_s10.title.clone(),
                         code: error::errorList::error_s10.code,
                         message: error::errorList::error_s10.message.clone(),
@@ -228,7 +228,7 @@ pub fn collect_function<F>(
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
                         scope: parser.scope.scope_name.clone(),
-                        debug_message: "023151428f8a33aebb596a4e1507d524".to_owned(),
+                        debug_message: "7232aedf8d26cf2deb5f34f8ff671ec3".to_owned(),
                         title: error::errorList::error_s35.title.clone(),
                         code: error::errorList::error_s35.code,
                         message: error::errorList::error_s35.message.clone(),
@@ -245,7 +245,7 @@ pub fn collect_function<F>(
                         errors.push(error::Error {
                             path: parser.options.path.clone(),
                             scope: parser.scope.scope_name.clone(),
-                            debug_message: "df88589c6ec91a97d1476cdf3c2c359f".to_owned(),
+                            debug_message: "a76da27c9854786ab04d9436ee7edddd".to_owned(),
                             title: error::errorList::error_s6.title.clone(),
                             code: error::errorList::error_s6.code,
                             message: error::errorList::error_s6.message.clone(),
@@ -323,7 +323,7 @@ pub fn collect_function<F>(
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
                         scope: parser.scope.scope_name.clone(),
-                        debug_message: "14fb28fcb346f758212d6e2da61e5d75".to_owned(),
+                        debug_message: "f939273ba22273b83291a573bbabc242".to_owned(),
                         title: error::errorList::error_s1.title.clone(),
                         code: error::errorList::error_s1.code,
                         message: error::errorList::error_s1.message.clone(),
@@ -356,7 +356,7 @@ pub fn collect_function<F>(
                         errors.push(error::Error {
                             path: parser.options.path.clone(),
                             scope: parser.scope.scope_name.clone(),
-                            debug_message: "c81a82fce38ce4dc9d03f901fb885fd6".to_owned(),
+                            debug_message: "8e210d64ff7c789afc7f5f52344331ae".to_owned(),
                             title: error::errorList::error_s6.title.clone(),
                             code: error::errorList::error_s6.code,
                             message: error::errorList::error_s6.message.clone(),
@@ -394,7 +394,7 @@ pub fn collect_function<F>(
                 errors.push(error::Error {
                     path: parser.options.path.clone(),
                     scope: parser.scope.scope_name.clone(),
-                    debug_message: "c94a854c0ba25df7112c572d4224c624".to_owned(),
+                    debug_message: "a05fb53e662a74ae38ccd27437898979".to_owned(),
                     title: error::errorList::error_s24.title.clone(),
                     code: error::errorList::error_s24.code,
                     message: error::errorList::error_s24.message.clone(),

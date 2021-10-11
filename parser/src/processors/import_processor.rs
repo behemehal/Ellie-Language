@@ -42,7 +42,7 @@ pub fn collect_import<F>(
                             errors.push(error::Error {
                                 path: parser.options.path.clone(),
                                 scope: parser.scope.scope_name.clone(),
-                                debug_message: "e666644e8cbc8dd6d53e68bab187f73e".to_owned(),
+                                debug_message: "8b4e4919952d16259090caf60605e668".to_owned(),
                                 title: error::errorList::error_s28.title.clone(),
                                 code: error::errorList::error_s28.code,
                                 message: error::errorList::error_s28.message.clone(),
@@ -59,7 +59,7 @@ pub fn collect_import<F>(
                             errors.push(error::Error {
                                 path: parser.options.path.clone(),
                                 scope: parser.scope.scope_name.clone(),
-                                debug_message: "f22d55a3f3e435efcc20bd68f232bbe7".to_owned(),
+                                debug_message: "88e0c60a306000681938c6f6e39cee14".to_owned(),
                                 title: error::errorList::error_s32.title.clone(),
                                 code: error::errorList::error_s32.code,
                                 message: error::errorList::error_s32.message.clone(),
@@ -94,7 +94,7 @@ pub fn collect_import<F>(
                                     errors.push(error::Error {
                                         path: parser.options.path.clone(),
                                         scope: parser.scope.scope_name.clone(),
-                                        debug_message: "6d95aa7ab5c8be550f962815786edab3"
+                                        debug_message: "6967eb85f692aa87d35e26353937d89a"
                                             .to_string(),
                                         title: error::errorList::error_s33.title.clone(),
                                         code: error::errorList::error_s33.code,
@@ -221,7 +221,7 @@ pub fn collect_import<F>(
                             errors.push(error::Error {
                                 path: parser.options.path.clone(),
                                 scope: parser.scope.scope_name.clone(),
-                                debug_message: "4fa7b5ca3e9ee2b6a3c6b2226aa73a68".to_owned(),
+                                debug_message: "755d8570111b781d36503edae1cdbfd0".to_owned(),
                                 title: error::errorList::error_s28.title.clone(),
                                 code: error::errorList::error_s28.code,
                                 message: error::errorList::error_s28.message.clone(),
@@ -238,7 +238,7 @@ pub fn collect_import<F>(
                             errors.push(error::Error {
                                 path: parser.options.path.clone(),
                                 scope: parser.scope.scope_name.clone(),
-                                debug_message: "e410784f7de21d10cfe0f5335a96eb8f".to_owned(),
+                                debug_message: "b0c03d4e18d4f93b25be41defb3dcdae".to_owned(),
                                 title: error::errorList::error_s32.title.clone(),
                                 code: error::errorList::error_s32.code,
                                 message: error::errorList::error_s32.message.clone(),
@@ -272,7 +272,7 @@ pub fn collect_import<F>(
                                     errors.push(error::Error {
                                         path: parser.options.path.clone(),
                                         scope: parser.scope.scope_name.clone(),
-                                        debug_message: "0ca9053776bc5666870a42e2b41c3213"
+                                        debug_message: "acaf98c42468bfed782009e15041922f"
                                             .to_string(),
                                         title: error::errorList::error_s33.title.clone(),
                                         code: error::errorList::error_s33.code,
@@ -373,7 +373,7 @@ pub fn collect_import<F>(
             errors.push(error::Error {
                 path: parser.options.path.clone(),
                 scope: parser.scope.scope_name.clone(),
-                debug_message: "e068fe053195a64f273e5a9e8181c8b3".to_owned(),
+                debug_message: "325ddb713c2970216180ab2fec2381a0".to_owned(),
                 title: error::errorList::error_s1.title.clone(),
                 code: error::errorList::error_s1.code,
                 message: error::errorList::error_s1.message.clone(),

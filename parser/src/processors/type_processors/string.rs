@@ -30,7 +30,7 @@ pub fn collect_string<F>(
                 errors.push(error::Error {
                     path: parser.options.path.clone(),
                     scope: "string_processor".to_owned(),
-                    debug_message: "955b39cdd32bce068f9e0fba17b83ea8".to_owned(),
+                    debug_message: "c3d5e86d8860fa2dd7bde94e1474bfa5".to_owned(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -133,7 +133,7 @@ pub fn collect_string<F>(
             errors.push(error::Error {
                 path: parser.options.path.clone(),
                 scope: "string_processor".to_owned(),
-                debug_message: "91ebc584a72a3a680a830710b87805b7".to_owned(),
+                debug_message: "0ead87a7d1a8fe876181c3690c2ace71".to_owned(),
                 title: error::errorList::error_s1.title.clone(),
                 code: error::errorList::error_s1.code,
                 message: error::errorList::error_s1.message.clone(),

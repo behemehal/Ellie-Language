@@ -50,7 +50,7 @@ pub fn collect_enum<F>(
                             value: letter_char.to_string(),
                         }],
                     ),
-                    debug_message: "1d22d473850d41723f13a4cb389e9303".to_owned(),
+                    debug_message: "7e3341bcd63f172c9fc8b28ef4d0f445".to_owned(),
                     pos: defs::Cursor {
                         range_start: parser.pos,
                         range_end: parser.pos.clone().skip_char(1),
@@ -88,7 +88,7 @@ pub fn collect_enum<F>(
                                 value: letter_char.to_string(),
                             }],
                         ),
-                        debug_message: "645faf8039c4f1ef3e70ddd867b7dfe4".to_owned(),
+                        debug_message: "45958aa31bb30c549cc1764491a7b198".to_owned(),
                         pos: defs::Cursor {
                             range_start: parser.pos,
                             range_end: parser.pos.clone().skip_char(1),
@@ -116,7 +116,7 @@ pub fn collect_enum<F>(
                             errors.push(error::Error {
                                 path: parser.options.path.clone(),
                                 scope: parser.scope.scope_name.clone(),
-                                debug_message: "db9b6ec1a91d2e7b3b581ce7f525a601".to_owned(),
+                                debug_message: "d040248cc9587e2f8b61f6b1e8f9206e".to_owned(),
                                 title: error::errorList::error_s10.title.clone(),
                                 code: error::errorList::error_s10.code,
                                 message: error::errorList::error_s10.message.clone(),
@@ -133,7 +133,7 @@ pub fn collect_enum<F>(
                             errors.push(error::Error {
                                 path: parser.options.path.clone(),
                                 scope: parser.scope.scope_name.clone(),
-                                debug_message: "37385422d68fe123a2c294f41f0a7e32".to_owned(),
+                                debug_message: "c6da1439337e982a3ca318c685915880".to_owned(),
                                 title: error::errorList::error_s10.title.clone(),
                                 code: error::errorList::error_s10.code,
                                 message: error::errorList::error_s10.message.clone(),
@@ -161,7 +161,7 @@ pub fn collect_enum<F>(
                                     value: letter_char.to_string(),
                                 }],
                             ),
-                            debug_message: "89bb62b58b7df9ad2411a4227e2db4a4".to_owned(),
+                            debug_message: "fec4925ddbabfdd18a7426816e7a1f21".to_owned(),
                             pos: defs::Cursor {
                                 range_start: parser.pos,
                                 range_end: parser.pos.clone().skip_char(1),
@@ -174,7 +174,7 @@ pub fn collect_enum<F>(
                             errors.push(error::Error {
                                 path: parser.options.path.clone(),
                                 scope: parser.scope.scope_name.clone(),
-                                debug_message: "35055f7237e1a95824eaecbfca8260d4".to_owned(),
+                                debug_message: "dac494236e013537f18766ec2e53a723".to_owned(),
                                 title: error::errorList::error_s10.title.clone(),
                                 code: error::errorList::error_s10.code,
                                 message: error::errorList::error_s10.message.clone(),
@@ -193,7 +193,7 @@ pub fn collect_enum<F>(
                             errors.push(error::Error {
                                 path: parser.options.path.clone(),
                                 scope: parser.scope.scope_name.clone(),
-                                debug_message: "924ab9131fe3401fe6465d31a1bd7df8".to_owned(),
+                                debug_message: "cf2340f637a781c9a1858d59ecafc44f".to_owned(),
                                 title: error::errorList::error_s10.title.clone(),
                                 code: error::errorList::error_s10.code,
                                 message: error::errorList::error_s10.message.clone(),

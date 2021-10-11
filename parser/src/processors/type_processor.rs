@@ -205,7 +205,7 @@ pub fn collect_type<F>(
             errors.push(error::Error {
                 path: parser.options.path.clone(),
                 scope: parser.scope.scope_name.clone(),
-                debug_message: "replace_type_processor".to_owned(),
+                debug_message: "063aeaac44abf4735eda4f3ff265200b".to_owned(),
                 title: error::errorList::error_s1.title.clone(),
                 code: error::errorList::error_s1.code,
                 message: error::errorList::error_s1.message.clone(),
@@ -233,7 +233,7 @@ pub fn collect_type<F>(
                 errors.push(error::Error {
                     path: parser.options.path.clone(),
                     scope: parser.scope.scope_name.clone(),
-                    debug_message: "replace_type_processor".to_owned(),
+                    debug_message: "f80837be52612c97b871cb8577563001".to_owned(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -278,7 +278,7 @@ pub fn collect_type<F>(
             errors.push(error::Error {
                 path: parser.options.path.clone(),
                 scope: "definer_processor".to_owned(),
-                debug_message: "e7eb917915a7d1c1ef4172c7cccca9eb".to_owned(),
+                debug_message: "ebeb5f81a01acdc1f31ebf9bbbc89607".to_owned(),
                 title: error::errorList::error_s1.title.clone(),
                 code: error::errorList::error_s1.code,
                 message: error::errorList::error_s1.message.clone(),
@@ -301,7 +301,7 @@ pub fn collect_type<F>(
             errors.push(error::Error {
                 path: parser.options.path.clone(),
                 scope: "definer_processor".to_owned(),
-                debug_message: "e063c4883595c2fc460f691c2732a94f".to_owned(),
+                debug_message: "5baee190a863c982276c5f9d7b2472cf".to_owned(),
                 title: error::errorList::error_s1.title.clone(),
                 code: error::errorList::error_s1.code,
                 message: error::errorList::error_s1.message.clone(),
@@ -326,7 +326,7 @@ pub fn collect_type<F>(
                 errors.push(error::Error {
                     path: parser.options.path.clone(),
                     scope: parser.scope.scope_name.clone(),
-                    debug_message: "replace_type_processor".to_owned(),
+                    debug_message: "62d24caf35c917f6f66a5213d6fe620d".to_owned(),
                     title: error::errorList::error_s1.title.clone(),
                     code: error::errorList::error_s1.code,
                     message: error::errorList::error_s1.message.clone(),
@@ -373,7 +373,7 @@ pub fn collect_type<F>(
             errors.push(error::Error {
                 path: parser.options.path.clone(),
                 scope: parser.scope.scope_name.clone(),
-                debug_message: "replace_type_processor".to_owned(),
+                debug_message: "62a8c51af7dd81a8efdc4012ea7e0379".to_owned(),
                 title: error::errorList::error_s1.title.clone(),
                 code: error::errorList::error_s1.code,
                 message: error::errorList::error_s1.message.clone(),
