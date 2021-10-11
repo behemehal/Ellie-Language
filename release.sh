@@ -68,12 +68,24 @@ echo -e "\e[33m[Info]\e[0m Cleaning leftovers"
 } || {
     echo -e "\e[33m[Warning]\e[0m Failed to clean build continuing anyway, running command manualy may help `cargo clean`"
 }
+cd ./native-bridge
+echo -e "\e[33m[Info]\e[0m Creating native_bridge headers"
+{
+    cbindgen --config ./cbindgen.toml -o ../Release/ellie_native_bridge.h
+    echo -e "\e[32m[Info]\e[0m Build success"
+} || { 
+    rm -r ./Release/
+    echo -e "\e[31m[Error]\e[0m Failed to build headers. Cleaning folder anyways"
+    exit 1
+}
+cd ../
 cd ./Release
 echo -e "\e[33m[Info]\e[0m Creating shasum"
 {
     windows_s=`sha256sum -b ./ellie.exe`
     linux_s=`sha256sum -b ./ellie`
-    file="EllieBuild: v${ver[2]//\"}\\n\\t$windows_s\\n\\t$linux_s"
+    headers=`sha256sum -b ./ellie_native_bridge.h`
+    file="EllieBuild: v${ver[2]//\"}\\n\\t$windows_s\\n\\t$linux_s\\n\\t$headers"
     printf "$file" > ./SHASUMS256.txt
     echo -e "\e[32m[Info]\e[0m Release complete"
     exit 0

@@ -80,3 +80,11 @@
     * Reference resolver implemented
     * Fix dynamic type assignment error in collective
     * Fix class constructor parameter type mismatch
+
+# v3.7.3
+  - Parser v1.7.3
+    * Fix condition error
+  - Runtime v0.1.0
+    * Create type conversion between types and items
+  - Native-Bridge v0.1.0
+    * Add int, float, string data types
