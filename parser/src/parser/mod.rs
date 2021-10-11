@@ -913,12 +913,13 @@ where
         caller_data: types::function_call::FunctionCallCollector,
         item: Collecting,
         errors: &mut Vec<ellie_core::error::Error>,
+        layer: usize,
     ) -> Option<definers::DefinerCollecting> {
         let mut found = false;
         let mut found_type = definers::DefinerCollecting::Dynamic;
         match item {
             Collecting::Variable(e) => {
-                if e.data.name == caller_data.data.name && e.data.public {
+                if e.data.name == caller_data.data.name && (e.data.public || layer == 0) {
                     if let definers::DefinerCollecting::Function(fn_type) = e.data.rtype {
                         found_type = *fn_type.returning;
                         found = true;
@@ -1047,7 +1048,7 @@ where
                 }
             }
             Collecting::Function(e) => {
-                if e.data.name == caller_data.data.name && e.data.public {
+                if e.data.name == caller_data.data.name && (e.data.public || layer == 0) {
                     found_type = e.data.return_type;
                     found = true;
                     if caller_data.data.params.len() != e.data.parameters.len()
@@ -1192,7 +1193,7 @@ where
                 }
             }
             Collecting::Class(e) => {
-                if e.data.name == caller_data.data.name && e.data.public {
+                if e.data.name == caller_data.data.name && (e.data.public || layer == 0) {
                     errors.push(error::Error {
                         path: self.options.path.clone(),
                         scope: self.scope.scope_name.clone(),
@@ -1212,7 +1213,7 @@ where
                 }
             }
             Collecting::NativeFunction(e) => {
-                if e.name == caller_data.data.name && e.public {
+                if e.name == caller_data.data.name && (e.public || layer == 0) {
                     found_type = e.return_type;
                     found = true;
                     if caller_data.data.params.len() != e.parameters.len()
@@ -1362,7 +1363,16 @@ where
                 }
             }
             Collecting::ImportItem(e) => {
-                match self.deep_function_call_resolver(caller_data.clone(), *e.item, errors) {
+                match self.deep_function_call_resolver(
+                    caller_data.clone(),
+                    *e.item,
+                    errors,
+                    if e.from_path == "<temporary>" {
+                        0
+                    } else {
+                        layer + 1
+                    },
+                ) {
                     Some(e) => {
                         found_type = e;
                         found = true;
@@ -1387,7 +1397,7 @@ where
         let mut found = false;
         let mut errors = Vec::new();
         'scp: for item in self.collected.clone() {
-            match self.deep_function_call_resolver(caller_data.clone(), item, &mut errors) {
+            match self.deep_function_call_resolver(caller_data.clone(), item, &mut errors, 0) {
                 Some(e) => {
                     found_type = e;
                     found = true;
@@ -1475,42 +1485,43 @@ where
         item: Collecting,
         name: String,
         contain_private: bool,
+        layer: usize,
     ) -> (bool, Collecting) {
         let mut found = false;
         let mut found_item: Collecting = Collecting::None;
         match item.clone() {
             Collecting::Variable(e) => {
-                if e.data.name == name && (e.data.public || contain_private) {
+                if e.data.name == name && (e.data.public || contain_private || layer == 0) {
                     found = true;
                     found_item = item;
                 }
             }
             Collecting::Setter(e) => {
-                if e.data.name == name && (e.data.public || contain_private) {
+                if e.data.name == name && (e.data.public || contain_private || layer == 0) {
                     found = true;
                     found_item = item;
                 }
             }
             Collecting::Getter(e) => {
-                if e.data.name == name && (e.data.public || contain_private) {
+                if e.data.name == name && (e.data.public || contain_private || layer == 0) {
                     found = true;
                     found_item = item;
                 }
             }
             Collecting::Function(e) => {
-                if e.data.name == name && (e.data.public || contain_private) {
+                if e.data.name == name && (e.data.public || contain_private || layer == 0) {
                     found = true;
                     found_item = item;
                 }
             }
             Collecting::NativeFunction(e) => {
-                if e.name == name && (e.public || contain_private) {
+                if e.name == name && (e.public || contain_private || layer == 0) {
                     found = true;
                     found_item = item;
                 }
             }
             Collecting::Class(e) => {
-                if e.data.name == name && (e.data.public || contain_private) {
+                if e.data.name == name && (e.data.public || contain_private || layer == 0) {
                     found = true;
                     found_item = item;
                 }
@@ -1523,8 +1534,16 @@ where
             }
             Collecting::ImportItem(e) => {
                 if e.public || contain_private {
-                    let (is_found, found_item_target) =
-                        self.deep_check_keyword(*e.item, name, contain_private);
+                    let (is_found, found_item_target) = self.deep_check_keyword(
+                        *e.item,
+                        name,
+                        contain_private,
+                        if e.from_path == "<temporary>" {
+                            0
+                        } else {
+                            layer + 1
+                        },
+                    );
                     found = is_found;
                     found_item = found_item_target;
                 }
@@ -1540,7 +1559,7 @@ where
 
         for item in self.collected.clone() {
             let (is_found, found_item_target) =
-                self.deep_check_keyword(item, name.clone(), contain_private);
+                self.deep_check_keyword(item, name.clone(), contain_private, 0);
             found = is_found;
             found_item = found_item_target;
             if found {

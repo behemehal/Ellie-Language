@@ -16,7 +16,8 @@ pub enum ConditionType {
 pub struct ConditionChain {
     pub rtype: ConditionType,
     pub condition: Box<types::Types>,
-    pub inside_code: Vec<Collecting>,
+    pub code: Vec<Collecting>,
+    pub pos: defs::Cursor,
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]

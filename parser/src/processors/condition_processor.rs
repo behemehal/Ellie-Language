@@ -1,8 +1,11 @@
 use crate::parser;
 use crate::processors;
 use crate::syntax::condition;
+use crate::syntax::import_item;
+use alloc::borrow::ToOwned;
 use alloc::boxed::Box;
 use alloc::vec::Vec;
+use ellie_core::defs;
 use ellie_core::error;
 
 pub fn collect_condition<F>(
@@ -19,10 +22,6 @@ pub fn collect_condition<F>(
         if !condition_data.initialized {
             if last_char == "i" && letter_char == "f" {
                 condition_data.initialized = true;
-                //TODO BROKEN
-                //data.cloak_pos.range_start.0 = parser.pos.0; //Function naming started so we set the position
-                //data.keyword_pos.range_start.0 = parser.pos.0 - 1; //Function naming started so we set the position
-                //data.keyword_pos.range_end.0 = parser.pos.0; //Function naming started so we set the position
             }
         } else if !condition_data.cloak_collected {
             if condition_data
@@ -58,37 +57,72 @@ pub fn collect_condition<F>(
                     last_char,
                 );
             }
-        } else if letter_char == "}" {
-            if condition_data.inside_object_start {
-                if condition_data.inside_object_count == 0 {
-                    condition_data.inside_object_start = true;
-                } else {
-                    condition_data.inside_object_count -= 1;
+        } else if letter_char == "}" && condition_data.brace_count == 0 {
+            let chain_length = condition_data.data.chains.len();
+
+            let mut filtered_items: Vec<parser::Collecting> = Vec::new();
+            for item in condition_data.code.collected.clone() {
+                match item {
+                    parser::Collecting::ImportItem(e) => {
+                        if e.from_path != "<temporary>" {
+                            filtered_items.push(parser::Collecting::ImportItem(e))
+                        }
+                    }
+                    e => filtered_items.push(e),
                 }
-            } else {
-                let mut child_parser = parser::Parser::new(
-                    condition_data.inside_code_string.clone(),
-                    |_, _, _| parser::ResolvedImport::default(),
-                    parser.emit_message.clone(),
-                    parser.options.clone(),
-                );
-                child_parser.pos = parser.pos;
-                let mapped = child_parser.map();
-                for i in mapped.syntax_errors {
-                    errors.push(i)
-                }
-                let chains_length = condition_data.data.chains.clone().len() - 1;
-                condition_data.data.chains[chains_length].inside_code = mapped.parsed.items;
-                parser.collected.push(parser.current.clone());
-                parser.current = parser::Collecting::None;
             }
+
+            condition_data.data.chains[chain_length - 1].code = filtered_items;
+            condition_data.data.chains[chain_length - 1].pos.range_end =
+                parser.pos.clone().skip_char(1);
+            parser.collected.push(parser.current.clone());
+            parser.current = parser::Collecting::None;
         } else {
-            //let code_letter = if last_char.clone() == "\n" || last_char.clone() == "\r" {
-            //    last_char + letter_char //Make sure we get the lines correctly
-            //} else {
-            //    letter_char.to_string()
-            //};
-            //condition_data.inside_code_string += &code_letter;
+            if letter_char == "{" {
+                condition_data.brace_count += 1;
+            } else if letter_char == "}" && condition_data.brace_count != 0 {
+                condition_data.brace_count -= 1;
+            }
+            let mut child_parser = condition_data.code.clone().to_no_resolver_parser();
+
+            if condition_data.code.pos.is_zero() {
+                //Make sure upper scope imported once
+
+                for item in parser.collected.clone() {
+                    //Import variables as temporary for syntax support, we will remove them after collecting complete
+                    child_parser.collected.push(parser::Collecting::ImportItem(
+                        import_item::ImportItem {
+                            resolution_id: 0,
+                            from_import: 0,
+                            from_path: "<temporary>".to_owned(),
+                            public: true,
+                            item: Box::new(item),
+                        },
+                    ));
+                }
+            }
+
+            child_parser.options = parser.options.clone();
+            child_parser.options.parser_type = defs::ParserType::RawParser;
+            child_parser.pos = parser.pos;
+            child_parser.scope.scope_name = "core/for_loop_processor".to_owned();
+            child_parser.current = condition_data.code.current.clone();
+            child_parser.keyword_catch = condition_data.code.keyword_catch.clone();
+            child_parser.keyword_cache = condition_data.code.keyword_cache.clone();
+
+            let mut child_parser_errors: Vec<error::Error> = Vec::new();
+            parser::iterator::iter(
+                &mut child_parser,
+                &mut child_parser_errors,
+                letter_char,
+                next_char,
+                last_char,
+            );
+            for i in child_parser_errors {
+                errors.push(i);
+            }
+
+            condition_data.code = Box::new(child_parser.to_raw());
         }
     } else {
         panic!("Unexpected parser behaviour")

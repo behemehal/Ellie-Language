@@ -29,8 +29,10 @@ pub fn collect_type<F>(
     {
         parser.on_comment = false;
         parser.keyword_catch = String::new();
+        parser.keyword_errors = Vec::new();
     } else if parser.on_comment {
         parser.keyword_catch = String::new();
+        parser.keyword_errors = Vec::new();
     } else if (keyword == "import "
         || keyword == "pub import "
         || keyword == "pri import "
@@ -53,6 +55,7 @@ pub fn collect_type<F>(
             ..Default::default()
         });
         parser.keyword_catch = String::new();
+        parser.keyword_errors = Vec::new();
     } else if (keyword == "c " || keyword == "pub c " || keyword == "pri c ")
         && parser.options.constants
     {
@@ -71,6 +74,7 @@ pub fn collect_type<F>(
             ..Default::default()
         });
         parser.keyword_catch = String::new();
+        parser.keyword_errors = Vec::new();
     } else if (keyword == "v " || keyword == "pub v " || keyword == "pri v ")
         && parser.options.variables
     {
@@ -88,6 +92,7 @@ pub fn collect_type<F>(
             ..Default::default()
         });
         parser.keyword_catch = String::new();
+        parser.keyword_errors = Vec::new();
     } else if (keyword == "s " || keyword == "pub s " || keyword == "pri s ")
         && parser.options.setters
     {
@@ -115,6 +120,7 @@ pub fn collect_type<F>(
             ..Default::default()
         });
         parser.keyword_catch = String::new();
+        parser.keyword_errors = Vec::new();
     } else if (keyword == "enum " || keyword == "pub enum " || keyword == "pri enum ")
         && parser.options.enums
     {
@@ -140,6 +146,7 @@ pub fn collect_type<F>(
             ..Default::default()
         });
         parser.keyword_catch = String::new();
+        parser.keyword_errors = Vec::new();
     } else if keyword == "co " && parser.options.parser_type == defs::ParserType::ClassParser {
         parser.current = parser::Collecting::Constructor(constructor::ConstructorCollector {
             data: constructor::Constructor {
@@ -152,6 +159,7 @@ pub fn collect_type<F>(
             ..Default::default()
         });
         parser.keyword_catch = String::new();
+        parser.keyword_errors = Vec::new();
     } else if keyword == "@"
         && (parser.options.parser_type == defs::ParserType::RawParser
             || parser.options.parser_type == defs::ParserType::HeaderParser)
@@ -167,6 +175,7 @@ pub fn collect_type<F>(
             ..Default::default()
         });
         parser.keyword_catch = String::new();
+        parser.keyword_errors = Vec::new();
     } else if keyword == "for " && parser.options.parser_type == defs::ParserType::RawParser {
         parser.current = parser::Collecting::ForLoop(for_loop::ForLoopCollector {
             data: for_loop::ForLoop {
@@ -179,47 +188,92 @@ pub fn collect_type<F>(
             ..Default::default()
         });
         parser.keyword_catch = String::new();
+        parser.keyword_errors = Vec::new();
     } else if keyword == "if"
         && (parser.options.parser_type == defs::ParserType::RawParser
             || parser.options.parser_type == defs::ParserType::HeaderParser)
     {
         parser.current = parser::Collecting::Condition(condition::ConditionCollector::default());
         parser.keyword_catch = String::new();
+        parser.keyword_errors = Vec::new();
     } else if keyword == "else if"
         && (parser.options.parser_type == defs::ParserType::RawParser
             || parser.options.parser_type == defs::ParserType::HeaderParser)
     {
         let collected_length = parser.collected.clone().len();
         if collected_length == 0 {
-            panic!("Error");
+            errors.push(error::Error {
+                path: parser.options.path.clone(),
+                scope: parser.scope.scope_name.clone(),
+                debug_message: "replace_type_processor".to_owned(),
+                title: error::errorList::error_s1.title.clone(),
+                code: error::errorList::error_s1.code,
+                message: error::errorList::error_s1.message.clone(),
+                builded_message: error::Error::build(
+                    error::errorList::error_s1.message.clone(),
+                    vec![error::ErrorBuildField {
+                        key: "token".to_owned(),
+                        value: letter_char.to_string(),
+                    }],
+                ),
+                pos: defs::Cursor {
+                    range_start: parser.pos,
+                    range_end: parser.pos.clone().skip_char(1),
+                },
+            });
         } else if let parser::Collecting::Condition(value) =
             &mut parser.collected[collected_length - 1]
         {
-            let mut repeated_condition = condition::ConditionCollector {
-                data: condition::Condition {
-                    chains: value.data.chains.clone(),
-                    cloak_pos: defs::Cursor {
-                        range_start: defs::CursorPosition(parser.pos.0, parser.pos.0 + 1),
-                        ..Default::default()
-                    },
-                    keyword_pos: defs::Cursor {
-                        range_start: defs::CursorPosition(parser.pos.0 - 1, parser.pos.0),
-                        range_end: defs::CursorPosition(parser.pos.0, parser.pos.0 + 1),
-                    },
-                },
-                initialized: true,
-                cloak_collected: false,
-                ..Default::default()
-            };
-            repeated_condition
-                .data
-                .chains
-                .push(condition::ConditionChain {
-                    rtype: condition::ConditionType::ElseIf,
-                    ..Default::default()
+            if value.data.chains.len() == 0
+                || matches!(
+                    value.data.chains.last().unwrap().rtype,
+                    condition::ConditionType::Else
+                )
+            {
+                errors.push(error::Error {
+                    path: parser.options.path.clone(),
+                    scope: parser.scope.scope_name.clone(),
+                    debug_message: "replace_type_processor".to_owned(),
+                    title: error::errorList::error_s1.title.clone(),
+                    code: error::errorList::error_s1.code,
+                    message: error::errorList::error_s1.message.clone(),
+                    builded_message: error::Error::build(
+                        error::errorList::error_s1.message.clone(),
+                        vec![error::ErrorBuildField {
+                            key: "token".to_owned(),
+                            value: letter_char.to_string(),
+                        }],
+                    ),
+                    pos: value.data.keyword_pos,
                 });
-            parser.current = parser::Collecting::Condition(repeated_condition);
-            parser.collected.remove(collected_length - 1);
+            } else {
+                let mut repeated_condition = condition::ConditionCollector {
+                    data: condition::Condition {
+                        chains: value.data.chains.clone(),
+                        cloak_pos: defs::Cursor {
+                            range_start: defs::CursorPosition(parser.pos.0, parser.pos.0 + 1),
+                            ..Default::default()
+                        },
+                        keyword_pos: defs::Cursor {
+                            range_start: defs::CursorPosition(parser.pos.0 - 1, parser.pos.0),
+                            range_end: defs::CursorPosition(parser.pos.0, parser.pos.0 + 1),
+                        },
+                    },
+                    cloak_collected: false,
+                    ..Default::default()
+                };
+                repeated_condition
+                    .data
+                    .chains
+                    .push(condition::ConditionChain {
+                        rtype: condition::ConditionType::ElseIf,
+                        ..Default::default()
+                    });
+                parser.current = parser::Collecting::Condition(repeated_condition);
+                parser.collected.remove(collected_length - 1);
+                parser.keyword_catch = String::new();
+                parser.keyword_errors = Vec::new();
+            }
         } else {
             errors.push(error::Error {
                 path: parser.options.path.clone(),
@@ -238,8 +292,7 @@ pub fn collect_type<F>(
                 pos: parser.keyword_pos,
             });
         }
-        parser.keyword_catch = String::new();
-    } else if keyword == "else {"
+    } else if keyword.trim() == "else {"
         && (parser.options.parser_type == defs::ParserType::RawParser
             || parser.options.parser_type == defs::ParserType::HeaderParser)
     {
@@ -264,33 +317,81 @@ pub fn collect_type<F>(
         } else if let parser::Collecting::Condition(value) =
             &mut parser.collected[collected_length - 1]
         {
-            let mut repeated_condition = condition::ConditionCollector {
-                data: condition::Condition {
-                    chains: value.data.chains.clone(),
-                    keyword_pos: defs::Cursor {
-                        range_start: defs::CursorPosition(parser.pos.0 - 1, parser.pos.0),
-                        range_end: defs::CursorPosition(parser.pos.0, parser.pos.0 + 1),
-                    },
-                    ..Default::default()
-                },
-                initialized: true,
-                cloak_collected: true,
-                ..Default::default()
-            };
-            repeated_condition
-                .data
-                .chains
-                .push(condition::ConditionChain {
-                    rtype: condition::ConditionType::Else,
-                    ..Default::default()
+            if value.data.chains.len() == 0
+                || matches!(
+                    value.data.chains.last().unwrap().rtype,
+                    condition::ConditionType::Else
+                )
+            {
+                errors.push(error::Error {
+                    path: parser.options.path.clone(),
+                    scope: parser.scope.scope_name.clone(),
+                    debug_message: "replace_type_processor".to_owned(),
+                    title: error::errorList::error_s1.title.clone(),
+                    code: error::errorList::error_s1.code,
+                    message: error::errorList::error_s1.message.clone(),
+                    builded_message: error::Error::build(
+                        error::errorList::error_s1.message.clone(),
+                        vec![error::ErrorBuildField {
+                            key: "token".to_owned(),
+                            value: letter_char.to_string(),
+                        }],
+                    ),
+                    pos: value.data.keyword_pos,
                 });
-            parser.current = parser::Collecting::Condition(repeated_condition);
-            parser.collected.remove(collected_length - 1);
+            } else {
+                let mut repeated_condition = condition::ConditionCollector {
+                    data: condition::Condition {
+                        chains: value.data.chains.clone(),
+                        keyword_pos: defs::Cursor {
+                            range_start: defs::CursorPosition(parser.pos.0 - 1, parser.pos.0),
+                            range_end: defs::CursorPosition(parser.pos.0, parser.pos.0 + 1),
+                        },
+                        ..Default::default()
+                    },
+                    cloak_itered_data: variable::VariableCollector {
+                        data: variable::Variable {
+                            value: types::Types::Null,
+                            ..Default::default()
+                        },
+                        ..Default::default()
+                    },
+                    initialized: true,
+                    ..Default::default()
+                };
+                repeated_condition
+                    .data
+                    .chains
+                    .push(condition::ConditionChain {
+                        rtype: condition::ConditionType::Else,
+                        ..Default::default()
+                    });
+                parser.current = parser::Collecting::Condition(repeated_condition);
+                parser.collected.remove(collected_length - 1);
+            }
         } else {
-            //User used else statement without if
-            panic!("Error: {:#?}", parser.collected);
+            errors.push(error::Error {
+                path: parser.options.path.clone(),
+                scope: parser.scope.scope_name.clone(),
+                debug_message: "replace_type_processor".to_owned(),
+                title: error::errorList::error_s1.title.clone(),
+                code: error::errorList::error_s1.code,
+                message: error::errorList::error_s1.message.clone(),
+                builded_message: error::Error::build(
+                    error::errorList::error_s1.message.clone(),
+                    vec![error::ErrorBuildField {
+                        key: "token".to_owned(),
+                        value: letter_char.to_string(),
+                    }],
+                ),
+                pos: defs::Cursor {
+                    range_start: parser.pos,
+                    range_end: parser.pos.clone().skip_char(1),
+                },
+            });
         }
         parser.keyword_catch = String::new();
+        parser.keyword_errors = Vec::new();
     } else if (keyword == "class " || keyword == "pub class " || keyword == "pri class ")
         && parser.options.parser_type == defs::ParserType::RawParser
     {
@@ -306,6 +407,7 @@ pub fn collect_type<F>(
             ..Default::default()
         });
         parser.keyword_catch = String::new();
+        parser.keyword_errors = Vec::new();
     } else if keyword == "ret " && parser.options.parser_type == defs::ParserType::RawParser {
         parser.current = parser::Collecting::Ret(ret::Ret {
             keyword_pos: defs::Cursor {
@@ -315,6 +417,7 @@ pub fn collect_type<F>(
             ..Default::default()
         });
         parser.keyword_catch = String::new();
+        parser.keyword_errors = Vec::new();
     } else if keyword == "new " && parser.options.parser_type == defs::ParserType::RawParser {
         parser.current = parser::Collecting::Caller(caller::Caller {
             value: types::Types::ConstructedClass(
@@ -336,6 +439,7 @@ pub fn collect_type<F>(
             },
         });
         parser.keyword_catch = String::new();
+        parser.keyword_errors = Vec::new();
     } else if letter_char == "("
         && keyword.trim() != "("
         && !keyword.trim().is_empty()
@@ -366,6 +470,7 @@ pub fn collect_type<F>(
             },
         });
         parser.keyword_catch = String::new();
+        parser.keyword_errors = Vec::new();
     } else if next_char == "."
         && keyword.trim() != ""
         && parser.options.parser_type == defs::ParserType::RawParser
@@ -396,5 +501,6 @@ pub fn collect_type<F>(
             },
         });
         parser.keyword_catch = String::new();
+        parser.keyword_errors = Vec::new();
     }
 }
