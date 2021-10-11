@@ -1,0 +1,12 @@
+language = "C"
+include_guard = "_ELLIE_NATIVE_BRIDGE_H"
+sys_includes = []
+cpp_compat = true
+documentation_style = "C"
+include_version = false
+
+[enum]
+rename_variants = "QualifiedScreamingSnakeCase"
+
+[export]
+include = ["NativeLib"]

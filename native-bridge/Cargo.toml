@@ -1,0 +1,11 @@
+[package]
+name = "ellie_native_bridge"
+version = "0.1.0"
+authors = ["Ahmetcan Aksu <ahmetcanco@gmail.com>"]
+edition = "2018"
+
+[build-dependencies]
+cbindgen = "0.20.0"
+
+[dependencies]
+libc = "0.2.103"

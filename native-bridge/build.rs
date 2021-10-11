@@ -1,6 +1,3 @@
-extern crate cbindgen;
-
-use cbindgen::Config;
 use std::env;
 use std::path::PathBuf;
 
@@ -9,16 +6,11 @@ fn main() {
 
     let package_name = env::var("CARGO_PKG_NAME").unwrap();
     let output_file = target_dir()
-        .join(format!("{}.hpp", package_name))
+        .join(format!("{}.h", package_name))
         .display()
         .to_string();
 
-    let config = Config {
-        namespace: Some(String::from("ffi")),
-        ..Default::default()
-    };
-
-    cbindgen::generate_with_config(&crate_dir, config)
+    cbindgen::generate(&crate_dir)
         .unwrap()
         .write_to_file(&output_file);
 }
