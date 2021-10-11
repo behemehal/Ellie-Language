@@ -1048,21 +1048,7 @@ where
                 }
             }
             Collecting::Function(e) => {
-                std::println!(
-                    "FN: {} = {}, public: {}|| layer == 0: {}",
-                    caller_data.data.name,
-                    e.data.name,
-                    e.data.public,
-                    layer
-                );
                 if e.data.name == caller_data.data.name && (e.data.public || layer == 0) {
-                    std::println!(
-                        "FOUND FN: {} = {}, public: {}|| layer == 0: {}",
-                        caller_data.data.name,
-                        e.data.name,
-                        e.data.public,
-                        layer
-                    );
                     found_type = e.data.return_type;
                     found = true;
                     if caller_data.data.params.len() != e.data.parameters.len()

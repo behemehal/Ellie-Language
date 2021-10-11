@@ -22,10 +22,6 @@ pub fn collect_condition<F>(
         if !condition_data.initialized {
             if last_char == "i" && letter_char == "f" {
                 condition_data.initialized = true;
-                //TODO BROKEN
-                //data.cloak_pos.range_start.0 = parser.pos.0; //Function naming started so we set the position
-                //data.keyword_pos.range_start.0 = parser.pos.0 - 1; //Function naming started so we set the position
-                //data.keyword_pos.range_end.0 = parser.pos.0; //Function naming started so we set the position
             }
         } else if !condition_data.cloak_collected {
             if condition_data
@@ -47,7 +43,6 @@ pub fn collect_condition<F>(
                         .data
                         .chains
                         .push(condition::ConditionChain::default());
-                    std::println!("IMPORT CHAIN");
                 }
 
                 condition_data.data.chains[chain_length].condition =
@@ -62,7 +57,7 @@ pub fn collect_condition<F>(
                     last_char,
                 );
             }
-        } else if letter_char == "}" {
+        } else if letter_char == "}" && condition_data.brace_count == 0 {
             let chain_length = condition_data.data.chains.len();
 
             let mut filtered_items: Vec<parser::Collecting> = Vec::new();
