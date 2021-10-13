@@ -4,6 +4,7 @@ pub mod definers;
 pub mod items;
 pub mod types;
 
+#[repr(C)]
 pub struct DefiniteParsed {
     pub name: *mut c_char,
     pub items: *mut items::Collecting,
