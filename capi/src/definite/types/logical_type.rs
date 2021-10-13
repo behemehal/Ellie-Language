@@ -1,7 +1,6 @@
 use crate::definite::types;
 use alloc::boxed::Box;
 
-
 #[repr(C)]
 pub enum LogicalOperators {
     And,

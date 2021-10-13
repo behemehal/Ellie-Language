@@ -30,15 +30,24 @@ pub unsafe fn build_variable_from(from: items::variable::Variable) -> Variable {
             range_end: defs::CursorPosition(from.pos.range_end.0, from.pos.range_end.1),
         },
         name_pos: defs::Cursor {
-            range_start: defs::CursorPosition(from.name_pos.range_start.0, from.name_pos.range_start.1),
+            range_start: defs::CursorPosition(
+                from.name_pos.range_start.0,
+                from.name_pos.range_start.1,
+            ),
             range_end: defs::CursorPosition(from.name_pos.range_end.0, from.name_pos.range_end.1),
         },
         value_pos: defs::Cursor {
-            range_start: defs::CursorPosition(from.value_pos.range_start.0, from.value_pos.range_start.1),
+            range_start: defs::CursorPosition(
+                from.value_pos.range_start.0,
+                from.value_pos.range_start.1,
+            ),
             range_end: defs::CursorPosition(from.value_pos.range_end.0, from.value_pos.range_end.1),
         },
         type_pos: defs::Cursor {
-            range_start: defs::CursorPosition(from.type_pos.range_start.0, from.type_pos.range_start.1),
+            range_start: defs::CursorPosition(
+                from.type_pos.range_start.0,
+                from.type_pos.range_start.1,
+            ),
             range_end: defs::CursorPosition(from.type_pos.range_end.0, from.type_pos.range_end.1),
         },
         rtype: definers::DefinerCollecting::Dynamic,

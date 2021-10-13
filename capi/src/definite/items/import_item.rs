@@ -12,7 +12,7 @@ pub struct ImportItem {
     pub public: bool,
 }
 
-pub unsafe fn build_import_from(from: items::import_item::ImportItem) -> ImportItem {
+pub unsafe fn build_import_item_from(from: items::import_item::ImportItem) -> ImportItem {
     ImportItem {
         from_path: from.from_path.as_ptr() as *mut i8,
         resolution_id: from.resolution_id,
