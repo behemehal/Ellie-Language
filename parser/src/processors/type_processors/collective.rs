@@ -5,14 +5,14 @@ use crate::syntax;
 use crate::syntax::types::collective_type;
 use crate::syntax::{definers, types, variable};
 use alloc::boxed::Box;
-use alloc::string::ToString;
+use alloc::string::{String, ToString};
 use alloc::vec;
 use alloc::vec::Vec;
 
 use ellie_core::{defs, error};
 
-pub fn collect_collective<F>(
-    parser: parser::Parser<F>,
+pub fn collect_collective<F, E>(
+    parser: parser::Parser<F, E>,
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
@@ -20,6 +20,9 @@ pub fn collect_collective<F>(
     last_char: &str,
 ) where
     F: FnMut(ellie_core::com::Message) + Clone + Sized,
+    E: FnMut(ellie_core::defs::ParserOptions, String, bool) -> parser::ResolvedImport
+        + Clone
+        + Sized,
 {
     let clone_parser = parser.clone();
     if let types::Types::Collective(ref mut collective_data) = itered_data.data.value {

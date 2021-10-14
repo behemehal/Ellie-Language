@@ -1,19 +1,22 @@
 use crate::alloc::borrow::ToOwned;
-use crate::alloc::string::ToString;
+use crate::alloc::string::{String, ToString};
 use crate::alloc::vec;
 use crate::alloc::vec::Vec;
 use crate::parser;
 use crate::syntax::constructor;
 use ellie_core::{defs, error, utils};
 
-pub fn collect_constructor<F>(
-    parser: &mut parser::Parser<F>,
+pub fn collect_constructor<F, E>(
+    parser: &mut parser::Parser<F, E>,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     _next_char: &str,
     last_char: &str,
 ) where
     F: FnMut(ellie_core::com::Message) + Clone + Sized,
+    E: FnMut(ellie_core::defs::ParserOptions, String, bool) -> parser::ResolvedImport
+        + Clone
+        + Sized,
 {
     if let parser::Collecting::Constructor(ref mut constructor_data) = parser.current {
         let current_reliability = utils::reliable_name_range(

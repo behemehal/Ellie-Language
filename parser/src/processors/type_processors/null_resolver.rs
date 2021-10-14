@@ -2,11 +2,12 @@ use crate::parser;
 use crate::processors::value_processor;
 use crate::syntax::{types, variable};
 use alloc::boxed::Box;
+use alloc::string::String;
 use alloc::vec::Vec;
 use ellie_core::error;
 
-pub fn collect_null_resolver<F>(
-    parser: parser::Parser<F>,
+pub fn collect_null_resolver<F, E>(
+    parser: parser::Parser<F, E>,
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
@@ -14,6 +15,9 @@ pub fn collect_null_resolver<F>(
     last_char: &str,
 ) where
     F: FnMut(ellie_core::com::Message) + Clone + Sized,
+    E: FnMut(ellie_core::defs::ParserOptions, String, bool) -> parser::ResolvedImport
+        + Clone
+        + Sized,
 {
     if let types::Types::NullResolver(ref mut null_resolver_data) = itered_data.data.value {
         let mut will_be_itered = variable::VariableCollector {

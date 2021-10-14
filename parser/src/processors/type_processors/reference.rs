@@ -4,13 +4,16 @@ use crate::syntax::{definers, types, variable};
 use alloc::{borrow::ToOwned, string::String, vec, vec::Vec};
 use ellie_core::{defs, error};
 
-fn resolve_chain<F>(
-    parser: parser::Parser<F>,
+fn resolve_chain<F, E>(
+    parser: parser::Parser<F, E>,
     chain: types::reference_type::Chain,
     last_entry: definers::DefinerCollecting,
 ) -> Result<definers::DefinerCollecting, Vec<error::Error>>
 where
     F: FnMut(ellie_core::com::Message) + Clone + Sized,
+    E: FnMut(ellie_core::defs::ParserOptions, String, bool) -> parser::ResolvedImport
+        + Clone
+        + Sized,
 {
     let mut errors = Vec::new();
     let mut found = definers::DefinerCollecting::Dynamic;
@@ -229,8 +232,8 @@ where
     }
 }
 
-pub fn collect_reference<F>(
-    parser: parser::Parser<F>,
+pub fn collect_reference<F, E>(
+    parser: parser::Parser<F, E>,
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
@@ -238,6 +241,9 @@ pub fn collect_reference<F>(
     last_char: &str,
 ) where
     F: FnMut(ellie_core::com::Message) + Clone + Sized,
+    E: FnMut(ellie_core::defs::ParserOptions, String, bool) -> parser::ResolvedImport
+        + Clone
+        + Sized,
 {
     if let types::Types::Reference(ref mut reference_data) = itered_data.data.value {
         let last_entry = reference_data.data.chain.len();

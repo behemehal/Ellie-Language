@@ -5,12 +5,12 @@ use ellie_core::{defs, error};
 
 use crate::alloc::borrow::ToOwned;
 use alloc::boxed::Box;
-use alloc::string::ToString;
+use alloc::string::{ToString, String};
 use alloc::vec;
 use alloc::vec::Vec;
 
-pub fn collect_operator<F>(
-    parser: parser::Parser<F>,
+pub fn collect_operator<F, E>(
+    parser: parser::Parser<F, E>,
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
@@ -18,6 +18,9 @@ pub fn collect_operator<F>(
     last_char: &str,
 ) where
     F: FnMut(ellie_core::com::Message) + core::clone::Clone,
+    E: FnMut(ellie_core::defs::ParserOptions, String, bool) -> parser::ResolvedImport
+        + Clone
+        + Sized,
 {
     //TODO SUPPORT first operator parse
     if let types::Types::Operator(ref mut data) = itered_data.data.value {

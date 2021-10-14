@@ -205,7 +205,10 @@ impl RawParser {
     pub fn to_parser(
         self,
         _resolver: fn(defs::ParserOptions, String) -> ResolvedImport,
-    ) -> Parser<impl FnMut(com::Message) + Clone + Sized> {
+    ) -> Parser<
+        impl FnMut(com::Message) + Clone + Sized,
+        impl FnMut(ellie_core::defs::ParserOptions, String, bool) -> ResolvedImport + Clone + Sized,
+    > {
         Parser {
             scope: self.scope,
             resolver: |_, _, _| ResolvedImport::default(),
@@ -226,7 +229,12 @@ impl RawParser {
         }
     }
 
-    pub fn to_no_resolver_parser(self) -> Parser<impl FnMut(com::Message) + Clone + Sized> {
+    pub fn to_no_resolver_parser(
+        self,
+    ) -> Parser<
+        impl FnMut(com::Message) + Clone + Sized,
+        impl FnMut(ellie_core::defs::ParserOptions, String, bool) -> ResolvedImport + Clone + Sized,
+    > {
         Parser {
             scope: self.scope,
             resolver: |_, _, _| ResolvedImport::default(),
@@ -249,9 +257,9 @@ impl RawParser {
 }
 
 #[derive(Clone)]
-pub struct Parser<F> {
+pub struct Parser<F, E> {
     pub scope: Box<scope::Scope>,
-    pub resolver: fn(ellie_core::defs::ParserOptions, String, bool) -> ResolvedImport,
+    pub resolver: E,
     pub emit_message: F,
     pub code: String,
     pub options: defs::ParserOptions,
@@ -290,16 +298,17 @@ pub struct ResolvedImport {
     pub file_content: ResolvedFileContent,
 }
 
-impl<F> Parser<F>
+impl<F, E> Parser<F, E>
 where
     F: FnMut(com::Message) + Clone + Sized,
+    E: FnMut(ellie_core::defs::ParserOptions, String, bool) -> ResolvedImport + Clone + Sized,
 {
     pub fn new(
         code: String,
-        resolve_import: fn(ellie_core::defs::ParserOptions, String, bool) -> ResolvedImport,
+        resolve_import: E,
         com: F,
         options: defs::ParserOptions,
-    ) -> Parser<F> {
+    ) -> Parser<F, E> {
         Parser {
             scope: Box::new(scope::Scope::default()),
             resolver: resolve_import,

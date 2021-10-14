@@ -10,7 +10,7 @@ pub struct DefiniteParsed {
     pub items: *mut items::Collecting,
 }
 
-pub unsafe fn build_from(from: ellie_core::definite::DefiniteParsed) -> DefiniteParsed {
+pub unsafe fn build_definite_parsed_from(from: ellie_core::definite::DefiniteParsed) -> DefiniteParsed {
     DefiniteParsed {
         name: from.name.as_ptr() as *mut i8,
         items: from

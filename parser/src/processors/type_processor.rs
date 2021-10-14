@@ -10,14 +10,15 @@ use alloc::vec;
 use alloc::vec::Vec;
 use ellie_core::{defs, error, utils};
 
-pub fn collect_type<F>(
-    parser: &mut parser::Parser<F>,
+pub fn collect_type<F, E>(
+    parser: &mut parser::Parser<F, E>,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     last_char: &str,
     next_char: &str,
 ) where
     F: FnMut(ellie_core::com::Message) + Clone + Sized,
+    E: FnMut(ellie_core::defs::ParserOptions, String, bool) -> parser::ResolvedImport + Clone + Sized
 {
     let keyword = utils::trim_good(parser.keyword_catch.trim_start().to_string()); //one step next
 

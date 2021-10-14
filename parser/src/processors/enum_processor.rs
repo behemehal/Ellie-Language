@@ -1,5 +1,5 @@
 use crate::alloc::borrow::ToOwned;
-use crate::alloc::string::ToString;
+use crate::alloc::string::{String, ToString};
 use crate::alloc::vec;
 use crate::alloc::vec::Vec;
 use crate::parser;
@@ -7,14 +7,17 @@ use crate::processors;
 use crate::syntax;
 use ellie_core::{defs, error, utils};
 
-pub fn collect_enum<F>(
-    parser: &mut parser::Parser<F>,
+pub fn collect_enum<F, E>(
+    parser: &mut parser::Parser<F, E>,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     next_char: &str,
     last_char: &str,
 ) where
     F: FnMut(ellie_core::com::Message) + Clone + Sized,
+    E: FnMut(ellie_core::defs::ParserOptions, String, bool) -> parser::ResolvedImport
+        + Clone
+        + Sized,
 {
     let parser_clone = parser.clone();
     if let parser::Collecting::Enum(ref mut enum_data) = parser.current {

@@ -1,11 +1,12 @@
 use crate::parser;
 use crate::processors::type_processors;
 use crate::syntax::{types, variable};
+use alloc::string::String;
 use alloc::vec::Vec;
 use ellie_core::error;
 
-pub fn collect_value<F>(
-    parser: parser::Parser<F>,
+pub fn collect_value<F, E>(
+    parser: parser::Parser<F, E>,
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
@@ -13,6 +14,9 @@ pub fn collect_value<F>(
     last_char: &str,
 ) where
     F: FnMut(ellie_core::com::Message) + Clone + Sized,
+    E: FnMut(ellie_core::defs::ParserOptions, String, bool) -> parser::ResolvedImport
+        + Clone
+        + Sized,
 {
     match &mut itered_data.data.value {
         types::Types::Integer(_) => type_processors::integer::collect_integer(

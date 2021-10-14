@@ -3,13 +3,13 @@ use crate::parser;
 use crate::processors::type_processors;
 use crate::syntax::{types, variable};
 use alloc::boxed::Box;
-use alloc::string::ToString;
+use alloc::string::{String, ToString};
 use alloc::vec;
 use alloc::vec::Vec;
 use ellie_core::{defs, error, utils};
 
-pub fn collect_variable<F>(
-    parser: parser::Parser<F>,
+pub fn collect_variable<F, E>(
+    parser: parser::Parser<F, E>,
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
@@ -17,6 +17,9 @@ pub fn collect_variable<F>(
     last_char: &str,
 ) where
     F: FnMut(ellie_core::com::Message) + Clone + Sized,
+    E: FnMut(ellie_core::defs::ParserOptions, String, bool) -> parser::ResolvedImport
+        + Clone
+        + Sized,
 {
     let itered_data_clone = itered_data.clone();
     if let types::Types::VariableType(ref mut variable_data) = itered_data.data.value {

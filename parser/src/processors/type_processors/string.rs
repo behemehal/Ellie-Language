@@ -1,4 +1,4 @@
-use crate::alloc::borrow::ToOwned;
+use crate::alloc::{borrow::ToOwned, string::String};
 use crate::parser;
 use crate::syntax::{definers, types, variable};
 use ellie_core::{defs, error};
@@ -8,8 +8,8 @@ use alloc::string::ToString;
 use alloc::vec;
 use alloc::vec::Vec;
 
-pub fn collect_string<F>(
-    parser: parser::Parser<F>,
+pub fn collect_string<F, E>(
+    parser: parser::Parser<F, E>,
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
@@ -17,6 +17,9 @@ pub fn collect_string<F>(
     last_char: &str,
 ) where
     F: FnMut(ellie_core::com::Message) + core::clone::Clone,
+    E: FnMut(ellie_core::defs::ParserOptions, String, bool) -> parser::ResolvedImport
+        + Clone
+        + Sized,
 {
     if let types::Types::String(ref mut string_data) = itered_data.data.value {
         if itered_data.data.dynamic {

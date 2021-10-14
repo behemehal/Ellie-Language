@@ -1,20 +1,22 @@
+use crate::alloc::borrow::ToOwned;
 use crate::parser;
 use crate::processors;
-use ellie_core::{defs, error, utils};
-
-use crate::alloc::borrow::ToOwned;
-use alloc::string::ToString;
+use alloc::string::{String, ToString};
 use alloc::vec;
 use alloc::vec::Vec;
+use ellie_core::{defs, error, utils};
 
-pub fn collect_variable_value<F>(
-    parser: &mut parser::Parser<F>,
+pub fn collect_variable_value<F, E>(
+    parser: &mut parser::Parser<F, E>,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     next_char: &str,
     last_char: &str,
 ) where
     F: FnMut(ellie_core::com::Message) + Clone + Sized,
+    E: FnMut(ellie_core::defs::ParserOptions, String, bool) -> parser::ResolvedImport
+        + Clone
+        + Sized,
 {
     let parser_clone = parser.clone();
     if let parser::Collecting::Variable(ref mut variable_data) = parser.current {

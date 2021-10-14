@@ -2,13 +2,13 @@ use crate::alloc::borrow::ToOwned;
 use crate::parser;
 use crate::syntax::{types, variable};
 use alloc::boxed::Box;
-use alloc::string::ToString;
+use alloc::string::{String, ToString};
 use alloc::vec;
 use alloc::vec::Vec;
 use ellie_core::{defs, error};
 
-pub fn collect_char<F>(
-    parser: parser::Parser<F>,
+pub fn collect_char<F, E>(
+    parser: parser::Parser<F, E>,
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
@@ -16,6 +16,9 @@ pub fn collect_char<F>(
     last_char: &str,
 ) where
     F: FnMut(ellie_core::com::Message) + Clone + Sized,
+    E: FnMut(ellie_core::defs::ParserOptions, String, bool) -> parser::ResolvedImport
+        + Clone
+        + Sized,
 {
     if let types::Types::Char(ref mut data) = itered_data.data.value {
         if itered_data.data.dynamic {

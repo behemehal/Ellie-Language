@@ -6,14 +6,15 @@ use crate::parser;
 use crate::processors;
 use ellie_core::{defs, error};
 
-pub fn iter<F>(
-    parser: &mut parser::Parser<F>,
+pub fn iter<F, E>(
+    parser: &mut parser::Parser<F, E>,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
     next_char: &str,
     last_char: &str,
 ) where
     F: FnMut(ellie_core::com::Message) + Clone + Sized,
+    E: FnMut(ellie_core::defs::ParserOptions, String, bool) -> parser::ResolvedImport + Clone + Sized
 {
     if parser.current == parser::Collecting::None {
         if !parser.keyword_catch.is_empty()

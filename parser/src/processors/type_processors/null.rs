@@ -3,11 +3,12 @@ use crate::parser;
 use crate::processors::type_processors;
 use crate::syntax::{definers, types, variable};
 use alloc::boxed::Box;
+use alloc::string::String;
 use alloc::vec::Vec;
 use ellie_core::{defs, error};
 
-pub fn collect_null<F>(
-    parser: parser::Parser<F>,
+pub fn collect_null<F, E>(
+    parser: parser::Parser<F, E>,
     itered_data: &mut variable::VariableCollector,
     errors: &mut Vec<error::Error>,
     letter_char: &str,
@@ -15,6 +16,9 @@ pub fn collect_null<F>(
     last_char: &str,
 ) where
     F: FnMut(ellie_core::com::Message) + Clone + Sized,
+    E: FnMut(ellie_core::defs::ParserOptions, String, bool) -> parser::ResolvedImport
+        + Clone
+        + Sized,
 {
     if let types::Types::Null = itered_data.data.value {
         if itered_data.raw_value.is_empty() {
