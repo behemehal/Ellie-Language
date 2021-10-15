@@ -4,14 +4,21 @@ pub mod definite;
 pub mod defs;
 pub mod error;
 use core::mem::size_of_val;
+use defs::ParserType;
 use ellie_parser::parser;
 use libc::c_char;
-use libc::strlen;
+use std::ffi::CStr;
+
+#[repr(C)]
+pub struct SyntaxErrors {
+    pub arr: *mut crate::error::Error,
+    pub size: usize,
+}
 
 #[repr(C)]
 pub struct ParserResponse {
     pub parsed: crate::definite::DefiniteParsed,
-    pub syntax_errors: *mut crate::error::Error,
+    pub syntax_errors: SyntaxErrors,
 }
 
 #[repr(C)]
@@ -30,36 +37,56 @@ pub struct ResolvedImport {
     pub file_content: ResolvedFileContent,
 }
 
+///Get default parser options
 #[no_mangle]
-pub extern "C" fn map(
+pub extern "C" fn default_parser_options() -> defs::ParserOptions {
+    defs::ParserOptions {
+        path: "".as_ptr() as *mut i8,
+        functions: true,
+        break_on_error: false,
+        loops: true,
+        enums: true,
+        classes: true,
+        getters: true,
+        setters: true,
+        conditions: true,
+        global_variables: true,
+        line_ending: "\\r\\n".as_ptr() as *mut i8,
+        dynamics: true,
+        collectives: true,
+        variables: true,
+        import_std: true,
+        constants: true,
+        parser_type: ParserType::RawParser,
+        allow_import: true,
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn testrst(code: *mut c_char) -> *mut c_char {
+    unsafe {
+        let str_code = CStr::from_ptr(code).to_str().unwrap();
+        println!("RUST: {}", str_code);
+        str_code.as_ptr() as *mut i8
+    }
+}
+
+///Parse given code
+#[no_mangle]
+pub extern "C" fn parser_map(
     code: *mut c_char,
     resolve_import: extern "C" fn(crate::defs::ParserOptions, *mut c_char, bool) -> ResolvedImport,
     com: extern "C" fn(com::Message),
     options: defs::ParserOptions,
 ) -> ParserResponse {
-    /*
-        parser::Parser<
-            impl FnMut(ellie_core::com::Message) + Clone + Sized,
-            impl FnMut(ellie_core::defs::ParserOptions, String, bool) -> parser::ResolvedImport + Clone + Sized,
-        >
-    */
     unsafe {
         //-> Parser<impl FnMut(com::Message) + Clone + Sized>
-        let raw_code = code as *mut u8;
-        let raw_code_len = strlen(code);
-
-        let path_len = strlen(options.path);
-        let path = String::from_raw_parts(options.path as *mut u8, path_len, path_len);
-
-        let line_ending_len = strlen(options.line_ending);
-        let line_ending = String::from_raw_parts(
-            options.line_ending as *mut u8,
-            line_ending_len,
-            line_ending_len,
-        );
+        let raw_code = CStr::from_ptr(code).to_str().unwrap();
+        let path = CStr::from_ptr(options.path).to_str().unwrap();
+        let line_ending = CStr::from_ptr(options.line_ending).to_str().unwrap();
 
         let parser = parser::Parser::new(
-            String::from_raw_parts(raw_code, raw_code_len, raw_code_len),
+            raw_code.to_owned(),
             move |a, b, c| {
                 let c_options = defs::ParserOptions {
                     path: a.path.as_ptr() as *mut i8,
@@ -89,19 +116,14 @@ pub extern "C" fn map(
                 };
 
                 let req = resolve_import(c_options, b.as_ptr() as *mut i8, c);
-
-                let resolve_error_len = strlen(req.resolve_error);
-                let resolve_error = String::from_raw_parts(
-                    req.resolve_error as *mut u8,
-                    resolve_error_len,
-                    resolve_error_len,
-                );
-                let resolved_path_len = strlen(req.resolved_path);
-                let resolved_path = String::from_raw_parts(
-                    req.resolved_path as *mut u8,
-                    resolved_path_len,
-                    resolved_path_len,
-                );
+                let resolve_error = CStr::from_ptr(req.resolve_error)
+                    .to_str()
+                    .unwrap()
+                    .to_owned();
+                let resolved_path = CStr::from_ptr(req.resolved_path)
+                    .to_str()
+                    .unwrap()
+                    .to_owned();
 
                 ellie_parser::parser::ResolvedImport {
                     found: req.found,
@@ -117,12 +139,9 @@ pub extern "C" fn map(
                             )
                         }
                         ResolvedFileContent::Raw(e) => {
-                            let code_len = strlen(e);
-                            ellie_parser::parser::ResolvedFileContent::Raw(String::from_raw_parts(
-                                code_len as *mut u8,
-                                code_len,
-                                code_len,
-                            ))
+                            ellie_parser::parser::ResolvedFileContent::Raw(
+                                CStr::from_ptr(e).to_str().unwrap().to_owned(),
+                            )
                         }
                     },
                 }
@@ -162,7 +181,7 @@ pub extern "C" fn map(
                 });
             },
             ellie_core::defs::ParserOptions {
-                path,
+                path: path.to_owned(),
                 functions: options.functions,
                 break_on_error: options.break_on_error,
                 loops: options.loops,
@@ -172,7 +191,7 @@ pub extern "C" fn map(
                 setters: options.setters,
                 conditions: options.conditions,
                 global_variables: options.global_variables,
-                line_ending,
+                line_ending: line_ending.to_owned(),
                 dynamics: options.dynamics,
                 collectives: options.collectives,
                 variables: options.variables,
@@ -189,12 +208,16 @@ pub extern "C" fn map(
         let response = parser.map();
         ParserResponse {
             parsed: definite::build_definite_parsed_from(response.parsed.to_definite()),
-            syntax_errors: response
-                .syntax_errors
-                .into_iter()
-                .map(|error| error::build_error_from(error))
-                .collect::<Vec<_>>()
-                .as_mut_ptr(),
+            syntax_errors: SyntaxErrors {
+                arr: response
+                    .syntax_errors
+                    .clone()
+                    .into_iter()
+                    .map(|error| error::build_error_from(error))
+                    .collect::<Vec<_>>()
+                    .as_mut_ptr(),
+                size: response.syntax_errors.len(),
+            },
         }
     }
 }
