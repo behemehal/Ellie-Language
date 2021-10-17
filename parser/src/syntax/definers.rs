@@ -350,7 +350,6 @@ impl DefinerCollecting {
             DefinerCollecting::Cloak(data) => {
                 if let DefinerCollecting::Cloak(other_data) = other {
                     let mut have_changes = false;
-
                     for i in 0..other_data.rtype.len() {
                         if !other_data.rtype[i].clone().same_as(data.rtype[i].clone()) {
                             have_changes = true;
@@ -358,7 +357,7 @@ impl DefinerCollecting {
                         }
                     }
 
-                    have_changes
+                    !have_changes
                 } else {
                     false
                 }
@@ -465,7 +464,7 @@ impl DefinerCollecting {
                 for i in &e.rtype {
                     params += &format!("{},", i.raw_name_with_extensions()).to_string();
                 }
-                "fn(".to_owned() + &params + &")".to_owned()
+                "cloak(".to_owned() + &params + &")".to_owned()
             }
             DefinerCollecting::Collective(e) => format!(
                 "collective({}, {})",

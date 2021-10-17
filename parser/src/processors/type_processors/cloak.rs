@@ -274,8 +274,21 @@ pub fn collect_cloak<F, E>(
                             panic!("Unexpected parser error");
                         }
                     }
+                } else {
+                    itered_data.data.rtype =
+                        definers::DefinerCollecting::Cloak(definers::CloakType {
+                            complete: true,
+                            rtype: cloak_data
+                                .data
+                                .collective
+                                .clone()
+                                .into_iter()
+                                .map(|cloak_entry| cloak_entry.value.to_definer())
+                                .collect::<Vec<_>>(),
+                            bracket_inserted: false,
+                            at_comma: false,
+                        });
                 }
-
                 cloak_data.data.layer_size += 1;
                 cloak_data.complete = true;
                 itered_data.value_complete = true;
