@@ -49,15 +49,10 @@ pub fn panic_dumper(thread: &thread::Thread) -> String {
         }
 
         stack_dump += &format!(
-            "\t---\n\tPage {:#04x}:\n\t\tHeaders:\n{}\n\t\tStack:\n\t{}\n\t\tHEAP:\n{}\n",
+            "\t---\n\tPage {:#04x}:\n\t\tHeaders:\n{}\n\t\tStack:\n\t{}\n",
             stack.0,
             headers,
             stack.1.stack.dump(),
-            match stack.1.heap {
-                thread::PageHeap::SolidHeap(heap) => heap.dump(),
-                thread::PageHeap::SharedHeap(e) =>
-                    format!("\t\tSHARED HEAP: ({:#04x}, {:#04x})", e.0, e.1),
-            }
         );
     }
 
@@ -111,10 +106,10 @@ impl Runtime {
     }
 
     pub fn dump(&self) -> String {
-        let mut dump_data = "DUMP:\r\n---\n\r".to_owned();
+        let mut dump_data = "DUMP:\r\n".to_owned();
         for thread in &self.threads {
             let mut stack_dump = String::new();
-            for stack in thread.pages.clone() {
+            for (ind, stack) in thread.pages.clone().into_iter().enumerate() {
                 let mut headers = String::new();
 
                 if stack.1.headers.is_empty() {
@@ -122,23 +117,28 @@ impl Runtime {
                 }
 
                 for item in stack.1.headers {
-                    headers += &format!("\t\t\t{:#04x} : {}\n", item.0, item.1)
+                    headers += &format!("\t\t\t{:#04x} : {}\n\t", item.0, item.1)
                 }
 
                 stack_dump += &format!(
-                    "\t---\n\tPage {:#04x}:\n\t\tHeaders:\n{}\n\t\tStack:\n\t{}\n\t\tHEAP:\n\t{}\n",
+                    "{}\t\tPage {:#04x}:\n\t\t\tHeaders:\n\t{}\n\t\t\tStack:\n\t{}\n",
+                    if ind == 0 { "" } else { "\n" },
                     stack.0,
                     headers,
-                    stack.1.stack.dump(),
-                    match stack.1.heap {
-                        thread::PageHeap::SolidHeap(e) => e.dump(),
-                        thread::PageHeap::SharedHeap(e) =>
-                            format!("\t\tSHARED HEAP: ({:#04x}, {:#04x})", e.0, e.1),
-                    }
+                    stack.1.stack.dump()
                 );
             }
 
-            dump_data += &format!("Pages:\n{}\n\t---", stack_dump);
+            dump_data += &format!(
+                "Thread: {:#04x}:\n\tHeap:\n\t{}\n\tPages:\n{}\n\t",
+                thread.id,
+                match thread.heap.clone() {
+                    thread::HeapType::SolidHeap(e) => e.dump(),
+                    thread::HeapType::SharedHeap(e) =>
+                        panic!("SHARED HEAP: ({:#04x}, {:#04x})", e.0, e.1),
+                },
+                stack_dump
+            );
         }
         dump_data
     }

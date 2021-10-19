@@ -80,7 +80,7 @@ impl ThreadController {
 }
 
 #[derive(Debug, Clone, EnumAsInner)]
-pub enum PageHeap {
+pub enum HeapType {
     SolidHeap(heap::Heap),
     SharedHeap((usize, u64)), //THREAD_ID, PAGE_ID
 }
@@ -89,7 +89,6 @@ pub enum PageHeap {
 pub struct Page {
     pub page_id: u64,
     pub headers: BTreeMap<usize, String>,
-    pub heap: PageHeap, //HEAP OR SHARED HEAP
     pub stack: stack::Stack,
     pub step: usize,
 }
@@ -117,6 +116,7 @@ pub struct Thread {
     pub id: usize,
     pub pages: BTreeMap<u64, Page>,
     pub controller: ThreadController,
+    pub heap: HeapType, //HEAP OR SHARED HEAP
     pub tasks: Vec<u64>,
     pub hang: bool,
 }
@@ -130,7 +130,6 @@ impl Thread {
             Page {
                 page_id: 1,
                 headers: BTreeMap::new(),
-                heap: PageHeap::SolidHeap(heap::Heap::new()),
                 stack: stack::Stack::new(1),
                 step: 0,
             },
@@ -139,6 +138,7 @@ impl Thread {
         Thread {
             id,
             pages,
+            heap: HeapType::SolidHeap(heap::Heap::new()),
             tasks: vec![0],
             hang: true,
             controller: thread_controller,
@@ -298,7 +298,9 @@ impl Thread {
                 heap.insert(heap::HeapTypes::Bool(resolve_negative(*negative.value)))
             }
 
-            definite::types::Types::VariableType(_) => todo!(),
+            definite::types::Types::VariableType(e) => {
+                todo!("Header and bridge resolving required");
+            },
             definite::types::Types::Null => heap.insert(heap::HeapTypes::Null),
         }
     }
@@ -316,7 +318,6 @@ impl Thread {
                         Page {
                             page_id: import_item.resolution_id as u64,
                             headers: BTreeMap::new(),
-                            heap: PageHeap::SolidHeap(heap::Heap::new()),
                             stack: stack::Stack::new(import_item.resolution_id.clone() as usize),
                             step: 0,
                         },
@@ -377,7 +378,7 @@ impl Thread {
                                 _ => panic!("Unexpected runtime behaviour"),
                             };
                             let value_heap_id = Thread::add_data_to_heap(
-                                page.heap
+                                self.heap
                                     .as_solid_heap_mut()
                                     .unwrap_or_else(|| panic!("Unexpected runtime behaviour")),
                                 variable.value,
@@ -514,7 +515,6 @@ impl Thread {
                             Page {
                                 page_id: inner_page_id,
                                 headers: child_headers,
-                                heap: crate::thread::PageHeap::SolidHeap(heap::Heap::new()),
                                 stack: child_stack,
                                 step: 0,
                             },
@@ -539,6 +539,12 @@ impl Thread {
                     let mut child_headers: BTreeMap<usize, String> = BTreeMap::new();
                     let mut child_stack = stack::Stack::new(inner_page_id as usize);
 
+                    let condition_heap_id = Thread::add_data_to_heap(
+                        self.heap
+                            .as_solid_heap_mut()
+                            .unwrap_or_else(|| panic!("Unexpected runtime behaviour")),
+                        *chain.condition,
+                    );
                     match self.pages.get_mut(&page_id) {
                         Some(page) => {
                             //Import upper imports to inner scope
@@ -550,10 +556,6 @@ impl Thread {
                                     }
                                 }
                             }
-
-                            
-
-                            Thread::add_data_to_heap(page.heap, *chain.condition);
 
                             for item in chain.code {
                                 self.add_item_to_stack(page_id, item);
@@ -569,28 +571,40 @@ impl Thread {
                         Page {
                             page_id: inner_page_id,
                             headers: child_headers,
-                            heap: PageHeap::SharedHeap((self.id, page_id)),
                             stack: child_stack,
                             step: 0,
                         },
                     );
 
-                    match chain.rtype {
+                    chains.push(match chain.rtype {
                         definite::items::condition::ConditionType::If => {
-                            stack::ConditionChainType::If(()),
-                        },
+                            stack::ConditionChainType::If((
+                                condition_heap_id,
+                                inner_page_id as usize,
+                            ))
+                        }
                         definite::items::condition::ConditionType::ElseIf => {
-                            stack::ConditionChainType::ElseIf(()),
-                        },
+                            stack::ConditionChainType::ElseIf((
+                                condition_heap_id,
+                                inner_page_id as usize,
+                            ))
+                        }
                         definite::items::condition::ConditionType::Else => {
-                            stack::ConditionChainType::Else(()),
-                        },
-                    }
-
-                    chains.push(stack::ConditionChainType::)
+                            stack::ConditionChainType::Else(inner_page_id as usize)
+                        }
+                    });
                 }
 
-                Some((0, false, false))
+               let element_id =  match self.pages.get_mut(&page_id) {
+                    Some(page) => {
+                        page.stack.register_condition_chain(chains)
+                    }
+                    None => {
+                        panic!("Runtime failed to find page: '{}';", page_id as u64,);
+                    }
+                };
+
+                Some((element_id, true, false))
             }
             definite::items::Collecting::Class(class) => match self.pages.get_mut(&page_id) {
                 Some(page) => {
@@ -662,7 +676,6 @@ impl Thread {
                                 Page {
                                     page_id: inner_page_id,
                                     headers: child_headers,
-                                    heap: PageHeap::SolidHeap(heap::Heap::new()),
                                     stack: child_stack,
                                     step: 0,
                                 },
@@ -680,7 +693,7 @@ impl Thread {
             definite::items::Collecting::Ret(ret) => match self.pages.get_mut(&page_id) {
                 Some(page) => {
                     let heap_value_id = Thread::add_data_to_heap(
-                        page.heap
+                        self.heap
                             .as_solid_heap_mut()
                             .unwrap_or_else(|| panic!("Unexpected runtime behaviour")),
                         ret.value,
@@ -701,7 +714,6 @@ impl Thread {
                         Page {
                             page_id: import.resolution_id as u64,
                             headers: BTreeMap::new(),
-                            heap: crate::thread::PageHeap::SolidHeap(heap::Heap::new()),
                             stack: stack::Stack::new(import.resolution_id.clone() as usize),
                             step: 0,
                         },

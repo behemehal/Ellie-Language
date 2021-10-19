@@ -164,11 +164,11 @@ impl Heap {
                         formatted
                     }
                     HeapTypes::Void => todo!(),
-                    HeapTypes::Null => todo!(),
+                    HeapTypes::Null => "null".to_owned(),
                 }
             }
             lines.push(format!(
-                "\t\t{:#04x} : {:?}",
+                "\t{:#04x} : {:?}",
                 i,
                 stringify(values[i].clone())
             ));
