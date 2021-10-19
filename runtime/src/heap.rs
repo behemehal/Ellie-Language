@@ -47,7 +47,7 @@ pub enum HeapTypes {
     Integer(HeapIntegerSize),
     Float(HeapFloatSize),
     Bool(u8),
-    String(*const u8),
+    String(Vec<u8>),
     Char(u32),
     Collective(Collective),
     Array(Vec<usize>),
@@ -168,7 +168,7 @@ impl Heap {
                 }
             }
             lines.push(format!(
-                "\t{:#04x} : {:?}",
+                "\t{:#04x} : {}",
                 i,
                 stringify(values[i].clone())
             ));
