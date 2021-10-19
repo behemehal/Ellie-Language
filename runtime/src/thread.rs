@@ -148,84 +148,124 @@ impl Thread {
     pub fn get_page(&mut self, targeted_page: u64) -> Option<&mut Page> {
         self.pages.get_mut(&targeted_page)
     }
-
-    pub fn add_data_to_heap(heap: &mut heap::Heap, data: definite::types::Types) -> usize {
+    pub fn add_data_to_heap(&mut self, data: definite::types::Types) -> usize {
         match data {
             definite::types::Types::Integer(e) => {
-                heap.insert(heap::HeapTypes::Integer(match e.value {
-                    definite::types::integer::IntegerSize::U8(e) => heap::HeapIntegerSize::U8(e),
-                    definite::types::integer::IntegerSize::U16(e) => heap::HeapIntegerSize::U16(e),
-                    definite::types::integer::IntegerSize::U32(e) => heap::HeapIntegerSize::U32(e),
-                    definite::types::integer::IntegerSize::U64(e) => heap::HeapIntegerSize::U64(e),
-                    definite::types::integer::IntegerSize::U128(e) => {
-                        heap::HeapIntegerSize::U128(e)
-                    }
-                    definite::types::integer::IntegerSize::Usize(e) => {
-                        heap::HeapIntegerSize::Usize(e)
-                    }
-                    definite::types::integer::IntegerSize::I8(e) => heap::HeapIntegerSize::I8(e),
-                    definite::types::integer::IntegerSize::I16(e) => heap::HeapIntegerSize::I16(e),
-                    definite::types::integer::IntegerSize::I32(e) => heap::HeapIntegerSize::I32(e),
-                    definite::types::integer::IntegerSize::I64(e) => heap::HeapIntegerSize::I64(e),
-                    definite::types::integer::IntegerSize::I128(e) => {
-                        heap::HeapIntegerSize::I128(e)
-                    }
-                    definite::types::integer::IntegerSize::Isize(e) => {
-                        heap::HeapIntegerSize::Isize(e)
-                    }
-                }))
+                self.heap
+                    .as_solid_heap_mut()
+                    .unwrap()
+                    .insert(heap::HeapTypes::Integer(match e.value {
+                        definite::types::integer::IntegerSize::U8(e) => {
+                            heap::HeapIntegerSize::U8(e)
+                        }
+                        definite::types::integer::IntegerSize::U16(e) => {
+                            heap::HeapIntegerSize::U16(e)
+                        }
+                        definite::types::integer::IntegerSize::U32(e) => {
+                            heap::HeapIntegerSize::U32(e)
+                        }
+                        definite::types::integer::IntegerSize::U64(e) => {
+                            heap::HeapIntegerSize::U64(e)
+                        }
+                        definite::types::integer::IntegerSize::U128(e) => {
+                            heap::HeapIntegerSize::U128(e)
+                        }
+                        definite::types::integer::IntegerSize::Usize(e) => {
+                            heap::HeapIntegerSize::Usize(e)
+                        }
+                        definite::types::integer::IntegerSize::I8(e) => {
+                            heap::HeapIntegerSize::I8(e)
+                        }
+                        definite::types::integer::IntegerSize::I16(e) => {
+                            heap::HeapIntegerSize::I16(e)
+                        }
+                        definite::types::integer::IntegerSize::I32(e) => {
+                            heap::HeapIntegerSize::I32(e)
+                        }
+                        definite::types::integer::IntegerSize::I64(e) => {
+                            heap::HeapIntegerSize::I64(e)
+                        }
+                        definite::types::integer::IntegerSize::I128(e) => {
+                            heap::HeapIntegerSize::I128(e)
+                        }
+                        definite::types::integer::IntegerSize::Isize(e) => {
+                            heap::HeapIntegerSize::Isize(e)
+                        }
+                    }))
             }
             definite::types::Types::Float(e) => {
-                heap.insert(heap::HeapTypes::Float(match e.value {
-                    definite::types::float::FloatSize::F32(e) => heap::HeapFloatSize::F32(e),
-                    definite::types::float::FloatSize::F64(e) => heap::HeapFloatSize::F64(e),
-                }))
+                self.heap
+                    .as_solid_heap_mut()
+                    .unwrap()
+                    .insert(heap::HeapTypes::Float(match e.value {
+                        definite::types::float::FloatSize::F32(e) => heap::HeapFloatSize::F32(e),
+                        definite::types::float::FloatSize::F64(e) => heap::HeapFloatSize::F64(e),
+                    }))
             }
-            definite::types::Types::Bool(bool_type) => {
-                heap.insert(heap::HeapTypes::Bool(if bool_type.value { 1 } else { 0 }))
-            }
-            definite::types::Types::String(string_type) => {
-                heap.insert(heap::HeapTypes::String(string_type.value.as_ptr()))
-            }
-            definite::types::Types::Char(char_type) => {
-                heap.insert(heap::HeapTypes::Char(char_type.value as u32))
-            }
+            definite::types::Types::Bool(bool_type) => self
+                .heap
+                .as_solid_heap_mut()
+                .unwrap()
+                .insert(heap::HeapTypes::Bool(if bool_type.value { 1 } else { 0 })),
+            definite::types::Types::String(string_type) => self
+                .heap
+                .as_solid_heap_mut()
+                .unwrap()
+                .insert(heap::HeapTypes::String(string_type.value.as_ptr())),
+            definite::types::Types::Char(char_type) => self
+                .heap
+                .as_solid_heap_mut()
+                .unwrap()
+                .insert(heap::HeapTypes::Char(char_type.value as u32)),
             definite::types::Types::Collective(collective_type) => {
                 let mut keys: Vec<usize> = Vec::new();
                 let mut values: Vec<usize> = Vec::new();
 
                 for entry in collective_type.entries {
-                    let key_id = Thread::add_data_to_heap(heap, *entry.key.clone()) - 1;
-                    let value_id = Thread::add_data_to_heap(heap, *entry.key) - 1;
+                    let key_id = self.add_data_to_heap(*entry.key.clone()) - 1;
+                    let value_id = self.add_data_to_heap(*entry.key) - 1;
                     keys.push(key_id);
                     values.push(value_id);
                 }
 
-                heap.insert(heap::HeapTypes::Collective(heap::Collective {
-                    keys,
-                    values,
-                }))
+                self.heap
+                    .as_solid_heap_mut()
+                    .unwrap()
+                    .insert(heap::HeapTypes::Collective(heap::Collective {
+                        keys,
+                        values,
+                    }))
             }
             definite::types::Types::Reference(_) => todo!(),
             definite::types::Types::Operator(_) => todo!(),
             definite::types::Types::Cloak(cloak_type) => {
                 let mut entries: Vec<usize> = Vec::new();
                 for entry in cloak_type.collective {
-                    entries.push(Thread::add_data_to_heap(heap, *entry.value));
+                    entries.push(self.add_data_to_heap(*entry.value));
                 }
-                heap.insert(heap::HeapTypes::Cloak(entries))
+                self.heap
+                    .as_solid_heap_mut()
+                    .unwrap()
+                    .insert(heap::HeapTypes::Cloak(entries))
             }
             definite::types::Types::Array(array_type) => {
                 let mut entries: Vec<usize> = Vec::new();
                 for entry in array_type.collective {
-                    entries.push(Thread::add_data_to_heap(heap, *entry.value) - 1);
+                    entries.push(self.add_data_to_heap(*entry.value) - 1);
                 }
-                heap.insert(heap::HeapTypes::Array(entries))
+                self.heap
+                    .as_solid_heap_mut()
+                    .unwrap()
+                    .insert(heap::HeapTypes::Array(entries))
             }
             definite::types::Types::ArrowFunction(_) => todo!(),
             definite::types::Types::ConstructedClass(_) => todo!(),
             definite::types::Types::FunctionCall(_) => todo!(),
-            definite::types::Types::Void => heap.insert(heap::HeapTypes::Void),
+            definite::types::Types::Void => self
+                .heap
+                .as_solid_heap_mut()
+                .unwrap()
+                .insert(heap::HeapTypes::Void),
             definite::types::Types::NullResolver(_) => todo!(),
             definite::types::Types::Negative(negative) => {
                 pub fn resolve_negative(value: definite::types::Types) -> u8 {
@@ -295,13 +335,20 @@ impl Thread {
                         _ => 0,
                     }
                 }
-                heap.insert(heap::HeapTypes::Bool(resolve_negative(*negative.value)))
+                self.heap
+                    .as_solid_heap_mut()
+                    .unwrap()
+                    .insert(heap::HeapTypes::Bool(resolve_negative(*negative.value)))
             }
 
             definite::types::Types::VariableType(e) => {
                 todo!("Header and bridge resolving required");
-            },
-            definite::types::Types::Null => heap.insert(heap::HeapTypes::Null),
+            }
+            definite::types::Types::Null => self
+                .heap
+                .as_solid_heap_mut()
+                .unwrap()
+                .insert(heap::HeapTypes::Null),
         }
     }
 
@@ -364,6 +411,7 @@ impl Thread {
                     definite::definers::DefinerCollecting::Dynamic => "dyn".to_owned(),
                 };
                 let type_id = self.look_up_for_item_by_name(&type_name, page_id);
+                let value_heap_id = self.add_data_to_heap(variable.value).clone() - 1;
 
                 match self.pages.get_mut(&page_id) {
                     Some(page) => match type_id {
@@ -377,14 +425,6 @@ impl Thread {
                                 }
                                 _ => panic!("Unexpected runtime behaviour"),
                             };
-                            let value_heap_id = Thread::add_data_to_heap(
-                                self.heap
-                                    .as_solid_heap_mut()
-                                    .unwrap_or_else(|| panic!("Unexpected runtime behaviour")),
-                                variable.value,
-                            )
-                            .clone()
-                                - 1;
 
                             let element_id = page.stack.register_variable(
                                 rtype,
@@ -536,15 +576,13 @@ impl Thread {
                     Vec::with_capacity(condition.chains.len());
                 for chain in condition.chains {
                     let inner_page_id = rand::random::<u64>();
-                    let mut child_headers: BTreeMap<usize, String> = BTreeMap::new();
                     let mut child_stack = stack::Stack::new(inner_page_id as usize);
 
-                    let condition_heap_id = Thread::add_data_to_heap(
-                        self.heap
-                            .as_solid_heap_mut()
-                            .unwrap_or_else(|| panic!("Unexpected runtime behaviour")),
-                        *chain.condition,
-                    );
+                    let condition_heap_id = match chain.rtype {
+                        definite::items::condition::ConditionType::Else => 0,
+                        _ => self.add_data_to_heap(*chain.condition),
+                    };
+
                     match self.pages.get_mut(&page_id) {
                         Some(page) => {
                             //Import upper imports to inner scope
@@ -570,7 +608,7 @@ impl Thread {
                         inner_page_id,
                         Page {
                             page_id: inner_page_id,
-                            headers: child_headers,
+                            headers: BTreeMap::new(),
                             stack: child_stack,
                             step: 0,
                         },
@@ -595,10 +633,8 @@ impl Thread {
                     });
                 }
 
-               let element_id =  match self.pages.get_mut(&page_id) {
-                    Some(page) => {
-                        page.stack.register_condition_chain(chains)
-                    }
+                let element_id = match self.pages.get_mut(&page_id) {
+                    Some(page) => page.stack.register_condition_chain(chains),
                     None => {
                         panic!("Runtime failed to find page: '{}';", page_id as u64,);
                     }
@@ -690,21 +726,16 @@ impl Thread {
                 }
                 None => panic!("Runtime failed to find page: '{:#04x}';", page_id as u64),
             },
-            definite::items::Collecting::Ret(ret) => match self.pages.get_mut(&page_id) {
-                Some(page) => {
-                    let heap_value_id = Thread::add_data_to_heap(
-                        self.heap
-                            .as_solid_heap_mut()
-                            .unwrap_or_else(|| panic!("Unexpected runtime behaviour")),
-                        ret.value,
-                    )
-                    .clone()
-                        - 1;
-                    let element_id = page.stack.register_ret(heap_value_id);
-                    Some((element_id, true, false))
+            definite::items::Collecting::Ret(ret) => {
+                let heap_value_id = self.add_data_to_heap(ret.value).clone() - 1;
+                match self.pages.get_mut(&page_id) {
+                    Some(page) => {
+                        let element_id = page.stack.register_ret(heap_value_id);
+                        Some((element_id, true, false))
+                    }
+                    None => panic!("Runtime failed to find page: '{}';", page_id as u64),
                 }
-                None => panic!("Runtime failed to find page: '{}';", page_id as u64),
-            },
+            }
             definite::items::Collecting::Constructor(_) => Some((0, false, false)),
             definite::items::Collecting::Caller(_) => Some((0, false, false)),
             definite::items::Collecting::Import(import) => {
