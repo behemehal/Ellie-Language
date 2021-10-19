@@ -127,6 +127,9 @@ pub fn collect_variable<F, E>(
                                             pos: variable_data.data.pos,
                                         });
                                     }
+                                    if itered_data.data.dynamic {
+                                        itered_data.data.rtype = variable_type.data.rtype.clone();
+                                    }
                                 }
                                 _ => {
                                     panic!("Inferring language items to variables are not yet supported")
