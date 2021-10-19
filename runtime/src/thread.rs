@@ -1,3 +1,5 @@
+use core::panic;
+
 use enum_as_inner::EnumAsInner;
 
 use alloc::borrow::ToOwned;
@@ -148,7 +150,7 @@ impl Thread {
     pub fn get_page(&mut self, targeted_page: u64) -> Option<&mut Page> {
         self.pages.get_mut(&targeted_page)
     }
-    pub fn add_data_to_heap(&mut self, data: definite::types::Types) -> usize {
+    pub fn add_data_to_heap(&mut self, data: definite::types::Types, active_page: u64) -> usize {
         match data {
             definite::types::Types::Integer(e) => {
                 self.heap
@@ -211,7 +213,9 @@ impl Thread {
                 .heap
                 .as_solid_heap_mut()
                 .unwrap()
-                .insert(heap::HeapTypes::String(string_type.value.as_ptr())),
+                .insert(heap::HeapTypes::String(
+                    string_type.value.clone().as_bytes().to_vec(),
+                )),
             definite::types::Types::Char(char_type) => self
                 .heap
                 .as_solid_heap_mut()
@@ -222,8 +226,8 @@ impl Thread {
                 let mut values: Vec<usize> = Vec::new();
 
                 for entry in collective_type.entries {
-                    let key_id = self.add_data_to_heap(*entry.key.clone()) - 1;
-                    let value_id = self.add_data_to_heap(*entry.key) - 1;
+                    let key_id = self.add_data_to_heap(*entry.key.clone(), active_page) - 1;
+                    let value_id = self.add_data_to_heap(*entry.key, active_page) - 1;
                     keys.push(key_id);
                     values.push(value_id);
                 }
@@ -241,7 +245,7 @@ impl Thread {
             definite::types::Types::Cloak(cloak_type) => {
                 let mut entries: Vec<usize> = Vec::new();
                 for entry in cloak_type.collective {
-                    entries.push(self.add_data_to_heap(*entry.value));
+                    entries.push(self.add_data_to_heap(*entry.value, active_page));
                 }
                 self.heap
                     .as_solid_heap_mut()
@@ -251,7 +255,7 @@ impl Thread {
             definite::types::Types::Array(array_type) => {
                 let mut entries: Vec<usize> = Vec::new();
                 for entry in array_type.collective {
-                    entries.push(self.add_data_to_heap(*entry.value) - 1);
+                    entries.push(self.add_data_to_heap(*entry.value, active_page) - 1);
                 }
                 self.heap
                     .as_solid_heap_mut()
@@ -268,7 +272,10 @@ impl Thread {
                 .insert(heap::HeapTypes::Void),
             definite::types::Types::NullResolver(_) => todo!(),
             definite::types::Types::Negative(negative) => {
-                pub fn resolve_negative(value: definite::types::Types) -> u8 {
+                pub fn resolve_negative(
+                    targeted_page: Option<(Page, heap::Heap)>,
+                    value: definite::types::Types,
+                ) -> u8 {
                     match value {
                         definite::types::Types::Integer(integer_type) => {
                             if match integer_type.value {
@@ -328,22 +335,106 @@ impl Thread {
                         definite::types::Types::Void => 1,
                         definite::types::Types::NullResolver(_) => todo!(),
                         definite::types::Types::Negative(negative_type) => {
-                            resolve_negative(*negative_type.value)
+                            resolve_negative(targeted_page, *negative_type.value)
                         }
-                        definite::types::Types::VariableType(_) => todo!(),
+                        definite::types::Types::VariableType(e) => match targeted_page {
+                            Some((page, heap)) => {
+                                let mut found = false;
+                                let mut found_heap: usize = 0;
+                                for (heap_id, variable_name) in page.headers.clone() {
+                                    if e.value == variable_name {
+                                        found_heap = heap_id;
+                                        found = true;
+                                        break;
+                                    }
+                                }
+
+                                std::println!(
+                                    "PAGE: {:#?} {}: dump: {}",
+                                    heap,
+                                    found_heap,
+                                    heap.clone().dump()
+                                );
+
+                                if found {
+                                    match heap.values.get(&found_heap) {
+                                        Some(found_heap_data) => {
+                                            if match found_heap_data {
+                                                heap::HeapTypes::Integer(integer_size) => match *integer_size {
+                                                    heap::HeapIntegerSize::U8(e) => e == 0,
+                                                    heap::HeapIntegerSize::U16(e) => e == 0,
+                                                    heap::HeapIntegerSize::U32(e) => e == 0,
+                                                    heap::HeapIntegerSize::U64(e) => e == 0,
+                                                    heap::HeapIntegerSize::U128(e) => e == 0,
+                                                    heap::HeapIntegerSize::Usize(e) => e == 0,
+                                                    heap::HeapIntegerSize::I8(e) => e == 0,
+                                                    heap::HeapIntegerSize::I16(e) => e == 0,
+                                                    heap::HeapIntegerSize::I32(e) => e == 0,
+                                                    heap::HeapIntegerSize::I64(e) => e == 0,
+                                                    heap::HeapIntegerSize::I128(e) => e == 0,
+                                                    heap::HeapIntegerSize::Isize(e) => e == 0,
+                                                },
+                                                heap::HeapTypes::Float(float_size) => match *float_size {
+                                                    heap::HeapFloatSize::F32(e) => e == 0.0,
+                                                    heap::HeapFloatSize::F64(e) => e == 0.0,
+                                                },
+                                                heap::HeapTypes::Bool(e) => *e == 0,
+                                                heap::HeapTypes::String(e) => e.len() == 0,
+                                                heap::HeapTypes::Char(e) => char::from_u32(*e).unwrap_or('\0') == '\0',
+                                                heap::HeapTypes::Collective(_) => false,
+                                                heap::HeapTypes::Array(_) => false,
+                                                heap::HeapTypes::Cloak(_) => false,
+                                                heap::HeapTypes::Void => false,
+                                                heap::HeapTypes::Null => false,
+                                            } {1} else { 0}
+                                        },
+                                        None => panic!("Unexpected runtime error, cannot find referenced heap value '{:#04x}'", found_heap)
+                                    }
+                                } else {
+                                    panic!("Unexpected runtime error, cannot find referenced variable in scope")
+                                }
+                            }
+                            None => panic!("Unexpected runtime error"),
+                        },
                         definite::types::Types::Null => 1,
                         _ => 0,
                     }
                 }
-                self.heap
-                    .as_solid_heap_mut()
-                    .unwrap()
-                    .insert(heap::HeapTypes::Bool(resolve_negative(*negative.value)))
-            }
 
-            definite::types::Types::VariableType(e) => {
-                todo!("Header and bridge resolving required");
+                match self.pages.get(&active_page) {
+                    Some(page) => {
+                        let clone_heap = self.heap.as_solid_heap().unwrap().clone();
+                        self.heap
+                            .as_solid_heap_mut()
+                            .unwrap()
+                            .insert(heap::HeapTypes::Bool(resolve_negative(
+                                Some((page.clone(), clone_heap)),
+                                *negative.value,
+                            )))
+                    }
+                    None => panic!("Unexpected runtime error, cannot find page"),
+                }
             }
+            definite::types::Types::VariableType(e) => match self.pages.get(&active_page) {
+                Some(page) => {
+                    let mut found = false;
+                    let mut found_heap: usize = 0;
+                    for (heap_id, variable_name) in page.headers.clone() {
+                        if e.value == variable_name {
+                            found_heap = heap_id;
+                            found = true;
+                            break;
+                        }
+                    }
+
+                    if found {
+                        found_heap
+                    } else {
+                        panic!("Unexpected runtime error, cannot find referenced variable in scope")
+                    }
+                }
+                None => panic!("Unexpected runtime error, cannot find page"),
+            },
             definite::types::Types::Null => self
                 .heap
                 .as_solid_heap_mut()
@@ -411,7 +502,7 @@ impl Thread {
                     definite::definers::DefinerCollecting::Dynamic => "dyn".to_owned(),
                 };
                 let type_id = self.look_up_for_item_by_name(&type_name, page_id);
-                let value_heap_id = self.add_data_to_heap(variable.value).clone() - 1;
+                let value_heap_id = self.add_data_to_heap(variable.value, page_id).clone() - 1;
 
                 match self.pages.get_mut(&page_id) {
                     Some(page) => match type_id {
@@ -487,10 +578,10 @@ impl Thread {
                             params.push((rtype.clone(), id));
                         }
                         None => {
-                            panic!(
-                                        "Runtime failed to find element for function parameter: '{}', page_id: {:#04x};",
+                            panic!("Runtime failed to find element for function parameter: '{}', page_id: {:#04x}; DUMP:\n\n{}",
                                         rtype,
                                         page_id,
+                                        crate::runtime::panic_dumper(&*self),
                                     );
                         }
                     }
@@ -580,7 +671,7 @@ impl Thread {
 
                     let condition_heap_id = match chain.rtype {
                         definite::items::condition::ConditionType::Else => 0,
-                        _ => self.add_data_to_heap(*chain.condition),
+                        _ => self.add_data_to_heap(*chain.condition, page_id),
                     };
 
                     match self.pages.get_mut(&page_id) {
@@ -706,7 +797,6 @@ impl Thread {
                             let element_id =
                                 page.stack.register_class(inner_page_id as usize, generics);
                             page.headers.insert(element_id, class.name.clone());
-
                             self.pages.insert(
                                 inner_page_id,
                                 Page {
@@ -718,7 +808,7 @@ impl Thread {
                             );
 
                             for item in class_items {
-                                self.add_item_to_stack(page_id, item);
+                                self.add_item_to_stack(inner_page_id, item);
                             }
                             Some((element_id, class.public, false))
                         }
@@ -727,7 +817,7 @@ impl Thread {
                 None => panic!("Runtime failed to find page: '{:#04x}';", page_id as u64),
             },
             definite::items::Collecting::Ret(ret) => {
-                let heap_value_id = self.add_data_to_heap(ret.value).clone() - 1;
+                let heap_value_id = self.add_data_to_heap(ret.value, page_id).clone() - 1;
                 match self.pages.get_mut(&page_id) {
                     Some(page) => {
                         let element_id = page.stack.register_ret(heap_value_id);
@@ -859,12 +949,13 @@ impl Thread {
                         let mut rebuilded_params: Vec<(stack::StackElement, usize)> = Vec::new();
 
                         for param in params {
-                            rebuilded_params.push((param.0, param.1));
-                            page.headers.insert(param.1, param.2);
+                            rebuilded_params.push((param.0, param.1 + page.headers.len()));
+                            page.headers
+                                .insert(param.1 + page.headers.len() + 1, param.2);
                         }
 
                         let element_id = page.stack.register_native_function(rebuilded_params, ret);
-                        page.headers.insert(element_id as usize, function.name);
+                        page.headers.insert((element_id) as usize, function.name);
                         Some((element_id, function.public, false))
                     }
                     None => {
