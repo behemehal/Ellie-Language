@@ -126,8 +126,6 @@ pub fn collect_variable_value<F, E>(
                 parser.current = parser::Collecting::None;
             } else if letter_char == "=" {
                 if !variable_data.data.dynamic {
-                    #[cfg(feature = "std")]
-                    std::println!("\u{001b}[33m[Experimental]\u{001b}[0m: Casting as dynamic");
                     variable_data.data.dynamic = true;
                     variable_data.named = true;
                 } else if variable_data.data.name.is_empty() {

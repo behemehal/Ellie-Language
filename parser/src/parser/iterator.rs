@@ -14,7 +14,9 @@ pub fn iter<F, E>(
     last_char: &str,
 ) where
     F: FnMut(ellie_core::com::Message) + Clone + Sized,
-    E: FnMut(ellie_core::defs::ParserOptions, String, bool) -> parser::ResolvedImport + Clone + Sized
+    E: FnMut(ellie_core::defs::ParserOptions, String, bool) -> parser::ResolvedImport
+        + Clone
+        + Sized,
 {
     if parser.current == parser::Collecting::None {
         if !parser.keyword_catch.is_empty()
@@ -70,7 +72,7 @@ pub fn iter<F, E>(
                         parser.keyword_cache.data.value.clone(),
                     ));
                     parser.keyword_catch = "".to_owned();
-                } else {
+                } else if letter_char != "/" || (letter_char != "/" && last_char != "*") {
                     processors::value_processor::collect_value(
                         parser.clone(),
                         &mut parser.keyword_cache,

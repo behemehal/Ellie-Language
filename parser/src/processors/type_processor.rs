@@ -18,12 +18,15 @@ pub fn collect_type<F, E>(
     next_char: &str,
 ) where
     F: FnMut(ellie_core::com::Message) + Clone + Sized,
-    E: FnMut(ellie_core::defs::ParserOptions, String, bool) -> parser::ResolvedImport + Clone + Sized
+    E: FnMut(ellie_core::defs::ParserOptions, String, bool) -> parser::ResolvedImport
+        + Clone
+        + Sized,
 {
     let keyword = utils::trim_good(parser.keyword_catch.trim_start().to_string()); //one step next
-
     if (letter_char == "*" && last_char == "/") && !parser.on_comment && !parser.on_line_comment {
         parser.on_comment = true;
+        parser.keyword_catch = String::new();
+        parser.keyword_errors = Vec::new();
     } else if (letter_char == "/" && last_char == "*")
         && parser.on_comment
         && !parser.on_line_comment

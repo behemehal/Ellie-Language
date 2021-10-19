@@ -4,8 +4,8 @@ use crate::syntax::condition;
 use crate::syntax::import_item;
 use alloc::borrow::ToOwned;
 use alloc::boxed::Box;
-use alloc::vec::Vec;
 use alloc::string::String;
+use alloc::vec::Vec;
 use ellie_core::defs;
 use ellie_core::error;
 
@@ -17,7 +17,9 @@ pub fn collect_condition<F, E>(
     last_char: &str,
 ) where
     F: FnMut(ellie_core::com::Message) + Clone + Sized,
-    E: FnMut(ellie_core::defs::ParserOptions, String, bool) -> parser::ResolvedImport + Clone + Sized
+    E: FnMut(ellie_core::defs::ParserOptions, String, bool) -> parser::ResolvedImport
+        + Clone
+        + Sized,
 {
     let parser_clone = parser.clone();
     if let parser::Collecting::Condition(ref mut condition_data) = parser.current {

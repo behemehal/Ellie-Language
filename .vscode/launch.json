@@ -5,24 +5,6 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "type": "gdb",
-      "request": "launch",
-      "name": "Launch Program",
-      "target": "/target/debug/ellie.exe",
-      "args": ["./test_dir/test.ei", "-dstd", "-d"],
-      "cwd": "${workspaceFolder}",
-      "valuesFormatting": "parseText"
-    },
-    {
-      "type": "by-gdb",
-      "request": "launch",
-      "name": "Launch(gdb)",
-      "program": "/target/debug/ellie.exe",
-      "target": "/target/debug/ellie.exe",
-      "args": ["./test_dir/test.ei", "-dstd", "-d"],
-      "cwd": "${workspaceFolder}"
-    },
-    {
       "type": "lldb",
       "request": "launch",
       "name": "Debug executable file",
@@ -33,7 +15,7 @@
           "kind": "bin"
         }
       },
-      "args": ["./test_dir/test.ei", "-dstd", "-d"],
+      "args": ["./test_dir/test.ei", "-d"],
       "cwd": "${workspaceFolder}"
     },
   ]

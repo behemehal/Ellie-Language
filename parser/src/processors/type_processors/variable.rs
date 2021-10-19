@@ -137,6 +137,14 @@ pub fn collect_variable<F, E>(
                 }
 
                 if variable_data.data.value == "true" || variable_data.data.value == "false" {
+                    if itered_data.data.dynamic {
+                        itered_data.data.rtype =
+                            crate::syntax::definers::DefinerCollecting::Generic(
+                                crate::syntax::definers::GenericType {
+                                    rtype: "bool".to_owned(),
+                                },
+                            );
+                    }
                     itered_data.data.value = types::Types::Bool(types::bool_type::BoolType {
                         value: variable_data.data.value == "true",
                         raw: variable_data.data.value.clone(),

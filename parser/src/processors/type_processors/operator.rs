@@ -5,7 +5,7 @@ use ellie_core::{defs, error};
 
 use crate::alloc::borrow::ToOwned;
 use alloc::boxed::Box;
-use alloc::string::{ToString, String};
+use alloc::string::{String, ToString};
 use alloc::vec;
 use alloc::vec::Vec;
 

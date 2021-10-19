@@ -1,7 +1,7 @@
-use crate::syntax::class;
-use crate::{parser, parser::Collecting, syntax, syntax::import_item};
 use crate::alloc::borrow::ToOwned;
 use crate::alloc::string::{String, ToString};
+use crate::syntax::class;
+use crate::{parser, parser::Collecting, syntax, syntax::import_item};
 use ellie_core::{defs, error, utils};
 
 use crate::alloc::boxed::Box;

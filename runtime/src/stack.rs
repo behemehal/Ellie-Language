@@ -43,6 +43,18 @@ pub struct Class {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+pub enum ConditionChainType {
+    If((usize, usize)),     //CONDITION_VALUE_HEAP_TARGET, PAGE_TARGET
+    ElseIf((usize, usize)), //CONDITION_VALUE_HEAP_TARGET, PAGE_TARGET
+    Else(usize),            //PAGE_TARGET
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct ConditionChain {
+    pub chains: Vec<ConditionChainType>, //CHAIN_TYPE, CHAIN_VALUE
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub struct Addition {
     pub target_heap: usize,
     pub value: usize,
@@ -79,6 +91,7 @@ pub enum StackElements {
     NativeFunction(NativeFunction),
     Class(Class),
     Variable(Variable),
+    Condition(ConditionChain),
     Addition(Addition),
     Parameter(Parameter),
     Generic(Generic),
@@ -227,6 +240,14 @@ impl Stack {
             id,
             inner_page_id,
             generics,
+        }));
+        id
+    }
+
+    pub fn register_condition_chain(&mut self, condition_chain: Vec<ConditionChainType>) -> usize {
+        let id = self.elements.len();
+        self.elements.push(StackElements::Condition(ConditionChain {
+            chains: condition_chain,
         }));
         id
     }
@@ -430,7 +451,7 @@ impl Stack {
                         ),
                     }
                 )),
-                _ => (),
+                _ => panic!("UNSUPPORTED STACK ELEMENT TO DUMP"),
             }
         }
 

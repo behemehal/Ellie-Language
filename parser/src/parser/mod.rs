@@ -417,7 +417,7 @@ where
             }
         }
 
-        errors.extend(self.keyword_errors);
+        errors.extend(self.keyword_errors.clone());
         if self.current != Collecting::None || !self.keyword_catch.trim().is_empty() {
             errors.push(error::Error {
                 path: self.options.path.clone(),

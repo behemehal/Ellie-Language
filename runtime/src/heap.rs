@@ -1,4 +1,10 @@
-use alloc::{borrow::ToOwned, collections::BTreeMap, format, string::String, vec::Vec};
+use alloc::{
+    borrow::ToOwned,
+    collections::BTreeMap,
+    format,
+    string::{String, ToString},
+    vec::Vec,
+};
 
 /*
 pub enum HeapWarning {
@@ -31,20 +37,28 @@ pub enum HeapFloatSize {
 }
 
 #[derive(Debug, Clone)]
+pub struct Collective {
+    pub keys: Vec<usize>,   //HeapID
+    pub values: Vec<usize>, //HeapTarget of value
+}
+
+#[derive(Debug, Clone)]
 pub enum HeapTypes {
     Integer(HeapIntegerSize),
     Float(HeapFloatSize),
     Bool(u8),
     String(*const u8),
+    Char(u32),
+    Collective(Collective),
+    Array(Vec<usize>),
+    Cloak(Vec<usize>),
+    Void,
     Null, /*
-          Char(char),
-          Collective,
           Reference,
           Operator,
           ArrowFunction,
           ConstructedClass,
           FunctionCall,
-          Void,
           NullResolver,
           Negative,
           VariableType,
@@ -85,7 +99,79 @@ impl Heap {
         let mut lines: Vec<String> = Vec::with_capacity(values.len());
 
         for i in 0..values.len() {
-            lines.push(format!("\t\t{:#04x} : {:?}", i, values[i]));
+            fn stringify(rtype: HeapTypes) -> String {
+                match rtype {
+                    HeapTypes::Integer(e) => {
+                        match e {
+                            HeapIntegerSize::U8(e) => format!("int->U8({:#04x})", e),
+                            HeapIntegerSize::U16(e) => format!("int->U16({:#04x})", e),
+                            HeapIntegerSize::U32(e) => format!("int->U32({:#04x})", e),
+                            HeapIntegerSize::U64(e) => format!("int->U64({:#04x})", e),
+                            HeapIntegerSize::U128(e) => format!("int->U128({:#04x})", e),
+                            HeapIntegerSize::Usize(e) => format!("int->Usize({:#04x})", e),
+                            HeapIntegerSize::I8(e) => format!("int->I8({:#04x})", e),
+                            HeapIntegerSize::I16(e) => format!("int->I16({:#04x})", e),
+                            HeapIntegerSize::I32(e) => format!("int->I32({:#04x})", e),
+                            HeapIntegerSize::I64(e) => format!("int->I64({:#04x})", e),
+                            HeapIntegerSize::I128(e) => format!("int->I128({:#04x})", e),
+                            HeapIntegerSize::Isize(e) => format!("int->Isize({:#04x})", e),
+                        }
+                    },
+                    HeapTypes::Float(e) => {
+                        match e {
+                            HeapFloatSize::F32(e) => format!("float->F32({:?})", e),
+                            HeapFloatSize::F64(e) => format!("float->F64({:?})", e),
+                        }
+                    },
+                    HeapTypes::Bool(e) => format!("bool({:#04x})", e),
+                    HeapTypes::String(e) => format!("str({:?})", e),
+                    HeapTypes::Char(e) => format!("char({:#04x})", e),
+                    HeapTypes::Collective(e) => {
+                        let mut formatted = "collective{".to_string();
+                        for i in 0..e.values.len() {
+                            formatted += &format!(
+                                "[{:#04x} -> {:#04x}]{}",
+                                e.keys[i],
+                                e.values[i],
+                                if i == e.values.len() - 1 { "" } else { ", " }
+                            );
+                        }
+                        formatted += "}";
+                        formatted
+                    }
+                    HeapTypes::Array(e) => {
+                        let mut formatted = "array[".to_string();
+                        for i in 0..e.len() {
+                            formatted += &format!(
+                                "{:#04x}{}",
+                                e[i],
+                                if i == e.len() - 1 { "" } else { ", " }
+                            );
+                        }
+                        formatted += "]";
+                        formatted
+                    }
+                    HeapTypes::Cloak(e) => {
+                        let mut formatted = "cloak(".to_string();
+                        for i in 0..e.len() {
+                            formatted += &format!(
+                                "{:#04x}{}",
+                                e[i],
+                                if i == e.len() - 1 { "" } else { ", " }
+                            );
+                        }
+                        formatted += ")";
+                        formatted
+                    }
+                    HeapTypes::Void => todo!(),
+                    HeapTypes::Null => todo!(),
+                }
+            }
+            lines.push(format!(
+                "\t\t{:#04x} : {:?}",
+                i,
+                stringify(values[i].clone())
+            ));
         }
 
         if values.is_empty() {
