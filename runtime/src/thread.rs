@@ -418,17 +418,33 @@ impl Thread {
             definite::types::Types::VariableType(e) => match self.pages.get(&active_page) {
                 Some(page) => {
                     let mut found = false;
-                    let mut found_heap: usize = 0;
-                    for (heap_id, variable_name) in page.headers.clone() {
+                    let mut found_element_id: usize = 0;
+                    for (element_id, variable_name) in page.headers.clone() {
                         if e.value == variable_name {
-                            found_heap = heap_id;
+                            found_element_id = element_id;
                             found = true;
                             break;
                         }
                     }
 
                     if found {
-                        found_heap
+                        let mut element_found = false;
+                        let mut found_heap_id : usize = 0;
+                        for element in page.stack.elements {
+                            match element {
+                                stack::StackElements::Function(_) => panic!("Reference of functions not yet supported"),
+                                stack::StackElements::NativeFunction(_) => todo!(),
+                                stack::StackElements::Class(_) => todo!(),
+                                stack::StackElements::Variable(_) => todo!(),
+                                stack::StackElements::Condition(_) => todo!(),
+                                stack::StackElements::Addition(_) => todo!(),
+                                stack::StackElements::Parameter(_) => todo!(),
+                                stack::StackElements::Generic(_) => todo!(),
+                                stack::StackElements::Bridge(_) => todo!(),
+                                stack::StackElements::Ret(_) => todo!(),
+                                stack::StackElements::None => todo!(),
+                            }
+                        } 
                     } else {
                         panic!("Unexpected runtime error, cannot find referenced variable in scope")
                     }
