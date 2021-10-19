@@ -109,7 +109,7 @@ pub fn collect_condition<F, E>(
             child_parser.options = parser.options.clone();
             child_parser.options.parser_type = defs::ParserType::RawParser;
             child_parser.pos = parser.pos;
-            child_parser.scope.scope_name = "core/for_loop_processor".to_owned();
+            child_parser.scope.scope_name = "core/condition_processor".to_owned();
             child_parser.current = condition_data.code.current.clone();
             child_parser.keyword_catch = condition_data.code.keyword_catch.clone();
             child_parser.keyword_cache = condition_data.code.keyword_cache.clone();
