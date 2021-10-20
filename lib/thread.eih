@@ -4,4 +4,4 @@
 
 import int;
 import void;
-pub fn sleep(seconds: int);
+pub fn sleep(milliseconds: int);

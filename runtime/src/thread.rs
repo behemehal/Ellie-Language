@@ -150,7 +150,65 @@ impl Thread {
     pub fn get_page(&mut self, targeted_page: u64) -> Option<&mut Page> {
         self.pages.get_mut(&targeted_page)
     }
+
     pub fn add_data_to_heap(&mut self, data: definite::types::Types, active_page: u64) -> usize {
+        pub fn resolve_reference(
+            page: Page,
+            variable_type: definite::types::variable::VariableType,
+        ) -> usize {
+            let mut found = false;
+            let mut found_element_id: usize = 0;
+            for (element_id, variable_name) in page.headers.clone() {
+                if variable_type.value == variable_name {
+                    found_element_id = element_id;
+                    found = true;
+                    break;
+                }
+            }
+
+            if found {
+                let mut element_found = false;
+                let mut found_heap_id: usize = 0;
+                for element in page.stack.elements.clone() {
+                    match element {
+                        stack::StackElements::Function(e) => {
+                            if e.id == found_element_id {
+                                panic!("Reference of 'functions' not yet supported")
+                            }
+                        }
+                        stack::StackElements::NativeFunction(e) => {
+                            if e.id == found_element_id {
+                                panic!("Reference of 'native functions' not yet supported");
+                            }
+                        }
+                        stack::StackElements::Class(e) => {
+                            if e.id == found_element_id {
+                                panic!("Reference of 'classes' not yet supported");
+                            }
+                        }
+                        stack::StackElements::Variable(e) => {
+                            if e.id == found_element_id {
+                                if let Some(heap_id) = e.value {
+                                    found_heap_id = heap_id;
+                                    element_found = true;
+                                    break;
+                                } else {
+                                    panic!("Referenced variable does not have heap");
+                                }
+                            }
+                        }
+                        _ => (),
+                    }
+                }
+                if element_found {
+                    found_heap_id
+                } else {
+                    panic!("Unexpected runtime error, cannot find referenced heap in scope")
+                }
+            } else {
+                panic!("Unexpected runtime error, cannot find referenced element in scope")
+            }
+        }
         match data {
             definite::types::Types::Integer(e) => {
                 self.heap
@@ -339,25 +397,8 @@ impl Thread {
                         }
                         definite::types::Types::VariableType(e) => match targeted_page {
                             Some((page, heap)) => {
-                                let mut found = false;
-                                let mut found_heap: usize = 0;
-                                for (heap_id, variable_name) in page.headers.clone() {
-                                    if e.value == variable_name {
-                                        found_heap = heap_id;
-                                        found = true;
-                                        break;
-                                    }
-                                }
-
-                                std::println!(
-                                    "PAGE: {:#?} {}: dump: {}",
-                                    heap,
-                                    found_heap,
-                                    heap.clone().dump()
-                                );
-
-                                if found {
-                                    match heap.values.get(&found_heap) {
+                                let found_heap = resolve_reference(page.clone(), e);
+                                match heap.values.get(&found_heap) {
                                         Some(found_heap_data) => {
                                             if match found_heap_data {
                                                 heap::HeapTypes::Integer(integer_size) => match *integer_size {
@@ -390,9 +431,6 @@ impl Thread {
                                         },
                                         None => panic!("Unexpected runtime error, cannot find referenced heap value '{:#04x}'", found_heap)
                                     }
-                                } else {
-                                    panic!("Unexpected runtime error, cannot find referenced variable in scope")
-                                }
                             }
                             None => panic!("Unexpected runtime error"),
                         },
@@ -416,39 +454,7 @@ impl Thread {
                 }
             }
             definite::types::Types::VariableType(e) => match self.pages.get(&active_page) {
-                Some(page) => {
-                    let mut found = false;
-                    let mut found_element_id: usize = 0;
-                    for (element_id, variable_name) in page.headers.clone() {
-                        if e.value == variable_name {
-                            found_element_id = element_id;
-                            found = true;
-                            break;
-                        }
-                    }
-
-                    if found {
-                        let mut element_found = false;
-                        let mut found_heap_id : usize = 0;
-                        for element in page.stack.elements {
-                            match element {
-                                stack::StackElements::Function(_) => panic!("Reference of 'functions' not yet supported"),
-                                stack::StackElements::NativeFunction(_) => panic!("Reference of 'native functions' not yet supported"),
-                                stack::StackElements::Class(_) => todo!(),
-                                stack::StackElements::Variable(_) => todo!(),
-                                stack::StackElements::Condition(_) => todo!(),
-                                stack::StackElements::Addition(_) => todo!(),
-                                stack::StackElements::Parameter(_) => todo!(),
-                                stack::StackElements::Generic(_) => todo!(),
-                                stack::StackElements::Bridge(_) => todo!(),
-                                stack::StackElements::Ret(_) => todo!(),
-                                stack::StackElements::None => todo!(),
-                            }
-                        } 
-                    } else {
-                        panic!("Unexpected runtime error, cannot find referenced variable in scope")
-                    }
-                }
+                Some(page) => resolve_reference(page.clone(), e),
                 None => panic!("Unexpected runtime error, cannot find page"),
             },
             definite::types::Types::Null => self
@@ -518,7 +524,7 @@ impl Thread {
                     definite::definers::DefinerCollecting::Dynamic => "dyn".to_owned(),
                 };
                 let type_id = self.look_up_for_item_by_name(&type_name, page_id);
-                let value_heap_id = self.add_data_to_heap(variable.value, page_id).clone() - 1;
+                let value_heap_id = self.add_data_to_heap(variable.value, page_id).clone();
 
                 match self.pages.get_mut(&page_id) {
                     Some(page) => match type_id {
