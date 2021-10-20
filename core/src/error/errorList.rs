@@ -245,4 +245,10 @@ lazy_static! {
         message: "Parser messages value can only be string, but found '$token'".to_owned(),
         ..Default::default()
     };
+    pub static ref error_s41: crate::error::Error = crate::error::Error {
+        code: 0x40,
+        title: "ParserIntegrityError".to_owned(),
+        message: "$token".to_owned(),
+        ..Default::default()
+    };
 }

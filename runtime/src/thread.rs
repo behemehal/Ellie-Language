@@ -849,7 +849,10 @@ impl Thread {
                 }
             }
             definite::items::Collecting::Constructor(_) => Some((0, false, false)),
-            definite::items::Collecting::Caller(_) => Some((0, false, false)),
+            definite::items::Collecting::Caller(caller) => {
+                std::println!("{:#?}", caller);
+                Some((0, false, false))
+            },
             definite::items::Collecting::Import(import) => {
                 if !self.pages.contains_key(&(import.resolution_id as u64)) {
                     self.pages.insert(
@@ -883,7 +886,36 @@ impl Thread {
             definite::items::Collecting::Getter(_) => Some((0, false, false)),
             definite::items::Collecting::Setter(_) => Some((0, false, false)),
             definite::items::Collecting::NativeClass => Some((0, false, false)),
-            definite::items::Collecting::ValueCall(_) => Some((0, false, false)),
+            definite::items::Collecting::ValueCall(value_call) => {
+                match value_call {
+                    definite::types::Types::Integer(_) => (),
+                    definite::types::Types::Float(_) => (),
+                    definite::types::Types::Bool(_) => (),
+                    definite::types::Types::String(_) => (),
+                    definite::types::Types::Char(_) => (),
+                    definite::types::Types::Collective(_) => todo!(),
+                    definite::types::Types::Reference(_) => todo!(),
+                    definite::types::Types::Operator(_) => todo!(),
+                    definite::types::Types::Cloak(_) => todo!(),
+                    definite::types::Types::Array(_) => todo!(),
+                    definite::types::Types::ArrowFunction(_) => todo!(),
+                    definite::types::Types::ConstructedClass(_) => todo!(),
+                    definite::types::Types::FunctionCall(_) => todo!(),
+                    definite::types::Types::NullResolver(_) => std::println!("ValueCall(NullResolver) is not yet implemented"),
+                    definite::types::Types::VariableType(_) => std::println!("ValueCall(VariableType) is not yet implemented"),
+                    definite::types::Types::Negative(_) => std::println!("ValueCall(Negative) is not yet implemented"),
+                    definite::types::Types::Void => (),
+                    definite::types::Types::Null => (),
+                }
+                /*
+                match self.look_up_for_item_by_name() {
+                    Some(_) => todo!(),
+                    None => todo!(),
+                }
+                std::println!("{:#?}", value_call);
+                */
+                Some((0, false, false))
+            }
             definite::items::Collecting::Enum(_) => Some((0, false, false)),
             definite::items::Collecting::NativeFunction(function) => {
                 let mut params: Vec<(stack::StackElement, usize, String)> = Vec::new(); //((type, referenced_page), param_name)

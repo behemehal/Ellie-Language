@@ -289,6 +289,7 @@ pub fn collect_cloak<F, E>(
                             at_comma: false,
                         });
                 }
+                std::println!("CLOAK COMPLETE");
                 cloak_data.data.layer_size += 1;
                 cloak_data.complete = true;
                 itered_data.value_complete = true;

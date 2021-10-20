@@ -132,7 +132,25 @@ pub fn collect_variable<F, E>(
                                     }
                                 }
                                 _ => {
-                                    panic!("Inferring language items to variables are not yet supported")
+                                    errors.push(error::Error {
+                                        path: parser.options.path.clone(),
+                                        scope: parser.scope.scope_name.clone(),
+                                        debug_message: "change_variable"
+                                            .to_string(),
+                                        title: error::errorList::error_s41.title.clone(),
+                                        code: error::errorList::error_s41.code,
+                                        message: error::errorList::error_s41.message.clone(),
+                                        builded_message: error::Error::build(
+                                            error::errorList::error_s41.message.clone(),
+                                            vec![
+                                                error::ErrorBuildField {
+                                                    key: "token".to_owned(),
+                                                    value: "Inferring language items to variables are not yet supported".to_owned(),
+                                                },
+                                            ],
+                                        ),
+                                        pos: variable_data.data.pos,
+                                    });
                                 }
                             }
                         }
