@@ -432,8 +432,8 @@ impl Thread {
                         let mut found_heap_id : usize = 0;
                         for element in page.stack.elements {
                             match element {
-                                stack::StackElements::Function(_) => panic!("Reference of functions not yet supported"),
-                                stack::StackElements::NativeFunction(_) => todo!(),
+                                stack::StackElements::Function(_) => panic!("Reference of 'functions' not yet supported"),
+                                stack::StackElements::NativeFunction(_) => panic!("Reference of 'native functions' not yet supported"),
                                 stack::StackElements::Class(_) => todo!(),
                                 stack::StackElements::Variable(_) => todo!(),
                                 stack::StackElements::Condition(_) => todo!(),
