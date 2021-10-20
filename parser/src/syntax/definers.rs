@@ -330,16 +330,19 @@ impl DefinerCollecting {
             DefinerCollecting::Function(data) => {
                 if let DefinerCollecting::Function(other_data) = other {
                     if other_data.returning.same_as(*data.returning) {
-                        let mut have_changes = false;
-
-                        for i in 0..other_data.params.len() {
-                            if !other_data.params[i].clone().same_as(data.params[i].clone()) {
-                                have_changes = true;
-                                break;
+                        if other_data.params.len() == data.params.len() {
+                            let mut have_changes = false;
+                            for i in 0..other_data.params.len() {
+                                if !other_data.params[i].clone().same_as(data.params[i].clone()) {
+                                    have_changes = true;
+                                    break;
+                                }
                             }
-                        }
 
-                        !have_changes
+                            !have_changes
+                        } else {
+                            false
+                        }
                     } else {
                         false
                     }
@@ -349,15 +352,19 @@ impl DefinerCollecting {
             }
             DefinerCollecting::Cloak(data) => {
                 if let DefinerCollecting::Cloak(other_data) = other {
-                    let mut have_changes = false;
-                    for i in 0..other_data.rtype.len() {
-                        if !other_data.rtype[i].clone().same_as(data.rtype[i].clone()) {
-                            have_changes = true;
-                            break;
+                    if data.rtype.len() == other_data.rtype.len() {
+                        let mut have_changes = false;
+                        for i in 0..other_data.rtype.len() {
+                            if !other_data.rtype[i].clone().same_as(data.rtype[i].clone()) {
+                                have_changes = true;
+                                break;
+                            }
                         }
-                    }
 
-                    !have_changes
+                        !have_changes
+                    } else {
+                        false
+                    }
                 } else {
                     false
                 }
