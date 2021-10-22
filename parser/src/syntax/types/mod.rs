@@ -192,7 +192,22 @@ impl Types {
                 )
             }
             Types::Reference(e) => e.last_entry,
-            Types::Operator(_) => todo!(),
+            Types::Operator(e) => match e.data.operator {
+                operator_type::Operators::ComparisonType(_) => {
+                    crate::syntax::definers::DefinerCollecting::Generic(
+                        crate::syntax::definers::GenericType {
+                            rtype: "bool".to_owned(),
+                        },
+                    )
+                }
+                operator_type::Operators::LogicalType(op) => match op {
+                    logical_type::LogicalOperators::And => e.data.second.to_definer(),
+                    logical_type::LogicalOperators::Or => e.data.first.to_definer(),
+                    logical_type::LogicalOperators::Null => panic!("Unexpected parser behaviour"),
+                },
+                operator_type::Operators::ArithmeticType(_) => e.data.first.to_definer(),
+                operator_type::Operators::Null => panic!("Unexpected parser behaviour"),
+            },
             Types::Cloak(e) => {
                 let rtype = e
                     .data

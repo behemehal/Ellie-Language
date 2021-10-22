@@ -358,7 +358,7 @@ pub fn collect_array<F, E>(
                     first_filled: true,
                     ..Default::default()
                 });
-        } else {
+        } else if !data.complete {
             if letter_char != " " {
                 //TODO IS THIS SAFE ?
                 data.comma = false;
@@ -734,6 +734,26 @@ pub fn collect_array<F, E>(
                     });
                 }
             }
+        } else if letter_char != " " {
+            errors.push(error::Error {
+                path: parser.options.path.clone(),
+                scope: "array_processor".to_owned(),
+                debug_message: "replace_array_741".to_owned(),
+                title: error::errorList::error_s1.title.clone(),
+                code: error::errorList::error_s1.code,
+                message: error::errorList::error_s1.message.clone(),
+                builded_message: error::Error::build(
+                    error::errorList::error_s1.message.clone(),
+                    vec![error::ErrorBuildField {
+                        key: "token".to_owned(),
+                        value: letter_char.to_string(),
+                    }],
+                ),
+                pos: defs::Cursor {
+                    range_start: parser.pos,
+                    range_end: parser.pos.clone().skip_char(1),
+                },
+            });
         }
     } else {
         panic!("Unexpected parser behaviour")

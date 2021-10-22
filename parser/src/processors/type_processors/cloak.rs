@@ -289,7 +289,6 @@ pub fn collect_cloak<F, E>(
                             at_comma: false,
                         });
                 }
-                std::println!("CLOAK COMPLETE");
                 cloak_data.data.layer_size += 1;
                 cloak_data.complete = true;
                 itered_data.value_complete = true;
@@ -307,6 +306,38 @@ pub fn collect_cloak<F, E>(
                     complete: false,
                     last_entry: itered_data.data.value.clone().to_definer(),
                 });
+        } else if cloak_data.complete
+            && letter_char == "("
+            && is_s_n
+            && cloak_data.data.collective.len() == 1
+        {
+            match cloak_data.data.collective[0].value.clone().to_definer() {
+                definers::DefinerCollecting::Function(_) => {
+                    //TODO
+                },
+                _ => {
+                    errors.push(error::Error {
+                        path: parser.options.path.clone(),
+                        scope: "cloak_processor".to_owned(),
+                        debug_message: "replace_cloak_320".to_owned(),
+                        title: error::errorList::error_s25.title.clone(),
+                        code: error::errorList::error_s25.code,
+                        message: error::errorList::error_s25.message.clone(),
+                        builded_message: error::Error::build(
+                            error::errorList::error_s25.message.clone(),
+                            vec![error::ErrorBuildField {
+                                key: "token".to_owned(),
+                                value: cloak_data.data.collective[0]
+                                    .value
+                                    .clone()
+                                    .to_definer()
+                                    .raw_name_with_extensions(),
+                            }],
+                        ),
+                        pos: cloak_data.data.collective[0].location.clone(),
+                    });
+                }
+            }
         } else if cloak_data.complete
             && is_s_n
             && types::logical_type::LogicalOperators::is_logical_operator(letter_char)
@@ -367,7 +398,7 @@ pub fn collect_cloak<F, E>(
                     first_filled: true,
                     ..Default::default()
                 });
-        } else {
+        } else if !cloak_data.complete {
             if letter_char != " " {
                 //TODO IS THIS SAFE ?
                 cloak_data.comma = false;
@@ -818,6 +849,26 @@ pub fn collect_cloak<F, E>(
                     });
                 }
             }
+        } else if letter_char != " " {
+            errors.push(error::Error {
+                path: parser.options.path.clone(),
+                scope: "cloak_processor".to_owned(),
+                debug_message: "replace_cloak_825".to_owned(),
+                title: error::errorList::error_s1.title.clone(),
+                code: error::errorList::error_s1.code,
+                message: error::errorList::error_s1.message.clone(),
+                builded_message: error::Error::build(
+                    error::errorList::error_s1.message.clone(),
+                    vec![error::ErrorBuildField {
+                        key: "token".to_owned(),
+                        value: letter_char.to_string(),
+                    }],
+                ),
+                pos: defs::Cursor {
+                    range_start: parser.pos,
+                    range_end: parser.pos.clone().skip_char(1),
+                },
+            });
         }
     } else {
         panic!("Unexpected parser behaviour")

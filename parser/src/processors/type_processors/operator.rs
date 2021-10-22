@@ -212,6 +212,36 @@ pub fn collect_operator<F, E>(
                 last_char,
             );
 
+            if will_be_itered.data.value.is_type_complete() {
+                match data.data.operator.clone() {
+                    types::operator_type::Operators::ComparisonType(_) => {
+                        itered_data.data.rtype =
+                            crate::syntax::definers::DefinerCollecting::Generic(
+                                crate::syntax::definers::GenericType {
+                                    rtype: "bool".to_owned(),
+                                },
+                            );
+                    }
+                    types::operator_type::Operators::LogicalType(op) => {
+                        itered_data.data.rtype = match op {
+                            types::logical_type::LogicalOperators::And => {
+                                data.data.second.clone().to_definer()
+                            }
+                            types::logical_type::LogicalOperators::Or => {
+                                data.data.first.clone().to_definer()
+                            }
+                            types::logical_type::LogicalOperators::Null => {
+                                panic!("Unexpected parser behaviour");
+                            }
+                        };
+                    }
+                    types::operator_type::Operators::ArithmeticType(_) => {
+                        itered_data.data.rtype = data.data.first.clone().to_definer();
+                    }
+                    types::operator_type::Operators::Null => panic!("Unexpected parser behaviour"),
+                }
+            }
+
             if let types::Types::Operator(child_operator) = will_be_itered.data.value.clone() {
                 if child_operator.data.operator == data.data.operator {
                     itered_data.data.value =
@@ -235,9 +265,7 @@ pub fn collect_operator<F, E>(
                                 operator: child_operator.data.operator,
                                 ..Default::default()
                             },
-
                             first_filled: true,
-
                             operator_collect: child_operator.operator_collect,
                             ..Default::default()
                         })
