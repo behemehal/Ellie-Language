@@ -3,8 +3,8 @@ use crate::defs;
 use serde::{Deserialize, Serialize};
 
 use alloc::boxed::Box;
-use alloc::vec::Vec;
 use alloc::string::String;
+use alloc::vec::Vec;
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct Chain {

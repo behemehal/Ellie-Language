@@ -1,23 +1,21 @@
 ## Language Tour
 
 - ### Creating variables
-  - Dynamic Variable
-    ```ellie
-      d test = 123;
-    ```
-  - Type Set Variable
+  - Variable
     ```ellie
         v test : int = 123;
+        v testS = 123;
     ```
   - Constants
     ```ellie
         c test : int = 123;
+        c testS = 123;
     ```
 - Data Types
 
   - Numeric
     ```rust
-        integer
+        int
         float
     ```
   - String

@@ -314,7 +314,7 @@ pub fn collect_cloak<F, E>(
             match cloak_data.data.collective[0].value.clone().to_definer() {
                 definers::DefinerCollecting::Function(_) => {
                     //TODO
-                },
+                }
                 _ => {
                     errors.push(error::Error {
                         path: parser.options.path.clone(),

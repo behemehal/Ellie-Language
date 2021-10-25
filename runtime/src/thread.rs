@@ -298,7 +298,7 @@ impl Thread {
                         values,
                     }))
             }
-            definite::types::Types::Reference(_) => todo!(),
+            definite::types::Types::Reference(e) => todo!("{:#?}", e),
             definite::types::Types::Operator(_) => todo!(),
             definite::types::Types::Cloak(cloak_type) => {
                 let mut entries: Vec<usize> = Vec::new();
@@ -548,6 +548,7 @@ impl Thread {
                             Some((element_id, variable.public, false))
                         }
                         None => {
+                            crate::runtime::panic_dumper(&*self);
                             panic!(
                                 "Runtime failed to find element '{:#?}' in page '{:#04x}'",
                                 type_name, page_id as u64,
@@ -655,11 +656,17 @@ impl Thread {
 
                         //Import upper imports to inner scope
                         for element in page.stack.elements.clone() {
-                            if let stack::StackElements::Bridge(bridge) = element {
-                                child_stack.register_bridge(bridge.page_id, None);
-                                for i in bridge.targets {
-                                    child_stack.register_bridge_reference(bridge.page_id, i);
+                            match element {
+                                stack::StackElements::Class(e) => {
+                                    child_stack.register_bridge(page.page_id as usize, Some(e.id));
                                 }
+                                stack::StackElements::Bridge(bridge) => {
+                                    child_stack.register_bridge(bridge.page_id, None);
+                                    for i in bridge.targets {
+                                        child_stack.register_bridge_reference(bridge.page_id, i);
+                                    }
+                                }
+                                _ => (), //Implement not needed for now
                             }
                         }
 
@@ -700,11 +707,19 @@ impl Thread {
                         Some(page) => {
                             //Import upper imports to inner scope
                             for element in page.stack.elements.clone() {
-                                if let stack::StackElements::Bridge(bridge) = element {
-                                    child_stack.register_bridge(bridge.page_id, None);
-                                    for i in bridge.targets {
-                                        child_stack.register_bridge_reference(bridge.page_id, i);
+                                match element {
+                                    stack::StackElements::Class(e) => {
+                                        child_stack
+                                            .register_bridge(page.page_id as usize, Some(e.id));
                                     }
+                                    stack::StackElements::Bridge(bridge) => {
+                                        child_stack.register_bridge(bridge.page_id, None);
+                                        for i in bridge.targets {
+                                            child_stack
+                                                .register_bridge_reference(bridge.page_id, i);
+                                        }
+                                    }
+                                    _ => (), //Implement not needed for now
                                 }
                             }
 
@@ -808,11 +823,19 @@ impl Thread {
 
                             //Import upper imports to inner scope
                             for element in page.stack.elements.clone() {
-                                if let stack::StackElements::Bridge(bridge) = element {
-                                    child_stack.register_bridge(bridge.page_id, None);
-                                    for i in bridge.targets {
-                                        child_stack.register_bridge_reference(bridge.page_id, i);
+                                match element {
+                                    stack::StackElements::Class(e) => {
+                                        child_stack
+                                            .register_bridge(page.page_id as usize, Some(e.id));
                                     }
+                                    stack::StackElements::Bridge(bridge) => {
+                                        child_stack.register_bridge(bridge.page_id, None);
+                                        for i in bridge.targets {
+                                            child_stack
+                                                .register_bridge_reference(bridge.page_id, i);
+                                        }
+                                    }
+                                    _ => (), //Implement not needed for now
                                 }
                             }
 
@@ -852,7 +875,7 @@ impl Thread {
             definite::items::Collecting::Caller(caller) => {
                 std::println!("{:#?}", caller);
                 Some((0, false, false))
-            },
+            }
             definite::items::Collecting::Import(import) => {
                 if !self.pages.contains_key(&(import.resolution_id as u64)) {
                     self.pages.insert(
@@ -901,9 +924,15 @@ impl Thread {
                     definite::types::Types::ArrowFunction(_) => todo!(),
                     definite::types::Types::ConstructedClass(_) => todo!(),
                     definite::types::Types::FunctionCall(_) => todo!(),
-                    definite::types::Types::NullResolver(_) => std::println!("ValueCall(NullResolver) is not yet implemented"),
-                    definite::types::Types::VariableType(_) => std::println!("ValueCall(VariableType) is not yet implemented"),
-                    definite::types::Types::Negative(_) => std::println!("ValueCall(Negative) is not yet implemented"),
+                    definite::types::Types::NullResolver(_) => {
+                        std::println!("ValueCall(NullResolver) is not yet implemented")
+                    }
+                    definite::types::Types::VariableType(_) => {
+                        std::println!("ValueCall(VariableType) is not yet implemented")
+                    }
+                    definite::types::Types::Negative(_) => {
+                        std::println!("ValueCall(Negative) is not yet implemented")
+                    }
                     definite::types::Types::Void => (),
                     definite::types::Types::Null => (),
                 }

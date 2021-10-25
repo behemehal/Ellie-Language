@@ -101,27 +101,23 @@ impl Heap {
         for i in 0..values.len() {
             fn stringify(rtype: HeapTypes) -> String {
                 match rtype {
-                    HeapTypes::Integer(e) => {
-                        match e {
-                            HeapIntegerSize::U8(e) => format!("int->U8({:#04x})", e),
-                            HeapIntegerSize::U16(e) => format!("int->U16({:#04x})", e),
-                            HeapIntegerSize::U32(e) => format!("int->U32({:#04x})", e),
-                            HeapIntegerSize::U64(e) => format!("int->U64({:#04x})", e),
-                            HeapIntegerSize::U128(e) => format!("int->U128({:#04x})", e),
-                            HeapIntegerSize::Usize(e) => format!("int->Usize({:#04x})", e),
-                            HeapIntegerSize::I8(e) => format!("int->I8({:#04x})", e),
-                            HeapIntegerSize::I16(e) => format!("int->I16({:#04x})", e),
-                            HeapIntegerSize::I32(e) => format!("int->I32({:#04x})", e),
-                            HeapIntegerSize::I64(e) => format!("int->I64({:#04x})", e),
-                            HeapIntegerSize::I128(e) => format!("int->I128({:#04x})", e),
-                            HeapIntegerSize::Isize(e) => format!("int->Isize({:#04x})", e),
-                        }
+                    HeapTypes::Integer(e) => match e {
+                        HeapIntegerSize::U8(e) => format!("int->U8({:#04x})", e),
+                        HeapIntegerSize::U16(e) => format!("int->U16({:#04x})", e),
+                        HeapIntegerSize::U32(e) => format!("int->U32({:#04x})", e),
+                        HeapIntegerSize::U64(e) => format!("int->U64({:#04x})", e),
+                        HeapIntegerSize::U128(e) => format!("int->U128({:#04x})", e),
+                        HeapIntegerSize::Usize(e) => format!("int->Usize({:#04x})", e),
+                        HeapIntegerSize::I8(e) => format!("int->I8({:#04x})", e),
+                        HeapIntegerSize::I16(e) => format!("int->I16({:#04x})", e),
+                        HeapIntegerSize::I32(e) => format!("int->I32({:#04x})", e),
+                        HeapIntegerSize::I64(e) => format!("int->I64({:#04x})", e),
+                        HeapIntegerSize::I128(e) => format!("int->I128({:#04x})", e),
+                        HeapIntegerSize::Isize(e) => format!("int->Isize({:#04x})", e),
                     },
-                    HeapTypes::Float(e) => {
-                        match e {
-                            HeapFloatSize::F32(e) => format!("float->F32({:?})", e),
-                            HeapFloatSize::F64(e) => format!("float->F64({:?})", e),
-                        }
+                    HeapTypes::Float(e) => match e {
+                        HeapFloatSize::F32(e) => format!("float->F32({:?})", e),
+                        HeapFloatSize::F64(e) => format!("float->F64({:?})", e),
                     },
                     HeapTypes::Bool(e) => format!("bool({:#04x})", e),
                     HeapTypes::String(e) => format!("str({:?})", e),
@@ -167,11 +163,7 @@ impl Heap {
                     HeapTypes::Null => "null".to_owned(),
                 }
             }
-            lines.push(format!(
-                "\t{:#04x} : {}",
-                i,
-                stringify(values[i].clone())
-            ));
+            lines.push(format!("\t{:#04x} : {}", i, stringify(values[i].clone())));
         }
 
         if values.is_empty() {

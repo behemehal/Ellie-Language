@@ -1,3 +1,15 @@
-class test {
-    v sr: string;
-}
+/*
+    g test : string { //Getter
+        ret 1;
+    }
+
+    fn test() > string {
+        ret 1;
+    }
+*/
+
+
+
+v test = @() > string {
+    
+};

@@ -1,3 +1,6 @@
+#[cfg(feature = "std")]
+use std::fs;
+
 use crate::thread;
 use alloc::borrow::ToOwned;
 use alloc::boxed::Box;
@@ -52,6 +55,18 @@ pub fn panic_dumper(thread: &thread::Thread) -> String {
     }
 
     dump_data += &format!("Pages:\n{}\n\t---", stack_dump);
+    #[cfg(feature = "std")]
+    {
+        match fs::write("./runtime_error.dmp", dump_data.clone()) {
+            Ok(_) => {
+                std::println!("PANIC DUMP WRITTEN TO `./runtime_error.dmp`");
+            }
+            Err(e) => {
+                std::println!("FAILED TO WRITE RAW DATA (./runtime_error.dmp)");
+            }
+        };
+    }
+
     dump_data
 }
 

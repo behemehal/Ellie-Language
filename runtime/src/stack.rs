@@ -393,7 +393,11 @@ impl Stack {
                         for i in i.targets.into_iter().enumerate() {
                             targets += &format!("{}{:#04x}", if i.0 == 0 { "" } else { ", " }, i.1);
                         }
-                        lines.push(format!("\t\t\t5 = {:#04x}>({})", i.page_id, targets.clone()))
+                        lines.push(format!(
+                            "\t\t\t5 = {:#04x}>({})",
+                            i.page_id,
+                            targets.clone()
+                        ))
                     }
                 }
                 StackElements::Generic(i) => {
@@ -457,11 +461,13 @@ impl Stack {
                         chains += &format!(
                             "{}{}",
                             match chain {
-                                ConditionChainType::If(cond) => format!("i({:#04x}, {:#04x})", cond.0, cond.1),
-                                ConditionChainType::ElseIf(cond) => format!("ei({:#04x}, {:#04x})", cond.0, cond.1),
+                                ConditionChainType::If(cond) =>
+                                    format!("i({:#04x}, {:#04x})", cond.0, cond.1),
+                                ConditionChainType::ElseIf(cond) =>
+                                    format!("ei({:#04x}, {:#04x})", cond.0, cond.1),
                                 ConditionChainType::Else(cond) => format!("e({:#04x})", cond),
                             },
-                            if indx == i.chains.len() { "" } else { ", " } 
+                            if indx == i.chains.len() { "" } else { ", " }
                         );
                     }
                     lines.push(chains);

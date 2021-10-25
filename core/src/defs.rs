@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 pub enum ParserType {
     RawParser,
     ClassParser,
+    FunctionParser,
     HeaderParser,
 }
 
