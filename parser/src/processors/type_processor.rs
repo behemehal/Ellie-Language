@@ -416,6 +416,10 @@ pub fn collect_type<F, E>(
         parser.current = parser::Collecting::Ret(ret::Ret {
             keyword_pos: defs::Cursor {
                 range_start: parser.pos.pop_char(3),
+                range_end: parser.pos,
+            },
+            pos: defs::Cursor {
+                range_start: parser.pos.pop_char(3),
                 range_end: parser.pos.clone().skip_char(1),
             },
             ..Default::default()

@@ -102,7 +102,82 @@ pub fn collect_setter_value<F, E>(
             && setter_data.brace_count == 0
             && letter_char == "}"
         {
-            setter_data.data.code = setter_data.inside_code.collected.clone();
+            let mut filtered_items: Vec<parser::Collecting> = Vec::new();
+            let mut ret_found = false;
+            for item in setter_data.inside_code.collected.clone() {
+                match item {
+                    parser::Collecting::ImportItem(e) => {
+                        if e.from_path != "<temporary>" {
+                            filtered_items.push(parser::Collecting::ImportItem(e))
+                        }
+                    }
+                    parser::Collecting::Ret(return_item) => {
+                        if !ret_found {
+                            ret_found = true;
+                            if return_item.value.clone().to_definer() != setter_data.data.rtype {
+                                errors.push(error::Error {
+                                    path: parser.options.path.clone(),
+                                    scope: parser.scope.scope_name.clone(),
+                                    debug_message: "replace_setter_121".to_owned(),
+                                    title: error::errorList::error_s3.title.clone(),
+                                    code: error::errorList::error_s3.code,
+                                    message: error::errorList::error_s3.message.clone(),
+                                    builded_message: error::Error::build(
+                                        error::errorList::error_s3.message.clone(),
+                                        vec![
+                                            error::ErrorBuildField {
+                                                key: "token2".to_owned(),
+                                                value: return_item
+                                                    .value
+                                                    .clone()
+                                                    .to_definer()
+                                                    .raw_name_with_extensions(),
+                                            },
+                                            error::ErrorBuildField {
+                                                key: "token1".to_owned(),
+                                                value: setter_data
+                                                    .data
+                                                    .rtype
+                                                    .raw_name_with_extensions(),
+                                            },
+                                        ],
+                                    ),
+                                    pos: return_item.pos,
+                                });
+                            }
+                        }
+                        filtered_items.push(parser::Collecting::Ret(return_item))
+                    }
+                    e => filtered_items.push(e),
+                }
+            }
+
+            if !ret_found {
+                errors.push(error::Error {
+                    path: parser.options.path.clone(),
+                    scope: parser.scope.scope_name.clone(),
+                    debug_message: "replace_setter_159".to_owned(),
+                    title: error::errorList::error_s3.title.clone(),
+                    code: error::errorList::error_s3.code,
+                    message: error::errorList::error_s3.message.clone(),
+                    builded_message: error::Error::build(
+                        error::errorList::error_s3.message.clone(),
+                        vec![
+                            error::ErrorBuildField {
+                                key: "token2".to_owned(),
+                                value: "void".to_owned(),
+                            },
+                            error::ErrorBuildField {
+                                key: "token1".to_owned(),
+                                value: setter_data.data.rtype.raw_name_with_extensions(),
+                            },
+                        ],
+                    ),
+                    pos: setter_data.data.rtype_pos,
+                });
+            }
+
+            setter_data.data.code = filtered_items;
             setter_data.inside_code = Box::new(parser::RawParser::default()); //Empty the cache
             setter_data.data.bracket_start_pos.range_start = parser.pos;
             setter_data.data.bracket_start_pos.range_end = parser.pos.clone().skip_char(1);

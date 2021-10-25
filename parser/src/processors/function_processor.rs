@@ -414,6 +414,7 @@ pub fn collect_function<F, E>(
 
             //Filter out temporary items
             let mut filtered_items: Vec<parser::Collecting> = Vec::new();
+            let mut ret_found = false;
             for item in function_data.code.collected.clone() {
                 match item {
                     parser::Collecting::ImportItem(e) => {
@@ -421,8 +422,72 @@ pub fn collect_function<F, E>(
                             filtered_items.push(parser::Collecting::ImportItem(e))
                         }
                     }
+                    parser::Collecting::Ret(return_item) => {
+                        if !ret_found {
+                            ret_found = true;
+                            if return_item.value.clone().to_definer()
+                                != function_data.data.return_type
+                            {
+                                errors.push(error::Error {
+                                    path: parser.options.path.clone(),
+                                    scope: parser.scope.scope_name.clone(),
+                                    debug_message: "replace_getter_121".to_owned(),
+                                    title: error::errorList::error_s3.title.clone(),
+                                    code: error::errorList::error_s3.code,
+                                    message: error::errorList::error_s3.message.clone(),
+                                    builded_message: error::Error::build(
+                                        error::errorList::error_s3.message.clone(),
+                                        vec![
+                                            error::ErrorBuildField {
+                                                key: "token2".to_owned(),
+                                                value: return_item
+                                                    .value
+                                                    .clone()
+                                                    .to_definer()
+                                                    .raw_name_with_extensions(),
+                                            },
+                                            error::ErrorBuildField {
+                                                key: "token1".to_owned(),
+                                                value: function_data
+                                                    .data
+                                                    .return_type
+                                                    .raw_name_with_extensions(),
+                                            },
+                                        ],
+                                    ),
+                                    pos: return_item.pos,
+                                });
+                            }
+                        }
+                        filtered_items.push(parser::Collecting::Ret(return_item))
+                    }
                     e => filtered_items.push(e),
                 }
+            }
+
+            if !ret_found {
+                errors.push(error::Error {
+                    path: parser.options.path.clone(),
+                    scope: parser.scope.scope_name.clone(),
+                    debug_message: "replace_getter_159".to_owned(),
+                    title: error::errorList::error_s3.title.clone(),
+                    code: error::errorList::error_s3.code,
+                    message: error::errorList::error_s3.message.clone(),
+                    builded_message: error::Error::build(
+                        error::errorList::error_s3.message.clone(),
+                        vec![
+                            error::ErrorBuildField {
+                                key: "token2".to_owned(),
+                                value: "void".to_owned(),
+                            },
+                            error::ErrorBuildField {
+                                key: "token1".to_owned(),
+                                value: function_data.data.return_type.raw_name_with_extensions(),
+                            },
+                        ],
+                    ),
+                    pos: function_data.data.return_pos,
+                });
             }
 
             function_data.data.inside_code = filtered_items;

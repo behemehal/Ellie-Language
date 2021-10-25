@@ -1,5 +1,6 @@
 use crate::parser::Collecting;
 use crate::syntax::{definers, function};
+use alloc::boxed::Box;
 use alloc::string::String;
 use alloc::vec::Vec;
 use ellie_core::{definite, defs};
@@ -23,7 +24,7 @@ pub struct ArrowFunctionCollector {
     pub return_typed: bool,
     pub brace_count: usize,
     pub data: ArrowFunction,
-    pub code: String,
+    pub code: Box<crate::parser::RawParser>,
 }
 
 impl ArrowFunctionCollector {

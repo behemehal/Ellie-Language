@@ -31,6 +31,12 @@ pub fn collect_ret<F, E>(
                 },
                 ..variable::VariableCollector::default()
             };
+
+            if letter_char != " " && data.value_position.range_start.is_zero() {
+                data.value_position.range_start = parser.pos.clone();
+            }
+            data.value_position.range_end = parser.pos.clone().skip_char(1);
+
             value_processor::collect_value(
                 parser_clone.clone(),
                 &mut will_be_itered,

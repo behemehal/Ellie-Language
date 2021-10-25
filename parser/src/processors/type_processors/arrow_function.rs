@@ -2,7 +2,7 @@ use crate::alloc::borrow::ToOwned;
 use crate::parser;
 use crate::processors;
 use crate::syntax::function;
-use crate::syntax::{definers, types, variable};
+use crate::syntax::{definers, import_item, types, variable};
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};
 use alloc::vec;
@@ -23,11 +23,6 @@ pub fn collect_arrow<F, E>(
         + Sized,
 {
     if let types::Types::ArrowFunction(ref mut function_data) = itered_data.data.value {
-        if itered_data.data.dynamic {
-            itered_data.data.rtype =
-                definers::DefinerCollecting::Function(definers::FunctionType::default());
-        }
-
         if !function_data.parameter_wrote {
             if letter_char == "(" && !function_data.param_bracket_opened {
                 function_data.param_bracket_opened = true;
@@ -524,6 +519,104 @@ pub fn collect_arrow<F, E>(
                     ..Default::default()
                 });
         } else if letter_char == "}" && function_data.brace_count == 0 {
+            if itered_data.data.dynamic {
+                itered_data.data.rtype =
+                    definers::DefinerCollecting::Function(definers::FunctionType {
+                        complete: true,
+                        params: function_data
+                            .data
+                            .parameters
+                            .clone()
+                            .into_iter()
+                            .map(|param| param.rtype)
+                            .collect::<Vec<_>>(),
+                        returning: Box::new(function_data.data.return_type.clone()),
+                        return_typed: true,
+                        return_keyword: 3,
+                        parameter_collected: true,
+                        bracket_inserted: true,
+                        at_comma: false,
+                    })
+            }
+            //Filter out temporary items
+            let mut filtered_items: Vec<parser::Collecting> = Vec::new();
+            let mut ret_found = false;
+            for item in function_data.code.collected.clone() {
+                match item {
+                    parser::Collecting::ImportItem(e) => {
+                        if e.from_path != "<temporary>" {
+                            filtered_items.push(parser::Collecting::ImportItem(e))
+                        }
+                    }
+                    parser::Collecting::Ret(return_item) => {
+                        if !ret_found {
+                            ret_found = true;
+                            if return_item.value.clone().to_definer()
+                                != function_data.data.return_type
+                            {
+                                errors.push(error::Error {
+                                    path: parser.options.path.clone(),
+                                    scope: parser.scope.scope_name.clone(),
+                                    debug_message: "replace_getter_121".to_owned(),
+                                    title: error::errorList::error_s3.title.clone(),
+                                    code: error::errorList::error_s3.code,
+                                    message: error::errorList::error_s3.message.clone(),
+                                    builded_message: error::Error::build(
+                                        error::errorList::error_s3.message.clone(),
+                                        vec![
+                                            error::ErrorBuildField {
+                                                key: "token2".to_owned(),
+                                                value: return_item
+                                                    .value
+                                                    .clone()
+                                                    .to_definer()
+                                                    .raw_name_with_extensions(),
+                                            },
+                                            error::ErrorBuildField {
+                                                key: "token1".to_owned(),
+                                                value: function_data
+                                                    .data
+                                                    .return_type
+                                                    .raw_name_with_extensions(),
+                                            },
+                                        ],
+                                    ),
+                                    pos: return_item.pos,
+                                });
+                            }
+                        }
+                        filtered_items.push(parser::Collecting::Ret(return_item))
+                    }
+                    e => filtered_items.push(e),
+                }
+            }
+
+            if !ret_found {
+                errors.push(error::Error {
+                    path: parser.options.path.clone(),
+                    scope: parser.scope.scope_name.clone(),
+                    debug_message: "replace_getter_159".to_owned(),
+                    title: error::errorList::error_s3.title.clone(),
+                    code: error::errorList::error_s3.code,
+                    message: error::errorList::error_s3.message.clone(),
+                    builded_message: error::Error::build(
+                        error::errorList::error_s3.message.clone(),
+                        vec![
+                            error::ErrorBuildField {
+                                key: "token2".to_owned(),
+                                value: "void".to_owned(),
+                            },
+                            error::ErrorBuildField {
+                                key: "token1".to_owned(),
+                                value: function_data.data.return_type.raw_name_with_extensions(),
+                            },
+                        ],
+                    ),
+                    pos: function_data.data.return_pos,
+                });
+            }
+            function_data.data.inside_code = filtered_items;
+
             function_data.complete = true;
         } else {
             if letter_char == "{" {
@@ -532,12 +625,92 @@ pub fn collect_arrow<F, E>(
                 function_data.brace_count -= 1;
             }
 
-            //let code_letter = if last_char.clone() == "\n" || last_char.clone() == "\r" {
-            //    last_char + letter_char //Make sure we get the lines correctly
-            //} else {
-            //    letter_char.to_string()
-            //};
-            //function_data.code += &code_letter;
+            let mut child_parser = function_data.code.clone().to_no_resolver_parser();
+
+            if function_data.code.pos.is_zero() {
+                //Make sure upper scope imported once
+
+                for item in parser.collected.clone() {
+                    //Import variables as temporary for syntax support, we will remove them after collecting complete
+                    child_parser.collected.push(parser::Collecting::ImportItem(
+                        import_item::ImportItem {
+                            resolution_id: 0,
+                            from_import: 0,
+                            from_path: "<temporary>".to_owned(),
+                            public: true,
+                            item: Box::new(item),
+                        },
+                    ));
+                }
+
+                for param in function_data.data.parameters.clone() {
+                    //Import variables as temporary for syntax support, we will remove them after collecting complete
+                    child_parser.collected.push(parser::Collecting::ImportItem(
+                        import_item::ImportItem {
+                            resolution_id: 0,
+                            from_import: 0,
+                            from_path: "<temporary>".to_owned(),
+                            public: true,
+                            item: Box::new(parser::Collecting::Variable(if param.multi_capture {
+                                variable::VariableCollector {
+                                    data: variable::Variable {
+                                        pos: param.pos,
+                                        value_pos: param.type_pos,
+                                        name_pos: param.name_pos,
+                                        name: param.name,
+                                        rtype: definers::DefinerCollecting::GrowableArray(
+                                            definers::GrowableArrayType {
+                                                rtype: Box::new(param.rtype),
+                                                ..Default::default()
+                                            },
+                                        ),
+                                        public: true,
+                                        hash: "not_required".to_owned(),
+                                        ..Default::default()
+                                    },
+                                    ..Default::default()
+                                }
+                            } else {
+                                variable::VariableCollector {
+                                    data: variable::Variable {
+                                        pos: param.pos,
+                                        value_pos: param.type_pos,
+                                        name_pos: param.name_pos,
+                                        rtype: param.rtype,
+                                        name: param.name,
+                                        public: true,
+                                        hash: "not_required".to_owned(),
+                                        ..Default::default()
+                                    },
+                                    ..Default::default()
+                                }
+                            })),
+                        },
+                    ));
+                }
+            }
+
+            child_parser.options = parser.options.clone();
+            child_parser.options.parser_type = defs::ParserType::RawParser;
+            child_parser.pos = parser.pos;
+            child_parser.scope.scope_name = "core/function_processor".to_owned();
+            child_parser.current = function_data.code.current.clone();
+            child_parser.keyword_catch = function_data.code.keyword_catch.clone();
+            child_parser.keyword_cache = function_data.code.keyword_cache.clone();
+
+            let mut child_parser_errors: Vec<error::Error> = Vec::new();
+            parser::iterator::iter(
+                &mut child_parser,
+                &mut child_parser_errors,
+                letter_char,
+                next_char,
+                last_char,
+            );
+            for i in child_parser_errors {
+                errors.push(i);
+            }
+
+            function_data.code = Box::new(child_parser.to_raw());
         }
     } else {
         panic!("Unexpected parser behaviour")
