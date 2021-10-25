@@ -279,85 +279,81 @@ pub fn collect_array<F, E>(
                 data.complete = true;
                 itered_data.value_complete = true;
             }
-        } else if data.complete && letter_char == "." && is_s_n {
-            itered_data.data.value =
-                types::Types::Reference(types::reference_type::ReferenceTypeCollector {
-                    data: types::reference_type::ReferenceType {
-                        reference_pos: itered_data.data.value_pos,
-                        reference: Box::new(itered_data.data.value.clone()),
-                        chain: Vec::new(),
-                    },
-                    root_available: false,
-                    on_dot: false,
-                    complete: false,
-                    last_entry: itered_data.data.value.clone().to_definer(),
-                });
+        } else if data.complete
+            && is_s_n
+            && ellie_core::utils::is_extended(letter_char, next_char).is_some()
+        {
+            match ellie_core::utils::is_extended(letter_char, next_char).unwrap() {
+                ellie_core::utils::FoundExtended::Reference => {
+                    itered_data.data.value =
+                        types::Types::Reference(types::reference_type::ReferenceTypeCollector {
+                            data: types::reference_type::ReferenceType {
+                                reference_pos: itered_data.data.value_pos,
+                                reference: Box::new(itered_data.data.value.clone()),
+                                chain: Vec::new(),
+                            },
+                            root_available: false,
+                            on_dot: false,
+                            complete: false,
+                            last_entry: itered_data.data.value.clone().to_definer(),
+                        });
 
-            type_processors::reference::collect_reference(
-                parser.clone(),
-                itered_data,
-                errors,
-                letter_char,
-                next_char,
-                last_char,
-            )
-        } else if data.complete
-            && types::logical_type::LogicalOperators::is_logical_operator(letter_char)
-            || types::logical_type::LogicalOperators::is_logical_operator(
-                &(letter_char.to_string() + &next_char),
-            ) && is_s_n
-        {
-            itered_data.data.value =
-                types::Types::Operator(types::operator_type::OperatorTypeCollector {
-                    data: types::operator_type::OperatorType {
-                        first: Box::new(itered_data.data.value.clone()),
-                        operator: types::operator_type::Operators::LogicalType(
-                            types::logical_type::LogicalOperators::Null,
-                        ),
-                        ..Default::default()
-                    },
-                    operator_collect: letter_char.to_string(),
-                    first_filled: true,
-                    ..Default::default()
-                });
-        } else if data.complete
-            && types::comparison_type::ComparisonOperators::is_comparison_operator(letter_char)
-            || types::comparison_type::ComparisonOperators::is_comparison_operator(
-                &(letter_char.to_string() + &next_char),
-            ) && is_s_n
-        {
-            itered_data.data.value =
-                types::Types::Operator(types::operator_type::OperatorTypeCollector {
-                    data: types::operator_type::OperatorType {
-                        first: Box::new(itered_data.data.value.clone()),
-                        operator: types::operator_type::Operators::ComparisonType(
-                            types::comparison_type::ComparisonOperators::Null,
-                        ),
-                        ..Default::default()
-                    },
-                    operator_collect: letter_char.to_string(),
-                    first_filled: true,
-                    ..Default::default()
-                });
-        } else if data.complete
-            && types::arithmetic_type::ArithmeticOperators::is_arithmetic_operator(letter_char)
-            || types::arithmetic_type::ArithmeticOperators::is_arithmetic_operator(
-                &(letter_char.to_string() + &next_char),
-            ) && is_s_n
-        {
-            itered_data.data.value =
-                types::Types::Operator(types::operator_type::OperatorTypeCollector {
-                    data: types::operator_type::OperatorType {
-                        first: Box::new(itered_data.data.value.clone()),
-                        operator: types::operator_type::Operators::ArithmeticType(
-                            types::arithmetic_type::ArithmeticOperators::Null,
-                        ),
-                        ..Default::default()
-                    },
-                    operator_collect: letter_char.to_string(),
-                    first_filled: true,
-                    ..Default::default()
-                });
+                    type_processors::reference::collect_reference(
+                        parser.clone(),
+                        itered_data,
+                        errors,
+                        letter_char,
+                        next_char,
+                        last_char,
+                    )
+                }
+                ellie_core::utils::FoundExtended::LogicalOperator => {
+                    itered_data.data.value =
+                        types::Types::Operator(types::operator_type::OperatorTypeCollector {
+                            data: types::operator_type::OperatorType {
+                                first: Box::new(itered_data.data.value.clone()),
+                                operator: types::operator_type::Operators::LogicalType(
+                                    types::logical_type::LogicalOperators::Null,
+                                ),
+                                ..Default::default()
+                            },
+                            operator_collect: letter_char.to_string(),
+                            first_filled: true,
+                            ..Default::default()
+                        });
+                }
+                ellie_core::utils::FoundExtended::ComparisonOperator => {
+                    itered_data.data.value =
+                        types::Types::Operator(types::operator_type::OperatorTypeCollector {
+                            data: types::operator_type::OperatorType {
+                                first: Box::new(itered_data.data.value.clone()),
+                                operator: types::operator_type::Operators::ComparisonType(
+                                    types::comparison_type::ComparisonOperators::Null,
+                                ),
+                                ..Default::default()
+                            },
+                            operator_collect: letter_char.to_string(),
+                            first_filled: true,
+                            ..Default::default()
+                        });
+                }
+                ellie_core::utils::FoundExtended::ArithmeticOperator => {
+                    itered_data.data.value =
+                        types::Types::Operator(types::operator_type::OperatorTypeCollector {
+                            data: types::operator_type::OperatorType {
+                                first: Box::new(itered_data.data.value.clone()),
+                                operator: types::operator_type::Operators::ArithmeticType(
+                                    types::arithmetic_type::ArithmeticOperators::Null,
+                                ),
+                                ..Default::default()
+                            },
+                            operator_collect: letter_char.to_string(),
+                            first_filled: true,
+                            ..Default::default()
+                        });
+                }
+                ellie_core::utils::FoundExtended::FunctionCall => todo!(),
+            }
         } else if !data.complete {
             if letter_char != " " {
                 //TODO IS THIS SAFE ?

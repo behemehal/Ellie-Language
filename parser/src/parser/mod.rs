@@ -1,3 +1,5 @@
+use core::panic;
+
 use enum_as_inner::EnumAsInner;
 use serde::{Deserialize, Serialize};
 
@@ -499,7 +501,7 @@ where
             types::Types::Null => DeepCallResponse::TypeResponse(target),
             types::Types::Void => DeepCallResponse::TypeResponse(target),
             types::Types::Collective(_) => DeepCallResponse::TypeResponse(target),
-            types::Types::Array(_) => todo!(),
+            types::Types::Array(_) => DeepCallResponse::TypeResponse(target),
             types::Types::Cloak(_) => DeepCallResponse::TypeResponse(target),
             types::Types::Reference(_) => todo!(),
             types::Types::Operator(_) => todo!(),
@@ -525,7 +527,7 @@ where
                     types::Types::VariableType(e) => e.data.value,
                     types::Types::Null => "null".to_owned(),
                 };
-                let vr_found = self.check_keyword(name, false);
+                let vr_found = self.check_keyword(name, false, false);
                 if vr_found.found {
                     if let NameCheckResponseType::Variable(v_data) = vr_found.found_type {
                         self.resolve_deep_call(v_data.data.value)
@@ -548,7 +550,7 @@ where
             types::Types::NullResolver(_) => todo!(),
             types::Types::Negative(_) => todo!(),
             types::Types::VariableType(e) => {
-                let vr_found = self.check_keyword(e.data.value, false);
+                let vr_found = self.check_keyword(e.data.value, false, false);
 
                 if vr_found.found {
                     if let NameCheckResponseType::Variable(v_data) = vr_found.found_type {
@@ -608,7 +610,7 @@ where
                 }
             }
             types::Types::FunctionCall(e) => {
-                let fn_found = self.check_keyword(e.data.name.clone(), contain_private);
+                let fn_found = self.check_keyword(e.data.name.clone(), contain_private, false);
 
                 if fn_found.found.clone() {
                     if let NameCheckResponseType::Function(_) = fn_found.found_type {
@@ -644,7 +646,7 @@ where
                 }
             }
             types::Types::VariableType(e) => {
-                let vr_found = self.check_keyword(e.data.value.clone(), contain_private);
+                let vr_found = self.check_keyword(e.data.value.clone(), contain_private, false);
 
                 if vr_found.found {
                     match vr_found.found_type {
@@ -714,10 +716,173 @@ where
     pub fn resolve_reference_call(
         self,
         reference_data_collector: types::reference_type::ReferenceTypeCollector,
-    ) -> Option<Vec<ellie_core::error::Error>> {
+    ) -> Result<definers::DefinerCollecting, Vec<ellie_core::error::Error>> {
+        let chain_len = reference_data_collector.data.chain.len() - 1;
+        let chain = &reference_data_collector.data.chain[chain_len];
+        let mut found = definers::DefinerCollecting::Dynamic;
         let mut errors = Vec::new();
-        let deep_scan = self.resolve_deep_call(*reference_data_collector.data.reference.clone());
-        if deep_scan == DeepCallResponse::NoElement {
+
+        let generic = match reference_data_collector.last_entry.clone() {
+            definers::DefinerCollecting::Array(_) => "array".to_owned(),
+            definers::DefinerCollecting::Cloak(_) => "cloak".to_owned(),
+            definers::DefinerCollecting::Future(_) => "future".to_owned(),
+            definers::DefinerCollecting::Nullable(_) => "nullable".to_owned(),
+            definers::DefinerCollecting::GrowableArray(_) => "growableArray".to_owned(),
+            definers::DefinerCollecting::Generic(e) => e.rtype,
+            definers::DefinerCollecting::Function(_) => "function".to_owned(),
+            definers::DefinerCollecting::Collective(_) => "collective".to_owned(),
+            definers::DefinerCollecting::Dynamic => todo!(),
+        };
+
+        fn resolve_reference_chain(
+            target: Collecting,
+            chain: String,
+        ) -> Result<definers::DefinerCollecting, (String, i8)> {
+            /*
+                Error codes:
+                0 => cannot used as referencer,
+                1 => not exists as parameter
+            */
+
+            match target {
+                Collecting::Variable(_) => todo!(),
+                Collecting::Function(_) => todo!(),
+                Collecting::Class(targeted_item) => {
+                    let properties = targeted_item
+                        .data
+                        .properties
+                        .into_iter()
+                        .map(|x| {
+                            (
+                                x.name,
+                                if x.dynamic {
+                                    x.value.to_definer()
+                                } else {
+                                    x.rtype
+                                },
+                            )
+                        })
+                        .collect::<Vec<_>>();
+                    let getters = targeted_item
+                        .data
+                        .getters
+                        .into_iter()
+                        .map(|x| (x.name, x.rtype))
+                        .collect::<Vec<_>>();
+                    let setters = targeted_item
+                        .data
+                        .setters
+                        .into_iter()
+                        .map(|x| (x.name, x.rtype))
+                        .collect::<Vec<_>>();
+                    let methods = targeted_item
+                        .data
+                        .methods
+                        .into_iter()
+                        .map(|x| {
+                            (
+                                x.name,
+                                types::Types::ArrowFunction(
+                                    types::arrow_function::ArrowFunctionCollector {
+                                        data: types::arrow_function::ArrowFunction {
+                                            parameters: x.parameters,
+                                            return_type: x.return_type,
+                                            inside_code: x.inside_code,
+                                            return_pos: x.return_pos,
+                                        },
+                                        ..Default::default()
+                                    },
+                                )
+                                .to_definer(),
+                            )
+                        })
+                        .collect::<Vec<_>>();
+                    let mut all_properties = vec![];
+                    all_properties.extend(properties);
+                    all_properties.extend(getters);
+                    all_properties.extend(setters);
+                    all_properties.extend(methods);
+
+                    let found_property = all_properties.into_iter().find(|q| q.0 == chain);
+                    match found_property {
+                        Some(q) => Ok(q.1),
+                        None => Err((chain, 1)),
+                    }
+                }
+                Collecting::Caller(_) => todo!(),
+                Collecting::Getter(_) => todo!(),
+                Collecting::Setter(_) => todo!(),
+                Collecting::NativeClass => todo!(),
+                Collecting::Enum(_) => todo!(),
+                Collecting::NativeFunction(_) => todo!(),
+                Collecting::None => todo!(),
+                _ => panic!("Unexpected parser behaviour: {:?}", target),
+            }
+        }
+
+        let found_generic = self.resolve_reference_proto(generic.clone(), false);
+        if found_generic.found {
+            match found_generic.found_type {
+                NameCheckResponseType::Class(target) => {
+                    let resolved_reference_chain = resolve_reference_chain(
+                        Collecting::Class(target.clone()), //Remove clone
+                        chain.value.clone(),
+                    );
+                    match resolved_reference_chain {
+                        Ok(e) => {
+                            found = e;
+                        }
+                        Err(e) => {
+                            found = definers::DefinerCollecting::Generic(definers::GenericType {
+                                rtype: "null".to_owned(),
+                            });
+                            if e.1 == 0 {
+                                errors.push(error::Error {
+                                    path: self.options.path.clone(),
+                                    scope: self.scope.scope_name.clone(),
+                                    debug_message: "baf37e59278fcd4591c85721b2c63680".to_owned(),
+                                    title: error::errorList::error_s37.title.clone(),
+                                    code: error::errorList::error_s37.code,
+                                    message: error::errorList::error_s37.message.clone(),
+                                    builded_message: error::Error::build(
+                                        error::errorList::error_s37.message.clone(),
+                                        vec![error::ErrorBuildField {
+                                            key: "token".to_owned(),
+                                            value: e.0,
+                                        }],
+                                    ),
+                                    pos: chain.pos,
+                                });
+                            } else {
+                                errors.push(error::Error {
+                                    path: self.options.path.clone(),
+                                    scope: self.scope.scope_name.clone(),
+                                    debug_message: "03335d8d511b815dfd1f39bc3775d069".to_owned(),
+                                    title: error::errorList::error_s42.title.clone(),
+                                    code: error::errorList::error_s42.code,
+                                    message: error::errorList::error_s42.message.clone(),
+                                    builded_message: error::Error::build(
+                                        error::errorList::error_s42.message.clone(),
+                                        vec![
+                                            error::ErrorBuildField {
+                                                key: "token".to_owned(),
+                                                value: e.0,
+                                            },
+                                            error::ErrorBuildField {
+                                                key: "token1".to_owned(),
+                                                value: target.data.name,
+                                            },
+                                        ],
+                                    ),
+                                    pos: chain.pos,
+                                });
+                            }
+                        }
+                    }
+                }
+                _ => panic!("Unexpected behaviour"),
+            }
+        } else {
             errors.push(error::Error {
                 path: self.options.path.clone(),
                 scope: "function_call_processor".to_owned(),
@@ -734,21 +899,13 @@ where
                 ),
                 pos: reference_data_collector.data.reference_pos,
             });
-        } else {
-            panic!("TODO");
         }
 
-        /*
-        let mut errors = Vec::new();
-        let deep_scan = self.resolve_deep_call(*reference_data_collector.data.reference.clone());
-
-        if !errors.is_empty() {
-            Some(errors)
+        if errors.is_empty() {
+            Ok(found)
         } else {
-            None
+            Err(errors)
         }
-        */
-        None
     }
 
     pub fn look_up_for_item(self, item: Collecting, target: String) -> Option<Collecting> {
@@ -1494,19 +1651,44 @@ where
         item: Collecting,
         name: String,
         contain_private: bool,
+        contain_setter: bool,
         layer: usize,
     ) -> (bool, Collecting) {
         let mut found = false;
         let mut found_item: Collecting = Collecting::None;
         match item.clone() {
-            Collecting::Variable(e) => {
-                if e.data.name == name && (e.data.public || contain_private || layer == 0) {
+            Collecting::Variable(e)
+                if e.data.name == name && (e.data.public || contain_private || layer == 0) =>
+            {
+                if let types::Types::VariableType(referenced_var) = e.data.value {
+                    let deep_check =
+                        self.check_keyword(referenced_var.data.value, contain_private, false);
+                    if deep_check.found {
+                        found = true;
+                        found_item = match deep_check.found_type {
+                            NameCheckResponseType::Variable(e) => Collecting::Variable(e),
+                            NameCheckResponseType::Getter(e) => Collecting::Getter(e),
+                            NameCheckResponseType::Setter(e) => Collecting::Setter(e),
+                            NameCheckResponseType::Function(e) => Collecting::Function(e),
+                            NameCheckResponseType::NativeFunction(e) => {
+                                Collecting::NativeFunction(e)
+                            }
+                            NameCheckResponseType::Class(e) => Collecting::Class(e),
+                            NameCheckResponseType::None => panic!("Unexpected parser behaviour"),
+                        };
+                    } else {
+                        found = true;
+                        found_item = item;
+                    }
+                } else {
                     found = true;
                     found_item = item;
                 }
             }
             Collecting::Setter(e) => {
-                if e.data.name == name && (e.data.public || contain_private || layer == 0) {
+                if e.data.name == name
+                    && (e.data.public || contain_private || layer == 0 || contain_setter)
+                {
                     found = true;
                     found_item = item;
                 }
@@ -1547,6 +1729,7 @@ where
                         *e.item,
                         name,
                         contain_private,
+                        false,
                         if e.from_path == "<temporary>" {
                             0
                         } else {
@@ -1562,13 +1745,392 @@ where
         (found, found_item)
     }
 
-    pub fn check_keyword(&self, name: String, contain_private: bool) -> NameCheckResponse {
+    pub fn deep_resolve_reference_proto(
+        &self,
+        item: Collecting,
+        name: String,
+        contain_private: bool,
+        layer: usize,
+    ) -> (bool, Collecting) {
+        let mut found = false;
+        let mut found_item: Collecting = Collecting::None;
+        match item.clone() {
+            Collecting::Variable(e)
+                if e.data.name == name && (e.data.public || contain_private || layer == 0) =>
+            {
+                let class = match e.data.value {
+                    types::Types::Integer(_) => {
+                        let layer_check =
+                            self.resolve_reference_proto("integer".to_owned(), contain_private);
+                        if layer_check.found {
+                            layer_check.found_type.as_class().unwrap().clone()
+                        } else {
+                            //TODO handle error
+                            panic!("Error: Failed to resolve generic");
+                        }
+                    }
+                    types::Types::Float(_) => {
+                        let layer_check =
+                            self.resolve_reference_proto("float".to_owned(), contain_private);
+                        if layer_check.found {
+                            layer_check.found_type.as_class().unwrap().clone()
+                        } else {
+                            //TODO handle error
+                            panic!("Error: Failed to resolve generic");
+                        }
+                    }
+                    types::Types::Bool(_) => {
+                        let layer_check =
+                            self.resolve_reference_proto("bool".to_owned(), contain_private);
+                        if layer_check.found {
+                            layer_check.found_type.as_class().unwrap().clone()
+                        } else {
+                            //TODO handle error
+                            panic!("Error: Failed to resolve generic");
+                        }
+                    }
+                    types::Types::String(_) => {
+                        let layer_check =
+                            self.resolve_reference_proto("string".to_owned(), contain_private);
+                        if layer_check.found {
+                            layer_check.found_type.as_class().unwrap().clone()
+                        } else {
+                            //TODO handle error
+                            panic!("Error: Failed to resolve generic");
+                        }
+                    }
+                    types::Types::Char(_) => {
+                        let layer_check =
+                            self.resolve_reference_proto("char".to_owned(), contain_private);
+                        if layer_check.found {
+                            layer_check.found_type.as_class().unwrap().clone()
+                        } else {
+                            //TODO handle error
+                            panic!("Error: Failed to resolve generic");
+                        }
+                    }
+                    types::Types::Collective(_) => {
+                        let layer_check =
+                            self.resolve_reference_proto("collective".to_owned(), contain_private);
+                        if layer_check.found {
+                            layer_check.found_type.as_class().unwrap().clone()
+                        } else {
+                            //TODO handle error
+                            panic!("Error: Failed to resolve generic");
+                        }
+                    }
+                    types::Types::Reference(e) => {
+                        let layer_check =
+                            self.resolve_reference_proto(e.last_entry.raw_name(), contain_private);
+                        if layer_check.found {
+                            layer_check.found_type.as_class().unwrap().clone()
+                        } else {
+                            //TODO handle error
+                            panic!("Error: Failed to resolve generic");
+                        }
+                    }
+                    types::Types::Operator(e) => {
+                        let generic = match e.data.operator {
+                            types::operator_type::Operators::ComparisonType(_) => {
+                                crate::syntax::definers::DefinerCollecting::Generic(
+                                    crate::syntax::definers::GenericType {
+                                        rtype: "bool".to_owned(),
+                                    },
+                                )
+                            }
+                            types::operator_type::Operators::LogicalType(op) => match op {
+                                types::logical_type::LogicalOperators::And => {
+                                    e.data.second.to_definer()
+                                }
+                                types::logical_type::LogicalOperators::Or => {
+                                    e.data.first.to_definer()
+                                }
+                                types::logical_type::LogicalOperators::Null => {
+                                    panic!("Unexpected parser behaviour")
+                                }
+                            },
+                            types::operator_type::Operators::ArithmeticType(_) => {
+                                e.data.first.to_definer()
+                            }
+                            types::operator_type::Operators::Null => {
+                                panic!("Unexpected parser behaviour")
+                            }
+                        }
+                        .raw_name();
+                        let layer_check = self.resolve_reference_proto(generic, contain_private);
+                        if layer_check.found {
+                            layer_check.found_type.as_class().unwrap().clone()
+                        } else {
+                            //TODO handle error
+                            panic!("Error: Failed to resolve generic");
+                        }
+                    }
+                    types::Types::Cloak(e) => {
+                        let layer_check = self.resolve_reference_proto(
+                            if e.data.collective.len() == 1 {
+                                e.data.collective[e.data.collective.len() - 1]
+                                    .value
+                                    .clone()
+                                    .to_definer()
+                                    .raw_name()
+                            } else {
+                                "cloak".to_owned()
+                            },
+                            contain_private,
+                        );
+                        if layer_check.found {
+                            layer_check.found_type.as_class().unwrap().clone()
+                        } else {
+                            //TODO handle error
+                            panic!("Error: Failed to resolve generic");
+                        }
+                    }
+                    types::Types::Array(_) => {
+                        let layer_check =
+                            self.resolve_reference_proto(e.data.rtype.raw_name(), contain_private);
+                        if layer_check.found {
+                            layer_check.found_type.as_class().unwrap().clone()
+                        } else {
+                            //TODO handle error
+                            panic!("Error: Failed to resolve generic");
+                        }
+                    }
+                    types::Types::ArrowFunction(_) => {
+                        let layer_check =
+                            self.resolve_reference_proto("function".to_owned(), contain_private);
+                        if layer_check.found {
+                            layer_check.found_type.as_class().unwrap().clone()
+                        } else {
+                            //TODO handle error
+                            panic!("Error: Failed to resolve generic");
+                        }
+                    }
+                    types::Types::ConstructedClass(e) => {
+                        let layer_check =
+                            self.resolve_reference_proto(e.data.class_name(), contain_private);
+                        if layer_check.found {
+                            layer_check.found_type.as_class().unwrap().clone()
+                        } else {
+                            //TODO handle error
+                            panic!("Error: Failed to resolve generic");
+                        }
+                    }
+                    types::Types::FunctionCall(e) => {
+                        let layer_check =
+                            self.resolve_reference_proto(e.return_type.raw_name(), contain_private);
+                        if layer_check.found {
+                            layer_check.found_type.as_class().unwrap().clone()
+                        } else {
+                            //TODO handle error
+                            panic!("Error: Failed to resolve generic");
+                        }
+                    }
+                    types::Types::Void => {
+                        let layer_check =
+                            self.resolve_reference_proto("void".to_owned(), contain_private);
+                        if layer_check.found {
+                            layer_check.found_type.as_class().unwrap().clone()
+                        } else {
+                            //TODO handle error
+                            panic!("Error: Failed to resolve generic");
+                        }
+                    }
+                    types::Types::NullResolver(_) => {
+                        let layer_check = self
+                            .resolve_reference_proto("nullResolver".to_owned(), contain_private);
+                        if layer_check.found {
+                            layer_check.found_type.as_class().unwrap().clone()
+                        } else {
+                            //TODO handle error
+                            panic!("Error: Failed to resolve generic");
+                        }
+                    }
+                    types::Types::Negative(_) => {
+                        let layer_check =
+                            self.resolve_reference_proto("bool".to_owned(), contain_private);
+                        if layer_check.found {
+                            layer_check.found_type.as_class().unwrap().clone()
+                        } else {
+                            //TODO handle error
+                            panic!("Error: Failed to resolve generic");
+                        }
+                    }
+                    types::Types::VariableType(referenced_var) => {
+                        let deep_check = self
+                            .resolve_reference_proto(referenced_var.data.value, contain_private);
+
+                        if deep_check.found {
+                            let found_generic = match deep_check.found_type {
+                                NameCheckResponseType::Variable(e) => {
+                                    let layer_check = self.resolve_reference_proto(
+                                        e.data.value.to_definer().raw_name(),
+                                        contain_private,
+                                    );
+                                    if layer_check.found {
+                                        layer_check.found_type.as_class().unwrap().clone()
+                                    } else {
+                                        //TODO handle error
+                                        panic!("Error: Failed to resolve generic");
+                                    }
+                                }
+                                NameCheckResponseType::Getter(e) => {
+                                    let layer_check = self.resolve_reference_proto(
+                                        e.data.rtype.raw_name(),
+                                        contain_private,
+                                    );
+                                    if layer_check.found {
+                                        layer_check.found_type.as_class().unwrap().clone()
+                                    } else {
+                                        //TODO handle error
+                                        panic!("Error: Failed to resolve generic");
+                                    }
+                                }
+                                NameCheckResponseType::Function(e) => {
+                                    let layer_check = self.resolve_reference_proto(
+                                        "function".to_owned(),
+                                        contain_private,
+                                    );
+                                    if layer_check.found {
+                                        layer_check.found_type.as_class().unwrap().clone()
+                                    } else {
+                                        //TODO handle error
+                                        panic!("Error: Failed to resolve generic");
+                                    }
+                                }
+                                NameCheckResponseType::NativeFunction(e) => {
+                                    let layer_check = self.resolve_reference_proto(
+                                        "function".to_owned(),
+                                        contain_private,
+                                    );
+                                    if layer_check.found {
+                                        layer_check.found_type.as_class().unwrap().clone()
+                                    } else {
+                                        //TODO handle error
+                                        panic!("Error: Failed to resolve generic");
+                                    }
+                                }
+                                NameCheckResponseType::Class(e) => e,
+                                _ => panic!("Unexpected parser behaviour"),
+                            };
+                            found_generic
+                        } else {
+                            //TODO handle error
+                            panic!("Error: Failed to resolve generic");
+                        }
+                    }
+                    types::Types::Null => todo!(),
+                };
+                found = true;
+                found_item = Collecting::Class(class);
+            }
+            Collecting::Getter(e) => {
+                if e.data.name == name && (e.data.public || contain_private || layer == 0) {
+                    let layer_check =
+                        self.resolve_reference_proto(e.data.rtype.raw_name(), contain_private);
+                    if layer_check.found {
+                        found = true;
+                        found_item =
+                            Collecting::Class(layer_check.found_type.as_class().unwrap().clone());
+                    } else {
+                        //TODO handle error
+                        panic!("Error: Failed to resolve generic");
+                    }
+                }
+            }
+            Collecting::Function(e) => {
+                if e.data.name == name && (e.data.public || contain_private || layer == 0) {
+                    let layer_check =
+                        self.resolve_reference_proto("function".to_owned(), contain_private);
+                    if layer_check.found {
+                        found = true;
+                        found_item =
+                            Collecting::Class(layer_check.found_type.as_class().unwrap().clone());
+                    } else {
+                        //TODO handle error
+                        panic!("Error: Failed to resolve generic");
+                    }
+                }
+            }
+            Collecting::NativeFunction(e) => {
+                if e.name == name && (e.public || contain_private || layer == 0) {
+                    let layer_check =
+                        self.resolve_reference_proto("function".to_owned(), contain_private);
+                    if layer_check.found {
+                        found = true;
+                        found_item =
+                            Collecting::Class(layer_check.found_type.as_class().unwrap().clone());
+                    } else {
+                        //TODO handle error
+                        panic!("Error: Failed to resolve generic");
+                    }
+                }
+            }
+            Collecting::Class(e) => {
+                if e.data.name == name && (e.data.public || contain_private || layer == 0) {
+                    found = true;
+                    found_item = item;
+                }
+            }
+            Collecting::ImportItem(e) => {
+                if e.public || contain_private {
+                    let (is_found, found_item_target) = self.deep_resolve_reference_proto(
+                        *e.item,
+                        name,
+                        contain_private,
+                        if e.from_path == "<temporary>" {
+                            0
+                        } else {
+                            layer + 1
+                        },
+                    );
+                    found = is_found;
+                    found_item = found_item_target;
+                }
+            }
+            _ => (),
+        };
+        (found, found_item)
+    }
+
+    pub fn resolve_reference_proto(
+        &self,
+        name: String,
+        contain_private: bool,
+    ) -> NameCheckResponse {
         let mut found = false;
         let mut found_item: Collecting = Collecting::None;
 
         for item in self.collected.clone() {
             let (is_found, found_item_target) =
-                self.deep_check_keyword(item, name.clone(), contain_private, 0);
+                self.deep_resolve_reference_proto(item, name.clone(), contain_private, 0);
+            found = is_found;
+            found_item = found_item_target;
+            if found {
+                break;
+            }
+        }
+
+        match found_item {
+            Collecting::Class(e) => NameCheckResponse {
+                found,
+                found_type: NameCheckResponseType::Class(e),
+            },
+            _ => panic!("Unexpected behaviour"),
+        }
+    }
+
+    pub fn check_keyword(
+        &self,
+        name: String,
+        contain_private: bool,
+        contain_setter: bool,
+    ) -> NameCheckResponse {
+        let mut found = false;
+        let mut found_item: Collecting = Collecting::None;
+
+        for item in self.collected.clone() {
+            let (is_found, found_item_target) =
+                self.deep_check_keyword(item, name.clone(), contain_private, contain_setter, 0);
             found = is_found;
             found_item = found_item_target;
             if found {

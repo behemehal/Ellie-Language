@@ -4,11 +4,12 @@ use serde::{Deserialize, Serialize};
 
 use alloc::boxed::Box;
 use alloc::vec::Vec;
+use alloc::string::String;
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct Chain {
     pub pos: defs::Cursor,
-    pub value: types::Types,
+    pub value: String,
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]

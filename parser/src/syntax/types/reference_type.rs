@@ -3,12 +3,13 @@ use ellie_core::{definite, defs};
 use serde::{Deserialize, Serialize};
 
 use alloc::boxed::Box;
+use alloc::string::String;
 use alloc::vec::Vec;
 
 #[derive(PartialEq, Default, Debug, Clone, Serialize, Deserialize)]
 pub struct Chain {
     pub pos: defs::Cursor,
-    pub value: types::Types,
+    pub value: String,
 }
 
 #[derive(PartialEq, Default, Debug, Clone, Serialize, Deserialize)]
@@ -38,9 +39,9 @@ impl ReferenceTypeCollector {
                 .into_iter()
                 .map(|x| definite::types::reference::Chain {
                     pos: x.pos,
-                    value: x.value.to_definite(),
+                    value: x.value,
                 })
-                .collect(),
+                .collect::<Vec<_>>(),
         }
     }
 
@@ -54,7 +55,7 @@ impl ReferenceTypeCollector {
                     .into_iter()
                     .map(|x| Chain {
                         pos: x.pos,
-                        value: types::Types::default().from_definite(x.value),
+                        value: x.value,
                     })
                     .collect::<Vec<_>>(),
             },

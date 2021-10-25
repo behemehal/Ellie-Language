@@ -69,7 +69,7 @@ pub fn collect_variable<F, E>(
                             && variable_data.data.value != "false")
                     {
                         let found_target =
-                            parser.check_keyword(variable_data.data.value.clone(), false);
+                            parser.check_keyword(variable_data.data.value.clone(), false, false);
                         if !found_target.found && !itered_data.ignore_existence {
                             errors.push(error::Error {
                                 path: parser.options.path.clone(),

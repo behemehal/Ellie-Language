@@ -122,3 +122,55 @@ pub fn lower_first_char(line: String) -> String {
         Some(f) => f.to_lowercase().collect::<String>() + c.as_str(),
     }
 }
+
+pub enum FoundExtended {
+    Reference,
+    LogicalOperator,
+    ComparisonOperator,
+    ArithmeticOperator,
+    FunctionCall,
+}
+
+pub fn is_extended(letter_char: &str, next_char: &str) -> Option<FoundExtended> {
+    pub fn is_logical_operator(value: &str) -> bool {
+        value == "&&" || value == "||"
+    }
+
+    pub fn is_comparison_operator(value: &str) -> bool {
+        value == "=="
+            || value == "!="
+            || value == ">"
+            || value == "<"
+            || value == ">="
+            || value == "<="
+    }
+
+    pub fn is_arithmetic_operator(value: &str) -> bool {
+        value == "+"
+            || value == "-"
+            || value == "*"
+            || value == "**"
+            || value == "/"
+            || value == "%"
+    }
+
+    if letter_char == "." {
+        Some(FoundExtended::Reference)
+    } else if is_logical_operator(letter_char)
+        && is_logical_operator(&(letter_char.to_string() + &next_char))
+    {
+        Some(FoundExtended::LogicalOperator)
+    } else if is_comparison_operator(letter_char)
+        && is_comparison_operator(&(letter_char.to_string() + &next_char))
+    {
+        Some(FoundExtended::ComparisonOperator)
+    } else if is_arithmetic_operator(letter_char)
+        && is_arithmetic_operator(&(letter_char.to_string() + &next_char))
+    {
+        Some(FoundExtended::ArithmeticOperator)
+    } else if letter_char == "(" {
+        Some(FoundExtended::FunctionCall)
+    } else {
+        None
+    }
+}

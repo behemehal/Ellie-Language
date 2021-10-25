@@ -42,7 +42,7 @@ fn main() {
             println!("\t-i                                   : Ignore errors");
             println!("\t-e                                   : Show non-definite items");
             println!("\t-fi                                  : Filter out imports");
-            println!("\t-dstd                                : Don't import std");
+            println!("\t-dstd                                : Don't import std [NOT RECOMMENDED]");
         }
     } else {
         let args = env::args()
@@ -61,22 +61,12 @@ fn main() {
             let eval_code = env::args().any(|x| x == "--eval-code" || x == "-ec");
             let visualize_code = env::args().any(|x| x == "--parser-ws" || x == "-pw");
             let ignore_errors = env::args().any(|x| x == "-i");
-            let non_definite = env::args().any(|x| x == "-e");
 
-            if ignore_errors && !File::open("./DEBUG_HEADERS.eidbg").is_ok() {
+            if env::args().any(|x| x == "-i" || x == "-e" || x == "-fi" || x == "-dstd")
+                && File::open("./DEBUG_HEADERS.eidbg").is_err()
+            {
                 std::println!(
-                    "{}Cannot ignore errors, you are not in development directory{}",
-                    ellie_engine::terminal_colors::get_color(
-                        ellie_engine::terminal_colors::Colors::Red
-                    ),
-                    ellie_engine::terminal_colors::get_color(
-                        ellie_engine::terminal_colors::Colors::Reset
-                    ),
-                );
-                std::process::exit(2);
-            } else if non_definite && !File::open("./DEBUG_HEADERS.eidbg").is_ok() {
-                std::println!(
-                    "{}Cannot show non-definite items, you are not in development directory{}",
+                    "{}Development options cannot be used without development directory{}",
                     ellie_engine::terminal_colors::get_color(
                         ellie_engine::terminal_colors::Colors::Red
                     ),

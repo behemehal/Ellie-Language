@@ -251,4 +251,10 @@ lazy_static! {
         message: "$token".to_owned(),
         ..Default::default()
     };
+    pub static ref error_s42: crate::error::Error = crate::error::Error {
+        code: 0x41,
+        title: "SyntaxError".to_owned(),
+        message: "'$token' is not found in '$token1' properties".to_owned(),
+        ..Default::default()
+    };
 }

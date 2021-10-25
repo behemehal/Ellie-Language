@@ -85,7 +85,7 @@ pub fn collect_variable_value<F, E>(
                 }
             } else if letter_char == ";" {
                 if parser_clone
-                    .check_keyword(variable_data.data.name.clone(), false)
+                    .check_keyword(variable_data.data.name.clone(), false, false)
                     .found
                 {
                     errors.push(error::Error {
@@ -277,7 +277,7 @@ pub fn collect_variable_value<F, E>(
                     });
                 }
                 if parser_clone
-                    .check_keyword(variable_data.data.name.clone(), false)
+                    .check_keyword(variable_data.data.name.clone(), false, false)
                     .found
                 {
                     errors.push(error::Error {
@@ -475,7 +475,7 @@ pub fn collect_variable_value<F, E>(
                 }
 
                 if parser_clone
-                    .check_keyword(variable_data.data.name.clone(), false)
+                    .check_keyword(variable_data.data.name.clone(), false, false)
                     .found
                 {
                     errors.push(error::Error {

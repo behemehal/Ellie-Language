@@ -1,1 +1,3 @@
-v test = @() {};
+class test {
+    v sr: string;
+}

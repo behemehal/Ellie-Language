@@ -391,7 +391,7 @@ pub fn collect_function<F, E>(
             }
         } else if function_data.brace_count == 0 && letter_char == "}" {
             if parser_clone
-                .check_keyword(function_data.data.name.clone(), false)
+                .check_keyword(function_data.data.name.clone(), false, false)
                 .found
             {
                 errors.push(error::Error {
