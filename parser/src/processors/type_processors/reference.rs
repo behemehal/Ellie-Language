@@ -1,4 +1,5 @@
 use crate::parser;
+use crate::syntax::definers::DefinerCollecting;
 use crate::syntax::{types, variable};
 use alloc::{borrow::ToOwned, string::String, vec::Vec};
 use ellie_core::{defs, error, utils};
@@ -18,7 +19,6 @@ pub fn collect_reference<F, E>(
 {
     if let types::Types::Reference(ref mut reference_data) = itered_data.data.value {
         let last_entry = reference_data.data.chain.len();
-
         let current_reliability = utils::reliable_name_range(
             utils::ReliableNameRanges::VariableName,
             letter_char.to_owned(),
@@ -60,6 +60,7 @@ pub fn collect_reference<F, E>(
                 next_char.to_owned(),
             )
             .reliable
+                && reference_data.root_available
             {
                 match parser.resolve_reference_call(reference_data.clone()) {
                     Ok(e) => {
@@ -68,7 +69,16 @@ pub fn collect_reference<F, E>(
                         }
                         reference_data.last_entry = e;
                     }
-                    Err(e) => errors.extend(e),
+                    Err(e) => {
+                        if itered_data.data.dynamic {
+                            itered_data.data.rtype = DefinerCollecting::Error(0);
+                        }
+                        errors.extend(e)
+                    }
+                }
+            } else if !reference_data.root_available {
+                if itered_data.data.dynamic {
+                    itered_data.data.rtype = DefinerCollecting::Error(1);
                 }
             }
         } else {

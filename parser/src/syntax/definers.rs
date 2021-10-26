@@ -218,6 +218,7 @@ pub enum DefinerCollecting {
     Collective(CollectiveType),
     Nullable(NullableType),
     Dynamic,
+    Error(i8),
 }
 
 impl Default for DefinerCollecting {
@@ -254,6 +255,11 @@ impl DefinerCollecting {
                 definite::definers::DefinerCollecting::Nullable(e.to_definite())
             }
             DefinerCollecting::Dynamic => definite::definers::DefinerCollecting::Dynamic,
+            DefinerCollecting::Error(i) => {
+                definite::definers::DefinerCollecting::Generic(definite::definers::GenericType {
+                    rtype: format!("ERR({})", i),
+                })
+            }
         }
     }
 
@@ -377,6 +383,7 @@ impl DefinerCollecting {
                 }
             }
             DefinerCollecting::Dynamic => true,
+            DefinerCollecting::Error(_) => true,
         }
     }
 
@@ -391,6 +398,7 @@ impl DefinerCollecting {
             DefinerCollecting::Cloak(data) => !data.complete,
             DefinerCollecting::Collective(data) => !data.complete,
             DefinerCollecting::Dynamic => false,
+            _ => true,
         }
     }
 
@@ -405,6 +413,7 @@ impl DefinerCollecting {
             DefinerCollecting::Cloak(data) => data.complete,
             DefinerCollecting::Collective(data) => data.complete,
             DefinerCollecting::Dynamic => true,
+            _ => true,
         }
     }
 
@@ -433,6 +442,7 @@ impl DefinerCollecting {
             DefinerCollecting::Cloak(_) => "cloak".to_owned(),
             DefinerCollecting::Collective(_) => "collective".to_owned(),
             DefinerCollecting::Dynamic => "dyn".to_owned(),
+            _ => "unknown".to_owned(),
         }
     }
 
@@ -479,6 +489,7 @@ impl DefinerCollecting {
                 e.value.raw_name_with_extensions()
             ),
             DefinerCollecting::Dynamic => "dyn".to_owned(),
+            DefinerCollecting::Error(i) => format!("unexpectedBehavior({})", i),
         }
     }
 }

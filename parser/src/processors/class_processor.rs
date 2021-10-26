@@ -56,7 +56,10 @@ pub fn collect_class<F, E>(
                 }
                 class_data.name_collected = true;
             } else if letter_char == "{" && !class_data.data.name.is_empty() {
-                if utils::is_reserved(&class_data.data.name) {
+                let let_variant_name = parser.collected.len() == 0
+                    || !matches!(parser.collected.last().unwrap(), Collecting::FileKey(x) if x.data.key_name == "dont_fix_variant");
+
+                if utils::is_reserved(&class_data.data.name) && (let_variant_name) {
                     errors.push(error::Error {
                         path: parser.options.path.clone(),
                         scope: parser.scope.scope_name.clone(),

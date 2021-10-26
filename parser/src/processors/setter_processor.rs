@@ -152,7 +152,7 @@ pub fn collect_setter_value<F, E>(
                 }
             }
 
-            if !ret_found {
+            if !ret_found && setter_data.data.rtype.raw_name() != "void" {
                 errors.push(error::Error {
                     path: parser.options.path.clone(),
                     scope: parser.scope.scope_name.clone(),

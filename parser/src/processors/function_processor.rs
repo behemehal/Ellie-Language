@@ -465,11 +465,11 @@ pub fn collect_function<F, E>(
                 }
             }
 
-            if !ret_found {
+            if !ret_found && function_data.data.return_type.raw_name() != "void" {
                 errors.push(error::Error {
                     path: parser.options.path.clone(),
                     scope: parser.scope.scope_name.clone(),
-                    debug_message: "replace_getter_159".to_owned(),
+                    debug_message: "replace_function_472".to_owned(),
                     title: error::errorList::error_s3.title.clone(),
                     code: error::errorList::error_s3.code,
                     message: error::errorList::error_s3.message.clone(),

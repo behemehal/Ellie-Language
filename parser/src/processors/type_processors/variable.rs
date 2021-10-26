@@ -1,7 +1,7 @@
 use crate::alloc::borrow::ToOwned;
 use crate::parser;
 use crate::processors::type_processors;
-use crate::syntax::{types, variable};
+use crate::syntax::{definers, types, variable};
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};
 use alloc::vec;
@@ -59,7 +59,10 @@ pub fn collect_variable<F, E>(
                     if (next_char == ";"
                         || next_char == ","
                         || next_char == " "
+                        || next_char == "."
+                        || next_char == "("
                         || next_char == ")"
+                        || next_char == "["
                         || next_char == "]"
                         || next_char == "{"
                         || next_char == "}")
@@ -71,6 +74,7 @@ pub fn collect_variable<F, E>(
                         let found_target =
                             parser.check_keyword(variable_data.data.value.clone(), false, false);
                         if !found_target.found && !itered_data.ignore_existence {
+                            variable_data.value_exists = false;
                             errors.push(error::Error {
                                 path: parser.options.path.clone(),
                                 scope: "variable_processor".to_owned(),
@@ -88,6 +92,7 @@ pub fn collect_variable<F, E>(
                                 pos: variable_data.data.pos,
                             });
                         } else {
+                            variable_data.value_exists = true;
                             match found_target.found_type {
                                 parser::NameCheckResponseType::Variable(variable_type) => {
                                     if !itered_data_clone
@@ -129,6 +134,16 @@ pub fn collect_variable<F, E>(
                                     }
                                     if itered_data.data.dynamic {
                                         itered_data.data.rtype = variable_type.data.rtype.clone();
+                                    }
+                                }
+                                parser::NameCheckResponseType::Class(class_type) => {
+                                    if itered_data.data.dynamic {
+                                        itered_data.data.rtype =
+                                            definers::DefinerCollecting::Generic(
+                                                definers::GenericType {
+                                                    rtype: class_type.data.name,
+                                                },
+                                            );
                                     }
                                 }
                                 _ => {
@@ -191,6 +206,7 @@ pub fn collect_variable<F, E>(
                     variable_data.value_complete = true;
                 } else if letter_char == "." {
                     variable_data.value_complete = true;
+                    let root_available = variable_data.value_exists;
                     itered_data.data.value =
                         types::Types::Reference(types::reference_type::ReferenceTypeCollector {
                             data: types::reference_type::ReferenceType {
@@ -198,7 +214,7 @@ pub fn collect_variable<F, E>(
                                 reference: Box::new(itered_data.data.value.clone()),
                                 chain: Vec::new(),
                             },
-                            root_available: false,
+                            root_available,
                             on_dot: false,
                             complete: false,
                             last_entry: itered_data.data.value.clone().to_definer(),

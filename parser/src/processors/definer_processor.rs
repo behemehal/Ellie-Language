@@ -377,5 +377,6 @@ pub fn collect_definer<F, E>(
             }
         }
         DefinerCollecting::Dynamic => {}
+        DefinerCollecting::Error(_) => {}
     }
 }

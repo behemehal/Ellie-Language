@@ -9,7 +9,6 @@
 */
 
 
+class test {}
 
-v test = @() > string {
-    
-};
+v testq = test.name;

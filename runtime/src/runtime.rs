@@ -5,7 +5,7 @@ use crate::thread;
 use alloc::borrow::ToOwned;
 use alloc::boxed::Box;
 use alloc::format;
-use alloc::string::String;
+use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 use ellie_core::definite;
 
@@ -62,7 +62,10 @@ pub fn panic_dumper(thread: &thread::Thread) -> String {
                 std::println!("PANIC DUMP WRITTEN TO `./runtime_error.dmp`");
             }
             Err(e) => {
-                std::println!("FAILED TO WRITE RAW DATA (./runtime_error.dmp)");
+                std::println!(
+                    "FAILED TO WRITE RAW DATA (./runtime_error.dmp) [{}]",
+                    e.to_string()
+                );
             }
         };
     }

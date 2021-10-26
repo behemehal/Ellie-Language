@@ -732,6 +732,7 @@ where
             definers::DefinerCollecting::Function(_) => "function".to_owned(),
             definers::DefinerCollecting::Collective(_) => "collective".to_owned(),
             definers::DefinerCollecting::Dynamic => todo!(),
+            definers::DefinerCollecting::Error(i) => alloc::format!("unexpectedBehavior({})", i),
         };
 
         fn resolve_reference_chain(
@@ -1190,6 +1191,9 @@ where
                                     definers::DefinerCollecting::Dynamic => {
                                         panic!("Definer Resolving on 'Dynamic' is not supported");
                                     }
+                                    definers::DefinerCollecting::Error(i) => {
+                                        panic!("unexpectedBehavior({})", i)
+                                    }
                                 }
                             }
                         }
@@ -1352,6 +1356,9 @@ where
                                     } else {
                                         panic!("Unexpected parser error");
                                     }
+                                }
+                                definers::DefinerCollecting::Error(i) => {
+                                    panic!("unexpectedBehavior({})", i)
                                 }
                             }
                         }
@@ -1522,6 +1529,9 @@ where
                                     } else {
                                         panic!("Unexpected parser error");
                                     }
+                                }
+                                definers::DefinerCollecting::Error(i) => {
+                                    panic!("unexpectedBehavior({})", i)
                                 }
                             }
                         }
@@ -1985,7 +1995,7 @@ where
                                         panic!("Error: Failed to resolve generic");
                                     }
                                 }
-                                NameCheckResponseType::Function(e) => {
+                                NameCheckResponseType::Function(_) => {
                                     let layer_check = self.resolve_reference_proto(
                                         "function".to_owned(),
                                         contain_private,
@@ -1997,7 +2007,7 @@ where
                                         panic!("Error: Failed to resolve generic");
                                     }
                                 }
-                                NameCheckResponseType::NativeFunction(e) => {
+                                NameCheckResponseType::NativeFunction(_) => {
                                     let layer_check = self.resolve_reference_proto(
                                         "function".to_owned(),
                                         contain_private,
@@ -2067,8 +2077,23 @@ where
             }
             Collecting::Class(e) => {
                 if e.data.name == name && (e.data.public || contain_private || layer == 0) {
-                    found = true;
-                    found_item = item;
+                    if name == "class" {
+                        found = true;
+                        found_item = item;
+                    } else {
+                        let layer_check =
+                            self.resolve_reference_proto("class".to_owned(), contain_private);
+
+                        if layer_check.found {
+                            found = true;
+                            found_item = Collecting::Class(
+                                layer_check.found_type.as_class().unwrap().clone(),
+                            );
+                        } else {
+                            //TODO handle error
+                            panic!("Error: Failed to resolve generic");
+                        }
+                    }
                 }
             }
             Collecting::ImportItem(e) => {
@@ -2115,7 +2140,10 @@ where
                 found,
                 found_type: NameCheckResponseType::Class(e),
             },
-            _ => panic!("Unexpected behaviour"),
+            _ => panic!(
+                "Unexpected behaviour: {:#?} found: {}, target: {}",
+                found_item, found, name
+            ),
         }
     }
 

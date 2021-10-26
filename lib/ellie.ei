@@ -1,7 +1,7 @@
 /*
     Copyright (c) 2020 Behemehal. See license file for details
 */
-@version = "1.5.1"; //Changing this triggers build.rs
+@version = "1.6.1"; //Changing this triggers build.rs
 pub import void;
 pub import string;
 pub import int;
@@ -15,4 +15,5 @@ pub import growableArray;
 pub import function;
 pub import nullAble;
 pub import future;
+pub import class;
 pub importNative thread;

@@ -130,6 +130,7 @@ mod negative_tests {
                                     range_end: ellie_core::defs::CursorPosition(0, 5)
                                 }
                             },
+                            value_exists: false,
                             value_complete: false,
                         },
                     )),

@@ -591,7 +591,7 @@ pub fn collect_arrow<F, E>(
                 }
             }
 
-            if !ret_found {
+            if !ret_found && function_data.data.return_type.raw_name() != "void" {
                 errors.push(error::Error {
                     path: parser.options.path.clone(),
                     scope: parser.scope.scope_name.clone(),
