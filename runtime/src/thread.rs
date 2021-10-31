@@ -299,6 +299,7 @@ impl Thread {
                     }))
             }
             definite::types::Types::Reference(e) => todo!("{:#?}", e),
+            definite::types::Types::BracketReference(e) => todo!("{:#?}", e),
             definite::types::Types::Operator(_) => todo!(),
             definite::types::Types::Cloak(cloak_type) => {
                 let mut entries: Vec<usize> = Vec::new();
@@ -918,6 +919,7 @@ impl Thread {
                     definite::types::Types::Char(_) => (),
                     definite::types::Types::Collective(_) => todo!(),
                     definite::types::Types::Reference(_) => todo!(),
+                    definite::types::Types::BracketReference(_) => todo!(),
                     definite::types::Types::Operator(_) => todo!(),
                     definite::types::Types::Cloak(_) => todo!(),
                     definite::types::Types::Array(_) => todo!(),

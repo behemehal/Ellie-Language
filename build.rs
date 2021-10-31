@@ -6,12 +6,7 @@ use toml::Value;
 #[path = "src/terminal_colors.rs"]
 mod terminal_colors;
 //use serde_json;
-use std::{
-    collections::hash_map::DefaultHasher,
-    fs::{self, File},
-    hash::{Hash, Hasher},
-    io::Read,
-};
+use std::{collections::hash_map::DefaultHasher, env, fs::{self, File}, hash::{Hash, Hasher}, io::Read};
 
 fn read_file(file_dir: &str) -> Result<String, String> {
     let file_read = File::open(file_dir);
@@ -135,28 +130,20 @@ fn parse(contents: String, file_name: String) -> ellie_parser::parser::ParserRes
 }
 
 fn main() {
+    let rebuild_std = env::args().any(|x| x == "-rstd" || x == "--rebuild-std");
+    let ellie_version;
+    let ellie_version_name;
+    let parser_version;
+    let runtime_version;
+    let core_version;
     match read_file(&("./Cargo.toml".to_owned())) {
         Ok(cargo_toml) => {
             let ellie_lang_toml = cargo_toml.parse::<Value>().unwrap();
-            let ellie_version = &ellie_lang_toml["package"]["version"];
-            let ellie_version_name = &ellie_lang_toml["package"]["version_code"];
-            let parser_version = &ellie_lang_toml["dependencies"]["ellie_parser"]["version"];
-            let runtime_version = &ellie_lang_toml["dependencies"]["ellie_runtime"]["version"];
-            let byte_code_version = &ellie_lang_toml["dependencies"]["ellie_runtime"]["version"];
-            let core_version = &ellie_lang_toml["dependencies"]["ellie_byte_code"]["version"];
-
-            fs::write(
-                "./src/cli_constants.rs",
-                format!(
-                    "pub static ELLIE_VERSION: &'static str = &{};\npub static ELLIE_VERSION_NAME: &'static str = &{};\npub static ELLIE_PARSER_VERSION: &'static str = &{};\npub static ELLIE_RUNTIME_VERSION: &'static str = &{};\npub static ELLIE_BYTE_CODE_VERSION: &'static str = &{};\npub static ELLIE_CORE_VERSION: &'static str = &{};\n",
-                    ellie_version,
-                    ellie_version_name,
-                    parser_version,
-                    runtime_version,
-                    byte_code_version,
-                    core_version),
-            )
-            .unwrap();
+            ellie_version = ellie_lang_toml["package"]["version"].clone();
+            ellie_version_name = ellie_lang_toml["package"]["version_code"].clone();
+            parser_version = ellie_lang_toml["dependencies"]["ellie_parser"]["version"].clone();
+            runtime_version = ellie_lang_toml["dependencies"]["ellie_runtime"]["version"].clone();
+            core_version = ellie_lang_toml["dependencies"]["ellie_core"]["version"].clone();
         }
         Err(_) => {
             panic!(
@@ -189,7 +176,37 @@ fn main() {
                         {
                             let lib_version = &lib_version_number["version"];
                             let current_version = &current_version_number["version"];
-                            if lib_version == current_version {
+
+                            let mut ellie_std_types_version_hasher = DefaultHasher::new();
+                            ellie_lib.hash(&mut ellie_std_types_version_hasher);
+
+                            let version_hash: u64 = vec![
+                                ellie_version.as_str().unwrap(),
+                                parser_version.as_str().unwrap(),
+                                runtime_version.as_str().unwrap(),
+                                core_version.as_str().unwrap(),
+                                lib_version,
+                            ]
+                            .join(".")
+                            .split(".")
+                            .fold(0, |acc, x| acc + x.parse::<u64>().unwrap());
+
+                            fs::write(
+                                "./src/cli_constants.rs",
+                                format!(
+                                    "pub static ELLIE_VERSION: &'static str = &{};\npub static ELLIE_VERSION_NAME: &'static str = &{};\npub static ELLIE_PARSER_VERSION: &'static str = &{};\npub static ELLIE_RUNTIME_VERSION: &'static str = &{};\npub static ELLIE_CORE_VERSION: &'static str = &{};\npub static ELLIE_STD_VERSION: &'static str = &\"{}\";\npub static ELLIE_COMPATIBILITY_HASH: u64 = {:#04x};",
+                                    ellie_version,
+                                    ellie_version_name,
+                                    parser_version,
+                                    runtime_version,
+                                    core_version,
+                                    lib_version,
+                                    version_hash + ellie_std_types_version_hasher.finish()
+                                ),
+                            )
+                            .unwrap();
+
+                            if lib_version == current_version && !rebuild_std {
                                 eprintln!(
                                     "\nCompiling Ellie standard library {}v{}{} is not required",
                                     terminal_colors::get_color(terminal_colors::Colors::Yellow),

@@ -30,7 +30,7 @@ lazy_static! {
     pub static ref error_s5: crate::error::Error = crate::error::Error {
         code: 0x04,
         title: "ReferenceError".to_owned(),
-        message: "Unexpected Return Type '$token'".to_owned(),
+        message: "Unexpected return Type '$token'".to_owned(),
         ..Default::default()
     };
     pub static ref error_s6: crate::error::Error = crate::error::Error {
@@ -139,8 +139,8 @@ lazy_static! {
     };
     pub static ref error_s23: crate::error::Error = crate::error::Error {
         code: 0x22,
-        title: "SyntaxError".to_owned(),
-        message: "'$token' is not recognized as a command (Possible unimplemented)".to_owned(),
+        title: "ReferenceError".to_owned(),
+        message: "Getter '$token' is not found in the scope".to_owned(),
         ..Default::default()
     };
     pub static ref error_s24: crate::error::Error = crate::error::Error {
@@ -176,7 +176,7 @@ lazy_static! {
     pub static ref error_s29: crate::error::Error = crate::error::Error {
         code: 0x28,
         title: "TypeError".to_owned(),
-        message: "Unexpected Token '$token' is not iterable".to_owned(),
+        message: "Supplied data '$token' is not iterable".to_owned(),
         ..Default::default()
     };
     pub static ref error_s30: crate::error::Error = crate::error::Error {
@@ -229,13 +229,13 @@ lazy_static! {
     };
     pub static ref error_s38: crate::error::Error = crate::error::Error {
         code: 0x37,
-        title: "SyntaxError".to_owned(),
+        title: "ReferenceError".to_owned(),
         message: "'$token' required in scope".to_owned(),
         ..Default::default()
     };
     pub static ref error_s39: crate::error::Error = crate::error::Error {
         code: 0x38,
-        title: "SyntaxError".to_owned(),
+        title: "ReferenceError".to_owned(),
         message: "Cannot define built-in types".to_owned(),
         ..Default::default()
     };
@@ -255,6 +255,13 @@ lazy_static! {
         code: 0x41,
         title: "SyntaxError".to_owned(),
         message: "'$token' is not found in '$token1' properties".to_owned(),
+        ..Default::default()
+    };
+
+    pub static ref error_s43: crate::error::Error = crate::error::Error {
+        code: 0x42,
+        title: "TypeError".to_owned(),
+        message: "Invalid left-hand side in assignment".to_owned(),
         ..Default::default()
     };
 }

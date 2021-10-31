@@ -2,9 +2,11 @@
 
 use crate::syntax::types;
 use crate::syntax::variable;
+use ellie_core::defs;
 use serde::{Deserialize, Serialize};
 
 use crate::syntax::types::arithmetic_type::ArithmeticOperators;
+use crate::syntax::types::assignment_type::AssignmentOperators;
 use crate::syntax::types::comparison_type::ComparisonOperators;
 use crate::syntax::types::logical_type::LogicalOperators;
 
@@ -17,6 +19,7 @@ pub enum Operators {
     ComparisonType(ComparisonOperators),
     LogicalType(LogicalOperators),
     ArithmeticType(ArithmeticOperators),
+    AssignmentType(AssignmentOperators),
     Null,
 }
 
@@ -40,6 +43,9 @@ impl Operators {
             }
             Operators::ArithmeticType(_) => {
                 types::arithmetic_type::ArithmeticOperators::might_arithmetic_operator(value)
+            }
+            Operators::AssignmentType(_) => {
+                types::assignment_type::AssignmentOperators::might_assignment_operator(value)
             }
             _ => false,
         }
@@ -74,6 +80,15 @@ impl Operators {
                     Err(true)
                 }
             }
+            Operators::AssignmentType(_) => {
+                if let Ok(e) =
+                    types::assignment_type::AssignmentOperators::resolve_assignment_operator(value)
+                {
+                    Ok(Operators::AssignmentType(e))
+                } else {
+                    Err(true)
+                }
+            }
             _ => Err(true),
         }
     }
@@ -89,7 +104,9 @@ impl Default for Operators {
 pub struct OperatorType {
     pub cloaked: bool,
     pub first: Box<types::Types>,
+    pub first_pos: defs::Cursor,
     pub second: Box<types::Types>,
+    pub second_pos: defs::Cursor,
     pub operator: Operators,
 }
 
@@ -108,6 +125,8 @@ impl OperatorTypeCollector {
     pub fn to_definite(self) -> definite::types::operator::OperatorType {
         definite::types::operator::OperatorType {
             cloaked: self.cloaked,
+            first_pos: self.data.first_pos,
+            second_pos: self.data.second_pos,
             first: Box::new(self.data.first.to_definite()),
             second: Box::new(self.data.second.to_definite()),
             operator: match self.data.operator {
@@ -134,6 +153,16 @@ impl OperatorTypeCollector {
                     ArithmeticOperators::Modulus => definite::types::operator::Operators::ArithmeticType(definite::types::arithmetic_type::ArithmeticOperators::Modulus),
                     ArithmeticOperators::Null => definite::types::operator::Operators::ArithmeticType(definite::types::arithmetic_type::ArithmeticOperators::Null),
                 },
+                Operators::AssignmentType(e) => match e {
+                    AssignmentOperators::Assignment => definite::types::operator::Operators::AssignmentType(definite::types::assignment_type::AssignmentOperators::Assignment),
+                    AssignmentOperators::AdditionAssignment => definite::types::operator::Operators::AssignmentType(definite::types::assignment_type::AssignmentOperators::AdditionAssignment),
+                    AssignmentOperators::SubtractionAssignment => definite::types::operator::Operators::AssignmentType(definite::types::assignment_type::AssignmentOperators::SubtractionAssignment),
+                    AssignmentOperators::MultiplicationAssignment => definite::types::operator::Operators::AssignmentType(definite::types::assignment_type::AssignmentOperators::MultiplicationAssignment),
+                    AssignmentOperators::DivisionAssignment => definite::types::operator::Operators::AssignmentType(definite::types::assignment_type::AssignmentOperators::DivisionAssignment),
+                    AssignmentOperators::ModulusAssignment => definite::types::operator::Operators::AssignmentType(definite::types::assignment_type::AssignmentOperators::ModulusAssignment),
+                    AssignmentOperators::ExponentiationAssignment => definite::types::operator::Operators::AssignmentType(definite::types::assignment_type::AssignmentOperators::ExponentiationAssignment),
+                    AssignmentOperators::Null => definite::types::operator::Operators::AssignmentType(definite::types::assignment_type::AssignmentOperators::Null),
+                },
                 Operators::Null => definite::types::operator::Operators::Null,
             },
         }
@@ -144,7 +173,9 @@ impl OperatorTypeCollector {
             data: OperatorType {
                 cloaked: from.cloaked,
                 first: Box::new(types::Types::default().from_definite(*from.first)),
+                first_pos: from.first_pos,
                 second: Box::new(types::Types::default().from_definite(*from.second)),
+                second_pos: from.second_pos,
                 operator: match from.operator {
                     definite::types::operator::Operators::ComparisonType(e) => {
                         Operators::ComparisonType(match e {
@@ -175,6 +206,18 @@ impl OperatorTypeCollector {
                             definite::types::arithmetic_type::ArithmeticOperators::Division => ArithmeticOperators::Division,
                             definite::types::arithmetic_type::ArithmeticOperators::Modulus => ArithmeticOperators::Modulus,
                             definite::types::arithmetic_type::ArithmeticOperators::Null => ArithmeticOperators::Null,
+                        })
+                    }
+                    definite::types::operator::Operators::AssignmentType(e) => {
+                        Operators::AssignmentType(match e {
+                            definite::types::assignment_type::AssignmentOperators::Assignment => AssignmentOperators::Assignment,
+                            definite::types::assignment_type::AssignmentOperators::AdditionAssignment => AssignmentOperators::AdditionAssignment,
+                            definite::types::assignment_type::AssignmentOperators::SubtractionAssignment => AssignmentOperators::SubtractionAssignment,
+                            definite::types::assignment_type::AssignmentOperators::MultiplicationAssignment => AssignmentOperators::MultiplicationAssignment,
+                            definite::types::assignment_type::AssignmentOperators::DivisionAssignment => AssignmentOperators::DivisionAssignment,
+                            definite::types::assignment_type::AssignmentOperators::ModulusAssignment => AssignmentOperators::ModulusAssignment,
+                            definite::types::assignment_type::AssignmentOperators::ExponentiationAssignment => AssignmentOperators::ExponentiationAssignment,
+                            definite::types::assignment_type::AssignmentOperators::Null => AssignmentOperators::Null,
                         })
                     }
                     definite::types::operator::Operators::Null => Operators::Null,

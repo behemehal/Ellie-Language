@@ -1,4 +1,27 @@
 /*
     Copyright (c) 2020 Behemehal. See license file for details
 */
-pub class array<Type> {}
+import string;
+import int;
+
+@version = "1.0.0";
+@description = "Ellie array"
+@notConstructable = true;
+pub class array<Type> {
+    @description = "Get type\n[!]Part of the 'typeof' keyword requirement not intended to be used[!@]";
+    @example = "
+        v arr = [12];
+        print(typeof arr); //array
+    ";
+    pub fn getType() -> string {
+        ret "array";
+    }
+
+    @description = "Get size of array";
+    @example = "
+        v arr = [12];
+        print(arr.len()); //1
+    ";
+    pub fn len() -> int;
+
+}

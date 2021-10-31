@@ -146,6 +146,41 @@ pub fn collect_variable<F, E>(
                                             );
                                     }
                                 }
+                                parser::NameCheckResponseType::Getter(getter_type) => {
+                                    if itered_data.data.dynamic {
+                                        itered_data.data.rtype = getter_type.data.rtype;
+                                    }
+                                }
+                                parser::NameCheckResponseType::Setter(_) => {
+                                    if itered_data.data.dynamic {
+                                        itered_data.data.rtype =
+                                            definers::DefinerCollecting::Generic(
+                                                definers::GenericType {
+                                                    rtype: "void".to_string(),
+                                                },
+                                            );
+                                    }
+                                }
+                                parser::NameCheckResponseType::Function(_) => {
+                                    if itered_data.data.dynamic {
+                                        itered_data.data.rtype =
+                                            definers::DefinerCollecting::Generic(
+                                                definers::GenericType {
+                                                    rtype: "function".to_string(),
+                                                },
+                                            );
+                                    }
+                                }
+                                parser::NameCheckResponseType::NativeFunction(_) => {
+                                    if itered_data.data.dynamic {
+                                        itered_data.data.rtype =
+                                            definers::DefinerCollecting::Generic(
+                                                definers::GenericType {
+                                                    rtype: "function".to_string(),
+                                                },
+                                            );
+                                    }
+                                }
                                 _ => {
                                     errors.push(error::Error {
                                         path: parser.options.path.clone(),
@@ -204,104 +239,104 @@ pub fn collect_variable<F, E>(
             } else if !variable_data.data.value.is_empty() {
                 if letter_char == ";" {
                     variable_data.value_complete = true;
-                } else if letter_char == "." {
-                    variable_data.value_complete = true;
-                    let root_available = variable_data.value_exists;
-                    itered_data.data.value =
-                        types::Types::Reference(types::reference_type::ReferenceTypeCollector {
-                            data: types::reference_type::ReferenceType {
-                                reference_pos: variable_data.data.pos,
-                                reference: Box::new(itered_data.data.value.clone()),
-                                chain: Vec::new(),
-                            },
-                            root_available,
-                            on_dot: false,
-                            complete: false,
-                            last_entry: itered_data.data.value.clone().to_definer(),
-                        });
-                } else if letter_char == "(" {
-                    itered_data.data.value =
-                        types::Types::FunctionCall(types::function_call::FunctionCallCollector {
-                            data: types::function_call::FunctionCall {
-                                name: variable_data.data.value.clone(),
-                                name_pos: defs::Cursor {
-                                    range_start: variable_data.data.pos.range_start,
-                                    range_end: variable_data
-                                        .data
-                                        .pos
-                                        .range_end
-                                        .clone()
-                                        .skip_char(1),
+                } else if ellie_core::utils::is_extended(letter_char, next_char).is_some() {
+                    match ellie_core::utils::is_extended(letter_char, next_char).unwrap() {
+                        ellie_core::utils::FoundExtended::Reference => {
+                            itered_data.data.value = types::Types::Reference(
+                                types::reference_type::ReferenceTypeCollector {
+                                    data: types::reference_type::ReferenceType {
+                                        reference_pos: itered_data.data.value_pos,
+                                        reference: Box::new(itered_data.data.value.clone()),
+                                        chain: Vec::new(),
+                                    },
+                                    root_available: true,
+                                    on_dot: false,
+                                    complete: false,
+                                    last_entry: itered_data.data.value.clone().to_definer(),
                                 },
-                                ..Default::default()
-                            },
-                            ..Default::default()
-                        });
-                    type_processors::function_call::collect_function_caller(
-                        parser.clone(),
-                        itered_data,
-                        errors,
-                        letter_char,
-                        next_char,
-                        last_char,
-                    )
-                } else if types::logical_type::LogicalOperators::is_logical_operator(letter_char)
-                    || types::logical_type::LogicalOperators::is_logical_operator(
-                        &(letter_char.to_string() + &next_char),
-                    )
-                {
-                    variable_data.value_complete = true;
-                    itered_data.data.value =
-                        types::Types::Operator(types::operator_type::OperatorTypeCollector {
-                            data: types::operator_type::OperatorType {
-                                first: Box::new(itered_data.data.value.clone()),
-                                operator: types::operator_type::Operators::LogicalType(
-                                    types::logical_type::LogicalOperators::Null,
-                                ),
-                                ..Default::default()
-                            },
-                            operator_collect: letter_char.to_string(),
-                            first_filled: true,
-                            ..Default::default()
-                        });
-                } else if types::comparison_type::ComparisonOperators::is_comparison_operator(
-                    letter_char,
-                ) || types::comparison_type::ComparisonOperators::is_comparison_operator(
-                    &(letter_char.to_string() + &next_char),
-                ) {
-                    variable_data.value_complete = true;
-                    itered_data.data.value =
-                        types::Types::Operator(types::operator_type::OperatorTypeCollector {
-                            data: types::operator_type::OperatorType {
-                                first: Box::new(itered_data.data.value.clone()),
-                                operator: types::operator_type::Operators::ComparisonType(
-                                    types::comparison_type::ComparisonOperators::Null,
-                                ),
-                                ..Default::default()
-                            },
-                            first_filled: true,
-                            operator_collect: letter_char.to_string(),
-                            ..Default::default()
-                        });
-                } else if types::arithmetic_type::ArithmeticOperators::is_arithmetic_operator(
-                    letter_char,
-                ) || types::arithmetic_type::ArithmeticOperators::is_arithmetic_operator(
-                    &(letter_char.to_string() + &next_char),
-                ) {
-                    variable_data.value_complete = true;
-                    itered_data.data.value =
-                        types::Types::Operator(types::operator_type::OperatorTypeCollector {
-                            data: types::operator_type::OperatorType {
-                                first: Box::new(itered_data.data.value.clone()),
-                                operator: types::operator_type::Operators::ArithmeticType(
-                                    types::arithmetic_type::ArithmeticOperators::Null,
-                                ),
-                                ..Default::default()
-                            },
-                            first_filled: true,
-                            operator_collect: letter_char.to_string(),
-                            ..Default::default()
-                        });
+                            );
+                        }
+                        ellie_core::utils::FoundExtended::BracketReference => {
+                            itered_data.data.value = types::Types::BracketReference(
+                                types::bracket_reference_type::BracketReferenceCollector {
+                                    complete: false,
+                                    data: types::bracket_reference_type::BracketReference {
+                                        pos: defs::Cursor {
+                                            range_start: parser.pos,
+                                            ..Default::default()
+                                        },
+                                        target: itered_data.data.value.clone().to_definer(),
+                                    },
+                                    ..Default::default()
+                                },
+                            );
+                        }
+                        ellie_core::utils::FoundExtended::LogicalOperator => {
+                            itered_data.data.value = types::Types::Operator(
+                                types::operator_type::OperatorTypeCollector {
+                                    data: types::operator_type::OperatorType {
+                                        first: Box::new(itered_data.data.value.clone()),
+                                        operator: types::operator_type::Operators::LogicalType(
+                                            types::logical_type::LogicalOperators::Null,
+                                        ),
+                                        ..Default::default()
+                                    },
+                                    operator_collect: letter_char.to_string(),
+                                    first_filled: true,
+                                    ..Default::default()
+                                },
+                            );
+                        }
+                        ellie_core::utils::FoundExtended::ComparisonOperator => {
+                            itered_data.data.value = types::Types::Operator(
+                                types::operator_type::OperatorTypeCollector {
+                                    data: types::operator_type::OperatorType {
+                                        first: Box::new(itered_data.data.value.clone()),
+                                        operator: types::operator_type::Operators::ComparisonType(
+                                            types::comparison_type::ComparisonOperators::Null,
+                                        ),
+                                        ..Default::default()
+                                    },
+                                    operator_collect: letter_char.to_string(),
+                                    first_filled: true,
+                                    ..Default::default()
+                                },
+                            );
+                        }
+                        ellie_core::utils::FoundExtended::ArithmeticOperator => {
+                            itered_data.data.value = types::Types::Operator(
+                                types::operator_type::OperatorTypeCollector {
+                                    data: types::operator_type::OperatorType {
+                                        first: Box::new(itered_data.data.value.clone()),
+                                        operator: types::operator_type::Operators::ArithmeticType(
+                                            types::arithmetic_type::ArithmeticOperators::Null,
+                                        ),
+                                        ..Default::default()
+                                    },
+                                    operator_collect: letter_char.to_string(),
+                                    first_filled: true,
+                                    ..Default::default()
+                                },
+                            );
+                        }
+                        ellie_core::utils::FoundExtended::AssignmentOperator => {
+                            itered_data.data.value = types::Types::Operator(
+                                types::operator_type::OperatorTypeCollector {
+                                    data: types::operator_type::OperatorType {
+                                        first: Box::new(itered_data.data.value.clone()),
+                                        operator: types::operator_type::Operators::AssignmentType(
+                                            types::assignment_type::AssignmentOperators::Null,
+                                        ),
+                                        ..Default::default()
+                                    },
+                                    operator_collect: letter_char.to_string(),
+                                    first_filled: true,
+                                    ..Default::default()
+                                },
+                            );
+                        }
+                        ellie_core::utils::FoundExtended::FunctionCall => todo!(),
+                    }
                 } else if letter_char != " " {
                     errors.push(error::Error {
                         path: parser.options.path.clone(),

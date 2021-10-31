@@ -293,111 +293,102 @@ pub fn collect_cloak<F, E>(
                 cloak_data.complete = true;
                 itered_data.value_complete = true;
             }
-        } else if cloak_data.complete && letter_char == "." && is_s_n {
-            itered_data.data.value =
-                types::Types::Reference(types::reference_type::ReferenceTypeCollector {
-                    data: types::reference_type::ReferenceType {
-                        reference_pos: itered_data.data.value_pos,
-                        reference: Box::new(itered_data.data.value.clone()),
-                        chain: Vec::new(),
-                    },
-                    root_available: false,
-                    on_dot: false,
-                    complete: false,
-                    last_entry: itered_data.data.value.clone().to_definer(),
-                });
         } else if cloak_data.complete
-            && letter_char == "("
             && is_s_n
-            && cloak_data.data.collective.len() == 1
+            && ellie_core::utils::is_extended(letter_char, next_char).is_some()
         {
-            match cloak_data.data.collective[0].value.clone().to_definer() {
-                definers::DefinerCollecting::Function(_) => {
-                    //TODO
+            match ellie_core::utils::is_extended(letter_char, next_char).unwrap() {
+                ellie_core::utils::FoundExtended::Reference => {
+                    itered_data.data.value =
+                        types::Types::Reference(types::reference_type::ReferenceTypeCollector {
+                            data: types::reference_type::ReferenceType {
+                                reference_pos: itered_data.data.value_pos,
+                                reference: Box::new(itered_data.data.value.clone()),
+                                chain: Vec::new(),
+                            },
+                            root_available: true,
+                            on_dot: false,
+                            complete: false,
+                            last_entry: itered_data.data.value.clone().to_definer(),
+                        });
                 }
-                _ => {
-                    errors.push(error::Error {
-                        path: parser.options.path.clone(),
-                        scope: "cloak_processor".to_owned(),
-                        debug_message: "replace_cloak_320".to_owned(),
-                        title: error::errorList::error_s25.title.clone(),
-                        code: error::errorList::error_s25.code,
-                        message: error::errorList::error_s25.message.clone(),
-                        builded_message: error::Error::build(
-                            error::errorList::error_s25.message.clone(),
-                            vec![error::ErrorBuildField {
-                                key: "token".to_owned(),
-                                value: cloak_data.data.collective[0]
-                                    .value
-                                    .clone()
-                                    .to_definer()
-                                    .raw_name_with_extensions(),
-                            }],
-                        ),
-                        pos: cloak_data.data.collective[0].location.clone(),
-                    });
+                ellie_core::utils::FoundExtended::BracketReference => {
+                    itered_data.data.value = types::Types::BracketReference(
+                        types::bracket_reference_type::BracketReferenceCollector {
+                            complete: false,
+                            data: types::bracket_reference_type::BracketReference {
+                                pos: defs::Cursor {
+                                    range_start: parser.pos,
+                                    ..Default::default()
+                                },
+                                target: itered_data.data.value.clone().to_definer(),
+                            },
+                            ..Default::default()
+                        },
+                    );
                 }
+                ellie_core::utils::FoundExtended::LogicalOperator => {
+                    itered_data.data.value =
+                        types::Types::Operator(types::operator_type::OperatorTypeCollector {
+                            data: types::operator_type::OperatorType {
+                                first: Box::new(itered_data.data.value.clone()),
+                                operator: types::operator_type::Operators::LogicalType(
+                                    types::logical_type::LogicalOperators::Null,
+                                ),
+                                ..Default::default()
+                            },
+                            operator_collect: letter_char.to_string(),
+                            first_filled: true,
+                            ..Default::default()
+                        });
+                }
+                ellie_core::utils::FoundExtended::ComparisonOperator => {
+                    itered_data.data.value =
+                        types::Types::Operator(types::operator_type::OperatorTypeCollector {
+                            data: types::operator_type::OperatorType {
+                                first: Box::new(itered_data.data.value.clone()),
+                                operator: types::operator_type::Operators::ComparisonType(
+                                    types::comparison_type::ComparisonOperators::Null,
+                                ),
+                                ..Default::default()
+                            },
+                            operator_collect: letter_char.to_string(),
+                            first_filled: true,
+                            ..Default::default()
+                        });
+                }
+                ellie_core::utils::FoundExtended::ArithmeticOperator => {
+                    itered_data.data.value =
+                        types::Types::Operator(types::operator_type::OperatorTypeCollector {
+                            data: types::operator_type::OperatorType {
+                                first: Box::new(itered_data.data.value.clone()),
+                                operator: types::operator_type::Operators::ArithmeticType(
+                                    types::arithmetic_type::ArithmeticOperators::Null,
+                                ),
+                                ..Default::default()
+                            },
+                            operator_collect: letter_char.to_string(),
+                            first_filled: true,
+                            ..Default::default()
+                        });
+                }
+                ellie_core::utils::FoundExtended::AssignmentOperator => {
+                    itered_data.data.value =
+                        types::Types::Operator(types::operator_type::OperatorTypeCollector {
+                            data: types::operator_type::OperatorType {
+                                first: Box::new(itered_data.data.value.clone()),
+                                operator: types::operator_type::Operators::AssignmentType(
+                                    types::assignment_type::AssignmentOperators::Null,
+                                ),
+                                ..Default::default()
+                            },
+                            operator_collect: letter_char.to_string(),
+                            first_filled: true,
+                            ..Default::default()
+                        });
+                }
+                ellie_core::utils::FoundExtended::FunctionCall => todo!(),
             }
-        } else if cloak_data.complete
-            && is_s_n
-            && types::logical_type::LogicalOperators::is_logical_operator(letter_char)
-            || types::logical_type::LogicalOperators::is_logical_operator(
-                &(letter_char.to_string() + &next_char),
-            )
-        {
-            itered_data.data.value =
-                types::Types::Operator(types::operator_type::OperatorTypeCollector {
-                    data: types::operator_type::OperatorType {
-                        first: Box::new(itered_data.data.value.clone()),
-                        operator: types::operator_type::Operators::LogicalType(
-                            types::logical_type::LogicalOperators::Null,
-                        ),
-                        ..Default::default()
-                    },
-                    operator_collect: letter_char.to_string(),
-                    first_filled: true,
-                    ..Default::default()
-                });
-        } else if cloak_data.complete
-            && is_s_n
-            && types::comparison_type::ComparisonOperators::is_comparison_operator(letter_char)
-            || types::comparison_type::ComparisonOperators::is_comparison_operator(
-                &(letter_char.to_string() + &next_char),
-            )
-        {
-            itered_data.data.value =
-                types::Types::Operator(types::operator_type::OperatorTypeCollector {
-                    data: types::operator_type::OperatorType {
-                        first: Box::new(itered_data.data.value.clone()),
-                        operator: types::operator_type::Operators::ComparisonType(
-                            types::comparison_type::ComparisonOperators::Null,
-                        ),
-                        ..Default::default()
-                    },
-                    operator_collect: letter_char.to_string(),
-                    first_filled: true,
-                    ..Default::default()
-                });
-        } else if cloak_data.complete
-            && is_s_n
-            && types::arithmetic_type::ArithmeticOperators::is_arithmetic_operator(letter_char)
-            || types::arithmetic_type::ArithmeticOperators::is_arithmetic_operator(
-                &(letter_char.to_string() + &next_char),
-            )
-        {
-            itered_data.data.value =
-                types::Types::Operator(types::operator_type::OperatorTypeCollector {
-                    data: types::operator_type::OperatorType {
-                        first: Box::new(itered_data.data.value.clone()),
-                        operator: types::operator_type::Operators::ArithmeticType(
-                            types::arithmetic_type::ArithmeticOperators::Null,
-                        ),
-                        ..Default::default()
-                    },
-                    operator_collect: letter_char.to_string(),
-                    first_filled: true,
-                    ..Default::default()
-                });
         } else if !cloak_data.complete {
             if letter_char != " " {
                 //TODO IS THIS SAFE ?
@@ -614,6 +605,24 @@ pub fn collect_cloak<F, E>(
                 types::Types::Reference(match_cloak_data) => types::cloak_type::CloakEntry {
                     value_complete: true,
                     value: Box::new(types::Types::Reference(match_cloak_data)),
+                    location: defs::Cursor {
+                        range_start: if cloak_data.data.collective.len() != 0
+                            && !cloak_data.data.collective[last_entry - 1]
+                                .location
+                                .is_zero()
+                        {
+                            cloak_data.data.collective[last_entry - 1]
+                                .location
+                                .range_start
+                        } else {
+                            parser.pos
+                        },
+                        ..Default::default()
+                    },
+                },
+                types::Types::BracketReference(match_data) => types::cloak_type::CloakEntry {
+                    value_complete: true,
+                    value: Box::new(types::Types::BracketReference(match_data)),
                     location: defs::Cursor {
                         range_start: if cloak_data.data.collective.len() != 0
                             && !cloak_data.data.collective[last_entry - 1]

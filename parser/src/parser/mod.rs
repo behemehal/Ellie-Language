@@ -504,6 +504,7 @@ where
             types::Types::Array(_) => DeepCallResponse::TypeResponse(target),
             types::Types::Cloak(_) => DeepCallResponse::TypeResponse(target),
             types::Types::Reference(_) => todo!(),
+            types::Types::BracketReference(_) => todo!(),
             types::Types::Operator(_) => todo!(),
             types::Types::ArrowFunction(_) => todo!(),
             types::Types::ConstructedClass(e) => {
@@ -515,6 +516,7 @@ where
                     types::Types::Char(_) => "char".to_owned(),
                     types::Types::Collective(_) => "collective".to_owned(),
                     types::Types::Reference(_) => todo!(),
+                    types::Types::BracketReference(_) => todo!(),
                     types::Types::Operator(_) => todo!(),
                     types::Types::Cloak(_) => todo!(),
                     types::Types::Array(_) => todo!(),
@@ -1839,6 +1841,17 @@ where
                             panic!("Error: Failed to resolve generic");
                         }
                     }
+                    types::Types::BracketReference(e) => {
+                        //let layer_check =
+                        //    self.resolve_reference_proto(e.last_entry.raw_name(), contain_private);
+                        //if layer_check.found {
+                        //    layer_check.found_type.as_class().unwrap().clone()
+                        //} else {
+                        //    //TODO handle error
+                        //    panic!("Error: Failed to resolve generic");
+                        //}
+                        todo!("NOT IMPLEMENTED")
+                    }
                     types::Types::Operator(e) => {
                         let generic = match e.data.operator {
                             types::operator_type::Operators::ComparisonType(_) => {
@@ -1860,6 +1873,9 @@ where
                                 }
                             },
                             types::operator_type::Operators::ArithmeticType(_) => {
+                                e.data.first.to_definer()
+                            }
+                            types::operator_type::Operators::AssignmentType(_) => {
                                 e.data.first.to_definer()
                             }
                             types::operator_type::Operators::Null => {

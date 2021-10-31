@@ -4,7 +4,6 @@
 @version = "1.6.1"; //Changing this triggers build.rs
 pub import void;
 pub import string;
-pub import int;
 pub import char;
 pub import collective;
 pub import float;
@@ -16,4 +15,6 @@ pub import function;
 pub import nullAble;
 pub import future;
 pub import class;
-pub importNative thread;
+pub import int;
+pub import dyn;
+pub import thread;

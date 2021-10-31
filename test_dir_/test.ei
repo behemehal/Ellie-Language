@@ -9,6 +9,8 @@
 */
 
 
-class test {}
+v test = 123;
 
-v testq = test.name;
+new test();
+
+

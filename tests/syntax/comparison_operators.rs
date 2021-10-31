@@ -30,6 +30,7 @@ mod comparison_operator_tests {
                 operator: ellie_parser::syntax::types::operator_type::Operators::ComparisonType(
                     ellie_parser::syntax::types::comparison_type::ComparisonOperators::Equal,
                 ),
+                ..Default::default()
             }
         ));
     }
@@ -63,6 +64,7 @@ mod comparison_operator_tests {
                 operator: ellie_parser::syntax::types::operator_type::Operators::ComparisonType(
                     ellie_parser::syntax::types::comparison_type::ComparisonOperators::NotEqual,
                 ),
+                ..Default::default()
             }
         ));
     }
@@ -96,6 +98,7 @@ mod comparison_operator_tests {
                 operator: ellie_parser::syntax::types::operator_type::Operators::ComparisonType(
                     ellie_parser::syntax::types::comparison_type::ComparisonOperators::GreaterThan,
                 ),
+                ..Default::default()
             }
         ));
     }
@@ -129,6 +132,7 @@ mod comparison_operator_tests {
                 operator: ellie_parser::syntax::types::operator_type::Operators::ComparisonType(
                     ellie_parser::syntax::types::comparison_type::ComparisonOperators::LessThan,
                 ),
+                ..Default::default()
             }
         ));
     }
@@ -162,6 +166,7 @@ mod comparison_operator_tests {
                 operator: ellie_parser::syntax::types::operator_type::Operators::ComparisonType(
                     ellie_parser::syntax::types::comparison_type::ComparisonOperators::GreaterThanOrEqual,
                 ),
+                ..Default::default()
             }
         ));
     }
@@ -195,6 +200,7 @@ mod comparison_operator_tests {
                 operator: ellie_parser::syntax::types::operator_type::Operators::ComparisonType(
                     ellie_parser::syntax::types::comparison_type::ComparisonOperators::LessThanOrEqual,
                 ),
+                ..Default::default()
             }
         ));
     }

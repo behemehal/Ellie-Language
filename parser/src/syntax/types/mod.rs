@@ -1,8 +1,9 @@
 pub mod arithmetic_type;
 pub mod array_type;
 pub mod arrow_function;
+pub mod assignment_type;
 pub mod bool_type;
-pub mod brace_reference_type;
+pub mod bracket_reference_type;
 pub mod char_type;
 pub mod cloak_type;
 pub mod collective_type;
@@ -34,6 +35,7 @@ pub enum Types {
     Char(char_type::CharType),
     Collective(collective_type::CollectiveCollector),
     Reference(reference_type::ReferenceTypeCollector),
+    BracketReference(bracket_reference_type::BracketReferenceCollector),
     Operator(operator_type::OperatorTypeCollector),
     Cloak(cloak_type::CloakTypeCollector),
     Array(array_type::ArrayTypeCollector),
@@ -57,6 +59,7 @@ impl Types {
             Types::Char(e) => definite::types::Types::Char(e.to_definite()),
             Types::Collective(e) => definite::types::Types::Collective(e.to_definite()),
             Types::Reference(e) => definite::types::Types::Reference(e.to_definite()),
+            Types::BracketReference(e) => definite::types::Types::BracketReference(e.to_definite()),
             Types::Operator(e) => definite::types::Types::Operator(e.to_definite()),
             Types::Cloak(e) => definite::types::Types::Cloak(e.to_definite()),
             Types::Array(e) => definite::types::Types::Array(e.to_definite()),
@@ -94,6 +97,9 @@ impl Types {
             definite::types::Types::Reference(e) => {
                 Types::Reference(reference_type::ReferenceTypeCollector::default().from_definite(e))
             }
+            definite::types::Types::BracketReference(e) => Types::BracketReference(
+                bracket_reference_type::BracketReferenceCollector::default().from_definite(e),
+            ),
             definite::types::Types::Operator(e) => {
                 Types::Operator(operator_type::OperatorTypeCollector::default().from_definite(e))
             }
@@ -192,6 +198,7 @@ impl Types {
                 )
             }
             Types::Reference(e) => e.last_entry,
+            Types::BracketReference(_) => todo!(),
             Types::Operator(e) => match e.data.operator {
                 operator_type::Operators::ComparisonType(_) => {
                     crate::syntax::definers::DefinerCollecting::Generic(
@@ -206,6 +213,7 @@ impl Types {
                     logical_type::LogicalOperators::Null => panic!("Unexpected parser behaviour"),
                 },
                 operator_type::Operators::ArithmeticType(_) => e.data.first.to_definer(),
+                operator_type::Operators::AssignmentType(_) => e.data.first.to_definer(),
                 operator_type::Operators::Null => panic!("Unexpected parser behaviour"),
             },
             Types::Cloak(e) => {
@@ -222,6 +230,7 @@ impl Types {
                     },
                 )
             }
+
             Types::Array(e) => {
                 let mut array_values = e
                     .data
@@ -309,6 +318,7 @@ impl Types {
             }
             Types::Collective(_) => todo!(),
             Types::Reference(_) => todo!(),
+            Types::BracketReference(_) => todo!(),
             Types::Operator(_) => todo!(),
             Types::Array(_) => todo!(),
             Types::Cloak(_) => todo!(),
@@ -337,7 +347,8 @@ impl Types {
             Types::String(_) => "string".to_owned(),
             Types::Char(_) => "char".to_owned(),
             Types::Collective(_) => "collective".to_owned(),
-            Types::Reference(_) => "reference".to_owned(),
+            Types::Reference(e) => e.last_entry.raw_name(),
+            Types::BracketReference(e) => e.resolved.raw_name(),
             Types::Operator(_) => "operator".to_owned(),
             Types::Array(_) => "array".to_owned(),
             Types::Cloak(_) => "cloak".to_owned(),
@@ -361,6 +372,7 @@ impl Types {
             Types::Char(data) => data.complete,
             Types::Collective(e) => e.complete,
             Types::Reference(data) => !data.on_dot && data.complete,
+            Types::BracketReference(data) => data.complete,
             Types::Operator(e) => {
                 e.first_filled
                     && e.data.operator != operator_type::Operators::Null
@@ -388,6 +400,7 @@ impl Types {
             Types::Char(_) => false,
             Types::Collective(_) => false,
             Types::Reference(_) => false,
+            Types::BracketReference(_) => false,
             Types::Operator(_) => false,
             Types::Array(_) => true,
             Types::Cloak(_) => false,
@@ -412,7 +425,8 @@ impl Types {
             Types::String(_) => false,
             Types::Char(_) => false,
             Types::Collective(_) => false,
-            Types::Reference(_) => false,
+            Types::Reference(e) => e.last_entry.raw_name() == "int",
+            Types::BracketReference(e) => e.resolved.raw_name() == "int",
             Types::Operator(_) => false,
             Types::Array(_) => false,
             Types::Cloak(_) => false,
@@ -435,7 +449,8 @@ impl Types {
             Types::String(_) => false,
             Types::Char(_) => false,
             Types::Collective(_) => false,
-            Types::Reference(_) => false,
+            Types::Reference(e) => e.last_entry.raw_name() == "float",
+            Types::BracketReference(e) => e.resolved.raw_name() == "float",
             Types::Operator(_) => false,
             Types::Array(_) => false,
             Types::Cloak(_) => false,
@@ -458,7 +473,8 @@ impl Types {
             Types::String(_) => false,
             Types::Char(_) => false,
             Types::Collective(_) => false,
-            Types::Reference(_) => false,
+            Types::Reference(e) => e.last_entry.raw_name() == "bool",
+            Types::BracketReference(e) => e.resolved.raw_name() == "bool",
             Types::Operator(_) => false,
             Types::Array(_) => false,
             Types::Cloak(_) => false,
@@ -481,7 +497,8 @@ impl Types {
             Types::String(_) => true,
             Types::Char(_) => false,
             Types::Collective(_) => false,
-            Types::Reference(_) => false,
+            Types::Reference(e) => e.last_entry.raw_name() == "string",
+            Types::BracketReference(e) => e.resolved.raw_name() == "string",
             Types::Operator(_) => false,
             Types::Array(_) => false,
             Types::Cloak(_) => false,
@@ -505,6 +522,7 @@ impl Types {
             Types::Char(e) => e.complete = true,
             Types::Collective(_) => (),
             Types::Reference(_) => (),
+            Types::BracketReference(_) => (),
             Types::Operator(_) => (),
             Types::Array(e) => e.complete = true,
             Types::Cloak(e) => e.complete = true,
@@ -518,50 +536,6 @@ impl Types {
             Types::Null => (),
         };
     }
-
-    /*
-    pub fn build_type_from_definer(rtype: crate::syntax::definers::DefinerCollecting) -> Types {
-        match rtype {
-            crate::definers::DefinerCollecting::Array(e) => {
-                Types::Array(array_type::ArrayTypeCollector {
-                    value: array_type::ArrayType {
-                        layer_size: e.len,
-                        collective: (0..e.len).into_iter().map(|x| {
-                            array_type::ArrayEntry {
-                                value_complete: true,
-                                value: Box::new(Types::build_type_from_definer(*e.rtype)),
-                                ..Default::default()
-                            }
-                        })
-                    },
-                    ..Default::default()
-                })
-            },
-            crate::definers::DefinerCollecting::GrowableArray(_) => todo!(),
-            crate::definers::DefinerCollecting::Generic(e) => {
-                match e {
-                    "string" => {
-                        string_type::StringTypeCollector::default()
-                    },
-                    "char" => {
-                        char_type::CharType::default()
-                    },
-                    "float" => {
-                        string_type::::default()
-                    },
-                    "int" => {
-                        integer_type::IntegerTypeCollector::default()
-                    }
-                }
-            },
-            crate::definers::DefinerCollecting::Function(_) => todo!(),
-            crate::definers::DefinerCollecting::Cloak(_) => todo!(),
-            crate::definers::DefinerCollecting::Collective(_) => todo!(),
-            crate::definers::DefinerCollecting::Nullable(_) => todo!(),
-            crate::definers::DefinerCollecting::Dynamic => todo!(),
-        }
-    }
-    */
 }
 
 impl Default for Types {

@@ -489,7 +489,6 @@ pub fn collect_function<F, E>(
                     pos: function_data.data.return_pos,
                 });
             }
-
             function_data.data.inside_code = filtered_items;
             function_data.data.pos.range_end = parser.pos.clone().skip_char(1);
             parser.collected.push(parser.current.clone());
@@ -581,10 +580,7 @@ pub fn collect_function<F, E>(
                 next_char,
                 last_char,
             );
-            for i in child_parser_errors {
-                errors.push(i);
-            }
-
+            errors.extend(child_parser_errors);
             function_data.code = Box::new(child_parser.to_raw());
         }
     } else {

@@ -460,6 +460,16 @@ pub fn collect_new_call<F, E>(
                             },
                         }
                     }
+                    types::Types::BracketReference(match_data) => {
+                        types::constructed_class::ConstructedClassParameter {
+                            value: types::Types::BracketReference(match_data),
+                            pos: if last_entry == 0 {
+                                defs::Cursor::default()
+                            } else {
+                                new_call_data.data.params[last_entry - 1].pos
+                            },
+                        }
+                    }
                     types::Types::NullResolver(match_data) => {
                         types::constructed_class::ConstructedClassParameter {
                             value: types::Types::NullResolver(match_data),
@@ -579,19 +589,6 @@ pub fn collect_new_call<F, E>(
                     new_call_data.data.params[last_entry - 1].pos.range_end = parser.pos;
                 }
             }
-        } else if letter_char == "." {
-            itered_data.data.value =
-                types::Types::Reference(types::reference_type::ReferenceTypeCollector {
-                    data: types::reference_type::ReferenceType {
-                        reference_pos: itered_data.data.value_pos,
-                        reference: Box::new(itered_data.data.value.clone()),
-                        chain: Vec::new(),
-                    },
-                    root_available: false,
-                    on_dot: false,
-                    complete: false,
-                    last_entry: itered_data.data.value.clone().to_definer(),
-                });
         }
     } else {
         panic!("Unexpected parser behaviour")

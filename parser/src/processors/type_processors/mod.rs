@@ -1,6 +1,7 @@
 pub mod array;
 pub mod arrow_function;
 pub mod bool;
+pub mod bracket_reference;
 pub mod char;
 pub mod cloak;
 pub mod collective;

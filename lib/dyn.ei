@@ -1,0 +1,8 @@
+/*
+    Copyright (c) 2020 Behemehal. See license file for details
+*/
+import string;
+
+pub class dyn {
+    pub fn toString() -> string;
+}

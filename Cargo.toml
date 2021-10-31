@@ -14,7 +14,6 @@ serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
 ellie_core = {path = "core", version = "1.0.0"}
 ellie_parser = {path = "parser", version = "1.7.3", default-features = false }
 ellie_runtime = {path = "runtime", version = "0.1.0" }
-ellie_byte_code = { path = "byte_code", version = "0.1.0" }
 path-absolutize = {version = "3.0.10", optional = true }
 websocket = {version = "0.26.2", optional = true, default-features = false, features = ["sync"] }
 regex = { version = "1.1.7", optional = true }

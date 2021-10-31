@@ -8,10 +8,27 @@ use std::{fs, io::Read};
 
 fn main() {
     println!("{}]0;{}{}", '\u{001b}', "Ellie", '\u{007}');
+    if env::args().any(|x| x == "-rstd" || x == "--rebuild-std") {
+        println!(
+            "{}[Success]{} Rebuilding std library complete",
+            ellie_engine::terminal_colors::get_color(ellie_engine::terminal_colors::Colors::Green),
+            ellie_engine::terminal_colors::get_color(ellie_engine::terminal_colors::Colors::Reset)
+        );
+        std::process::exit(0);
+    }
     if env::args().any(|x| x == "-v" || x == "--version" || x == "-dv" || x == "--detailed-version")
     {
         if env::args().any(|x| x == "-dv" || x == "--detailed-version") {
-            println!("Ellie v{} - Code: {}\n\nParser Version: {}\nRuntime Version: {}\nEllie RawByteCode Version: {}\n", ellie_engine::cli_constants::ELLIE_VERSION, ellie_engine::cli_constants::ELLIE_VERSION_NAME, ellie_engine::cli_constants::ELLIE_PARSER_VERSION, ellie_engine::cli_constants::ELLIE_RUNTIME_VERSION, ellie_engine::cli_constants::ELLIE_BYTE_CODE_VERSION);
+            println!(
+                "Ellie v{} - Code: {}\n\nParser Version: v{}\nRuntime Version: v{}\nCore version: v{}\nEllie Standard Types Version: v{}\nEllie Compatibility Hash: {:#04x}\n",
+                ellie_engine::cli_constants::ELLIE_VERSION,
+                ellie_engine::cli_constants::ELLIE_VERSION_NAME,
+                ellie_engine::cli_constants::ELLIE_PARSER_VERSION,
+                ellie_engine::cli_constants::ELLIE_RUNTIME_VERSION,
+                ellie_engine::cli_constants::ELLIE_CORE_VERSION,
+                ellie_engine::cli_constants::ELLIE_STD_VERSION,
+                ellie_engine::cli_constants::ELLIE_COMPATIBILITY_HASH,
+            );
         } else {
             println!(
                 "Ellie v{} - Code: {}",
@@ -28,7 +45,6 @@ fn main() {
         println!("\t--to-json                    || -tj  : Compiles ellie to ellie json");
         println!("\t--render-console             || -rc  : Compiles ellie render to console");
         println!("\t--render-file                || -rf  : Compiles ellie render to file");
-        println!("\t--to-byte-code               || -tb  : Compiles ellie to byte code");
         println!("\t--show-errors                || -se  : Linter code for errors");
         println!("\t--json-errors                || -je  : Linter code for errors as json");
         println!("\t--eval-code                  || -ec  : Evaluate code from parameters");
@@ -43,6 +59,7 @@ fn main() {
             println!("\t-e                                   : Show non-definite items");
             println!("\t-fi                                  : Filter out imports");
             println!("\t-dstd                                : Don't import std [NOT RECOMMENDED]");
+            println!("\t-rstd                                : Rebuild std");
         }
     } else {
         let args = env::args()
@@ -390,46 +407,7 @@ fn main() {
                                 let collected_definite_items: Vec<definite::items::Collecting> =
                                     collected_items.collect();
 
-                                if env::args().any(|x| x == "-tb" || x == "--to-byte-code") {
-                                    let mut ellie_byte_conv =
-                                        ellie_byte_code::converter::Converter::new(
-                                            "ellie_core".to_owned(),
-                                            ellie_byte_code::converter::ConverterOptions {
-                                                apply_comments: true,
-                                                lib_name: file_arg.to_string(),
-                                            },
-                                            false,
-                                        );
-                                    ellie_byte_conv.convert(mapped.parsed.to_definite());
-                                    println!("-----RAW---\n{:#?}", ellie_byte_conv.clone());
-                                    let path_to_w = format!(
-                                        "./raw_{}.eiw",
-                                        Path::new(&file_arg.to_string())
-                                            .extension()
-                                            .unwrap()
-                                            .to_str()
-                                            .unwrap()
-                                    );
-                                    if let Err(e) =
-                                        fs::write(path_to_w.clone(), ellie_byte_conv.to_string())
-                                    {
-                                        println!(
-                                                "{}[WriteError]{}: Cannot write raw file {}'{}'{}, {}{}{}",
-                                                ellie_engine::terminal_colors::get_color(
-                                                    ellie_engine::terminal_colors::Colors::Red
-                                                ),
-                                                ellie_engine::terminal_colors::get_color(ellie_engine::terminal_colors::Colors::Reset),
-                                                ellie_engine::terminal_colors::get_color(ellie_engine::terminal_colors::Colors::Yellow),
-                                                path_to_w,
-                                                ellie_engine::terminal_colors::get_color(ellie_engine::terminal_colors::Colors::Reset),
-                                                ellie_engine::terminal_colors::get_color(
-                                                    ellie_engine::terminal_colors::Colors::Red
-                                                ),
-                                                e.to_string(),
-                                                ellie_engine::terminal_colors::get_color(ellie_engine::terminal_colors::Colors::Reset),
-                                            )
-                                    }
-                                } else if env::args().any(|x| x == "-tj" || x == "--to-json") {
+                                if env::args().any(|x| x == "-tj" || x == "--to-json") {
                                     print!("/");
                                     for item in collected_definite_items {
                                         print!("-\n{:#?}\n", serde_json::to_string(&item).unwrap());
@@ -801,45 +779,7 @@ fn main() {
                                 let collected_definite_items: Vec<definite::items::Collecting> =
                                     collected_items.collect();
 
-                                if env::args().any(|x| x == "-tb" || x == "--to-byte-code") {
-                                    let mut raw_conv = ellie_byte_code::converter::Converter::new(
-                                        "ellie_core".to_owned(),
-                                        ellie_byte_code::converter::ConverterOptions {
-                                            apply_comments: true,
-                                            lib_name: "<eval>".to_owned(),
-                                        },
-                                        false,
-                                    );
-                                    raw_conv.convert(mapped.parsed.to_definite());
-                                    println!("-----RAW---\n{:#?}", raw_conv.clone());
-                                    let path_to_w = format!(
-                                        "./raw_{}.eiw",
-                                        Path::new(&"eval".to_owned())
-                                            .extension()
-                                            .unwrap()
-                                            .to_str()
-                                            .unwrap()
-                                    );
-                                    if let Err(e) =
-                                        fs::write(path_to_w.clone(), raw_conv.to_string())
-                                    {
-                                        println!(
-                                                "{}[WriteError]{}: Cannot write byte code file {}'{}'{}, {}{}{}",
-                                                ellie_engine::terminal_colors::get_color(
-                                                    ellie_engine::terminal_colors::Colors::Red
-                                                ),
-                                                ellie_engine::terminal_colors::get_color(ellie_engine::terminal_colors::Colors::Reset),
-                                                ellie_engine::terminal_colors::get_color(ellie_engine::terminal_colors::Colors::Yellow),
-                                                path_to_w,
-                                                ellie_engine::terminal_colors::get_color(ellie_engine::terminal_colors::Colors::Reset),
-                                                ellie_engine::terminal_colors::get_color(
-                                                    ellie_engine::terminal_colors::Colors::Red
-                                                ),
-                                                e.to_string(),
-                                                ellie_engine::terminal_colors::get_color(ellie_engine::terminal_colors::Colors::Reset),
-                                            )
-                                    }
-                                } else if env::args().any(|x| x == "-tj" || x == "--to-json") {
+                                if env::args().any(|x| x == "-tj" || x == "--to-json") {
                                     print!("/");
                                     for item in collected_definite_items {
                                         print!("-\n{:#?}\n", serde_json::to_string(&item).unwrap());

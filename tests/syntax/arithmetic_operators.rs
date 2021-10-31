@@ -30,6 +30,7 @@ mod arithmetic_operator_tests {
                 operator: ellie_parser::syntax::types::operator_type::Operators::ArithmeticType(
                     ellie_parser::syntax::types::arithmetic_type::ArithmeticOperators::Addition,
                 ),
+                ..Default::default()
             }
         ));
     }
@@ -63,6 +64,7 @@ mod arithmetic_operator_tests {
                 operator: ellie_parser::syntax::types::operator_type::Operators::ArithmeticType(
                     ellie_parser::syntax::types::arithmetic_type::ArithmeticOperators::Subtraction,
                 ),
+                ..Default::default()
             }
         ));
     }
@@ -96,6 +98,7 @@ mod arithmetic_operator_tests {
                 operator: ellie_parser::syntax::types::operator_type::Operators::ArithmeticType(
                     ellie_parser::syntax::types::arithmetic_type::ArithmeticOperators::Multiplication,
                 ),
+                ..Default::default()
             }
         ));
     }
@@ -129,6 +132,7 @@ mod arithmetic_operator_tests {
                 operator: ellie_parser::syntax::types::operator_type::Operators::ArithmeticType(
                     ellie_parser::syntax::types::arithmetic_type::ArithmeticOperators::Exponentiation,
                 ),
+                ..Default::default()
             }
         ));
     }
@@ -162,6 +166,7 @@ mod arithmetic_operator_tests {
                 operator: ellie_parser::syntax::types::operator_type::Operators::ArithmeticType(
                     ellie_parser::syntax::types::arithmetic_type::ArithmeticOperators::Division,
                 ),
+                ..Default::default()
             }
         ));
     }
@@ -195,6 +200,7 @@ mod arithmetic_operator_tests {
                 operator: ellie_parser::syntax::types::operator_type::Operators::ArithmeticType(
                     ellie_parser::syntax::types::arithmetic_type::ArithmeticOperators::Modulus,
                 ),
+                ..Default::default()
             }
         ));
     }

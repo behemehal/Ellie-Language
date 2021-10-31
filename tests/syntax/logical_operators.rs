@@ -30,6 +30,7 @@ mod logical_operator_tests {
                 operator: ellie_parser::syntax::types::operator_type::Operators::LogicalType(
                     ellie_parser::syntax::types::logical_type::LogicalOperators::And,
                 ),
+                ..Default::default()
             }
         ));
     }
@@ -62,6 +63,7 @@ mod logical_operator_tests {
                 operator: ellie_parser::syntax::types::operator_type::Operators::LogicalType(
                     ellie_parser::syntax::types::logical_type::LogicalOperators::Or,
                 ),
+                ..Default::default()
             }
         ));
     }

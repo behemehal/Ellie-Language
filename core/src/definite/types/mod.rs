@@ -1,7 +1,9 @@
 pub mod arithmetic_type;
 pub mod array;
 pub mod arrow_function;
+pub mod assignment_type;
 pub mod bool;
+pub mod bracket_reference;
 pub mod cloak;
 pub mod collective;
 pub mod comparison_type;
@@ -29,6 +31,7 @@ pub enum Types {
     Char(ellie_char::CharType),
     Collective(collective::Collective),
     Reference(reference::ReferenceType),
+    BracketReference(bracket_reference::BracketReference),
     Operator(operator::OperatorType),
     Cloak(cloak::CloakType),
     Array(array::ArrayType),

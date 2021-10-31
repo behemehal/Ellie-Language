@@ -77,6 +77,27 @@ pub fn collect_operator<F, E>(
                 } else if is_next_a_operator.is_ok() {
                     data.operator_collect += letter_char;
                 }
+
+                if data.operator_collected
+                    && matches!(
+                        data.data.operator,
+                        types::operator_type::Operators::AssignmentType(_)
+                    )
+                    && !matches!(*data.data.first, types::Types::VariableType(_))
+                {
+                    errors.push(error::Error {
+                        path: parser.options.path.clone(),
+                        scope: "operator_processor".to_owned(),
+                        debug_message: "replace_operators_91".to_owned(),
+                        title: error::errorList::error_s43.title.clone(),
+                        code: error::errorList::error_s43.code,
+                        message: error::errorList::error_s43.message.clone(),
+                        builded_message: error::BuildedError::build_from_string(
+                            error::errorList::error_s43.message.clone(),
+                        ),
+                        pos: data.data.first_pos,
+                    });
+                }
             } else if types::operator_type::Operators::is_comparison_operator(
                 &(data.operator_collect.clone() + letter_char),
             ) {
@@ -111,7 +132,9 @@ pub fn collect_operator<F, E>(
                                             types::operator_type::OperatorTypeCollector {
                                                 data: types::operator_type::OperatorType {
                                                     first: data.data.first.clone(),
+                                                    first_pos: data.data.first_pos.clone(),
                                                     second: child_operator.data.first,
+                                                    second_pos: data.data.first_pos.clone(),
                                                     operator: data.data.operator.clone(),
                                                     cloaked: data.cloaked,
                                                 },
@@ -144,10 +167,12 @@ pub fn collect_operator<F, E>(
                                                         data: types::operator_type::OperatorType {
                                                             cloaked: data.cloaked,
                                                             first: data.data.first.clone(),
+                                                            first_pos: data.data.first_pos.clone(),
                                                             second: child_operator
                                                                 .data
                                                                 .first
                                                                 .clone(),
+                                                            second_pos: data.data.first_pos.clone(),
                                                             operator: data.data.operator.clone(),
                                                         },
                                                         operator_collect: data
@@ -238,6 +263,9 @@ pub fn collect_operator<F, E>(
                     types::operator_type::Operators::ArithmeticType(_) => {
                         itered_data.data.rtype = data.data.first.clone().to_definer();
                     }
+                    types::operator_type::Operators::AssignmentType(_) => {
+                        itered_data.data.rtype = data.data.first.clone().to_definer();
+                    }
                     types::operator_type::Operators::Null => panic!("Unexpected parser behaviour"),
                 }
             }
@@ -252,7 +280,9 @@ pub fn collect_operator<F, E>(
                                     types::operator_type::OperatorTypeCollector {
                                         data: types::operator_type::OperatorType {
                                             first: data.data.first.clone(),
+                                            first_pos: data.data.first_pos.clone(),
                                             second: child_operator.data.first,
+                                            second_pos: data.data.first_pos.clone(),
                                             operator: data.data.operator.clone(),
                                             cloaked: data.cloaked,
                                         },
@@ -282,7 +312,9 @@ pub fn collect_operator<F, E>(
                                                 data: types::operator_type::OperatorType {
                                                     cloaked: data.cloaked,
                                                     first: data.data.first.clone(),
+                                                    first_pos: data.data.first_pos.clone(),
                                                     second: child_operator.data.first.clone(),
+                                                    second_pos: data.data.first_pos.clone(),
                                                     operator: data.data.operator.clone(),
                                                 },
                                                 operator_collect: data.operator_collect.clone(),

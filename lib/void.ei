@@ -1,4 +1,19 @@
 /*
     Copyright (c) 2020 Behemehal. See license file for details
 */
-pub class void {}
+import string;
+
+@version = "1.0.0";
+@description = "Ellie void"
+@notConstructable = true;
+pub class void {
+    @description = "Get type\n[!]Part of the 'typeof' keyword requirement not intended to be used[!@]";
+    @avoidUsage = true;
+    @example = "
+        v age = 12;
+        print(typeof age); //int
+    ";
+    pub fn getType() -> string {
+        ret "void";
+    }
+}

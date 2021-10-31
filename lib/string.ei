@@ -1,4 +1,86 @@
 /*
     Copyright (c) 2020 Behemehal. See license file for details
 */
-pub class string {}
+
+import array;
+import int;
+import char;
+
+@version = "1.0.0";
+@description = "Ellie string"
+@notConstructable = true;
+pub class string {
+    @description = "Get type\n[!]Part of the 'typeof' keyword requirement not intended to be used[!@]";
+    @availableSince = "3.7.3";
+    @avoidUsage = true;
+    @example = "
+        v name = \"ahmet\";
+        print(typeof name); //string
+    ";
+    pub fn getType() -> string {
+        ret "string";
+    }
+
+    @description = "Get size of string";
+    @availableSince = "3.7.3";
+    @example = "
+        v name = \"ahmet\";
+        print(name.len()); //5
+    ";
+    pub fn len() -> int;
+
+    @description = "Make string upperCASE";
+    @availableSince = "3.7.3";
+    @example = "
+        v name = \"ahmet\";
+        print(name.uprCase()); //AHMET
+    ";
+    pub fn uprCase() -> string;
+
+    @description = "Make string loweRcase";
+    @availableSince = "3.7.3";
+    @example = "
+        v name = \"AHMET\";
+        print(name.lwrCase()); //ahmet
+    ";
+    pub fn lwrCase() -> string;
+
+    @description = "Make string's first letter upperCASE";
+    @availableSince = "3.7.3";
+    @example = "
+        v name = \"ahmet\";
+        print(name.fuprCase()); //Ahmet
+    ";
+    pub fn lwrCase() -> string;
+
+    @description = "Convert single letter to char[?]Gives empty '\0' char if string is not convertable";
+    @volatile = true;
+    @availableSince = "3.7.3";
+    @example = "
+        v name = \"a\";
+        v chr : char = name.toChar();
+    ";
+    pub fn toChar() -> char;
+
+    @description = "Convert string to char array";
+    @availableSince = "3.7.3";
+    @example = "
+        v name = \"ahmet\";
+        v chars = name.chars();
+        print(name.len())); //5
+    ";
+    pub fn chars() -> array<char>;
+
+    @description = "Check class equvilent to other\n[!]Part of the equality operator requirement not intended to be used[!@]";
+    @availableSince = "3.7.3";
+    @avoidUsage = true;
+    pub fn eq(dyn other) -> bool {
+        //Get typeof other class
+        if typeof other == "string" {
+            //Cast other as string and compare chars
+            (other as string).chars() == self.chars()
+        } else {
+            ret false;
+        }
+    }
+}

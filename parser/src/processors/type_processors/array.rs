@@ -1,6 +1,7 @@
 use crate::alloc::borrow::ToOwned;
 use crate::parser;
 use crate::processors::{type_processors, value_processor};
+use crate::syntax::types::bracket_reference_type;
 use crate::syntax::{definers, types, variable};
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};
@@ -38,7 +39,7 @@ pub fn collect_array<F, E>(
                 .value
                 .is_type_complete();
 
-        if letter_char == "[" && !data.child_start && is_s_n {
+        if letter_char == "[" && !data.child_start && is_s_n && !data.complete {
             if !data.comma && last_entry != 0 {
                 errors.push(error::Error {
                     path: parser.options.path.clone(),
@@ -292,20 +293,26 @@ pub fn collect_array<F, E>(
                                 reference: Box::new(itered_data.data.value.clone()),
                                 chain: Vec::new(),
                             },
-                            root_available: false,
+                            root_available: true,
                             on_dot: false,
                             complete: false,
                             last_entry: itered_data.data.value.clone().to_definer(),
                         });
-
-                    type_processors::reference::collect_reference(
-                        parser.clone(),
-                        itered_data,
-                        errors,
-                        letter_char,
-                        next_char,
-                        last_char,
-                    )
+                }
+                ellie_core::utils::FoundExtended::BracketReference => {
+                    itered_data.data.value = types::Types::BracketReference(
+                        types::bracket_reference_type::BracketReferenceCollector {
+                            complete: false,
+                            data: types::bracket_reference_type::BracketReference {
+                                pos: defs::Cursor {
+                                    range_start: parser.pos,
+                                    ..Default::default()
+                                },
+                                target: itered_data.data.value.clone().to_definer(),
+                            },
+                            ..Default::default()
+                        },
+                    );
                 }
                 ellie_core::utils::FoundExtended::LogicalOperator => {
                     itered_data.data.value =
@@ -344,6 +351,21 @@ pub fn collect_array<F, E>(
                                 first: Box::new(itered_data.data.value.clone()),
                                 operator: types::operator_type::Operators::ArithmeticType(
                                     types::arithmetic_type::ArithmeticOperators::Null,
+                                ),
+                                ..Default::default()
+                            },
+                            operator_collect: letter_char.to_string(),
+                            first_filled: true,
+                            ..Default::default()
+                        });
+                }
+                ellie_core::utils::FoundExtended::AssignmentOperator => {
+                    itered_data.data.value =
+                        types::Types::Operator(types::operator_type::OperatorTypeCollector {
+                            data: types::operator_type::OperatorType {
+                                first: Box::new(itered_data.data.value.clone()),
+                                operator: types::operator_type::Operators::AssignmentType(
+                                    types::assignment_type::AssignmentOperators::Null,
                                 ),
                                 ..Default::default()
                             },
@@ -548,6 +570,20 @@ pub fn collect_array<F, E>(
                 types::Types::Reference(match_data) => types::array_type::ArrayEntry {
                     value_complete: true,
                     value: Box::new(types::Types::Reference(match_data)),
+                    location: defs::Cursor {
+                        range_start: if data.data.collective.len() != 0
+                            && !data.data.collective[last_entry - 1].location.is_zero()
+                        {
+                            data.data.collective[last_entry - 1].location.range_start
+                        } else {
+                            parser.pos
+                        },
+                        ..Default::default()
+                    },
+                },
+                types::Types::BracketReference(match_data) => types::array_type::ArrayEntry {
+                    value_complete: true,
+                    value: Box::new(types::Types::BracketReference(match_data)),
                     location: defs::Cursor {
                         range_start: if data.data.collective.len() != 0
                             && !data.data.collective[last_entry - 1].location.is_zero()

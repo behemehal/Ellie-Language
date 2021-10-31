@@ -111,8 +111,9 @@ mod function_tests {
     #[test]
     fn function_return_type_collected_with_no_error() {
         let code = "
-            class string {} //Emulate string class
-            fn test() > string {}
+            fn test() > string {
+                ret \"test\";
+            }
         ";
         let emulated_parser = ellie_parser::parser::Parser::new(
             code.to_string(),
@@ -133,15 +134,16 @@ mod function_tests {
                 dynamics: true,
                 collectives: true,
                 variables: true,
-                import_std: false,
+                import_std: true,
                 constants: true,
                 parser_type: ellie_core::defs::ParserType::RawParser,
                 allow_import: true,
             },
         );
         let parsed = emulated_parser.map();
+        let last = parsed.parsed.items[parsed.parsed.items.len() - 1].clone();
         assert!(
-            matches!(parsed.parsed.items[1].clone(), ellie_parser::parser::Collecting::Function(x) if x.data.name == "test" && x.data.return_type.raw_name() == "string" && !x.data.public)
+            matches!(last, ellie_parser::parser::Collecting::Function(x) if x.data.name == "test" && x.data.return_type.raw_name() == "string" && !x.data.public)
                 && parsed.syntax_errors.len() == 0
         );
     }

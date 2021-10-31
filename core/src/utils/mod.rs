@@ -125,9 +125,11 @@ pub fn lower_first_char(line: String) -> String {
 
 pub enum FoundExtended {
     Reference,
+    BracketReference,
     LogicalOperator,
     ComparisonOperator,
     ArithmeticOperator,
+    AssignmentOperator,
     FunctionCall,
 }
 
@@ -154,18 +156,34 @@ pub fn is_extended(letter_char: &str, next_char: &str) -> Option<FoundExtended> 
             || value == "%"
     }
 
+    pub fn is_assignment_operator(value: &str) -> bool {
+        value == "="
+            || value == "+="
+            || value == "-="
+            || value == "*="
+            || value == "/="
+            || value == "%="
+            || value == "**="
+    }
+
     if letter_char == "." {
         Some(FoundExtended::Reference)
+    } else if letter_char == "[" {
+        Some(FoundExtended::BracketReference)
     } else if is_logical_operator(letter_char)
-        && is_logical_operator(&(letter_char.to_string() + &next_char))
+        || is_logical_operator(&(letter_char.to_string() + &next_char))
     {
         Some(FoundExtended::LogicalOperator)
     } else if is_comparison_operator(letter_char)
-        && is_comparison_operator(&(letter_char.to_string() + &next_char))
+        || is_comparison_operator(&(letter_char.to_string() + &next_char))
     {
         Some(FoundExtended::ComparisonOperator)
+    } else if is_assignment_operator(letter_char)
+        || is_assignment_operator(&(letter_char.to_string() + &next_char))
+    {
+        Some(FoundExtended::AssignmentOperator)
     } else if is_arithmetic_operator(letter_char)
-        && is_arithmetic_operator(&(letter_char.to_string() + &next_char))
+        || is_arithmetic_operator(&(letter_char.to_string() + &next_char))
     {
         Some(FoundExtended::ArithmeticOperator)
     } else if letter_char == "(" {

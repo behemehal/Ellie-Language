@@ -75,6 +75,16 @@ pub fn collect_value<F, E>(
             next_char,
             last_char,
         ),
+        types::Types::BracketReference(_) => {
+            type_processors::bracket_reference::collect_bracket_reference(
+                parser,
+                itered_data,
+                errors,
+                letter_char,
+                next_char,
+                last_char,
+            )
+        }
         types::Types::NullResolver(_) => type_processors::null_resolver::collect_null_resolver(
             parser,
             itered_data,

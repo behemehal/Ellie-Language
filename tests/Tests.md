@@ -18,7 +18,7 @@
     - Char                OK  
     - Collective          OK
     - Reference         NOT OK
-    - BraceReference    NOT OK
+    - BracketReference  NOT OK
     - Operator            OK
     - Cloak             NOT OK
     - Array               OK
