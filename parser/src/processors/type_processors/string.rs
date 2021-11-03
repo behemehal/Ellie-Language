@@ -19,7 +19,6 @@ pub fn collect_string<F, E>(
     F: FnMut(ellie_core::com::Message) + core::clone::Clone,
     E: FnMut(ellie_core::defs::ParserOptions, String, bool) -> parser::ResolvedImport
         + Clone
-        + Copy
         + Sized,
 {
     if let types::Types::String(ref mut string_data) = itered_data.data.value {

@@ -208,8 +208,8 @@ impl RawParser {
         self,
         _resolver: fn(defs::ParserOptions, String) -> ResolvedImport,
     ) -> Parser<
-        impl FnMut(com::Message) + Clone + Copy + Sized,
-        impl FnMut(ellie_core::defs::ParserOptions, String, bool) -> ResolvedImport + Clone + Copy + Sized,
+        impl FnMut(com::Message) + Clone + Sized,
+        impl FnMut(ellie_core::defs::ParserOptions, String, bool) -> ResolvedImport + Clone + Sized,
     > {
         Parser {
             scope: self.scope,
@@ -234,8 +234,8 @@ impl RawParser {
     pub fn to_no_resolver_parser(
         self,
     ) -> Parser<
-        impl FnMut(com::Message) + Clone + Copy + Sized,
-        impl FnMut(ellie_core::defs::ParserOptions, String, bool) -> ResolvedImport + Clone + Copy + Sized,
+        impl FnMut(com::Message) + Clone + Sized,
+        impl FnMut(ellie_core::defs::ParserOptions, String, bool) -> ResolvedImport + Clone + Sized,
     > {
         Parser {
             scope: self.scope,
@@ -302,11 +302,8 @@ pub struct ResolvedImport {
 
 impl<F, E> Parser<F, E>
 where
-    F: FnMut(com::Message) + Clone + Copy + Sized,
-    E: FnMut(ellie_core::defs::ParserOptions, String, bool) -> ResolvedImport
-        + Clone
-        + Copy
-        + Sized,
+    F: FnMut(com::Message) + Clone + Sized,
+    E: FnMut(ellie_core::defs::ParserOptions, String, bool) -> ResolvedImport + Clone + Sized,
 {
     pub fn new(
         code: String,

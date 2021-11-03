@@ -1,17 +1,23 @@
 use ellie_core;
 use ellie_parser::parser;
 use regex::Regex;
+use std::{
+    borrow::{Borrow, BorrowMut},
+    sync::{Arc, Mutex},
+};
 use toml::Value;
 
 #[path = "src/terminal_colors.rs"]
 mod terminal_colors;
 //use serde_json;
 use std::{
+    cell::RefCell,
     collections::{hash_map::DefaultHasher, HashMap},
     env,
     fs::{self, File},
     hash::{Hash, Hasher},
     io::Read,
+    rc::Rc,
 };
 
 fn read_file(file_dir: &str) -> Result<String, String> {
@@ -85,18 +91,29 @@ fn parse(contents: String, file_name: String) -> ellie_parser::parser::ParserRes
         file_name,
         terminal_colors::get_color(terminal_colors::Colors::Reset),
     );
-    let mut builded: Vec<(String, ellie_parser::parser::ResolvedImport)> = Vec::new();
+
+    let mut builded: Arc<Mutex<Vec<(String, ellie_parser::parser::ResolvedImport)>>> =
+        Arc::new(Mutex::new(Vec::new()));
 
     let parser = parser::Parser::new(
         contents.clone(),
-        |x, y, z| {
-            let found = builded.into_iter().find(|x| x.0 == y);
+        move |x, y, z| {
+            //let q : &Input = input.borrow_mut();
+            let mut b = builded.lock().unwrap();
+            let found = b.clone().into_iter().find(|x| x.0 == y);
+            std::println!(
+                "RENDER: {:#?}, {}, {}",
+                b.clone().into_iter().map(|x| x.0).collect::<Vec<_>>(),
+                y,
+                found.clone().is_some()
+            );
 
             if let Some(pre_built) = found {
                 pre_built.1
             } else {
-                let built = resolve_import(x, y, z);
-                builded.push((y, built.clone()));
+                let c = b.borrow_mut();
+                let built = resolve_import(x, y.clone(), z);
+                c.push((y, built.clone()));
                 built
             }
         },

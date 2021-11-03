@@ -15,10 +15,9 @@ pub fn collect_char<F, E>(
     next_char: &str,
     last_char: &str,
 ) where
-    F: FnMut(ellie_core::com::Message) + Clone + Copy + Sized,
+    F: FnMut(ellie_core::com::Message) + Clone + Sized,
     E: FnMut(ellie_core::defs::ParserOptions, String, bool) -> parser::ResolvedImport
         + Clone
-        + Copy
         + Sized,
 {
     if let types::Types::Char(ref mut data) = itered_data.data.value {
