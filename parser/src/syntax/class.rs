@@ -3,7 +3,6 @@ use alloc::string::String;
 use alloc::vec::Vec;
 use ellie_core::{definite, defs};
 use serde::{Deserialize, Serialize};
-use std::boxed::Box;
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
 pub struct GenericDefining {
