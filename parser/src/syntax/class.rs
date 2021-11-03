@@ -1,4 +1,5 @@
 use crate::syntax::{constructor, function, getter, setter, variable};
+use alloc::boxed::Box;
 use alloc::string::String;
 use alloc::vec::Vec;
 use ellie_core::{definite, defs};
