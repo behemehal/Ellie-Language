@@ -21,6 +21,7 @@ pub struct GrowableArrayType {
 #[repr(C)]
 pub struct GenericType {
     pub rtype: *mut c_char,
+    pub hash: *mut c_char,
 }
 
 #[repr(C)]

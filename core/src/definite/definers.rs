@@ -22,6 +22,7 @@ pub struct GrowableArrayType {
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct GenericType {
     pub rtype: String,
+    pub hash: String
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]

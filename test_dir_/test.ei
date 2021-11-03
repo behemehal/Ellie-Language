@@ -8,9 +8,19 @@
     }
 */
 
+import tt;
 
-v test = 123;
+class Test {
 
-new test();
+}
+
+v testB = new Test();
+
+test(123);
+
+//HATA:
+//v test = 123;
+//
+//new test();
 
 

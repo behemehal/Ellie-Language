@@ -14,9 +14,10 @@ pub fn collect_enum<F, E>(
     next_char: &str,
     last_char: &str,
 ) where
-    F: FnMut(ellie_core::com::Message) + Clone + Sized,
+    F: FnMut(ellie_core::com::Message) + Clone + Copy + Sized,
     E: FnMut(ellie_core::defs::ParserOptions, String, bool) -> parser::ResolvedImport
         + Clone
+        + Copy
         + Sized,
 {
     let parser_clone = parser.clone();

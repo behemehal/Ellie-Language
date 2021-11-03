@@ -16,15 +16,17 @@ pub fn collect_float<F, E>(
     next_char: &str,
     _last_char: &str,
 ) where
-    F: FnMut(ellie_core::com::Message) + Clone + Sized,
+    F: FnMut(ellie_core::com::Message) + Clone + Copy + Sized,
     E: FnMut(ellie_core::defs::ParserOptions, String, bool) -> parser::ResolvedImport
         + Clone
+        + Copy
         + Sized,
 {
     if let types::Types::Float(ref mut data) = itered_data.data.value {
         if itered_data.data.dynamic {
             itered_data.data.rtype = definers::DefinerCollecting::Generic(definers::GenericType {
                 rtype: "float".to_owned(),
+                hash: "ellie_float_hash".to_owned(),
             });
         }
 

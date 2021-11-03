@@ -23,6 +23,7 @@ pub struct Class {
     pub methods: Vec<function::Function>,
     pub name_pos: defs::Cursor,
     pub pos: defs::Cursor,
+    pub hash: String,
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
@@ -42,6 +43,7 @@ impl ClassCollector {
     pub fn to_definite(self) -> definite::items::class::Class {
         definite::items::class::Class {
             name: self.data.name,
+            hash: self.data.hash,
             public: self.data.public,
             constructor: self.data.constructor.to_definite(),
             generic_definings: self
@@ -86,6 +88,7 @@ impl ClassCollector {
         ClassCollector {
             data: Class {
                 name: from.name,
+                hash: from.hash,
                 public: from.public,
                 constructor: constructor::ConstructorCollector::default()
                     .from_definite(from.constructor)

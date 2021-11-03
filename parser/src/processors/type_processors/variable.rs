@@ -16,9 +16,10 @@ pub fn collect_variable<F, E>(
     next_char: &str,
     last_char: &str,
 ) where
-    F: FnMut(ellie_core::com::Message) + Clone + Sized,
+    F: FnMut(ellie_core::com::Message) + Clone + Copy + Sized,
     E: FnMut(ellie_core::defs::ParserOptions, String, bool) -> parser::ResolvedImport
         + Clone
+        + Copy
         + Sized,
 {
     let itered_data_clone = itered_data.clone();
@@ -142,6 +143,7 @@ pub fn collect_variable<F, E>(
                                             definers::DefinerCollecting::Generic(
                                                 definers::GenericType {
                                                     rtype: class_type.data.name,
+                                                    hash: class_type.data.hash,
                                                 },
                                             );
                                     }
@@ -156,7 +158,8 @@ pub fn collect_variable<F, E>(
                                         itered_data.data.rtype =
                                             definers::DefinerCollecting::Generic(
                                                 definers::GenericType {
-                                                    rtype: "void".to_string(),
+                                                    rtype: "void".to_owned(),
+                                                    hash: "ellie_null_hash".to_owned(),
                                                 },
                                             );
                                     }
@@ -167,6 +170,7 @@ pub fn collect_variable<F, E>(
                                             definers::DefinerCollecting::Generic(
                                                 definers::GenericType {
                                                     rtype: "function".to_string(),
+                                                    hash: "ellie_function_hash".to_owned(),
                                                 },
                                             );
                                     }
@@ -177,6 +181,7 @@ pub fn collect_variable<F, E>(
                                             definers::DefinerCollecting::Generic(
                                                 definers::GenericType {
                                                     rtype: "function".to_string(),
+                                                    hash: "ellie_function_hash".to_owned(),
                                                 },
                                             );
                                     }
@@ -213,6 +218,7 @@ pub fn collect_variable<F, E>(
                             crate::syntax::definers::DefinerCollecting::Generic(
                                 crate::syntax::definers::GenericType {
                                     rtype: "bool".to_owned(),
+                                    hash: "ellie_bool_hash".to_owned(),
                                 },
                             );
                     }
@@ -335,7 +341,7 @@ pub fn collect_variable<F, E>(
                                 },
                             );
                         }
-                        ellie_core::utils::FoundExtended::FunctionCall => todo!(),
+                        ellie_core::utils::FoundExtended::FunctionCall => (),
                     }
                 } else if letter_char != " " {
                     errors.push(error::Error {

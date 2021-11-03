@@ -22,4 +22,5 @@ pub struct Class {
     pub methods: Vec<function::Function>,
     pub name_pos: defs::Cursor,
     pub pos: defs::Cursor,
+    pub hash: String,
 }

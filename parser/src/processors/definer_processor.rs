@@ -16,9 +16,10 @@ pub fn collect_definer<F, E>(
     next_char: &str,
     last_char: &str,
 ) where
-    F: FnMut(ellie_core::com::Message) + Clone + Sized,
+    F: FnMut(ellie_core::com::Message) + Clone + Copy + Sized,
     E: FnMut(ellie_core::defs::ParserOptions, String, bool) -> parser::ResolvedImport
         + Clone
+        + Copy
         + Sized,
 {
     match type_data {
@@ -85,6 +86,7 @@ pub fn collect_definer<F, E>(
                         rtype: syntax::definers::DefinerCollecting::Generic(
                             syntax::definers::GenericType {
                                 rtype: "int".to_owned(),
+                                hash: "ellie_int_hash".to_owned(),
                             },
                         ),
                         ..Default::default()
@@ -134,6 +136,7 @@ pub fn collect_definer<F, E>(
                     bracket_inserted: true,
                     returning: alloc::boxed::Box::new(DefinerCollecting::Generic(GenericType {
                         rtype: "void".to_owned(),
+                        hash: "ellie_void_hash".to_owned(),
                     })),
                     ..Default::default()
                 });

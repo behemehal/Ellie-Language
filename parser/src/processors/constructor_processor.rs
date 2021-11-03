@@ -13,9 +13,10 @@ pub fn collect_constructor<F, E>(
     _next_char: &str,
     last_char: &str,
 ) where
-    F: FnMut(ellie_core::com::Message) + Clone + Sized,
+    F: FnMut(ellie_core::com::Message) + Clone + Copy + Sized,
     E: FnMut(ellie_core::defs::ParserOptions, String, bool) -> parser::ResolvedImport
         + Clone
+        + Copy
         + Sized,
 {
     if let parser::Collecting::Constructor(ref mut constructor_data) = parser.current {

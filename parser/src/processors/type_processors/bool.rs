@@ -16,9 +16,10 @@ pub fn collect_bool<F, E>(
     next_char: &str,
     _last_char: &str,
 ) where
-    F: FnMut(ellie_core::com::Message) + Clone + Sized,
+    F: FnMut(ellie_core::com::Message) + Clone + Copy + Sized,
     E: FnMut(ellie_core::defs::ParserOptions, String, bool) -> parser::ResolvedImport
         + Clone
+        + Copy
         + Sized,
 {
     if let types::Types::Bool(ref mut data) = itered_data.data.value {
@@ -26,6 +27,7 @@ pub fn collect_bool<F, E>(
             itered_data.data.rtype = crate::syntax::definers::DefinerCollecting::Generic(
                 crate::syntax::definers::GenericType {
                     rtype: "bool".to_owned(),
+                    hash: "ellie_bool_hash".to_owned(),
                 },
             );
         }

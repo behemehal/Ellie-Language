@@ -208,8 +208,8 @@ impl RawParser {
         self,
         _resolver: fn(defs::ParserOptions, String) -> ResolvedImport,
     ) -> Parser<
-        impl FnMut(com::Message) + Clone + Sized,
-        impl FnMut(ellie_core::defs::ParserOptions, String, bool) -> ResolvedImport + Clone + Sized,
+        impl FnMut(com::Message) + Clone + Copy + Sized,
+        impl FnMut(ellie_core::defs::ParserOptions, String, bool) -> ResolvedImport + Clone + Copy + Sized,
     > {
         Parser {
             scope: self.scope,
@@ -234,8 +234,8 @@ impl RawParser {
     pub fn to_no_resolver_parser(
         self,
     ) -> Parser<
-        impl FnMut(com::Message) + Clone + Sized,
-        impl FnMut(ellie_core::defs::ParserOptions, String, bool) -> ResolvedImport + Clone + Sized,
+        impl FnMut(com::Message) + Clone + Copy + Sized,
+        impl FnMut(ellie_core::defs::ParserOptions, String, bool) -> ResolvedImport + Clone + Copy + Sized,
     > {
         Parser {
             scope: self.scope,
@@ -278,7 +278,7 @@ pub struct Parser<F, E> {
     pub keyword_errors: Vec<error::Error>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum ResolvedFileContent {
     PreBuilt(Vec<ellie_core::definite::items::Collecting>),
     Raw(String),
@@ -290,7 +290,7 @@ impl Default for ResolvedFileContent {
     }
 }
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone)]
 pub struct ResolvedImport {
     pub found: bool,
     pub resolve_error: String,
@@ -302,8 +302,11 @@ pub struct ResolvedImport {
 
 impl<F, E> Parser<F, E>
 where
-    F: FnMut(com::Message) + Clone + Sized,
-    E: FnMut(ellie_core::defs::ParserOptions, String, bool) -> ResolvedImport + Clone + Sized,
+    F: FnMut(com::Message) + Clone + Copy + Sized,
+    E: FnMut(ellie_core::defs::ParserOptions, String, bool) -> ResolvedImport
+        + Clone
+        + Copy
+        + Sized,
 {
     pub fn new(
         code: String,
@@ -587,6 +590,7 @@ where
                         Ok(definers::DefinerCollecting::Generic(
                             definers::GenericType {
                                 rtype: class_collector.data.name,
+                                hash: constructed_class.data.class_hash(),
                             },
                         ))
                     } else {
@@ -681,6 +685,7 @@ where
                         NameCheckResponseType::Class(c_data) => Ok(
                             definers::DefinerCollecting::Generic(definers::GenericType {
                                 rtype: c_data.data.name,
+                                hash: c_data.data.hash,
                             }),
                         ),
                         NameCheckResponseType::None => panic!("Unexpected parser behaviour"),
@@ -838,6 +843,7 @@ where
                         Err(e) => {
                             found = definers::DefinerCollecting::Generic(definers::GenericType {
                                 rtype: "null".to_owned(),
+                                hash: "ellie_null_hash".to_owned(),
                             });
                             if e.1 == 0 {
                                 errors.push(error::Error {
@@ -911,22 +917,27 @@ where
         }
     }
 
-    pub fn look_up_for_item(self, item: Collecting, target: String) -> Option<Collecting> {
+    pub fn look_up_for_item(
+        self,
+        item: Collecting,
+        target: String,
+        ignore_private: bool,
+    ) -> Option<Collecting> {
         let mut found_item: Option<Collecting> = None;
 
         match item.clone() {
             Collecting::Variable(c) => {
-                if target == c.data.name && c.data.public {
+                if target == c.data.name && (c.data.public || ignore_private) {
                     found_item = Some(item);
                 }
             }
             Collecting::Function(c) => {
-                if target == c.data.name && c.data.public {
+                if target == c.data.name && (c.data.public || ignore_private) {
                     found_item = Some(item);
                 }
             }
             Collecting::Class(c) => {
-                if target == c.data.name && c.data.public {
+                if target == c.data.name && (c.data.public || ignore_private) {
                     found_item = Some(item);
                 }
             }
@@ -936,8 +947,8 @@ where
                 }
             }
             Collecting::ImportItem(c) => {
-                if c.public {
-                    found_item = self.look_up_for_item(*c.item, target);
+                if c.public || ignore_private {
+                    found_item = self.look_up_for_item(*c.item, target, false);
                 }
             }
             _ => found_item = None,
@@ -958,7 +969,8 @@ where
             types::Types::VariableType(e) => {
                 for item in self.collected.clone() {
                     if let Some(looked_up) =
-                        self.clone().look_up_for_item(item, e.data.value.clone())
+                        self.clone()
+                            .look_up_for_item(item, e.data.value.clone(), true)
                     {
                         match looked_up.clone() {
                             Collecting::Variable(c) => {
@@ -1858,6 +1870,7 @@ where
                                 crate::syntax::definers::DefinerCollecting::Generic(
                                     crate::syntax::definers::GenericType {
                                         rtype: "bool".to_owned(),
+                                        hash: "ellie_bool_hash".to_owned(),
                                     },
                                 )
                             }

@@ -15,22 +15,24 @@ pub fn collect_integer<F, E>(
     next_char: &str,
     last_char: &str,
 ) where
-    F: FnMut(ellie_core::com::Message) + Clone + Sized,
+    F: FnMut(ellie_core::com::Message) + Clone + Copy + Sized,
     E: FnMut(ellie_core::defs::ParserOptions, String, bool) -> parser::ResolvedImport
         + Clone
+        + Copy
         + Sized,
 {
     if let types::Types::Integer(ref mut data) = itered_data.data.value {
         if itered_data.data.dynamic {
             itered_data.data.rtype = definers::DefinerCollecting::Generic(definers::GenericType {
                 rtype: "int".to_owned(),
+                hash: "ellie_int_hash".to_owned(),
             });
         }
 
         let is_num = letter_char.parse::<isize>().is_ok();
         if is_num || letter_char == "x" && data.raw.starts_with('0') {
             if data.raw == "0x" {
-                panic!("[ParserError]: Hexadecimal are not supported yet")
+                panic!("[ParserError]: Hexadecimals are not supported yet")
             }
 
             if data.complete && last_char.parse::<isize>().is_err() && last_char != "x" {

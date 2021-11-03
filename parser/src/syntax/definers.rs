@@ -148,15 +148,22 @@ impl GrowableArrayType {
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
 pub struct GenericType {
     pub rtype: String,
+    pub hash: String,
 }
 
 impl GenericType {
     pub fn to_definite(self) -> definite::definers::GenericType {
-        definite::definers::GenericType { rtype: self.rtype }
+        definite::definers::GenericType {
+            rtype: self.rtype,
+            hash: self.hash,
+        }
     }
 
     pub fn from_definite(self, from: definite::definers::GenericType) -> Self {
-        GenericType { rtype: from.rtype }
+        GenericType {
+            rtype: from.rtype,
+            hash: from.hash,
+        }
     }
 }
 
@@ -228,6 +235,27 @@ impl Default for DefinerCollecting {
 }
 
 impl DefinerCollecting {
+    pub fn get_hash(self) -> String {
+        match self {
+            DefinerCollecting::Array(_) => "ellie_array_hash".to_owned(),
+            DefinerCollecting::Future(_) => "ellie_future_hash".to_owned(),
+            DefinerCollecting::GrowableArray(_) => todo!(),
+            DefinerCollecting::Generic(e) => e.hash,
+            DefinerCollecting::Function(_) => "ellie_function_hash".to_owned(),
+            DefinerCollecting::Cloak(e) => {
+                if e.rtype.len() == 1 {
+                    e.rtype[0].clone().get_hash()
+                } else {
+                    "ellie_cloak_hash".to_owned()
+                }
+            }
+            DefinerCollecting::Collective(_) => "ellie_collective_hash".to_owned(),
+            DefinerCollecting::Nullable(_) => "ellie_nullAble_hash".to_owned(),
+            DefinerCollecting::Dynamic => "ellie_dyn_hash".to_owned(),
+            DefinerCollecting::Error(_) => "ellie_error_hash".to_owned(),
+        }
+    }
+
     pub fn to_definite(self) -> definite::definers::DefinerCollecting {
         match self {
             DefinerCollecting::Array(e) => {
@@ -258,6 +286,7 @@ impl DefinerCollecting {
             DefinerCollecting::Error(i) => {
                 definite::definers::DefinerCollecting::Generic(definite::definers::GenericType {
                     rtype: format!("ERR({})", i),
+                    hash: "ellie_error_hash".to_owned(),
                 })
             }
         }

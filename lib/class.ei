@@ -6,4 +6,5 @@ import string;
 @dont_fix_variant=true;
 pub class class {
     pub c name: string;
+    pub c hash: string;
 }

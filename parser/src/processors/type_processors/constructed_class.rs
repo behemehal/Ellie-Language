@@ -17,9 +17,10 @@ pub fn collect_new_call<F, E>(
     next_char: &str,
     last_char: &str,
 ) where
-    F: FnMut(ellie_core::com::Message) + Clone + Sized,
+    F: FnMut(ellie_core::com::Message) + Clone + Copy + Sized,
     E: FnMut(ellie_core::defs::ParserOptions, String, bool) -> parser::ResolvedImport
         + Clone
+        + Copy
         + Sized,
 {
     if let types::Types::ConstructedClass(ref mut new_call_data) = itered_data.data.value {
@@ -313,6 +314,7 @@ pub fn collect_new_call<F, E>(
                     itered_data.data.rtype =
                         definers::DefinerCollecting::Generic(definers::GenericType {
                             rtype: new_call_data.data.clone().class_name(),
+                            hash: new_call_data.data.clone().class_hash(),
                         });
                 }
                 new_call_data.complete = true;

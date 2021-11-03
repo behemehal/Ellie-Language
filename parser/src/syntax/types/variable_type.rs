@@ -14,6 +14,7 @@ pub struct VariableTypeCollector {
     pub data: VariableType,
     pub value_complete: bool,
     pub value_exists: bool,
+    pub resolved_hash: String,
 }
 
 impl VariableTypeCollector {
@@ -30,6 +31,7 @@ impl VariableTypeCollector {
                 value: from.value,
                 pos: from.pos,
             },
+            resolved_hash: String::new(),
             value_exists: false,
             value_complete: true,
         }

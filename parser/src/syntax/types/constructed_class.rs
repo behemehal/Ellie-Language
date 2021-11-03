@@ -28,9 +28,9 @@ impl ConstructedClass {
             types::Types::String(_) => "string".to_owned(),
             types::Types::Char(_) => "char".to_owned(),
             types::Types::Collective(_) => "collective".to_owned(),
-            types::Types::Reference(_) => todo!("Not implemented"),
+            types::Types::Reference(e) => e.last_entry.raw_name(),
             types::Types::BracketReference(_) => todo!("Not implemented"),
-            types::Types::Operator(_) => panic!("UNEXPECTED BEHAVIOUR"),
+            types::Types::Operator(_) => panic!("Not implemented"),
             types::Types::Cloak(_) => "cloak".to_owned(),
             types::Types::Array(_) => "array".to_owned(),
             types::Types::ArrowFunction(_) => "function".to_owned(),
@@ -41,6 +41,36 @@ impl ConstructedClass {
             types::Types::Negative(_) => "bool".to_owned(),
             types::Types::VariableType(e) => e.data.value,
             types::Types::Null => "null".to_owned(),
+        }
+    }
+
+    pub fn class_hash(self) -> String {
+        match *self.value {
+            types::Types::Integer(_) => "ellie_int_hash".to_owned(),
+            types::Types::Float(_) => "ellie_float_hash".to_owned(),
+            types::Types::Bool(_) => "ellie_bool_hash".to_owned(),
+            types::Types::String(_) => "ellie_string_hash".to_owned(),
+            types::Types::Char(_) => "char".to_owned(),
+            types::Types::Collective(_) => "collective".to_owned(),
+            types::Types::Reference(_) => todo!("Not implemented"),
+            types::Types::BracketReference(_) => todo!("Not implemented"),
+            types::Types::Operator(_) => panic!("UNEXPECTED BEHAVIOUR"),
+            types::Types::Cloak(e) => {
+                if e.data.collective.len() == 1 {
+                    e.data.collective[0].value.clone().to_definer().get_hash()
+                } else {
+                    "ellie_cloak_hash".to_owned()
+                }
+            }
+            types::Types::Array(_) => "ellie_array_hash".to_owned(),
+            types::Types::ArrowFunction(_) => "ellie_function_hash".to_owned(),
+            types::Types::ConstructedClass(e) => e.data.class_hash(),
+            types::Types::FunctionCall(e) => e.return_type.get_hash(),
+            types::Types::Void => "ellie_void_hash".to_owned(),
+            types::Types::NullResolver(_) => "ellie_nullResolver_hash".to_owned(),
+            types::Types::Negative(_) => "ellie_bool_hash".to_owned(),
+            types::Types::VariableType(e) => e.resolved_hash,
+            types::Types::Null => "ellie_null_hash".to_owned(),
         }
     }
 }

@@ -17,9 +17,10 @@ pub fn collect_operator<F, E>(
     next_char: &str,
     last_char: &str,
 ) where
-    F: FnMut(ellie_core::com::Message) + core::clone::Clone,
+    F: FnMut(ellie_core::com::Message) + Clone + Copy + Sized,
     E: FnMut(ellie_core::defs::ParserOptions, String, bool) -> parser::ResolvedImport
         + Clone
+        + Copy
         + Sized,
 {
     //TODO SUPPORT first operator parse
@@ -244,6 +245,7 @@ pub fn collect_operator<F, E>(
                             crate::syntax::definers::DefinerCollecting::Generic(
                                 crate::syntax::definers::GenericType {
                                     rtype: "bool".to_owned(),
+                                    hash: "ellie_bool_hash".to_owned(),
                                 },
                             );
                     }

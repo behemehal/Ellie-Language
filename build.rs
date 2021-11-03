@@ -6,7 +6,13 @@ use toml::Value;
 #[path = "src/terminal_colors.rs"]
 mod terminal_colors;
 //use serde_json;
-use std::{collections::hash_map::DefaultHasher, env, fs::{self, File}, hash::{Hash, Hasher}, io::Read};
+use std::{
+    collections::{hash_map::DefaultHasher, HashMap},
+    env,
+    fs::{self, File},
+    hash::{Hash, Hasher},
+    io::Read,
+};
 
 fn read_file(file_dir: &str) -> Result<String, String> {
     let file_read = File::open(file_dir);
@@ -79,9 +85,21 @@ fn parse(contents: String, file_name: String) -> ellie_parser::parser::ParserRes
         file_name,
         terminal_colors::get_color(terminal_colors::Colors::Reset),
     );
+    let mut builded: Vec<(String, ellie_parser::parser::ResolvedImport)> = Vec::new();
+
     let parser = parser::Parser::new(
         contents.clone(),
-        resolve_import,
+        |x, y, z| {
+            let found = builded.into_iter().find(|x| x.0 == y);
+
+            if let Some(pre_built) = found {
+                pre_built.1
+            } else {
+                let built = resolve_import(x, y, z);
+                builded.push((y, built.clone()));
+                built
+            }
+        },
         |_| {},
         ellie_core::defs::ParserOptions {
             path: "./lib/".to_owned() + &file_name.to_string(),
@@ -206,7 +224,7 @@ fn main() {
                             )
                             .unwrap();
 
-                            if lib_version == current_version && !rebuild_std {
+                            if lib_version == current_version && rebuild_std {
                                 eprintln!(
                                     "\nCompiling Ellie standard library {}v{}{} is not required",
                                     terminal_colors::get_color(terminal_colors::Colors::Yellow),

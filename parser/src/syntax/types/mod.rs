@@ -137,26 +137,31 @@ impl Types {
             Types::Integer(_) => crate::syntax::definers::DefinerCollecting::Generic(
                 crate::syntax::definers::GenericType {
                     rtype: "int".to_owned(),
+                    hash: "ellie_int_hash".to_owned(),
                 },
             ),
             Types::Float(_) => crate::syntax::definers::DefinerCollecting::Generic(
                 crate::syntax::definers::GenericType {
                     rtype: "float".to_owned(),
+                    hash: "ellie_float_hash".to_owned(),
                 },
             ),
             Types::Bool(_) => crate::syntax::definers::DefinerCollecting::Generic(
                 crate::syntax::definers::GenericType {
                     rtype: "bool".to_owned(),
+                    hash: "ellie_bool_hash".to_owned(),
                 },
             ),
             Types::String(_) => crate::syntax::definers::DefinerCollecting::Generic(
                 crate::syntax::definers::GenericType {
                     rtype: "string".to_owned(),
+                    hash: "ellie_string_hash".to_owned(),
                 },
             ),
             Types::Char(_) => crate::syntax::definers::DefinerCollecting::Generic(
                 crate::syntax::definers::GenericType {
                     rtype: "char".to_owned(),
+                    hash: "ellie_char_hash".to_owned(),
                 },
             ),
             Types::Collective(e) => {
@@ -204,6 +209,7 @@ impl Types {
                     crate::syntax::definers::DefinerCollecting::Generic(
                         crate::syntax::definers::GenericType {
                             rtype: "bool".to_owned(),
+                            hash: "ellie_bool_hash".to_owned(),
                         },
                     )
                 }
@@ -271,29 +277,34 @@ impl Types {
             ),
             Types::ConstructedClass(e) => crate::syntax::definers::DefinerCollecting::Generic(
                 crate::syntax::definers::GenericType {
-                    rtype: e.data.class_name(),
+                    rtype: e.data.clone().class_name(),
+                    hash: e.data.class_hash(),
                 },
             ),
             Types::FunctionCall(e) => e.return_type,
             Types::Void => crate::syntax::definers::DefinerCollecting::Generic(
                 crate::syntax::definers::GenericType {
                     rtype: "void".to_owned(),
+                    hash: "ellie_void_hash".to_owned(),
                 },
             ),
             Types::NullResolver(e) => e.value.to_definer(),
             Types::Negative(_) => crate::syntax::definers::DefinerCollecting::Generic(
                 crate::syntax::definers::GenericType {
                     rtype: "bool".to_owned(),
+                    hash: "ellie_bool_hash".to_owned(),
                 },
             ),
             Types::VariableType(e) => crate::syntax::definers::DefinerCollecting::Generic(
                 crate::syntax::definers::GenericType {
                     rtype: e.data.value,
+                    hash: e.resolved_hash,
                 },
             ),
             Types::Null => crate::syntax::definers::DefinerCollecting::Generic(
                 crate::syntax::definers::GenericType {
                     rtype: "null".to_owned(),
+                    hash: "ellie_null_hash".to_owned(),
                 },
             ),
         }

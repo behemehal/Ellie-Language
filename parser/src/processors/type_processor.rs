@@ -17,9 +17,10 @@ pub fn collect_type<F, E>(
     last_char: &str,
     next_char: &str,
 ) where
-    F: FnMut(ellie_core::com::Message) + Clone + Sized,
+    F: FnMut(ellie_core::com::Message) + Clone + Copy + Sized,
     E: FnMut(ellie_core::defs::ParserOptions, String, bool) -> parser::ResolvedImport
         + Clone
+        + Copy
         + Sized,
 {
     let keyword = utils::trim_good(parser.keyword_catch.trim_start().to_string()); //one step next

@@ -15,9 +15,10 @@ pub fn collect_function<F, E>(
     next_char: &str,
     last_char: &str,
 ) where
-    F: FnMut(ellie_core::com::Message) + Clone + Sized,
+    F: FnMut(ellie_core::com::Message) + Clone + Copy + Sized,
     E: FnMut(ellie_core::defs::ParserOptions, String, bool) -> parser::ResolvedImport
         + Clone
+        + Copy
         + Sized,
 {
     let parser_clone = parser.clone();
@@ -310,6 +311,7 @@ pub fn collect_function<F, E>(
                     function_data.data.return_type =
                         definers::DefinerCollecting::Generic(definers::GenericType {
                             rtype: "void".to_owned(),
+                            hash: "ellie_void_hash".to_owned(),
                         });
                     function_data.data.pos.range_end = parser.pos.clone().skip_char(1);
                     parser.collected.push(parser::Collecting::NativeFunction(
@@ -320,6 +322,7 @@ pub fn collect_function<F, E>(
                     function_data.data.return_type =
                         definers::DefinerCollecting::Generic(definers::GenericType {
                             rtype: "void".to_owned(),
+                            hash: "ellie_void_hash".to_owned(),
                         });
                     function_data.return_typed = true;
                 } else if letter_char != " " {
