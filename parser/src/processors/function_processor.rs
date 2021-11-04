@@ -446,14 +446,14 @@ pub fn collect_function<F, E>(
                                                     .value
                                                     .clone()
                                                     .to_definer()
-                                                    .raw_name_with_extensions(),
+                                                    .raw_name_with_extensions_with_hashes(),
                                             },
                                             error::ErrorBuildField {
                                                 key: "token1".to_owned(),
                                                 value: function_data
                                                     .data
                                                     .return_type
-                                                    .raw_name_with_extensions(),
+                                                    .raw_name_with_extensions_with_hashes(),
                                             },
                                         ],
                                     ),

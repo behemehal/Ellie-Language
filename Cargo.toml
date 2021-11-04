@@ -43,6 +43,7 @@ name = "benches"
 harness = false
 
 [build-dependencies]
+lazy_static = "1.4.0"
 ellie_parser = {path = "parser", version = "1.7.3", default-features = false}
 ellie_core = {path = "core", version = "1.0.0"}
 serde_json = { version = "1.0", default-features = false, features = ["alloc"] }

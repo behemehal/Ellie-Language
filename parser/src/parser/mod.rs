@@ -191,6 +191,7 @@ pub struct RawParser {
     pub code: String,
     pub options: defs::ParserOptions,
     pub collected: Vec<Collecting>,
+    pub built_libraries: Vec<(String, ParserResponse)>,
     pub generic_variables: Vec<class::GenericDefining>,
     pub pos: defs::CursorPosition,
     pub on_comment: bool,
@@ -209,7 +210,7 @@ impl RawParser {
         _resolver: fn(defs::ParserOptions, String) -> ResolvedImport,
     ) -> Parser<
         impl FnMut(com::Message) + Clone + Sized,
-        impl FnMut(ellie_core::defs::ParserOptions, String, bool) -> ResolvedImport + Clone + Sized,
+        impl FnMut(Parser<(), ()>, String, bool) -> ResolvedImport + Clone + Sized,
     > {
         Parser {
             scope: self.scope,
@@ -219,6 +220,7 @@ impl RawParser {
             options: self.options,
             collected: self.collected,
             generic_variables: self.generic_variables,
+            built_libraries: self.built_libraries,
             pos: self.pos,
             on_comment: self.on_comment,
             on_line_comment: self.on_line_comment,
@@ -245,6 +247,7 @@ impl RawParser {
             options: self.options,
             collected: self.collected,
             generic_variables: self.generic_variables,
+            built_libraries: self.built_libraries,
             pos: self.pos,
             on_comment: self.on_comment,
             on_line_comment: self.on_line_comment,
@@ -267,6 +270,7 @@ pub struct Parser<F, E> {
     pub options: defs::ParserOptions,
     pub collected: Vec<Collecting>,
     pub generic_variables: Vec<class::GenericDefining>,
+    pub built_libraries: Vec<(String, ParserResponse)>,
     pub pos: defs::CursorPosition,
     pub on_comment: bool,
     pub on_line_comment: bool,
@@ -278,9 +282,9 @@ pub struct Parser<F, E> {
     pub keyword_errors: Vec<error::Error>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum ResolvedFileContent {
-    PreBuilt(Vec<ellie_core::definite::items::Collecting>),
+    PreBuilt(ParserResponse),
     Raw(String),
 }
 
@@ -290,7 +294,7 @@ impl Default for ResolvedFileContent {
     }
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct ResolvedImport {
     pub found: bool,
     pub resolve_error: String,
@@ -319,6 +323,7 @@ where
             options,
             collected: Vec::new(),
             generic_variables: Vec::new(),
+            built_libraries: Vec::new(),
             pos: defs::CursorPosition(0, 0),
             keyword_pos: defs::Cursor::default(),
             ignore_line: false,
@@ -334,8 +339,11 @@ where
     pub fn read_module(self, code: String, path: String) -> ParserResponse {
         let mut new_options = self.options.clone();
         new_options.path = path;
+        new_options.ignore_imports = true;
         new_options.parser_type = ellie_core::defs::ParserType::RawParser;
-        Parser::new(code, self.resolver, self.emit_message, new_options).map()
+        let mut parser = Parser::new(code, self.resolver, self.emit_message, new_options);
+        parser.built_libraries = self.built_libraries.clone();
+        parser.map()
     }
 
     pub fn read_native_header(self, code: String, path: String) -> ParserResponse {
@@ -352,6 +360,7 @@ where
             options: self.options,
             collected: self.collected,
             generic_variables: self.generic_variables,
+            built_libraries: self.built_libraries,
             pos: self.pos,
             on_comment: self.on_comment,
             on_line_comment: self.on_line_comment,

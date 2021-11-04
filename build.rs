@@ -1,11 +1,20 @@
+#[macro_use]
+extern crate lazy_static;
+
 use ellie_core;
 use ellie_parser::parser;
 use regex::Regex;
 use std::{
     borrow::{Borrow, BorrowMut},
-    sync::{Arc, Mutex},
+    cell::Ref,
+    sync::{Arc, Mutex, PoisonError},
 };
 use toml::Value;
+
+lazy_static! {
+    static ref PRE_BUILT: Mutex<Vec<(String, ellie_parser::parser::ResolvedImport)>> =
+        Mutex::new(Vec::new());
+}
 
 #[path = "src/terminal_colors.rs"]
 mod terminal_colors;
@@ -92,28 +101,48 @@ fn parse(contents: String, file_name: String) -> ellie_parser::parser::ParserRes
         terminal_colors::get_color(terminal_colors::Colors::Reset),
     );
 
-    let mut builded: Arc<Mutex<Vec<(String, ellie_parser::parser::ResolvedImport)>>> =
-        Arc::new(Mutex::new(Vec::new()));
+    let mut builded: Mutex<Vec<(String, ellie_parser::parser::ResolvedImport)>> =
+        Mutex::new(Vec::new());
 
+    let mut builded: Vec<(String, ellie_parser::parser::ResolvedImport)> = Vec::new();
     let parser = parser::Parser::new(
         contents.clone(),
-        move |x, y, z| {
+        |x, y, z| {
             //let q : &Input = input.borrow_mut();
-            let mut b = builded.lock().unwrap();
-            let found = b.clone().into_iter().find(|x| x.0 == y);
-            std::println!(
-                "RENDER: {:#?}, {}, {}",
-                b.clone().into_iter().map(|x| x.0).collect::<Vec<_>>(),
-                y,
-                found.clone().is_some()
-            );
+            //let mut b = builded.lock().unwrap();
+            //let found = b.clone().into_iter().find(|x| x.0 == y);
+            //std::println!(
+            //    "RENDER: {:#?}, {}, {}",
+            //    b.clone().into_iter().map(|x| x.0).collect::<Vec<_>>(),
+            //    y,
+            //    found.clone().is_some()
+            //);
+            //if let Some(pre_built) = found {
+            //    pre_built.1
+            //} else {
+            //    let c = b.borrow_mut();
+            //    let built = resolve_import(x, y.clone(), z);
+            //    c.push((y, built.clone()));
+            //    built
+            //}
 
-            if let Some(pre_built) = found {
-                pre_built.1
+            let first_lock = PRE_BUILT
+                .lock()
+                .unwrap_or_else(PoisonError::into_inner)
+                .clone()
+                .into_iter()
+                .find(|x| x.0 == y);
+            if let Some((_, import)) = first_lock.clone() {
+                drop(first_lock);
+                import
             } else {
-                let c = b.borrow_mut();
                 let built = resolve_import(x, y.clone(), z);
-                c.push((y, built.clone()));
+                let second_lock = PRE_BUILT
+                    .lock()
+                    .unwrap_or_else(PoisonError::into_inner)
+                    .push((y, built.clone()));
+
+                drop(second_lock);
                 built
             }
         },
@@ -134,6 +163,7 @@ fn parse(contents: String, file_name: String) -> ellie_parser::parser::ParserRes
             line_ending: "\\n".to_owned(),
             collectives: true,
             variables: true,
+            ignore_imports: false,
             constants: true,
             parser_type: ellie_core::defs::ParserType::RawParser,
             allow_import: true,
@@ -166,6 +196,7 @@ fn parse(contents: String, file_name: String) -> ellie_parser::parser::ParserRes
 
 fn main() {
     let rebuild_std = env::args().any(|x| x == "-rstd" || x == "--rebuild-std");
+    let ignore_rebuild = env::args().any(|x| x == "-ibstd" || x == "--ignore-build-std");
     let ellie_version;
     let ellie_version_name;
     let parser_version;
@@ -241,7 +272,7 @@ fn main() {
                             )
                             .unwrap();
 
-                            if lib_version == current_version && rebuild_std {
+                            if lib_version == current_version {
                                 eprintln!(
                                     "\nCompiling Ellie standard library {}v{}{} is not required",
                                     terminal_colors::get_color(terminal_colors::Colors::Yellow),

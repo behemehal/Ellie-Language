@@ -64,7 +64,9 @@ impl ConstructedClass {
             }
             types::Types::Array(_) => "ellie_array_hash".to_owned(),
             types::Types::ArrowFunction(_) => "ellie_function_hash".to_owned(),
-            types::Types::ConstructedClass(e) => e.data.class_hash(),
+            types::Types::ConstructedClass(e) => {
+                e.data.class_hash()
+            },
             types::Types::FunctionCall(e) => e.return_type.get_hash(),
             types::Types::Void => "ellie_void_hash".to_owned(),
             types::Types::NullResolver(_) => "ellie_nullResolver_hash".to_owned(),

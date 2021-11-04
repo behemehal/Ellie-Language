@@ -4,6 +4,7 @@ use ellie_runtime::runtime;
 use fs::File;
 use std::env;
 use std::path::Path;
+use std::sync::{Mutex, PoisonError};
 use std::{fs, io::Read};
 
 fn main() {
@@ -60,6 +61,7 @@ fn main() {
             println!("\t-fi                                  : Filter out imports");
             println!("\t-dstd                                : Don't import std [NOT RECOMMENDED]");
             println!("\t-rstd                                : Rebuild std");
+            println!("\t-ibstd                               : Ignore std build trigger");
         }
     } else {
         let args = env::args()
@@ -132,6 +134,9 @@ fn main() {
                             );
                             std::process::exit(0);
                         } else {
+                            let mut builded: Mutex<
+                                Vec<(String, ellie_parser::parser::ResolvedImport)>,
+                            > = Mutex::new(Vec::new());
                             let mut parser = parser::Parser::new(
                                 code.clone(),
                                 ellie_engine::cli_utils::resolve_import,
@@ -181,6 +186,7 @@ fn main() {
                                     import_std: !env::args().any(|x| x == "-dstd"),
                                     global_variables: true,
                                     getters: true,
+                                    ignore_imports: false,
                                     setters: true,
                                     line_ending: if env::consts::OS == "windows" {
                                         "\\r\\n".to_owned()
@@ -527,9 +533,36 @@ fn main() {
                             );
                             std::process::exit(0);
                         } else {
+                            let mut builded: Mutex<
+                                Vec<(String, ellie_parser::parser::ResolvedImport)>,
+                            > = Mutex::new(Vec::new());
                             let parser = parser::Parser::new(
                                 code.clone(),
-                                ellie_engine::cli_utils::resolve_import,
+                                |x, y, z| {
+                                    let first_lock = builded
+                                        .lock()
+                                        .unwrap_or_else(PoisonError::into_inner)
+                                        .clone()
+                                        .into_iter()
+                                        .find(|x| x.0 == y);
+                                    if let Some((_, import)) = first_lock.clone() {
+                                        drop(first_lock);
+                                        import
+                                    } else {
+                                        let built = ellie_engine::cli_utils::resolve_import(
+                                            x,
+                                            y.clone(),
+                                            z,
+                                        );
+                                        let second_lock = builded
+                                            .lock()
+                                            .unwrap_or_else(PoisonError::into_inner)
+                                            .push((y, built.clone()));
+
+                                        drop(second_lock);
+                                        built
+                                    }
+                                },
                                 |e| {
                                     if env::args().any(|x| x == "--parser-messages" || x == "-pm") {
                                         println!(
@@ -571,6 +604,7 @@ fn main() {
                                     import_std: !env::args().any(|x| x == "-dstd"),
                                     loops: true,
                                     conditions: true,
+                                    ignore_imports: false,
                                     classes: true,
                                     enums: true,
                                     dynamics: true,

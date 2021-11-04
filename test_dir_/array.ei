@@ -1,0 +1,11 @@
+/*
+    Copyright (c) 2020 Behemehal. See license file for details
+*/
+import string;
+import int;
+
+pub class array<Type> {
+    pub fn getType() -> string {
+        ret "array";
+    }
+}

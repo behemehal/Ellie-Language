@@ -15,3 +15,4 @@ pub mod ret;
 pub mod setter;
 pub mod types;
 pub mod variable;
+pub mod typeDef;

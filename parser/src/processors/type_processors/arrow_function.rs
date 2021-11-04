@@ -579,6 +579,7 @@ pub fn collect_arrow<F, E>(
                             if return_item.value.clone().to_definer()
                                 != function_data.data.return_type
                             {
+                                panic!("{:#?}", return_item.value.clone().to_definer());
                                 errors.push(error::Error {
                                     path: parser.options.path.clone(),
                                     scope: parser.scope.scope_name.clone(),
@@ -595,14 +596,14 @@ pub fn collect_arrow<F, E>(
                                                     .value
                                                     .clone()
                                                     .to_definer()
-                                                    .raw_name_with_extensions(),
+                                                    .raw_name_with_extensions_with_hashes(),
                                             },
                                             error::ErrorBuildField {
                                                 key: "token1".to_owned(),
                                                 value: function_data
                                                     .data
                                                     .return_type
-                                                    .raw_name_with_extensions(),
+                                                    .raw_name_with_extensions_with_hashes(),
                                             },
                                         ],
                                     ),

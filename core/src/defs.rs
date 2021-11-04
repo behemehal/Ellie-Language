@@ -34,6 +34,7 @@ pub struct ParserOptions {
     pub variables: bool,
     pub import_std: bool,
     pub constants: bool,
+    pub ignore_imports: bool,
     pub parser_type: ParserType,
     pub allow_import: bool,
 }
@@ -55,6 +56,7 @@ impl Default for ParserOptions {
             dynamics: true,
             import_std: true,
             collectives: true,
+            ignore_imports: false,
             variables: true,
             constants: true,
             parser_type: ParserType::RawParser,

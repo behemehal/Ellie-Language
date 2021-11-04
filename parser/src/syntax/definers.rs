@@ -475,6 +475,53 @@ impl DefinerCollecting {
         }
     }
 
+    pub fn raw_name_with_extensions_with_hashes(&self) -> String {
+        match self {
+            DefinerCollecting::Array(e) => {
+                "array(".to_owned()
+                    + &e.len.raw.to_string()
+                    + &",".to_owned()
+                    + &*e.rtype.raw_name_with_extensions()
+                    + &")".to_owned()
+            }
+            DefinerCollecting::Future(e) => {
+                "future(".to_owned() + &*e.value.raw_name_with_extensions() + &")".to_owned()
+            }
+            DefinerCollecting::GrowableArray(e) => {
+                "growableArray(".to_owned()
+                    + &*e.rtype.raw_name_with_extensions().to_string()
+                    + &")".to_owned()
+            }
+            DefinerCollecting::Nullable(e) => "_".to_owned() + &*e.value.raw_name_with_extensions(),
+            DefinerCollecting::Generic(data) => format!("{}({})", data.rtype.clone(), data.hash),
+            DefinerCollecting::Function(e) => {
+                let mut params = String::new();
+                for i in &e.params {
+                    params += &format!("{},", i.raw_name_with_extensions().to_string()).to_string();
+                }
+
+                "fn(".to_owned()
+                    + &params
+                    + &")::".to_owned()
+                    + &*e.returning.raw_name_with_extensions().to_string()
+            }
+            DefinerCollecting::Cloak(e) => {
+                let mut params = String::new();
+                for i in &e.rtype {
+                    params += &format!("{},", i.raw_name_with_extensions()).to_string();
+                }
+                "cloak(".to_owned() + &params + &")".to_owned()
+            }
+            DefinerCollecting::Collective(e) => format!(
+                "collective({}, {})",
+                e.key.raw_name_with_extensions(),
+                e.value.raw_name_with_extensions()
+            ),
+            DefinerCollecting::Dynamic => "dyn".to_owned(),
+            DefinerCollecting::Error(i) => format!("unexpectedBehavior({})", i),
+        }
+    }
+
     pub fn raw_name_with_extensions(&self) -> String {
         match self {
             DefinerCollecting::Array(e) => {

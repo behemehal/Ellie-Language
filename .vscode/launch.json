@@ -18,5 +18,19 @@
       "args": ["./test_dir_/test.ei", "-d"],
       "cwd": "${workspaceFolder}"
     },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug builder file",
+      "cargo": {
+        "args": ["build", "--bin=ellie", "--package=ellie_engine"],
+        "filter": {
+          "name": "ellie",
+          "kind": "bin"
+        }
+      },
+      "args": ["./test_dir_/test.ei", "-d"],
+      "cwd": "${workspaceFolder}"
+    },
   ]
 }

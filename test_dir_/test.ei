@@ -8,6 +8,7 @@
     }
 */
 
+/*
 import tt;
 
 class Test {
@@ -17,6 +18,7 @@ class Test {
 v testB = new Test();
 
 test(123);
+*/
 
 //HATA:
 //v test = 123;
@@ -24,3 +26,9 @@ test(123);
 //new test();
 
 
+//pub fn getType() -> string {
+//    ret "array";
+//}
+
+pub import void;
+pub import string;

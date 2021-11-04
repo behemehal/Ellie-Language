@@ -4,6 +4,7 @@ use std::{
     hash::{Hash, Hasher},
     io::Read,
     path::Path,
+    sync::{Mutex, PoisonError},
 };
 
 extern crate path_absolutize;
@@ -45,6 +46,7 @@ pub fn parse(contents: String, file_name: String) -> ellie_parser::parser::Parse
             dynamics: true,
             global_variables: true,
             getters: true,
+            ignore_imports: false,
             setters: true,
             line_ending: "\\n".to_owned(),
             collectives: true,
@@ -101,69 +103,37 @@ pub fn resolve_import(
         } else {
             ""
         };
+    match read_file(Path::new(&path).absolutize().unwrap().to_str().unwrap()) {
+        Ok(file) => {
+            let mut hasher = DefaultHasher::new();
+            file.hash(&mut hasher);
 
-    if lib_name == "ellie" {
-        let mut id_hasher = DefaultHasher::new();
-        ellie_core::utils::generate_hash().hash(&mut id_hasher);
-        let mut hasher = DefaultHasher::new();
-        ellie_core::builded_libraries::ELLIE_STANDARD_LIBRARY.hash(&mut hasher);
-        ellie_parser::parser::ResolvedImport {
-            found: true,
-            resolved_path: "<virtual>".to_owned(),
-            file_content: ellie_parser::parser::ResolvedFileContent::Raw(
-                ellie_core::builded_libraries::ELLIE_STANDARD_LIBRARY.to_string(),
-            ),
-            resolution_id: hasher.finish(),
-            id: id_hasher.finish(),
-            ..Default::default()
-        }
-    } else {
-        if Path::new(&path).absolutize().unwrap().to_str().unwrap()
-            == Path::new(&options.path.clone())
-                .absolutize()
-                .unwrap()
-                .to_str()
-                .unwrap()
-        {
+            let mut id_hasher = DefaultHasher::new();
+            ellie_core::utils::generate_hash().hash(&mut id_hasher);
+
             ellie_parser::parser::ResolvedImport {
-                found: false,
-                resolve_error: "Importing this file causes infinite loop".to_owned(),
+                found: true,
+                file_content: ellie_parser::parser::ResolvedFileContent::Raw(file),
+                resolved_path: Path::new(&path)
+                    .absolutize()
+                    .unwrap()
+                    .to_str()
+                    .unwrap()
+                    .to_string(),
+                resolution_id: hasher.finish(),
+                id: id_hasher.finish(),
                 ..Default::default()
             }
-        } else {
-            match read_file(Path::new(&path).absolutize().unwrap().to_str().unwrap()) {
-                Ok(file) => {
-                    let mut hasher = DefaultHasher::new();
-                    file.hash(&mut hasher);
-
-                    let mut id_hasher = DefaultHasher::new();
-                    ellie_core::utils::generate_hash().hash(&mut id_hasher);
-
-                    ellie_parser::parser::ResolvedImport {
-                        found: true,
-                        file_content: ellie_parser::parser::ResolvedFileContent::Raw(file),
-                        resolved_path: Path::new(&path)
-                            .absolutize()
-                            .unwrap()
-                            .to_str()
-                            .unwrap()
-                            .to_string(),
-                        resolution_id: hasher.finish(),
-                        id: id_hasher.finish(),
-                        ..Default::default()
-                    }
-                }
-                Err(c) => ellie_parser::parser::ResolvedImport {
-                    found: false,
-                    resolve_error: format!(
-                        "Cannot find module '{}' ({})",
-                        Path::new(&path).absolutize().unwrap().to_str().unwrap(),
-                        c
-                    ),
-                    ..Default::default()
-                },
-            }
         }
+        Err(c) => ellie_parser::parser::ResolvedImport {
+            found: false,
+            resolve_error: format!(
+                "Cannot find module '{}' ({})",
+                Path::new(&path).absolutize().unwrap().to_str().unwrap(),
+                c
+            ),
+            ..Default::default()
+        },
     }
 }
 
