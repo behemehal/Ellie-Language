@@ -2,13 +2,9 @@ use alloc::string::String;
 
 #[derive(Clone, Debug)]
 pub enum MessageType {
-    ParserLineExec,
-    ParserImportItem,
-    ParserImportNativeItem,
-    ParserVariableItem,
-    ParserFunctionItem,
-    ParserClassItem,
-    ParseComplete,
+    TokenizerLineExec,
+    TokenizerImportItem,
+    TokenizeComplete,
 }
 
 #[derive(Clone, Debug)]

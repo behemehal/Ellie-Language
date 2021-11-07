@@ -3,21 +3,21 @@ use alloc::string::String;
 use serde::{Deserialize, Serialize};
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-pub enum ParserType {
-    RawParser,
+pub enum TokenizerType {
+    Raw,
     ClassParser,
     FunctionParser,
     HeaderParser,
 }
 
-impl Default for ParserType {
+impl Default for TokenizerType {
     fn default() -> Self {
-        ParserType::RawParser
+        TokenizerType::Raw
     }
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-pub struct ParserOptions {
+pub struct TokenizerOptions {
     pub path: String,
     pub functions: bool,
     pub break_on_error: bool,
@@ -35,13 +35,13 @@ pub struct ParserOptions {
     pub import_std: bool,
     pub constants: bool,
     pub ignore_imports: bool,
-    pub parser_type: ParserType,
+    pub parser_type: TokenizerType,
     pub allow_import: bool,
 }
 
-impl Default for ParserOptions {
+impl Default for TokenizerOptions {
     fn default() -> Self {
-        ParserOptions {
+        TokenizerOptions {
             path: "".to_owned(),
             functions: true,
             break_on_error: false,
@@ -59,7 +59,7 @@ impl Default for ParserOptions {
             ignore_imports: false,
             variables: true,
             constants: true,
-            parser_type: ParserType::RawParser,
+            parser_type: TokenizerType::Raw,
             allow_import: true,
         }
     }
