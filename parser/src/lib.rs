@@ -10,6 +10,3 @@ extern crate alloc;
 #[cfg(feature = "std")]
 extern crate std;
 
-pub mod parser;
-pub mod processors;
-pub mod syntax;

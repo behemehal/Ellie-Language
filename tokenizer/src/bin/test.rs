@@ -1,3 +1,5 @@
+use ellie_core::defs;
+use ellie_tokenizer::processors::{items::*, Processor};
 use std::{
     collections::hash_map::DefaultHasher,
     fs::File,
@@ -5,19 +7,27 @@ use std::{
     io::Read,
 };
 
-use ellie_tokenizer::processors::{items::*, Processor};
-
 fn main() {
     println!("OK");
 
-    let code = "int>";
+    let code = "{int, string}";
 
+    let mut pos = defs::CursorPosition::default();
     let mut processor: definer_processor::DefinerProcessor = Processor::new();
     let mut last_char = '\0';
     for letter_char in code.chars() {
         println!("CHAR: {}", letter_char);
-        processor.iterate(last_char, letter_char);
+        processor.iterate(pos, last_char, letter_char);
+        pos.skip_char(1);
         last_char = letter_char;
+
+        if processor.is_complete() {
+            panic!("TOKENIZE COMPLETE: {:#?}", processor);
+        }
+    }
+
+    if processor.has_error() {
+        panic!("Errors occured: {:#?}", processor.errors());
     }
 
     /*
