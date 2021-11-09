@@ -94,50 +94,37 @@ impl Processor for DefinerProcessor {
     fn iterate(&mut self, cursor: defs::CursorPosition, last_char: char, letter_char: char) {
         match self.definer_type {
             DefinerTypes::Cloak(ref mut cloak_type) => {
-                let cloak_entries_len = cloak_type.entries.len();
-                if (letter_char == ')' || letter_char == ',')
-                    && (cloak_entries_len == 0 || cloak_type.child_cache.complete)
-                {
-                    if letter_char == ',' && cloak_type.child_cache.complete {
-                        if cloak_type.at_comma {
-                            self.errors.push(error::errorList::error_s1.clone().build(
-                                vec![error::ErrorBuildField {
-                                    key: "token".to_string(),
-                                    value: letter_char.to_string(),
-                                }],
-                                "0x110".to_owned(),
-                                defs::Cursor {
-                                    range_start: cursor,
-                                    range_end: cursor.clone().skip_char(1),
-                                },
-                            ));
-                        }
-                        cloak_type.at_comma = true;
-                        if cloak_entries_len == 0 && !cloak_type.child_cache.complete {
-                            self.errors.push(error::errorList::error_s1.clone().build(
-                                vec![error::ErrorBuildField {
-                                    key: "token".to_string(),
-                                    value: letter_char.to_string(),
-                                }],
-                                "0x110".to_owned(),
-                                defs::Cursor {
-                                    range_start: cursor,
-                                    range_end: cursor.clone().skip_char(1),
-                                },
-                            ));
-                        } else {
-                            cloak_type
-                                .entries
-                                .push(cloak_type.child_cache.definer_type.clone());
-                            cloak_type.child_cache = Box::new(DefinerProcessor::default());
-                        }
-                    } else {
+                if cloak_type.child_cache.complete && letter_char == ',' && !cloak_type.at_comma {
+                    cloak_type.at_comma = true;
+                    let entries_len = cloak_type.entries.len();
+                    if entries_len == 0 {
                         cloak_type
                             .entries
-                            .push(cloak_type.child_cache.definer_type.clone());
-                        cloak_type.child_cache = Box::new(DefinerProcessor::default());
-                        self.complete = true;
+                            .push(cloak_type.child_cache.definer_type.clone())
+                    } else {
+                        cloak_type.entries[entries_len - 1] =
+                            cloak_type.child_cache.definer_type.clone();
                     }
+
+                    cloak_type.child_cache = Box::new(DefinerProcessor::default());
+                    cloak_type
+                        .entries
+                        .push(DefinerTypes::Generic(GenericType::default()));
+                } else if cloak_type.child_cache.complete
+                    && letter_char == ')'
+                    && !cloak_type.at_comma
+                {
+                    let entries_len = cloak_type.entries.len();
+                    if entries_len == 0 {
+                        cloak_type
+                            .entries
+                            .push(cloak_type.child_cache.definer_type.clone())
+                    } else {
+                        cloak_type.entries[entries_len - 1] =
+                            cloak_type.child_cache.definer_type.clone();
+                    }
+                    cloak_type.child_cache = Box::new(DefinerProcessor::default());
+                    self.complete = true;
                 } else {
                     cloak_type.at_comma = false;
                     cloak_type
