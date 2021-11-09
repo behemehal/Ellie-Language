@@ -95,9 +95,6 @@ impl Processor for DefinerProcessor {
         match self.definer_type {
             DefinerTypes::Cloak(ref mut cloak_type) => {
                 let cloak_entries_len = cloak_type.entries.len();
-
-                //println!("{} {}", letter_char, cloak_entries_len || cloak_type.child_cache.complete);
-
                 if (letter_char == ')' || letter_char == ',')
                     && (cloak_entries_len == 0 || cloak_type.child_cache.complete)
                 {
@@ -276,6 +273,7 @@ impl Processor for DefinerProcessor {
                 self.errors.extend(future_type.child_cache.errors.clone());
                 if future_type.child_cache.is_complete() {
                     self.complete = true;
+                    future_type.rtype = Box::new(future_type.child_cache.definer_type.clone());
                 }
             }
             DefinerTypes::Nullable(ref mut nullable_type) => {
@@ -285,6 +283,7 @@ impl Processor for DefinerProcessor {
                 self.errors.extend(nullable_type.child_cache.errors.clone());
                 if nullable_type.child_cache.is_complete() {
                     self.complete = true;
+                    nullable_type.rtype = Box::new(nullable_type.child_cache.definer_type.clone());
                 }
             }
             DefinerTypes::Generic(ref mut generic_type) => {
