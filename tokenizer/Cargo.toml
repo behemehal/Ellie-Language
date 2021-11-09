@@ -3,6 +3,7 @@ name = "ellie_tokenizer"
 description = "Tokenizer for ellie language"
 version = "0.1.0"
 edition = "2018"
+default-run = "processor"
 
 [dependencies]
 ellie_core = { path = "../core", version = "1.0.0" }
@@ -14,3 +15,8 @@ serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
 default = ["std"]
 std = []
 integrity_com = []
+
+[[bin]]
+name = "processor"
+test = false
+bench = false

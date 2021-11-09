@@ -98,7 +98,7 @@ impl Processor for DefinerProcessor {
                 if (letter_char == ')' || letter_char == ',')
                     && (cloak_entries_len == 0 || cloak_type.child_cache.complete)
                 {
-                    if letter_char == ',' {
+                    if letter_char == ',' && cloak_type.child_cache.complete {
                         if cloak_type.at_comma {
                             self.errors.push(error::errorList::error_s1.clone().build(
                                 vec![error::ErrorBuildField {
@@ -169,7 +169,7 @@ impl Processor for DefinerProcessor {
                                     key: "token".to_string(),
                                     value: letter_char.to_string(),
                                 }],
-                                "0x00".to_owned(),
+                                "0x00172".to_owned(),
                                 defs::Cursor {
                                     range_start: cursor,
                                     range_end: cursor.clone().skip_char(1),
@@ -181,7 +181,7 @@ impl Processor for DefinerProcessor {
                                     key: "token".to_string(),
                                     value: "array".to_string(),
                                 }],
-                                "0x00".to_owned(),
+                                "0x00184".to_owned(),
                                 defs::Cursor {
                                     range_start: cursor,
                                     range_end: cursor.clone().skip_char(1),
@@ -207,7 +207,7 @@ impl Processor for DefinerProcessor {
                                         key: "token".to_string(),
                                         value: letter_char.to_string(),
                                     }],
-                                    "0x00e".to_owned(),
+                                    "0x00210".to_owned(),
                                     defs::Cursor {
                                         range_start: cursor,
                                         range_end: cursor.clone().skip_char(1),
@@ -254,7 +254,7 @@ impl Processor for DefinerProcessor {
                             key: "token".to_string(),
                             value: letter_char.to_string(),
                         }],
-                        "0x00".to_owned(),
+                        "0x00257".to_owned(),
                         defs::Cursor {
                             range_start: cursor,
                             range_end: cursor.clone().skip_char(1),
@@ -357,7 +357,7 @@ impl Processor for DefinerProcessor {
                                 key: "token".to_string(),
                                 value: letter_char.to_string(),
                             }],
-                            "0x00".to_owned(),
+                            "0x00360".to_owned(),
                             defs::Cursor {
                                 range_start: cursor,
                                 range_end: cursor.clone().skip_char(1),

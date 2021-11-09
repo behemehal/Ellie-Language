@@ -10,7 +10,7 @@ use std::{
 fn main() {
     println!("OK");
 
-    let code = "? (int, string)";
+    let code = "((int, string))";
     //let code = " int";
 
     let mut pos = defs::CursorPosition::default();
