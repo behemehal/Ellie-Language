@@ -1,5 +1,3 @@
-use std::panic;
-
 use crate::processors::{reliable_char, Processor};
 use ellie_core::{defs, error};
 
@@ -325,13 +323,11 @@ impl Processor for DefinerProcessor {
                             rtype: Box::new(self.definer_type.clone()),
                             ..Default::default()
                         });
-                        self.complete = true;
                     } else if letter_char == '?' && generic_type.rtype.is_empty() {
                         self.definer_type = DefinerTypes::Nullable(NullableType {
                             rtype: Box::new(self.definer_type.clone()),
                             ..Default::default()
                         });
-                        self.complete = true;
                     } else if letter_char == '{' && generic_type.rtype.is_empty() {
                         self.definer_type = DefinerTypes::Collective(CollectiveType::default());
                     } else if letter_char == '(' && generic_type.rtype.is_empty() {

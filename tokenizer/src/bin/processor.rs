@@ -10,9 +10,8 @@ use std::{
 fn main() {
     println!("OK");
 
-    let code = "((int, string))";
-    //let code = " int";
-
+    let code = ">{int, int}";
+    
     let mut pos = defs::CursorPosition::default();
     let mut processor: definer_processor::DefinerProcessor = Processor::new();
     let mut last_char = '\0';
@@ -25,7 +24,13 @@ fn main() {
     if processor.has_error() {
         panic!("Errors occured: {:#?}", processor.errors());
     } else {
-        println!("----\nTokenize success:\n{:#?}", processor.definer_type)
+        let correct = format!("{:?}", processor.definer_type);
+        let mut correct_hasher = DefaultHasher::new();
+        correct.hash(&mut correct_hasher);
+
+        //.hash(&mut id_hasher);
+
+        println!("----\nTokenize success:\n{:?}", correct_hasher.finish());
     }
 
     /*
