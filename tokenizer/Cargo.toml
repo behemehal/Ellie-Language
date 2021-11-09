@@ -2,7 +2,7 @@
 name = "ellie_tokenizer"
 description = "Tokenizer for ellie language"
 version = "0.1.0"
-edition = "2021"
+edition = "2018"
 
 [dependencies]
 ellie_core = { path = "../core", version = "1.0.0" }

@@ -122,7 +122,7 @@ lazy_static! {
     pub static ref error_s20: crate::error::Error = crate::error::Error {
         code: 0x19,
         title: "TypeError".to_owned(),
-        message: "Fixed size required".to_owned(),
+        message: "Negative number is not allowed on '$token'".to_owned(),
         ..Default::default()
     };
     pub static ref error_s21: crate::error::Error = crate::error::Error {
