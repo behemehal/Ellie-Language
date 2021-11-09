@@ -267,6 +267,19 @@ impl Processor for DefinerProcessor {
                 }
             }
             DefinerTypes::Future(ref mut future_type) => {
+                if letter_char == ' ' && last_char == '>' {
+                    self.errors.push(error::errorList::error_s1.clone().build(
+                        vec![error::ErrorBuildField {
+                            key: "token".to_string(),
+                            value: letter_char.to_string(),
+                        }],
+                        "0x276".to_owned(),
+                        defs::Cursor {
+                            range_start: cursor,
+                            range_end: cursor.clone().skip_char(1),
+                        },
+                    ));
+                }
                 future_type
                     .child_cache
                     .iterate(cursor, last_char, letter_char);
@@ -277,6 +290,19 @@ impl Processor for DefinerProcessor {
                 }
             }
             DefinerTypes::Nullable(ref mut nullable_type) => {
+                if letter_char == ' ' && last_char == '?' {
+                    self.errors.push(error::errorList::error_s1.clone().build(
+                        vec![error::ErrorBuildField {
+                            key: "token".to_string(),
+                            value: letter_char.to_string(),
+                        }],
+                        "0x276".to_owned(),
+                        defs::Cursor {
+                            range_start: cursor,
+                            range_end: cursor.clone().skip_char(1),
+                        },
+                    ));
+                }
                 nullable_type
                     .child_cache
                     .iterate(cursor, last_char, letter_char);
