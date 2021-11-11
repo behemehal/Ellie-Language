@@ -1,6 +1,6 @@
 use ellie_core::{defs, error};
 
-pub trait Processor {
+pub trait Processor<T> {
     fn new() -> Self;
     fn keyword(&self) -> &str;
     fn has_accessibility(&self) -> bool;
@@ -8,6 +8,7 @@ pub trait Processor {
     fn has_error(&self) -> bool;
     fn errors(&self) -> Vec<error::Error>;
     fn is_complete(&self) -> bool;
+    fn is_forwarded(&self) -> (bool, T);
 }
 
 pub fn reliable_char(character: &char) -> bool {

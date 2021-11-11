@@ -76,13 +76,17 @@ pub struct DefinerProcessor {
     pub complete: bool,
 }
 
-impl Processor for DefinerProcessor {
+impl Processor<bool> for DefinerProcessor {
     fn new() -> Self {
         DefinerProcessor::default()
     }
 
     fn keyword(&self) -> &str {
         ""
+    }
+
+    fn is_forwarded() -> bool {
+        false
     }
 
     fn has_accessibility(&self) -> bool {

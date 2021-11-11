@@ -1,5 +1,5 @@
 use crate::processors::{reliable_char, Processor};
-use ellie_core::{error, defs};
+use ellie_core::{defs, error};
 
 #[derive(Default)]
 pub struct VariableProcessor {
@@ -10,9 +10,10 @@ pub struct VariableProcessor {
     pub value_collected: bool,
     pub value: String,
     pub errors: Vec<ellie_core::error::Error>,
+    pub forwarded: bool,
 }
 
-impl Processor for VariableProcessor {
+impl Processor<ellie_core::definite::items::Collecting> for VariableProcessor {
     fn new() -> Self {
         VariableProcessor::default()
     }
@@ -23,6 +24,10 @@ impl Processor for VariableProcessor {
 
     fn has_accessibility(&self) -> bool {
         true
+    }
+
+    fn is_forwarded() -> (bool, ellie_core::definite::items::Collecting) {
+        
     }
 
     fn is_complete(&self) -> bool {
