@@ -85,8 +85,8 @@ impl Processor<bool> for DefinerProcessor {
         ""
     }
 
-    fn is_forwarded() -> bool {
-        false
+    fn is_forwarded(&self) -> Option<bool> {
+        None
     }
 
     fn has_accessibility(&self) -> bool {

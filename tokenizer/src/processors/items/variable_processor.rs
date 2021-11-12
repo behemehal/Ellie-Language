@@ -10,7 +10,7 @@ pub struct VariableProcessor {
     pub value_collected: bool,
     pub value: String,
     pub errors: Vec<ellie_core::error::Error>,
-    pub forwarded: bool,
+    pub forward: ellie_core::definite::items::Collecting,
 }
 
 impl Processor<ellie_core::definite::items::Collecting> for VariableProcessor {
@@ -26,8 +26,11 @@ impl Processor<ellie_core::definite::items::Collecting> for VariableProcessor {
         true
     }
 
-    fn is_forwarded() -> (bool, ellie_core::definite::items::Collecting) {
-        
+    fn is_forwarded(&self) -> Option<ellie_core::definite::items::Collecting> {
+        match self.forward {
+            ellie_core::definite::items::Collecting::None => None,
+            _ => Some(self.forward.clone()),
+        }
     }
 
     fn is_complete(&self) -> bool {

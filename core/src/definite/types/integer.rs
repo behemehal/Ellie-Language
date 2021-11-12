@@ -32,6 +32,12 @@ pub enum IntegerSize {
     Isize(isize),
 }
 
+impl Default for IntegerSize {
+    fn default() -> Self {
+        IntegerSize::I8(0)
+    }
+}
+
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct IntegerType {
     pub value: IntegerSize,

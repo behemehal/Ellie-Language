@@ -39,6 +39,12 @@ pub enum Collecting {
     None,
 }
 
+impl Default for Collecting {
+    fn default() -> Self {
+        Collecting::None
+    }
+}
+
 impl Collecting {
     pub fn is_pub(self) -> bool {
         match self {

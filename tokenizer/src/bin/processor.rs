@@ -1,5 +1,5 @@
 use ellie_core::defs;
-use ellie_tokenizer::processors::{items::*, Processor};
+use ellie_tokenizer::processors::{items::*, types::*, Processor};
 use std::{
     collections::hash_map::DefaultHasher,
     fs::File,
@@ -10,10 +10,10 @@ use std::{
 fn main() {
     println!("OK");
 
-    let code = ">{int, int}";
-    
+    let code = "123";
+
     let mut pos = defs::CursorPosition::default();
-    let mut processor: definer_processor::DefinerProcessor = Processor::new();
+    let mut processor: integer_processor::IntegerProcessor = Processor::new();
     let mut last_char = '\0';
     for letter_char in code.chars() {
         processor.iterate(pos, last_char, letter_char);
@@ -24,7 +24,7 @@ fn main() {
     if processor.has_error() {
         panic!("Errors occured: {:#?}", processor.errors());
     } else {
-        let correct = format!("{:?}", processor.definer_type);
+        let correct = format!("{:?}", processor);
         let mut correct_hasher = DefaultHasher::new();
         correct.hash(&mut correct_hasher);
 

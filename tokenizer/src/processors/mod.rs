@@ -8,7 +8,7 @@ pub trait Processor<T> {
     fn has_error(&self) -> bool;
     fn errors(&self) -> Vec<error::Error>;
     fn is_complete(&self) -> bool;
-    fn is_forwarded(&self) -> (bool, T);
+    fn is_forwarded(&self) -> Option<T>;
 }
 
 pub fn reliable_char(character: &char) -> bool {
