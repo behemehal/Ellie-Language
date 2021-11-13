@@ -2,7 +2,7 @@
 name = "ellie_tokenizer"
 description = "Tokenizer for ellie language"
 version = "0.1.0"
-edition = "2018"
+edition = "2021"
 default-run = "processor"
 
 [dependencies]
