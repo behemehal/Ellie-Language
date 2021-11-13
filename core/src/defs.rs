@@ -102,6 +102,13 @@ impl Cursor {
     pub fn is_zero(&self) -> bool {
         self.range_start.is_zero() && self.range_end.is_zero()
     }
+
+    pub fn build_with_skip_char(range_start: CursorPosition) -> Self {
+        Cursor {
+            range_start,
+            range_end: range_start.clone().skip_char(1),
+        }
+    }
 }
 
 impl Default for Cursor {

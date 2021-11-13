@@ -7,6 +7,7 @@ pub struct TokenizerOptions {
     pub imports: bool,
 }
 
+/*
 pub struct Page {
     pub hash: u64,
     pub cursor: defs::CursorPosition,
@@ -15,6 +16,7 @@ pub struct Page {
     pub current: crate::processors::items::Processors,
     pub keyword: String,
 }
+*/
 
 pub struct ResolvedImport {
     pub hash: u64,
@@ -24,7 +26,7 @@ pub struct ResolvedImport {
 pub struct Tokenizer<F, E> {
     pub emitter: F,
     pub import_resolver: E,
-    pub imports: Vec<Page>,
+    //pub imports: Vec<Page>,
     pub main: u64,
 }
 
@@ -37,14 +39,14 @@ where
         Tokenizer {
             emitter,
             import_resolver,
-            imports: vec![Page {
-                hash: 0,
-                cursor: defs::CursorPosition::default(),
-                errors: Vec::new(),
-                items: Vec::new(),
-                current: crate::processors::items::Processors::Null,
-                keyword: String::new(),
-            }],
+            //imports: vec![Page {
+            //    hash: 0,
+            //    cursor: defs::CursorPosition::default(),
+            //    errors: Vec::new(),
+            //    items: Vec::new(),
+            //    current: crate::processors::items::Processors::Null,
+            //    keyword: String::new(),
+            //}],
             main: 0,
         }
     }

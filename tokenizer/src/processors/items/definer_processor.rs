@@ -1,99 +1,27 @@
-use crate::processors::{reliable_char, Processor};
-use ellie_core::{defs, error};
+use crate::processors::Processor;
+use crate::syntax::items::definers::*;
+use ellie_core::{defs, error, utils};
 
-#[derive(Default, Clone, Debug)]
-pub struct CloakType {
-    pub entries: Vec<DefinerTypes>,
-    pub at_comma: bool,
-    pub child_cache: Box<DefinerProcessor>,
-}
-
-#[derive(Default, Clone, Debug)]
-pub struct ArrayType {
-    pub rtype: Box<DefinerTypes>,
-    pub size: usize,
-    pub raw_size: String,
-    pub at_comma: bool,
-    pub type_collected: bool,
-    pub child_cache: Box<DefinerProcessor>,
-}
-
-#[derive(Default, Clone, Debug)]
-pub struct CollectiveType {
-    pub key: Box<DefinerTypes>,
-    pub value: Box<DefinerTypes>,
-    pub key_collected: bool,
-    pub at_comma: bool,
-    pub child_cache: Box<DefinerProcessor>,
-}
-
-#[derive(Default, Clone, Debug)]
-pub struct VectorType {
-    pub rtype: Box<DefinerTypes>,
-}
-
-#[derive(Default, Clone, Debug)]
-pub struct FutureType {
-    pub rtype: Box<DefinerTypes>,
-    pub child_cache: Box<DefinerProcessor>,
-}
-
-#[derive(Default, Clone, Debug)]
-pub struct NullableType {
-    pub rtype: Box<DefinerTypes>,
-    pub child_cache: Box<DefinerProcessor>,
-}
-
-#[derive(Default, Clone, Debug)]
-pub struct GenericType {
-    pub rtype: String,
-}
-
-#[derive(Clone, Debug)]
-pub enum DefinerTypes {
-    Cloak(CloakType),
-    Array(ArrayType),
-    Collective(CollectiveType),
-    Vector(VectorType),
-    Future(FutureType),
-    Nullable(NullableType),
-    Generic(GenericType),
-}
-
-impl Default for DefinerTypes {
-    fn default() -> Self {
-        DefinerTypes::Generic(GenericType {
-            rtype: String::new(),
-        })
-    }
-}
-
-#[derive(Default, Clone, Debug)]
-pub struct DefinerProcessor {
-    pub definer_type: DefinerTypes,
-    pub errors: Vec<error::Error>,
-    pub cursor: defs::CursorPosition,
-    pub complete: bool,
-}
-
-impl Processor<bool> for DefinerProcessor {
+impl Processor for DefinerCollector {
     fn new() -> Self {
-        DefinerProcessor::default()
+        DefinerCollector::default()
     }
 
     fn keyword(&self) -> &str {
         ""
     }
 
-    fn is_forwarded(&self) -> Option<bool> {
-        None
-    }
-
     fn has_accessibility(&self) -> bool {
         false
     }
 
-    fn iterate(&mut self, cursor: defs::CursorPosition, last_char: char, letter_char: char) {
+    fn iterate(
+        &mut self,
+        errors: &mut Vec<error::Error>,
+        cursor: defs::CursorPosition,
+        last_char: char,
+        letter_char: char,
+    ) {
         match self.definer_type {
             DefinerTypes::Cloak(ref mut cloak_type) => {
                 if cloak_type.child_cache.complete && letter_char == ',' && !cloak_type.at_comma {
@@ -108,7 +36,7 @@ impl Processor<bool> for DefinerProcessor {
                             cloak_type.child_cache.definer_type.clone();
                     }
 
-                    cloak_type.child_cache = Box::new(DefinerProcessor::default());
+                    cloak_type.child_cache = Box::new(DefinerCollector::default());
                     cloak_type
                         .entries
                         .push(DefinerTypes::Generic(GenericType::default()));
@@ -125,27 +53,25 @@ impl Processor<bool> for DefinerProcessor {
                         cloak_type.entries[entries_len - 1] =
                             cloak_type.child_cache.definer_type.clone();
                     }
-                    cloak_type.child_cache = Box::new(DefinerProcessor::default());
+                    cloak_type.child_cache = Box::new(DefinerCollector::default());
                     self.complete = true;
                 } else {
                     cloak_type.at_comma = false;
                     cloak_type
                         .child_cache
-                        .iterate(cursor, last_char, letter_char);
-                    self.errors.extend(cloak_type.child_cache.errors.clone());
+                        .iterate(errors, cursor, last_char, letter_char);
                 }
             }
             DefinerTypes::Array(ref mut array_type) => {
                 if !array_type.type_collected {
-                    if array_type.child_cache.is_complete() && letter_char == ',' {
+                    if array_type.child_cache.complete && letter_char == ',' {
                         array_type.type_collected = true;
                         array_type.rtype = Box::new(array_type.child_cache.definer_type.clone());
                         array_type.child_cache = Box::new(Processor::new());
                     } else {
                         array_type
                             .child_cache
-                            .iterate(cursor, last_char, letter_char);
-                        self.errors.extend(array_type.child_cache.errors.clone());
+                            .iterate(errors, cursor, last_char, letter_char);
                     }
                 } else {
                     let is_num =
@@ -153,28 +79,22 @@ impl Processor<bool> for DefinerProcessor {
 
                     if let Ok(num) = is_num {
                         if last_char == ' ' && array_type.raw_size != "" {
-                            self.errors.push(error::errorList::error_s1.clone().build(
+                            errors.push(error::errorList::error_s1.clone().build(
                                 vec![error::ErrorBuildField {
                                     key: "token".to_string(),
                                     value: letter_char.to_string(),
                                 }],
                                 "0x00172".to_owned(),
-                                defs::Cursor {
-                                    range_start: cursor,
-                                    range_end: cursor.clone().skip_char(1),
-                                },
+                                defs::Cursor::build_with_skip_char(cursor),
                             ));
                         } else if num.is_negative() || array_type.raw_size == "-" {
-                            self.errors.push(error::errorList::error_s20.clone().build(
+                            errors.push(error::errorList::error_s20.clone().build(
                                 vec![error::ErrorBuildField {
                                     key: "token".to_string(),
                                     value: "array".to_string(),
                                 }],
                                 "0x00184".to_owned(),
-                                defs::Cursor {
-                                    range_start: cursor,
-                                    range_end: cursor.clone().skip_char(1),
-                                },
+                                defs::Cursor::build_with_skip_char(cursor),
                             ));
                         } else {
                             array_type.raw_size += &letter_char.to_string();
@@ -191,16 +111,13 @@ impl Processor<bool> for DefinerProcessor {
                             if letter_char == '-' && array_type.raw_size == "" {
                                 array_type.raw_size = "-".to_string();
                             } else {
-                                self.errors.push(error::errorList::error_s1.clone().build(
+                                errors.push(error::errorList::error_s1.clone().build(
                                     vec![error::ErrorBuildField {
                                         key: "token".to_string(),
                                         value: letter_char.to_string(),
                                     }],
                                     "0x00210".to_owned(),
-                                    defs::Cursor {
-                                        range_start: cursor,
-                                        range_end: cursor.clone().skip_char(1),
-                                    },
+                                    defs::Cursor::build_with_skip_char(cursor),
                                 ));
                             }
                         }
@@ -209,7 +126,7 @@ impl Processor<bool> for DefinerProcessor {
             }
             DefinerTypes::Collective(ref mut collective_type) => {
                 if !collective_type.key_collected {
-                    if collective_type.child_cache.is_complete() && letter_char == ',' {
+                    if collective_type.child_cache.complete && letter_char == ',' {
                         collective_type.key_collected = true;
                         collective_type.key =
                             Box::new(collective_type.child_cache.definer_type.clone());
@@ -217,15 +134,13 @@ impl Processor<bool> for DefinerProcessor {
                     } else {
                         collective_type
                             .child_cache
-                            .iterate(cursor, last_char, letter_char);
-                        self.errors
-                            .extend(collective_type.child_cache.errors.clone());
+                            .iterate(errors, cursor, last_char, letter_char);
                     }
                 } else {
                     collective_type
                         .child_cache
-                        .iterate(cursor, last_char, letter_char);
-                    if collective_type.child_cache.is_complete() && letter_char == '}' {
+                        .iterate(errors, cursor, last_char, letter_char);
+                    if collective_type.child_cache.complete && letter_char == '}' {
                         self.complete = true;
                         collective_type.value =
                             Box::new(collective_type.child_cache.definer_type.clone());
@@ -238,16 +153,13 @@ impl Processor<bool> for DefinerProcessor {
                 //it's a syntax error
                 if self.complete || letter_char != ']' {
                     //If brace is already put or char is not close brace
-                    self.errors.push(error::errorList::error_s1.clone().build(
+                    errors.push(error::errorList::error_s1.clone().build(
                         vec![error::ErrorBuildField {
                             key: "token".to_string(),
                             value: letter_char.to_string(),
                         }],
                         "0x00257".to_owned(),
-                        defs::Cursor {
-                            range_start: cursor,
-                            range_end: cursor.clone().skip_char(1),
-                        },
+                        defs::Cursor::build_with_skip_char(cursor),
                     ));
                 } else if letter_char == ']' {
                     //After we see '*' char in array size position, we update
@@ -257,63 +169,53 @@ impl Processor<bool> for DefinerProcessor {
             }
             DefinerTypes::Future(ref mut future_type) => {
                 if letter_char == ' ' && last_char == '>' {
-                    self.errors.push(error::errorList::error_s1.clone().build(
+                    errors.push(error::errorList::error_s1.clone().build(
                         vec![error::ErrorBuildField {
                             key: "token".to_string(),
                             value: letter_char.to_string(),
                         }],
                         "0x276".to_owned(),
-                        defs::Cursor {
-                            range_start: cursor,
-                            range_end: cursor.clone().skip_char(1),
-                        },
+                        defs::Cursor::build_with_skip_char(cursor),
                     ));
                 }
                 future_type
                     .child_cache
-                    .iterate(cursor, last_char, letter_char);
-                self.errors.extend(future_type.child_cache.errors.clone());
-                if future_type.child_cache.is_complete() {
+                    .iterate(errors, cursor, last_char, letter_char);
+                if future_type.child_cache.complete {
                     self.complete = true;
                     future_type.rtype = Box::new(future_type.child_cache.definer_type.clone());
                 }
             }
             DefinerTypes::Nullable(ref mut nullable_type) => {
                 if letter_char == ' ' && last_char == '?' {
-                    self.errors.push(error::errorList::error_s1.clone().build(
+                    errors.push(error::errorList::error_s1.clone().build(
                         vec![error::ErrorBuildField {
                             key: "token".to_string(),
                             value: letter_char.to_string(),
                         }],
                         "0x276".to_owned(),
-                        defs::Cursor {
-                            range_start: cursor,
-                            range_end: cursor.clone().skip_char(1),
-                        },
+                        defs::Cursor::build_with_skip_char(cursor),
                     ));
                 }
                 nullable_type
                     .child_cache
-                    .iterate(cursor, last_char, letter_char);
-                self.errors.extend(nullable_type.child_cache.errors.clone());
-                if nullable_type.child_cache.is_complete() {
+                    .iterate(errors, cursor, last_char, letter_char);
+                if nullable_type.child_cache.complete {
                     self.complete = true;
                     nullable_type.rtype = Box::new(nullable_type.child_cache.definer_type.clone());
                 }
             }
             DefinerTypes::Generic(ref mut generic_type) => {
-                if reliable_char(&letter_char) {
+                if utils::reliable_name_range(utils::ReliableNameRanges::Type, letter_char).reliable
+                {
                     if last_char == ' ' && generic_type.rtype != "" {
-                        self.errors.push(error::errorList::error_s1.clone().build(
+                        errors.push(error::errorList::error_s1.clone().build(
                             vec![error::ErrorBuildField {
                                 key: "token".to_string(),
                                 value: letter_char.to_string(),
                             }],
                             "0x022".to_owned(),
-                            defs::Cursor {
-                                range_start: cursor,
-                                range_end: cursor.clone().skip_char(1),
-                            },
+                            defs::Cursor::build_with_skip_char(cursor),
                         ));
                     } else {
                         if generic_type.rtype.is_empty() {
@@ -339,33 +241,19 @@ impl Processor<bool> for DefinerProcessor {
                     } else if letter_char == '[' && generic_type.rtype.is_empty() {
                         self.definer_type = DefinerTypes::Array(ArrayType::default());
                     } else if letter_char != ' ' {
-                        self.errors.push(error::errorList::error_s1.clone().build(
+                        errors.push(error::errorList::error_s1.clone().build(
                             vec![error::ErrorBuildField {
                                 key: "token".to_string(),
                                 value: letter_char.to_string(),
                             }],
                             "0x00360".to_owned(),
-                            defs::Cursor {
-                                range_start: cursor,
-                                range_end: cursor.clone().skip_char(1),
-                            },
+                            defs::Cursor::build_with_skip_char(cursor),
                         ));
                     }
                 }
             }
+            DefinerTypes::Function(_) => todo!(),
         }
-    }
-
-    fn has_error(&self) -> bool {
-        !self.errors.is_empty()
-    }
-
-    fn errors(&self) -> Vec<ellie_core::error::Error> {
-        self.errors.clone()
-    }
-
-    fn is_complete(&self) -> bool {
-        self.complete
     }
 }
 

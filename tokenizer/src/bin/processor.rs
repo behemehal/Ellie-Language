@@ -1,5 +1,7 @@
-use ellie_core::defs;
+use ellie_core::{defs, error};
 use ellie_tokenizer::processors::{items::*, types::*, Processor};
+use ellie_tokenizer::syntax::items::definers::DefinerCollector;
+use ellie_tokenizer::syntax::{items::*, types::*};
 use std::{
     collections::hash_map::DefaultHasher,
     fs::File,
@@ -10,27 +12,31 @@ use std::{
 fn main() {
     println!("OK");
 
-    let code = "123";
-
+    let code = "[int, *]";
+    let mut errors: Vec<error::Error> = Vec::new();
     let mut pos = defs::CursorPosition::default();
-    let mut processor: integer_processor::IntegerProcessor = Processor::new();
+    let mut processor: DefinerCollector = Processor::new();
     let mut last_char = '\0';
     for letter_char in code.chars() {
-        processor.iterate(pos, last_char, letter_char);
+        processor.iterate(&mut errors, pos, last_char, letter_char);
         pos.skip_char(1);
         last_char = letter_char;
     }
 
-    if processor.has_error() {
-        panic!("Errors occured: {:#?}", processor.errors());
+    if !errors.is_empty() {
+        panic!("Errors occured: {:#?}", errors);
     } else {
-        let correct = format!("{:?}", processor);
+        let correct = format!("{:?}", processor.clone());
         let mut correct_hasher = DefaultHasher::new();
         correct.hash(&mut correct_hasher);
 
         //.hash(&mut id_hasher);
 
-        println!("----\nTokenize success:\n{:?}", correct_hasher.finish());
+        println!(
+            "----\nTokenize success:\n{:?}\nHash: {:#?}",
+            processor,
+            correct_hasher.finish()
+        );
     }
 
     /*

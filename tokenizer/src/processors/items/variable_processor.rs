@@ -1,5 +1,5 @@
-use crate::processors::{reliable_char, Processor};
-use ellie_core::{defs, error};
+use crate::processors::Processor;
+use ellie_core::{defs, error, utils};
 
 #[derive(Default)]
 pub struct VariableProcessor {
@@ -13,7 +13,7 @@ pub struct VariableProcessor {
     pub forward: ellie_core::definite::items::Collecting,
 }
 
-impl Processor<ellie_core::definite::items::Collecting> for VariableProcessor {
+impl Processor for VariableProcessor {
     fn new() -> Self {
         VariableProcessor::default()
     }
@@ -26,28 +26,17 @@ impl Processor<ellie_core::definite::items::Collecting> for VariableProcessor {
         true
     }
 
-    fn is_forwarded(&self) -> Option<ellie_core::definite::items::Collecting> {
-        match self.forward {
-            ellie_core::definite::items::Collecting::None => None,
-            _ => Some(self.forward.clone()),
-        }
-    }
-
-    fn is_complete(&self) -> bool {
-        self.name_collected && self.type_collected && self.value_collected
-    }
-
-    fn has_error(&self) -> bool {
-        !self.errors.is_empty()
-    }
-
-    fn errors(&self) -> Vec<error::Error> {
-        self.errors.clone()
-    }
-
-    fn iterate(&mut self, cursor: defs::CursorPosition, last_char: char, letter_char: char) {
+    fn iterate(
+        &mut self,
+        errors: &mut Vec<error::Error>,
+        cursor: defs::CursorPosition,
+        last_char: char,
+        letter_char: char,
+    ) {
         if !self.name_collected {
-            if reliable_char(&letter_char) {
+            if utils::reliable_name_range(utils::ReliableNameRanges::VariableName, letter_char)
+                .reliable
+            {
                 if last_char == ' ' {
                     panic!("Error: UNEXPECTED TOKEN, {:#?}", letter_char);
                 } else {

@@ -7,13 +7,13 @@ pub enum IntegerTypes {
     I32,
     I64,
     I128,
-    ISize,
+    Isize,
     U8,
     U16,
     U32,
     U64,
     U128,
-    USize,
+    Usize,
 }
 
 #[derive(PartialEq, Debug, Clone, Copy, Serialize, Deserialize)]
