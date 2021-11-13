@@ -53,7 +53,7 @@ pub fn reliable_name_range(range: ReliableNameRanges, value: char) -> ReliableNa
             "QWERTYUIOPASDFGHJKLIZXCVBNMqwertyuıopasdfghjklizxcvbnm0123456789_"
         }
         ReliableNameRanges::Type => {
-            "QWERTYUIOPASDFGHJKLIZXCVBNMqwertyuıopasdfghjklizxcvbnm0123456789<>"
+            "QWERTYUIOPASDFGHJKLIZXCVBNMqwertyuıopasdfghjklizxcvbnm0123456789"
         }
         ReliableNameRanges::FunctionName => {
             "QWERTYUIOPASDFGHJKLIZXCVBNMqwertyuıopasdfghjklizxc_vbnm"
@@ -62,7 +62,7 @@ pub fn reliable_name_range(range: ReliableNameRanges, value: char) -> ReliableNa
 
     let find = variable_range.chars().position(|x| x == value);
     return ReliableNameRangeResponse {
-        reliable: find == None,
+        reliable: find != None,
         at: find.unwrap_or(0),
         found: variable_range
             .chars()

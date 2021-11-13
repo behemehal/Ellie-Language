@@ -40,15 +40,17 @@ impl Processor for DefinerCollector {
                     cloak_type
                         .entries
                         .push(DefinerTypes::Generic(GenericType::default()));
-                } else if cloak_type.child_cache.complete
+                } else if (cloak_type.child_cache.complete || !cloak_type.not_empty)
                     && letter_char == ')'
                     && !cloak_type.at_comma
                 {
                     let entries_len = cloak_type.entries.len();
                     if entries_len == 0 {
-                        cloak_type
-                            .entries
-                            .push(cloak_type.child_cache.definer_type.clone())
+                        if cloak_type.not_empty {
+                            cloak_type
+                                .entries
+                                .push(cloak_type.child_cache.definer_type.clone())
+                        }
                     } else {
                         cloak_type.entries[entries_len - 1] =
                             cloak_type.child_cache.definer_type.clone();
@@ -56,6 +58,7 @@ impl Processor for DefinerCollector {
                     cloak_type.child_cache = Box::new(DefinerCollector::default());
                     self.complete = true;
                 } else {
+                    cloak_type.not_empty = true;
                     cloak_type.at_comma = false;
                     cloak_type
                         .child_cache
@@ -137,14 +140,15 @@ impl Processor for DefinerCollector {
                             .iterate(errors, cursor, last_char, letter_char);
                     }
                 } else {
-                    collective_type
-                        .child_cache
-                        .iterate(errors, cursor, last_char, letter_char);
                     if collective_type.child_cache.complete && letter_char == '}' {
                         self.complete = true;
                         collective_type.value =
                             Box::new(collective_type.child_cache.definer_type.clone());
                         collective_type.child_cache = Box::new(Processor::new());
+                    } else {
+                        collective_type
+                            .child_cache
+                            .iterate(errors, cursor, last_char, letter_char);
                     }
                 }
             }
@@ -236,6 +240,8 @@ impl Processor for DefinerCollector {
                         });
                     } else if letter_char == '{' && generic_type.rtype.is_empty() {
                         self.definer_type = DefinerTypes::Collective(CollectiveType::default());
+                    } else if letter_char == '@' && generic_type.rtype.is_empty() {
+                        self.definer_type = DefinerTypes::Function(FunctionType::default());
                     } else if letter_char == '(' && generic_type.rtype.is_empty() {
                         self.definer_type = DefinerTypes::Cloak(CloakType::default());
                     } else if letter_char == '[' && generic_type.rtype.is_empty() {
@@ -252,7 +258,100 @@ impl Processor for DefinerCollector {
                     }
                 }
             }
-            DefinerTypes::Function(_) => todo!(),
+            DefinerTypes::Function(ref mut function_type) => {
+                if !function_type.parameters_collected {
+                    if function_type.brace_stared {
+                        if function_type.child_cache.complete
+                            && letter_char == ','
+                            && !function_type.at_comma
+                        {
+                            function_type.at_comma = true;
+                            let params_len = function_type.params.len();
+                            if params_len == 0 {
+                                function_type
+                                    .params
+                                    .push(function_type.child_cache.definer_type.clone())
+                            } else {
+                                function_type.params[params_len - 1] =
+                                    function_type.child_cache.definer_type.clone();
+                            }
+
+                            function_type.child_cache = Box::new(DefinerCollector::default());
+                            function_type
+                                .params
+                                .push(DefinerTypes::Generic(GenericType::default()));
+                        } else if (function_type.child_cache.complete || !function_type.not_empty)
+                            && letter_char == ')'
+                            && !function_type.at_comma
+                        {
+                            let params_len = function_type.params.len();
+                            if params_len == 0 {
+                                if function_type.not_empty {
+                                    function_type
+                                        .params
+                                        .push(function_type.child_cache.definer_type.clone())
+                                }
+                            } else {
+                                function_type.params[params_len - 1] =
+                                    function_type.child_cache.definer_type.clone();
+                            }
+                            function_type.child_cache = Box::new(DefinerCollector::default());
+                            function_type.parameters_collected = true;
+                            function_type.returning =
+                                Box::new(DefinerTypes::Generic(GenericType {
+                                    rtype: "void".to_owned(),
+                                }));
+                            self.complete = true;
+                        } else {
+                            function_type.not_empty = true;
+                            function_type.at_comma = false;
+                            function_type.child_cache.iterate(
+                                errors,
+                                cursor,
+                                last_char,
+                                letter_char,
+                            );
+                        }
+                    } else {
+                        if letter_char == '(' {
+                            function_type.brace_stared = true;
+                        } else {
+                            errors.push(error::errorList::error_s1.clone().build(
+                                vec![error::ErrorBuildField {
+                                    key: "token".to_string(),
+                                    value: letter_char.to_string(),
+                                }],
+                                "0x00267".to_owned(),
+                                defs::Cursor::build_with_skip_char(cursor),
+                            ));
+                        }
+                    }
+                } else {
+                    if !function_type.return_char_typed {
+                        if letter_char == ':' {
+                            self.complete = false;
+                            function_type.return_char_typed = true;
+                            function_type.returning = Box::new(DefinerTypes::default());
+                        } else {
+                            errors.push(error::errorList::error_s1.clone().build(
+                                vec![error::ErrorBuildField {
+                                    key: "token".to_string(),
+                                    value: letter_char.to_string(),
+                                }],
+                                "0x00267".to_owned(),
+                                defs::Cursor::build_with_skip_char(cursor),
+                            ));
+                        }
+                    } else {
+                        function_type
+                            .child_cache
+                            .iterate(errors, cursor, last_char, letter_char);
+                        function_type.returning =
+                            Box::new(function_type.child_cache.definer_type.clone());
+                        self.complete = function_type.child_cache.complete;
+                    }
+                }
+            }
         }
     }
 }

@@ -6,6 +6,7 @@ pub struct CloakType {
     pub entries: Vec<DefinerTypes>,
     pub at_comma: bool,
     pub child_cache: Box<DefinerCollector>,
+    pub not_empty: bool,
 }
 
 #[derive(Default, Clone, Debug)]
@@ -51,9 +52,14 @@ pub struct GenericType {
 
 #[derive(Default, Clone, Debug)]
 pub struct FunctionType {
-    pub return_type: Box<DefinerTypes>,
-    pub parameters: Vec<DefinerTypes>,
+    pub returning: Box<DefinerTypes>,
+    pub params: Vec<DefinerTypes>,
     pub child_cache: Box<DefinerCollector>,
+    pub brace_stared: bool,
+    pub parameters_collected: bool,
+    pub return_char_typed: bool,
+    pub at_comma: bool,
+    pub not_empty: bool,
 }
 
 #[derive(Clone, Debug)]
