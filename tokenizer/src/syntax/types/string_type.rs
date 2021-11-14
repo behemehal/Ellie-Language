@@ -7,13 +7,14 @@ pub struct StringType {
     pub value: String,
     pub comma_start_pos: defs::Cursor,
     pub comma_end_pos: defs::Cursor,
-    pub value_pos: defs::Cursor,
+    pub value_pos: defs::Cursor,    
 }
 
 #[derive(PartialEq, Default, Debug, Clone, Serialize, Deserialize)]
 pub struct StringTypeCollector {
     pub data: StringType,
     pub complete: bool,
+    pub comma_started: bool,
 }
 
 impl StringTypeCollector {
@@ -35,6 +36,7 @@ impl StringTypeCollector {
                 value_pos: from.value_pos,
             },
             complete: true,
+            ..Default::default()
         }
     }
 }

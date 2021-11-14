@@ -1,6 +1,5 @@
 use ellie_core::{defs, error};
-use ellie_tokenizer::processors::{items::*, types::*, Processor};
-use ellie_tokenizer::syntax::items::definers::DefinerCollector;
+use ellie_tokenizer::processors::Processor;
 use ellie_tokenizer::syntax::{items::*, types::*};
 use std::{
     collections::hash_map::DefaultHasher,
@@ -12,10 +11,10 @@ use std::{
 fn main() {
     println!("OK");
 
-    let code = "[int, *]";
+    let code = "\"\\ellie\"";
     let mut errors: Vec<error::Error> = Vec::new();
     let mut pos = defs::CursorPosition::default();
-    let mut processor: DefinerCollector = Processor::new();
+    let mut processor: string_type::StringTypeCollector = Processor::new();
     let mut last_char = '\0';
     for letter_char in code.chars() {
         processor.iterate(&mut errors, pos, last_char, letter_char);
@@ -24,13 +23,17 @@ fn main() {
     }
 
     if !errors.is_empty() {
-        panic!("Errors occured: {:#?}", errors);
+        let mut errors_hash = DefaultHasher::new();
+        format!("{:?}", errors.clone()).hash(&mut errors_hash);
+        panic!(
+            "Errors occured: {:#?}\nHash: {}",
+            errors,
+            errors_hash.finish()
+        );
     } else {
         let correct = format!("{:?}", processor.clone());
         let mut correct_hasher = DefaultHasher::new();
         correct.hash(&mut correct_hasher);
-
-        //.hash(&mut id_hasher);
 
         println!(
             "----\nTokenize success:\n{:?}\nHash: {:#?}",

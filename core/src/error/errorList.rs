@@ -29,8 +29,8 @@ lazy_static! {
     };
     pub static ref error_s5: crate::error::Error = crate::error::Error {
         code: 0x04,
-        title: "ReferenceError".to_owned(),
-        message: "Unexpected return Type '$token'".to_owned(),
+        title: "SyntaxError".to_owned(),
+        message: "Unknown escape character '$token'".to_owned(),
         ..Default::default()
     };
     pub static ref error_s6: crate::error::Error = crate::error::Error {

@@ -22,9 +22,10 @@ Syntax:
         GenericType             :   OK
         NullableType            :   OK
         FutureType              :   OK
+        FunctionType            :   OK
     Types                       : NOT OK
-        String                  : NOT OK
-        Char                    : NOT OK
+        String                  :   OK
+        Char                    :   OK
         Int                     :   OK
         Float                   : NOT OK
         Cloak                   : NOT OK

@@ -13,6 +13,18 @@ pub fn is_operators(value: &str) -> bool {
     operators.contains(&value)
 }
 
+pub fn is_escape(value: char) -> bool {
+    value == '\'' 
+        || value == '"'
+        || value == 'n'
+        || value == 'r'
+        || value == 't'
+        || value == 'b'
+        || value == 'f'
+        || value == 'v'
+        || value == '0'
+}
+
 pub fn is_reserved(value: &str) -> bool {
     value == "fn"
         || value == "class"

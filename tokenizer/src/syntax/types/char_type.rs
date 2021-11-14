@@ -1,10 +1,13 @@
-use ellie_core::definite;
+use ellie_core::{definite, defs};
 use serde::{Deserialize, Serialize};
 
-#[derive(PartialEq, Eq, Default, Debug, Clone, Serialize, Deserialize)]
+#[derive(PartialEq, Default, Debug, Clone, Serialize, Deserialize)]
 pub struct CharType {
     pub value: char,
     pub complete: bool,
+    pub comma_start_pos: defs::Cursor,
+    pub comma_end_pos: defs::Cursor,
+    pub comma_started: bool,
 }
 
 impl CharType {
@@ -16,6 +19,7 @@ impl CharType {
         CharType {
             value: from.value,
             complete: true,
+            ..Default::default()
         }
     }
 }
