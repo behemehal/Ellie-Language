@@ -1,6 +1,8 @@
 use ellie_core::{defs, error};
-use ellie_tokenizer::processors::Processor;
-use ellie_tokenizer::syntax::{items::*, types::*};
+use ellie_tokenizer::{
+    processors::{types::TypeProcessor, Processor},
+    syntax::{items::*, types::*},
+};
 use std::{
     collections::hash_map::DefaultHasher,
     fs::File,
@@ -9,12 +11,10 @@ use std::{
 };
 
 fn main() {
-    println!("OK");
-
-    let code = "\"\\ellie\"";
+    let code = "1.3";
     let mut errors: Vec<error::Error> = Vec::new();
     let mut pos = defs::CursorPosition::default();
-    let mut processor: string_type::StringTypeCollector = Processor::new();
+    let mut processor: TypeProcessor = Processor::new();
     let mut last_char = '\0';
     for letter_char in code.chars() {
         processor.iterate(&mut errors, pos, last_char, letter_char);
@@ -72,3 +72,38 @@ pub fn read_file(file_dir: &str) -> Result<String, String> {
         }
     }
 }
+
+/*
+    println!("OK");
+
+    let code = "\"\\ellie\"";
+    let mut errors: Vec<error::Error> = Vec::new();
+    let mut pos = defs::CursorPosition::default();
+    let mut processor: string_type::StringTypeCollector = Processor::new();
+    let mut last_char = '\0';
+    for letter_char in code.chars() {
+        processor.iterate(&mut errors, pos, last_char, letter_char);
+        pos.skip_char(1);
+        last_char = letter_char;
+    }
+
+    if !errors.is_empty() {
+        let mut errors_hash = DefaultHasher::new();
+        format!("{:?}", errors.clone()).hash(&mut errors_hash);
+        panic!(
+            "Errors occured: {:#?}\nHash: {}",
+            errors,
+            errors_hash.finish()
+        );
+    } else {
+        let correct = format!("{:?}", processor.clone());
+        let mut correct_hasher = DefaultHasher::new();
+        correct.hash(&mut correct_hasher);
+
+        println!(
+            "----\nTokenize success:\n{:?}\nHash: {:#?}",
+            processor,
+            correct_hasher.finish()
+        );
+    }
+*/

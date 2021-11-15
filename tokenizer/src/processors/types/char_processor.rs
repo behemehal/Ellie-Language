@@ -1,6 +1,6 @@
 use crate::processors::Processor;
 use crate::syntax::types::char_type;
-use ellie_core::{definite::types::integer, defs, error, utils::reliable_name_range};
+use ellie_core::{defs, error};
 
 impl Processor for char_type::CharType {
     fn new() -> Self {
