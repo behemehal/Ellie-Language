@@ -22,7 +22,7 @@ mod float_tests {
 
         let mut result_hash = DefaultHasher::new();
         format!("{:?}", processor).hash(&mut result_hash);
-        assert!(errors.is_empty() && result_hash.finish() == 11747469010420235554);
+        assert!(errors.is_empty() && result_hash.finish() == 4470163200375462406);
     }
 
     #[test]
@@ -39,6 +39,6 @@ mod float_tests {
         }
         let mut result_hash = DefaultHasher::new();
         format!("{:?}", processor).hash(&mut result_hash);
-        assert!(errors.is_empty() && result_hash.finish() == 5760100160729033346);
+        assert!(errors.is_empty() && result_hash.finish() == 5416944121480758071);
     }
 }

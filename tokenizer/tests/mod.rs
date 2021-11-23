@@ -3,6 +3,7 @@ mod types {
     mod float_test;
     mod integer_test;
     mod string_test;
+    mod operator_test;
 }
 
 mod items {

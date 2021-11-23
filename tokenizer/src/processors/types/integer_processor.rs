@@ -19,7 +19,7 @@ impl Processor for integer_type::IntegerTypeCollector {
         &mut self,
         errors: &mut Vec<error::Error>,
         cursor: defs::CursorPosition,
-        last_char: char,
+        _last_char: char,
         letter_char: char,
     ) {
         let is_num = letter_char.to_string().parse::<i8>().is_ok();
@@ -50,7 +50,7 @@ impl Processor for integer_type::IntegerTypeCollector {
                         key: "val".to_owned(),
                         value: self.raw.clone(),
                     }],
-                    "0x36".to_owned(),
+                    "int_0x53".to_owned(),
                     defs::Cursor::build_with_skip_char(cursor),
                 ));
             }
@@ -58,13 +58,13 @@ impl Processor for integer_type::IntegerTypeCollector {
         } else {
             if letter_char == '-' && self.raw == "" {
                 self.raw = "-".to_string();
-            } else if letter_char != '\0' {
+            } else if letter_char != ' ' {
                 errors.push(error::errorList::error_s1.clone().build(
                     vec![error::ErrorBuildField {
                         key: "token".to_string(),
                         value: letter_char.to_string(),
                     }],
-                    "0x36".to_owned(),
+                    "int_0x67".to_owned(),
                     defs::Cursor::build_with_skip_char(cursor),
                 ));
             }

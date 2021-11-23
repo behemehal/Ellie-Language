@@ -14,7 +14,7 @@ pub fn is_operators(value: &str) -> bool {
 }
 
 pub fn is_escape(value: char) -> bool {
-    value == '\'' 
+    value == '\''
         || value == '"'
         || value == 'n'
         || value == 'r'
@@ -116,17 +116,29 @@ pub fn lower_first_char(line: String) -> String {
     }
 }
 
+pub fn is_operator_start(letter_char: char) -> bool {
+    letter_char == '&'
+        || letter_char == '|'
+        || letter_char == '+'
+        || letter_char == '-'
+        || letter_char == '='
+        || letter_char == '!'
+        || letter_char == '>'
+        || letter_char == '<'
+        || letter_char == '*'
+        || letter_char == '/'
+        || letter_char == '%'
+}
+
+#[derive(Debug, Clone)]
 pub enum FoundExtended {
-    Reference,
-    BracketReference,
     LogicalOperator,
     ComparisonOperator,
     ArithmeticOperator,
     AssignmentOperator,
-    FunctionCall,
 }
 
-pub fn is_extended(letter_char: &str, next_char: &str) -> Option<FoundExtended> {
+pub fn resolve_operator(operator: &str) -> Option<FoundExtended> {
     pub fn is_logical_operator(value: &str) -> bool {
         value == "&&" || value == "||"
     }
@@ -159,28 +171,14 @@ pub fn is_extended(letter_char: &str, next_char: &str) -> Option<FoundExtended> 
             || value == "**="
     }
 
-    if letter_char == "." {
-        Some(FoundExtended::Reference)
-    } else if letter_char == "[" {
-        Some(FoundExtended::BracketReference)
-    } else if is_logical_operator(letter_char)
-        || is_logical_operator(&(letter_char.to_string() + &next_char))
-    {
+    if is_logical_operator(operator) {
         Some(FoundExtended::LogicalOperator)
-    } else if is_comparison_operator(letter_char)
-        || is_comparison_operator(&(letter_char.to_string() + &next_char))
-    {
+    } else if is_comparison_operator(operator) {
         Some(FoundExtended::ComparisonOperator)
-    } else if is_assignment_operator(letter_char)
-        || is_assignment_operator(&(letter_char.to_string() + &next_char))
-    {
+    } else if is_assignment_operator(operator) {
         Some(FoundExtended::AssignmentOperator)
-    } else if is_arithmetic_operator(letter_char)
-        || is_arithmetic_operator(&(letter_char.to_string() + &next_char))
-    {
+    } else if is_arithmetic_operator(operator) {
         Some(FoundExtended::ArithmeticOperator)
-    } else if letter_char == "(" {
-        Some(FoundExtended::FunctionCall)
     } else {
         None
     }

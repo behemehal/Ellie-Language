@@ -1,6 +1,3 @@
-
-
-
 Syntax:
 
     Function                 : NOT OK
@@ -42,8 +39,10 @@ Syntax:
             Negative         : NOT OK
             FunctionCall     : NOT OK
             ClassCall        : NOT OK
-            Logical          : NOT OK
-            Arithmetic       : NOT OK
-            Assignment       : NOT OK
-            Comparison       : NOT OK
+            Logical          :   OK
+            Arithmetic       :   OK
+            Assignment       :   OK
+            Comparison       :   OK
 
+            15 * 100 / 43 = 34%
+            Estimated complete time: December 10 2021
