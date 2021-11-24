@@ -10,14 +10,14 @@ pub struct Negative {
     pub itered_cache: Box<types::TypeProcessor>,
 }
 
-impl Negative {
-    pub fn to_definite(self) -> definite::types::negative::Negative {
+impl definite::Converter<Negative, definite::types::negative::Negative> for Negative {
+    fn to_definite(self) -> definite::types::negative::Negative {
         definite::types::negative::Negative {
             value: Box::new(self.value.to_definite()),
         }
     }
 
-    pub fn from_definite(self, from: definite::types::negative::Negative) -> Self {
+    fn from_definite(self, from: definite::types::negative::Negative) -> Self {
         Negative {
             value: Box::new(
                 types::Processors::default()

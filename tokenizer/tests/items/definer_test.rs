@@ -8,7 +8,7 @@ mod definer_tests {
     };
 
     #[test]
-    fn vector_collective_with_no_error() {
+    fn collective_with_no_error() {
         let code = "{int, int}";
         let mut pos = defs::CursorPosition::default();
         let mut errors: Vec<error::Error> = Vec::new();
@@ -59,6 +59,42 @@ mod definer_tests {
         let mut result_hash = DefaultHasher::new();
         format!("{:?}", processor).hash(&mut result_hash);
         assert!(errors.is_empty() && result_hash.finish() == 14018058963751073178);
+    }
+
+    #[test]
+    fn array_collected_with_no_error() {
+        let code = "[int, 3]";
+        let mut pos = defs::CursorPosition::default();
+        let mut errors: Vec<error::Error> = Vec::new();
+        let mut processor: definers::DefinerCollector = Processor::new();
+        let mut last_char = '\0';
+        for letter_char in code.chars() {
+            processor.iterate(&mut errors, pos, last_char, letter_char);
+            pos.skip_char(1);
+            last_char = letter_char;
+        }
+
+        let mut result_hash = DefaultHasher::new();
+        format!("{:?}", processor).hash(&mut result_hash);
+        assert!(errors.is_empty() && result_hash.finish() == 6034828774517186636);
+    }
+
+    #[test]
+    fn variable_array_collected_with_no_error() {
+        let code = "[int, refer]";
+        let mut pos = defs::CursorPosition::default();
+        let mut errors: Vec<error::Error> = Vec::new();
+        let mut processor: definers::DefinerCollector = Processor::new();
+        let mut last_char = '\0';
+        for letter_char in code.chars() {
+            processor.iterate(&mut errors, pos, last_char, letter_char);
+            pos.skip_char(1);
+            last_char = letter_char;
+        }
+
+        let mut result_hash = DefaultHasher::new();
+        format!("{:?}", processor).hash(&mut result_hash);
+        assert!(errors.is_empty() && result_hash.finish() == 16571363607244013864);
     }
 
     #[test]

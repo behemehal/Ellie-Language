@@ -3,7 +3,7 @@ pub mod array;
 pub mod arrow_function;
 pub mod assignment_type;
 pub mod bool;
-pub mod bracket_reference;
+pub mod brace_reference;
 pub mod cloak;
 pub mod collective;
 pub mod comparison_type;
@@ -31,7 +31,7 @@ pub enum Types {
     Char(ellie_char::CharType),
     Collective(collective::Collective),
     Reference(reference::ReferenceType),
-    BracketReference(bracket_reference::BracketReference),
+    BraceReference(brace_reference::BraceReferenceType),
     Operator(operator::OperatorType),
     Cloak(cloak::CloakType),
     Array(array::ArrayType),
@@ -43,4 +43,10 @@ pub enum Types {
     Negative(negative::Negative),
     VariableType(variable::VariableType),
     Null,
+}
+
+impl Default for Types {
+    fn default() -> Self {
+        Types::Null
+    }
 }

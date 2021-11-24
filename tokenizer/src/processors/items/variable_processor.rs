@@ -28,8 +28,8 @@ impl Processor for VariableProcessor {
 
     fn iterate(
         &mut self,
-        errors: &mut Vec<error::Error>,
-        cursor: defs::CursorPosition,
+        _errors: &mut Vec<error::Error>,
+        _cursor: defs::CursorPosition,
         last_char: char,
         letter_char: char,
     ) {

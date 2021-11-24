@@ -1,4 +1,4 @@
-use ellie_core::{com, definite, defs, error};
+use ellie_core::com;
 
 pub struct TokenizerOptions {
     pub functions: bool,
@@ -35,7 +35,7 @@ where
     F: FnMut(com::Message) + Clone + Sized,
     E: FnMut(String) -> ResolvedImport + Clone + Sized,
 {
-    pub fn new(options: TokenizerOptions, main: &str, emitter: F, import_resolver: E) -> Self {
+    pub fn new(_options: TokenizerOptions, _main: &str, emitter: F, import_resolver: E) -> Self {
         Tokenizer {
             emitter,
             import_resolver,

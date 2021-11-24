@@ -4,7 +4,7 @@ use ellie_tokenizer::{
         types::{Processors, TypeProcessor},
         Processor,
     },
-    syntax::{items::*, types::*},
+    syntax::types::*,
 };
 use std::{
     collections::hash_map::DefaultHasher,
@@ -14,7 +14,7 @@ use std::{
 };
 
 fn main() {
-    let code = "ellie[0]";
+    let code = "()";
     let mut errors: Vec<error::Error> = Vec::new();
     let mut pos = defs::CursorPosition::default();
     let mut processor: TypeProcessor = Processor::new();
@@ -40,7 +40,7 @@ fn main() {
 
         println!(
             "----\nTokenize success:\n{:#?}\nHash: {:#?}\nTexted: {}",
-            processor.current.clone(),
+            processor.current.clone().to_definite(),
             correct_hasher.finish(),
             resolve_to_text(processor.current)
         );
@@ -68,10 +68,18 @@ pub fn resolve_to_text(content: Processors) -> String {
         Processors::Float(_) => "float".to_string(),
         Processors::Char(_) => "char".to_string(),
         Processors::String(_) => "string".to_string(),
-        Processors::Variable(_) => "var".to_string(),
+        Processors::Variable(e) => e.data.value,
         Processors::Negative(e) => "!".to_string() + &resolve_to_text(*e.value),
         Processors::Array(_) => "array".to_string(),
-        Processors::Reference(_) => "reference".to_string(),
+        Processors::Reference(e) => {
+            let mut built = String::new();
+            built += &resolve_to_text(*e.data.reference);
+            for i in e.data.chain {
+                built += ".";
+                built += &i.value;
+            }
+            built
+        }
         Processors::Operator(e) => {
             let mut built = "(".to_string();
 
@@ -115,6 +123,27 @@ pub fn resolve_to_text(content: Processors) -> String {
             };
 
             built += &resolve_to_text(*e.data.second);
+            built += ")";
+            built
+        }
+        Processors::BraceReference(e) => {
+            let mut built = "(".to_string();
+            built += &resolve_to_text(*e.data.reference);
+            built += "[";
+            built += &resolve_to_text(*e.data.value);
+            built += "])";
+            built
+        }
+        Processors::FunctionCall(e) => {
+            let mut built = "(".to_string();
+            built += &resolve_to_text(*e.data.target);
+            built += ")(";
+            for i in e.data.parameters.into_iter().enumerate() {
+                if i.0 != 0 {
+                    built += ","
+                }
+                built += &resolve_to_text(i.1.value);
+            }
             built += ")";
             built
         }

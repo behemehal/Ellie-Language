@@ -1,6 +1,6 @@
 use crate::processors::Processor;
 use crate::syntax::types::float_type;
-use ellie_core::{defs, error, utils::reliable_name_range};
+use ellie_core::{defs, error};
 
 impl Processor for float_type::FloatTypeCollector {
     fn new() -> Self {
@@ -19,7 +19,7 @@ impl Processor for float_type::FloatTypeCollector {
         &mut self,
         errors: &mut Vec<error::Error>,
         cursor: defs::CursorPosition,
-        last_char: char,
+        _last_char: char,
         letter_char: char,
     ) {
         if !self.at_point {

@@ -1,24 +1,23 @@
 #[cfg(test)]
-mod reference_tests {
+mod function_call_tests {
     use ellie_core::{defs, error};
     use ellie_tokenizer::{processors::types::TypeProcessor, processors::Processor};
     use std::{
         collections::hash_map::DefaultHasher,
         hash::{Hash, Hasher},
     };
-    const TESTS: [(&str, u64); 8] = [
-        ("1.test", 10284710370696261359),
-        ("1.1.test", 396191547936676625),
-        (".1.test", 17478063398168761554),
-        ("'e'.test", 5375207223945722073),
-        ("\"ellie\".test", 8628058702185603235),
-        ("!.1.test", 425552375002479630),
-        ("1 && 1.test", 1716969059804811584),
-        ("ellie.is.awsome", 16755652306243190260),
+    const TESTS: [(&str, u64); 7] = [
+        ("1(1)", 9753756198596513807),
+        (".1(.1)", 11706485926454468701),
+        ("1.2(1.2, .1)", 8360476234598111572),
+        ("'2'(1.2)", 230001760650757384),
+        ("\"2\"(1, 't')", 5343104436414559361),
+        ("test(1)", 10407447683126159163),
+        ("test.test(test[1])", 13337036509974447290),
     ];
 
     #[test]
-    fn reference_with_no_error() {
+    fn function_call_with_no_error() {
         fn process(input: &str) -> Option<u64> {
             let mut pos = defs::CursorPosition::default();
             let mut errors: Vec<error::Error> = Vec::new();

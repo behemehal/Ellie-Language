@@ -1,4 +1,5 @@
-use crate::processors::Processor;
+use crate::processors::types::TypeProcessor;
+use crate::processors::{types::Processors, Processor};
 use crate::syntax::items::definers::*;
 use ellie_core::{defs, error, utils};
 
@@ -76,53 +77,25 @@ impl Processor for DefinerCollector {
                             .child_cache
                             .iterate(errors, cursor, last_char, letter_char);
                     }
-                } else {
-                    let is_num =
-                        (array_type.size.to_string() + &letter_char.to_string()).parse::<isize>();
-
-                    if let Ok(num) = is_num {
-                        if last_char == ' ' && array_type.raw_size != "" {
-                            errors.push(error::errorList::error_s1.clone().build(
-                                vec![error::ErrorBuildField {
-                                    key: "token".to_string(),
-                                    value: letter_char.to_string(),
-                                }],
-                                "0x00172".to_owned(),
-                                defs::Cursor::build_with_skip_char(cursor),
-                            ));
-                        } else if num.is_negative() || array_type.raw_size == "-" {
-                            errors.push(error::errorList::error_s20.clone().build(
-                                vec![error::ErrorBuildField {
-                                    key: "token".to_string(),
-                                    value: "array".to_string(),
-                                }],
-                                "0x00184".to_owned(),
-                                defs::Cursor::build_with_skip_char(cursor),
-                            ));
-                        } else {
-                            array_type.raw_size += &letter_char.to_string();
-                            array_type.size = num as usize;
-                        }
+                } else if !array_type.size_collected {
+                    if array_type.size_child_cache.is_complete() && letter_char == ']' {
+                        array_type.size =
+                            Box::new(array_type.size_child_cache.current.to_definite());
+                        array_type.size_child_cache = Box::new(TypeProcessor::default());
+                        self.complete = true;
+                    } else if matches!(array_type.size_child_cache.current.clone(), Processors::Variable(x) if x.data.value == "")
+                        && letter_char == '*'
+                    {
+                        self.definer_type = DefinerTypes::Vector(VectorType {
+                            rtype: array_type.rtype.clone(),
+                        });
                     } else {
-                        if letter_char == '*' && array_type.raw_size == "" {
-                            self.definer_type = DefinerTypes::Vector(VectorType {
-                                rtype: array_type.rtype.clone(),
-                            });
-                        } else if letter_char == ']' && array_type.raw_size != "" {
-                            self.complete = true;
-                        } else if letter_char != ' ' {
-                            if letter_char == '-' && array_type.raw_size == "" {
-                                array_type.raw_size = "-".to_string();
-                            } else {
-                                errors.push(error::errorList::error_s1.clone().build(
-                                    vec![error::ErrorBuildField {
-                                        key: "token".to_string(),
-                                        value: letter_char.to_string(),
-                                    }],
-                                    "0x00210".to_owned(),
-                                    defs::Cursor::build_with_skip_char(cursor),
-                                ));
-                            }
+                        array_type
+                            .size_child_cache
+                            .iterate(errors, cursor, last_char, letter_char);
+                        if array_type.size_child_cache.is_complete() {
+                            array_type.size =
+                                Box::new(array_type.size_child_cache.current.to_definite());
                         }
                     }
                 }
@@ -352,6 +325,7 @@ impl Processor for DefinerCollector {
                     }
                 }
             }
+            DefinerTypes::Dynamic => panic!("Unexpected behaviour"),
         }
     }
 }

@@ -1,6 +1,6 @@
 use crate::processors::Processor;
 use crate::syntax::types::integer_type;
-use ellie_core::{defs, error, utils::reliable_name_range};
+use ellie_core::{defs, error};
 
 impl Processor for integer_type::IntegerTypeCollector {
     fn new() -> Self {

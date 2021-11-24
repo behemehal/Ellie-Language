@@ -1,9 +1,6 @@
 use crate::processors::Processor;
 use crate::syntax::types::string_type;
-use ellie_core::{
-    defs, error,
-    utils::{is_escape, reliable_name_range},
-};
+use ellie_core::{defs, error, utils::is_escape};
 
 impl Processor for string_type::StringTypeCollector {
     fn new() -> Self {

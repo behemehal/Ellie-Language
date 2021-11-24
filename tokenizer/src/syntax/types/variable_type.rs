@@ -15,15 +15,17 @@ pub struct VariableTypeCollector {
     pub complete: bool,
 }
 
-impl VariableTypeCollector {
-    pub fn to_definite(self) -> definite::types::variable::VariableType {
+impl definite::Converter<VariableTypeCollector, definite::types::variable::VariableType>
+    for VariableTypeCollector
+{
+    fn to_definite(self) -> definite::types::variable::VariableType {
         definite::types::variable::VariableType {
             value: self.data.value,
             pos: self.data.pos,
         }
     }
 
-    pub fn from_definite(self, from: definite::types::variable::VariableType) -> Self {
+    fn from_definite(self, from: definite::types::variable::VariableType) -> Self {
         VariableTypeCollector {
             data: VariableType {
                 value: from.value,

@@ -1,8 +1,6 @@
 use alloc::fmt::Debug;
 use alloc::format;
 use alloc::string::String;
-use core::any::Any;
-use core::any::TypeId;
 use ellie_core::definite;
 use enum_as_inner::EnumAsInner;
 use serde::{Deserialize, Serialize};
@@ -97,8 +95,10 @@ pub struct IntegerTypeCollector {
     pub complete: bool,
 }
 
-impl IntegerTypeCollector {
-    pub fn to_definite(self) -> definite::types::integer::IntegerType {
+impl definite::Converter<IntegerTypeCollector, definite::types::integer::IntegerType>
+    for IntegerTypeCollector
+{
+    fn to_definite(self) -> definite::types::integer::IntegerType {
         definite::types::integer::IntegerType {
             value: match self.data.value {
                 IntegerSize::U8(e) => definite::types::integer::IntegerSize::U8(e),
@@ -131,7 +131,7 @@ impl IntegerTypeCollector {
         }
     }
 
-    pub fn from_definite(self, from: definite::types::integer::IntegerType) -> Self {
+    fn from_definite(self, from: definite::types::integer::IntegerType) -> Self {
         let value = match from.value {
             definite::types::integer::IntegerSize::U8(e) => IntegerSize::U8(e),
             definite::types::integer::IntegerSize::U16(e) => IntegerSize::U16(e),

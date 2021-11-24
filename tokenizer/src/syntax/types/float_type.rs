@@ -1,8 +1,8 @@
+use super::integer_type::IntegerTypeCollector;
 use alloc::string::String;
 use ellie_core::definite;
 use enum_as_inner::EnumAsInner;
 use serde::{Deserialize, Serialize};
-use super::integer_type::IntegerTypeCollector;
 
 #[derive(PartialEq, Eq, Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum FloatTypes {
@@ -52,10 +52,13 @@ pub struct FloatTypeCollector {
     pub base_p: IntegerTypeCollector,
     pub at_point: bool,
     pub complete: bool,
+    pub no_base: bool,
 }
 
-impl FloatTypeCollector {
-    pub fn to_definite(self) -> definite::types::float::FloatType {
+impl definite::Converter<FloatTypeCollector, definite::types::float::FloatType>
+    for FloatTypeCollector
+{
+    fn to_definite(self) -> definite::types::float::FloatType {
         definite::types::float::FloatType {
             value: match self.data.value {
                 FloatSize::F32(e) => definite::types::float::FloatSize::F32(e),
@@ -68,7 +71,7 @@ impl FloatTypeCollector {
         }
     }
 
-    pub fn from_definite(self, from: definite::types::float::FloatType) -> Self {
+    fn from_definite(self, from: definite::types::float::FloatType) -> Self {
         let value = match from.value {
             definite::types::float::FloatSize::F32(e) => FloatSize::F32(e),
             definite::types::float::FloatSize::F64(e) => FloatSize::F64(e),

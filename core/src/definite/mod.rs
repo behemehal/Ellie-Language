@@ -10,3 +10,8 @@ pub struct DefiniteTokenized {
     pub name: String,
     pub items: Vec<items::Collecting>,
 }
+
+pub trait Converter<F, T> {
+    fn to_definite(self) -> T;
+    fn from_definite(self, from: T) -> F;
+}

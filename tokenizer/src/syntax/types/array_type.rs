@@ -27,8 +27,10 @@ pub struct ArrayTypeCollector {
     pub cache: Box<types::TypeProcessor>,
 }
 
-impl ArrayTypeCollector {
-    pub fn to_definite(self) -> definite::types::array::ArrayType {
+impl definite::Converter<ArrayTypeCollector, definite::types::array::ArrayType>
+    for ArrayTypeCollector
+{
+    fn to_definite(self) -> definite::types::array::ArrayType {
         definite::types::array::ArrayType {
             layer_size: self.data.layer_size,
             collective: self
@@ -43,7 +45,7 @@ impl ArrayTypeCollector {
         }
     }
 
-    pub fn from_definite(self, from: definite::types::array::ArrayType) -> ArrayTypeCollector {
+    fn from_definite(self, from: definite::types::array::ArrayType) -> ArrayTypeCollector {
         ArrayTypeCollector {
             data: ArrayType {
                 layer_size: from.layer_size,

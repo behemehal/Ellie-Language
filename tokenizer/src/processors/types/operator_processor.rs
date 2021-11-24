@@ -1,4 +1,4 @@
-use crate::processors::{types::Processors, Processor};
+use crate::processors::Processor;
 use crate::syntax::types::operator_type;
 use ellie_core::{defs, error, utils};
 

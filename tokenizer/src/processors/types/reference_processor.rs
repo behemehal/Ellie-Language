@@ -18,7 +18,7 @@ impl Processor for reference_type::ReferenceTypeCollector {
         &mut self,
         errors: &mut Vec<ellie_core::error::Error>,
         cursor: ellie_core::defs::CursorPosition,
-        last_char: char,
+        _last_char: char,
         letter_char: char,
     ) {
         let chain_len = self.data.chain.clone().len();

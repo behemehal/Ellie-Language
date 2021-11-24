@@ -10,6 +10,7 @@ Syntax:
     Setter                   : NOT OK
     FileKey                  : NOT OK
     Conditions               : NOT OK
+    Import                   : NOT OK
     Definers                 :
         FunctionType         :   OK
         ArrayType            :   OK
@@ -27,22 +28,19 @@ Syntax:
         Float                :   OK
         Cloak                : NOT OK
         Array                : NOT OK
-        Vector               : NOT OK
         ArrowFunction        : NOT OK
-        FunctionCaller       : NOT OK
-        ClassConstructor     : NOT OK
         Collective           : NOT OK
         VariableReference    :   OK
             SubTypes             :
                 Reference        :   OK
-                BraceReference   : NOT OK 
+                BraceReference   :   OK 
                 Negative         :   OK
-                FunctionCall     : NOT OK
+                FunctionCall     :   OK
                 ClassCall        : NOT OK
                 Logical          :   OK
                 Arithmetic       :   OK
                 Assignment       :   OK
                 Comparison       :   OK
 
-                20 * 100 / 40 = 50%
+                22 * 100 / 38 = 57%
                 Estimated complete time: December 10 2021

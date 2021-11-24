@@ -2,11 +2,12 @@ use alloc::boxed::Box;
 use alloc::string::String;
 use alloc::vec::Vec;
 use serde::{Deserialize, Serialize};
+use crate::definite::types::Types;
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct ArrayType {
     pub rtype: Box<DefinerCollecting>,
-    pub len: crate::definite::types::integer::IntegerType,
+    pub size: Box<Types>,
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
@@ -15,14 +16,14 @@ pub struct FutureType {
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-pub struct GrowableArrayType {
+pub struct VectorType {
     pub rtype: Box<DefinerCollecting>,
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct GenericType {
     pub rtype: String,
-    pub hash: String
+    pub hash: String,
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
@@ -51,7 +52,7 @@ pub struct NullableType {
 pub enum DefinerCollecting {
     Array(ArrayType),
     Future(FutureType),
-    GrowableArray(GrowableArrayType),
+    Vector(VectorType),
     Generic(GenericType),
     Function(FunctionType),
     Cloak(CloakType),

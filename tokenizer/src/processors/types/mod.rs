@@ -1,6 +1,8 @@
 pub mod array_processor;
+pub mod brace_reference_processor;
 pub mod char_processor;
 pub mod float_processor;
+pub mod function_call_processor;
 pub mod integer_processor;
 pub mod negative_processor;
 pub mod operator_processor;
@@ -10,7 +12,10 @@ pub mod variable_processor;
 
 use super::Processor;
 use crate::syntax::types::*;
-use ellie_core::{definite, defs, utils};
+use ellie_core::{
+    definite::{self, Converter},
+    defs, utils,
+};
 use enum_as_inner::EnumAsInner;
 use serde::{Deserialize, Serialize};
 
@@ -25,7 +30,10 @@ pub enum Processors {
     Array(array_type::ArrayTypeCollector),
     Operator(operator_type::OperatorTypeCollector),
     Reference(reference_type::ReferenceTypeCollector),
+    BraceReference(brace_reference_type::BraceReferenceTypeCollector),
+    FunctionCall(function_call_type::FunctionCallCollector),
 }
+
 impl Processors {
     pub fn to_definite(&self) -> ellie_core::definite::types::Types {
         match self.clone() {
@@ -45,6 +53,12 @@ impl Processors {
             }
             Processors::Reference(e) => {
                 ellie_core::definite::types::Types::Reference(e.to_definite())
+            }
+            Processors::BraceReference(e) => {
+                ellie_core::definite::types::Types::BraceReference(e.to_definite())
+            }
+            Processors::FunctionCall(e) => {
+                ellie_core::definite::types::Types::FunctionCall(e.to_definite())
             }
         }
     }
@@ -72,6 +86,12 @@ impl Processors {
             definite::types::Types::Reference(e) => Processors::Reference(
                 reference_type::ReferenceTypeCollector::default().from_definite(e),
             ),
+            definite::types::Types::BraceReference(e) => Processors::BraceReference(
+                brace_reference_type::BraceReferenceTypeCollector::default().from_definite(e),
+            ),
+            definite::types::Types::FunctionCall(e) => Processors::FunctionCall(
+                function_call_type::FunctionCallCollector::default().from_definite(e),
+            ),
             _ => panic!("NOT SUPPORTED"),
         }
     }
@@ -87,6 +107,8 @@ impl Processors {
             Processors::Negative(e) => e.value.is_complete(),
             Processors::Operator(e) => e.data.second.is_complete(),
             Processors::Reference(e) => !e.on_dot,
+            Processors::BraceReference(e) => e.complete,
+            Processors::FunctionCall(e) => e.complete,
         }
     }
 }
@@ -133,20 +155,35 @@ impl Processor for TypeProcessor {
 
         if letter_char == '{' && not_initalized {
             todo!("Collective not supported yet");
-        } else if letter_char == '[' {
+        } else if letter_char == ' '
+            && matches!(&self.current, Processors::Variable(x) if x.data.value == "new")
+        {
+            todo!("ClassCall not supported yet");
+        } else if letter_char == '[' && (not_initalized || self.is_complete()) {
             if not_initalized {
                 self.current = Processors::Array(array_type::ArrayTypeCollector::default());
             } else {
-                todo!("BraceReference not supported yet");
+                self.current =
+                    Processors::BraceReference(brace_reference_type::BraceReferenceTypeCollector {
+                        data: brace_reference_type::BraceReferenceType {
+                            reference: Box::new(self.current.clone()),
+                            ..Default::default()
+                        },
+                        ..Default::default()
+                    });
             }
-        } else if letter_char == '('
-            && (not_initalized
-                || matches!(&self.current, Processors::Variable(x) if x.data.value != ""))
-        {
+        } else if letter_char == '(' && (not_initalized || self.is_complete()) {
             if not_initalized {
                 todo!("Cloak not supported yet");
             } else {
-                todo!("FunctionCall not supported yet");
+                self.current =
+                    Processors::FunctionCall(function_call_type::FunctionCallCollector {
+                        data: function_call_type::FunctionCall {
+                            target: Box::new(self.current.clone()),
+                            ..Default::default()
+                        },
+                        ..Default::default()
+                    });
             }
         } else if letter_char == '\'' && not_initalized {
             self.current = Processors::Char(char_type::CharType::default());
@@ -180,7 +217,7 @@ impl Processor for TypeProcessor {
             });
         } else if letter_char.to_string().parse::<i8>().is_ok() && not_initalized {
             self.current = Processors::Integer(integer_type::IntegerTypeCollector::default());
-        } else if matches!(self.current, Processors::Float(_))
+        } else if matches!(self.current.clone(), Processors::Float(e) if e.no_base)
             && last_char == '.'
             && letter_char.to_string().parse::<i8>().is_err()
             && utils::reliable_name_range(utils::ReliableNameRanges::VariableName, letter_char)
@@ -272,6 +309,8 @@ impl Processor for TypeProcessor {
             Processors::Array(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::Operator(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::Reference(e) => e.iterate(errors, cursor, last_char, letter_char),
+            Processors::BraceReference(e) => e.iterate(errors, cursor, last_char, letter_char),
+            Processors::FunctionCall(e) => e.iterate(errors, cursor, last_char, letter_char),
         };
     }
 }

@@ -57,16 +57,8 @@ mod operator_tests {
 
         for i in TESTS {
             has_err = match process(i.0) {
-                Some(e) => {
-                    if (e != i.1) {
-                        panic!("?");
-                    }
-                    e != i.1
-                },
-                None => {
-                    panic!("?");
-                    true
-                },
+                Some(e) => e != i.1,
+                None => true,
             };
         }
         assert!(!has_err);
