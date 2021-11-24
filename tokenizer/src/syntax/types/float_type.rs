@@ -2,6 +2,7 @@ use alloc::string::String;
 use ellie_core::definite;
 use enum_as_inner::EnumAsInner;
 use serde::{Deserialize, Serialize};
+use super::integer_type::IntegerTypeCollector;
 
 #[derive(PartialEq, Eq, Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum FloatTypes {
@@ -48,6 +49,7 @@ pub struct FloatTypeCollector {
     pub data: FloatType,
     pub base: String,
     pub point: String,
+    pub base_p: IntegerTypeCollector,
     pub at_point: bool,
     pub complete: bool,
 }
@@ -87,6 +89,7 @@ impl FloatTypeCollector {
             point: partitions[1].to_owned(),
             at_point: true,
             complete: true,
+            ..Default::default()
         }
     }
 }

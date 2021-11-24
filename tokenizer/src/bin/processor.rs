@@ -14,7 +14,7 @@ use std::{
 };
 
 fn main() {
-    let code = ".3";
+    let code = "ellie[0]";
     let mut errors: Vec<error::Error> = Vec::new();
     let mut pos = defs::CursorPosition::default();
     let mut processor: TypeProcessor = Processor::new();
@@ -69,7 +69,9 @@ pub fn resolve_to_text(content: Processors) -> String {
         Processors::Char(_) => "char".to_string(),
         Processors::String(_) => "string".to_string(),
         Processors::Variable(_) => "var".to_string(),
+        Processors::Negative(e) => "!".to_string() + &resolve_to_text(*e.value),
         Processors::Array(_) => "array".to_string(),
+        Processors::Reference(_) => "reference".to_string(),
         Processors::Operator(e) => {
             let mut built = "(".to_string();
 
@@ -83,16 +85,12 @@ pub fn resolve_to_text(content: Processors) -> String {
                     operator_type::ComparisonOperators::LessThan => " < ",
                     operator_type::ComparisonOperators::GreaterThanOrEqual => " >= ",
                     operator_type::ComparisonOperators::LessThanOrEqual => " <= ",
-                    operator_type::ComparisonOperators::Null => {
-                        " ?87 "
-                    }
+                    operator_type::ComparisonOperators::Null => " ?87 ",
                 },
                 operator_type::Operators::LogicalType(e) => match e {
                     operator_type::LogicalOperators::And => " && ",
                     operator_type::LogicalOperators::Or => " || ",
-                    operator_type::LogicalOperators::Null => {
-                        " ?94 "
-                    }
+                    operator_type::LogicalOperators::Null => " ?94 ",
                 },
                 operator_type::Operators::ArithmeticType(e) => match e {
                     operator_type::ArithmeticOperators::Addition => " + ",
@@ -101,9 +99,7 @@ pub fn resolve_to_text(content: Processors) -> String {
                     operator_type::ArithmeticOperators::Exponentiation => " ** ",
                     operator_type::ArithmeticOperators::Division => " / ",
                     operator_type::ArithmeticOperators::Modulus => " % ",
-                    operator_type::ArithmeticOperators::Null => {
-                        " ?105 "
-                    }
+                    operator_type::ArithmeticOperators::Null => " ?105 ",
                 },
                 operator_type::Operators::AssignmentType(e) => match e {
                     operator_type::AssignmentOperators::Assignment => " = ",
@@ -113,13 +109,9 @@ pub fn resolve_to_text(content: Processors) -> String {
                     operator_type::AssignmentOperators::DivisionAssignment => " /= ",
                     operator_type::AssignmentOperators::ModulusAssignment => " &= ",
                     operator_type::AssignmentOperators::ExponentiationAssignment => " **= ",
-                    operator_type::AssignmentOperators::Null => {
-                        " ?117 "
-                    }
+                    operator_type::AssignmentOperators::Null => " ?117 ",
                 },
-                operator_type::Operators::Null => {
-                    " ?121 "
-                }
+                operator_type::Operators::Null => " ?121 ",
             };
 
             built += &resolve_to_text(*e.data.second);

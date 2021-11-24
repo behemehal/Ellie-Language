@@ -4,6 +4,8 @@ mod types {
     mod integer_test;
     mod string_test;
     mod operator_test;
+    mod negative_test;
+    mod reference_test;
 }
 
 mod items {

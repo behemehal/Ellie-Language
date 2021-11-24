@@ -2,24 +2,29 @@ pub mod array_processor;
 pub mod char_processor;
 pub mod float_processor;
 pub mod integer_processor;
+pub mod negative_processor;
 pub mod operator_processor;
+pub mod reference_processor;
 pub mod string_processor;
 pub mod variable_processor;
 
 use super::Processor;
 use crate::syntax::types::*;
-use ellie_core::{definite, utils};
+use ellie_core::{definite, defs, utils};
+use enum_as_inner::EnumAsInner;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, EnumAsInner)]
 pub enum Processors {
     Integer(integer_type::IntegerTypeCollector),
     Float(float_type::FloatTypeCollector),
     Char(char_type::CharType),
     String(string_type::StringTypeCollector),
     Variable(variable_type::VariableTypeCollector),
+    Negative(negative_type::Negative),
     Array(array_type::ArrayTypeCollector),
     Operator(operator_type::OperatorTypeCollector),
+    Reference(reference_type::ReferenceTypeCollector),
 }
 impl Processors {
     pub fn to_definite(&self) -> ellie_core::definite::types::Types {
@@ -31,9 +36,15 @@ impl Processors {
             Processors::Variable(e) => {
                 ellie_core::definite::types::Types::VariableType(e.to_definite())
             }
+            Processors::Negative(e) => {
+                ellie_core::definite::types::Types::Negative(e.to_definite())
+            }
             Processors::Array(e) => ellie_core::definite::types::Types::Array(e.to_definite()),
             Processors::Operator(e) => {
                 ellie_core::definite::types::Types::Operator(e.to_definite())
+            }
+            Processors::Reference(e) => {
+                ellie_core::definite::types::Types::Reference(e.to_definite())
             }
         }
     }
@@ -58,6 +69,9 @@ impl Processors {
             definite::types::Types::Array(e) => {
                 Processors::Array(array_type::ArrayTypeCollector::default().from_definite(e))
             }
+            definite::types::Types::Reference(e) => Processors::Reference(
+                reference_type::ReferenceTypeCollector::default().from_definite(e),
+            ),
             _ => panic!("NOT SUPPORTED"),
         }
     }
@@ -70,7 +84,9 @@ impl Processors {
             Processors::Variable(e) => e.complete,
             Processors::Float(e) => e.complete,
             Processors::Array(e) => e.complete,
+            Processors::Negative(e) => e.value.is_complete(),
             Processors::Operator(e) => e.data.second.is_complete(),
+            Processors::Reference(e) => !e.on_dot,
         }
     }
 }
@@ -134,6 +150,8 @@ impl Processor for TypeProcessor {
             }
         } else if letter_char == '\'' && not_initalized {
             self.current = Processors::Char(char_type::CharType::default());
+        } else if letter_char == '!' && not_initalized {
+            self.current = Processors::Negative(negative_type::Negative::default());
         } else if letter_char == '"' && not_initalized {
             self.current = Processors::String(string_type::StringTypeCollector::default());
         } else if letter_char == '.'
@@ -144,6 +162,11 @@ impl Processor for TypeProcessor {
                     e.raw.to_string()
                 } else {
                     "0.".to_string()
+                },
+                base_p: if not_initalized {
+                    integer_type::IntegerTypeCollector::default()
+                } else {
+                    self.current.as_integer().unwrap().clone()
                 },
                 data: float_type::FloatType {
                     raw: if let Processors::Integer(e) = &self.current {
@@ -157,7 +180,40 @@ impl Processor for TypeProcessor {
             });
         } else if letter_char.to_string().parse::<i8>().is_ok() && not_initalized {
             self.current = Processors::Integer(integer_type::IntegerTypeCollector::default());
+        } else if matches!(self.current, Processors::Float(_))
+            && last_char == '.'
+            && letter_char.to_string().parse::<i8>().is_err()
+            && utils::reliable_name_range(utils::ReliableNameRanges::VariableName, letter_char)
+                .reliable
+        {
+            self.current = Processors::Reference(reference_type::ReferenceTypeCollector {
+                data: reference_type::ReferenceType {
+                    reference: Box::new(Processors::Integer(
+                        self.current.as_float().unwrap().base_p.clone(),
+                    )),
+                    chain: vec![reference_type::Chain {
+                        pos: defs::Cursor {
+                            range_start: cursor,
+                            ..Default::default()
+                        },
+                        ..Default::default()
+                    }],
+                    ..Default::default()
+                },
+                on_dot: false,
+                complete: true,
+            });
         } else if self.is_complete() && letter_char == '.' {
+            if self.current.as_reference().is_none() {
+                self.current = Processors::Reference(reference_type::ReferenceTypeCollector {
+                    data: reference_type::ReferenceType {
+                        reference: Box::new(self.current.clone()),
+                        ..Default::default()
+                    },
+                    on_dot: false,
+                    complete: false,
+                });
+            }
         } else if self.is_complete() && utils::is_operator_start(letter_char) {
             //Operator priority
             if let Processors::Operator(operator) = self.current.clone() {
@@ -212,8 +268,10 @@ impl Processor for TypeProcessor {
             Processors::String(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::Variable(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::Float(e) => e.iterate(errors, cursor, last_char, letter_char),
+            Processors::Negative(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::Array(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::Operator(e) => e.iterate(errors, cursor, last_char, letter_char),
+            Processors::Reference(e) => e.iterate(errors, cursor, last_char, letter_char),
         };
     }
 }

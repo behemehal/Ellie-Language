@@ -80,8 +80,9 @@ impl Processor for operator_type::OperatorTypeCollector {
         } else {
             self.itered_cache
                 .iterate(errors, cursor, last_char, letter_char);
-
-            self.data.second = Box::new(self.itered_cache.current.clone());
+            if self.itered_cache.is_complete() {
+                self.data.second = Box::new(self.itered_cache.current.clone());
+            }
         }
 
         /*

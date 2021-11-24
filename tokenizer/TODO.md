@@ -10,7 +10,7 @@ Syntax:
     Setter                   : NOT OK
     FileKey                  : NOT OK
     Conditions               : NOT OK
-    Definers                 :   OK
+    Definers                 :
         FunctionType         :   OK
         ArrayType            :   OK
         VectorType           :   OK
@@ -20,7 +20,7 @@ Syntax:
         NullableType         :   OK
         FutureType           :   OK
         FunctionType         :   OK
-    Types                    : NOT OK
+    Types                    :
         String               :   OK
         Char                 :   OK
         Int                  :   OK
@@ -32,17 +32,17 @@ Syntax:
         FunctionCaller       : NOT OK
         ClassConstructor     : NOT OK
         Collective           : NOT OK
-        VariableReference    : NOT OK
-        SubTypes             : NOT OK
-            Reference        : NOT OK
-            BraceReference   : NOT OK 
-            Negative         : NOT OK
-            FunctionCall     : NOT OK
-            ClassCall        : NOT OK
-            Logical          :   OK
-            Arithmetic       :   OK
-            Assignment       :   OK
-            Comparison       :   OK
+        VariableReference    :   OK
+            SubTypes             :
+                Reference        :   OK
+                BraceReference   : NOT OK 
+                Negative         :   OK
+                FunctionCall     : NOT OK
+                ClassCall        : NOT OK
+                Logical          :   OK
+                Arithmetic       :   OK
+                Assignment       :   OK
+                Comparison       :   OK
 
-            15 * 100 / 43 = 34%
-            Estimated complete time: December 10 2021
+                20 * 100 / 40 = 50%
+                Estimated complete time: December 10 2021
