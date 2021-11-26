@@ -1,22 +1,7 @@
-use crate::processors::Processor;
 use crate::syntax::types::function_call_type;
 use ellie_core::{defs, error};
 
-use super::TypeProcessor;
-
-impl Processor for function_call_type::FunctionCallCollector {
-    fn new() -> Self {
-        function_call_type::FunctionCallCollector::default()
-    }
-
-    fn keyword(&self) -> &str {
-        ""
-    }
-
-    fn has_accessibility(&self) -> bool {
-        false
-    }
-
+impl super::Processor for function_call_type::FunctionCallCollector {
     fn iterate(
         &mut self,
         errors: &mut Vec<error::Error>,
@@ -33,19 +18,20 @@ impl Processor for function_call_type::FunctionCallCollector {
                         key: "val".to_owned(),
                         value: letter_char.to_string(),
                     }],
-                    "brace_refence_0x36".to_owned(),
+                    "function_call_0x36".to_owned(),
                     defs::Cursor::build_with_skip_char(cursor),
                 ));
             }
-        } else {
+        } else if !self.complete {
             if self.itered_cache.is_complete() && letter_char == ',' {
                 self.data
                     .parameters
                     .push(function_call_type::FunctionCallParameter::default());
-                self.itered_cache = Box::new(TypeProcessor::default())
+                self.itered_cache = Box::new(super::TypeProcessor::default())
             } else if (self.itered_cache.is_complete() || self.data.parameters.is_empty())
                 && letter_char == ')'
             {
+                self.itered_cache = Box::new(super::TypeProcessor::default());
                 self.complete = true;
             } else {
                 self.itered_cache
@@ -65,6 +51,15 @@ impl Processor for function_call_type::FunctionCallCollector {
                         defs::Cursor::build_with_skip_char(cursor);
                 }
             }
+        } else if letter_char != ' ' {
+            errors.push(error::errorList::error_s1.clone().build(
+                vec![error::ErrorBuildField {
+                    key: "val".to_owned(),
+                    value: letter_char.to_string(),
+                }],
+                "function_call_0x60".to_owned(),
+                defs::Cursor::build_with_skip_char(cursor),
+            ));
         }
     }
 }

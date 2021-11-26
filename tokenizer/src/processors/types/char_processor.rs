@@ -1,20 +1,7 @@
-use crate::processors::Processor;
 use crate::syntax::types::char_type;
 use ellie_core::{defs, error};
 
-impl Processor for char_type::CharType {
-    fn new() -> Self {
-        char_type::CharType::default()
-    }
-
-    fn keyword(&self) -> &str {
-        ""
-    }
-
-    fn has_accessibility(&self) -> bool {
-        false
-    }
-
+impl super::Processor for char_type::CharType {
     fn iterate(
         &mut self,
         errors: &mut Vec<error::Error>,

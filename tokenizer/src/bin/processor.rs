@@ -1,9 +1,6 @@
 use ellie_core::{defs, error};
 use ellie_tokenizer::{
-    processors::{
-        types::{Processors, TypeProcessor},
-        Processor,
-    },
+    processors::types::{Processor, Processors, TypeProcessor},
     syntax::types::*,
 };
 use std::{
@@ -14,12 +11,14 @@ use std::{
 };
 
 fn main() {
-    let code = "()";
+    let code = "test.test(test[1])";
     let mut errors: Vec<error::Error> = Vec::new();
     let mut pos = defs::CursorPosition::default();
-    let mut processor: TypeProcessor = Processor::new();
+    let mut processor: TypeProcessor = TypeProcessor::default();
+
     let mut last_char = '\0';
     for letter_char in code.chars() {
+        println!("ITER: {}", letter_char);
         processor.iterate(&mut errors, pos, last_char, letter_char);
         pos.skip_char(1);
         last_char = letter_char;
@@ -38,12 +37,21 @@ fn main() {
         let mut correct_hasher = DefaultHasher::new();
         correct.hash(&mut correct_hasher);
 
-        println!(
-            "----\nTokenize success:\n{:#?}\nHash: {:#?}\nTexted: {}",
-            processor.current.clone().to_definite(),
-            correct_hasher.finish(),
-            resolve_to_text(processor.current)
-        );
+        if processor.is_complete() {
+            println!(
+                "----\nTokenize success:\n{:#?}\nHash: {:#?}\nTexted: {}",
+                processor.current.clone(),
+                correct_hasher.finish(),
+                resolve_to_text(processor.current)
+            );
+        } else {
+            panic!(
+                "----\nTokenize failed (Not complete):\n{:#?}\nHash: {:#?}\nTexted: {}",
+                processor.current.clone(),
+                correct_hasher.finish(),
+                resolve_to_text(processor.current)
+            );
+        }
     }
 }
 
@@ -65,8 +73,13 @@ pub fn read_file(file_dir: &str) -> Result<String, String> {
 pub fn resolve_to_text(content: Processors) -> String {
     match content {
         Processors::Integer(e) => format!("{:?}", e.data.value),
-        Processors::Float(_) => "float".to_string(),
-        Processors::Char(_) => "char".to_string(),
+        Processors::Float(e) => format!("{:?}", e.data.value),
+        Processors::Char(e) => {
+            let mut built = "char(".to_string();
+            built += &e.value.to_string();
+            built += ")";
+            built
+        }
         Processors::String(_) => "string".to_string(),
         Processors::Variable(e) => e.data.value,
         Processors::Negative(e) => "!".to_string() + &resolve_to_text(*e.value),
@@ -147,40 +160,59 @@ pub fn resolve_to_text(content: Processors) -> String {
             built += ")";
             built
         }
+        Processors::ClassCall(e) => {
+            let mut built = "new (".to_string();
+            built += &resolve_to_text(*e.data.target);
+            built += ")";
+
+            if e.data.generic_parameters.len() != 0 {
+                built += ")<";
+                for i in e.data.generic_parameters.into_iter().enumerate() {
+                    if i.0 != 0 {
+                        built += ","
+                    }
+                    built += "type";
+                }
+                built += ">";
+            }
+
+            built += "(";
+            for i in e.data.parameters.into_iter().enumerate() {
+                if i.0 != 0 {
+                    built += ","
+                }
+                built += &resolve_to_text(i.1.value);
+            }
+            built += ")";
+            built
+        }
+        Processors::Cloak(e) => {
+            let mut built = "(".to_string();
+            for i in e.data.collective.into_iter().enumerate() {
+                if i.0 != 0 {
+                    built += ","
+                }
+                built += &resolve_to_text(i.1.value);
+            }
+            built += ")";
+            built
+        }
+        Processors::Collective(e) => {
+            let mut built = "\n{\n".to_string();
+
+            for i in e.data.entries.into_iter().enumerate() {
+                built += "\t";
+
+                built += &resolve_to_text(i.1.key);
+                built += " : ";
+                built += &resolve_to_text(i.1.value);
+                if i.0 != 0 {
+                    built += ",";
+                }
+                built += "\n"
+            }
+            built += "\n}\n";
+            built
+        }
     }
 }
-
-/*
-    println!("OK");
-
-    let code = "\"\\ellie\"";
-    let mut errors: Vec<error::Error> = Vec::new();
-    let mut pos = defs::CursorPosition::default();
-    let mut processor: string_type::StringTypeCollector = Processor::new();
-    let mut last_char = '\0';
-    for letter_char in code.chars() {
-        processor.iterate(&mut errors, pos, last_char, letter_char);
-        pos.skip_char(1);
-        last_char = letter_char;
-    }
-
-    if !errors.is_empty() {
-        let mut errors_hash = DefaultHasher::new();
-        format!("{:?}", errors.clone()).hash(&mut errors_hash);
-        panic!(
-            "Errors occured: {:#?}\nHash: {}",
-            errors,
-            errors_hash.finish()
-        );
-    } else {
-        let correct = format!("{:?}", processor.clone());
-        let mut correct_hasher = DefaultHasher::new();
-        correct.hash(&mut correct_hasher);
-
-        println!(
-            "----\nTokenize success:\n{:?}\nHash: {:#?}",
-            processor,
-            correct_hasher.finish()
-        );
-    }
-*/

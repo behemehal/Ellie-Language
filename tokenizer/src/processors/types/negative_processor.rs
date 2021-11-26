@@ -1,21 +1,7 @@
 use ellie_core::{defs, error};
-
-use crate::processors::Processor;
 use crate::syntax::types::negative_type;
 
-impl Processor for negative_type::Negative {
-    fn new() -> Self {
-        negative_type::Negative::default()
-    }
-
-    fn keyword(&self) -> &str {
-        ""
-    }
-
-    fn has_accessibility(&self) -> bool {
-        false
-    }
-
+impl super::Processor for negative_type::Negative {
     fn iterate(
         &mut self,
         errors: &mut Vec<ellie_core::error::Error>,

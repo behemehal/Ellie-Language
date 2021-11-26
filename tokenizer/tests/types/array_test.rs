@@ -1,23 +1,18 @@
 #[cfg(test)]
-mod brace_reference_tests {
+mod array_tests {
     use ellie_core::{defs, error};
-    use ellie_tokenizer::processors::types::{TypeProcessor, Processor};
+    use ellie_tokenizer::processors::types::{Processor, TypeProcessor};
     use std::{
         collections::hash_map::DefaultHasher,
         hash::{Hash, Hasher},
     };
-    const TESTS: [(&str, u64); 7] = [
-        ("1[1]", 16767165626425121393),
-        (".1[1]", 5601372900266423814),
-        ("1.2[1]", 1918174091482911851),
-        ("'2'[1]", 17852188756335713310),
-        ("\"2\"[1]", 8718289645514959000),
-        ("test[1]", 12215492312650117402),
-        ("test[test[1]]", 2429100454996154895),
+    const TESTS: [(&str, u64); 2] = [
+        ("[2, 4]", 6140056764232043685),
+        ("['2', \"4\"] || 1", 12834758856132739949),
     ];
 
     #[test]
-    fn brace_with_no_error() {
+    fn array_with_no_error() {
         fn process(input: &str) -> Option<u64> {
             let mut pos = defs::CursorPosition::default();
             let mut errors: Vec<error::Error> = Vec::new();

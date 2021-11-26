@@ -1,19 +1,7 @@
-use crate::{processors::Processor, syntax::types::reference_type};
+use crate::syntax::types::reference_type;
 use ellie_core::{defs, error, utils};
 
-impl Processor for reference_type::ReferenceTypeCollector {
-    fn new() -> Self {
-        reference_type::ReferenceTypeCollector::default()
-    }
-
-    fn keyword(&self) -> &str {
-        ""
-    }
-
-    fn has_accessibility(&self) -> bool {
-        false
-    }
-
+impl super::Processor for reference_type::ReferenceTypeCollector {
     fn iterate(
         &mut self,
         errors: &mut Vec<ellie_core::error::Error>,

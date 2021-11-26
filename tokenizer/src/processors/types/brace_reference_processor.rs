@@ -1,20 +1,7 @@
-use crate::processors::Processor;
 use crate::syntax::types::brace_reference_type;
 use ellie_core::{defs, error};
 
-impl Processor for brace_reference_type::BraceReferenceTypeCollector {
-    fn new() -> Self {
-        brace_reference_type::BraceReferenceTypeCollector::default()
-    }
-
-    fn keyword(&self) -> &str {
-        ""
-    }
-
-    fn has_accessibility(&self) -> bool {
-        false
-    }
-
+impl super::Processor for brace_reference_type::BraceReferenceTypeCollector {
     fn iterate(
         &mut self,
         errors: &mut Vec<error::Error>,
@@ -35,7 +22,7 @@ impl Processor for brace_reference_type::BraceReferenceTypeCollector {
                     defs::Cursor::build_with_skip_char(cursor),
                 ));
             }
-        } else {
+        } else if !self.complete {
             if self.itered_cache.is_complete() && letter_char == ']' {
                 self.complete = true;
                 self.data.value = Box::new(self.itered_cache.current.clone());
@@ -43,6 +30,15 @@ impl Processor for brace_reference_type::BraceReferenceTypeCollector {
                 self.itered_cache
                     .iterate(errors, cursor, last_char, letter_char);
             }
+        } else if letter_char != ' ' {
+            errors.push(error::errorList::error_s1.clone().build(
+                vec![error::ErrorBuildField {
+                    key: "val".to_owned(),
+                    value: letter_char.to_string(),
+                }],
+                "array_0x21".to_owned(),
+                defs::Cursor::build_with_skip_char(cursor),
+            ));
         }
     }
 }

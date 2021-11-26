@@ -1,20 +1,7 @@
-use crate::processors::Processor;
 use crate::syntax::types::operator_type;
 use ellie_core::{defs, error, utils};
 
-impl Processor for operator_type::OperatorTypeCollector {
-    fn new() -> Self {
-        operator_type::OperatorTypeCollector::default()
-    }
-
-    fn keyword(&self) -> &str {
-        ""
-    }
-
-    fn has_accessibility(&self) -> bool {
-        false
-    }
-
+impl super::Processor for operator_type::OperatorTypeCollector {
     fn iterate(
         &mut self,
         errors: &mut Vec<error::Error>,

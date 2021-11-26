@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod char_tests {
     use ellie_core::{defs, error};
-    use ellie_tokenizer::{processors::Processor, syntax::types::char_type};
+    use ellie_tokenizer::{processors::types::Processor, syntax::types::char_type};
     use std::{
         collections::hash_map::DefaultHasher,
         hash::{Hash, Hasher},
@@ -12,7 +12,7 @@ mod char_tests {
         let code = "'\0'";
         let mut pos = defs::CursorPosition::default();
         let mut errors: Vec<error::Error> = Vec::new();
-        let mut processor: char_type::CharType = Processor::new();
+        let mut processor: char_type::CharType = char_type::CharType::default();
         let mut last_char = '\0';
         for letter_char in code.chars() {
             processor.iterate(&mut errors, pos, last_char, letter_char);
@@ -30,7 +30,7 @@ mod char_tests {
         let code = "'e'";
         let mut pos = defs::CursorPosition::default();
         let mut errors: Vec<error::Error> = Vec::new();
-        let mut processor: char_type::CharType = Processor::new();
+        let mut processor: char_type::CharType = char_type::CharType::default();
         let mut last_char = '\0';
         for letter_char in code.chars() {
             processor.iterate(&mut errors, pos, last_char, letter_char);

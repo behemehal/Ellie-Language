@@ -1,21 +1,8 @@
-use crate::processors::types::TypeProcessor;
-use crate::processors::{types::Processors, Processor};
+use crate::processors::types::{Processor, Processors, TypeProcessor};
 use crate::syntax::items::definers::*;
 use ellie_core::{defs, error, utils};
 
 impl Processor for DefinerCollector {
-    fn new() -> Self {
-        DefinerCollector::default()
-    }
-
-    fn keyword(&self) -> &str {
-        ""
-    }
-
-    fn has_accessibility(&self) -> bool {
-        false
-    }
-
     fn iterate(
         &mut self,
         errors: &mut Vec<error::Error>,
@@ -71,7 +58,7 @@ impl Processor for DefinerCollector {
                     if array_type.child_cache.complete && letter_char == ',' {
                         array_type.type_collected = true;
                         array_type.rtype = Box::new(array_type.child_cache.definer_type.clone());
-                        array_type.child_cache = Box::new(Processor::new());
+                        array_type.child_cache = Box::new(DefinerCollector::default());
                     } else {
                         array_type
                             .child_cache
@@ -106,7 +93,7 @@ impl Processor for DefinerCollector {
                         collective_type.key_collected = true;
                         collective_type.key =
                             Box::new(collective_type.child_cache.definer_type.clone());
-                        collective_type.child_cache = Box::new(Processor::new());
+                        collective_type.child_cache = Box::new(DefinerCollector::default());
                     } else {
                         collective_type
                             .child_cache
@@ -117,7 +104,7 @@ impl Processor for DefinerCollector {
                         self.complete = true;
                         collective_type.value =
                             Box::new(collective_type.child_cache.definer_type.clone());
-                        collective_type.child_cache = Box::new(Processor::new());
+                        collective_type.child_cache = Box::new(DefinerCollector::default());
                     } else {
                         collective_type
                             .child_cache
@@ -144,25 +131,6 @@ impl Processor for DefinerCollector {
                     self.complete = true;
                 }
             }
-            DefinerTypes::Future(ref mut future_type) => {
-                if letter_char == ' ' && last_char == '>' {
-                    errors.push(error::errorList::error_s1.clone().build(
-                        vec![error::ErrorBuildField {
-                            key: "token".to_string(),
-                            value: letter_char.to_string(),
-                        }],
-                        "0x276".to_owned(),
-                        defs::Cursor::build_with_skip_char(cursor),
-                    ));
-                }
-                future_type
-                    .child_cache
-                    .iterate(errors, cursor, last_char, letter_char);
-                if future_type.child_cache.complete {
-                    self.complete = true;
-                    future_type.rtype = Box::new(future_type.child_cache.definer_type.clone());
-                }
-            }
             DefinerTypes::Nullable(ref mut nullable_type) => {
                 if letter_char == ' ' && last_char == '?' {
                     errors.push(error::errorList::error_s1.clone().build(
@@ -180,6 +148,38 @@ impl Processor for DefinerCollector {
                 if nullable_type.child_cache.complete {
                     self.complete = true;
                     nullable_type.rtype = Box::new(nullable_type.child_cache.definer_type.clone());
+                }
+            }
+            DefinerTypes::ParentGeneric(ref mut parent_generic_type) => {
+                let len = parent_generic_type.generics.len();
+                if letter_char == ',' && parent_generic_type.cache.complete {
+                    parent_generic_type.generics[len - 1].pos =
+                        defs::Cursor::build_with_skip_char(cursor);
+                    parent_generic_type.generics[len - 1].value =
+                        parent_generic_type.cache.definer_type.clone();
+                    parent_generic_type
+                        .generics
+                        .push(GenericParameter::default());
+                    parent_generic_type.cache = Box::new(DefinerCollector::default());
+                } else if letter_char == '>' && parent_generic_type.cache.complete {
+                    self.complete = true;
+                    parent_generic_type.generics[len - 1].pos =
+                        defs::Cursor::build_with_skip_char(cursor);
+                    parent_generic_type.generics[len - 1].value =
+                        parent_generic_type.cache.definer_type.clone();
+                    parent_generic_type.cache = Box::new(DefinerCollector::default());
+                } else {
+                    if parent_generic_type.generics[len - 1]
+                        .pos
+                        .range_start
+                        .is_zero()
+                        && letter_char != ' '
+                    {
+                        parent_generic_type.generics[len - 1].pos.range_start = cursor;
+                    }
+                    parent_generic_type
+                        .cache
+                        .iterate(errors, cursor, last_char, letter_char);
                 }
             }
             DefinerTypes::Generic(ref mut generic_type) => {
@@ -201,12 +201,7 @@ impl Processor for DefinerCollector {
                         generic_type.rtype += &letter_char.to_string();
                     }
                 } else {
-                    if letter_char == '>' && generic_type.rtype.is_empty() {
-                        self.definer_type = DefinerTypes::Future(FutureType {
-                            rtype: Box::new(self.definer_type.clone()),
-                            ..Default::default()
-                        });
-                    } else if letter_char == '?' && generic_type.rtype.is_empty() {
+                    if letter_char == '?' && generic_type.rtype.is_empty() {
                         self.definer_type = DefinerTypes::Nullable(NullableType {
                             rtype: Box::new(self.definer_type.clone()),
                             ..Default::default()
@@ -219,6 +214,13 @@ impl Processor for DefinerCollector {
                         self.definer_type = DefinerTypes::Cloak(CloakType::default());
                     } else if letter_char == '[' && generic_type.rtype.is_empty() {
                         self.definer_type = DefinerTypes::Array(ArrayType::default());
+                    } else if letter_char == '<' && !generic_type.rtype.is_empty() {
+                        self.definer_type = DefinerTypes::ParentGeneric(ParentGenericType {
+                            parent: generic_type.rtype.clone(),
+                            generics: vec![GenericParameter::default()],
+                            ..Default::default()
+                        });
+                        self.complete = false;
                     } else if letter_char != ' ' {
                         errors.push(error::errorList::error_s1.clone().build(
                             vec![error::ErrorBuildField {
@@ -273,6 +275,7 @@ impl Processor for DefinerCollector {
                             function_type.returning =
                                 Box::new(DefinerTypes::Generic(GenericType {
                                     rtype: "void".to_owned(),
+                                    ..Default::default()
                                 }));
                             self.complete = true;
                         } else {

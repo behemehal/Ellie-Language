@@ -1,6 +1,9 @@
 pub mod array_processor;
 pub mod brace_reference_processor;
 pub mod char_processor;
+pub mod class_call_processor;
+pub mod cloak_processor;
+pub mod collective_processor;
 pub mod float_processor;
 pub mod function_call_processor;
 pub mod integer_processor;
@@ -10,11 +13,10 @@ pub mod reference_processor;
 pub mod string_processor;
 pub mod variable_processor;
 
-use super::Processor;
 use crate::syntax::types::*;
 use ellie_core::{
     definite::{self, Converter},
-    defs, utils,
+    defs, error, utils,
 };
 use enum_as_inner::EnumAsInner;
 use serde::{Deserialize, Serialize};
@@ -32,6 +34,9 @@ pub enum Processors {
     Reference(reference_type::ReferenceTypeCollector),
     BraceReference(brace_reference_type::BraceReferenceTypeCollector),
     FunctionCall(function_call_type::FunctionCallCollector),
+    ClassCall(class_call_type::ClassCallCollector),
+    Cloak(cloak_type::CloakTypeCollector),
+    Collective(collective_type::CollectiveTypeCollector),
 }
 
 impl Processors {
@@ -59,6 +64,13 @@ impl Processors {
             }
             Processors::FunctionCall(e) => {
                 ellie_core::definite::types::Types::FunctionCall(e.to_definite())
+            }
+            Processors::ClassCall(e) => {
+                ellie_core::definite::types::Types::ClassCall(e.to_definite())
+            }
+            Processors::Cloak(e) => ellie_core::definite::types::Types::Cloak(e.to_definite()),
+            Processors::Collective(e) => {
+                ellie_core::definite::types::Types::Collective(e.to_definite())
             }
         }
     }
@@ -92,6 +104,15 @@ impl Processors {
             definite::types::Types::FunctionCall(e) => Processors::FunctionCall(
                 function_call_type::FunctionCallCollector::default().from_definite(e),
             ),
+            definite::types::Types::ClassCall(e) => Processors::ClassCall(
+                class_call_type::ClassCallCollector::default().from_definite(e),
+            ),
+            definite::types::Types::Cloak(e) => {
+                Processors::Cloak(cloak_type::CloakTypeCollector::default().from_definite(e))
+            }
+            definite::types::Types::Collective(e) => Processors::Collective(
+                collective_type::CollectiveTypeCollector::default().from_definite(e),
+            ),
             _ => panic!("NOT SUPPORTED"),
         }
     }
@@ -109,6 +130,9 @@ impl Processors {
             Processors::Reference(e) => !e.on_dot,
             Processors::BraceReference(e) => e.complete,
             Processors::FunctionCall(e) => e.complete,
+            Processors::ClassCall(e) => e.complete,
+            Processors::Cloak(e) => e.complete,
+            Processors::Collective(e) => e.complete,
         }
     }
 }
@@ -117,6 +141,16 @@ impl Default for Processors {
     fn default() -> Self {
         Processors::Variable(variable_type::VariableTypeCollector::default())
     }
+}
+
+pub trait Processor {
+    fn iterate(
+        &mut self,
+        errors: &mut Vec<error::Error>,
+        cursor: defs::CursorPosition,
+        last_char: char,
+        letter_char: char,
+    );
 }
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
@@ -132,18 +166,6 @@ impl TypeProcessor {
 }
 
 impl Processor for TypeProcessor {
-    fn new() -> Self {
-        TypeProcessor::default()
-    }
-
-    fn keyword(&self) -> &str {
-        ""
-    }
-
-    fn has_accessibility(&self) -> bool {
-        false
-    }
-
     fn iterate(
         &mut self,
         errors: &mut Vec<ellie_core::error::Error>,
@@ -154,11 +176,12 @@ impl Processor for TypeProcessor {
         let not_initalized = matches!(&self.current, Processors::Variable(x) if x.data.value == "");
 
         if letter_char == '{' && not_initalized {
-            todo!("Collective not supported yet");
+            self.current =
+                Processors::Collective(collective_type::CollectiveTypeCollector::default());
         } else if letter_char == ' '
             && matches!(&self.current, Processors::Variable(x) if x.data.value == "new")
         {
-            todo!("ClassCall not supported yet");
+            self.current = Processors::ClassCall(class_call_type::ClassCallCollector::default());
         } else if letter_char == '[' && (not_initalized || self.is_complete()) {
             if not_initalized {
                 self.current = Processors::Array(array_type::ArrayTypeCollector::default());
@@ -174,7 +197,7 @@ impl Processor for TypeProcessor {
             }
         } else if letter_char == '(' && (not_initalized || self.is_complete()) {
             if not_initalized {
-                todo!("Cloak not supported yet");
+                self.current = Processors::Cloak(cloak_type::CloakTypeCollector::default());
             } else {
                 self.current =
                     Processors::FunctionCall(function_call_type::FunctionCallCollector {
@@ -311,6 +334,9 @@ impl Processor for TypeProcessor {
             Processors::Reference(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::BraceReference(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::FunctionCall(e) => e.iterate(errors, cursor, last_char, letter_char),
+            Processors::ClassCall(e) => e.iterate(errors, cursor, last_char, letter_char),
+            Processors::Cloak(e) => e.iterate(errors, cursor, last_char, letter_char),
+            Processors::Collective(e) => e.iterate(errors, cursor, last_char, letter_char),
         };
     }
 }

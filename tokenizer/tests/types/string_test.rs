@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod string_tests {
     use ellie_core::{defs, error};
-    use ellie_tokenizer::{processors::Processor, syntax::types::string_type};
+    use ellie_tokenizer::{processors::types::Processor, syntax::types::string_type};
     use std::{
         collections::hash_map::DefaultHasher,
         hash::{Hash, Hasher},
@@ -12,7 +12,8 @@ mod string_tests {
         let code = "\"\\\"\"";
         let mut pos = defs::CursorPosition::default();
         let mut errors: Vec<error::Error> = Vec::new();
-        let mut processor: string_type::StringTypeCollector = Processor::new();
+        let mut processor: string_type::StringTypeCollector =
+            string_type::StringTypeCollector::default();
         let mut last_char = '\0';
         for letter_char in code.chars() {
             processor.iterate(&mut errors, pos, last_char, letter_char);
@@ -30,7 +31,8 @@ mod string_tests {
         let code = "\"ellie\"";
         let mut pos = defs::CursorPosition::default();
         let mut errors: Vec<error::Error> = Vec::new();
-        let mut processor: string_type::StringTypeCollector = Processor::new();
+        let mut processor: string_type::StringTypeCollector =
+            string_type::StringTypeCollector::default();
         let mut last_char = '\0';
         for letter_char in code.chars() {
             processor.iterate(&mut errors, pos, last_char, letter_char);
@@ -47,7 +49,8 @@ mod string_tests {
         let code = "\"\\ellie\"";
         let mut pos = defs::CursorPosition::default();
         let mut errors: Vec<error::Error> = Vec::new();
-        let mut processor: string_type::StringTypeCollector = Processor::new();
+        let mut processor: string_type::StringTypeCollector =
+            string_type::StringTypeCollector::default();
         let mut last_char = '\0';
         for letter_char in code.chars() {
             processor.iterate(&mut errors, pos, last_char, letter_char);

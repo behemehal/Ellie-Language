@@ -1,23 +1,10 @@
-use crate::processors::Processor;
 use crate::syntax::types::variable_type;
 use ellie_core::{
     defs, error,
     utils::{reliable_name_range, ReliableNameRanges},
 };
 
-impl Processor for variable_type::VariableTypeCollector {
-    fn new() -> Self {
-        variable_type::VariableTypeCollector::default()
-    }
-
-    fn keyword(&self) -> &str {
-        ""
-    }
-
-    fn has_accessibility(&self) -> bool {
-        false
-    }
-
+impl super::Processor for variable_type::VariableTypeCollector {
     fn iterate(
         &mut self,
         errors: &mut Vec<error::Error>,

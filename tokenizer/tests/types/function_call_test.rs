@@ -1,19 +1,19 @@
 #[cfg(test)]
 mod function_call_tests {
     use ellie_core::{defs, error};
-    use ellie_tokenizer::{processors::types::TypeProcessor, processors::Processor};
+    use ellie_tokenizer::processors::types::{TypeProcessor, Processor};
     use std::{
         collections::hash_map::DefaultHasher,
         hash::{Hash, Hasher},
     };
     const TESTS: [(&str, u64); 7] = [
-        ("1(1)", 9753756198596513807),
-        (".1(.1)", 11706485926454468701),
-        ("1.2(1.2, .1)", 8360476234598111572),
-        ("'2'(1.2)", 230001760650757384),
-        ("\"2\"(1, 't')", 5343104436414559361),
-        ("test(1)", 10407447683126159163),
-        ("test.test(test[1])", 13337036509974447290),
+        ("1(1)", 16894146993788279578),
+        (".1(.1)", 4312058473575010974),
+        ("1.2(1.2, .1)", 3369295565294702178),
+        ("'2'(1.2)", 4363779510867426687),
+        ("\"2\"(1, 't')", 2024870518245809355),
+        ("test(1)", 16092232105369503417),
+        ("test.test(test[1])", 13180962598878762174),
     ];
 
     #[test]
@@ -21,7 +21,7 @@ mod function_call_tests {
         fn process(input: &str) -> Option<u64> {
             let mut pos = defs::CursorPosition::default();
             let mut errors: Vec<error::Error> = Vec::new();
-            let mut processor: TypeProcessor = Processor::new();
+            let mut processor: TypeProcessor = TypeProcessor::default();
             let mut last_char = '\0';
             for letter_char in input.chars() {
                 processor.iterate(&mut errors, pos, last_char, letter_char);

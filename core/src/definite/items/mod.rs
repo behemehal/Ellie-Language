@@ -1,6 +1,4 @@
 use serde::{Deserialize, Serialize};
-
-pub mod caller;
 pub mod class;
 pub mod condition;
 pub mod constructor;
@@ -27,13 +25,13 @@ pub enum Collecting {
     Class(class::Class),
     Ret(ret::Ret),
     Constructor(constructor::Constructor),
-    Caller(caller::Caller),
     Import(import::Import),
     FileKey(file_key::FileKey),
     Getter(getter::Getter),
     Setter(setter::Setter),
     NativeClass,
-    ValueCall(crate::definite::types::Types),
+    GetterCall(crate::definite::types::Types),
+    SetterCall(crate::definite::types::Types),
     Enum(enum_type::EnumType),
     NativeFunction(native_function::NativeFunction),
     None,
@@ -56,13 +54,13 @@ impl Collecting {
             Collecting::Class(e) => e.public,
             Collecting::Ret(_) => false,
             Collecting::Constructor(_) => false,
-            Collecting::Caller(_) => false,
             Collecting::Import(e) => e.public,
             Collecting::FileKey(_) => false,
             Collecting::Getter(e) => e.public,
             Collecting::Setter(e) => e.public,
             Collecting::NativeClass => true,
-            Collecting::ValueCall(_) => false,
+            Collecting::GetterCall(_) => false,
+            Collecting::SetterCall(_) => false,
             Collecting::Enum(e) => e.public,
             Collecting::NativeFunction(e) => e.public,
             Collecting::None => false,

@@ -1,4 +1,4 @@
-use crate::processors::Processor;
+use super::Processor;
 use ellie_core::{defs, error, utils};
 
 #[derive(Default)]

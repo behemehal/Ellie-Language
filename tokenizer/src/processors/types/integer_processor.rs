@@ -1,20 +1,7 @@
-use crate::processors::Processor;
 use crate::syntax::types::integer_type;
 use ellie_core::{defs, error};
 
-impl Processor for integer_type::IntegerTypeCollector {
-    fn new() -> Self {
-        integer_type::IntegerTypeCollector::default()
-    }
-
-    fn keyword(&self) -> &str {
-        ""
-    }
-
-    fn has_accessibility(&self) -> bool {
-        false
-    }
-
+impl super::Processor for integer_type::IntegerTypeCollector {
     fn iterate(
         &mut self,
         errors: &mut Vec<error::Error>,

@@ -26,21 +26,21 @@ Syntax:
         Char                 :   OK
         Int                  :   OK
         Float                :   OK
-        Cloak                : NOT OK
-        Array                : NOT OK
-        ArrowFunction        : NOT OK
-        Collective           : NOT OK
+        Cloak                :   OK
+        Array                :   OK
+        Collective           :   OK
+        ArrowFunction        : NOT OK  (PENDING ITEMS TO BE COMPLETE)
         VariableReference    :   OK
             SubTypes             :
                 Reference        :   OK
                 BraceReference   :   OK 
                 Negative         :   OK
                 FunctionCall     :   OK
-                ClassCall        : NOT OK
+                ClassCall        :   OK
                 Logical          :   OK
                 Arithmetic       :   OK
                 Assignment       :   OK
                 Comparison       :   OK
 
-                22 * 100 / 38 = 57%
+                26 * 100 / 38 = 68%
                 Estimated complete time: December 10 2021

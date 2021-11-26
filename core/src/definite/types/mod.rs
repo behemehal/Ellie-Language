@@ -4,10 +4,10 @@ pub mod arrow_function;
 pub mod assignment_type;
 pub mod bool;
 pub mod brace_reference;
+pub mod class_call;
 pub mod cloak;
 pub mod collective;
 pub mod comparison_type;
-pub mod constructed_class;
 pub mod ellie_char;
 pub mod float;
 pub mod function_call;
@@ -29,14 +29,14 @@ pub enum Types {
     Bool(bool::BoolType),
     String(string::StringType),
     Char(ellie_char::CharType),
-    Collective(collective::Collective),
+    Collective(collective::CollectiveType),
     Reference(reference::ReferenceType),
     BraceReference(brace_reference::BraceReferenceType),
     Operator(operator::OperatorType),
     Cloak(cloak::CloakType),
     Array(array::ArrayType),
     ArrowFunction(arrow_function::ArrowFunction),
-    ConstructedClass(constructed_class::ConstructedClass),
+    ClassCall(class_call::ClassCall),
     FunctionCall(function_call::FunctionCall),
     Void,
     NullResolver(null_resolver::NullResolver),

@@ -1,20 +1,7 @@
-use crate::processors::Processor;
 use crate::syntax::types::float_type;
 use ellie_core::{defs, error};
 
-impl Processor for float_type::FloatTypeCollector {
-    fn new() -> Self {
-        float_type::FloatTypeCollector::default()
-    }
-
-    fn keyword(&self) -> &str {
-        ""
-    }
-
-    fn has_accessibility(&self) -> bool {
-        false
-    }
-
+impl super::Processor for float_type::FloatTypeCollector {
     fn iterate(
         &mut self,
         errors: &mut Vec<error::Error>,

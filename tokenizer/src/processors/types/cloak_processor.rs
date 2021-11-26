@@ -1,7 +1,7 @@
-use crate::syntax::types::array_type;
+use crate::syntax::types::cloak_type;
 use ellie_core::{defs, error};
 
-impl super::Processor for array_type::ArrayTypeCollector {
+impl super::Processor for cloak_type::CloakTypeCollector {
     fn iterate(
         &mut self,
         errors: &mut Vec<error::Error>,
@@ -10,7 +10,7 @@ impl super::Processor for array_type::ArrayTypeCollector {
         letter_char: char,
     ) {
         if !self.brace_started {
-            if letter_char == '[' {
+            if letter_char == '(' {
                 self.brace_started = true;
             } else if letter_char != ' ' {
                 errors.push(error::errorList::error_s1.clone().build(
@@ -18,25 +18,25 @@ impl super::Processor for array_type::ArrayTypeCollector {
                         key: "val".to_owned(),
                         value: letter_char.to_string(),
                     }],
-                    "array_0x21".to_owned(),
+                    "cloak_0x21".to_owned(),
                     defs::Cursor::build_with_skip_char(cursor),
                 ));
             }
         } else if self.itered_cache.is_complete() && letter_char == ',' {
-            self.data.collective.push(array_type::ArrayEntry::default());
+            self.data.collective.push(cloak_type::CloakEntry::default());
             self.itered_cache = Box::new(super::TypeProcessor::default())
         } else if (self.itered_cache.is_complete() || self.data.collective.is_empty())
-            && letter_char == ']'
+            && letter_char == ')'
         {
+            self.itered_cache = Box::new(super::TypeProcessor::default());
             self.complete = true;
-            self.itered_cache = Box::new(super::TypeProcessor::default())
         } else if !self.complete {
             self.itered_cache
                 .iterate(errors, cursor, last_char, letter_char);
 
             let param_len = self.data.collective.len();
             if param_len == 0 {
-                self.data.collective.push(array_type::ArrayEntry {
+                self.data.collective.push(cloak_type::CloakEntry {
                     value: self.itered_cache.current.clone(),
                     location: defs::Cursor::build_with_skip_char(cursor),
                 });
@@ -51,7 +51,7 @@ impl super::Processor for array_type::ArrayTypeCollector {
                     key: "val".to_owned(),
                     value: letter_char.to_string(),
                 }],
-                "array_0x54".to_owned(),
+                "cloak_0x54".to_owned(),
                 defs::Cursor::build_with_skip_char(cursor),
             ));
         }
