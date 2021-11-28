@@ -12,7 +12,8 @@ mod integer_tests {
         let code = "123";
         let mut pos = defs::CursorPosition::default();
         let mut errors: Vec<error::Error> = Vec::new();
-        let mut processor: integer_type::IntegerTypeCollector = integer_type::IntegerTypeCollector::default();
+        let mut processor: integer_type::IntegerTypeCollector =
+            integer_type::IntegerTypeCollector::default();
         let mut last_char = '\0';
         for letter_char in code.chars() {
             processor.iterate(&mut errors, pos, last_char, letter_char);
@@ -30,7 +31,8 @@ mod integer_tests {
         let code = "-123";
         let mut pos = defs::CursorPosition::default();
         let mut errors: Vec<error::Error> = Vec::new();
-        let mut processor: integer_type::IntegerTypeCollector = integer_type::IntegerTypeCollector::default();
+        let mut processor: integer_type::IntegerTypeCollector =
+            integer_type::IntegerTypeCollector::default();
         let mut last_char = '\0';
         for letter_char in code.chars() {
             processor.iterate(&mut errors, pos, last_char, letter_char);

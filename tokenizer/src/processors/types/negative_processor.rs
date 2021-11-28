@@ -1,5 +1,5 @@
-use ellie_core::{defs, error};
 use crate::syntax::types::negative_type;
+use ellie_core::{defs, error};
 
 impl super::Processor for negative_type::Negative {
     fn iterate(

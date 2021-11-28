@@ -257,7 +257,6 @@ lazy_static! {
         message: "'$token' is not found in '$token1' properties".to_owned(),
         ..Default::default()
     };
-
     pub static ref error_s43: crate::error::Error = crate::error::Error {
         code: 0x42,
         title: "TypeError".to_owned(),

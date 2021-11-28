@@ -50,7 +50,7 @@ impl Converter<SetterCall, ellie_core::definite::items::setter_call::SetterCall>
                 ellie_core::definite::types::operator::AssignmentOperators::ModulusAssignment => AssignmentOperators::ModulusAssignment,
                 ellie_core::definite::types::operator::AssignmentOperators::ExponentiationAssignment => AssignmentOperators::ExponentiationAssignment,
                 ellie_core::definite::types::operator::AssignmentOperators::Null => AssignmentOperators::Null,
-            }, 
+            },
             ..Default::default()
         }
     }

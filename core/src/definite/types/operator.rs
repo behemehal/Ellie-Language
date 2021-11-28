@@ -25,7 +25,6 @@ pub enum AssignmentOperators {
     Null,
 }
 
-
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub enum ComparisonOperators {
     Equal,
