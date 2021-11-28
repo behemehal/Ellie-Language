@@ -6,7 +6,7 @@ use std::{
 };
 
 fn main() {
-    let code = "test =123;";
+    let code = "@test =123;";
 
     let mut errors: Vec<error::Error> = Vec::new();
     let mut pos = defs::CursorPosition::default();

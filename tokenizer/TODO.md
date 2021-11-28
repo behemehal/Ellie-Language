@@ -6,9 +6,11 @@ Syntax:
     Variable                 :   OK
     Constructor              : NOT OK
     Enums                    : NOT OK
-    Getter                   :   OK
-    Setter                   :   OK
-    FileKey                  : NOT OK
+    GetterCall               :   OK
+    SetterCall               :   OK
+    Getter                   : NOT OK
+    Setter                   : NOT OK
+    FileKey                  :   OK
     Conditions               : NOT OK
     Import                   : NOT OK
     Definers                 :
@@ -42,5 +44,5 @@ Syntax:
                 Assignment       :   OK
                 Comparison       :   OK
 
-                29 * 100 / 38 = 76%
+                30 * 100 / 40 = 75%
                 Estimated complete time: December 10 2021

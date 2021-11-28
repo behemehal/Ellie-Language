@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::syntax::items::*;
 pub mod definer_processor;
+pub mod file_key;
 pub mod getter_call;
 pub mod setter_call;
 pub mod variable_processor;
@@ -25,6 +26,7 @@ pub enum Processors {
     Variable(variable::VariableCollector),
     GetterCall(getter_call::GetterCall),
     SetterCall(setter_call::SetterCall),
+    FileKey(file_key::FileKey),
 }
 
 impl Processors {
@@ -33,6 +35,7 @@ impl Processors {
             Processors::GetterCall(e) => e.complete,
             Processors::Variable(e) => e.complete,
             Processors::SetterCall(e) => e.complete,
+            Processors::FileKey(e) => e.complete,
         }
     }
 
@@ -41,6 +44,7 @@ impl Processors {
             Processors::Variable(e) => Collecting::Variable(e.to_definite()),
             Processors::GetterCall(e) => Collecting::GetterCall(e.to_definite()),
             Processors::SetterCall(e) => Collecting::SetterCall(e.to_definite()),
+            Processors::FileKey(e) => Collecting::FileKey(e.to_definite()),
         }
     }
 
@@ -57,7 +61,9 @@ impl Processors {
             Collecting::Ret(_) => todo!(),
             Collecting::Constructor(_) => todo!(),
             Collecting::Import(_) => todo!(),
-            Collecting::FileKey(_) => todo!(),
+            Collecting::FileKey(e) => {
+                Processors::FileKey(file_key::FileKey::default().from_definite(e))
+            }
             Collecting::Getter(_) => todo!(),
             Collecting::Setter(_) => todo!(),
             Collecting::NativeClass => todo!(),
@@ -157,6 +163,10 @@ impl Processor for ItemProcessor {
                 data: variable::Variable {
                     public: self.used_modifier == Modifier::Pub,
                     constant: letter_char == 'c',
+                    pos: defs::Cursor {
+                        range_start: cursor,
+                        ..Default::default()
+                    },
                     ..Default::default()
                 },
                 ..Default::default()
@@ -173,7 +183,13 @@ impl Processor for ItemProcessor {
         } else if keyword == "class" && letter_char == ' ' {
             panic!("class not implemented");
         } else if not_initialized && self.used_modifier == Modifier::None && letter_char == '@' {
-            panic!("file key not implemented");
+            self.current = Processors::FileKey(file_key::FileKey {
+                pos: defs::Cursor {
+                    range_start: cursor,
+                    ..Default::default()
+                },
+                ..Default::default()
+            });
         } else if self.used_modifier == Modifier::None && keyword == "co" && letter_char == ' ' {
             panic!("co not implemented");
         } else if self.used_modifier == Modifier::None && keyword == "for" && letter_char == ' ' {
@@ -188,6 +204,7 @@ impl Processor for ItemProcessor {
             Processors::GetterCall(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::Variable(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::SetterCall(e) => e.iterate(errors, cursor, last_char, letter_char),
+            Processors::FileKey(e) => e.iterate(errors, cursor, last_char, letter_char),
         }
     }
 }

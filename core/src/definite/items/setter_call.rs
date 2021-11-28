@@ -1,4 +1,7 @@
-use crate::{definite::types::{Types, assignment_type::AssignmentOperators}, defs};
+use crate::{
+    definite::types::{operator::AssignmentOperators, Types},
+    defs,
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
