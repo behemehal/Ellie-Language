@@ -24,6 +24,10 @@ impl super::Processor for variable_type::VariableTypeCollector {
                 ));
             } else {
                 self.complete = true;
+                if self.data.value == "" {
+                    self.data.pos.range_start = cursor.clone();
+                }
+                self.data.pos.range_end = cursor;
                 self.data.value += &letter_char.to_string();
             }
         } else if letter_char != ' ' {

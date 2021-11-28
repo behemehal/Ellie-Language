@@ -12,6 +12,9 @@ impl super::Processor for integer_type::IntegerTypeCollector {
         let is_num = letter_char.to_string().parse::<i8>().is_ok();
 
         if is_num {
+            if self.raw == "" {
+                self.data.pos.range_start = cursor;
+            }
             self.raw += &letter_char.to_string();
             if let Ok(nm) = self.raw.parse::<i8>() {
                 self.data.value = integer_type::IntegerSize::I8(nm);
@@ -41,6 +44,7 @@ impl super::Processor for integer_type::IntegerTypeCollector {
                     defs::Cursor::build_with_skip_char(cursor),
                 ));
             }
+            self.data.pos.range_end = cursor.clone().skip_char(1);
             self.complete = true;
         } else {
             if letter_char == '-' && self.raw == "" {

@@ -13,6 +13,7 @@ pub struct CollectiveEntry {
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct CollectiveType {
     pub entries: Vec<CollectiveEntry>,
+    pub pos: defs::Cursor,
 }
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
@@ -40,6 +41,7 @@ impl definite::Converter<CollectiveTypeCollector, definite::types::collective::C
                     value_pos: x.value_pos,
                 })
                 .collect(),
+            pos: self.data.pos,
         }
     }
 
@@ -59,6 +61,7 @@ impl definite::Converter<CollectiveTypeCollector, definite::types::collective::C
                         value_pos: x.value_pos,
                     })
                     .collect(),
+                pos: from.pos,
             },
             ..Default::default()
         }

@@ -11,16 +11,15 @@ use std::{
 };
 
 fn main() {
-    let code = "test.test(test[1])";
+    let code = "test =123";
     let mut errors: Vec<error::Error> = Vec::new();
     let mut pos = defs::CursorPosition::default();
     let mut processor: TypeProcessor = TypeProcessor::default();
 
     let mut last_char = '\0';
     for letter_char in code.chars() {
-        println!("ITER: {}", letter_char);
         processor.iterate(&mut errors, pos, last_char, letter_char);
-        pos.skip_char(1);
+        pos = pos.skip_char(1);
         last_char = letter_char;
     }
 
@@ -40,9 +39,9 @@ fn main() {
         if processor.is_complete() {
             println!(
                 "----\nTokenize success:\n{:#?}\nHash: {:#?}\nTexted: {}",
-                processor.current.clone(),
+                processor.current.clone().to_definite(),
                 correct_hasher.finish(),
-                resolve_to_text(processor.current)
+                resolve_to_text(processor.current.clone())
             );
         } else {
             panic!(

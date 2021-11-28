@@ -6,7 +6,6 @@ use serde::{Deserialize, Serialize};
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct Variable {
     pub name: String,
-    pub dynamic: bool,
     pub constant: bool,
     pub public: bool,
     pub value: types::Types,

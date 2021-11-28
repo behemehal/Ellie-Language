@@ -11,6 +11,8 @@ pub mod import;
 pub mod import_item;
 pub mod setter;
 pub mod variable;
+pub mod getter_call;
+pub mod setter_call;
 
 pub mod native_function;
 pub mod ret;
@@ -30,8 +32,8 @@ pub enum Collecting {
     Getter(getter::Getter),
     Setter(setter::Setter),
     NativeClass,
-    GetterCall(crate::definite::types::Types),
-    SetterCall(crate::definite::types::Types),
+    GetterCall(getter_call::GetterCall),
+    SetterCall(setter_call::SetterCall),
     Enum(enum_type::EnumType),
     NativeFunction(native_function::NativeFunction),
     None,

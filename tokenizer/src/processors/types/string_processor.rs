@@ -12,7 +12,7 @@ impl super::Processor for string_type::StringTypeCollector {
         if !self.comma_started {
             if letter_char == '"' {
                 self.comma_started = true;
-                self.data.comma_start_pos = defs::Cursor::build_with_skip_char(cursor);
+                self.data.pos.range_start = cursor;
             } else if letter_char != ' ' {
                 errors.push(error::errorList::error_s1.clone().build(
                     vec![error::ErrorBuildField {
@@ -26,13 +26,8 @@ impl super::Processor for string_type::StringTypeCollector {
         } else {
             if letter_char == '"' && last_char != '\\' {
                 self.complete = true;
-                self.data.comma_end_pos = defs::Cursor::build_with_skip_char(cursor);
+                self.data.pos.range_end = cursor.clone().skip_char(1);
             } else {
-                if self.data.value == "" {
-                    self.data.value_pos.range_start = cursor;
-                }
-                self.data.value_pos.range_end = cursor;
-
                 if last_char == '\\' && !is_escape(letter_char) {
                     errors.push(error::errorList::error_s1.clone().build(
                         vec![error::ErrorBuildField {

@@ -8,6 +8,7 @@ pub struct BraceReferenceType {
     pub reference_pos: defs::Cursor,
     pub brace_pos: defs::Cursor,
     pub value: Box<types::Processors>,
+    pub pos: defs::Cursor,
 }
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
@@ -30,6 +31,7 @@ impl
             reference_pos: self.data.reference_pos,
             brace_pos: self.data.brace_pos,
             value: Box::new(self.data.value.to_definite()),
+            pos: self.data.pos,
         }
     }
 
@@ -41,10 +43,10 @@ impl
             data: BraceReferenceType {
                 reference: Box::new(types::Processors::default().from_definite(*from.reference)),
                 reference_pos: from.reference_pos,
-                brace_pos: self.data.brace_pos,
-                value: self.data.value,
+                brace_pos: from.brace_pos,
+                value: Box::new(types::Processors::default().from_definite(*from.value)),
+                pos: from.pos,
             },
-            complete: true,
             ..Default::default()
         }
     }

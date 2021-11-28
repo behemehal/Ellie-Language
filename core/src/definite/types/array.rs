@@ -12,4 +12,5 @@ pub struct ArrayEntry {
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct ArrayType {
     pub collective: Vec<ArrayEntry>,
+    pub pos: defs::Cursor,
 }

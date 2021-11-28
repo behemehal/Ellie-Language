@@ -1,7 +1,7 @@
 use alloc::fmt::Debug;
 use alloc::format;
 use alloc::string::String;
-use ellie_core::definite;
+use ellie_core::{definite, defs};
 use enum_as_inner::EnumAsInner;
 use serde::{Deserialize, Serialize};
 
@@ -86,6 +86,7 @@ impl Default for IntegerSize {
 pub struct IntegerType {
     pub value: IntegerSize,
     pub rtype: IntegerTypes,
+    pub pos: defs::Cursor,
 }
 
 #[derive(PartialEq, Default, Debug, Clone, Serialize, Deserialize)]
@@ -128,6 +129,7 @@ impl definite::Converter<IntegerTypeCollector, definite::types::integer::Integer
                 IntegerTypes::I128 => definite::types::integer::IntegerTypes::I128,
                 IntegerTypes::Isize => definite::types::integer::IntegerTypes::Isize,
             },
+            pos: self.data.pos,
         }
     }
 
@@ -164,6 +166,7 @@ impl definite::Converter<IntegerTypeCollector, definite::types::integer::Integer
                     definite::types::integer::IntegerTypes::U128 => IntegerTypes::U128,
                     definite::types::integer::IntegerTypes::Usize => IntegerTypes::Usize,
                 },
+                pos: from.pos,
             },
             raw: value.get_val(),
             complete: true,

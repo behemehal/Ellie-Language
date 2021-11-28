@@ -8,4 +8,5 @@ pub struct BraceReferenceType {
     pub reference_pos: defs::Cursor,
     pub brace_pos: defs::Cursor,
     pub value: Box<types::Types>,
+    pub pos: defs::Cursor,
 }

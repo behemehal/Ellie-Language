@@ -14,6 +14,7 @@ pub struct ArrayEntry {
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct ArrayType {
     pub collective: Vec<ArrayEntry>,
+    pub pos: defs::Cursor,
 }
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
@@ -38,6 +39,7 @@ impl definite::Converter<ArrayTypeCollector, definite::types::array::ArrayType>
                     location: x.location,
                 })
                 .collect(),
+            pos: self.data.pos,
         }
     }
 
@@ -52,6 +54,7 @@ impl definite::Converter<ArrayTypeCollector, definite::types::array::ArrayType>
                         location: x.location,
                     })
                     .collect(),
+                pos: from.pos,
             },
             ..Default::default()
         }

@@ -14,4 +14,5 @@ pub struct CollectiveEntry {
 #[derive(PartialEq, Default, Debug, Clone, Serialize, Deserialize)]
 pub struct CollectiveType {
     pub entries: Vec<CollectiveEntry>,
+    pub pos: defs::Cursor,
 }

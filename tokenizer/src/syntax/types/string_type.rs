@@ -5,9 +5,7 @@ use serde::{Deserialize, Serialize};
 #[derive(PartialEq, Default, Debug, Clone, Serialize, Deserialize)]
 pub struct StringType {
     pub value: String,
-    pub comma_start_pos: defs::Cursor,
-    pub comma_end_pos: defs::Cursor,
-    pub value_pos: defs::Cursor,
+    pub pos: defs::Cursor,
 }
 
 #[derive(PartialEq, Default, Debug, Clone, Serialize, Deserialize)]
@@ -23,9 +21,7 @@ impl definite::Converter<StringTypeCollector, definite::types::string::StringTyp
     fn to_definite(self) -> definite::types::string::StringType {
         definite::types::string::StringType {
             value: self.data.value,
-            comma_start_pos: self.data.comma_start_pos,
-            comma_end_pos: self.data.comma_end_pos,
-            value_pos: self.data.value_pos,
+            pos: self.data.pos,
         }
     }
 
@@ -33,9 +29,7 @@ impl definite::Converter<StringTypeCollector, definite::types::string::StringTyp
         StringTypeCollector {
             data: StringType {
                 value: from.value,
-                comma_start_pos: from.comma_start_pos,
-                comma_end_pos: from.comma_end_pos,
-                value_pos: from.value_pos,
+                pos: from.pos,
             },
             complete: true,
             ..Default::default()

@@ -12,4 +12,5 @@ pub struct CloakEntry {
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct CloakType {
     pub collective: Vec<CloakEntry>,
+    pub pos: defs::Cursor,
 }

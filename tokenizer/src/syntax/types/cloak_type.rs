@@ -11,6 +11,7 @@ pub struct CloakEntry {
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct CloakType {
     pub collective: Vec<CloakEntry>,
+    pub pos: defs::Cursor,
 }
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
@@ -35,6 +36,7 @@ impl definite::Converter<CloakTypeCollector, definite::types::cloak::CloakType>
                     location: x.location,
                 })
                 .collect(),
+            pos: self.data.pos,
         }
     }
 
@@ -49,6 +51,7 @@ impl definite::Converter<CloakTypeCollector, definite::types::cloak::CloakType>
                         location: x.location,
                     })
                     .collect(),
+                pos: from.pos,
             },
             ..Default::default()
         }

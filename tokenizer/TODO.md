@@ -3,11 +3,11 @@ Syntax:
     Function                 : NOT OK
     Class                    : NOT OK
     ForLoop                  : NOT OK
-    Variable                 : NOT OK
+    Variable                 :   OK
     Constructor              : NOT OK
     Enums                    : NOT OK
-    Getter                   : NOT OK
-    Setter                   : NOT OK
+    Getter                   :   OK
+    Setter                   :   OK
     FileKey                  : NOT OK
     Conditions               : NOT OK
     Import                   : NOT OK
@@ -42,5 +42,5 @@ Syntax:
                 Assignment       :   OK
                 Comparison       :   OK
 
-                26 * 100 / 38 = 68%
+                29 * 100 / 38 = 76%
                 Estimated complete time: December 10 2021

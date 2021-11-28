@@ -13,6 +13,7 @@ pub struct ReferenceType {
     pub reference: Box<types::Processors>,
     pub reference_pos: defs::Cursor,
     pub chain: Vec<Chain>,
+    pub pos: defs::Cursor,
 }
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
@@ -38,6 +39,7 @@ impl definite::Converter<ReferenceTypeCollector, definite::types::reference::Ref
                     value: x.value,
                 })
                 .collect::<Vec<_>>(),
+            pos: self.data.pos,
         }
     }
 
@@ -54,6 +56,7 @@ impl definite::Converter<ReferenceTypeCollector, definite::types::reference::Ref
                         value: x.value,
                     })
                     .collect::<Vec<_>>(),
+                pos: from.pos,
             },
             complete: true,
             ..Default::default()

@@ -26,4 +26,5 @@ pub struct OperatorType {
     pub second_pos: defs::Cursor,
     pub second: Box<types::Types>,
     pub operator: Operators,
+    pub pos: defs::Cursor,
 }

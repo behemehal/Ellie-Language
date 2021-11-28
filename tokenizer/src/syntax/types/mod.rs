@@ -12,8 +12,3 @@ pub mod reference_type;
 pub mod string_type;
 pub mod variable_type;
 pub mod collective_type;
-
-pub trait Converter<F, T> {
-    fn to_definite(self) -> T;
-    fn from_definite(self, from: T) -> F;
-}

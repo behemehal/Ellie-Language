@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+use crate::defs;
+
 #[derive(PartialEq, Eq, Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum IntegerTypes {
     I8,
@@ -42,4 +44,5 @@ impl Default for IntegerSize {
 pub struct IntegerType {
     pub value: IntegerSize,
     pub rtype: IntegerTypes,
+    pub pos: defs::Cursor,
 }

@@ -24,6 +24,7 @@ pub struct ClassCall {
     pub keyword_pos: defs::Cursor,
     pub generic_parameters: Vec<ClassCallGenericParameter>,
     pub parameters: Vec<ClassCallParameter>,
+    pub pos: defs::Cursor,
 }
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
@@ -63,6 +64,7 @@ impl definite::Converter<ClassCallCollector, definite::types::class_call::ClassC
                     pos: x.pos,
                 })
                 .collect(),
+            pos: self.data.pos,
         }
     }
 
@@ -89,6 +91,7 @@ impl definite::Converter<ClassCallCollector, definite::types::class_call::ClassC
                     })
                     .collect(),
                 keyword_pos: from.keyword_pos,
+                pos: from.pos,
             },
             ..Default::default()
         }

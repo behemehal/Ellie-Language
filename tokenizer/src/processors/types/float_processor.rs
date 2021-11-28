@@ -67,6 +67,7 @@ impl super::Processor for float_type::FloatTypeCollector {
                         defs::Cursor::build_with_skip_char(cursor),
                     ));
                 }
+                self.data.pos.range_end = cursor.clone().skip_char(1);
             } else {
                 errors.push(error::errorList::error_s1.clone().build(
                     vec![error::ErrorBuildField {

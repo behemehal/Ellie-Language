@@ -23,4 +23,5 @@ pub struct ClassCall {
     pub target_pos: defs::Cursor,
     pub generic_parameters: Vec<ClassCallGenericParameter>,
     pub params: Vec<ClassCallParameter>,
+    pub pos: defs::Cursor,
 }

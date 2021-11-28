@@ -5,8 +5,7 @@ use serde::{Deserialize, Serialize};
 pub struct CharType {
     pub value: char,
     pub complete: bool,
-    pub comma_start_pos: defs::Cursor,
-    pub comma_end_pos: defs::Cursor,
+    pub pos: defs::Cursor,
     pub comma_started: bool,
 }
 

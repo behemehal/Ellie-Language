@@ -1,6 +1,6 @@
 use super::integer_type::IntegerTypeCollector;
 use alloc::string::String;
-use ellie_core::definite;
+use ellie_core::{definite, defs};
 use enum_as_inner::EnumAsInner;
 use serde::{Deserialize, Serialize};
 
@@ -42,6 +42,7 @@ pub struct FloatType {
     pub value: FloatSize,
     pub rtype: FloatTypes,
     pub raw: String,
+    pub pos: defs::Cursor,
 }
 
 #[derive(PartialEq, Default, Debug, Clone, Serialize, Deserialize)]
@@ -68,6 +69,7 @@ impl definite::Converter<FloatTypeCollector, definite::types::float::FloatType>
                 FloatTypes::F32 => definite::types::float::FloatTypes::F32,
                 FloatTypes::F64 => definite::types::float::FloatTypes::F64,
             },
+            pos: self.data.pos,
         }
     }
 
@@ -87,6 +89,7 @@ impl definite::Converter<FloatTypeCollector, definite::types::float::FloatType>
                     definite::types::float::FloatTypes::F64 => FloatTypes::F64,
                 },
                 raw: raw.clone(),
+                pos: from.pos,
             },
             base: partitions[0].to_owned(),
             point: partitions[1].to_owned(),

@@ -13,6 +13,7 @@ pub struct FunctionCall {
     pub target: Box<types::Processors>,
     pub target_pos: defs::Cursor,
     pub parameters: Vec<FunctionCallParameter>,
+    pub pos: defs::Cursor,
 }
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
@@ -39,6 +40,7 @@ impl definite::Converter<FunctionCallCollector, definite::types::function_call::
                     pos: x.pos,
                 })
                 .collect(),
+            pos: self.data.pos,
         }
     }
 
@@ -58,6 +60,7 @@ impl definite::Converter<FunctionCallCollector, definite::types::function_call::
                         pos: x.pos,
                     })
                     .collect(),
+                pos: from.pos,
             },
             ..Default::default()
         }

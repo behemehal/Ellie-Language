@@ -31,6 +31,7 @@ impl super::Processor for function_call_type::FunctionCallCollector {
             } else if (self.itered_cache.is_complete() || self.data.parameters.is_empty())
                 && letter_char == ')'
             {
+                self.data.pos.range_end = cursor.clone();
                 self.itered_cache = Box::new(super::TypeProcessor::default());
                 self.complete = true;
             } else {

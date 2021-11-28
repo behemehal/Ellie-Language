@@ -12,7 +12,7 @@ impl super::Processor for char_type::CharType {
         if !self.comma_started {
             if letter_char == '\'' {
                 self.comma_started = true;
-                self.comma_start_pos = defs::Cursor::build_with_skip_char(cursor);
+                self.pos.range_start = cursor;
             } else if letter_char != ' ' {
                 errors.push(error::errorList::error_s1.clone().build(
                     vec![error::ErrorBuildField {
@@ -26,7 +26,7 @@ impl super::Processor for char_type::CharType {
         } else {
             if letter_char == '\'' && last_char != '\\' {
                 self.complete = true;
-                self.comma_end_pos = defs::Cursor::build_with_skip_char(cursor);
+                self.pos.range_end = cursor;
             } else if !self.complete {
                 self.value = letter_char;
                 self.complete = true;

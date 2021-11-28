@@ -67,7 +67,13 @@ impl super::Processor for operator_type::OperatorTypeCollector {
         } else {
             self.itered_cache
                 .iterate(errors, cursor, last_char, letter_char);
+
+            if letter_char != ' ' && self.data.second_pos.range_start.is_zero() {
+                self.data.second_pos.range_start = cursor.clone();
+            }
+
             if self.itered_cache.is_complete() {
+                self.data.second_pos.range_end = cursor.clone();
                 self.data.second = Box::new(self.itered_cache.current.clone());
             }
         }

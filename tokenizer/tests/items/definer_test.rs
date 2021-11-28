@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod definer_tests {
     use ellie_core::{defs, error};
-    use ellie_tokenizer::{processors::types::Processor, syntax::items::definers};
+    use ellie_tokenizer::{processors::items::Processor, syntax::items::definers};
     use std::{
         collections::hash_map::DefaultHasher,
         hash::{Hash, Hasher},

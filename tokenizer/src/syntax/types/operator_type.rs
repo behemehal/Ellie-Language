@@ -1,5 +1,6 @@
 use crate::processors::types;
 use ellie_core::{definite, defs};
+use enum_as_inner::EnumAsInner;
 use serde::{Deserialize, Serialize};
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
@@ -120,7 +121,7 @@ impl Default for AssignmentOperators {
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize, EnumAsInner)]
 pub enum Operators {
     ComparisonType(ComparisonOperators),
     LogicalType(LogicalOperators),
@@ -154,6 +155,7 @@ pub struct OperatorType {
     pub second: Box<types::Processors>,
     pub second_pos: defs::Cursor,
     pub operator: Operators,
+    pub pos: defs::Cursor,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -172,10 +174,10 @@ impl definite::Converter<OperatorTypeCollector, definite::types::operator::Opera
     fn to_definite(self) -> definite::types::operator::OperatorType {
         definite::types::operator::OperatorType {
             cloaked: false,
-            first: Box::new(self.data.first.to_definite()),
+            first: Box::new(self.data.first.clone().to_definite()),
             first_pos: self.data.first_pos,
             second_pos: self.data.second_pos,
-            second: Box::new(self.data.first.to_definite()),
+            second: Box::new(self.data.second.to_definite()),
             operator: match self.data.operator {
                 Operators::ComparisonType(e) => match e {
                     ComparisonOperators::Equal => ellie_core::definite::types::operator::Operators::ComparisonType(ellie_core::definite::types::comparison_type::ComparisonOperators::Equal),
@@ -212,6 +214,7 @@ impl definite::Converter<OperatorTypeCollector, definite::types::operator::Opera
                 },
                 Operators::Null => panic!("Unexpected behaviour"),
             },
+            pos: self.data.pos,
         }
     }
 
@@ -258,6 +261,7 @@ impl definite::Converter<OperatorTypeCollector, definite::types::operator::Opera
                     },
                     definite::types::operator::Operators::Null => Operators::Null,
                 },
+                pos: from.pos,
             },
             ..Default::default()
         }

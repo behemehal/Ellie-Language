@@ -17,4 +17,5 @@ pub struct ReferenceType {
     pub reference: Box<types::Types>,
     pub reference_pos: defs::Cursor,
     pub chain: Vec<Chain>,
+    pub pos: defs::Cursor,
 }

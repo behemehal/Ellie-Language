@@ -26,9 +26,3 @@ pub fn get_color(selected: Colors) -> String {
     };
     return format!("{}{}", '\u{001b}', color_id);
 }
-
-//pub static ref error_s1: crate::error::Error = crate::error::Error {
-
-//pub const RED: char = '\u{00e9}';
-//pub const RED: char = '\u{00e9}';
-//pub const RESET: String = "0m".to_owned();
