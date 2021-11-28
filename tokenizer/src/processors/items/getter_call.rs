@@ -12,12 +12,12 @@ impl super::Processor for GetterCall {
         if self.cache.is_complete() && letter_char == ';' {
             self.complete = true;
             self.data = self.cache.current.clone();
-            self.pos.range_end = cursor.clone().skip_char(1);
         } else {
             if self.cache.current.is_not_initialized() {
                 self.pos.range_start = cursor;
             }
             self.cache.iterate(errors, cursor, last_char, letter_char);
         }
+        self.pos.range_end = cursor.clone().skip_char(1);
     }
 }

@@ -28,11 +28,11 @@
     ```
   - Cloak
     ```ellie
-        v letters :  cloak(char, char, char, char, char) = ('e', 'l', 'l', 'i', 'e');
+        v letters : (char, char, char, char, char) = ('e', 'l', 'l', 'i', 'e');
     ```
   - Array
     ```ellie
-        v letters : array(char, 5) = [
+        v letters : [char, 5] = [
             'e',
             'l',
             'l',
@@ -42,7 +42,7 @@
     ```
   - Collective
     ```ellie
-        v letters : collective(int, char) = {
+        v letters : {int, char} = {
             1 :'e',
             2 :'l',
             3 :'l',
@@ -52,7 +52,7 @@
     ```
   - Arrow Functions
     ```ellie
-        v callingAwesomeness : fn(string, int)::string = @(name: string, count: int) > string {
+        v callingAwesomeness : @(string, int):string = @(name, count) {
             v awesomenes : string;
             for (element, count) {
                 awesomenes += "ellie";
@@ -65,7 +65,7 @@
 - Functions
 
   ```ellie
-    fn callingAwesomeness (name: String, count: int) > string {
+    fn callingAwesomeness(name: string, count: int) : string {
         v awesomenes : string;
         //iter count times write to variable i
         for (d i, count) {
@@ -96,18 +96,8 @@
 
           pub v cm : String;
 
-
-          get test @() > string { //Getter
-              return "test";
-          }
-
-          set test @(param: String) { //Setter
-              self.cm = param; //Changing self member
-          }
-
           pub fn first() { //A public function
               self.second(); //Calling a private function
-
           }
 
           pri fn second() { //A private function
@@ -185,16 +175,3 @@
   ```
 
 ---
-
-## Here is the good part of our parser
-
-- Here is the function that parses if else
-
-  https://github.com/behemehal/Ellie-Language/blob/2dbe4cd02f1c14f5931cb8c26d426d9b1dca3b97/parser/src/processors/condition_processor.rs
-
-- Here is the defination of if else
-
-  https://github.com/behemehal/Ellie-Language/blob/2dbe4cd02f1c14f5931cb8c26d426d9b1dca3b97/parser/src/syntax/condition.rs
-
-Our engine is too flexible for major updates, a person wants to write own
-element can easily implement it to parser

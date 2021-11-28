@@ -1,3 +1,4 @@
+pub mod iterator;
 pub mod processors;
 pub mod syntax;
 pub mod tokenizer;

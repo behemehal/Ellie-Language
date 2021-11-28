@@ -11,130 +11,10 @@ extern crate path_absolutize;
 
 use crate::terminal_colors;
 use ellie_core::{defs, error};
-use ellie_parser::parser;
 use path_absolutize::Absolutize;
 
 pub struct EllieModuleResolver {
     pub main_path: String,
-}
-
-impl EllieModuleResolver {}
-
-pub fn parse(contents: String, file_name: String) -> ellie_parser::parser::ParserResponse {
-    std::println!(
-        "{}[ParsingFile]{}: {}~{}{}",
-        terminal_colors::get_color(terminal_colors::Colors::Cyan),
-        terminal_colors::get_color(terminal_colors::Colors::Reset),
-        terminal_colors::get_color(terminal_colors::Colors::Yellow),
-        file_name,
-        terminal_colors::get_color(terminal_colors::Colors::Reset),
-    );
-
-    let parser = parser::Parser::new(
-        contents.clone(),
-        resolve_import,
-        |_| {},
-        ellie_core::defs::ParserOptions {
-            path: file_name.to_string(),
-            functions: true,
-            break_on_error: false,
-            loops: true,
-            import_std: true,
-            conditions: true,
-            classes: true,
-            enums: true,
-            dynamics: true,
-            global_variables: true,
-            getters: true,
-            ignore_imports: false,
-            setters: true,
-            line_ending: "\\n".to_owned(),
-            collectives: true,
-            variables: true,
-            constants: true,
-            parser_type: ellie_core::defs::ParserType::RawParser,
-            allow_import: true,
-        },
-    );
-    let parsed = parser.map();
-
-    if parsed.syntax_errors.len() == 0 {
-        std::println!(
-            "{}[ParsingSuccess]{}: {}~{}{}",
-            terminal_colors::get_color(terminal_colors::Colors::Green),
-            terminal_colors::get_color(terminal_colors::Colors::Reset),
-            terminal_colors::get_color(terminal_colors::Colors::Yellow),
-            file_name,
-            terminal_colors::get_color(terminal_colors::Colors::Reset),
-        );
-    } else {
-        println!(
-            "{}[ParsingFailed]{}: {}~{}{}",
-            terminal_colors::get_color(terminal_colors::Colors::Red),
-            terminal_colors::get_color(terminal_colors::Colors::Reset),
-            terminal_colors::get_color(terminal_colors::Colors::Yellow),
-            file_name,
-            terminal_colors::get_color(terminal_colors::Colors::Reset)
-        );
-    }
-    parsed
-}
-
-pub fn resolve_import(
-    options: ellie_core::defs::ParserOptions,
-    lib_name: String,
-    native_header: bool,
-) -> ellie_parser::parser::ResolvedImport {
-    let parent = &(Path::new(&options.path.clone())
-        .parent()
-        .unwrap()
-        .to_str()
-        .unwrap()
-        .to_string()
-        + "/");
-    let path = parent.clone()
-        + &lib_name
-        + if !Path::new(&lib_name).extension().is_some() {
-            if native_header {
-                ".eih"
-            } else {
-                ".ei"
-            }
-        } else {
-            ""
-        };
-    match read_file(Path::new(&path).absolutize().unwrap().to_str().unwrap()) {
-        Ok(file) => {
-            let mut hasher = DefaultHasher::new();
-            file.hash(&mut hasher);
-
-            let mut id_hasher = DefaultHasher::new();
-            ellie_core::utils::generate_hash().hash(&mut id_hasher);
-
-            ellie_parser::parser::ResolvedImport {
-                found: true,
-                file_content: ellie_parser::parser::ResolvedFileContent::Raw(file),
-                resolved_path: Path::new(&path)
-                    .absolutize()
-                    .unwrap()
-                    .to_str()
-                    .unwrap()
-                    .to_string(),
-                resolution_id: hasher.finish(),
-                id: id_hasher.finish(),
-                ..Default::default()
-            }
-        }
-        Err(c) => ellie_parser::parser::ResolvedImport {
-            found: false,
-            resolve_error: format!(
-                "Cannot find module '{}' ({})",
-                Path::new(&path).absolutize().unwrap().to_str().unwrap(),
-                c
-            ),
-            ..Default::default()
-        },
-    }
 }
 
 pub fn is_errors_same(first: error::Error, second: error::Error) -> bool {
@@ -173,9 +53,10 @@ pub fn zip_errors(errors: Vec<error::Error>) -> Vec<error::Error> {
                 if i == errors.len() - 1
                     || !is_errors_same(clone_errors[i].clone(), clone_errors[i + 1].clone())
                 {
-                    clone_errors[i].builded_message = error::Error::build(
-                        clone_errors[i].message.clone(),
+                    clone_errors[i] = clone_errors[i].clone().build(
                         clone_errors[i].builded_message.fields.clone(),
+                        clone_errors[i].debug_message.clone(),
+                        clone_errors[i].pos,
                     );
                     zipped_errors.push(clone_errors[i].clone())
                 }

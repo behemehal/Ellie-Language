@@ -1,6 +1,6 @@
 Syntax:
 
-    Function                 : NOT OK
+    Function                 :   OK
     Class                    : NOT OK
     ForLoop                  : NOT OK
     Variable                 :   OK
@@ -44,5 +44,5 @@ Syntax:
                 Assignment       :   OK
                 Comparison       :   OK
 
-                30 * 100 / 40 = 75%
+                31 * 100 / 40 = 77 %
                 Estimated complete time: December 10 2021

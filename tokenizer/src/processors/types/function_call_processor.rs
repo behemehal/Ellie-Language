@@ -55,7 +55,7 @@ impl super::Processor for function_call_type::FunctionCallCollector {
         } else if letter_char != ' ' {
             errors.push(error::errorList::error_s1.clone().build(
                 vec![error::ErrorBuildField {
-                    key: "val".to_owned(),
+                    key: "token".to_owned(),
                     value: letter_char.to_string(),
                 }],
                 "function_call_0x60".to_owned(),

@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 use crate::syntax::items::*;
 pub mod definer_processor;
 pub mod file_key;
+pub mod function_processor;
 pub mod getter_call;
 pub mod setter_call;
 pub mod variable_processor;
@@ -26,6 +27,7 @@ pub enum Processors {
     Variable(variable::VariableCollector),
     GetterCall(getter_call::GetterCall),
     SetterCall(setter_call::SetterCall),
+    Function(function::FunctionCollector),
     FileKey(file_key::FileKey),
 }
 
@@ -36,6 +38,24 @@ impl Processors {
             Processors::Variable(e) => e.complete,
             Processors::SetterCall(e) => e.complete,
             Processors::FileKey(e) => e.complete,
+            Processors::Function(e) => e.complete,
+        }
+    }
+
+    pub fn is_initalized(&self) -> bool {
+        match self.clone() {
+            Processors::GetterCall(e) => !e.data.is_not_initialized(),
+            _ => true,
+        }
+    }
+
+    pub fn get_pos(&self) -> defs::Cursor {
+        match self {
+            Processors::Variable(e) => e.data.pos,
+            Processors::GetterCall(e) => e.pos,
+            Processors::SetterCall(e) => e.pos,
+            Processors::Function(e) => e.data.pos,
+            Processors::FileKey(e) => e.pos,
         }
     }
 
@@ -45,6 +65,7 @@ impl Processors {
             Processors::GetterCall(e) => Collecting::GetterCall(e.to_definite()),
             Processors::SetterCall(e) => Collecting::SetterCall(e.to_definite()),
             Processors::FileKey(e) => Collecting::FileKey(e.to_definite()),
+            Processors::Function(e) => Collecting::Function(e.to_definite()),
         }
     }
 
@@ -54,7 +75,9 @@ impl Processors {
             Collecting::Variable(e) => {
                 Processors::Variable(variable::VariableCollector::default().from_definite(e))
             }
-            Collecting::Function(_) => todo!(),
+            Collecting::Function(e) => {
+                Processors::Function(function::FunctionCollector::default().from_definite(e))
+            }
             Collecting::ForLoop(_) => todo!(),
             Collecting::Condition(_) => todo!(),
             Collecting::Class(_) => todo!(),
@@ -86,7 +109,7 @@ impl Default for Processors {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum Modifier {
     Pri,
     Pub,
@@ -99,7 +122,7 @@ impl Default for Modifier {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct ItemProcessor {
     pub current: Processors,
     pub used_modifier: Modifier,
@@ -173,7 +196,13 @@ impl Processor for ItemProcessor {
             });
             self.used_modifier = Modifier::None;
         } else if keyword == "fn" && letter_char == ' ' {
-            panic!("fn not implemented");
+            self.current = Processors::Function(function::FunctionCollector {
+                data: function::Function {
+                    public: self.used_modifier == Modifier::Pub,
+                    ..Default::default()
+                },
+                ..Default::default()
+            })
         } else if keyword == "enum" && letter_char == ' ' {
             panic!("enum not implemented");
         } else if keyword == "set" && letter_char == ' ' {
@@ -205,6 +234,7 @@ impl Processor for ItemProcessor {
             Processors::Variable(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::SetterCall(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::FileKey(e) => e.iterate(errors, cursor, last_char, letter_char),
+            Processors::Function(e) => e.iterate(errors, cursor, last_char, letter_char),
         }
     }
 }

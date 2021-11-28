@@ -6,44 +6,22 @@ use std::{
 };
 
 fn main() {
-    let code = "@test =123;";
-
+    let code = "fn test(param1: int, *param2: int) : int {}";
     let mut errors: Vec<error::Error> = Vec::new();
     let mut pos = defs::CursorPosition::default();
-    let mut processor: ItemProcessor = ItemProcessor::default();
+    let mut iterator: ellie_tokenizer::iterator::Iterator =
+        ellie_tokenizer::iterator::Iterator::default();
 
     let mut last_char = '\0';
     for letter_char in code.chars() {
-        processor.iterate(&mut errors, pos, last_char, letter_char);
-        pos = pos.skip_char(1);
+        iterator.iterate(last_char, letter_char);
         last_char = letter_char;
     }
+    iterator.finalize();
 
-    if !errors.is_empty() {
-        let mut errors_hash = DefaultHasher::new();
-        format!("{:?}", errors.clone()).hash(&mut errors_hash);
-        panic!(
-            "Errors occured: {:#?}\nHash: {}",
-            errors,
-            errors_hash.finish()
-        );
+    if !iterator.errors.is_empty() {
+        println!("{:#?}", iterator.errors.clone())
     } else {
-        let correct = format!("{:?}", processor.clone());
-        let mut correct_hasher = DefaultHasher::new();
-        correct.hash(&mut correct_hasher);
-
-        if processor.is_complete() {
-            println!(
-                "----\nTokenize success:\n{:#?}\nHash: {:#?}\n",
-                processor.current.clone().to_definite(),
-                correct_hasher.finish(),
-            );
-        } else {
-            panic!(
-                "----\nTokenize failed (Not complete):\n{:#?}\nHash: {:#?}",
-                processor.current.clone(),
-                correct_hasher.finish(),
-            );
-        }
+        println!("{:#?}", iterator)
     }
 }

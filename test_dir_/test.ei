@@ -1,34 +1,6 @@
 /*
-    g test : string { //Getter
-        ret 1;
-    }
-
-    fn test() > string {
-        ret 1;
-    }
+    ALOOAAAAA
 */
 
-/*
-import tt;
-
-class Test {
-
-}
-
-v testB = new Test();
-
-test(123);
-*/
-
-//HATA:
-//v test = 123;
 //
-//new test();
-
-
-//pub fn getType() -> string {
-//    ret "array";
-//}
-
-pub import void;
-pub import string;
+v test : string = "ahmedo";//Ahmedoddd

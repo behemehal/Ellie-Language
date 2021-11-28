@@ -33,19 +33,11 @@ use std::sync::Mutex;
 
 #[macro_use]
 extern crate lazy_static;
-
 extern crate ellie_core;
-extern crate ellie_parser;
+extern crate ellie_tokenizer;
 
 pub mod cli_constants;
 
 #[cfg(feature = "build-cli")]
 pub mod cli_utils;
-
 pub mod terminal_colors;
-pub mod test_utils;
-
-lazy_static! {
-    static ref PRE_BUILT: Mutex<Vec<(String, ellie_parser::parser::ResolvedImport)>> =
-        Mutex::new(Vec::new());
-}

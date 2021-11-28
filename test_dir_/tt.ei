@@ -1,5 +1,0 @@
-pub class Test{
-
-}
-
-pub fn test(f: Test) {}
