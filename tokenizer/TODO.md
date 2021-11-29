@@ -12,7 +12,7 @@ Syntax:
     Setter                   : NOT OK
     FileKey                  :   OK
     Conditions               : NOT OK
-    Import                   : NOT OK
+    Import                   :   OK
     Definers                 :
         FunctionType         :   OK
         ArrayType            :   OK
@@ -44,5 +44,5 @@ Syntax:
                 Assignment       :   OK
                 Comparison       :   OK
 
-                31 * 100 / 40 = 77 %
+                32 * 100 / 40 = 80%
                 Estimated complete time: December 10 2021

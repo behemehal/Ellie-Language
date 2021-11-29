@@ -9,6 +9,7 @@ pub mod definer_processor;
 pub mod file_key;
 pub mod function_processor;
 pub mod getter_call;
+mod import_processor;
 pub mod setter_call;
 pub mod variable_processor;
 
@@ -29,6 +30,7 @@ pub enum Processors {
     SetterCall(setter_call::SetterCall),
     Function(function::FunctionCollector),
     FileKey(file_key::FileKey),
+    Import(import::Import),
 }
 
 impl Processors {
@@ -39,6 +41,7 @@ impl Processors {
             Processors::SetterCall(e) => e.complete,
             Processors::FileKey(e) => e.complete,
             Processors::Function(e) => e.complete,
+            Processors::Import(e) => e.complete,
         }
     }
 
@@ -56,6 +59,7 @@ impl Processors {
             Processors::SetterCall(e) => e.pos,
             Processors::Function(e) => e.data.pos,
             Processors::FileKey(e) => e.pos,
+            Processors::Import(e) => e.pos,
         }
     }
 
@@ -66,6 +70,7 @@ impl Processors {
             Processors::SetterCall(e) => Collecting::SetterCall(e.to_definite()),
             Processors::FileKey(e) => Collecting::FileKey(e.to_definite()),
             Processors::Function(e) => Collecting::Function(e.to_definite()),
+            Processors::Import(e) => Collecting::Import(e.to_definite()),
         }
     }
 
@@ -227,6 +232,9 @@ impl Processor for ItemProcessor {
             panic!("if not implemented");
         } else if self.used_modifier == Modifier::None && keyword == "else" && letter_char == ' ' {
             panic!("else not implemented");
+        } else if self.used_modifier == Modifier::None && keyword == "import" && letter_char == ' '
+        {
+            self.current = Processors::Import(import::Import::default());
         }
 
         match &mut self.current {
@@ -235,6 +243,7 @@ impl Processor for ItemProcessor {
             Processors::SetterCall(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::FileKey(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::Function(e) => e.iterate(errors, cursor, last_char, letter_char),
+            Processors::Import(e) => e.iterate(errors, cursor, last_char, letter_char),
         }
     }
 }

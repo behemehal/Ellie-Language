@@ -123,6 +123,15 @@
 
 - For Loops
   ```ellie
+      import ./test.ei;
+      import ./test.ei;
+      import ./test.ei;
+      import ./test.ei;
+      import ./test.ei : aCopy; //Import test.ei content in aCopy reference
+  ```
+
+- For Loops
+  ```ellie
       v reversedEllie : string;
       for (character, ellie_chars.reverse()) { //Array.reverse is standard-library function
           reversedEllie += character;

@@ -1,6 +1,2 @@
-/*
-    ALOOAAAAA
-*/
-
-//
-v test : string = "ahmedo";//Ahmedoddd
+import test;
+import test : cc;
