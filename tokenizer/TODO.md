@@ -11,7 +11,7 @@ Syntax:
     Getter                   : NOT OK
     Setter                   : NOT OK
     FileKey                  :   OK
-    Conditions               : NOT OK
+    Conditions               :   OK
     Import                   :   OK
     Definers                 :
         FunctionType         :   OK
@@ -44,5 +44,5 @@ Syntax:
                 Assignment       :   OK
                 Comparison       :   OK
 
-                33 * 100 / 40 = 82%
+                34 * 100 / 40 = 85%
                 Estimated complete time: December 10 2021
