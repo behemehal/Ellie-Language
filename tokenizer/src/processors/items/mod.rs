@@ -5,13 +5,14 @@ use ellie_core::{
 use serde::{Deserialize, Serialize};
 
 use crate::syntax::items::*;
-pub mod definer_processor;
-pub mod file_key;
-pub mod function_processor;
-pub mod getter_call;
+mod definer_processor;
+mod file_key;
+mod for_loop_processor;
+mod function_processor;
+mod getter_call;
 mod import_processor;
-pub mod setter_call;
-pub mod variable_processor;
+mod setter_call;
+mod variable_processor;
 
 pub trait Processor {
     fn iterate(
@@ -31,6 +32,7 @@ pub enum Processors {
     Function(function::FunctionCollector),
     FileKey(file_key::FileKey),
     Import(import::Import),
+    ForLoop(for_loop::ForLoop),
 }
 
 impl Processors {
@@ -42,6 +44,7 @@ impl Processors {
             Processors::FileKey(e) => e.complete,
             Processors::Function(e) => e.complete,
             Processors::Import(e) => e.complete,
+            Processors::ForLoop(e) => e.complete,
         }
     }
 
@@ -60,6 +63,7 @@ impl Processors {
             Processors::Function(e) => e.data.pos,
             Processors::FileKey(e) => e.pos,
             Processors::Import(e) => e.pos,
+            Processors::ForLoop(e) => e.pos,
         }
     }
 
@@ -71,6 +75,7 @@ impl Processors {
             Processors::FileKey(e) => Collecting::FileKey(e.to_definite()),
             Processors::Function(e) => Collecting::Function(e.to_definite()),
             Processors::Import(e) => Collecting::Import(e.to_definite()),
+            Processors::ForLoop(e) => Collecting::ForLoop(e.to_definite()),
         }
     }
 
@@ -227,7 +232,7 @@ impl Processor for ItemProcessor {
         } else if self.used_modifier == Modifier::None && keyword == "co" && letter_char == ' ' {
             panic!("co not implemented");
         } else if self.used_modifier == Modifier::None && keyword == "for" && letter_char == ' ' {
-            panic!("for not implemented");
+            self.current = Processors::ForLoop(for_loop::ForLoop::default());
         } else if self.used_modifier == Modifier::None && keyword == "if" && letter_char == ' ' {
             panic!("if not implemented");
         } else if self.used_modifier == Modifier::None && keyword == "else" && letter_char == ' ' {
@@ -244,6 +249,7 @@ impl Processor for ItemProcessor {
             Processors::FileKey(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::Function(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::Import(e) => e.iterate(errors, cursor, last_char, letter_char),
+            Processors::ForLoop(e) => e.iterate(errors, cursor, last_char, letter_char),
         }
     }
 }

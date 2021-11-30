@@ -2,7 +2,7 @@ Syntax:
 
     Function                 :   OK
     Class                    : NOT OK
-    ForLoop                  : NOT OK
+    ForLoop                  :   OK
     Variable                 :   OK
     Constructor              : NOT OK
     Enums                    : NOT OK
@@ -44,5 +44,5 @@ Syntax:
                 Assignment       :   OK
                 Comparison       :   OK
 
-                32 * 100 / 40 = 80%
+                33 * 100 / 40 = 82%
                 Estimated complete time: December 10 2021

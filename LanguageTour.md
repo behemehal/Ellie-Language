@@ -68,7 +68,7 @@
     fn callingAwesomeness(name: string, count: int) : string {
         v awesomenes : string;
         //iter count times write to variable i
-        for (d i, count) {
+        for (d in count) {
             awesomenes += "ellie";
         }
         return awesomeness;
