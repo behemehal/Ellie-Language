@@ -99,8 +99,69 @@ impl Iterator {
         }
 
         if self.active.is_complete() {
-            self.collected.push(self.active.current.clone());
-            self.active = items::ItemProcessor::default();
+            if matches!(self.active.current.clone(), items::Processors::Condition(e) if (e.chains.clone()[e.chains.len() - 1].rtype == crate::syntax::items::condition::ConditionType::ElseIf || e.chains.clone()[e.chains.len() - 1].rtype == crate::syntax::items::condition::ConditionType::Else))
+            {
+                let condition = self.active.current.as_condition().unwrap().clone();
+                let last_chain = &condition.chains[condition.chains.len() - 1];
+
+                let collected_len = self.collected.len();
+                if let items::Processors::Condition(past) = &mut self.collected[collected_len - 1] {
+                    let past_chain_len = past.chains.len() - 1;
+                    let past_last_chain = &past.chains[past_chain_len];
+
+                    match past_last_chain.rtype {
+                        crate::syntax::items::condition::ConditionType::If => {
+                            match last_chain.rtype {
+                                crate::syntax::items::condition::ConditionType::ElseIf => {
+                                    past.chains.push(last_chain.clone());
+                                }
+                                crate::syntax::items::condition::ConditionType::Else => {
+                                    past.chains.push(last_chain.clone());
+                                }
+                                _ => (),
+                            }
+                        }
+                        crate::syntax::items::condition::ConditionType::ElseIf => {
+                            match last_chain.rtype {
+                                crate::syntax::items::condition::ConditionType::ElseIf => {
+                                    past.chains.push(last_chain.clone());
+                                }
+                                crate::syntax::items::condition::ConditionType::Else => {
+                                    past.chains.push(last_chain.clone());
+                                }
+                                _ => (),
+                            }
+                        }
+                        crate::syntax::items::condition::ConditionType::Else => {
+                            self.errors.push(error::errorList::error_s1.clone().build(
+                                vec![error::ErrorBuildField {
+                                    key: "token".to_string(),
+                                    value: "else".to_string(),
+                                }],
+                                "ite_0x141".to_owned(),
+                                last_chain.keyword_pos,
+                            ));
+                        }
+                    }
+                } else {
+                    self.errors.push(error::errorList::error_s1.clone().build(
+                        vec![error::ErrorBuildField {
+                            key: "token".to_string(),
+                            value: match last_chain.rtype {
+                                crate::syntax::items::condition::ConditionType::ElseIf => "else if",
+                                crate::syntax::items::condition::ConditionType::Else => "else",
+                                crate::syntax::items::condition::ConditionType::If => "",
+                            }.to_string(),
+                        }],
+                        "ite_0x153".to_owned(),
+                        last_chain.keyword_pos,
+                    ));
+                }
+                self.active = items::ItemProcessor::default();
+            } else {
+                self.collected.push(self.active.current.clone());
+                self.active = items::ItemProcessor::default();
+            }
         }
     }
 }

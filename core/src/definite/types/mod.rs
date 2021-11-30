@@ -1,5 +1,4 @@
 pub mod array;
-pub mod arrow_function;
 pub mod bool;
 pub mod brace_reference;
 pub mod class_call;
@@ -31,7 +30,7 @@ pub enum Types {
     Operator(operator::OperatorType),
     Cloak(cloak::CloakType),
     Array(array::ArrayType),
-    ArrowFunction(arrow_function::ArrowFunction),
+    //ArrowFunction(arrow_function::ArrowFunction),
     ClassCall(class_call::ClassCall),
     FunctionCall(function_call::FunctionCall),
     Void,

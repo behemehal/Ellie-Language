@@ -1,4 +1,3 @@
-use crate::processors::types::Processor;
 use crate::syntax::items::function;
 use ellie_core::{defs, error, utils};
 

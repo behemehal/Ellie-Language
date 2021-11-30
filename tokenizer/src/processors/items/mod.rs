@@ -2,9 +2,11 @@ use ellie_core::{
     definite::{items::Collecting, Converter},
     defs, error,
 };
+use enum_as_inner::EnumAsInner;
 use serde::{Deserialize, Serialize};
 
 use crate::syntax::items::*;
+mod condition_processor;
 mod definer_processor;
 mod file_key;
 mod for_loop_processor;
@@ -24,7 +26,7 @@ pub trait Processor {
     );
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, EnumAsInner)]
 pub enum Processors {
     Variable(variable::VariableCollector),
     GetterCall(getter_call::GetterCall),
@@ -33,6 +35,7 @@ pub enum Processors {
     FileKey(file_key::FileKey),
     Import(import::Import),
     ForLoop(for_loop::ForLoop),
+    Condition(condition::Condition),
 }
 
 impl Processors {
@@ -45,6 +48,9 @@ impl Processors {
             Processors::Function(e) => e.complete,
             Processors::Import(e) => e.complete,
             Processors::ForLoop(e) => e.complete,
+            Processors::Condition(e) => {
+                e.chains.len() != 0 && e.chains.clone()[e.chains.len() - 1].complete
+            }
         }
     }
 
@@ -64,6 +70,7 @@ impl Processors {
             Processors::FileKey(e) => e.pos,
             Processors::Import(e) => e.pos,
             Processors::ForLoop(e) => e.pos,
+            Processors::Condition(e) => e.pos,
         }
     }
 
@@ -76,6 +83,7 @@ impl Processors {
             Processors::Function(e) => Collecting::Function(e.to_definite()),
             Processors::Import(e) => Collecting::Import(e.to_definite()),
             Processors::ForLoop(e) => Collecting::ForLoop(e.to_definite()),
+            Processors::Condition(e) => Collecting::Condition(e.to_definite()),
         }
     }
 
@@ -88,8 +96,12 @@ impl Processors {
             Collecting::Function(e) => {
                 Processors::Function(function::FunctionCollector::default().from_definite(e))
             }
-            Collecting::ForLoop(_) => todo!(),
-            Collecting::Condition(_) => todo!(),
+            Collecting::ForLoop(e) => {
+                Processors::ForLoop(for_loop::ForLoop::default().from_definite(e))
+            }
+            Collecting::Condition(e) => {
+                Processors::Condition(condition::Condition::default().from_definite(e))
+            }
             Collecting::Class(_) => todo!(),
             Collecting::Ret(_) => todo!(),
             Collecting::Constructor(_) => todo!(),
@@ -234,9 +246,25 @@ impl Processor for ItemProcessor {
         } else if self.used_modifier == Modifier::None && keyword == "for" && letter_char == ' ' {
             self.current = Processors::ForLoop(for_loop::ForLoop::default());
         } else if self.used_modifier == Modifier::None && keyword == "if" && letter_char == ' ' {
-            panic!("if not implemented");
+            self.current = Processors::Condition(condition::Condition {
+                chains: vec![condition::ConditionChain {
+                    rtype: condition::ConditionType::If,
+                    keyword_pos: self.current.get_pos(),
+                    ..Default::default()
+                }],
+                pos: self.current.get_pos(),
+                ..Default::default()
+            });
         } else if self.used_modifier == Modifier::None && keyword == "else" && letter_char == ' ' {
-            panic!("else not implemented");
+            self.current = Processors::Condition(condition::Condition {
+                chains: vec![condition::ConditionChain {
+                    rtype: condition::ConditionType::ElseIf,
+                    keyword_pos: self.current.get_pos(),
+                    ..Default::default()
+                }],
+                pos: self.current.get_pos(),
+                ..Default::default()
+            });
         } else if self.used_modifier == Modifier::None && keyword == "import" && letter_char == ' '
         {
             self.current = Processors::Import(import::Import::default());
@@ -250,6 +278,7 @@ impl Processor for ItemProcessor {
             Processors::Function(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::Import(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::ForLoop(e) => e.iterate(errors, cursor, last_char, letter_char),
+            Processors::Condition(e) => e.iterate(errors, cursor, last_char, letter_char),
         }
     }
 }
