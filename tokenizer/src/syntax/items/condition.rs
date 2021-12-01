@@ -3,7 +3,8 @@ use ellie_core::defs;
 use serde::{Deserialize, Serialize};
 
 use crate::processors::items;
-use crate::processors::types;
+use crate::processors::items::Processors;
+use crate::processors::types::{self, TypeProcessor};
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub enum ConditionType {
@@ -65,6 +66,36 @@ impl Converter<Condition, ellie_core::definite::items::condition::Condition> for
     }
 
     fn from_definite(self, from: ellie_core::definite::items::condition::Condition) -> Condition {
-        todo!()
+        Condition {
+            chains: from
+                .chains
+                .into_iter()
+                .map(|x| ConditionChain {
+                    rtype: match x.rtype {
+                        ellie_core::definite::items::condition::ConditionType::If => {
+                            ConditionType::If
+                        }
+                        ellie_core::definite::items::condition::ConditionType::ElseIf => {
+                            ConditionType::ElseIf
+                        }
+                        ellie_core::definite::items::condition::ConditionType::Else => {
+                            ConditionType::Else
+                        }
+                    },
+                    condition: TypeProcessor {
+                        current: types::Processors::default().from_definite(*x.condition),
+                        ignore: false,
+                    },
+                    code: x
+                        .code
+                        .into_iter()
+                        .map(|x| Processors::default().from_definite(x))
+                        .collect(),
+                    keyword_pos: x.keyword_pos,
+                    ..Default::default()
+                })
+                .collect(),
+            pos: self.pos,
+        }
     }
 }

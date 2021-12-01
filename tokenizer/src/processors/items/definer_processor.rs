@@ -1,8 +1,8 @@
-use crate::processors::types::{Processor, Processors, TypeProcessor};
+use crate::processors::types::{Processors, TypeProcessor};
 use crate::syntax::items::definers::*;
 use ellie_core::{defs, error, utils};
 
-impl super::Processor for DefinerCollector {
+impl crate::processors::Processor for DefinerCollector {
     fn iterate(
         &mut self,
         errors: &mut Vec<error::Error>,

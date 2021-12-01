@@ -1,7 +1,7 @@
 use crate::syntax::types::negative_type;
 use ellie_core::{defs, error};
 
-impl super::Processor for negative_type::Negative {
+impl crate::processors::Processor for negative_type::Negative {
     fn iterate(
         &mut self,
         errors: &mut Vec<ellie_core::error::Error>,

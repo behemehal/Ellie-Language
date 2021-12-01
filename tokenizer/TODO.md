@@ -4,12 +4,13 @@ Syntax:
     Class                    : NOT OK
     ForLoop                  :   OK
     Variable                 :   OK
-    Constructor              : NOT OK
-    Enums                    : NOT OK
+    Constructor              :   OK
+    Enums                    : NOT OK (Pending)
     GetterCall               :   OK
     SetterCall               :   OK
-    Getter                   : NOT OK
-    Setter                   : NOT OK
+    Getter                   : NOT OK (Pending)
+    Setter                   : NOT OK (Pending)
+    Ret                      :   OK
     FileKey                  :   OK
     Conditions               :   OK
     Import                   :   OK
@@ -31,7 +32,7 @@ Syntax:
         Cloak                :   OK
         Array                :   OK
         Collective           :   OK
-        ArrowFunction        : NOT OK  (PENDING ITEMS TO BE COMPLETE)
+        ArrowFunction        : NOT OK  (Pending)
         VariableReference    :   OK
             SubTypes             :
                 Reference        :   OK
@@ -44,5 +45,5 @@ Syntax:
                 Assignment       :   OK
                 Comparison       :   OK
 
-                34 * 100 / 40 = 85%
+                36 * 100 / 37 = 97%
                 Estimated complete time: December 10 2021

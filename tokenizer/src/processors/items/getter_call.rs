@@ -1,7 +1,6 @@
-use crate::processors::types::Processor;
 pub use crate::syntax::items::getter_call::GetterCall;
 
-impl super::Processor for GetterCall {
+impl crate::processors::Processor for GetterCall {
     fn iterate(
         &mut self,
         errors: &mut Vec<ellie_core::error::Error>,

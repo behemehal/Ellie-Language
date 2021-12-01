@@ -1,7 +1,10 @@
 use ellie_core::{defs, error};
 use serde::{Deserialize, Serialize};
 
-use crate::processors::items::{self, Processor};
+use crate::processors::{
+    items::{self},
+    Processor,
+};
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct Iterator {
@@ -105,7 +108,22 @@ impl Iterator {
                 let last_chain = &condition.chains[condition.chains.len() - 1];
 
                 let collected_len = self.collected.len();
-                if let items::Processors::Condition(past) = &mut self.collected[collected_len - 1] {
+                if collected_len == 0 {
+                    self.errors.push(error::errorList::error_s1.clone().build(
+                        vec![error::ErrorBuildField {
+                            key: "token".to_string(),
+                            value: match last_chain.rtype {
+                                crate::syntax::items::condition::ConditionType::ElseIf => "else if",
+                                crate::syntax::items::condition::ConditionType::Else => "else",
+                                crate::syntax::items::condition::ConditionType::If => "",
+                            }.to_string(),
+                        }],
+                        "ite_0x141".to_owned(),
+                        last_chain.keyword_pos,
+                    ));
+                } else if let items::Processors::Condition(past) =
+                    &mut self.collected[collected_len - 1]
+                {
                     let past_chain_len = past.chains.len() - 1;
                     let past_last_chain = &past.chains[past_chain_len];
 

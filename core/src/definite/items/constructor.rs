@@ -12,7 +12,6 @@ pub struct ConstructorParameter {
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct Constructor {
-    pub name: String,
     pub parameters: Vec<ConstructorParameter>,
     pub inside_code: Vec<Collecting>,
     pub name_pos: defs::Cursor,

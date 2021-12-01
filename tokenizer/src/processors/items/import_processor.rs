@@ -1,7 +1,7 @@
 use crate::syntax::items::import::Import;
 use ellie_core::{defs, error, utils};
 
-impl super::Processor for Import {
+impl crate::processors::Processor for Import {
     fn iterate(
         &mut self,
         errors: &mut Vec<error::Error>,
@@ -10,7 +10,9 @@ impl super::Processor for Import {
         letter_char: char,
     ) {
         if !self.path_filled {
-            if utils::reliable_name_range(utils::ReliableNameRanges::VariableName, letter_char).reliable {
+            if utils::reliable_name_range(utils::ReliableNameRanges::VariableName, letter_char)
+                .reliable
+            {
                 if self.path == "" {
                     self.path_pos.range_start = cursor;
                 } else if last_char == ' ' {
@@ -31,7 +33,9 @@ impl super::Processor for Import {
                 self.complete = true;
             }
         } else {
-            if utils::reliable_name_range(utils::ReliableNameRanges::VariableName, letter_char).reliable {
+            if utils::reliable_name_range(utils::ReliableNameRanges::VariableName, letter_char)
+                .reliable
+            {
                 if self.reference == "" {
                     self.reference_pos.range_start = cursor;
                 } else if last_char == ' ' {

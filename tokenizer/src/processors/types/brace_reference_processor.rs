@@ -1,7 +1,7 @@
 use crate::syntax::types::brace_reference_type;
 use ellie_core::{defs, error};
 
-impl super::Processor for brace_reference_type::BraceReferenceTypeCollector {
+impl crate::processors::Processor for brace_reference_type::BraceReferenceTypeCollector {
     fn iterate(
         &mut self,
         errors: &mut Vec<error::Error>,

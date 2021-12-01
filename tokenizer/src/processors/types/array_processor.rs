@@ -1,7 +1,7 @@
 use crate::syntax::types::array_type;
 use ellie_core::{defs, error};
 
-impl super::Processor for array_type::ArrayTypeCollector {
+impl crate::processors::Processor for array_type::ArrayTypeCollector {
     fn iterate(
         &mut self,
         errors: &mut Vec<error::Error>,

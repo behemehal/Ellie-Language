@@ -1,7 +1,7 @@
 use crate::syntax::types::string_type;
 use ellie_core::{defs, error, utils::is_escape};
 
-impl super::Processor for string_type::StringTypeCollector {
+impl crate::processors::Processor for string_type::StringTypeCollector {
     fn iterate(
         &mut self,
         errors: &mut Vec<error::Error>,

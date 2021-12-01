@@ -1,7 +1,7 @@
 use crate::syntax::types::float_type;
 use ellie_core::{defs, error};
 
-impl super::Processor for float_type::FloatTypeCollector {
+impl crate::processors::Processor for float_type::FloatTypeCollector {
     fn iterate(
         &mut self,
         errors: &mut Vec<error::Error>,

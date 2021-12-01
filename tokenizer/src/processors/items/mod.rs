@@ -7,24 +7,16 @@ use serde::{Deserialize, Serialize};
 
 use crate::syntax::items::*;
 mod condition_processor;
+mod constructor_processor;
 mod definer_processor;
 mod file_key;
 mod for_loop_processor;
 mod function_processor;
 mod getter_call;
 mod import_processor;
+mod ret_processor;
 mod setter_call;
 mod variable_processor;
-
-pub trait Processor {
-    fn iterate(
-        &mut self,
-        errors: &mut Vec<error::Error>,
-        cursor: defs::CursorPosition,
-        last_char: char,
-        letter_char: char,
-    );
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize, EnumAsInner)]
 pub enum Processors {
@@ -36,6 +28,8 @@ pub enum Processors {
     Import(import::Import),
     ForLoop(for_loop::ForLoop),
     Condition(condition::Condition),
+    Constructor(constructor::Constructor),
+    Ret(ret::Ret),
 }
 
 impl Processors {
@@ -51,6 +45,8 @@ impl Processors {
             Processors::Condition(e) => {
                 e.chains.len() != 0 && e.chains.clone()[e.chains.len() - 1].complete
             }
+            Processors::Constructor(e) => e.complete,
+            Processors::Ret(e) => e.complete,
         }
     }
 
@@ -71,6 +67,8 @@ impl Processors {
             Processors::Import(e) => e.pos,
             Processors::ForLoop(e) => e.pos,
             Processors::Condition(e) => e.pos,
+            Processors::Constructor(e) => e.pos,
+            Processors::Ret(e) => e.pos,
         }
     }
 
@@ -84,12 +82,13 @@ impl Processors {
             Processors::Import(e) => Collecting::Import(e.to_definite()),
             Processors::ForLoop(e) => Collecting::ForLoop(e.to_definite()),
             Processors::Condition(e) => Collecting::Condition(e.to_definite()),
+            Processors::Constructor(e) => Collecting::Constructor(e.to_definite()),
+            Processors::Ret(e) => Collecting::Ret(e.to_definite()),
         }
     }
 
     pub fn from_definite(self, from: Collecting) -> Processors {
         match from {
-            Collecting::ImportItem(_) => todo!(),
             Collecting::Variable(e) => {
                 Processors::Variable(variable::VariableCollector::default().from_definite(e))
             }
@@ -103,9 +102,11 @@ impl Processors {
                 Processors::Condition(condition::Condition::default().from_definite(e))
             }
             Collecting::Class(_) => todo!(),
-            Collecting::Ret(_) => todo!(),
-            Collecting::Constructor(_) => todo!(),
-            Collecting::Import(_) => todo!(),
+            Collecting::Ret(e) => Processors::Ret(ret::Ret::default().from_definite(e)),
+            Collecting::Constructor(e) => {
+                Processors::Constructor(constructor::Constructor::default().from_definite(e))
+            }
+            Collecting::Import(e) => Processors::Import(import::Import::default().from_definite(e)),
             Collecting::FileKey(e) => {
                 Processors::FileKey(file_key::FileKey::default().from_definite(e))
             }
@@ -156,7 +157,7 @@ impl ItemProcessor {
     }
 }
 
-impl Processor for ItemProcessor {
+impl super::Processor for ItemProcessor {
     fn iterate(
         &mut self,
         errors: &mut Vec<error::Error>,
@@ -241,8 +242,23 @@ impl Processor for ItemProcessor {
                 },
                 ..Default::default()
             });
-        } else if self.used_modifier == Modifier::None && keyword == "co" && letter_char == ' ' {
-            panic!("co not implemented");
+        } else if self.used_modifier == Modifier::None && keyword == "ret" && letter_char == ' ' {
+            self.current = Processors::Ret(ret::Ret {
+                keyword_pos: self.current.get_pos(),
+                pos: defs::Cursor {
+                    range_start: cursor.clone(),
+                    ..Default::default()
+                },
+                ..Default::default()
+            });
+        } else if self.used_modifier == Modifier::None && keyword == "co" && letter_char == '(' {
+            self.current = Processors::Constructor(constructor::Constructor {
+                pos: defs::Cursor {
+                    range_start: cursor.clone(),
+                    ..Default::default()
+                },
+                ..Default::default()
+            });
         } else if self.used_modifier == Modifier::None && keyword == "for" && letter_char == ' ' {
             self.current = Processors::ForLoop(for_loop::ForLoop::default());
         } else if self.used_modifier == Modifier::None && keyword == "if" && letter_char == ' ' {
@@ -279,6 +295,8 @@ impl Processor for ItemProcessor {
             Processors::Import(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::ForLoop(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::Condition(e) => e.iterate(errors, cursor, last_char, letter_char),
+            Processors::Constructor(e) => e.iterate(errors, cursor, last_char, letter_char),
+            Processors::Ret(e) => e.iterate(errors, cursor, last_char, letter_char),
         }
     }
 }

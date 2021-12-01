@@ -9,7 +9,6 @@ pub mod function;
 pub mod getter;
 pub mod getter_call;
 pub mod import;
-pub mod import_item;
 pub mod setter;
 pub mod setter_call;
 pub mod variable;
@@ -19,7 +18,6 @@ pub mod ret;
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub enum Collecting {
-    ImportItem(import_item::ImportItem),
     Variable(variable::Variable),
     Function(function::Function),
     ForLoop(for_loop::ForLoop),
@@ -48,7 +46,6 @@ impl Default for Collecting {
 impl Collecting {
     pub fn is_pub(self) -> bool {
         match self {
-            Collecting::ImportItem(e) => e.public,
             Collecting::Variable(e) => e.public,
             Collecting::Function(e) => e.public,
             Collecting::ForLoop(_) => false,

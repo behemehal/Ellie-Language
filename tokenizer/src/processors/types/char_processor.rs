@@ -1,7 +1,7 @@
 use crate::syntax::types::char_type;
 use ellie_core::{defs, error};
 
-impl super::Processor for char_type::CharType {
+impl crate::processors::Processor for char_type::CharType {
     fn iterate(
         &mut self,
         errors: &mut Vec<error::Error>,

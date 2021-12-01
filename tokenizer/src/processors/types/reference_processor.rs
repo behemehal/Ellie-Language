@@ -1,7 +1,7 @@
 use crate::syntax::types::reference_type;
 use ellie_core::{defs, error, utils};
 
-impl super::Processor for reference_type::ReferenceTypeCollector {
+impl crate::processors::Processor for reference_type::ReferenceTypeCollector {
     fn iterate(
         &mut self,
         errors: &mut Vec<ellie_core::error::Error>,

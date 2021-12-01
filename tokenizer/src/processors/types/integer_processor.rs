@@ -1,7 +1,7 @@
 use crate::syntax::types::integer_type;
 use ellie_core::{defs, error};
 
-impl super::Processor for integer_type::IntegerTypeCollector {
+impl crate::processors::Processor for integer_type::IntegerTypeCollector {
     fn iterate(
         &mut self,
         errors: &mut Vec<error::Error>,

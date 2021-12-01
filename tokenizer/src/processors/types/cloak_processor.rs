@@ -1,7 +1,7 @@
 use crate::syntax::types::cloak_type;
 use ellie_core::{defs, error};
 
-impl super::Processor for cloak_type::CloakTypeCollector {
+impl crate::processors::Processor for cloak_type::CloakTypeCollector {
     fn iterate(
         &mut self,
         errors: &mut Vec<error::Error>,

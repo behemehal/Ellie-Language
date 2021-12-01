@@ -1,7 +1,7 @@
 use crate::syntax::types::collective_type;
 use ellie_core::{defs, error};
 
-impl super::Processor for collective_type::CollectiveTypeCollector {
+impl crate::processors::Processor for collective_type::CollectiveTypeCollector {
     fn iterate(
         &mut self,
         errors: &mut Vec<error::Error>,

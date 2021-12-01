@@ -1,8 +1,7 @@
-use crate::processors::types::Processor;
 use crate::syntax::items::condition;
 use ellie_core::{defs, error, utils};
 
-impl super::Processor for condition::Condition {
+impl crate::processors::Processor for condition::Condition {
     fn iterate(
         &mut self,
         errors: &mut Vec<error::Error>,

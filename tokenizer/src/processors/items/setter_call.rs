@@ -1,7 +1,6 @@
-use crate::processors::types::Processor;
 pub use crate::syntax::items::setter_call::SetterCall;
 
-impl super::Processor for SetterCall {
+impl crate::processors::Processor for SetterCall {
     fn iterate(
         &mut self,
         errors: &mut Vec<ellie_core::error::Error>,

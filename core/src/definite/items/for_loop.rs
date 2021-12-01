@@ -1,8 +1,8 @@
+use super::Collecting;
 use crate::definite::types;
 use crate::defs;
 use alloc::vec::Vec;
 use serde::{Deserialize, Serialize};
-use super::Collecting;
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct ForLoop {

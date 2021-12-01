@@ -1,5 +1,1 @@
-
-
-for i : 12 {
-    v test : int = 123;
-}
+ret 123;

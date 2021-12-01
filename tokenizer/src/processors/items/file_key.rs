@@ -1,8 +1,7 @@
-use crate::processors::types::Processor;
 pub use crate::syntax::items::file_key::FileKey;
 use ellie_core::{defs, error, utils};
 
-impl super::Processor for FileKey {
+impl crate::processors::Processor for FileKey {
     fn iterate(
         &mut self,
         errors: &mut Vec<error::Error>,

@@ -1,12 +1,8 @@
-use crate::{
-    processors::items::Processor,
-    syntax::{items::definers::DefinerCollector, types::class_call_type},
-};
+use crate::syntax::{items::definers::DefinerCollector, types::class_call_type};
 use ellie_core::{defs, error};
 
 use super::TypeProcessor;
-
-impl super::Processor for class_call_type::ClassCallCollector {
+impl crate::processors::Processor for class_call_type::ClassCallCollector {
     fn iterate(
         &mut self,
         errors: &mut Vec<error::Error>,

@@ -1,7 +1,7 @@
 use crate::syntax::items::function;
 use ellie_core::{defs, error, utils};
 
-impl super::Processor for function::FunctionCollector {
+impl crate::processors::Processor for function::FunctionCollector {
     fn iterate(
         &mut self,
         errors: &mut Vec<error::Error>,

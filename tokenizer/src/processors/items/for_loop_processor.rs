@@ -1,7 +1,7 @@
-use crate::{iterator::Iterator, processors::types::Processor, syntax::items::for_loop::ForLoop};
+use crate::{iterator::Iterator, syntax::items::for_loop::ForLoop};
 use ellie_core::{defs, error};
 
-impl super::Processor for ForLoop {
+impl crate::processors::Processor for ForLoop {
     fn iterate(
         &mut self,
         errors: &mut Vec<error::Error>,

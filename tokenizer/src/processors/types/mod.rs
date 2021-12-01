@@ -181,16 +181,6 @@ impl Default for Processors {
     }
 }
 
-pub trait Processor {
-    fn iterate(
-        &mut self,
-        errors: &mut Vec<error::Error>,
-        cursor: defs::CursorPosition,
-        last_char: char,
-        letter_char: char,
-    );
-}
-
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct TypeProcessor {
     pub current: Processors,
@@ -203,7 +193,7 @@ impl TypeProcessor {
     }
 }
 
-impl Processor for TypeProcessor {
+impl super::Processor for TypeProcessor {
     fn iterate(
         &mut self,
         errors: &mut Vec<ellie_core::error::Error>,

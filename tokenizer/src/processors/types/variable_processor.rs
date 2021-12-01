@@ -4,7 +4,7 @@ use ellie_core::{
     utils::{reliable_name_range, ReliableNameRanges},
 };
 
-impl super::Processor for variable_type::VariableTypeCollector {
+impl crate::processors::Processor for variable_type::VariableTypeCollector {
     fn iterate(
         &mut self,
         errors: &mut Vec<error::Error>,

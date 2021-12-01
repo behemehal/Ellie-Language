@@ -1,7 +1,7 @@
 use crate::syntax::types::operator_type;
 use ellie_core::{defs, error, utils};
 
-impl super::Processor for operator_type::OperatorTypeCollector {
+impl crate::processors::Processor for operator_type::OperatorTypeCollector {
     fn iterate(
         &mut self,
         errors: &mut Vec<error::Error>,

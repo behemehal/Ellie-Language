@@ -10,77 +10,63 @@ import char;
 @description = "Ellie string"
 @notConstructable = true;
 pub class string {
-    @description = "Get type\n[!]Part of the 'typeof' keyword requirement not intended to be used[!@]";
+    @description = "Get type";
     @availableSince = "3.7.3";
-    @avoidUsage = true;
-    @example = "
-        v name = \"ahmet\";
-        print(typeof name); //string
-    ";
-    pub fn getType() -> string {
+    pub fn getType() : string {
         ret "string";
     }
 
     @description = "Get size of string";
     @availableSince = "3.7.3";
+    @native = true;
     @example = "
-        v name = \"ahmet\";
+        v name = \"ellie\";
         print(name.len()); //5
     ";
-    pub fn len() -> int;
+    pub fn len() : int;
 
     @description = "Make string upperCASE";
     @availableSince = "3.7.3";
+    @native = true;
     @example = "
-        v name = \"ahmet\";
-        print(name.uprCase()); //AHMET
+        v name = \"ellie\";
+        print(name.uprCase()); //ELLIE
     ";
-    pub fn uprCase() -> string;
+    pub fn uprCase() : string;
 
     @description = "Make string loweRcase";
     @availableSince = "3.7.3";
+    @native = true;
     @example = "
-        v name = \"AHMET\";
-        print(name.lwrCase()); //ahmet
+        v name = \"ELLIE\";
+        print(name.lwrCase()); //ellie
     ";
-    pub fn lwrCase() -> string;
+    pub fn lwrCase() : string;
 
     @description = "Make string's first letter upperCASE";
     @availableSince = "3.7.3";
+    @native = true;
     @example = "
-        v name = \"ahmet\";
-        print(name.fuprCase()); //Ahmet
+        v name = \"ellie\";
+        print(name.fuprCase()); //Ellie
     ";
-    pub fn lwrCase() -> string;
+    pub fn lwrCase() : string;
 
-    @description = "Convert single letter to char[?]Gives empty '\0' char if string is not convertable";
-    @volatile = true;
+    @description = "Convert single letter to char[?]Gives empty char ('\0') if string is not convertable";
+    @native = true;
     @availableSince = "3.7.3";
     @example = "
         v name = \"a\";
         v chr : char = name.toChar();
     ";
-    pub fn toChar() -> char;
+    pub fn toChar() : char;
 
-    @description = "Convert string to char array";
+    @description = "Convert string to char vec";
     @availableSince = "3.7.3";
     @example = "
         v name = \"ahmet\";
         v chars = name.chars();
         print(name.len())); //5
     ";
-    pub fn chars() -> array<char>;
-
-    @description = "Check class equvilent to other\n[!]Part of the equality operator requirement not intended to be used[!@]";
-    @availableSince = "3.7.3";
-    @avoidUsage = true;
-    pub fn eq(dyn other) -> bool {
-        //Get typeof other class
-        if typeof other == "string" {
-            //Cast other as string and compare chars
-            (other as string).chars() == self.chars()
-        } else {
-            ret false;
-        }
-    }
+    pub fn chars() : [char, *];
 }
