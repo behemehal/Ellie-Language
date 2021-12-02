@@ -16,7 +16,7 @@ pub mod variable_processor;
 use crate::syntax::types::*;
 use ellie_core::{
     definite::{self, Converter},
-    defs, error, utils,
+    defs, utils,
 };
 use enum_as_inner::EnumAsInner;
 use serde::{Deserialize, Serialize};

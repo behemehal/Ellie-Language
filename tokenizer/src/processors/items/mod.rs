@@ -6,6 +6,7 @@ use enum_as_inner::EnumAsInner;
 use serde::{Deserialize, Serialize};
 
 use crate::syntax::items::*;
+mod class_processor;
 mod condition_processor;
 mod constructor_processor;
 mod definer_processor;
@@ -29,6 +30,7 @@ pub enum Processors {
     ForLoop(for_loop::ForLoop),
     Condition(condition::Condition),
     Constructor(constructor::Constructor),
+    Class(class::Class),
     Ret(ret::Ret),
 }
 
@@ -47,6 +49,7 @@ impl Processors {
             }
             Processors::Constructor(e) => e.complete,
             Processors::Ret(e) => e.complete,
+            Processors::Class(e) => e.complete,
         }
     }
 
@@ -69,6 +72,7 @@ impl Processors {
             Processors::Condition(e) => e.pos,
             Processors::Constructor(e) => e.pos,
             Processors::Ret(e) => e.pos,
+            Processors::Class(e) => e.pos,
         }
     }
 
@@ -83,6 +87,7 @@ impl Processors {
             Processors::ForLoop(e) => Collecting::ForLoop(e.to_definite()),
             Processors::Condition(e) => Collecting::Condition(e.to_definite()),
             Processors::Constructor(e) => Collecting::Constructor(e.to_definite()),
+            Processors::Class(e) => Collecting::Class(e.to_definite()),
             Processors::Ret(e) => Collecting::Ret(e.to_definite()),
         }
     }
@@ -101,7 +106,7 @@ impl Processors {
             Collecting::Condition(e) => {
                 Processors::Condition(condition::Condition::default().from_definite(e))
             }
-            Collecting::Class(_) => todo!(),
+            Collecting::Class(e) => Processors::Class(class::Class::default().from_definite(e)),
             Collecting::Ret(e) => Processors::Ret(ret::Ret::default().from_definite(e)),
             Collecting::Constructor(e) => {
                 Processors::Constructor(constructor::Constructor::default().from_definite(e))
@@ -233,7 +238,10 @@ impl super::Processor for ItemProcessor {
         } else if keyword == "get" && letter_char == ' ' {
             panic!("getter not implemented");
         } else if keyword == "class" && letter_char == ' ' {
-            panic!("class not implemented");
+            self.current = Processors::Class(class::Class {
+                public: self.used_modifier == Modifier::Pub,
+                ..Default::default()
+            });
         } else if not_initialized && self.used_modifier == Modifier::None && letter_char == '@' {
             self.current = Processors::FileKey(file_key::FileKey {
                 pos: defs::Cursor {
@@ -297,6 +305,7 @@ impl super::Processor for ItemProcessor {
             Processors::Condition(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::Constructor(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::Ret(e) => e.iterate(errors, cursor, last_char, letter_char),
+            Processors::Class(e) => e.iterate(errors, cursor, last_char, letter_char),
         }
     }
 }

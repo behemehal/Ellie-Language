@@ -9,3 +9,4 @@ pub mod import;
 pub mod ret;
 pub mod setter_call;
 pub mod variable;
+pub mod class;

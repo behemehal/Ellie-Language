@@ -1,5 +1,5 @@
 use crate::syntax::items::condition;
-use ellie_core::{defs, error, utils};
+use ellie_core::{defs, error};
 
 impl crate::processors::Processor for condition::Condition {
     fn iterate(

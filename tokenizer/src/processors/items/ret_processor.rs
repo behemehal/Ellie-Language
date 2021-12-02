@@ -1,5 +1,5 @@
 use crate::syntax::items::ret::Ret;
-use ellie_core::{defs, error, utils};
+use ellie_core::{defs, error};
 
 impl crate::processors::Processor for Ret {
     fn iterate(

@@ -1,5 +1,5 @@
 use ellie_core::{defs, error};
-use ellie_tokenizer::processors::items::{ItemProcessor, Processor};
+use ellie_tokenizer::processors::{items::ItemProcessor, Processor};
 use std::{
     collections::hash_map::DefaultHasher,
     hash::{Hash, Hasher},

@@ -1,7 +1,4 @@
-use crate::{
-    processors::items::{ItemProcessor, Processors},
-    syntax::items::definers,
-};
+use crate::{processors::items::Processors, syntax::items::definers};
 use ellie_core::{definite::Converter, defs};
 use serde::{Deserialize, Serialize};
 

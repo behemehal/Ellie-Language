@@ -1,6 +1,9 @@
 use ellie_core::{defs, error};
 use ellie_tokenizer::{
-    processors::types::{Processor, Processors, TypeProcessor},
+    processors::{
+        types::{Processors, TypeProcessor},
+        Processor,
+    },
     syntax::types::*,
 };
 use std::{

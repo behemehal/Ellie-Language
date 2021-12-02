@@ -73,24 +73,14 @@ fn main() {
                     } else if let Ok(code) = code_string {
                         println!("Code {:#?}", code);
 
-                        let mut tokenizer = Tokenizer::new(
-                            code,
-                            |x| println!("Emited: {:#?}", x),
-                            |x| {
-                                println!("Import: {:#?}", x);
-                                ResolvedImport::default()
-                            },
-                        );
+                        let mut tokenizer = Tokenizer::new(code, |x| {
+                            println!("Import: {:#?}", x);
+                            ResolvedImport::default()
+                        });
                         let collected = tokenizer.tokenize();
 
                         if let Ok(items) = collected {
-                            println!(
-                                "{:#?}",
-                                items
-                                    .into_iter()
-                                    .map(|x| x.to_definite())
-                                    .collect::<Vec<_>>()
-                            );
+                            println!("{:#?}", items);
                         } else if let Err(errors) = collected {
                             println!("{:#?}", errors);
                         }

@@ -1,4 +1,4 @@
-use crate::{iterator::Iterator, syntax::items::for_loop::ForLoop};
+use crate::syntax::items::for_loop::ForLoop;
 use ellie_core::{defs, error};
 
 impl crate::processors::Processor for ForLoop {
