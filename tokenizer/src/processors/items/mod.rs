@@ -237,6 +237,11 @@ impl super::Processor for ItemProcessor {
             panic!("setter not implemented");
         } else if keyword == "get" && letter_char == ' ' {
             panic!("getter not implemented");
+        } else if keyword == "import" && letter_char == ' ' {
+            self.current = Processors::Import(import::Import {
+                public: self.used_modifier == Modifier::Pub,
+                ..Default::default()
+            });
         } else if keyword == "class" && letter_char == ' ' {
             self.current = Processors::Class(class::Class {
                 public: self.used_modifier == Modifier::Pub,
@@ -289,9 +294,6 @@ impl super::Processor for ItemProcessor {
                 pos: self.current.get_pos(),
                 ..Default::default()
             });
-        } else if self.used_modifier == Modifier::None && keyword == "import" && letter_char == ' '
-        {
-            self.current = Processors::Import(import::Import::default());
         }
 
         match &mut self.current {

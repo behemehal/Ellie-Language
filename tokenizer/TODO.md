@@ -1,7 +1,7 @@
 Syntax:
 
     Function                 :   OK
-    Class                    : NOT OK
+    Class                    :   OK
     ForLoop                  :   OK
     Variable                 :   OK
     Constructor              :   OK
@@ -45,5 +45,5 @@ Syntax:
                 Assignment       :   OK
                 Comparison       :   OK
 
-                36 * 100 / 37 = 97%
+                37 * 100 / 37 = 100%
                 Estimated complete time: December 10 2021

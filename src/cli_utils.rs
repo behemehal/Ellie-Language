@@ -142,6 +142,10 @@ pub fn get_line(code: String, line: usize) -> String {
     }
 }
 
+pub fn file_exists(path: String) -> bool {
+    Path::new(&path).exists()
+}
+
 pub fn read_file(file_dir: &str) -> Result<String, String> {
     let file_read = File::open(file_dir);
     match file_read {

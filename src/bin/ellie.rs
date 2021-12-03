@@ -1,7 +1,11 @@
 use ellie_core::definite;
-use ellie_tokenizer::tokenizer::{self, ResolvedImport, Tokenizer};
+use ellie_engine::cli_utils;
+use ellie_tokenizer::tokenizer::{self, Pager, ResolvedImport, Tokenizer};
 use fs::File;
+use path_absolutize::Absolutize;
+use std::collections::hash_map::DefaultHasher;
 use std::env;
+use std::hash::{Hash, Hasher};
 use std::path::Path;
 use std::sync::{Mutex, PoisonError};
 use std::{fs, io::Read};
@@ -57,34 +61,103 @@ fn main() {
                 .collect::<Vec<String>>();
 
             //let map_errors_arg = env::args().any(|x| x == "--map-errors");
-            let file_arg_check = file_args.first();
-            if file_arg_check != None {
-                let file_arg = file_arg_check.unwrap();
-                let mut file_content = Vec::new();
-                let file_read = File::open(&file_arg.clone());
-                if file_read.is_err() {
-                    println!("File not found ~{}", &file_arg.clone());
-                    std::process::exit(1);
-                } else if let Ok(mut file) = file_read {
-                    file.read_to_end(&mut file_content).expect("Unable to read");
-                    let code_string = String::from_utf8(file_content);
-                    if code_string.is_err() {
-                        println!("Unable to read file ~{}", file_arg.clone())
-                    } else if let Ok(code) = code_string {
-                        println!("Code {:#?}", code);
+            match file_args.first() {
+                Some(main_path) => match cli_utils::read_file(main_path) {
+                    Ok(file_content) => {
+                        let mut pager = tokenizer::Pager::new(
+                            file_content,
+                            Path::new(main_path).to_str().unwrap().to_string(),
+                            |path, file_name| {
+                                let path = Path::new(&path)
+                                    .parent()
+                                    .unwrap()
+                                    .to_str()
+                                    .unwrap()
+                                    .to_string();
+                                let file = if cli_utils::file_exists(
+                                    path.clone() + "/" + &file_name.clone(),
+                                ) {
+                                    Some(path.clone() + "/" + &file_name.clone())
+                                } else if cli_utils::file_exists(
+                                    path.clone() + "/" + &file_name.clone() + ".ei",
+                                ) {
+                                    Some(path.clone() + "/" + &file_name.clone() + ".ei")
+                                } else {
+                                    None
+                                };
 
-                        let mut tokenizer = Tokenizer::new(code, |x| {
-                            println!("Import: {:#?}", x);
-                            ResolvedImport::default()
-                        });
-                        let collected = tokenizer.tokenize();
+                                println!(
+                                    "Filepath: {:#?},{:#?},{:#?}",
+                                    file.clone(),
+                                    path,
+                                    file_name
+                                );
+                                match file {
+                                    Some(file) => {
+                                        let file = Path::new(&file).absolutize().unwrap();
+                                        match cli_utils::read_file(
+                                            &file.to_str().unwrap().to_string(),
+                                        ) {
+                                            Ok(ext) => {
+                                                let mut hasher = DefaultHasher::new();
+                                                ext.hash(&mut hasher);
+                                                ResolvedImport {
+                                                    found: true,
+                                                    code: ext,
+                                                    hash: hasher.finish(),
+                                                    path: file.to_str().unwrap().to_string(),
+                                                    ..Default::default()
+                                                }
+                                            }
+                                            Err(err) => ResolvedImport {
+                                                found: false,
+                                                resolve_error: err,
+                                                ..Default::default()
+                                            },
+                                        }
+                                    }
+                                    None => ResolvedImport {
+                                        found: false,
+                                        ..Default::default()
+                                    },
+                                }
+                            },
+                        );
 
-                        if let Ok(items) = collected {
-                            println!("{:#?}", items);
-                        } else if let Err(errors) = collected {
-                            println!("{:#?}", errors);
+                        #[derive(Debug, Clone)]
+                        struct NPage {
+                            pub hash: u64,
+                            pub path: String,
+                            pub dependents: Vec<u64>,
+                            pub dependencies: Vec<u64>,
+                        }
+
+                        match pager.run() {
+                            Err(e) => panic!("Failed to tokenize: {:#?}", e),
+                            Ok(_) => println!(
+                                "Tokenize succes: \n{:#?}",
+                                pager
+                                    .pages
+                                    .into_iter()
+                                    .map(|x| {
+                                        NPage {
+                                            hash: x.hash,
+                                            path: x.path,
+                                            dependents: x.dependents,
+                                            dependencies: x.dependencies,
+                                        }
+                                    })
+                                    .collect::<Vec<_>>()
+                            ),
                         }
                     }
+                    Err(err) => {
+                        println!("Unable to read file ~{} [{}]", main_path.clone(), err)
+                    }
+                },
+                None => {
+                    println!("No file present\n-h for help");
+                    std::process::exit(1);
                 }
             }
         }

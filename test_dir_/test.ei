@@ -1,1 +1,8 @@
-ret 123;
+import ellie;
+
+class test<ccc, t> {
+
+    v test : i = 123;
+
+
+}
