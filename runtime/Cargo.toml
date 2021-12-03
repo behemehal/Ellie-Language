@@ -2,8 +2,8 @@
 name = "ellie_runtime"
 version = "0.1.0"
 authors = ["Ahmetcan Aksu <ahmetcanco@gmail.com>"]
-edition = "2018"
-license = "MIT"
+edition = "2021"
+license = "GPL-2.0"
 
 [dependencies]
 lazy_static = "1.4.0"
@@ -17,6 +17,3 @@ rand = "0.8.4"
 [features]
 default = ["std"]
 std = []
-
-[[bin]]
-name = "test"

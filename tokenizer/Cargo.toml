@@ -2,8 +2,9 @@
 name = "ellie_tokenizer"
 description = "Tokenizer for ellie language"
 version = "0.1.0"
+authors = ["Ahmetcan Aksu <ahmetcanaksu@behemehal.net>"]
 edition = "2021"
-default-run = "item_processor"
+license = "GPL-2.0"
 
 [dependencies]
 ellie_core = { path = "../core", version = "1.0.0" }
@@ -14,14 +15,3 @@ serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
 [features]
 default = ["std"]
 std = []
-integrity_com = []
-
-[[bin]]
-name = "item_processor"
-test = false
-bench = false
-
-[[bin]]
-name = "type_processor"
-test = false
-bench = false

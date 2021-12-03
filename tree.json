@@ -1,0 +1,233 @@
+[
+    {
+        "hash": 0,
+        "path": ".\\lib\\ellie.ei",
+        "dependents": [],
+        "dependencies": [
+            {
+                "hash": 9705453923843755915,
+                "public": true
+            },
+            {
+                "hash": 3095844347870153631,
+                "public": true
+            },
+            {
+                "hash": 4645527363630902477,
+                "public": true
+            },
+            {
+                "hash": 2265775706785941188,
+                "public": true
+            },
+            {
+                "hash": 17002242560366547085,
+                "public": true
+            },
+            {
+                "hash": 2852754866441284315,
+                "public": true
+            },
+            {
+                "hash": 2596114674330710893,
+                "public": true
+            },
+            {
+                "hash": 1040919654813280692,
+                "public": true
+            },
+            {
+                "hash": 7716409852510440689,
+                "public": true
+            },
+            {
+                "hash": 9977532004551520778,
+                "public": true
+            },
+            {
+                "hash": 1338520970280188218,
+                "public": true
+            },
+            {
+                "hash": 6682911763933631817,
+                "public": true
+            },
+            {
+                "hash": 7659122406100850684,
+                "public": true
+            },
+            {
+                "hash": 16656787104948439275,
+                "public": true
+            }
+        ]
+    },
+    {
+        "hash": 9705453923843755915,
+        "path": "C:\\Users\\ahmet\\Desktop\\Projects\\InBuild\\Ellie-Language\\lib\\void.ei",
+        "dependents": [
+            0
+        ],
+        "dependencies": [
+            {
+                "hash": 3095844347870153631,
+                "public": false
+            }
+        ]
+    },
+    {
+        "hash": 3095844347870153631,
+        "path": "C:\\Users\\ahmet\\Desktop\\Projects\\InBuild\\Ellie-Language\\lib/string.ei",
+        "dependents": [
+            9705453923843755915,
+            1040919654813280692,
+            7659122406100850684,
+            0,
+            6682911763933631817,
+            16656787104948439275
+        ],
+        "dependencies": [
+            {
+                "hash": 1040919654813280692,
+                "public": false
+            },
+            {
+                "hash": 7659122406100850684,
+                "public": false
+            },
+            {
+                "hash": 4645527363630902477,
+                "public": false
+            }
+        ]
+    },
+    {
+        "hash": 1040919654813280692,
+        "path": "C:\\Users\\ahmet\\Desktop\\Projects\\InBuild\\Ellie-Language\\lib/array.ei",
+        "dependents": [
+            3095844347870153631,
+            0
+        ],
+        "dependencies": [
+            {
+                "hash": 3095844347870153631,
+                "public": false
+            },
+            {
+                "hash": 7659122406100850684,
+                "public": false
+            }
+        ]
+    },
+    {
+        "hash": 7659122406100850684,
+        "path": "C:\\Users\\ahmet\\Desktop\\Projects\\InBuild\\Ellie-Language\\lib/int.ei",
+        "dependents": [
+            1040919654813280692,
+            3095844347870153631,
+            0
+        ],
+        "dependencies": [
+            {
+                "hash": 3095844347870153631,
+                "public": false
+            },
+            {
+                "hash": 17002242560366547085,
+                "public": false
+            }
+        ]
+    },
+    {
+        "hash": 17002242560366547085,
+        "path": "C:\\Users\\ahmet\\Desktop\\Projects\\InBuild\\Ellie-Language\\lib/float.ei",
+        "dependents": [
+            7659122406100850684,
+            0
+        ],
+        "dependencies": []
+    },
+    {
+        "hash": 4645527363630902477,
+        "path": "C:\\Users\\ahmet\\Desktop\\Projects\\InBuild\\Ellie-Language\\lib/char.ei",
+        "dependents": [
+            3095844347870153631,
+            0
+        ],
+        "dependencies": []
+    },
+    {
+        "hash": 2265775706785941188,
+        "path": "C:\\Users\\ahmet\\Desktop\\Projects\\InBuild\\Ellie-Language\\lib\\collective.ei",
+        "dependents": [
+            0
+        ],
+        "dependencies": []
+    },
+    {
+        "hash": 2852754866441284315,
+        "path": "C:\\Users\\ahmet\\Desktop\\Projects\\InBuild\\Ellie-Language\\lib\\bool.ei",
+        "dependents": [
+            0
+        ],
+        "dependencies": []
+    },
+    {
+        "hash": 2596114674330710893,
+        "path": "C:\\Users\\ahmet\\Desktop\\Projects\\InBuild\\Ellie-Language\\lib\\cloak.ei",
+        "dependents": [
+            0
+        ],
+        "dependencies": []
+    },
+    {
+        "hash": 7716409852510440689,
+        "path": "C:\\Users\\ahmet\\Desktop\\Projects\\InBuild\\Ellie-Language\\lib\\vector.ei",
+        "dependents": [
+            0
+        ],
+        "dependencies": []
+    },
+    {
+        "hash": 9977532004551520778,
+        "path": "C:\\Users\\ahmet\\Desktop\\Projects\\InBuild\\Ellie-Language\\lib\\function.ei",
+        "dependents": [
+            0
+        ],
+        "dependencies": []
+    },
+    {
+        "hash": 1338520970280188218,
+        "path": "C:\\Users\\ahmet\\Desktop\\Projects\\InBuild\\Ellie-Language\\lib\\nullAble.ei",
+        "dependents": [
+            0
+        ],
+        "dependencies": []
+    },
+    {
+        "hash": 6682911763933631817,
+        "path": "C:\\Users\\ahmet\\Desktop\\Projects\\InBuild\\Ellie-Language\\lib\\class.ei",
+        "dependents": [
+            0
+        ],
+        "dependencies": [
+            {
+                "hash": 3095844347870153631,
+                "public": false
+            }
+        ]
+    },
+    {
+        "hash": 16656787104948439275,
+        "path": "C:\\Users\\ahmet\\Desktop\\Projects\\InBuild\\Ellie-Language\\lib\\dyn.ei",
+        "dependents": [
+            0
+        ],
+        "dependencies": [
+            {
+                "hash": 3095844347870153631,
+                "public": false
+            }
+        ]
+    }
+]
