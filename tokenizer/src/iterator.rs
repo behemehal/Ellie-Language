@@ -36,6 +36,8 @@ impl Iterator {
     }
 
     pub fn iterate(&mut self, last_char: char, letter_char: char) {
+        let in_str_or_char = matches!(self.active.current.clone(),  items::Processors::GetterCall(e) if e.data.as_string().is_some() || e.data.as_char().is_some());
+
         if self.comment_start {
             if letter_char == '/' {
                 self.comment_start = false;
@@ -55,10 +57,10 @@ impl Iterator {
             }
         }
 
-        if letter_char != '\n' && letter_char != '\r' && !self.line_comment && !self.multi_comment {
+        if (letter_char != '\n' && letter_char != '\r' || in_str_or_char) && !self.line_comment && !self.multi_comment {
             if !self.active.is_complete() {
                 if let items::Processors::GetterCall(e) = self.active.current.clone() {
-                    if e.data.is_not_initialized() && (letter_char == '/') {
+                    if e.data.is_not_initialized() && (letter_char == '/' && !in_str_or_char) {
                         self.comment_pos.range_start = self.pos;
                         self.comment_start = true;
                     }
@@ -71,7 +73,7 @@ impl Iterator {
             }
         }
 
-        if letter_char == '\n' {
+        if letter_char == '\n' && !in_str_or_char {
             if self.line_comment {
                 self.line_comment = false;
             }
@@ -89,9 +91,8 @@ impl Iterator {
                     }
                 }
             }
-        } else {
-            self.pos.1 += 1;
         }
+        self.pos.1 += 1;
 
         if self.multi_comment {
             if letter_char == '/' && last_char == '*' {

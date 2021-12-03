@@ -9,6 +9,12 @@ pub struct TokenizerOptions {
     pub imports: bool,
 }
 
+#[derive(Default, Debug, Clone, Serialize, Deserialize)]
+pub struct Dependency {
+    pub hash: u64,
+    pub public: bool,
+}
+
 #[derive(Default, Debug, Clone)]
 
 pub struct Page {
@@ -16,7 +22,7 @@ pub struct Page {
     pub path: String,
     pub items: Vec<items::Processors>,
     pub dependents: Vec<u64>,
-    pub dependencies: Vec<u64>,
+    pub dependencies: Vec<Dependency>,
 }
 
 #[derive(Default, Debug)]
@@ -31,13 +37,15 @@ pub struct ResolvedImport {
 
 pub struct Tokenizer {
     pub code: String,
+    pub path: String,
     pub iterator: crate::iterator::Iterator,
 }
 
 impl Tokenizer {
-    pub fn new(code: String) -> Self {
+    pub fn new(code: String, path: String) -> Self {
         Tokenizer {
-            code: code,
+            code,
+            path,
             iterator: crate::iterator::Iterator::default(),
         }
     }
@@ -50,6 +58,9 @@ impl Tokenizer {
         }
         self.iterator.finalize();
         if !self.iterator.errors.is_empty() {
+            for i in &mut self.iterator.errors {
+                i.path = self.path.clone();
+            }
             Err(self.iterator.errors.clone())
         } else {
             Ok(self.iterator.collected.clone())
@@ -57,6 +68,7 @@ impl Tokenizer {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct Pager<E> {
     pub main: String,
     pub pages: Vec<Page>,
@@ -64,10 +76,22 @@ pub struct Pager<E> {
     pub import_resolver: E,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RawPage {
+    pub hash: u64,
+    pub path: String,
+    pub dependents: Vec<u64>,
+    pub dependencies: Vec<Dependency>,
+}
+
 impl<E> Pager<E>
 where
     E: FnMut(String, String) -> ResolvedImport + Clone + Sized, //Path, filename
 {
+    pub fn find_page(&mut self, hash: u64) -> Option<&mut Page> {
+        self.pages.iter_mut().find(|page| page.hash == hash)
+    }
+
     pub fn new(main: String, path: String, import_resolver: E) -> Self {
         Pager {
             main: main,
@@ -83,48 +107,69 @@ where
         }
     }
 
-    pub fn resolve_page(&mut self, cr_page: u64, code: String) -> Result<u64, Vec<error::Error>> {
-        let mut tokenizer = Tokenizer::new(code);
-        let tokenized_main = tokenizer.tokenize_page();
-        let page = self
-            .pages
-            .iter()
-            .find(|p| p.hash == cr_page)
-            .unwrap_or_else(|| panic!("Failed to resolve page: {}", cr_page))
-            .clone();
-
-        match tokenized_main {
+    pub fn resolve_page(
+        &mut self,
+        cr_page: u64,
+        code: String,
+    ) -> Result<Vec<Dependency>, Vec<error::Error>> {
+        let page = self.find_page(cr_page).unwrap().clone();
+        let mut tokenizer = Tokenizer::new(code, page.path.clone());
+        match tokenizer.tokenize_page() {
             Ok(tokenized) => {
                 let mut errors = Vec::new();
+                let mut data: Vec<Dependency> = Vec::new();
                 let imports = tokenized
                     .clone()
                     .into_iter()
-                    .filter(|x| x.as_import().clone().is_some())
+                    .filter_map(|f| match f {
+                        items::Processors::Import(i) => Some(i),
+                        _ => None,
+                    })
                     .collect::<Vec<_>>();
-                for import_processor in imports {
-                    let import = import_processor.as_import().unwrap();
+
+                for import in imports {
                     let resolved = (self.import_resolver)(page.path.clone(), import.path.clone());
                     if resolved.found {
-                        if let Some(current_page_index) =
-                            self.pages.iter().position(|p| p.hash == resolved.hash)
-                        {
-                            self.pages[current_page_index].dependents.push(cr_page);
-                        } else {
-                            self.pages.push(Page {
+                        self.find_page(cr_page)
+                            .unwrap()
+                            .dependencies
+                            .push(Dependency {
                                 hash: resolved.hash,
-                                path: resolved.path,
-                                items: vec![],
-                                dependents: vec![cr_page],
-                                dependencies: vec![],
+                                public: import.public,
                             });
-                            match self.resolve_page(resolved.hash, resolved.code) {
-                                Err(e) => errors.extend(e),
-                                _ => (),
-                            }
-                        }
 
-                        if let Some(cpx) = self.pages.iter().position(|p| p.hash == cr_page) {
-                            self.pages[cpx].dependencies.push(resolved.hash as u64);
+                        match self.find_page(resolved.hash) {
+                            Some(inner_child) => {
+                                inner_child.dependents.push(cr_page);
+                                let public_dependencies = inner_child
+                                    .dependencies
+                                    .clone()
+                                    .into_iter()
+                                    .clone()
+                                    .filter(|d| d.public)
+                                    .collect::<Vec<_>>();
+                                data.extend(public_dependencies);
+                            }
+                            None => {
+                                self.pages.push(Page {
+                                    hash: resolved.hash,
+                                    path: resolved.path,
+                                    items: Vec::new(),
+                                    dependents: vec![cr_page],
+                                    dependencies: Vec::new(),
+                                });
+                                match self.resolve_page(resolved.hash, resolved.code) {
+                                    Ok(inner_child) => {
+                                        let public_dependencies = inner_child
+                                            .into_iter()
+                                            .clone()
+                                            .filter(|d| d.public)
+                                            .collect::<Vec<_>>();
+                                        data.extend(public_dependencies);
+                                    }
+                                    Err(e) => errors.extend(e),
+                                }
+                            }
                         }
                     } else {
                         if resolved.resolve_error == "" {
@@ -148,20 +193,33 @@ where
                         }
                     }
                 }
-                if let Some(cpx) = self.pages.iter().position(|p| p.hash == cr_page) {
-                    self.pages[cpx].items = tokenized;
-                }
-                if errors.is_empty() {
-                    Ok(cr_page)
-                } else {
+                if errors.len() > 0 {
                     Err(errors)
+                } else {
+                    Ok(data)
                 }
             }
-            Err(errors) => Err(errors),
+            Err(e) => Err(e),
         }
     }
 
-    pub fn run(&mut self) -> Result<u64, Vec<ellie_core::error::Error>> {
-        self.resolve_page(0, self.main.clone())
+    pub fn run(&mut self) -> Result<Vec<RawPage>, Vec<ellie_core::error::Error>> {
+        match self.resolve_page(0, self.main.clone()) {
+            Ok(e) => {
+                self.find_page(0).unwrap().dependencies.extend(e);
+                Ok(self
+                    .pages
+                    .clone()
+                    .into_iter()
+                    .map(|x| RawPage {
+                        hash: x.hash,
+                        path: x.path,
+                        dependents: x.dependents,
+                        dependencies: x.dependencies,
+                    })
+                    .collect::<Vec<_>>())
+            }
+            Err(e) => Err(e),
+        }
     }
 }

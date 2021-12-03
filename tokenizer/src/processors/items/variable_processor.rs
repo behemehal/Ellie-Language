@@ -10,7 +10,7 @@ impl crate::processors::Processor for VariableCollector {
         letter_char: char,
     ) {
         if !self.name_collected {
-            if utils::reliable_name_range(utils::ReliableNameRanges::Type, letter_char).reliable {
+            if utils::reliable_name_range(utils::ReliableNameRanges::VariableName, letter_char).reliable {
                 if self.data.name == "" {
                     self.data.name_pos.range_start = cursor;
                 } else if last_char == ' ' {
@@ -41,7 +41,11 @@ impl crate::processors::Processor for VariableCollector {
                 ));
             }
         } else if !self.type_collected {
-            if self.type_cache.complete && letter_char == '=' {
+            if self.type_cache.complete && letter_char == ';' {
+                self.type_collected = true;
+                self.data.rtype = self.type_cache.clone();
+                self.complete = true;
+            } else if self.type_cache.complete && letter_char == '=' {
                 self.type_collected = true;
                 self.data.rtype = self.type_cache.clone();
             } else {

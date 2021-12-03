@@ -23,7 +23,7 @@ impl crate::processors::Processor for FileKey {
                 ));
             }
         } else if !self.name_collected {
-            if utils::reliable_name_range(utils::ReliableNameRanges::Type, letter_char).reliable {
+            if utils::reliable_name_range(utils::ReliableNameRanges::VariableName, letter_char).reliable {
                 if self.key_name == "" {
                     self.key_name_location.range_start = cursor;
                 } else if last_char == ' ' {

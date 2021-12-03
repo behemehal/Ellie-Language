@@ -55,8 +55,7 @@ pub fn generate_hash() -> String {
 
 pub enum ReliableNameRanges {
     VariableName,
-    Type,
-    FunctionName,
+    Type
 }
 
 pub fn reliable_name_range(range: ReliableNameRanges, value: char) -> ReliableNameRangeResponse {
@@ -66,9 +65,6 @@ pub fn reliable_name_range(range: ReliableNameRanges, value: char) -> ReliableNa
         }
         ReliableNameRanges::Type => {
             "QWERTYUIOPASDFGHJKLIZXCVBNMqwertyuıopasdfghjklizxcvbnm0123456789"
-        }
-        ReliableNameRanges::FunctionName => {
-            "QWERTYUIOPASDFGHJKLIZXCVBNMqwertyuıopasdfghjklizxc_vbnm"
         }
     };
 

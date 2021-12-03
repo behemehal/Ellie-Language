@@ -99,6 +99,7 @@ fn main() {
                                             &file.to_str().unwrap().to_string(),
                                         ) {
                                             Ok(ext) => {
+                                                println!("Read file: {:#?}", ext);
                                                 let mut hasher = DefaultHasher::new();
                                                 ext.hash(&mut hasher);
                                                 ResolvedImport {
@@ -124,31 +125,13 @@ fn main() {
                             },
                         );
 
-                        #[derive(Debug, Clone)]
-                        struct NPage {
-                            pub hash: u64,
-                            pub path: String,
-                            pub dependents: Vec<u64>,
-                            pub dependencies: Vec<u64>,
-                        }
-
                         match pager.run() {
                             Err(e) => panic!("Failed to tokenize: {:#?}", e),
-                            Ok(_) => println!(
-                                "Tokenize succes: \n{:#?}",
-                                pager
-                                    .pages
-                                    .into_iter()
-                                    .map(|x| {
-                                        NPage {
-                                            hash: x.hash,
-                                            path: x.path,
-                                            dependents: x.dependents,
-                                            dependencies: x.dependencies,
-                                        }
-                                    })
-                                    .collect::<Vec<_>>()
-                            ),
+                            Ok(e) => {
+                                let j = serde_json::to_string(&e).unwrap();
+                                fs::write("./tree.json", j);
+                                println!("Tokenize succes");
+                            }
                         }
                     }
                     Err(err) => {

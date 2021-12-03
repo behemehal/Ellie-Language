@@ -10,7 +10,7 @@ impl crate::processors::Processor for function::FunctionCollector {
         letter_char: char,
     ) {
         if !self.name_collected {
-            if utils::reliable_name_range(utils::ReliableNameRanges::Type, letter_char).reliable {
+            if utils::reliable_name_range(utils::ReliableNameRanges::VariableName, letter_char).reliable {
                 if self.data.name == "" {
                     self.data.name_pos.range_start = cursor;
                 } else if last_char == ' ' {
@@ -40,7 +40,7 @@ impl crate::processors::Processor for function::FunctionCollector {
         } else if !self.parameters_collected {
             let param_len = self.data.parameters.len();
             if !self.key_collected {
-                if utils::reliable_name_range(utils::ReliableNameRanges::Type, letter_char).reliable
+                if utils::reliable_name_range(utils::ReliableNameRanges::VariableName, letter_char).reliable
                 {
                     if param_len == 0 {
                         self.data.parameters.push(function::FunctionParameter {
