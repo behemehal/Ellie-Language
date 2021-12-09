@@ -1,5 +1,5 @@
 use crate::processors::items;
-use ellie_core::{com, defs, error};
+use ellie_core::error;
 use serde::{Deserialize, Serialize};
 
 pub struct TokenizerOptions {
@@ -50,7 +50,7 @@ impl Tokenizer {
         }
     }
 
-    pub fn tokenize_page(&mut self) -> Result<Vec<items::Processors>, Vec<error::Error>> {
+    pub fn tokenize_page(&mut self) -> Result<&mut Vec<items::Processors>, Vec<error::Error>> {
         let mut last_char = '\0';
         for letter_char in self.code.chars() {
             self.iterator.iterate(last_char, letter_char);
@@ -63,7 +63,7 @@ impl Tokenizer {
             }
             Err(self.iterator.errors.clone())
         } else {
-            Ok(self.iterator.collected.clone())
+            Ok(&mut self.iterator.collected)
         }
     }
 }
@@ -119,8 +119,7 @@ where
                 let mut errors = Vec::new();
                 let mut data: Vec<Dependency> = Vec::new();
                 let imports = tokenized
-                    .clone()
-                    .into_iter()
+                    .iter_mut()
                     .filter_map(|f| match f {
                         items::Processors::Import(i) => Some(i),
                         _ => None,
@@ -130,6 +129,7 @@ where
                 for import in imports {
                     let resolved = (self.import_resolver)(page.path.clone(), import.path.clone());
                     if resolved.found {
+                        import.hash = resolved.hash.to_string();
                         self.find_page(cr_page)
                             .unwrap()
                             .dependencies
@@ -193,6 +193,7 @@ where
                         }
                     }
                 }
+                self.find_page(cr_page).unwrap().items = tokenized.clone();
                 if errors.len() > 0 {
                     Err(errors)
                 } else {

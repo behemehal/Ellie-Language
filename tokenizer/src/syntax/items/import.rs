@@ -13,6 +13,7 @@ pub struct Import {
     pub path_pos: defs::Cursor,
     pub pos: defs::Cursor,
     pub complete: bool,
+    pub hash: String,
 }
 
 impl Converter<Import, ellie_core::definite::items::import::Import> for Import {
@@ -23,6 +24,7 @@ impl Converter<Import, ellie_core::definite::items::import::Import> for Import {
             reference: self.reference,
             path_pos: self.path_pos,
             pos: self.pos,
+            hash: self.hash,
         }
     }
 
@@ -33,6 +35,7 @@ impl Converter<Import, ellie_core::definite::items::import::Import> for Import {
             reference: from.reference,
             path_pos: from.path_pos,
             pos: from.pos,
+            hash: self.hash,
             ..Default::default()
         }
     }

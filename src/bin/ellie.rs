@@ -1,22 +1,20 @@
-use ellie_core::definite;
 use ellie_engine::cli_utils;
-use ellie_tokenizer::tokenizer::{self, Pager, ResolvedImport, Tokenizer};
-use fs::File;
+use ellie_parser::parser;
+use ellie_tokenizer::tokenizer::{self, ResolvedImport};
 use path_absolutize::Absolutize;
 use std::collections::hash_map::DefaultHasher;
 use std::env;
+use std::fs;
 use std::hash::{Hash, Hasher};
 use std::path::Path;
-use std::sync::{Mutex, PoisonError};
-use std::{fs, io::Read};
 
 fn main() {
     println!("{}]0;{}{}", '\u{001b}', "Ellie", '\u{007}');
     if env::args().any(|x| x == "-rstd" || x == "--rebuild-std") {
         println!(
             "{}[Success]{} Rebuilding std library complete",
-            ellie_engine::terminal_colors::get_color(ellie_engine::terminal_colors::Colors::Green),
-            ellie_engine::terminal_colors::get_color(ellie_engine::terminal_colors::Colors::Reset)
+            ellie_engine::cli_utils::Colors::Green,
+            ellie_engine::cli_utils::Colors::Reset
         );
         std::process::exit(0);
     }
@@ -60,7 +58,6 @@ fn main() {
                 .filter(|x| x.contains('.'))
                 .collect::<Vec<String>>();
 
-            //let map_errors_arg = env::args().any(|x| x == "--map-errors");
             match file_args.first() {
                 Some(main_path) => match cli_utils::read_file(main_path) {
                     Ok(file_content) => {
@@ -86,12 +83,6 @@ fn main() {
                                     None
                                 };
 
-                                println!(
-                                    "Filepath: {:#?},{:#?},{:#?}",
-                                    file.clone(),
-                                    path,
-                                    file_name
-                                );
                                 match file {
                                     Some(file) => {
                                         let file = Path::new(&file).absolutize().unwrap();
@@ -99,7 +90,6 @@ fn main() {
                                             &file.to_str().unwrap().to_string(),
                                         ) {
                                             Ok(ext) => {
-                                                println!("Read file: {:#?}", ext);
                                                 let mut hasher = DefaultHasher::new();
                                                 ext.hash(&mut hasher);
                                                 ResolvedImport {
@@ -128,9 +118,19 @@ fn main() {
                         match pager.run() {
                             Err(e) => panic!("Failed to tokenize: {:#?}", e),
                             Ok(e) => {
+                                let mut parser = parser::Parser::new(pager.pages.clone());
+                                parser.parse();
+                                //
+                                if parser.errors.is_empty() {
+                                    println!("Tokenize succes:\n{:#?}", parser.processed_pages);
+                                } else {
+                                    cli_utils::print_errors(parser.errors);
+                                }
+
+                                println!("{:#?}", parser.pages);
+
                                 let j = serde_json::to_string(&e).unwrap();
-                                fs::write("./tree.json", j);
-                                println!("Tokenize succes");
+                                fs::write("./tree.json", j).unwrap();
                             }
                         }
                     }

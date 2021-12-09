@@ -9,6 +9,5 @@ pub struct Import {
     pub reference: String,
     pub path_pos: defs::Cursor,
     pub pos: defs::Cursor,
+    pub hash: String,
 }
-
-//import ./test.ei : te

@@ -26,12 +26,9 @@ SOFTWARE.
 #![allow(unknown_lints)]
 #![warn(clippy::all)]
 
-use std::sync::Mutex;
-
 //TODO: no-std use core::alloc::Layout; Nightly
 //TODO: no-std extern crate alloc; Nightly
 
-#[macro_use]
 extern crate lazy_static;
 extern crate ellie_core;
 extern crate ellie_tokenizer;
@@ -40,4 +37,3 @@ pub mod cli_constants;
 
 #[cfg(feature = "build-cli")]
 pub mod cli_utils;
-pub mod terminal_colors;

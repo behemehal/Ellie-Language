@@ -10,11 +10,14 @@ pub struct Variable {
     pub name: String,
     pub constant: bool,
     pub public: bool,
+    pub has_type: bool,
+    pub has_value: bool,
     pub value: Processors,
     pub pos: defs::Cursor,
     pub name_pos: defs::Cursor,
     pub value_pos: defs::Cursor,
     pub type_pos: defs::Cursor,
+    pub hash: String,
     pub rtype: crate::syntax::items::definers::DefinerCollector,
 }
 
@@ -43,7 +46,9 @@ impl Converter<VariableCollector, ellie_core::definite::items::variable::Variabl
             value_pos: self.data.value_pos,
             type_pos: self.data.type_pos,
             rtype: self.data.rtype.definer_type.to_definite(),
-            hash: String::new(),
+            hash: self.data.hash,
+            has_type: self.data.has_type,
+            has_value: self.data.has_value,
         }
     }
 
@@ -60,11 +65,14 @@ impl Converter<VariableCollector, ellie_core::definite::items::variable::Variabl
                 pos: from.pos,
                 name_pos: from.name_pos,
                 value_pos: from.value_pos,
+                hash: from.hash,
                 type_pos: from.type_pos,
                 rtype: DefinerCollector {
                     definer_type: DefinerTypes::default().from_definite(from.rtype),
                     complete: true,
                 },
+                has_type: from.has_type,
+                has_value: from.has_value,
             },
             ..Default::default()
         }

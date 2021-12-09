@@ -10,7 +10,9 @@ impl crate::processors::Processor for function::FunctionCollector {
         letter_char: char,
     ) {
         if !self.name_collected {
-            if utils::reliable_name_range(utils::ReliableNameRanges::VariableName, letter_char).reliable {
+            if utils::reliable_name_range(utils::ReliableNameRanges::VariableName, letter_char)
+                .reliable
+            {
                 if self.data.name == "" {
                     self.data.name_pos.range_start = cursor;
                 } else if last_char == ' ' {
@@ -40,7 +42,8 @@ impl crate::processors::Processor for function::FunctionCollector {
         } else if !self.parameters_collected {
             let param_len = self.data.parameters.len();
             if !self.key_collected {
-                if utils::reliable_name_range(utils::ReliableNameRanges::VariableName, letter_char).reliable
+                if utils::reliable_name_range(utils::ReliableNameRanges::VariableName, letter_char)
+                    .reliable
                 {
                     if param_len == 0 {
                         self.data.parameters.push(function::FunctionParameter {
@@ -136,6 +139,7 @@ impl crate::processors::Processor for function::FunctionCollector {
             if self.data.return_type.complete && letter_char == '{' {
                 self.return_collected = true;
             } else if self.data.return_type.complete && letter_char == ';' {
+                self.data.hash = ellie_core::utils::generate_hash();
                 self.data.defining = true;
                 self.return_collected = true;
                 self.complete = true;
@@ -146,6 +150,7 @@ impl crate::processors::Processor for function::FunctionCollector {
             }
         } else if letter_char == '}' && self.brace_count == 0 {
             self.complete = true;
+            self.data.hash = ellie_core::utils::generate_hash();
             self.iterator.finalize();
             errors.extend(self.iterator.errors.clone());
             self.data.body = self.iterator.collected.clone();

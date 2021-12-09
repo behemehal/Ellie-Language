@@ -10,7 +10,9 @@ impl crate::processors::Processor for VariableCollector {
         letter_char: char,
     ) {
         if !self.name_collected {
-            if utils::reliable_name_range(utils::ReliableNameRanges::VariableName, letter_char).reliable {
+            if utils::reliable_name_range(utils::ReliableNameRanges::VariableName, letter_char)
+                .reliable
+            {
                 if self.data.name == "" {
                     self.data.name_pos.range_start = cursor;
                 } else if last_char == ' ' {
@@ -26,8 +28,10 @@ impl crate::processors::Processor for VariableCollector {
                 self.data.name_pos.range_end = cursor;
                 self.data.name += &letter_char.to_string();
             } else if letter_char == ':' {
+                self.data.has_type = true;
                 self.name_collected = true;
             } else if letter_char == '=' {
+                self.data.has_value = true;
                 self.name_collected = true;
                 self.type_collected = true;
             } else if letter_char != ' ' {
@@ -42,10 +46,12 @@ impl crate::processors::Processor for VariableCollector {
             }
         } else if !self.type_collected {
             if self.type_cache.complete && letter_char == ';' {
+                self.data.hash = ellie_core::utils::generate_hash();
                 self.type_collected = true;
                 self.data.rtype = self.type_cache.clone();
                 self.complete = true;
             } else if self.type_cache.complete && letter_char == '=' {
+                self.data.has_value = true;
                 self.type_collected = true;
                 self.data.rtype = self.type_cache.clone();
             } else {
@@ -54,6 +60,7 @@ impl crate::processors::Processor for VariableCollector {
             }
         } else if !self.value_collected {
             if self.value_cache.is_complete() && letter_char == ';' {
+                self.data.hash = ellie_core::utils::generate_hash();
                 self.complete = true;
                 self.data.value = self.value_cache.current.clone();
             } else {

@@ -23,6 +23,7 @@ pub struct Function {
     pub body_pos: defs::Cursor,
     pub body: Vec<Processors>,
     pub pos: defs::Cursor,
+    pub hash: String,
 }
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
@@ -70,6 +71,7 @@ impl Converter<FunctionCollector, ellie_core::definite::items::function::Functio
             return_pos: self.data.return_pos,
             pos: self.data.pos,
             body_pos: self.data.body_pos,
+            hash: self.data.hash,
         }
     }
 
@@ -109,6 +111,7 @@ impl Converter<FunctionCollector, ellie_core::definite::items::function::Functio
                     .collect(),
                 pos: from.pos,
                 defining: false,
+                hash: from.hash,
             },
             ..Default::default()
         }

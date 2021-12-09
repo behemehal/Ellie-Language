@@ -104,6 +104,7 @@ impl crate::processors::Processor for class::Class {
                 ));
             }
         } else if letter_char == '}' && self.brace_count == 0 {
+            self.hash = ellie_core::utils::generate_hash();
             self.complete = true;
             self.iterator.finalize();
             errors.extend(self.iterator.errors.clone());

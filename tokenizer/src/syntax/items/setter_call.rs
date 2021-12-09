@@ -12,6 +12,7 @@ pub struct SetterCall {
     pub operator: AssignmentOperators,
     pub cache: TypeProcessor,
     pub pos: defs::Cursor,
+    pub hash: String,
     pub complete: bool,
 }
 

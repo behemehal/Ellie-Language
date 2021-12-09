@@ -1,17 +1,37 @@
-use std::{
-    collections::hash_map::DefaultHasher,
-    fs::File,
-    hash::{Hash, Hasher},
-    io::Read,
-    path::Path,
-    sync::{Mutex, PoisonError},
-};
+use std::{fmt::Display, fs::File, io::Read, path::Path};
 
 extern crate path_absolutize;
 
-use crate::terminal_colors;
+pub enum Colors {
+    Black,
+    Red,
+    Green,
+    Yellow,
+    Blue,
+    Magenta,
+    Cyan,
+    White,
+    Reset,
+}
+
+impl Display for Colors {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let color_id = match self {
+            Colors::Black => "[30m",
+            Colors::Red => "[31m",
+            Colors::Green => "[32m",
+            Colors::Yellow => "[33m",
+            Colors::Blue => "[34m",
+            Colors::Magenta => "[35m",
+            Colors::Cyan => "[36m",
+            Colors::White => "[37m",
+            Colors::Reset => "[0m",
+        };
+        return write!(f, "{}{}", '\u{001b}', color_id);
+    }
+}
+
 use ellie_core::{defs, error};
-use path_absolutize::Absolutize;
 
 pub struct EllieModuleResolver {
     pub main_path: String,
@@ -79,21 +99,9 @@ pub fn draw_error(line: String, pos: defs::CursorPosition) -> String {
 
     for (index, c) in line.chars().enumerate() {
         if index >= (if pos.1 != 0 { pos.1 - 1 } else { pos.1 }) {
-            draw += &format!(
-                "{}{}{}",
-                terminal_colors::get_color(terminal_colors::Colors::Red),
-                c,
-                terminal_colors::get_color(terminal_colors::Colors::Reset),
-            )
-            .to_string();
+            draw += &format!("{}{}{}", Colors::Red, c, Colors::Reset,).to_string();
         } else {
-            draw += &format!(
-                "{}{}{}",
-                terminal_colors::get_color(terminal_colors::Colors::White),
-                c,
-                terminal_colors::get_color(terminal_colors::Colors::Reset),
-            )
-            .to_string();
+            draw += &format!("{}{}{}", Colors::White, c, Colors::Reset,).to_string();
         }
     }
     draw
@@ -113,12 +121,12 @@ pub fn get_lines(code: String, lines: defs::Cursor) -> String {
     for i in lines.range_start.0..lines.range_end.0 + 1 {
         let t = format!(
             "{}{}{}{}{}|{} {}\n",
-            terminal_colors::get_color(terminal_colors::Colors::Magenta),
+            Colors::Magenta,
             i + 1,
-            terminal_colors::get_color(terminal_colors::Colors::Reset),
+            Colors::Reset,
             generate_blank(v.len().to_string().len() - (i + 1).to_string().len()),
-            terminal_colors::get_color(terminal_colors::Colors::Yellow),
-            terminal_colors::get_color(terminal_colors::Colors::Reset),
+            Colors::Yellow,
+            Colors::Reset,
             draw_error(
                 v[i].to_string(),
                 if lines.range_start.0 == i {
@@ -158,6 +166,21 @@ pub fn read_file(file_dir: &str) -> Result<String, String> {
                 Err(e) => Err(e.to_string()),
             }
         }
+    }
+}
+
+pub fn print_errors(errors: Vec<error::Error>) {
+    for error in errors {
+        println!(
+            "{}Error[{:#04x}-{}]{}: {}{}{}",
+            Colors::Red,
+            error.code,
+            error.debug_message,
+            Colors::Reset,
+            Colors::Cyan,
+            error.builded_message.builded,
+            Colors::Reset,
+        );
     }
 }
 

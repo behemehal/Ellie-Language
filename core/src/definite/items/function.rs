@@ -25,4 +25,5 @@ pub struct Function {
     pub parameters_pos: defs::Cursor,
     pub return_pos: defs::Cursor,
     pub pos: defs::Cursor,
+    pub hash: String,
 }

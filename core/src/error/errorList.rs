@@ -3,6 +3,16 @@ use crate::alloc::borrow::ToOwned;
 use std::ops::{Deref, DerefMut};
 
 lazy_static! {
+
+
+    pub static ref error_s0: crate::error::Error = crate::error::Error {
+        code: 0x01,
+        title: "GetInMood".to_owned(),
+        message: "Life goes on".to_owned(),
+        ..Default::default()
+    };
+
+    
     pub static ref error_s1: crate::error::Error = crate::error::Error {
         code: 0x00,
         title: "SyntaxError".to_owned(),
