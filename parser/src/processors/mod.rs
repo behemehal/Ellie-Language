@@ -4,7 +4,7 @@ pub mod definer_processor;
 pub mod variable;
 pub mod class;
 pub mod import;
-
+pub mod file_key;
 pub trait Processor {
     fn process(
         self,

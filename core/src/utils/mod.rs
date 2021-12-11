@@ -40,6 +40,10 @@ pub fn is_reserved(value: &str) -> bool {
         || value == "new"
 }
 
+pub fn generate_hash_u64() -> u64 {
+    rand::random::<u64>()
+}
+
 pub fn generate_hash() -> String {
     alloc::format!(
         "{:02x?}",

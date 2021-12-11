@@ -117,6 +117,29 @@ impl Processors {
         }
     }
 
+    pub fn is_static(&self) -> bool {
+        match self {
+            Processors::Integer(_) => true,
+            Processors::Float(_) => true,
+            Processors::Char(_) => true,
+            Processors::String(_) => true,
+            Processors::FunctionCall(_) => false,
+            Processors::Variable(_) => false,
+            Processors::Negative(e) => e.value.is_static(),
+            Processors::Array(e) => e.data.collective.iter().all(|e| e.value.is_static()),
+            Processors::Operator(e) => e.data.first.is_static() && e.data.second.is_static(),
+            Processors::Reference(_) => false,
+            Processors::BraceReference(_) => false,
+            Processors::ClassCall(_) => false,
+            Processors::Cloak(e) => e.data.collective.iter().all(|e| e.value.is_static()),
+            Processors::Collective(e) => e
+                .data
+                .entries
+                .iter()
+                .all(|e| e.value.is_static() && e.key.is_static()),
+        }
+    }
+
     pub fn is_complete(&self) -> bool {
         match self.clone() {
             Processors::Integer(e) => e.complete,

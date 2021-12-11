@@ -1,6 +1,11 @@
+use alloc::string::String;
 use alloc::vec::Vec;
 use alloc::{borrow::ToOwned, vec};
-use ellie_core::{definite::definers::DefinerCollecting, defs, error};
+use ellie_core::{
+    definite::definers::DefinerCollecting,
+    definite::{definers, items},
+    defs, error,
+};
 use ellie_tokenizer::syntax::items::definers::DefinerTypes;
 
 pub fn process(
@@ -21,7 +26,28 @@ pub fn process(
         DefinerTypes::Generic(generic) => {
             match parser.deep_search(page_id, generic.rtype.clone(), None, vec![], 0) {
                 Some(result) => match result {
-                    crate::parser::DeepSearchResult::Class(_) => todo!(),
+                    crate::parser::DeepSearchResult::Class(e) => {
+                        if e.generic_definings.len() == 0 {
+                            found = DefinerCollecting::Generic(definers::GenericType {
+                                rtype: e.name,
+                                hash: e.hash,
+                            });
+                        } else {
+                            found = DefinerCollecting::ParentGeneric(definers::ParentGenericType {
+                                rtype: e.name,
+                                hash: e.hash,
+                                generics: e.generic_definings.into_iter().map(|x| {
+                                    definers::GenericParameter {
+                                        value: DefinerCollecting::Generic(definers::GenericType {
+                                            rtype: x.name,
+                                            hash: String::new(),
+                                        }),
+                                        pos: x.pos,
+                                    }
+                                }).collect::<Vec<_>>(),
+                            });
+                        }
+                    }
                     crate::parser::DeepSearchResult::Variable(_) => todo!(),
                     crate::parser::DeepSearchResult::Function(_) => todo!(),
                     crate::parser::DeepSearchResult::ImportReference(_) => {

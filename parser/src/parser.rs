@@ -9,6 +9,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ProcessedPage {
     pub hash: u64,
+    pub inner: bool,
     pub path: String,
     pub items: Vec<ellie_core::definite::items::Collecting>,
     pub dependents: Vec<u64>,
@@ -172,6 +173,7 @@ impl Parser {
             None => {
                 self.processed_pages.push(ProcessedPage {
                     hash: hash,
+                    inner: page.inner,
                     path: page.path.clone(),
                     items: vec![],
                     dependents: vec![],
@@ -187,7 +189,7 @@ impl Parser {
                 Processors::GetterCall(_) => todo!(),
                 Processors::SetterCall(_) => todo!(),
                 Processors::Function(_) => todo!(),
-                Processors::FileKey(_) => todo!(),
+                Processors::FileKey(e) => e.process(self, page.hash),
                 Processors::Import(e) => e.process(self, page.hash),
                 Processors::ForLoop(_) => todo!(),
                 Processors::Condition(_) => todo!(),

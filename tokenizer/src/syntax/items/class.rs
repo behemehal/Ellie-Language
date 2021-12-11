@@ -28,51 +28,7 @@ pub struct Class {
 
 impl Converter<Class, ellie_core::definite::items::class::Class> for Class {
     fn to_definite(self) -> ellie_core::definite::items::class::Class {
-        ellie_core::definite::items::class::Class {
-            name: self.name,
-            public: self.public,
-            constructor: self
-                .body
-                .clone()
-                .into_iter()
-                .find_map(|f| match f {
-                    Processors::Constructor(c) => Some(c),
-                    _ => None,
-                })
-                .unwrap_or(crate::syntax::items::constructor::Constructor::default())
-                .to_definite(),
-            generic_definings: self
-                .generic_definings
-                .into_iter()
-                .map(|x| ellie_core::definite::items::class::GenericDefining {
-                    name: x.name,
-                    pos: x.pos,
-                })
-                .collect(),
-            properties: self
-                .body
-                .clone()
-                .into_iter()
-                .filter_map(|f| match f {
-                    Processors::Variable(x) => Some(x.to_definite()),
-                    _ => None,
-                })
-                .collect(),
-            methods: self
-                .body
-                .clone()
-                .into_iter()
-                .filter_map(|f| match f {
-                    Processors::Function(x) => Some(x.to_definite()),
-                    _ => None,
-                })
-                .collect(),
-            name_pos: self.name_pos,
-            pos: self.pos,
-            hash: self.hash,
-            getters: vec![],
-            setters: vec![],
-        }
+        panic!("Not required")
     }
 
     fn from_definite(self, _from: ellie_core::definite::items::class::Class) -> Class {

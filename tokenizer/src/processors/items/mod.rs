@@ -117,6 +117,7 @@ impl Processors {
             }
             Collecting::Getter(_) => todo!(),
             Collecting::Setter(_) => todo!(),
+            Collecting::Generic(_) => todo!(),
             Collecting::NativeClass => todo!(),
             Collecting::GetterCall(e) => {
                 Processors::GetterCall(getter_call::GetterCall::default().from_definite(e))

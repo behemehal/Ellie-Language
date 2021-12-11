@@ -12,6 +12,7 @@ pub mod import;
 pub mod setter;
 pub mod setter_call;
 pub mod variable;
+pub mod generic;
 
 pub mod native_function;
 pub mod ret;
@@ -29,6 +30,7 @@ pub enum Collecting {
     FileKey(file_key::FileKey),
     Getter(getter::Getter),
     Setter(setter::Setter),
+    Generic(generic::Generic),
     NativeClass,
     GetterCall(getter_call::GetterCall),
     SetterCall(setter_call::SetterCall),
@@ -63,6 +65,7 @@ impl Collecting {
             Collecting::Enum(e) => e.public,
             Collecting::NativeFunction(e) => e.public,
             Collecting::None => false,
+            Collecting::Generic(_) => false,
         }
     }
 }
