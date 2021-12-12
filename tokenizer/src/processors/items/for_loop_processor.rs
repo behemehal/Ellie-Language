@@ -42,6 +42,7 @@ impl crate::processors::Processor for ForLoop {
             } else if letter_char == '}' && self.brace_count != 0 {
                 self.brace_count -= 1;
             }
+            self.iterator.pos = cursor;
             self.iterator.iterate(last_char, letter_char);
         }
     }
