@@ -3,6 +3,4 @@
 */
 import string;
 
-pub class dyn {
-    pub fn toString() : string;
-}
+pub class dyn {}
