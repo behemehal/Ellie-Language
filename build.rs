@@ -25,7 +25,8 @@ fn main() {
             let ellie_lang_toml = cargo_toml.parse::<Value>().unwrap();
             ellie_version = ellie_lang_toml["package"]["version"].clone();
             ellie_version_name = ellie_lang_toml["package"]["version_code"].clone();
-            tokenizer_version = ellie_lang_toml["dependencies"]["ellie_tokenizer"]["version"].clone();
+            tokenizer_version =
+                ellie_lang_toml["dependencies"]["ellie_tokenizer"]["version"].clone();
             parser_version = ellie_lang_toml["dependencies"]["ellie_parser"]["version"].clone();
             runtime_version = ellie_lang_toml["dependencies"]["ellie_runtime"]["version"].clone();
             core_version = ellie_lang_toml["dependencies"]["ellie_core"]["version"].clone();

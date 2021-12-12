@@ -380,6 +380,16 @@ pub fn print_errors(errors: &Vec<error::Error>, file_reader: fn(String) -> Strin
                 );
             }
         }
+
+        if error.code == 0x00 {
+            println!(
+                "\n{}{}{} other error omitted",
+                Colors::Red,
+                errors.len() - 2,
+                Colors::Reset
+            );
+            break;
+        }
     }
 }
 
@@ -461,6 +471,17 @@ pub fn render_code_block(
                         .replace("\r", ""),
                     Colors::Green,
                     ref_message,
+                    Colors::Reset,
+                );
+
+                println!(
+                    "{} | {}{}{}",
+                    generate_blank(line_space + ((i + 1).to_string().len())),
+                    Colors::Red,
+                    arrow(
+                        (item_pos.range_start.1) as usize,
+                        item_pos.range_end.1 - item_pos.range_start.1
+                    ),
                     Colors::Reset,
                 );
             } else {

@@ -6,7 +6,6 @@ lazy_static! {
         code: 0x00,
         title: "SyntaxError".to_owned(),
         message: "Unexpected Token '$token'".to_owned(),
-        semi_assist: true,
         ..Default::default()
     };
     pub static ref ERROR_S2: error::Error = error::Error {
@@ -62,11 +61,12 @@ lazy_static! {
         code: 0x09,
         title: "TypeError".to_owned(),
         message: "Duplicate parameter".to_owned(),
+        semi_assist: true,
         ..Default::default()
     };
     pub static ref ERROR_S11: error::Error = error::Error {
         code: 0x10,
-        title: "TypeError".to_owned(),
+        title: "ReplaceAble".to_owned(),
         message: "Cannot set type annotations on dynamic variable".to_owned(),
         ..Default::default()
     };
@@ -134,7 +134,7 @@ lazy_static! {
     pub static ref ERROR_S22: error::Error = error::Error {
         code: 0x21,
         title: "SyntaxError".to_owned(),
-        message: "Constructor name should be same as class name".to_owned(),
+        message: "Defined item cannot exist in class".to_owned(),
         ..Default::default()
     };
     pub static ref ERROR_S23: error::Error = error::Error {

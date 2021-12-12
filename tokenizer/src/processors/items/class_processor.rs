@@ -67,12 +67,15 @@ impl crate::processors::Processor for class::Class {
                             defs::Cursor::build_with_skip_char(cursor),
                         ));
                     }
+                    self.generic_definings[generic_len - 1].pos.range_end =
+                        cursor.clone().skip_char(1);
                     self.generic_definings[generic_len - 1].name += &letter_char.to_string();
                 }
             } else if letter_char == ','
                 && generic_len > 0
                 && self.generic_definings[generic_len - 1].name != ""
             {
+                self.generic_definings[generic_len - 1].pos.range_end = cursor;
                 self.generic_definings
                     .push(class::GenericDefining::default());
             } else if letter_char == '>'

@@ -10,19 +10,11 @@ use std::path::Path;
 
 fn main() {
     println!("{}]0;{}{}", '\u{001b}', "Ellie", '\u{007}');
-    if env::args().any(|x| x == "-rstd" || x == "--rebuild-std") {
-        println!(
-            "{}[Success]{} Rebuilding std library complete",
-            ellie_engine::cli_utils::Colors::Green,
-            ellie_engine::cli_utils::Colors::Reset
-        );
-        std::process::exit(0);
-    }
     if env::args().any(|x| x == "-v" || x == "--version" || x == "-dv" || x == "--detailed-version")
     {
         if env::args().any(|x| x == "-dv" || x == "--detailed-version") {
             println!(
-                "Ellie v{} - Code: {}\n\nTokenizer Version: v{}\nParser Version: v{}\nRuntime Version: v{}\nCore version: v{}\nEllie Standard Types Version: v{}\nEllie Compatibility Hash: {:#04x}\n",
+                "Ellie v{} - Code: {}\n\nTokenizer Version: v{}\nParser Version: v{}\nRuntime Version: v{}\nCore version: v{}\nEllie Standard Types Version: v{}\n",
                 ellie_engine::cli_constants::ELLIE_VERSION,
                 ellie_engine::cli_constants::ELLIE_VERSION_NAME,
                 ellie_engine::cli_constants::ELLIE_TOKENIZER_VERSION,
@@ -30,7 +22,6 @@ fn main() {
                 ellie_engine::cli_constants::ELLIE_RUNTIME_VERSION,
                 ellie_engine::cli_constants::ELLIE_CORE_VERSION,
                 ellie_engine::cli_constants::ELLIE_STD_VERSION,
-                ellie_engine::cli_constants::ELLIE_COMPATIBILITY_HASH,
             );
         } else {
             println!(
@@ -44,6 +35,9 @@ fn main() {
         println!("Options:");
         println!("\t--version                    || -v   : Show Version");
         println!("\t--help                       || -h   : Show Help");
+        println!("\t--render-tokenized           || -rt  : Render tokenized code");
+        println!("\t--render-parsed              || -rp  : Render parsed code");
+        println!("\t--eval-code                  || -ec  : Evaluate code from parameters");
     } else {
         let args = env::args()
             .collect::<Vec<String>>()
@@ -136,7 +130,6 @@ fn main() {
                             Ok(e) => {
                                 let mut parser = parser::Parser::new(pager.pages.clone());
                                 parser.parse();
-                                //
 
                                 if !parser.informations.has_no_warnings() {
                                     cli_utils::print_warnings(
@@ -205,7 +198,11 @@ fn main() {
                     }
                 },
                 None => {
-                    println!("No file present\n-h for help");
+                    if env::args().any(|x| x == "-ec" || x == "--eval-code") {
+                        println!("Evaluating code is not yet supported");
+                    } else {
+                        println!("No file present\n-h for help");
+                    }
                     std::process::exit(1);
                 }
             }
