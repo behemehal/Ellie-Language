@@ -1,16 +1,13 @@
-pub mod arithmetic_type;
 pub mod array;
-pub mod arrow_function;
 pub mod bool;
+pub mod brace_reference;
+pub mod class_call;
 pub mod cloak;
 pub mod collective;
-pub mod comparison_type;
-pub mod constructed_class;
 pub mod ellie_char;
 pub mod float;
 pub mod function_call;
 pub mod integer;
-pub mod logical_type;
 pub mod negative;
 pub mod null_resolver;
 pub mod operator;
@@ -27,17 +24,24 @@ pub enum Types {
     Bool(bool::BoolType),
     String(string::StringType),
     Char(ellie_char::CharType),
-    Collective(collective::Collective),
+    Collective(collective::CollectiveType),
     Reference(reference::ReferenceType),
+    BraceReference(brace_reference::BraceReferenceType),
     Operator(operator::OperatorType),
     Cloak(cloak::CloakType),
     Array(array::ArrayType),
-    ArrowFunction(arrow_function::ArrowFunction),
-    ConstructedClass(constructed_class::ConstructedClass),
+    //ArrowFunction(arrow_function::ArrowFunction),
+    ClassCall(class_call::ClassCall),
     FunctionCall(function_call::FunctionCall),
     Void,
     NullResolver(null_resolver::NullResolver),
     Negative(negative::Negative),
     VariableType(variable::VariableType),
     Null,
+}
+
+impl Default for Types {
+    fn default() -> Self {
+        Types::Null
+    }
 }

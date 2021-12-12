@@ -1,4 +1,13 @@
 /*
     Copyright (c) 2020 Behemehal. See license file for details
 */
-pub class char {}
+pub class char {
+    @description = "Get type";
+    @example = "
+        v chr = 'e';
+        print(chr.getType()); //char
+    ";
+    pub fn getType() : string {
+        ret "char";
+    }
+}

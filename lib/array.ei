@@ -1,4 +1,27 @@
 /*
     Copyright (c) 2020 Behemehal. See license file for details
 */
-pub class array<Type> {}
+import string;
+import int;
+
+@version = "1.0.0";
+@description = "Ellie array"
+@notConstructable = true;
+pub class array<Type> {
+    @description = "Get type";
+    @example = "
+        v arr = [12];
+        print(arr.getType()); //array
+    ";
+    pub fn getType() : string {
+        ret "array";
+    }
+
+    @description = "Get size of array";
+    @native=true;
+    @example = "
+        v arr = [12];
+        print(arr.len()); //1
+    ";
+    pub fn len() : int;
+}

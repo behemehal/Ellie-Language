@@ -1,4 +1,15 @@
 /*
     Copyright (c) 2020 Behemehal. See license file for details
 */
-pub class nullAble<Type> {}
+
+import thread;
+
+pub class nullAble<Type> {
+    co(type);
+    pub v type : Type;
+    pub fn resolve() : Type {
+        if type == null {
+            panic("nullAble.resolve() called on null");
+        }
+    }
+}

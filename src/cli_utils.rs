@@ -1,5 +1,6 @@
 use std::{
     collections::hash_map::DefaultHasher,
+    fmt::Display,
     fs::File,
     hash::{Hash, Hasher},
     io::Read,
@@ -8,163 +9,39 @@ use std::{
 
 extern crate path_absolutize;
 
-use crate::terminal_colors;
-use ellie_core::{defs, error};
-use ellie_parser::parser;
-use path_absolutize::Absolutize;
+pub enum Colors {
+    Black,
+    Red,
+    Green,
+    Yellow,
+    Blue,
+    Magenta,
+    Cyan,
+    White,
+    Reset,
+}
+
+impl Display for Colors {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let color_id = match self {
+            Colors::Black => "[30m",
+            Colors::Red => "[31m",
+            Colors::Green => "[32m",
+            Colors::Yellow => "[33m",
+            Colors::Blue => "[34m",
+            Colors::Magenta => "[35m",
+            Colors::Cyan => "[36m",
+            Colors::White => "[37m",
+            Colors::Reset => "[0m",
+        };
+        return write!(f, "{}{}", '\u{001b}', color_id);
+    }
+}
+
+use ellie_core::{defs, error, warning};
 
 pub struct EllieModuleResolver {
     pub main_path: String,
-}
-
-impl EllieModuleResolver {}
-
-pub fn parse(contents: String, file_name: String) -> ellie_parser::parser::ParserResponse {
-    std::println!(
-        "{}[ParsingFile]{}: {}~{}{}",
-        terminal_colors::get_color(terminal_colors::Colors::Cyan),
-        terminal_colors::get_color(terminal_colors::Colors::Reset),
-        terminal_colors::get_color(terminal_colors::Colors::Yellow),
-        file_name,
-        terminal_colors::get_color(terminal_colors::Colors::Reset),
-    );
-
-    let parser = parser::Parser::new(
-        contents.clone(),
-        resolve_import,
-        |_| {},
-        ellie_core::defs::ParserOptions {
-            path: file_name.to_string(),
-            functions: true,
-            break_on_error: false,
-            loops: true,
-            import_std: true,
-            conditions: true,
-            classes: true,
-            enums: true,
-            dynamics: true,
-            global_variables: true,
-            getters: true,
-            setters: true,
-            line_ending: "\\n".to_owned(),
-            collectives: true,
-            variables: true,
-            constants: true,
-            parser_type: ellie_core::defs::ParserType::RawParser,
-            allow_import: true,
-        },
-    );
-    let parsed = parser.map();
-
-    if parsed.syntax_errors.len() == 0 {
-        std::println!(
-            "{}[ParsingSuccess]{}: {}~{}{}",
-            terminal_colors::get_color(terminal_colors::Colors::Green),
-            terminal_colors::get_color(terminal_colors::Colors::Reset),
-            terminal_colors::get_color(terminal_colors::Colors::Yellow),
-            file_name,
-            terminal_colors::get_color(terminal_colors::Colors::Reset),
-        );
-    } else {
-        println!(
-            "{}[ParsingFailed]{}: {}~{}{}",
-            terminal_colors::get_color(terminal_colors::Colors::Red),
-            terminal_colors::get_color(terminal_colors::Colors::Reset),
-            terminal_colors::get_color(terminal_colors::Colors::Yellow),
-            file_name,
-            terminal_colors::get_color(terminal_colors::Colors::Reset)
-        );
-    }
-    parsed
-}
-
-pub fn resolve_import(
-    options: ellie_core::defs::ParserOptions,
-    lib_name: String,
-    native_header: bool,
-) -> ellie_parser::parser::ResolvedImport {
-    let parent = &(Path::new(&options.path.clone())
-        .parent()
-        .unwrap()
-        .to_str()
-        .unwrap()
-        .to_string()
-        + "/");
-    let path = parent.clone()
-        + &lib_name
-        + if !Path::new(&lib_name).extension().is_some() {
-            if native_header {
-                ".eih"
-            } else {
-                ".ei"
-            }
-        } else {
-            ""
-        };
-
-    if lib_name == "ellie" {
-        let mut id_hasher = DefaultHasher::new();
-        ellie_core::utils::generate_hash().hash(&mut id_hasher);
-        let mut hasher = DefaultHasher::new();
-        ellie_core::builded_libraries::ELLIE_STANDARD_LIBRARY.hash(&mut hasher);
-        ellie_parser::parser::ResolvedImport {
-            found: true,
-            resolved_path: "<virtual>".to_owned(),
-            file_content: ellie_parser::parser::ResolvedFileContent::Raw(
-                ellie_core::builded_libraries::ELLIE_STANDARD_LIBRARY.to_string(),
-            ),
-            resolution_id: hasher.finish(),
-            id: id_hasher.finish(),
-            ..Default::default()
-        }
-    } else {
-        if Path::new(&path).absolutize().unwrap().to_str().unwrap()
-            == Path::new(&options.path.clone())
-                .absolutize()
-                .unwrap()
-                .to_str()
-                .unwrap()
-        {
-            ellie_parser::parser::ResolvedImport {
-                found: false,
-                resolve_error: "Importing this file causes infinite loop".to_owned(),
-                ..Default::default()
-            }
-        } else {
-            match read_file(Path::new(&path).absolutize().unwrap().to_str().unwrap()) {
-                Ok(file) => {
-                    let mut hasher = DefaultHasher::new();
-                    file.hash(&mut hasher);
-
-                    let mut id_hasher = DefaultHasher::new();
-                    ellie_core::utils::generate_hash().hash(&mut id_hasher);
-
-                    ellie_parser::parser::ResolvedImport {
-                        found: true,
-                        file_content: ellie_parser::parser::ResolvedFileContent::Raw(file),
-                        resolved_path: Path::new(&path)
-                            .absolutize()
-                            .unwrap()
-                            .to_str()
-                            .unwrap()
-                            .to_string(),
-                        resolution_id: hasher.finish(),
-                        id: id_hasher.finish(),
-                        ..Default::default()
-                    }
-                }
-                Err(c) => ellie_parser::parser::ResolvedImport {
-                    found: false,
-                    resolve_error: format!(
-                        "Cannot find module '{}' ({})",
-                        Path::new(&path).absolutize().unwrap().to_str().unwrap(),
-                        c
-                    ),
-                    ..Default::default()
-                },
-            }
-        }
-    }
 }
 
 pub fn is_errors_same(first: error::Error, second: error::Error) -> bool {
@@ -203,9 +80,10 @@ pub fn zip_errors(errors: Vec<error::Error>) -> Vec<error::Error> {
                 if i == errors.len() - 1
                     || !is_errors_same(clone_errors[i].clone(), clone_errors[i + 1].clone())
                 {
-                    clone_errors[i].builded_message = error::Error::build(
-                        clone_errors[i].message.clone(),
+                    clone_errors[i] = clone_errors[i].clone().build(
                         clone_errors[i].builded_message.fields.clone(),
+                        clone_errors[i].debug_message.clone(),
+                        clone_errors[i].pos,
                     );
                     zipped_errors.push(clone_errors[i].clone())
                 }
@@ -228,21 +106,9 @@ pub fn draw_error(line: String, pos: defs::CursorPosition) -> String {
 
     for (index, c) in line.chars().enumerate() {
         if index >= (if pos.1 != 0 { pos.1 - 1 } else { pos.1 }) {
-            draw += &format!(
-                "{}{}{}",
-                terminal_colors::get_color(terminal_colors::Colors::Red),
-                c,
-                terminal_colors::get_color(terminal_colors::Colors::Reset),
-            )
-            .to_string();
+            draw += &format!("{}{}{}", Colors::Red, c, Colors::Reset,).to_string();
         } else {
-            draw += &format!(
-                "{}{}{}",
-                terminal_colors::get_color(terminal_colors::Colors::White),
-                c,
-                terminal_colors::get_color(terminal_colors::Colors::Reset),
-            )
-            .to_string();
+            draw += &format!("{}{}{}", Colors::White, c, Colors::Reset,).to_string();
         }
     }
     draw
@@ -262,12 +128,12 @@ pub fn get_lines(code: String, lines: defs::Cursor) -> String {
     for i in lines.range_start.0..lines.range_end.0 + 1 {
         let t = format!(
             "{}{}{}{}{}|{} {}\n",
-            terminal_colors::get_color(terminal_colors::Colors::Magenta),
+            Colors::Magenta,
             i + 1,
-            terminal_colors::get_color(terminal_colors::Colors::Reset),
+            Colors::Reset,
             generate_blank(v.len().to_string().len() - (i + 1).to_string().len()),
-            terminal_colors::get_color(terminal_colors::Colors::Yellow),
-            terminal_colors::get_color(terminal_colors::Colors::Reset),
+            Colors::Yellow,
+            Colors::Reset,
             draw_error(
                 v[i].to_string(),
                 if lines.range_start.0 == i {
@@ -291,6 +157,10 @@ pub fn get_line(code: String, line: usize) -> String {
     }
 }
 
+pub fn file_exists(path: String) -> bool {
+    Path::new(&path).exists()
+}
+
 pub fn read_file(file_dir: &str) -> Result<String, String> {
     let file_read = File::open(file_dir);
     match file_read {
@@ -303,6 +173,369 @@ pub fn read_file(file_dir: &str) -> Result<String, String> {
                 Err(e) => Err(e.to_string()),
             }
         }
+    }
+}
+
+pub fn hash_error(error: &error::Error) -> String {
+    let mut hasher = DefaultHasher::new();
+    format!("E{:?}", error).hash(&mut hasher);
+    hasher.finish().to_string()
+}
+
+pub fn hash_warning(warning: &warning::Warning) -> String {
+    let mut hasher = DefaultHasher::new();
+    format!("W{:?}", warning).hash(&mut hasher);
+    hasher.finish().to_string()
+}
+
+pub fn print_warnings(warnings: &Vec<warning::Warning>, file_reader: fn(String) -> String) {
+    for warning in warnings {
+        println!(
+            "\n{}Warning[{}]{}: {}{}{}\n",
+            Colors::Yellow,
+            warning.title,
+            Colors::Reset,
+            Colors::Cyan,
+            warning.builded_message.builded,
+            Colors::Reset,
+        );
+
+        let file_content = file_reader(warning.path.clone());
+
+        let mut line_space = warning.pos.range_start.0.to_string().len() + 1;
+
+        if let Some(refr) = warning.reference_block.clone() {
+            let ref_file_content = file_reader(refr.1.clone());
+            if line_space < refr.0.range_start.0.to_string().len() + 1 {
+                line_space = refr.0.range_start.0.to_string().len() + 1;
+            }
+            render_code_block(
+                refr.1.clone(),
+                refr.0,
+                ref_file_content,
+                warning.reference_message.clone(),
+                line_space,
+                true,
+                false,
+            )
+        }
+        render_code_block(
+            warning.path.clone(),
+            warning.pos,
+            file_content,
+            "".to_owned(),
+            line_space,
+            false,
+            false,
+        );
+        println!(
+            "{}{}[?]{}: Check online standard rules repo for more info {}{}{}",
+            generate_blank(line_space - 1),
+            Colors::Magenta,
+            Colors::Reset,
+            Colors::Green,
+            format!(
+                "https://ellie.behemehal.net/standardRules.html#{:#04x}",
+                warning.code
+            ),
+            Colors::Reset,
+        );
+
+        if warning.full_assist || warning.semi_assist {
+            if cfg!(feature = "ellie_assist") {
+                println!(
+                    "{}{}[{}]{}: {} assistment available type '{}ellie{} {}--show-me-something{} {}{}{}' for request assist",
+                    generate_blank(line_space - 1),
+                    Colors::Yellow,
+                    if warning.semi_assist {
+                        "◆"
+                    } else {
+                        "✓"
+                    },
+                    Colors::Reset,
+                    if warning.semi_assist {
+                        "Semi"
+                    } else {
+                        "Full"
+                    },
+                    Colors::Green,
+                    Colors::Reset,
+                    Colors::Yellow,
+                    Colors::Reset,
+                    Colors::Green,
+                    hash_warning(&warning),
+                    Colors::Reset,
+                );
+            } else {
+                println!(
+                    "{}{}[x]{}: {} assistment available but {}ellie_assist{} feature is not enabled",
+                    generate_blank(line_space - 1),
+                    Colors::Yellow,
+                    Colors::Reset,
+                    if warning.semi_assist {
+                        "Semi"
+                    } else {
+                        "Full"
+                    },
+                    Colors::Red,
+                    Colors::Reset,
+                );
+            }
+        }
+    }
+}
+
+pub fn print_errors(errors: &Vec<error::Error>, file_reader: fn(String) -> String) {
+    for error in errors {
+        println!(
+            "\n{}Error[{:#04x} - {}]{}: {}{}{}\n",
+            Colors::Red,
+            error.code,
+            error.debug_message,
+            Colors::Reset,
+            Colors::Cyan,
+            error.builded_message.builded,
+            Colors::Reset,
+        );
+
+        let file_content = file_reader(error.path.clone());
+
+        let mut line_space = error.pos.range_start.0.to_string().len() + 1;
+
+        if let Some(refr) = error.reference_block.clone() {
+            let ref_file_content = file_reader(refr.1.clone());
+            if line_space < refr.0.range_start.0.to_string().len() + 1 {
+                line_space = refr.0.range_start.0.to_string().len() + 1;
+            }
+            render_code_block(
+                refr.1.clone(),
+                refr.0,
+                ref_file_content,
+                error.reference_message.clone(),
+                line_space,
+                true,
+                true,
+            )
+        }
+        render_code_block(
+            error.path.clone(),
+            error.pos,
+            file_content,
+            "".to_owned(),
+            line_space,
+            false,
+            true,
+        );
+        println!(
+            "{}{}[?]{}: Check online error repo for more info {}{}{}",
+            generate_blank(line_space - 1),
+            Colors::Magenta,
+            Colors::Reset,
+            Colors::Green,
+            format!(
+                "https://ellie.behemehal.net/errorIndex.html#{:#04x}",
+                error.code
+            ),
+            Colors::Reset,
+        );
+
+        if error.full_assist || error.semi_assist {
+            if cfg!(feature = "ellie_assist") {
+                println!(
+                    "{}{}[{}]{}: {} assistment available type '{}ellie{} {}--show-me-something{} {}{}{}' for request assist",
+                    generate_blank(line_space - 1),
+                    Colors::Yellow,
+                    if error.semi_assist {
+                        "◆"
+                    } else {
+                        "✓"
+                    },
+                    Colors::Reset,
+                    if error.semi_assist {
+                        "Semi"
+                    } else {
+                        "Full"
+                    },
+                    Colors::Green,
+                    Colors::Reset,
+                    Colors::Yellow,
+                    Colors::Reset,
+                    Colors::Green,
+                    hash_error(&error),
+                    Colors::Reset,
+                );
+            } else {
+                println!(
+                    "{}{}[x]{}: {} assistment available but {}ellie_assist{} feature is not enabled",
+                    generate_blank(line_space - 1),
+                    Colors::Yellow,
+                    Colors::Reset,
+                    if error.semi_assist {
+                        "Semi"
+                    } else {
+                        "Full"
+                    },
+                    Colors::Red,
+                    Colors::Reset,
+                );
+            }
+        }
+
+        if error.code == 0x00 {
+            println!(
+                "\n{}{}{} other error omitted",
+                Colors::Red,
+                errors.len() - 2,
+                Colors::Reset
+            );
+            break;
+        }
+    }
+}
+
+pub fn render_code_block(
+    item_path: String,
+    item_pos: defs::Cursor,
+    code: String,
+    ref_message: String,
+    line_space: usize,
+    reference: bool,
+    is_error: bool,
+) {
+    //cursor, code
+
+    println!(
+        "  {}[{}]{}{}: {}{}:{}{}{}",
+        if reference {
+            Colors::Green
+        } else if is_error {
+            Colors::Red
+        } else {
+            Colors::Yellow
+        },
+        if reference { "@" } else { "~" },
+        if line_space < 3 {
+            String::new()
+        } else {
+            generate_blank(line_space - 3)
+        },
+        Colors::Reset,
+        Colors::Green,
+        item_path,
+        Colors::Cyan,
+        format!(
+            "{}:{}{} > {}{}:{}",
+            item_pos.range_start.0 + 1,
+            item_pos.range_start.1,
+            Colors::Red,
+            Colors::Cyan,
+            item_pos.range_end.0 + 1,
+            item_pos.range_end.1
+        ),
+        Colors::Reset,
+    );
+
+    let line_start = if item_pos.range_start.0 >= 2 {
+        item_pos.range_start.0 - 2
+    } else {
+        0
+    };
+
+    let line_end = if (item_pos.range_end.0 + 2) <= code.lines().count() {
+        item_pos.range_end.0 + 2
+    } else {
+        code.lines().count()
+    };
+
+    if !reference {
+        println!(
+            "{}{}{}  | {}",
+            Colors::Yellow,
+            generate_blank(line_space),
+            Colors::Reset,
+            if line_start == 0 { "" } else { "..." }
+        );
+    }
+
+    for i in line_start..line_end {
+        if item_pos.range_start.0 == item_pos.range_end.0 && i == item_pos.range_start.0 {
+            if reference {
+                println!(
+                    "{}{}{}{} | {} {} {}{}",
+                    Colors::Yellow,
+                    generate_blank(line_space),
+                    i + 1,
+                    Colors::Reset,
+                    get_line(code.clone(), i)
+                        .replace("\n", "")
+                        .replace("\r", ""),
+                    Colors::Green,
+                    ref_message,
+                    Colors::Reset,
+                );
+
+                println!(
+                    "{} | {}{}{}",
+                    generate_blank(line_space + ((i + 1).to_string().len())),
+                    Colors::Red,
+                    arrow(
+                        (item_pos.range_start.1) as usize,
+                        item_pos.range_end.1 - item_pos.range_start.1
+                    ),
+                    Colors::Reset,
+                );
+            } else {
+                println!(
+                    "{}{}{}{} | {}",
+                    Colors::Yellow,
+                    generate_blank(line_space),
+                    i + 1,
+                    Colors::Reset,
+                    get_line(code.clone(), i)
+                );
+
+                println!(
+                    "{} | {}{}{}",
+                    generate_blank(line_space + ((i + 1).to_string().len())),
+                    Colors::Red,
+                    arrow(
+                        (item_pos.range_start.1) as usize,
+                        item_pos.range_end.1 - item_pos.range_start.1
+                    ),
+                    Colors::Reset,
+                );
+            }
+        } else {
+            println!(
+                "{}{}{}{} | {}",
+                Colors::Yellow,
+                generate_blank(line_space),
+                i + 1,
+                Colors::Reset,
+                get_line(code.clone(), i)
+            );
+        }
+    }
+
+    if reference {
+        println!(
+            "{}{}{}  ├──",
+            Colors::Yellow,
+            generate_blank(line_space),
+            Colors::Reset,
+        );
+    } else {
+        println!(
+            "{}{}{}  | {}",
+            Colors::Yellow,
+            generate_blank(line_space),
+            Colors::Reset,
+            if line_end <= code.lines().count() {
+                "..."
+            } else {
+                "──"
+            }
+        );
     }
 }
 

@@ -1,4 +1,13 @@
 /*
     Copyright (c) 2020 Behemehal. See license file for details
 */
-pub class bool {}
+pub class bool {
+    @description = "Get type";
+    @example = "
+        v bool = true;
+        print(bool.getType()); //bool
+    ";
+    pub fn getType() : string {
+        ret "bool";
+    }
+}

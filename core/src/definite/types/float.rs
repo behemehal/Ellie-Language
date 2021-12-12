@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+use crate::defs;
+
 #[derive(PartialEq, Eq, Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum FloatTypes {
     F32,
@@ -16,4 +18,5 @@ pub enum FloatSize {
 pub struct FloatType {
     pub value: FloatSize,
     pub rtype: FloatTypes,
+    pub pos: defs::Cursor,
 }

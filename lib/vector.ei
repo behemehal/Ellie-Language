@@ -1,0 +1,21 @@
+/*
+    Copyright (c) 2020 Behemehal. See license file for details
+*/
+pub class vector<Type> {
+    @description = "Get type";
+    @example = "
+        v vec : [int, *] = [12];
+        print(vec.getType()); //vector
+    ";
+    pub fn getType() : string {
+        ret "vector";
+    }
+
+    @description = "Get size of vector";
+    @native = true;
+    @example = "
+        v vec : [int, *] = [12];
+        print(vec.len()); //1
+    ";
+    pub fn len() : int;
+}

@@ -1,7 +1,0 @@
-/*
-    Copyright (c) 2020 Behemehal. See license file for details
-*/
-
-import int;
-import void;
-pub fn sleep(seconds: int);

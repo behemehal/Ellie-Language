@@ -3,20 +3,21 @@ use alloc::string::String;
 use serde::{Deserialize, Serialize};
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-pub enum ParserType {
-    RawParser,
+pub enum TokenizerType {
+    Raw,
     ClassParser,
+    FunctionParser,
     HeaderParser,
 }
 
-impl Default for ParserType {
+impl Default for TokenizerType {
     fn default() -> Self {
-        ParserType::RawParser
+        TokenizerType::Raw
     }
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-pub struct ParserOptions {
+pub struct TokenizerOptions {
     pub path: String,
     pub functions: bool,
     pub break_on_error: bool,
@@ -33,13 +34,14 @@ pub struct ParserOptions {
     pub variables: bool,
     pub import_std: bool,
     pub constants: bool,
-    pub parser_type: ParserType,
+    pub ignore_imports: bool,
+    pub parser_type: TokenizerType,
     pub allow_import: bool,
 }
 
-impl Default for ParserOptions {
+impl Default for TokenizerOptions {
     fn default() -> Self {
-        ParserOptions {
+        TokenizerOptions {
             path: "".to_owned(),
             functions: true,
             break_on_error: false,
@@ -54,9 +56,10 @@ impl Default for ParserOptions {
             dynamics: true,
             import_std: true,
             collectives: true,
+            ignore_imports: false,
             variables: true,
             constants: true,
-            parser_type: ParserType::RawParser,
+            parser_type: TokenizerType::Raw,
             allow_import: true,
         }
     }
@@ -98,6 +101,23 @@ pub struct Cursor {
 impl Cursor {
     pub fn is_zero(&self) -> bool {
         self.range_start.is_zero() && self.range_end.is_zero()
+    }
+
+    pub fn is_bigger(&self, than: Cursor) -> bool {
+        if than.range_end.0 == self.range_end.0 {
+            self.range_end.1 > than.range_end.1
+        } else if than.range_end.0 > self.range_end.0 {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    pub fn build_with_skip_char(range_start: CursorPosition) -> Self {
+        Cursor {
+            range_start,
+            range_end: range_start.clone().skip_char(1),
+        }
     }
 }
 

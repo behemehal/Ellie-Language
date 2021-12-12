@@ -30,12 +30,10 @@ SOFTWARE.
 //TODO: no-std extern crate alloc; Nightly
 
 extern crate ellie_core;
-extern crate ellie_parser;
+extern crate ellie_tokenizer;
+extern crate lazy_static;
 
 pub mod cli_constants;
 
 #[cfg(feature = "build-cli")]
 pub mod cli_utils;
-
-pub mod terminal_colors;
-pub mod test_utils;

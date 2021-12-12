@@ -1,0 +1,6 @@
+import Error;
+import int;
+
+pub fn panic(error: Error);
+pub fn sleep(ms: int);
+pub fn create_thread(inside: @());

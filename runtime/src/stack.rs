@@ -43,6 +43,18 @@ pub struct Class {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+pub enum ConditionChainType {
+    If((usize, usize)),     //CONDITION_VALUE_HEAP_TARGET, PAGE_TARGET
+    ElseIf((usize, usize)), //CONDITION_VALUE_HEAP_TARGET, PAGE_TARGET
+    Else(usize),            //PAGE_TARGET
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct ConditionChain {
+    pub chains: Vec<ConditionChainType>, //CHAIN_TYPE, CHAIN_VALUE
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub struct Addition {
     pub target_heap: usize,
     pub value: usize,
@@ -79,6 +91,7 @@ pub enum StackElements {
     NativeFunction(NativeFunction),
     Class(Class),
     Variable(Variable),
+    Condition(ConditionChain),
     Addition(Addition),
     Parameter(Parameter),
     Generic(Generic),
@@ -231,12 +244,20 @@ impl Stack {
         id
     }
 
+    pub fn register_condition_chain(&mut self, condition_chain: Vec<ConditionChainType>) -> usize {
+        let id = self.elements.len();
+        self.elements.push(StackElements::Condition(ConditionChain {
+            chains: condition_chain,
+        }));
+        id
+    }
+
     pub fn dump(self) -> String {
         let mut lines: Vec<String> = Vec::with_capacity(self.elements.len());
         for element in self.elements.clone() {
             match element {
                 StackElements::Function(i) => lines.push(format!(
-                    "\t\t0 = {:#04x} : <{}> : {} > {}",
+                    "\t\t\t0 = {:#04x} : <{}> : {} > {}",
                     i.id,
                     i.parameters
                         .into_iter()
@@ -289,7 +310,7 @@ impl Stack {
                     i.inner_page_id
                 )),
                 StackElements::Class(i) => lines.push(format!(
-                    "\t\t1 = {:#04x} : {:#04x} : {}",
+                    "\t\t\t1 = {:#04x} : {:#04x} : {}",
                     i.id,
                     i.inner_page_id,
                     if i.generics.len() == 0 {
@@ -303,7 +324,7 @@ impl Stack {
                     },
                 )),
                 StackElements::Variable(i) => lines.push(format!(
-                    "\t\t2 = {:#04x} : {}{}",
+                    "\t\t\t2 = {:#04x} : {}{}",
                     i.id,
                     match i.rtype {
                         StackElement::Type(e) => format!(
@@ -332,11 +353,11 @@ impl Stack {
                     },
                 )),
                 StackElements::Addition(i) => lines.push(format!(
-                    "\t\t3 = {:#04x} =+ {:#04x}",
+                    "\t\t\t3 = {:#04x} =+ {:#04x}",
                     i.target_heap, i.value
                 )),
                 StackElements::Parameter(i) => lines.push(format!(
-                    "\t\t4 = {:#04x} : {}{}",
+                    "\t\t\t4 = {:#04x} : {}{}",
                     i.id,
                     match i.type_id {
                         StackElement::Type(e) => format!(
@@ -366,20 +387,24 @@ impl Stack {
                 )),
                 StackElements::Bridge(i) => {
                     if i.targets.is_empty() {
-                        lines.push(format!("\t\t5 = {:#04x}>?", i.page_id))
+                        lines.push(format!("\t\t\t5 = {:#04x}>?", i.page_id))
                     } else {
                         let mut targets: String = String::new();
                         for i in i.targets.into_iter().enumerate() {
                             targets += &format!("{}{:#04x}", if i.0 == 0 { "" } else { ", " }, i.1);
                         }
-                        lines.push(format!("\t\t5 = {:#04x}>({})", i.page_id, targets.clone()))
+                        lines.push(format!(
+                            "\t\t\t5 = {:#04x}>({})",
+                            i.page_id,
+                            targets.clone()
+                        ))
                     }
                 }
                 StackElements::Generic(i) => {
-                    lines.push(format!("\t\t6 = {:#04x} : {:#04x}", i.id, i.header_id))
+                    lines.push(format!("\t\t\t6 = {:#04x} : {:#04x}", i.id, i.header_id))
                 }
                 StackElements::NativeFunction(i) => lines.push(format!(
-                    "\t\t7 = {:#04x} : <{}> : {}",
+                    "\t\t\t7 = {:#04x} : <{}> : {}",
                     i.id,
                     i.parameters
                         .into_iter()
@@ -430,12 +455,29 @@ impl Stack {
                         ),
                     }
                 )),
-                _ => (),
+                StackElements::Condition(i) => {
+                    let mut chains = "\t\t\t8 = ".to_owned();
+                    for (indx, chain) in i.chains.clone().into_iter().enumerate() {
+                        chains += &format!(
+                            "{}{}",
+                            match chain {
+                                ConditionChainType::If(cond) =>
+                                    format!("i({:#04x}, {:#04x})", cond.0, cond.1),
+                                ConditionChainType::ElseIf(cond) =>
+                                    format!("ei({:#04x}, {:#04x})", cond.0, cond.1),
+                                ConditionChainType::Else(cond) => format!("e({:#04x})", cond),
+                            },
+                            if indx == i.chains.len() { "" } else { ", " }
+                        );
+                    }
+                    lines.push(chains);
+                }
+                _ => panic!("UNSUPPORTED STACK ELEMENT TO DUMP"),
             }
         }
 
         if self.elements.is_empty() {
-            lines.push("\t\tEMPTY".to_owned());
+            lines.push("\t\t\tEMPTY".to_owned());
         }
 
         lines.join("\n\t")

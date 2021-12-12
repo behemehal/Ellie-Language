@@ -1,17 +1,19 @@
 /*
     Copyright (c) 2020 Behemehal. See license file for details
 */
-@version = "1.4.2"; //Changing this triggers build.rs
+@version = "1.0.0"; //Changing this triggers build.rs
 pub import void;
 pub import string;
-pub import int;
 pub import char;
 pub import collective;
 pub import float;
 pub import bool;
 pub import cloak;
 pub import array;
+pub import vector;
 pub import function;
 pub import nullAble;
-pub import future;
-pub importNative thread;
+pub import class;
+pub import int;
+pub import dyn;
+pub import error;

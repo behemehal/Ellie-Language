@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+use crate::defs;
+
 #[derive(PartialEq, Eq, Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum IntegerTypes {
     I8,
@@ -7,13 +9,13 @@ pub enum IntegerTypes {
     I32,
     I64,
     I128,
-    ISize,
+    Isize,
     U8,
     U16,
     U32,
     U64,
     U128,
-    USize,
+    Usize,
 }
 
 #[derive(PartialEq, Debug, Clone, Copy, Serialize, Deserialize)]
@@ -32,8 +34,15 @@ pub enum IntegerSize {
     Isize(isize),
 }
 
+impl Default for IntegerSize {
+    fn default() -> Self {
+        IntegerSize::I8(0)
+    }
+}
+
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct IntegerType {
     pub value: IntegerSize,
     pub rtype: IntegerTypes,
+    pub pos: defs::Cursor,
 }

@@ -1,4 +1,56 @@
 /*
     Copyright (c) 2020 Behemehal. See license file for details
 */
-pub class int {}
+import string;
+import float;
+
+@version = "1.0.0";
+@description = "Ellie integer"
+@notConstructable = true;
+pub class int {
+    @description = "Convert integer to string";
+    @availableSince = "3.7.3";
+    @example = "
+        v age = 19;
+        print(age.toString()); //19
+    ";
+    pub fn toString() : string;
+
+    @description = "Get integer's size\n";
+    @volatile = true;
+    @availableSince = "3.7.3";
+    @example = "
+        v age = 12;
+        print(age.getSize()); //i8
+    ";
+    pub fn getSize() : string;
+
+    @description = "Get integer as float";
+    @availableSince = "3.7.3";
+    @avoidUsage = true;
+    @example = "
+        v age = 12;
+        print(age.asFloat); //12.0
+    ";
+    pub fn asFloat() : float;
+
+    @description = "Get integer as string";
+    @availableSince = "3.7.3";
+    @avoidUsage = true;
+    @example = "
+        v age = 12;
+        print(age.asString()); //12
+    ";
+    pub fn asString() : float;
+
+    @description = "Get type";
+    @availableSince = "3.7.3";
+    @avoidUsage = true;
+    @example = "
+        v age = 12;
+        print(age.getType()); //int
+    ";
+    pub fn getType() : string {
+        ret "int";
+    }
+}

@@ -1,9 +1,7 @@
 use crate::definite::types;
 use crate::defs;
+use alloc::{boxed::Box, vec::Vec};
 use serde::{Deserialize, Serialize};
-
-use alloc::string::String;
-use alloc::vec::Vec;
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct FunctionCallParameter {
@@ -13,7 +11,8 @@ pub struct FunctionCallParameter {
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct FunctionCall {
-    pub name: String,
-    pub name_pos: defs::Cursor,
+    pub target: Box<types::Types>,
+    pub target_pos: defs::Cursor,
     pub params: Vec<FunctionCallParameter>,
+    pub pos: defs::Cursor,
 }
