@@ -35,7 +35,7 @@ impl crate::processors::Processor for integer_type::IntegerTypeCollector {
                 self.data.value = integer_type::IntegerSize::Isize(nm);
                 self.data.rtype = integer_type::IntegerTypes::Isize;
             } else {
-                errors.push(error::errorList::error_s16.clone().build(
+                errors.push(error::error_list::ERROR_S16.clone().build(
                     vec![error::ErrorBuildField {
                         key: "val".to_owned(),
                         value: self.raw.clone(),
@@ -50,7 +50,7 @@ impl crate::processors::Processor for integer_type::IntegerTypeCollector {
             if letter_char == '-' && self.raw == "" {
                 self.raw = "-".to_string();
             } else if letter_char != ' ' {
-                errors.push(error::errorList::error_s1.clone().build(
+                errors.push(error::error_list::ERROR_S1.clone().build(
                     vec![error::ErrorBuildField {
                         key: "token".to_string(),
                         value: letter_char.to_string(),

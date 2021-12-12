@@ -13,7 +13,7 @@ impl crate::processors::Processor for float_type::FloatTypeCollector {
             if letter_char == '.' {
                 self.at_point = true;
             } else {
-                errors.push(error::errorList::error_s1.clone().build(
+                errors.push(error::error_list::ERROR_S1.clone().build(
                     vec![error::ErrorBuildField {
                         key: "token".to_string(),
                         value: letter_char.to_string(),
@@ -29,7 +29,7 @@ impl crate::processors::Processor for float_type::FloatTypeCollector {
                 let f32_parse = self.data.raw.parse::<f32>();
                 if f32_parse.is_ok() && self.data.raw.len() < 9 {
                     if f32_parse.clone().unwrap().is_infinite() {
-                        errors.push(error::errorList::error_s17.clone().build(
+                        errors.push(error::error_list::ERROR_S17.clone().build(
                             vec![error::ErrorBuildField {
                                 key: "val".to_owned(),
                                 value: (self.point.clone() + &letter_char.to_string()),
@@ -44,7 +44,7 @@ impl crate::processors::Processor for float_type::FloatTypeCollector {
                     }
                 } else if let Ok(flt) = self.data.raw.parse::<f64>() {
                     if flt.is_infinite() {
-                        errors.push(error::errorList::error_s17.clone().build(
+                        errors.push(error::error_list::ERROR_S17.clone().build(
                             vec![error::ErrorBuildField {
                                 key: "val".to_owned(),
                                 value: (self.point.clone() + &letter_char.to_string()),
@@ -58,7 +58,7 @@ impl crate::processors::Processor for float_type::FloatTypeCollector {
                         self.complete = true;
                     }
                 } else {
-                    errors.push(error::errorList::error_s17.clone().build(
+                    errors.push(error::error_list::ERROR_S17.clone().build(
                         vec![error::ErrorBuildField {
                             key: "val".to_owned(),
                             value: self.data.raw.clone(),
@@ -69,7 +69,7 @@ impl crate::processors::Processor for float_type::FloatTypeCollector {
                 }
                 self.data.pos.range_end = cursor.clone().skip_char(1);
             } else {
-                errors.push(error::errorList::error_s1.clone().build(
+                errors.push(error::error_list::ERROR_S1.clone().build(
                     vec![error::ErrorBuildField {
                         key: "token".to_string(),
                         value: letter_char.to_string(),

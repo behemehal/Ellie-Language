@@ -228,6 +228,10 @@ impl super::Processor for ItemProcessor {
             self.current = Processors::Function(function::FunctionCollector {
                 data: function::Function {
                     public: self.used_modifier == Modifier::Pub,
+                    pos: defs::Cursor {
+                        range_start: cursor,
+                        ..Default::default()
+                    },
                     ..Default::default()
                 },
                 ..Default::default()
@@ -246,6 +250,10 @@ impl super::Processor for ItemProcessor {
         } else if keyword == "class" && letter_char == ' ' {
             self.current = Processors::Class(class::Class {
                 public: self.used_modifier == Modifier::Pub,
+                pos: defs::Cursor {
+                    range_start: cursor,
+                    ..Default::default()
+                },
                 ..Default::default()
             });
         } else if not_initialized && self.used_modifier == Modifier::None && letter_char == '@' {

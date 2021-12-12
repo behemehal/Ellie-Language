@@ -13,7 +13,7 @@ impl crate::processors::Processor for array_type::ArrayTypeCollector {
             if letter_char == '[' {
                 self.brace_started = true;
             } else if letter_char != ' ' {
-                errors.push(error::errorList::error_s1.clone().build(
+                errors.push(error::error_list::ERROR_S1.clone().build(
                     vec![error::ErrorBuildField {
                         key: "val".to_owned(),
                         value: letter_char.to_string(),
@@ -46,7 +46,7 @@ impl crate::processors::Processor for array_type::ArrayTypeCollector {
                     cursor.clone().skip_char(1);
             }
         } else if letter_char != ' ' {
-            errors.push(error::errorList::error_s1.clone().build(
+            errors.push(error::error_list::ERROR_S1.clone().build(
                 vec![error::ErrorBuildField {
                     key: "val".to_owned(),
                     value: letter_char.to_string(),

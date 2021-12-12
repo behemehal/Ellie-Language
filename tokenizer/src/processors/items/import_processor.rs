@@ -16,7 +16,7 @@ impl crate::processors::Processor for Import {
                 if self.path == "" {
                     self.path_pos.range_start = cursor;
                 } else if last_char == ' ' {
-                    errors.push(error::errorList::error_s1.clone().build(
+                    errors.push(error::error_list::ERROR_S1.clone().build(
                         vec![error::ErrorBuildField {
                             key: "token".to_string(),
                             value: letter_char.to_string(),
@@ -39,7 +39,7 @@ impl crate::processors::Processor for Import {
                 if self.reference == "" {
                     self.reference_pos.range_start = cursor;
                 } else if last_char == ' ' {
-                    errors.push(error::errorList::error_s1.clone().build(
+                    errors.push(error::error_list::ERROR_S1.clone().build(
                         vec![error::ErrorBuildField {
                             key: "token".to_string(),
                             value: letter_char.to_string(),

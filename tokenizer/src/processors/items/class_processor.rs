@@ -16,7 +16,7 @@ impl crate::processors::Processor for class::Class {
                 if self.name == "" {
                     self.name_pos.range_start = cursor;
                 } else if last_char == ' ' {
-                    errors.push(error::errorList::error_s1.clone().build(
+                    errors.push(error::error_list::ERROR_S1.clone().build(
                         vec![error::ErrorBuildField {
                             key: "token".to_string(),
                             value: letter_char.to_string(),
@@ -25,7 +25,7 @@ impl crate::processors::Processor for class::Class {
                         defs::Cursor::build_with_skip_char(cursor),
                     ));
                 }
-                self.name_pos.range_end = cursor;
+                self.name_pos.range_end = cursor.clone().skip_char(1);
                 self.name += &letter_char.to_string();
             } else if letter_char == '{' {
                 self.name_collected = true;
@@ -34,7 +34,7 @@ impl crate::processors::Processor for class::Class {
             } else if letter_char == '<' {
                 self.name_collected = true;
             } else if letter_char != ' ' {
-                errors.push(error::errorList::error_s1.clone().build(
+                errors.push(error::error_list::ERROR_S1.clone().build(
                     vec![error::ErrorBuildField {
                         key: "token".to_string(),
                         value: letter_char.to_string(),
@@ -58,7 +58,7 @@ impl crate::processors::Processor for class::Class {
                     if self.generic_definings[generic_len - 1].name == "" {
                         self.generic_definings[generic_len - 1].pos.range_start = cursor;
                     } else if last_char == ' ' {
-                        errors.push(error::errorList::error_s1.clone().build(
+                        errors.push(error::error_list::ERROR_S1.clone().build(
                             vec![error::ErrorBuildField {
                                 key: "token".to_string(),
                                 value: letter_char.to_string(),
@@ -81,7 +81,7 @@ impl crate::processors::Processor for class::Class {
             {
                 self.generics_collected = true;
             } else if letter_char != ' ' {
-                errors.push(error::errorList::error_s1.clone().build(
+                errors.push(error::error_list::ERROR_S1.clone().build(
                     vec![error::ErrorBuildField {
                         key: "token".to_string(),
                         value: letter_char.to_string(),
@@ -94,7 +94,7 @@ impl crate::processors::Processor for class::Class {
             if letter_char == '{' {
                 self.continuum_collected = true;
             } else if letter_char != ' ' {
-                errors.push(error::errorList::error_s1.clone().build(
+                errors.push(error::error_list::ERROR_S1.clone().build(
                     vec![error::ErrorBuildField {
                         key: "token".to_string(),
                         value: letter_char.to_string(),
@@ -105,6 +105,7 @@ impl crate::processors::Processor for class::Class {
             }
         } else if letter_char == '}' && self.brace_count == 0 {
             self.hash = ellie_core::utils::generate_hash();
+            self.pos.range_end = cursor.clone().skip_char(1);
             self.complete = true;
             self.iterator.finalize();
             errors.extend(self.iterator.errors.clone());

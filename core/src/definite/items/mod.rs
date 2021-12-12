@@ -6,13 +6,13 @@ pub mod enum_type;
 pub mod file_key;
 pub mod for_loop;
 pub mod function;
+pub mod generic;
 pub mod getter;
 pub mod getter_call;
 pub mod import;
 pub mod setter;
 pub mod setter_call;
 pub mod variable;
-pub mod generic;
 
 pub mod native_function;
 pub mod ret;

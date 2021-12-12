@@ -13,7 +13,7 @@ impl crate::processors::Processor for FileKey {
             if letter_char == '@' {
                 self.keyword_collected = true;
             } else {
-                errors.push(error::errorList::error_s1.clone().build(
+                errors.push(error::error_list::ERROR_S1.clone().build(
                     vec![error::ErrorBuildField {
                         key: "token".to_string(),
                         value: letter_char.to_string(),
@@ -23,11 +23,13 @@ impl crate::processors::Processor for FileKey {
                 ));
             }
         } else if !self.name_collected {
-            if utils::reliable_name_range(utils::ReliableNameRanges::VariableName, letter_char).reliable {
+            if utils::reliable_name_range(utils::ReliableNameRanges::VariableName, letter_char)
+                .reliable
+            {
                 if self.key_name == "" {
                     self.key_name_location.range_start = cursor;
                 } else if last_char == ' ' {
-                    errors.push(error::errorList::error_s1.clone().build(
+                    errors.push(error::error_list::ERROR_S1.clone().build(
                         vec![error::ErrorBuildField {
                             key: "token".to_string(),
                             value: letter_char.to_string(),
@@ -42,7 +44,7 @@ impl crate::processors::Processor for FileKey {
                 self.value_location.range_start = cursor;
                 self.name_collected = true;
             } else if letter_char != ' ' {
-                errors.push(error::errorList::error_s1.clone().build(
+                errors.push(error::error_list::ERROR_S1.clone().build(
                     vec![error::ErrorBuildField {
                         key: "token".to_string(),
                         value: letter_char.to_string(),

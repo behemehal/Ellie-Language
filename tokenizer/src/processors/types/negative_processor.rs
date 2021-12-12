@@ -13,7 +13,7 @@ impl crate::processors::Processor for negative_type::Negative {
             if letter_char == '!' {
                 self.char_available = true;
             } else {
-                errors.push(error::errorList::error_s1.clone().build(
+                errors.push(error::error_list::ERROR_S1.clone().build(
                     vec![error::ErrorBuildField {
                         key: "token".to_string(),
                         value: letter_char.to_string(),

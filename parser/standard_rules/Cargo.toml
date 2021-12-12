@@ -1,0 +1,10 @@
+[package]
+name = "ellie_standard_rules"
+description = "Standard rules for ellie language"
+version = "0.1.0"
+edition = "2021"
+LICENSE="GPL-2.0"
+
+[dependencies]
+regex = "1"
+lazy_static = "1.4.0"

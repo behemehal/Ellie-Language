@@ -24,7 +24,7 @@ impl crate::processors::Processor for reference_type::ReferenceTypeCollector {
             self.data.chain[chain_len - 1].pos.range_end = cursor;
             self.data.chain[chain_len - 1].value += &letter_char.to_string();
         } else {
-            errors.push(error::errorList::error_s1.clone().build(
+            errors.push(error::error_list::ERROR_S1.clone().build(
                 vec![error::ErrorBuildField {
                     key: "token".to_string(),
                     value: letter_char.to_string(),

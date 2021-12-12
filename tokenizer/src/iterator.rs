@@ -21,13 +21,13 @@ pub struct Iterator {
 impl Iterator {
     pub fn finalize(&mut self) {
         if !self.active.is_complete() && self.active.current.is_initalized() {
-            self.errors.push(error::errorList::error_s26.clone().build(
+            self.errors.push(error::error_list::ERROR_S26.clone().build(
                 vec![],
                 "tok_0x23".to_owned(),
                 self.active.current.get_pos(),
             ));
         } else if self.multi_comment {
-            self.errors.push(error::errorList::error_s26.clone().build(
+            self.errors.push(error::error_list::ERROR_S26.clone().build(
                 vec![],
                 "ite_0x29".to_owned(),
                 self.comment_pos,
@@ -46,7 +46,7 @@ impl Iterator {
                 self.comment_start = false;
                 self.multi_comment = true;
             } else {
-                self.errors.push(error::errorList::error_s1.clone().build(
+                self.errors.push(error::error_list::ERROR_S1.clone().build(
                     vec![error::ErrorBuildField {
                         key: "token".to_string(),
                         value: letter_char.to_string(),
@@ -57,7 +57,10 @@ impl Iterator {
             }
         }
 
-        if (letter_char != '\n' && letter_char != '\r' || in_str_or_char) && !self.line_comment && !self.multi_comment {
+        if (letter_char != '\n' && letter_char != '\r' || in_str_or_char)
+            && !self.line_comment
+            && !self.multi_comment
+        {
             if !self.active.is_complete() {
                 if let items::Processors::GetterCall(e) = self.active.current.clone() {
                     if e.data.is_not_initialized() && (letter_char == '/' && !in_str_or_char) {
@@ -82,7 +85,7 @@ impl Iterator {
             if !self.active.is_complete() {
                 if let items::Processors::GetterCall(e) = self.active.current.clone() {
                     if !e.cache.current.is_not_initialized() {
-                        self.errors.push(error::errorList::error_s26.clone().build(
+                        self.errors.push(error::error_list::ERROR_S26.clone().build(
                             vec![],
                             "tok_0x68".to_owned(),
                             e.pos,
@@ -110,7 +113,7 @@ impl Iterator {
 
                 let collected_len = self.collected.len();
                 if collected_len == 0 {
-                    self.errors.push(error::errorList::error_s1.clone().build(
+                    self.errors.push(error::error_list::ERROR_S1.clone().build(
                         vec![error::ErrorBuildField {
                             key: "token".to_string(),
                             value: match last_chain.rtype {
@@ -152,7 +155,7 @@ impl Iterator {
                             }
                         }
                         crate::syntax::items::condition::ConditionType::Else => {
-                            self.errors.push(error::errorList::error_s1.clone().build(
+                            self.errors.push(error::error_list::ERROR_S1.clone().build(
                                 vec![error::ErrorBuildField {
                                     key: "token".to_string(),
                                     value: "else".to_string(),
@@ -163,7 +166,7 @@ impl Iterator {
                         }
                     }
                 } else {
-                    self.errors.push(error::errorList::error_s1.clone().build(
+                    self.errors.push(error::error_list::ERROR_S1.clone().build(
                         vec![error::ErrorBuildField {
                             key: "token".to_string(),
                             value: match last_chain.rtype {

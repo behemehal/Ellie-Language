@@ -24,6 +24,7 @@ pub struct GenericParameter {
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct ParentGenericType {
     pub rtype: String,
+    pub parent_pos: defs::Cursor,
     pub generics: Vec<GenericParameter>,
     pub hash: String,
 }
@@ -31,6 +32,7 @@ pub struct ParentGenericType {
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct GenericType {
     pub rtype: String,
+    pub pos: defs::Cursor,
     pub hash: String,
 }
 
@@ -53,6 +55,7 @@ pub struct CollectiveType {
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct NullableType {
+    pub pos: defs::Cursor,
     pub value: Box<DefinerCollecting>,
 }
 

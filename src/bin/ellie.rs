@@ -116,18 +116,84 @@ fn main() {
                         );
 
                         match pager.run() {
-                            Err(e) => panic!("Failed to tokenize: {:#?}", e),
+                            Err(e) => {
+                                cli_utils::print_errors(&e, |path| {
+                                    match cli_utils::read_file(&path) {
+                                        Ok(e) => e,
+                                        Err(err) => {
+                                            println!(
+                                                "Cannot read file '{}' {}[{}]{}",
+                                                path,
+                                                cli_utils::Colors::Red,
+                                                err,
+                                                cli_utils::Colors::Reset
+                                            );
+                                            std::process::exit(1);
+                                        }
+                                    }
+                                });
+                            }
                             Ok(e) => {
                                 let mut parser = parser::Parser::new(pager.pages.clone());
                                 parser.parse();
                                 //
-                                if parser.errors.is_empty() {
-                                    println!("Tokenize succes:\n{:#?}", parser.processed_pages);
-                                } else {
-                                    cli_utils::print_errors(parser.errors);
+
+                                if !parser.informations.has_no_warnings() {
+                                    cli_utils::print_warnings(
+                                        &parser.informations.warnings,
+                                        |path| match cli_utils::read_file(&path) {
+                                            Ok(e) => e,
+                                            Err(err) => {
+                                                println!(
+                                                    "Cannot read file '{}' {}[{}]{}",
+                                                    path,
+                                                    cli_utils::Colors::Red,
+                                                    err,
+                                                    cli_utils::Colors::Reset
+                                                );
+                                                std::process::exit(1);
+                                            }
+                                        },
+                                    );
                                 }
 
-                                println!("{:#?}", parser.pages);
+                                if parser.informations.has_no_errors() {
+                                    if env::args().any(|x| x == "-r") {
+                                        println!("Tokenize succes:\n{:#?}", parser.processed_pages);
+                                    } else {
+                                        println!("Tokenize succes");
+                                    }
+                                } else {
+                                    cli_utils::print_errors(&parser.informations.errors, |path| {
+                                        match cli_utils::read_file(&path) {
+                                            Ok(e) => e,
+                                            Err(err) => {
+                                                println!(
+                                                    "Cannot read file '{}' {}[{}]{}",
+                                                    path,
+                                                    cli_utils::Colors::Red,
+                                                    err,
+                                                    cli_utils::Colors::Reset
+                                                );
+                                                std::process::exit(1);
+                                            }
+                                        }
+                                    });
+                                    println!("\nCompiling {}failed{} with {}{} errors{} and {}{} warnings{}.",
+                                        cli_utils::Colors::Red,
+                                        cli_utils::Colors::Reset,
+                                        cli_utils::Colors::Red,
+                                        parser.informations.errors.len(),
+                                        cli_utils::Colors::Reset,
+                                        cli_utils::Colors::Yellow,
+                                        parser.informations.warnings.len(),
+                                        cli_utils::Colors::Reset,
+                                    );
+                                }
+
+                                if env::args().any(|x| x == "-r") {
+                                    println!("{:#?}", parser.pages);
+                                }
 
                                 let j = serde_json::to_string(&e).unwrap();
                                 fs::write("./tree.json", j).unwrap();

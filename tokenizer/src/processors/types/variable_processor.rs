@@ -14,7 +14,7 @@ impl crate::processors::Processor for variable_type::VariableTypeCollector {
     ) {
         if reliable_name_range(ReliableNameRanges::VariableName, letter_char).reliable {
             if last_char == ' ' && self.data.value != "" {
-                errors.push(error::errorList::error_s1.clone().build(
+                errors.push(error::error_list::ERROR_S1.clone().build(
                     vec![error::ErrorBuildField {
                         key: "token".to_string(),
                         value: letter_char.to_string(),
@@ -31,7 +31,7 @@ impl crate::processors::Processor for variable_type::VariableTypeCollector {
                 self.data.value += &letter_char.to_string();
             }
         } else if letter_char != ' ' {
-            errors.push(error::errorList::error_s1.clone().build(
+            errors.push(error::error_list::ERROR_S1.clone().build(
                 vec![error::ErrorBuildField {
                     key: "token".to_string(),
                     value: letter_char.to_string(),

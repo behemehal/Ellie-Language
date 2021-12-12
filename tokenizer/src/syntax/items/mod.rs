@@ -1,3 +1,4 @@
+pub mod class;
 pub mod condition;
 pub mod constructor;
 pub mod definers;
@@ -9,4 +10,3 @@ pub mod import;
 pub mod ret;
 pub mod setter_call;
 pub mod variable;
-pub mod class;

@@ -9,11 +9,14 @@ impl super::Processor for FileKey {
                 ellie_core::definite::items::Collecting::FileKey(self.to_definite()),
             );
         } else {
-            parser.errors.push(error::errorList::error_s9.clone().build(
-                vec![],
-                "pcls_0x14".to_owned(),
-                self.value_location,
-            ));
+            parser
+                .informations
+                .push(&error::error_list::ERROR_S9.clone().build_with_path(
+                    vec![],
+                    "pcls_0x14".to_owned(),
+                    parser.find_page(page_id).unwrap().path.clone(),
+                    self.value_location,
+                ));
         }
     }
 }

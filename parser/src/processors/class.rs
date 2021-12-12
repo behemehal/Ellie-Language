@@ -1,32 +1,65 @@
 use alloc::{borrow::ToOwned, vec, vec::Vec};
-use ellie_core::{
-    definite::{items::Collecting, types::ellie_char},
-    error,
-};
+use ellie_core::{definite::items::Collecting, error, warning};
 use ellie_tokenizer::syntax::items::class::Class;
 
 impl super::Processor for Class {
     fn process(self, parser: &mut super::Parser, page_id: u64) {
-        let duplicate = parser.deep_search(
-            page_id,
-            self.name.clone(),
-            Some(self.hash.clone()),
-            vec![],
-            0,
-        );
-        if duplicate.is_some() {
-            parser
-                .errors
-                .push(error::errorList::error_s24.clone().build(
+        let (duplicate, found) =
+            parser.is_duplicate(page_id, self.name.clone(), self.hash.clone(), self.pos);
+        if duplicate {
+            if let Some((page, cursor_pos)) = found {
+                let mut err = error::error_list::ERROR_S24.clone().build_with_path(
                     vec![error::ErrorBuildField {
                         key: "token".to_owned(),
                         value: self.name,
                     }],
-                    "pcls_0x14".to_owned(),
+                    "pcls_0x16".to_owned(),
+                    parser.find_page(page_id).unwrap().path.clone(),
                     self.name_pos,
-                ));
+                );
+                err.reference_block = Some((cursor_pos, page.path));
+                err.reference_message = "Prime is here".to_owned();
+                err.semi_assist = true;
+                parser.informations.push(&err);
+            } else {
+                parser
+                    .informations
+                    .push(&error::error_list::ERROR_S24.clone().build_with_path(
+                        vec![error::ErrorBuildField {
+                            key: "token".to_owned(),
+                            value: self.name,
+                        }],
+                        "pcls_0x31".to_owned(),
+                        parser.find_page(page_id).unwrap().path.clone(),
+                        self.name_pos,
+                    ))
+            }
         } else {
-            let page = parser.find_page(page_id).unwrap();
+            #[cfg(feature = "standard_rules")]
+            {
+                let (is_correct, fixed) =
+                    (ellie_standard_rules::rules::CLASS_NAMING_ISSUE.worker)(self.name.clone());
+                if !is_correct {
+                    parser
+                        .informations
+                        .push(&warning::warning_list::WARNING_S1.clone().build(
+                            vec![
+                                warning::WarningBuildField {
+                                    key: "current".to_owned(),
+                                    value: self.name.clone(),
+                                },
+                                warning::WarningBuildField {
+                                    key: "correct".to_owned(),
+                                    value: fixed,
+                                },
+                            ],
+                            parser.find_page(page_id).unwrap().path.clone(),
+                            self.name_pos,
+                        ))
+                }
+            }
+
+            let page = parser.find_page(page_id).unwrap().clone();
             let mut inner_dependencies = page.dependencies.clone();
             inner_dependencies.push(ellie_tokenizer::tokenizer::Dependency {
                 hash: page.hash.clone(),

@@ -103,6 +103,16 @@ impl Cursor {
         self.range_start.is_zero() && self.range_end.is_zero()
     }
 
+    pub fn is_bigger(&self, than: Cursor) -> bool {
+        if than.range_end.0 == self.range_end.0 {
+            self.range_end.1 > than.range_end.1
+        } else if than.range_end.0 > self.range_end.0 {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
     pub fn build_with_skip_char(range_start: CursorPosition) -> Self {
         Cursor {
             range_start,

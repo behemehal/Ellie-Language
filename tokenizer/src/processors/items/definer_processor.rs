@@ -117,7 +117,7 @@ impl crate::processors::Processor for DefinerCollector {
                 //it's a syntax error
                 if self.complete || letter_char != ']' {
                     //If brace is already put or char is not close brace
-                    errors.push(error::errorList::error_s1.clone().build(
+                    errors.push(error::error_list::ERROR_S1.clone().build(
                         vec![error::ErrorBuildField {
                             key: "token".to_string(),
                             value: letter_char.to_string(),
@@ -133,7 +133,7 @@ impl crate::processors::Processor for DefinerCollector {
             }
             DefinerTypes::Nullable(ref mut nullable_type) => {
                 if letter_char == ' ' && last_char == '?' {
-                    errors.push(error::errorList::error_s1.clone().build(
+                    errors.push(error::error_list::ERROR_S1.clone().build(
                         vec![error::ErrorBuildField {
                             key: "token".to_string(),
                             value: letter_char.to_string(),
@@ -153,8 +153,6 @@ impl crate::processors::Processor for DefinerCollector {
             DefinerTypes::ParentGeneric(ref mut parent_generic_type) => {
                 let len = parent_generic_type.generics.len();
                 if letter_char == ',' && parent_generic_type.cache.complete {
-                    parent_generic_type.generics[len - 1].pos =
-                        defs::Cursor::build_with_skip_char(cursor);
                     parent_generic_type.generics[len - 1].value =
                         parent_generic_type.cache.definer_type.clone();
                     parent_generic_type
@@ -163,8 +161,7 @@ impl crate::processors::Processor for DefinerCollector {
                     parent_generic_type.cache = Box::new(DefinerCollector::default());
                 } else if letter_char == '>' && parent_generic_type.cache.complete {
                     self.complete = true;
-                    parent_generic_type.generics[len - 1].pos =
-                        defs::Cursor::build_with_skip_char(cursor);
+                    parent_generic_type.pos.range_end = cursor.clone().skip_char(1);
                     parent_generic_type.generics[len - 1].value =
                         parent_generic_type.cache.definer_type.clone();
                     parent_generic_type.cache = Box::new(DefinerCollector::default());
@@ -177,6 +174,8 @@ impl crate::processors::Processor for DefinerCollector {
                     {
                         parent_generic_type.generics[len - 1].pos.range_start = cursor;
                     }
+                    parent_generic_type.generics[len - 1].pos.range_end =
+                        cursor.clone().skip_char(1);
                     parent_generic_type
                         .cache
                         .iterate(errors, cursor, last_char, letter_char);
@@ -186,7 +185,7 @@ impl crate::processors::Processor for DefinerCollector {
                 if utils::reliable_name_range(utils::ReliableNameRanges::Type, letter_char).reliable
                 {
                     if last_char == ' ' && generic_type.rtype != "" {
-                        errors.push(error::errorList::error_s1.clone().build(
+                        errors.push(error::error_list::ERROR_S1.clone().build(
                             vec![error::ErrorBuildField {
                                 key: "token".to_string(),
                                 value: letter_char.to_string(),
@@ -196,13 +195,16 @@ impl crate::processors::Processor for DefinerCollector {
                         ));
                     } else {
                         if generic_type.rtype.is_empty() {
+                            generic_type.pos.range_start = cursor;
                             self.complete = true;
                         }
+                        generic_type.pos.range_end = cursor.clone().skip_char(1);
                         generic_type.rtype += &letter_char.to_string();
                     }
                 } else {
                     if letter_char == '?' && generic_type.rtype.is_empty() {
                         self.definer_type = DefinerTypes::Nullable(NullableType {
+                            pos: defs::Cursor::build_with_skip_char(cursor),
                             rtype: Box::new(self.definer_type.clone()),
                             ..Default::default()
                         });
@@ -217,12 +219,14 @@ impl crate::processors::Processor for DefinerCollector {
                     } else if letter_char == '<' && !generic_type.rtype.is_empty() {
                         self.definer_type = DefinerTypes::ParentGeneric(ParentGenericType {
                             parent: generic_type.rtype.clone(),
+                            parent_pos: generic_type.pos.clone(),
+                            pos: generic_type.pos.clone(),
                             generics: vec![GenericParameter::default()],
                             ..Default::default()
                         });
                         self.complete = false;
                     } else if letter_char != ' ' {
-                        errors.push(error::errorList::error_s1.clone().build(
+                        errors.push(error::error_list::ERROR_S1.clone().build(
                             vec![error::ErrorBuildField {
                                 key: "token".to_string(),
                                 value: letter_char.to_string(),
@@ -292,7 +296,7 @@ impl crate::processors::Processor for DefinerCollector {
                         if letter_char == '(' {
                             function_type.brace_stared = true;
                         } else {
-                            errors.push(error::errorList::error_s1.clone().build(
+                            errors.push(error::error_list::ERROR_S1.clone().build(
                                 vec![error::ErrorBuildField {
                                     key: "token".to_string(),
                                     value: letter_char.to_string(),
@@ -309,7 +313,7 @@ impl crate::processors::Processor for DefinerCollector {
                             function_type.return_char_typed = true;
                             function_type.returning = Box::new(DefinerTypes::default());
                         } else {
-                            errors.push(error::errorList::error_s1.clone().build(
+                            errors.push(error::error_list::ERROR_S1.clone().build(
                                 vec![error::ErrorBuildField {
                                     key: "token".to_string(),
                                     value: letter_char.to_string(),

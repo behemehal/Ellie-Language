@@ -1,6 +1,6 @@
-use alloc::borrow::ToOwned;
 use alloc::vec;
 use alloc::vec::Vec;
+use alloc::{borrow::ToOwned, string::String};
 use ellie_core::{definite::types, error};
 use ellie_tokenizer::processors::types::Processors;
 
@@ -8,37 +8,46 @@ pub fn process(
     from: Processors,
     parser: &mut super::Parser,
     page_id: u64,
+    ignore_hash: Option<String>,
 ) -> Result<types::Types, Vec<error::Error>> {
     let mut errors = Vec::new();
     match from.clone() {
         Processors::Variable(variable) => {
-            match parser.deep_search(page_id, variable.data.value.clone(), None, Vec::new(), 0) {
-                Some(e) => match e {
-                    crate::parser::DeepSearchResult::Class(_) => todo!(),
-                    crate::parser::DeepSearchResult::Variable(e) => {
+            let deep_search_result = parser.deep_search(
+                page_id,
+                variable.data.value.clone(),
+                ignore_hash,
+                Vec::new(),
+                0,
+            );
+
+            if deep_search_result.found {
+                match deep_search_result.found_item {
+                    crate::parser::DeepSearchItems::Class(_) => todo!(),
+                    crate::parser::DeepSearchItems::Variable(e) => {
                         Ok(types::Types::VariableType(types::variable::VariableType {
                             value: e.name,
                             reference: e.hash,
                             pos: from.get_pos(),
                         }))
                     }
-                    crate::parser::DeepSearchResult::Function(_) => todo!(),
-                    crate::parser::DeepSearchResult::ImportReference(_) => todo!(),
-                    crate::parser::DeepSearchResult::BrokenPageGraph => todo!(),
-                    crate::parser::DeepSearchResult::MixUp(_) => todo!(),
-                    crate::parser::DeepSearchResult::None => todo!(),
-                },
-                None => {
-                    errors.push(error::errorList::error_s6.clone().build(
-                        vec![error::ErrorBuildField {
-                            key: "token".to_owned(),
-                            value: variable.data.value,
-                        }],
-                        "ptyp_0x14".to_owned(),
-                        from.get_pos(),
-                    ));
-                    Err(errors)
+                    crate::parser::DeepSearchItems::Function(_) => todo!(),
+                    crate::parser::DeepSearchItems::ImportReference(_) => todo!(),
+                    crate::parser::DeepSearchItems::BrokenPageGraph => todo!(),
+                    crate::parser::DeepSearchItems::MixUp(_) => todo!(),
+                    crate::parser::DeepSearchItems::None => todo!(),
                 }
+            } else {
+                errors.push(error::error_list::ERROR_S6.clone().build_with_path(
+                    vec![error::ErrorBuildField {
+                        key: "token".to_owned(),
+                        value: variable.data.value,
+                    }],
+                    "ptyp_0x14".to_owned(),
+                    parser.find_page(page_id).unwrap().path.clone(),
+                    from.get_pos(),
+                ));
+                Err(errors)
             }
         }
         Processors::Negative(_) => todo!(),

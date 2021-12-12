@@ -59,7 +59,7 @@ pub fn generate_hash() -> String {
 
 pub enum ReliableNameRanges {
     VariableName,
-    Type
+    Type,
 }
 
 pub fn reliable_name_range(range: ReliableNameRanges, value: char) -> ReliableNameRangeResponse {

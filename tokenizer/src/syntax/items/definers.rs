@@ -45,6 +45,7 @@ pub struct FutureType {
 #[derive(Default, Clone, Debug, Serialize, Deserialize)]
 pub struct NullableType {
     pub rtype: Box<DefinerTypes>,
+    pub pos: defs::Cursor,
     pub child_cache: Box<DefinerCollector>,
 }
 
@@ -57,12 +58,15 @@ pub struct GenericParameter {
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct ParentGenericType {
     pub parent: String,
+    pub parent_pos: defs::Cursor,
+    pub pos: defs::Cursor,
     pub generics: Vec<GenericParameter>,
     pub cache: Box<DefinerCollector>,
 }
 
 #[derive(Default, Clone, Debug, Serialize, Deserialize)]
 pub struct GenericType {
+    pub pos: defs::Cursor,
     pub rtype: String,
 }
 
@@ -125,12 +129,14 @@ impl definite::Converter<DefinerTypes, definite::definers::DefinerCollecting> fo
             DefinerTypes::Nullable(e) => {
                 definite::definers::DefinerCollecting::Nullable(definite::definers::NullableType {
                     value: Box::new(e.rtype.to_definite()),
+                    pos: e.pos,
                 })
             }
             DefinerTypes::Generic(e) => {
                 definite::definers::DefinerCollecting::Generic(definite::definers::GenericType {
                     rtype: e.rtype,
                     hash: String::new(),
+                    pos: e.pos,
                 })
             }
             DefinerTypes::Function(e) => {
@@ -152,6 +158,7 @@ impl definite::Converter<DefinerTypes, definite::definers::DefinerCollecting> fo
                             pos: x.pos,
                         })
                         .collect(),
+                    parent_pos: e.parent_pos,
                 },
             ),
         }
@@ -168,7 +175,10 @@ impl definite::Converter<DefinerTypes, definite::definers::DefinerCollecting> fo
                 rtype: Box::new(DefinerTypes::default().from_definite(*e.rtype)),
             }),
             definite::definers::DefinerCollecting::Generic(e) => {
-                DefinerTypes::Generic(GenericType { rtype: e.rtype })
+                DefinerTypes::Generic(GenericType {
+                    rtype: e.rtype,
+                    pos: e.pos,
+                })
             }
             definite::definers::DefinerCollecting::Function(e) => {
                 DefinerTypes::Function(FunctionType {

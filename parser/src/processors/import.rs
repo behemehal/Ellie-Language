@@ -5,20 +5,29 @@ use ellie_tokenizer::syntax::items::import::Import;
 impl super::Processor for Import {
     fn process(self, parser: &mut super::Parser, page_id: u64) {
         let duplicate = if self.reference == "" {
-            None
+            false
         } else {
-            parser.deep_search(page_id, self.reference.clone(), Some(self.hash.clone()), vec![], 0)
+            parser
+                .deep_search(
+                    page_id,
+                    self.reference.clone(),
+                    Some(self.hash.clone()),
+                    vec![],
+                    0,
+                )
+                .found
         };
 
-        if duplicate.is_some() {
+        if duplicate {
             parser
-                .errors
-                .push(error::errorList::error_s24.clone().build(
+                .informations
+                .push(&error::error_list::ERROR_S24.clone().build_with_path(
                     vec![error::ErrorBuildField {
                         key: "token".to_owned(),
                         value: self.reference,
                     }],
-                    "pimp_0x14".to_owned(),
+                    "imp_0x14".to_owned(),
+                    parser.find_page(page_id).unwrap().path.clone(),
                     self.reference_pos,
                 ));
         } else {

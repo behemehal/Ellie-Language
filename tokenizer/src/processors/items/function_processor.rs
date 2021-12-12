@@ -16,7 +16,7 @@ impl crate::processors::Processor for function::FunctionCollector {
                 if self.data.name == "" {
                     self.data.name_pos.range_start = cursor;
                 } else if last_char == ' ' {
-                    errors.push(error::errorList::error_s1.clone().build(
+                    errors.push(error::error_list::ERROR_S1.clone().build(
                         vec![error::ErrorBuildField {
                             key: "token".to_string(),
                             value: letter_char.to_string(),
@@ -30,7 +30,7 @@ impl crate::processors::Processor for function::FunctionCollector {
             } else if letter_char == '(' && self.data.name != "" {
                 self.name_collected = true;
             } else if letter_char != ' ' {
-                errors.push(error::errorList::error_s1.clone().build(
+                errors.push(error::error_list::ERROR_S1.clone().build(
                     vec![error::ErrorBuildField {
                         key: "token".to_string(),
                         value: letter_char.to_string(),
@@ -87,7 +87,7 @@ impl crate::processors::Processor for function::FunctionCollector {
                     self.key_collected = true;
                     self.parameters_collected = true;
                 } else if letter_char != ' ' {
-                    errors.push(error::errorList::error_s1.clone().build(
+                    errors.push(error::error_list::ERROR_S1.clone().build(
                         vec![error::ErrorBuildField {
                             key: "token".to_string(),
                             value: letter_char.to_string(),
@@ -126,7 +126,7 @@ impl crate::processors::Processor for function::FunctionCollector {
                 self.return_collected = true;
                 self.complete = true;
             } else if letter_char != ' ' {
-                errors.push(error::errorList::error_s1.clone().build(
+                errors.push(error::error_list::ERROR_S1.clone().build(
                     vec![error::ErrorBuildField {
                         key: "token".to_string(),
                         value: letter_char.to_string(),
@@ -150,6 +150,7 @@ impl crate::processors::Processor for function::FunctionCollector {
             }
         } else if letter_char == '}' && self.brace_count == 0 {
             self.complete = true;
+            self.data.pos.range_end = cursor.clone().skip_char(1);
             self.data.hash = ellie_core::utils::generate_hash();
             self.iterator.finalize();
             errors.extend(self.iterator.errors.clone());

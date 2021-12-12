@@ -4,7 +4,6 @@ version_code = "BeautifulTropicalFish"
 version = "0.1.0"
 authors = ["Ahmetcan Aksu <ahmetcanaksu@behemehal.net>"]
 edition = "2021"
-license = "GPL-2.0"
 license-file = "LICENSE"
 default-run = "ellie"
 
@@ -19,11 +18,15 @@ regex = { version = "1.1.7", optional = true }
 ellie_core = {path = "core", version = "0.1.0"}
 ellie_tokenizer = {path = "tokenizer", version = "0.1.0", default-features = false}
 ellie_parser = {path = "parser", version = "0.1.0", default-features = false}
+ellie_assist = {path = "EllieAssist", version = "0.1.0", optional = true}
 #ellie_runtime = {path = "runtime", version = "0.1.0" }
 
 [features]
-default = ["build-cli"]
+default = ["build-cli", "ellie_assist", "standard_rules"]
 build-cli = ["path-absolutize", "websocket", "regex"]
+ellie_asist = ["ellie_assist"]
+standard_rules =  ["ellie_parser/standard_rules"]
+
 
 [[bin]]
 name = "ellie"

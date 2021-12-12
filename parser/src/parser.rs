@@ -1,7 +1,7 @@
 use crate::processors::Processor;
 use alloc::vec::Vec;
 use alloc::{string::String, vec};
-use ellie_core::error;
+use ellie_core::{defs, information};
 use ellie_tokenizer::processors::items::Processors;
 use ellie_tokenizer::tokenizer::{Dependency, Page};
 use serde::{Deserialize, Serialize};
@@ -20,11 +20,18 @@ pub struct Parser {
     pub pages: Vec<Page>,
     pub processed_pages: Vec<ProcessedPage>,
     pub active_page: usize,
-    pub errors: Vec<error::Error>,
+    pub informations: information::Informations,
 }
 
 #[derive(Debug, Clone)]
-pub enum DeepSearchResult {
+pub struct DeepSearchResult {
+    pub found: bool,
+    pub found_item: DeepSearchItems,
+    pub found_page: Page,
+}
+
+#[derive(Debug, Clone)]
+pub enum DeepSearchItems {
     Class(ellie_tokenizer::syntax::items::class::Class),
     Variable(ellie_tokenizer::syntax::items::variable::Variable),
     Function(ellie_tokenizer::syntax::items::function::Function),
@@ -32,6 +39,18 @@ pub enum DeepSearchResult {
     BrokenPageGraph,
     MixUp(Vec<(String, String)>),
     None,
+}
+
+impl DeepSearchItems {
+    pub fn get_pos(&self) -> defs::Cursor {
+        match self {
+            DeepSearchItems::Class(e) => e.pos,
+            DeepSearchItems::Variable(e) => e.pos,
+            DeepSearchItems::Function(e) => e.pos,
+            DeepSearchItems::ImportReference(e) => e.pos,
+            _ => defs::Cursor::default(),
+        }
+    }
 }
 
 trait DeepSearch {
@@ -44,7 +63,31 @@ impl Parser {
             pages: pages,
             processed_pages: vec![],
             active_page: 0,
-            errors: vec![],
+            informations: information::Informations::new(),
+        }
+    }
+
+    pub fn is_duplicate(
+        &self,
+        page_id: u64,
+        name: String,
+        hash: String,
+        pos: defs::Cursor,
+    ) -> (bool, Option<(Page, defs::Cursor)>) {
+        let deep_search = self.deep_search(page_id, name, Some(hash), vec![], 0);
+
+        if deep_search.found {
+            match deep_search.found_item {
+                DeepSearchItems::BrokenPageGraph => (false, None),
+                DeepSearchItems::MixUp(_) => (true, None),
+                DeepSearchItems::None => (false, None),
+                e => (
+                    pos.is_bigger(e.get_pos()),
+                    Some((deep_search.found_page, e.get_pos())),
+                ),
+            }
+        } else {
+            (false, None)
         }
     }
 
@@ -55,9 +98,10 @@ impl Parser {
         ignore_hash: Option<String>,
         searched: Vec<u64>,
         level: u32,
-    ) -> Option<DeepSearchResult> {
+    ) -> DeepSearchResult {
         let mut found = false;
-        let mut found_type = DeepSearchResult::None;
+        let mut found_type = DeepSearchItems::None;
+        let mut found_page = Page::default();
         let has_mixup = false;
         let mut searched: Vec<u64> = searched;
         let mixup_hashes: Vec<(String, String)> = Vec::new();
@@ -70,11 +114,11 @@ impl Parser {
             'pages: for (_, dep) in self_dependendencies.clone().iter().enumerate() {
                 searched.push(target_page);
                 match self.find_page(dep.hash) {
-                    Some(e) => {
-                        if e.hash == target_page {
-                            self_dependendencies.extend(e.dependencies.clone());
+                    Some(page) => {
+                        if page.hash == target_page {
+                            self_dependendencies.extend(page.dependencies.clone());
                         }
-                        for item in e.items.iter() {
+                        for item in page.items.iter() {
                             match item.clone() {
                                 Processors::Variable(e) => {
                                     if e.data.name == name
@@ -83,7 +127,8 @@ impl Parser {
                                             || matches!(ignore_hash, Some(ref t) if &e.data.hash != t))
                                     {
                                         found = true;
-                                        found_type = DeepSearchResult::Variable(e.data);
+                                        found_page = page.clone();
+                                        found_type = DeepSearchItems::Variable(e.data);
                                     }
                                 }
                                 Processors::Function(e) => {
@@ -93,7 +138,8 @@ impl Parser {
                                             || matches!(ignore_hash, Some(ref t) if &e.data.hash != t))
                                     {
                                         found = true;
-                                        found_type = DeepSearchResult::Function(e.data);
+                                        found_page = page.clone();
+                                        found_type = DeepSearchItems::Function(e.data);
                                     }
                                 }
                                 Processors::Import(e) => {
@@ -104,9 +150,10 @@ impl Parser {
                                             || matches!(ignore_hash, Some(ref t) if &e.hash != t))
                                     {
                                         found = true;
-                                        found_type = DeepSearchResult::ImportReference(e);
+                                        found_page = page.clone();
+                                        found_type = DeepSearchItems::ImportReference(e);
                                     } else {
-                                        match self.deep_search(
+                                        let deep_search_result = self.deep_search(
                                             e.hash.parse::<u64>().unwrap_or_else(|_| {
                                                 panic!("Import's hash is not valid")
                                             }),
@@ -114,13 +161,10 @@ impl Parser {
                                             None,
                                             searched.clone(),
                                             level + 1,
-                                        ) {
-                                            Some(found_result) => {
-                                                found = true;
-                                                found_type = found_result;
-                                            }
-                                            None => found = false,
-                                        }
+                                        );
+
+                                        found = deep_search_result.found;
+                                        found_type = deep_search_result.found_item;
                                     }
                                 }
                                 Processors::Class(e) => {
@@ -130,7 +174,8 @@ impl Parser {
                                             || matches!(ignore_hash, Some(ref t) if &e.hash != t))
                                     {
                                         found = true;
-                                        found_type = DeepSearchResult::Class(e);
+                                        found_page = page.clone();
+                                        found_type = DeepSearchItems::Class(e);
                                     }
                                 }
                                 _ => (),
@@ -139,7 +184,7 @@ impl Parser {
                     }
                     None => {
                         found = true;
-                        found_type = DeepSearchResult::BrokenPageGraph;
+                        found_type = DeepSearchItems::BrokenPageGraph;
                         break 'pages;
                     }
                 }
@@ -147,11 +192,23 @@ impl Parser {
         }
 
         if has_mixup {
-            Some(DeepSearchResult::MixUp(mixup_hashes))
+            DeepSearchResult {
+                found: true,
+                found_item: DeepSearchItems::MixUp(mixup_hashes),
+                found_page,
+            }
         } else if found {
-            Some(found_type)
+            DeepSearchResult {
+                found: true,
+                found_item: found_type,
+                found_page,
+            }
         } else {
-            None
+            DeepSearchResult {
+                found: false,
+                found_item: DeepSearchItems::None,
+                found_page,
+            }
         }
     }
 

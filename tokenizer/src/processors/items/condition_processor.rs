@@ -49,7 +49,7 @@ impl crate::processors::Processor for condition::Condition {
                                 chain.keyword_captured = true;
                                 chain.rtype = condition::ConditionType::Else;
                             } else if e.data.value.len() != 0 {
-                                errors.push(error::errorList::error_s1.clone().build(
+                                errors.push(error::error_list::ERROR_S1.clone().build(
                                     vec![error::ErrorBuildField {
                                         key: "token".to_string(),
                                         value: letter_char.to_string(),
@@ -60,7 +60,7 @@ impl crate::processors::Processor for condition::Condition {
                             }
                         }
                         e => {
-                            errors.push(error::errorList::error_s1.clone().build(
+                            errors.push(error::error_list::ERROR_S1.clone().build(
                                 vec![error::ErrorBuildField {
                                     key: "token".to_string(),
                                     value: letter_char.to_string(),

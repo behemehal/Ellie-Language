@@ -6,9 +6,12 @@
 #![allow(unknown_lints)]
 #![warn(clippy::all)]
 
+#[cfg(feature = "standard_rules")]
+extern crate ellie_standard_rules;
+
+extern crate alloc;
 #[cfg(feature = "std")]
 extern crate std;
-extern crate alloc;
 
 pub mod parser;
 pub mod processors;

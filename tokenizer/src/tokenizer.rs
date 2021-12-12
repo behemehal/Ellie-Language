@@ -177,21 +177,21 @@ where
                         }
                     } else {
                         if resolved.resolve_error == "" {
-                            errors.push(error::errorList::error_s28.clone().build(
+                            errors.push(error::error_list::ERROR_S28.clone().build(
                                 vec![error::ErrorBuildField {
                                     key: "token".to_owned(),
                                     value: import.path.clone(),
                                 }],
-                                "cond_0x57".to_owned(),
+                                "tok_0x185".to_owned(),
                                 import.pos,
                             ));
                         } else {
-                            errors.push(error::errorList::error_s32.clone().build(
+                            errors.push(error::error_list::ERROR_S32.clone().build(
                                 vec![error::ErrorBuildField {
                                     key: "token".to_owned(),
                                     value: resolved.resolve_error,
                                 }],
-                                "tok_0x118".to_owned(),
+                                "tok_0x194".to_owned(),
                                 import.pos,
                             ));
                         }

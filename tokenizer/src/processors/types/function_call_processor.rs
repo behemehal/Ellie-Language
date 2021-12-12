@@ -13,7 +13,7 @@ impl crate::processors::Processor for function_call_type::FunctionCallCollector 
             if letter_char == '(' {
                 self.param_started = true;
             } else if letter_char != ' ' {
-                errors.push(error::errorList::error_s1.clone().build(
+                errors.push(error::error_list::ERROR_S1.clone().build(
                     vec![error::ErrorBuildField {
                         key: "val".to_owned(),
                         value: letter_char.to_string(),
@@ -53,7 +53,7 @@ impl crate::processors::Processor for function_call_type::FunctionCallCollector 
                 }
             }
         } else if letter_char != ' ' {
-            errors.push(error::errorList::error_s1.clone().build(
+            errors.push(error::error_list::ERROR_S1.clone().build(
                 vec![error::ErrorBuildField {
                     key: "token".to_owned(),
                     value: letter_char.to_string(),

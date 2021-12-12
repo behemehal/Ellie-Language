@@ -14,7 +14,7 @@ impl crate::processors::Processor for string_type::StringTypeCollector {
                 self.comma_started = true;
                 self.data.pos.range_start = cursor;
             } else if letter_char != ' ' {
-                errors.push(error::errorList::error_s1.clone().build(
+                errors.push(error::error_list::ERROR_S1.clone().build(
                     vec![error::ErrorBuildField {
                         key: "token".to_string(),
                         value: letter_char.to_string(),
@@ -29,7 +29,7 @@ impl crate::processors::Processor for string_type::StringTypeCollector {
                 self.data.pos.range_end = cursor.clone().skip_char(1);
             } else {
                 if last_char == '\\' && !is_escape(letter_char) {
-                    errors.push(error::errorList::error_s1.clone().build(
+                    errors.push(error::error_list::ERROR_S1.clone().build(
                         vec![error::ErrorBuildField {
                             key: "token".to_string(),
                             value: letter_char.to_string(),
