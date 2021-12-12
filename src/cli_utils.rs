@@ -191,9 +191,9 @@ pub fn hash_warning(warning: &warning::Warning) -> String {
 pub fn print_warnings(warnings: &Vec<warning::Warning>, file_reader: fn(String) -> String) {
     for warning in warnings {
         println!(
-            "\n{}Warning[{:#04x}]{}: {}{}{}\n",
+            "\n{}Warning[{}]{}: {}{}{}\n",
             Colors::Yellow,
-            warning.code,
+            warning.title,
             Colors::Reset,
             Colors::Cyan,
             warning.builded_message.builded,
@@ -242,29 +242,45 @@ pub fn print_warnings(warnings: &Vec<warning::Warning>, file_reader: fn(String) 
         );
 
         if warning.full_assist || warning.semi_assist {
-            println!(
-                "{}{}[{}]{}: {} assistment available type '{}ellie{} {}--show-me-something{} {}{}{}' for request assist",
-                generate_blank(line_space - 1),
-                Colors::Yellow,
-                if warning.semi_assist {
-                    "◆"
-                } else {
-                    "✓"
-                },
-                Colors::Reset,
-                if warning.semi_assist {
-                    "Semi"
-                } else {
-                    "Full"
-                },
-                Colors::Green,
-                Colors::Reset,
-                Colors::Yellow,
-                Colors::Reset,
-                Colors::Green,
-                hash_warning(&warning),
-                Colors::Reset,
-            );
+            if cfg!(feature = "ellie_assist") {
+                println!(
+                    "{}{}[{}]{}: {} assistment available type '{}ellie{} {}--show-me-something{} {}{}{}' for request assist",
+                    generate_blank(line_space - 1),
+                    Colors::Yellow,
+                    if warning.semi_assist {
+                        "◆"
+                    } else {
+                        "✓"
+                    },
+                    Colors::Reset,
+                    if warning.semi_assist {
+                        "Semi"
+                    } else {
+                        "Full"
+                    },
+                    Colors::Green,
+                    Colors::Reset,
+                    Colors::Yellow,
+                    Colors::Reset,
+                    Colors::Green,
+                    hash_warning(&warning),
+                    Colors::Reset,
+                );
+            } else {
+                println!(
+                    "{}{}[x]{}: {} assistment available but {}ellie_assist{} feature is not enabled",
+                    generate_blank(line_space - 1),
+                    Colors::Yellow,
+                    Colors::Reset,
+                    if warning.semi_assist {
+                        "Semi"
+                    } else {
+                        "Full"
+                    },
+                    Colors::Red,
+                    Colors::Reset,
+                );
+            }
         }
     }
 }
