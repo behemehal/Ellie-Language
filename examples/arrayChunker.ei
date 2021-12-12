@@ -2,14 +2,14 @@
 //[1, 2, 3, 4, 5, 6, 7, 8, 9] > [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
 
 class Chunker<T> {
-    co Chunker(chunkCount, items);
+    co(chunkCount, items);
     pri v chunkCount : int;
-    pri v items : dynamicArray(T); //This is a dynamic array
-    fn chunks() > array(array(T)) {
-        v chunks : dynamicArray(dynamicArray(T));
-        v temp : dynamicArray(T);
+    pri v items : [T, *]; //This is a dynamic array
+    fn chunks() > [[T, *], *) {
+        v chunks : [[T, *], *];
+        v temp : [T, this.chunkCount];
         //iter 0 to given items length, write to variable i
-        foreach (i, 0, this.items.len) {
+        for i : this.items.len {
             if temp.len == this.chunkCount { //if we reached given cut size
                 chunks.push(tempList); //Push chunk to main array
                 tempList.empty(); //Clear temp array
@@ -26,7 +26,7 @@ class Chunker<T> {
 }
 
 //Usage:
-v categories : dynamicArray(int) = [
+v categories : [int, *] = [
      1,
      2,
      3,
@@ -38,5 +38,5 @@ v categories : dynamicArray(int) = [
      9
 ];
 
-v chunker: Chunker = new Chunker(3, categories);
-v chunked : dynamicArray(dynamicArray(int)) = chunker.chunks();
+v chunker = new Chunker(3, categories);
+v chunked = chunker.chunks();
