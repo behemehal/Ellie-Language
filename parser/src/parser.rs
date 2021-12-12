@@ -36,6 +36,8 @@ pub enum DeepSearchItems {
     Variable(ellie_tokenizer::syntax::items::variable::Variable),
     Function(ellie_tokenizer::syntax::items::function::Function),
     ImportReference(ellie_tokenizer::syntax::items::import::Import),
+    SelfItem(ellie_tokenizer::syntax::items::self_item::SelfItem),
+    GenericItem(ellie_tokenizer::syntax::items::generic_item::GenericItem),
     BrokenPageGraph,
     MixUp(Vec<(String, String)>),
     None,
@@ -67,6 +69,29 @@ impl Parser {
         }
     }
 
+    pub fn page_has_file_key_with(&self, page_id: u64, key: &str, value: &str) -> bool {
+        let mut found = false;
+        match self.find_page(page_id) {
+            Some(e) => {
+                for file in e.items.iter() {
+                    match file {
+                        Processors::FileKey(e) => {
+                            if e.key_name == key
+                                && matches!(&e.value, ellie_tokenizer::processors::types::Processors::String(e) if e.data.value == value)
+                            {
+                                found = true;
+                                break;
+                            }
+                        }
+                        _ => (),
+                    }
+                }
+            }
+            None => (),
+        }
+        found
+    }
+
     pub fn is_duplicate(
         &self,
         page_id: u64,
@@ -81,6 +106,8 @@ impl Parser {
                 DeepSearchItems::BrokenPageGraph => (false, None),
                 DeepSearchItems::MixUp(_) => (true, None),
                 DeepSearchItems::None => (false, None),
+                DeepSearchItems::SelfItem(_) => (false, None),
+                DeepSearchItems::GenericItem(_) => (false, None),
                 e => (
                     pos.is_bigger(e.get_pos()),
                     Some((deep_search.found_page, e.get_pos())),
@@ -178,6 +205,20 @@ impl Parser {
                                         found_type = DeepSearchItems::Class(e);
                                     }
                                 }
+                                Processors::GenericItem(e) => {
+                                    if e.generic_name == name && (level == 0 || level == 1) {
+                                        found = true;
+                                        found_page = page.clone();
+                                        found_type = DeepSearchItems::GenericItem(e);
+                                    }
+                                }
+                                Processors::SelfItem(e) => {
+                                    if "self" == name && (level == 0 || level == 1) {
+                                        found = true;
+                                        found_page = page.clone();
+                                        found_type = DeepSearchItems::SelfItem(e);
+                                    }
+                                }
                                 _ => (),
                             }
                         }
@@ -221,6 +262,8 @@ impl Parser {
     }
 
     pub fn process_page(&mut self, hash: u64) {
+        #[cfg(feature = "std")]
+        std::println!("Processing page {}", hash);
         let page = self
             .find_page(hash)
             .unwrap_or_else(|| panic!("Page not found"))
@@ -236,24 +279,25 @@ impl Parser {
                     dependents: vec![],
                     dependencies: vec![],
                 });
+                for item in page.items.clone() {
+                    match item {
+                        Processors::Variable(e) => e.process(self, page.hash),
+                        Processors::GetterCall(_) => todo!(),
+                        Processors::SetterCall(_) => todo!(),
+                        Processors::Function(_) => todo!(),
+                        Processors::FileKey(e) => e.process(self, page.hash),
+                        Processors::Import(e) => e.process(self, page.hash),
+                        Processors::ForLoop(_) => todo!(),
+                        Processors::Condition(_) => todo!(),
+                        Processors::Constructor(_) => todo!(),
+                        Processors::Class(e) => e.process(self, page.hash),
+                        Processors::Ret(_) => todo!(),
+                        Processors::SelfItem(_) => (),
+                        Processors::GenericItem(_) => (),
+                    }
+                }
             }
             _ => (),
-        }
-
-        for item in page.items.clone() {
-            match item {
-                Processors::Variable(e) => e.process(self, page.hash),
-                Processors::GetterCall(_) => todo!(),
-                Processors::SetterCall(_) => todo!(),
-                Processors::Function(_) => todo!(),
-                Processors::FileKey(e) => e.process(self, page.hash),
-                Processors::Import(e) => e.process(self, page.hash),
-                Processors::ForLoop(_) => todo!(),
-                Processors::Condition(_) => todo!(),
-                Processors::Constructor(_) => todo!(),
-                Processors::Class(e) => e.process(self, page.hash),
-                Processors::Ret(_) => todo!(),
-            }
         }
     }
 

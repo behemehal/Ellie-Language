@@ -1,4 +1,5 @@
 use alloc::boxed::Box;
+use alloc::format;
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 use alloc::{borrow::ToOwned, vec};
@@ -168,6 +169,13 @@ pub fn process(
                             parser.find_page(page_id).unwrap().path.clone(),
                             generic.pos,
                         ));
+                    }
+                    crate::parser::DeepSearchItems::GenericItem(generic) => {
+                        found = DefinerCollecting::Generic(definers::GenericType {
+                            rtype: generic.generic_name.clone(),
+                            hash: format!("<virtual={}>", generic.generic_name),
+                            pos: generic.pos,
+                        });
                     }
                     _ => {
                         errors.push(error::error_list::ERROR_S45.clone().build_with_path(

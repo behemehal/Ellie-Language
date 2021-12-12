@@ -36,6 +36,8 @@ pub fn process(
                     crate::parser::DeepSearchItems::BrokenPageGraph => todo!(),
                     crate::parser::DeepSearchItems::MixUp(_) => todo!(),
                     crate::parser::DeepSearchItems::None => todo!(),
+                    crate::parser::DeepSearchItems::SelfItem(_) => todo!(),
+                    crate::parser::DeepSearchItems::GenericItem(_) => todo!(),
                 }
             } else {
                 errors.push(error::error_list::ERROR_S6.clone().build_with_path(

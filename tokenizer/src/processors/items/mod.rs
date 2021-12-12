@@ -32,6 +32,9 @@ pub enum Processors {
     Constructor(constructor::Constructor),
     Class(class::Class),
     Ret(ret::Ret),
+
+    SelfItem(self_item::SelfItem),          //VirtualValues
+    GenericItem(generic_item::GenericItem), //VirtualValues
 }
 
 impl Processors {
@@ -50,12 +53,16 @@ impl Processors {
             Processors::Constructor(e) => e.complete,
             Processors::Ret(e) => e.complete,
             Processors::Class(e) => e.complete,
+            Processors::SelfItem(_) => panic!("Unexpected behaviour"),
+            Processors::GenericItem(_) => panic!("Unexpected behaviour"),
         }
     }
 
     pub fn is_initalized(&self) -> bool {
         match self.clone() {
             Processors::GetterCall(e) => !e.data.is_not_initialized(),
+            Processors::SelfItem(_) => panic!("Unexpected behaviour"),
+            Processors::GenericItem(_) => panic!("Unexpected behaviour"),
             _ => true,
         }
     }
@@ -73,6 +80,8 @@ impl Processors {
             Processors::Constructor(e) => e.pos,
             Processors::Ret(e) => e.pos,
             Processors::Class(e) => e.pos,
+            Processors::SelfItem(_) => panic!("Unexpected behaviour"),
+            Processors::GenericItem(_) => panic!("Unexpected behaviour"),
         }
     }
 
@@ -89,6 +98,9 @@ impl Processors {
             Processors::Constructor(e) => Collecting::Constructor(e.to_definite()),
             Processors::Class(e) => Collecting::Class(e.to_definite()),
             Processors::Ret(e) => Collecting::Ret(e.to_definite()),
+
+            Processors::SelfItem(_) => panic!("Unexpected behaviour"),
+            Processors::GenericItem(_) => panic!("Unexpected behaviour"),
         }
     }
 
@@ -317,6 +329,8 @@ impl super::Processor for ItemProcessor {
             Processors::Constructor(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::Ret(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::Class(e) => e.iterate(errors, cursor, last_char, letter_char),
+            Processors::SelfItem(_) => panic!("Unexpected behaviour"),
+            Processors::GenericItem(_) => panic!("Unexpected behaviour"),
         }
     }
 }

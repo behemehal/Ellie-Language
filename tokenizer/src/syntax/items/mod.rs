@@ -10,3 +10,6 @@ pub mod import;
 pub mod ret;
 pub mod setter_call;
 pub mod variable;
+
+pub mod generic_item;
+pub mod self_item; //Virtual //Virtual

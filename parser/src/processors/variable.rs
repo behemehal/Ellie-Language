@@ -7,15 +7,6 @@ use ellie_tokenizer::syntax::items::variable::VariableCollector;
 
 impl super::Processor for VariableCollector {
     fn process(self, parser: &mut super::Parser, page_id: u64) {
-        /*
-        let duplicate = parser.deep_search(
-            page_id,
-            self.data.name.clone(),
-            Some(self.data.hash.clone()),
-            vec![],
-            0,
-        );
-        */
         let (duplicate, found) = parser.is_duplicate(
             page_id,
             self.data.name.clone(),
