@@ -82,6 +82,7 @@ impl crate::processors::Processor for class::Class {
                 && generic_len > 0
                 && self.generic_definings[generic_len - 1].name != ""
             {
+                self.generic_definings[generic_len - 1].pos.range_end = cursor;
                 self.generics_collected = true;
             } else if letter_char != ' ' {
                 errors.push(error::error_list::ERROR_S1.clone().build(

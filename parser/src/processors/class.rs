@@ -147,14 +147,15 @@ impl super::Processor for Class {
                 },
             ));
 
-            parser.pages.push(ellie_tokenizer::tokenizer::Page {
+            let inner = ellie_tokenizer::tokenizer::Page {
                 hash: inner_page_id,
-                inner: true,
+                inner: Some(page.hash),
                 path: page.path.clone(),
                 items,
                 dependents: vec![],
                 dependencies: inner_dependencies,
-            });
+            };
+            parser.pages.push(inner);
             parser.process_page(inner_page_id);
 
             let processed_page = parser.find_processed_page(inner_page_id).unwrap();

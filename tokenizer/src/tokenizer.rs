@@ -19,7 +19,7 @@ pub struct Dependency {
 
 pub struct Page {
     pub hash: u64,
-    pub inner: bool,
+    pub inner: Option<u64>,
     pub path: String,
     pub items: Vec<items::Processors>,
     pub dependents: Vec<u64>,
@@ -98,7 +98,7 @@ where
             main: main,
             pages: vec![Page {
                 hash: 0,
-                inner: false,
+                inner: None,
                 path,
                 items: vec![],
                 dependents: vec![],
@@ -154,8 +154,7 @@ where
                             }
                             None => {
                                 self.pages.push(Page {
-                                    inner: false,
-
+                                    inner: None,
                                     hash: resolved.hash,
                                     path: resolved.path,
                                     items: Vec::new(),

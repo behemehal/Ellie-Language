@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ProcessedPage {
     pub hash: u64,
-    pub inner: bool,
+    pub inner: Option<u64>,
     pub path: String,
     pub items: Vec<ellie_core::definite::items::Collecting>,
     pub dependents: Vec<u64>,
@@ -106,8 +106,8 @@ impl Parser {
                 DeepSearchItems::BrokenPageGraph => (false, None),
                 DeepSearchItems::MixUp(_) => (true, None),
                 DeepSearchItems::None => (false, None),
-                DeepSearchItems::SelfItem(_) => (false, None),
-                DeepSearchItems::GenericItem(_) => (false, None),
+                DeepSearchItems::SelfItem(_) => (true, None),
+                DeepSearchItems::GenericItem(e) => (true, Some((deep_search.found_page, e.pos))),
                 e => (
                     pos.is_bigger(e.get_pos()),
                     Some((deep_search.found_page, e.get_pos())),
@@ -124,12 +124,14 @@ impl Parser {
         name: String,
         ignore_hash: Option<String>,
         searched: Vec<u64>,
-        level: u32,
+        _level: u32,
     ) -> DeepSearchResult {
+        let mut level = _level;
         let mut found = false;
         let mut found_type = DeepSearchItems::None;
         let mut found_page = Page::default();
         let has_mixup = false;
+        let mut inner_page = None;
         let mut searched: Vec<u64> = searched;
         let mixup_hashes: Vec<(String, String)> = Vec::new();
         let mut self_dependendencies = vec![Dependency {
@@ -137,14 +139,19 @@ impl Parser {
             ..Default::default()
         }];
 
+        match self.find_page(target_page) {
+            Some(page) => {
+                self_dependendencies.extend(page.dependencies.clone());
+                inner_page = page.inner;
+            }
+            None => (),
+        }
+
         if !searched.contains(&target_page) {
             'pages: for (_, dep) in self_dependendencies.clone().iter().enumerate() {
                 searched.push(target_page);
                 match self.find_page(dep.hash) {
                     Some(page) => {
-                        if page.hash == target_page {
-                            self_dependendencies.extend(page.dependencies.clone());
-                        }
                         for item in page.items.iter() {
                             match item.clone() {
                                 Processors::Variable(e) => {
@@ -172,31 +179,22 @@ impl Parser {
                                 Processors::Import(e) => {
                                     if e.reference != ""
                                         && e.reference == name
-                                        && (e.public || level == 0)
+                                        && (e.public
+                                            || level == 0
+                                            || matches!(inner_page, Some(ref parent_page_hash) if parent_page_hash == &page.hash))
                                         && (ignore_hash.is_none()
                                             || matches!(ignore_hash, Some(ref t) if &e.hash != t))
                                     {
                                         found = true;
                                         found_page = page.clone();
                                         found_type = DeepSearchItems::ImportReference(e);
-                                    } else {
-                                        let deep_search_result = self.deep_search(
-                                            e.hash.parse::<u64>().unwrap_or_else(|_| {
-                                                panic!("Import's hash is not valid")
-                                            }),
-                                            name.clone(),
-                                            None,
-                                            searched.clone(),
-                                            level + 1,
-                                        );
-
-                                        found = deep_search_result.found;
-                                        found_type = deep_search_result.found_item;
                                     }
                                 }
                                 Processors::Class(e) => {
                                     if e.name == name
-                                        && (e.public || level == 0)
+                                        && (e.public
+                                            || level == 0
+                                            || matches!(inner_page, Some(ref parent_page_hash) if parent_page_hash == &page.hash))
                                         && (ignore_hash.is_none()
                                             || matches!(ignore_hash, Some(ref t) if &e.hash != t))
                                     {
@@ -206,14 +204,20 @@ impl Parser {
                                     }
                                 }
                                 Processors::GenericItem(e) => {
-                                    if e.generic_name == name && (level == 0 || level == 1) {
+                                    if e.generic_name == name
+                                        && (level == 0
+                                            || matches!(inner_page, Some(ref parent_page_hash) if parent_page_hash == &page.hash))
+                                    {
                                         found = true;
                                         found_page = page.clone();
                                         found_type = DeepSearchItems::GenericItem(e);
                                     }
                                 }
                                 Processors::SelfItem(e) => {
-                                    if "self" == name && (level == 0 || level == 1) {
+                                    if "self" == name
+                                        && (level == 0
+                                            || matches!(inner_page, Some(ref parent_page_hash) if parent_page_hash == &page.hash))
+                                    {
                                         found = true;
                                         found_page = page.clone();
                                         found_type = DeepSearchItems::SelfItem(e);
@@ -229,6 +233,7 @@ impl Parser {
                         break 'pages;
                     }
                 }
+                level += 1;
             }
         }
 
@@ -287,7 +292,7 @@ impl Parser {
                         Processors::Import(e) => e.process(self, page.hash),
                         Processors::ForLoop(_) => todo!(),
                         Processors::Condition(_) => todo!(),
-                        Processors::Constructor(_) => todo!(),
+                        Processors::Constructor(e) => e.process(self, page.hash),
                         Processors::Class(e) => e.process(self, page.hash),
                         Processors::Ret(_) => todo!(),
                         Processors::SelfItem(_) => (),

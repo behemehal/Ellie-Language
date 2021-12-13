@@ -38,15 +38,18 @@ impl crate::processors::Processor for constructor::Constructor {
                             defs::Cursor::build_with_skip_char(cursor),
                         ));
                     }
+                    self.parameters[parameter_len - 1].pos.range_end = cursor.clone().skip_char(1);
                     self.parameters[parameter_len - 1].name += &letter_char.to_string();
                 }
             } else if letter_char == ',' && parameter_len != 0 && !self.comma {
                 self.comma = true;
+                self.parameters[parameter_len - 1].pos.range_end = cursor;
                 self.parameters
                     .push(constructor::ConstructorParameter::default());
             } else if letter_char == ')'
                 && (parameter_len == 0 || (self.parameters[parameter_len - 1].name != ""))
             {
+                self.parameters[parameter_len - 1].pos.range_end = cursor;
                 self.parameter_collected = true;
             }
         } else if !self.continuum_collected {
