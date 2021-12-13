@@ -262,8 +262,6 @@ impl Parser {
     }
 
     pub fn process_page(&mut self, hash: u64) {
-        #[cfg(feature = "std")]
-        std::println!("Processing page {}", hash);
         let page = self
             .find_page(hash)
             .unwrap_or_else(|| panic!("Page not found"))
@@ -294,6 +292,8 @@ impl Parser {
                         Processors::Ret(_) => todo!(),
                         Processors::SelfItem(_) => (),
                         Processors::GenericItem(_) => (),
+                        Processors::FunctionVariable(_) => (),
+                        Processors::ConstructorVariable(_) => (),
                     }
                 }
             }
