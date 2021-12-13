@@ -201,8 +201,7 @@ pub fn print_warnings(warnings: &Vec<warning::Warning>, file_reader: fn(String) 
         );
 
         let file_content = file_reader(warning.path.clone());
-
-        let mut line_space = warning.pos.range_start.0.to_string().len() + 1;
+        let mut line_space = warning.pos.range_end.0.to_string().len() + 1;
 
         if let Some(refr) = warning.reference_block.clone() {
             let ref_file_content = file_reader(refr.1.clone());
@@ -463,7 +462,7 @@ pub fn render_code_block(
                 println!(
                     "{}{}{}{} | {} {} {}{}",
                     Colors::Yellow,
-                    generate_blank(line_space),
+                    generate_blank((line_space - (i + 1).to_string().len()) + 1),
                     i + 1,
                     Colors::Reset,
                     get_line(code.clone(), i)
@@ -476,8 +475,14 @@ pub fn render_code_block(
 
                 println!(
                     "{} | {}{}{}",
-                    generate_blank(line_space + ((i + 1).to_string().len())),
-                    Colors::Red,
+                    generate_blank(line_space + 1),
+                    if reference {
+                        Colors::Green
+                    } else if is_error {
+                        Colors::Red
+                    } else {
+                        Colors::Yellow
+                    },
                     arrow(
                         (item_pos.range_start.1) as usize,
                         item_pos.range_end.1 - item_pos.range_start.1
@@ -488,7 +493,7 @@ pub fn render_code_block(
                 println!(
                     "{}{}{}{} | {}",
                     Colors::Yellow,
-                    generate_blank(line_space),
+                    generate_blank((line_space - (i + 1).to_string().len()) + 1),
                     i + 1,
                     Colors::Reset,
                     get_line(code.clone(), i)
@@ -496,8 +501,14 @@ pub fn render_code_block(
 
                 println!(
                     "{} | {}{}{}",
-                    generate_blank(line_space + ((i + 1).to_string().len())),
-                    Colors::Red,
+                    generate_blank(line_space + 1),
+                    if reference {
+                        Colors::Green
+                    } else if is_error {
+                        Colors::Red
+                    } else {
+                        Colors::Yellow
+                    },
                     arrow(
                         (item_pos.range_start.1) as usize,
                         item_pos.range_end.1 - item_pos.range_start.1
@@ -509,7 +520,7 @@ pub fn render_code_block(
             println!(
                 "{}{}{}{} | {}",
                 Colors::Yellow,
-                generate_blank(line_space),
+                generate_blank((line_space - (i + 1).to_string().len()) + 1),
                 i + 1,
                 Colors::Reset,
                 get_line(code.clone(), i)
