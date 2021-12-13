@@ -15,7 +15,7 @@ pub struct Dependency {
     pub public: bool,
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize)]
 
 pub struct Page {
     pub hash: u64,

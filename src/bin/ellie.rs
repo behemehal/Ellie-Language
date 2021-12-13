@@ -150,19 +150,13 @@ fn main() {
                                     );
                                 }
 
-                                if parser.informations.has_no_errors() {
-                                    if env::args().any(|x| x == "-r") {
-                                        println!("Tokenize succes:\n{:#?}", parser.processed_pages);
-                                    } else {
-                                        println!("Tokenize succes");
-                                    }
-                                } else {
+                                if !parser.informations.has_no_errors() {
                                     cli_utils::print_errors(&parser.informations.errors, |path| {
                                         match cli_utils::read_file(&path) {
                                             Ok(e) => e,
                                             Err(err) => {
                                                 println!(
-                                                    "Cannot read file '{}' {}[{}]{}",
+                                                    "Failed to ouput error. Cannot read file '{}' {}[{}]{}",
                                                     path,
                                                     cli_utils::Colors::Red,
                                                     err,
@@ -182,14 +176,46 @@ fn main() {
                                         parser.informations.warnings.len(),
                                         cli_utils::Colors::Reset,
                                     );
+                                } else {
                                 }
 
-                                if env::args().any(|x| x == "-r") {
-                                    println!("{:#?}", parser.pages);
+                                if env::args().any(|x| x == "-rt" || x == "--render-tokenized") {
+                                    let json = serde_json::to_string(&pager.pages).unwrap();
+                                    let output_file_name = Path::new(main_path)
+                                        .file_name()
+                                        .unwrap()
+                                        .to_str()
+                                        .unwrap()
+                                        .to_owned();
+                                    let output_file = format!("{}_tokenized.json", output_file_name);
+                                    match fs::write(format!("./{}", output_file), json) {
+                                        Ok(_) => {
+                                            println!("\nTokenized output successfully wrote to {}", output_file);
+                                        }
+                                        Err(e) => {
+                                            println!("\nFailed to write to file {}", e);
+                                        }
+                                    }
                                 }
 
-                                let j = serde_json::to_string(&e).unwrap();
-                                fs::write("./tree.json", j).unwrap();
+                                if env::args().any(|x| x == "-rp" || x == "--render-parsed") {
+                                    let json = serde_json::to_string(&parser.pages).unwrap();
+                                    let output_file_name = Path::new(main_path)
+                                        .file_name()
+                                        .unwrap()
+                                        .to_str()
+                                        .unwrap()
+                                        .to_owned();
+                                    let output_file = format!("{}_parsed.json", output_file_name);
+                                    match fs::write(format!("./{}", output_file), json) {
+                                        Ok(_) => {
+                                            println!("\nParsed output successfully wrote to {}", output_file);
+                                        }
+                                        Err(e) => {
+                                            println!("Failed to write to file {}", e);
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
