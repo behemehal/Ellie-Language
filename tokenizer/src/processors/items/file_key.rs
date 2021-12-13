@@ -56,6 +56,7 @@ impl crate::processors::Processor for FileKey {
         } else {
             if self.value_cache.is_complete() && letter_char == ';' {
                 self.complete = true;
+                self.pos.range_end = cursor.clone().skip_char(1);
                 self.value_location.range_end = cursor;
                 self.value = self.value_cache.current.clone();
             } else {

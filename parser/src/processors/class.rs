@@ -86,12 +86,12 @@ impl super::Processor for Class {
                     ellie_tokenizer::processors::items::Processors::Function(_) => (),
                     ellie_tokenizer::processors::items::Processors::SelfItem(_) => (),
                     ellie_tokenizer::processors::items::Processors::GenericItem(_) => (),
-                    _ => {
+                    e => {
                         let mut err = error::error_list::ERROR_S22.clone().build_with_path(
                             vec![],
                             "pcls_0x92".to_owned(),
                             parser.find_page(page_id).unwrap().path.clone(),
-                            self.name_pos,
+                            e.get_pos(),
                         );
                         err.full_assist = true;
                         parser.informations.push(&err);
