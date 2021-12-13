@@ -66,8 +66,8 @@ lazy_static! {
     };
     pub static ref ERROR_S11: error::Error = error::Error {
         code: 0x10,
-        title: "ReplaceAble".to_owned(),
-        message: "Cannot set type annotations on dynamic variable".to_owned(),
+        title: "TypeError".to_owned(),
+        message: "'$token' is not suitable for to be constructed".to_owned(),
         ..Default::default()
     };
     pub static ref ERROR_S12: error::Error = error::Error {

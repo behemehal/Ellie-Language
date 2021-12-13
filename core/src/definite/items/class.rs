@@ -14,6 +14,7 @@ pub struct GenericDefining {
 pub struct Class {
     pub name: String,
     pub public: bool,
+    pub inner_page_id: u64,
     pub constructor: Option<constructor::Constructor>,
     pub generic_definings: Vec<GenericDefining>,
     pub properties: Vec<variable::Variable>,

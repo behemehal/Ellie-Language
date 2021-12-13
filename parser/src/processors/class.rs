@@ -151,6 +151,7 @@ impl super::Processor for Class {
                 hash: inner_page_id,
                 inner: Some(page.hash),
                 path: page.path.clone(),
+                generics_allowed: true,
                 items,
                 dependents: vec![],
                 dependencies: inner_dependencies,
@@ -164,6 +165,7 @@ impl super::Processor for Class {
                 ellie_core::definite::items::class::Class {
                     name: self.name,
                     public: self.public,
+                    inner_page_id,
                     constructor: processed_page
                         .items
                         .iter()

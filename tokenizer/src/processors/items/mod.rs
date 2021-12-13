@@ -36,7 +36,7 @@ pub enum Processors {
     SelfItem(self_item::SelfItem),          //VirtualValues
     GenericItem(generic_item::GenericItem), //VirtualValues
     FunctionVariable(function_parameter::FunctionParameter), //VirtualValues
-    ConstructorVariable(constructor_parameter::ConstructorParameter), //VirtualValues
+    ConstructorVariable(constructor_parameter::ConstructorParameter), //DISABLED
 }
 
 impl Processors {
@@ -273,7 +273,7 @@ impl super::Processor for ItemProcessor {
             self.current = Processors::Class(class::Class {
                 public: self.used_modifier == Modifier::Pub,
                 pos: defs::Cursor {
-                    range_start: cursor,
+                    range_start: self.current.get_pos().range_start,
                     ..Default::default()
                 },
                 ..Default::default()

@@ -26,8 +26,7 @@ impl crate::processors::Processor for constructor::Constructor {
                 } else {
                     if self.parameters[parameter_len - 1].name == "" {
                         self.comma = false;
-                        self.parameters[parameter_len - 1].pos.range_start =
-                            cursor.clone().skip_char(1);
+                        self.parameters[parameter_len - 1].pos.range_start = cursor.clone();
                     } else if last_char == ' ' {
                         errors.push(error::error_list::ERROR_S1.clone().build(
                             vec![error::ErrorBuildField {

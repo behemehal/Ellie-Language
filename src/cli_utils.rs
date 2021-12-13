@@ -401,8 +401,6 @@ pub fn render_code_block(
     reference: bool,
     is_error: bool,
 ) {
-    //cursor, code
-
     println!(
         "  {}[{}]{}{}: {}{}:{}{}{}",
         if reference {
@@ -446,6 +444,25 @@ pub fn render_code_block(
         code.lines().count()
     };
 
+    if item_pos.range_start.0 != item_pos.range_end.0 {
+        println!(
+            "  {}[!]{}{}: (Beta) Mutli line rendering",
+            if reference {
+                Colors::Green
+            } else if is_error {
+                Colors::Red
+            } else {
+                Colors::Yellow
+            },
+            if line_space < 3 {
+                String::new()
+            } else {
+                generate_blank(line_space - 3)
+            },
+            Colors::Reset,
+        );
+    }
+
     if !reference {
         println!(
             "{}{}{}  | {}",
@@ -461,7 +478,11 @@ pub fn render_code_block(
             if reference {
                 println!(
                     "{}{}{}{} | {} {} {}{}",
-                    Colors::Yellow,
+                    if i >= item_pos.range_start.0 && i <= item_pos.range_end.0 {
+                        Colors::Green
+                    } else {
+                        Colors::Yellow
+                    },
                     generate_blank((line_space - (i + 1).to_string().len()) + 1),
                     i + 1,
                     Colors::Reset,
@@ -518,13 +539,52 @@ pub fn render_code_block(
             }
         } else {
             println!(
-                "{}{}{}{} | {}",
-                Colors::Yellow,
+                "{}{}{}{} | {}{}{}",
+                if i >= item_pos.range_start.0 && i <= item_pos.range_end.0 {
+                    if reference {
+                        Colors::Green
+                    } else {
+                        Colors::Red
+                    }
+                } else {
+                    Colors::Yellow
+                },
                 generate_blank((line_space - (i + 1).to_string().len()) + 1),
                 i + 1,
                 Colors::Reset,
-                get_line(code.clone(), i)
+                if (i >= item_pos.range_start.0 && i <= item_pos.range_end.0)
+                    && item_pos.range_start.0 != item_pos.range_end.0
+                {
+                    if reference {
+                        Colors::Green
+                    } else {
+                        Colors::Red
+                    }
+                } else {
+                    Colors::White
+                },
+                get_line(code.clone(), i),
+                Colors::Reset,
             );
+
+            if reference
+                && i > item_pos.range_end.0
+                && item_pos.range_end.0 != item_pos.range_start.0
+            {
+                println!(
+                    "{} | {}{}{}",
+                    generate_blank(line_space + 1),
+                    if reference {
+                        Colors::Green
+                    } else if is_error {
+                        Colors::Red
+                    } else {
+                        Colors::Yellow
+                    },
+                    format!("^ {}", ref_message),
+                    Colors::Reset,
+                );
+            }
         }
     }
 

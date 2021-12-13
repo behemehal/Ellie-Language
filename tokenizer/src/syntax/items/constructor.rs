@@ -46,6 +46,7 @@ impl Converter<Constructor, ellie_core::definite::items::constructor::Constructo
             name_pos: self.name_pos,
             parameters_pos: self.parameters_pos,
             pos: self.pos,
+            inner_page_id: 0,
         }
     }
 
