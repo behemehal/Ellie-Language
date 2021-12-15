@@ -30,6 +30,7 @@ impl crate::processors::Processor for Import {
             } else if letter_char == ':' && self.path != "" {
                 self.path_filled = true;
             } else if letter_char == ';' && self.path != "" {
+                self.pos.range_end = cursor.clone().skip_char(1);
                 self.complete = true;
             }
         } else {
@@ -51,6 +52,7 @@ impl crate::processors::Processor for Import {
                 self.reference_pos.range_end = cursor;
                 self.reference += &letter_char.to_string();
             } else if letter_char == ';' && self.path != "" {
+                self.pos.range_end = cursor.clone().skip_char(1);
                 self.complete = true;
             }
         }

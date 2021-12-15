@@ -56,16 +56,29 @@ impl crate::processors::Processor for VariableCollector {
                 self.type_collected = true;
                 self.data.rtype = self.type_cache.clone();
             } else {
+                if self.data.type_pos.range_start.is_zero() {
+                    self.data.type_pos.range_start = cursor.clone().skip_char(1)
+                }
+
+                if letter_char != ' ' {
+                    self.data.type_pos.range_end = cursor.clone().skip_char(1);
+                }
                 self.type_cache
                     .iterate(errors, cursor, last_char, letter_char)
             }
         } else if !self.value_collected {
             if self.value_cache.is_complete() && letter_char == ';' {
-                self.data.pos.range_end = cursor.clone().skip_char(1);
+                self.data.pos.range_end = cursor;
                 self.data.hash = ellie_core::utils::generate_hash();
                 self.complete = true;
                 self.data.value = self.value_cache.current.clone();
             } else {
+                if self.data.value_pos.range_start.is_zero() {
+                    self.data.value_pos.range_start = cursor.clone().skip_char(1);
+                }
+                if letter_char != ' ' {
+                    self.data.value_pos.range_end = cursor.clone().skip_char(1);
+                }
                 self.value_cache
                     .iterate(errors, cursor, last_char, letter_char)
             }
