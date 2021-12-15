@@ -22,6 +22,7 @@ pub struct Function {
     pub body: Vec<Collecting>,
     pub name_pos: defs::Cursor,
     pub body_pos: defs::Cursor,
+    pub no_return: bool,
     pub parameters_pos: defs::Cursor,
     pub return_pos: defs::Cursor,
     pub pos: defs::Cursor,

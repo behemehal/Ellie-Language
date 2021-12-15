@@ -121,12 +121,6 @@ impl super::Processor for Class {
                 }
             }
 
-            let mut inner_dependencies = page.dependencies.clone();
-            inner_dependencies.push(ellie_tokenizer::tokenizer::Dependency {
-                hash: page.hash.clone(),
-                public: false,
-            });
-
             let inner_page_id: u64 = ellie_core::utils::generate_hash_u64();
 
             let mut items = self.body;
@@ -151,10 +145,12 @@ impl super::Processor for Class {
                 hash: inner_page_id,
                 inner: Some(page.hash),
                 path: page.path.clone(),
-                generics_allowed: true,
                 items,
                 dependents: vec![],
-                dependencies: inner_dependencies,
+                dependencies: vec![ellie_tokenizer::tokenizer::Dependency {
+                    hash: page.hash.clone(),
+                    public: false,
+                }],
             };
             parser.pages.push(inner);
             parser.process_page(inner_page_id);

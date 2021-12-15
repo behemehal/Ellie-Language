@@ -1,3 +1,5 @@
+use core::panic;
+
 use crate::processors::types::TypeProcessor;
 use ellie_core::{definite, defs};
 use serde::{Deserialize, Serialize};
@@ -8,6 +10,7 @@ pub struct CloakType {
     pub at_comma: bool,
     pub child_cache: Box<DefinerCollector>,
     pub not_empty: bool,
+    pub pos: defs::Cursor,
 }
 
 #[derive(Default, Clone, Debug, Serialize, Deserialize)]
@@ -20,6 +23,7 @@ pub struct ArrayType {
     pub type_collected: bool,
     pub child_cache: Box<DefinerCollector>,
     pub size_child_cache: Box<TypeProcessor>,
+    pub pos: defs::Cursor,
 }
 
 #[derive(Default, Clone, Debug, Serialize, Deserialize)]
@@ -29,11 +33,13 @@ pub struct CollectiveType {
     pub key_collected: bool,
     pub at_comma: bool,
     pub child_cache: Box<DefinerCollector>,
+    pub pos: defs::Cursor,
 }
 
 #[derive(Default, Clone, Debug, Serialize, Deserialize)]
 pub struct VectorType {
     pub rtype: Box<DefinerTypes>,
+    pub pos: defs::Cursor,
 }
 
 #[derive(Default, Clone, Debug, Serialize, Deserialize)]
@@ -80,6 +86,7 @@ pub struct FunctionType {
     pub return_char_typed: bool,
     pub at_comma: bool,
     pub not_empty: bool,
+    pub pos: defs::Cursor,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -95,6 +102,22 @@ pub enum DefinerTypes {
     Dynamic,
 }
 
+impl DefinerTypes {
+    pub fn get_pos(&self) -> defs::Cursor {
+        match self {
+            DefinerTypes::Cloak(e) => e.pos,
+            DefinerTypes::Array(e) => e.pos,
+            DefinerTypes::Collective(e) => e.pos,
+            DefinerTypes::Vector(e) => e.pos,
+            DefinerTypes::Nullable(e) => e.pos,
+            DefinerTypes::ParentGeneric(e) => e.pos,
+            DefinerTypes::Generic(e) => e.pos,
+            DefinerTypes::Function(e) => e.pos,
+            DefinerTypes::Dynamic => panic!("Unexpected behaviour"),
+        }
+    }
+}
+
 impl Default for DefinerTypes {
     fn default() -> Self {
         DefinerTypes::Generic(GenericType::default())
@@ -107,23 +130,28 @@ impl definite::Converter<DefinerTypes, definite::definers::DefinerCollecting> fo
             DefinerTypes::Cloak(e) => {
                 definite::definers::DefinerCollecting::Cloak(definite::definers::CloakType {
                     rtype: e.entries.into_iter().map(|x| x.to_definite()).collect(),
+                pos: e.pos,
+
                 })
             }
             DefinerTypes::Array(e) => {
                 definite::definers::DefinerCollecting::Array(definite::definers::ArrayType {
                     rtype: Box::new(e.rtype.to_definite()),
                     size: e.size,
+                    pos: e.pos,
                 })
             }
             DefinerTypes::Collective(e) => definite::definers::DefinerCollecting::Collective(
                 definite::definers::CollectiveType {
                     key: Box::new(e.key.to_definite()),
                     value: Box::new(e.value.to_definite()),
+                    pos: e.pos,
                 },
             ),
             DefinerTypes::Vector(e) => {
                 definite::definers::DefinerCollecting::Vector(definite::definers::VectorType {
                     rtype: Box::new(e.rtype.to_definite()),
+                    pos: e.pos,
                 })
             }
             DefinerTypes::Nullable(e) => {
@@ -169,10 +197,12 @@ impl definite::Converter<DefinerTypes, definite::definers::DefinerCollecting> fo
             definite::definers::DefinerCollecting::Array(e) => DefinerTypes::Array(ArrayType {
                 rtype: Box::new(DefinerTypes::default().from_definite(*e.rtype)),
                 size: e.size,
+                pos: e.pos,
                 ..Default::default()
             }),
             definite::definers::DefinerCollecting::Vector(e) => DefinerTypes::Vector(VectorType {
                 rtype: Box::new(DefinerTypes::default().from_definite(*e.rtype)),
+                pos: e.pos,
             }),
             definite::definers::DefinerCollecting::Generic(e) => {
                 DefinerTypes::Generic(GenericType {
@@ -197,12 +227,15 @@ impl definite::Converter<DefinerTypes, definite::definers::DefinerCollecting> fo
                     .into_iter()
                     .map(|x| DefinerTypes::default().from_definite(x))
                     .collect(),
+                pos: e.pos,
+
                 ..Default::default()
             }),
             definite::definers::DefinerCollecting::Collective(e) => {
                 DefinerTypes::Collective(CollectiveType {
                     key: Box::new(DefinerTypes::default().from_definite(*e.key)),
                     value: Box::new(DefinerTypes::default().from_definite(*e.value)),
+                    pos: e.pos,
                     ..Default::default()
                 })
             }

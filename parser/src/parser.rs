@@ -27,6 +27,7 @@ pub struct Parser {
 pub struct DeepSearchResult {
     pub found: bool,
     pub found_item: DeepSearchItems,
+    pub found_pos: Option<defs::Cursor>,
     pub found_page: Page,
 }
 
@@ -38,6 +39,10 @@ pub enum DeepSearchItems {
     ImportReference(ellie_tokenizer::syntax::items::import::Import),
     SelfItem(ellie_tokenizer::syntax::items::self_item::SelfItem),
     GenericItem(ellie_tokenizer::syntax::items::generic_item::GenericItem),
+    FunctionParameter(ellie_tokenizer::syntax::items::function_parameter::FunctionParameter),
+    ConstructorParameter(
+        ellie_tokenizer::syntax::items::constructor_parameter::ConstructorParameter,
+    ),
     BrokenPageGraph,
     MixUp(Vec<(String, String)>),
     None,
@@ -53,10 +58,6 @@ impl DeepSearchItems {
             _ => defs::Cursor::default(),
         }
     }
-}
-
-trait DeepSearch {
-    fn search(&self, name: String) -> Option<DeepSearchResult>;
 }
 
 impl Parser {
@@ -99,7 +100,13 @@ impl Parser {
         hash: String,
         pos: defs::Cursor,
     ) -> (bool, Option<(Page, defs::Cursor)>) {
-        let deep_search = self.deep_search(page_id, name, Some(hash), vec![], 0);
+        let deep_search = self.deep_search(
+            page_id,
+            name,
+            if hash == "" { None } else { Some(hash) },
+            vec![],
+            0,
+        );
 
         if deep_search.found {
             match deep_search.found_item {
@@ -129,6 +136,7 @@ impl Parser {
         let mut level = _level;
         let mut found = false;
         let mut found_type = DeepSearchItems::None;
+        let mut found_pos = None;
         let mut found_page = Page::default();
         let has_mixup = false;
         let mut inner_page = None;
@@ -160,6 +168,7 @@ impl Parser {
                                         && (ignore_hash.is_none()
                                             || matches!(ignore_hash, Some(ref t) if &e.data.hash != t))
                                     {
+                                        found_pos = Some(e.data.pos);
                                         found = true;
                                         found_page = page.clone();
                                         found_type = DeepSearchItems::Variable(e.data);
@@ -171,6 +180,7 @@ impl Parser {
                                         && (ignore_hash.is_none()
                                             || matches!(ignore_hash, Some(ref t) if &e.data.hash != t))
                                     {
+                                        found_pos = Some(e.data.pos);
                                         found = true;
                                         found_page = page.clone();
                                         found_type = DeepSearchItems::Function(e.data);
@@ -185,6 +195,7 @@ impl Parser {
                                         && (ignore_hash.is_none()
                                             || matches!(ignore_hash, Some(ref t) if &e.hash != t))
                                     {
+                                        found_pos = Some(e.pos);
                                         found = true;
                                         found_page = page.clone();
                                         found_type = DeepSearchItems::ImportReference(e);
@@ -198,6 +209,7 @@ impl Parser {
                                         && (ignore_hash.is_none()
                                             || matches!(ignore_hash, Some(ref t) if &e.hash != t))
                                     {
+                                        found_pos = Some(e.pos);
                                         found = true;
                                         found_page = page.clone();
                                         found_type = DeepSearchItems::Class(e);
@@ -208,6 +220,7 @@ impl Parser {
                                         && (level == 0
                                             || matches!(inner_page, Some(ref parent_page_hash) if parent_page_hash == &page.hash))
                                     {
+                                        found_pos = Some(e.pos);
                                         found = true;
                                         found_page = page.clone();
                                         found_type = DeepSearchItems::GenericItem(e);
@@ -221,6 +234,22 @@ impl Parser {
                                         found = true;
                                         found_page = page.clone();
                                         found_type = DeepSearchItems::SelfItem(e);
+                                    }
+                                }
+                                Processors::FunctionParameter(e) => {
+                                    if e.name == name && level == 0 {
+                                        found_pos = Some(e.pos);
+                                        found = true;
+                                        found_page = page.clone();
+                                        found_type = DeepSearchItems::FunctionParameter(e);
+                                    }
+                                }
+                                Processors::ConstructorParameter(e) => {
+                                    if e.name == name && level == 0 {
+                                        found_pos = Some(e.pos);
+                                        found = true;
+                                        found_page = page.clone();
+                                        found_type = DeepSearchItems::ConstructorParameter(e);
                                     }
                                 }
                                 _ => (),
@@ -240,18 +269,21 @@ impl Parser {
         if has_mixup {
             DeepSearchResult {
                 found: true,
+                found_pos,
                 found_item: DeepSearchItems::MixUp(mixup_hashes),
                 found_page,
             }
         } else if found {
             DeepSearchResult {
                 found: true,
+                found_pos,
                 found_item: found_type,
                 found_page,
             }
         } else {
             DeepSearchResult {
                 found: false,
+                found_pos,
                 found_item: DeepSearchItems::None,
                 found_page,
             }
@@ -287,7 +319,7 @@ impl Parser {
                         Processors::Variable(e) => e.process(self, page.hash),
                         Processors::GetterCall(_) => todo!(),
                         Processors::SetterCall(_) => todo!(),
-                        Processors::Function(_) => todo!(),
+                        Processors::Function(e) => e.process(self, page.hash),
                         Processors::FileKey(e) => e.process(self, page.hash),
                         Processors::Import(e) => e.process(self, page.hash),
                         Processors::ForLoop(_) => todo!(),
@@ -297,8 +329,8 @@ impl Parser {
                         Processors::Ret(_) => todo!(),
                         Processors::SelfItem(_) => (),
                         Processors::GenericItem(_) => (),
-                        Processors::FunctionVariable(_) => (),
-                        Processors::ConstructorVariable(_) => (),
+                        Processors::FunctionParameter(_) => (),
+                        Processors::ConstructorParameter(_) => (),
                     }
                 }
             }

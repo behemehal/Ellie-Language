@@ -5,8 +5,7 @@ use serde::Serialize;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FunctionParameter {
     pub name: String,
-    pub type_pos: defs::Cursor,
-    pub name_pos: defs::Cursor,
-    pub rtype: crate::syntax::items::definers::DefinerCollector,
+    pub reference: bool,
+    pub rtype: ellie_core::definite::definers::DefinerCollecting,
     pub pos: defs::Cursor,
 }

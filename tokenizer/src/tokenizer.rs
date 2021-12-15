@@ -20,7 +20,6 @@ pub struct Dependency {
 pub struct Page {
     pub hash: u64,
     pub inner: Option<u64>,
-    pub generics_allowed: bool,
     pub path: String,
     pub items: Vec<items::Processors>,
     pub dependents: Vec<u64>,
@@ -101,7 +100,6 @@ where
                 hash: 0,
                 inner: None,
                 path,
-                generics_allowed: false,
                 items: vec![],
                 dependents: vec![],
                 dependencies: vec![],
@@ -159,7 +157,6 @@ where
                                     inner: None,
                                     hash: resolved.hash,
                                     path: resolved.path,
-                                    generics_allowed: false,
 
                                     items: Vec::new(),
                                     dependents: vec![cr_page],

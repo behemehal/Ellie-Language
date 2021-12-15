@@ -11,7 +11,6 @@ pub mod ret;
 pub mod setter_call;
 pub mod variable;
 
-
 pub mod constructor_parameter; //Virtual
 pub mod function_parameter; //Virtual
 pub mod generic_item; //Virtual

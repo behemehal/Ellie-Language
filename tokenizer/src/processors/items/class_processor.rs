@@ -14,7 +14,7 @@ impl crate::processors::Processor for class::Class {
                 .reliable
             {
                 if self.name == "" {
-                    self.name_pos.range_start = cursor.clone().skip_char(1);
+                    self.name_pos.range_start = cursor;
                 } else if last_char == ' ' {
                     errors.push(error::error_list::ERROR_S1.clone().build(
                         vec![error::ErrorBuildField {
@@ -25,7 +25,7 @@ impl crate::processors::Processor for class::Class {
                         defs::Cursor::build_with_skip_char(cursor),
                     ));
                 }
-                self.name_pos.range_end = cursor.clone().skip_char(2);
+                self.name_pos.range_end = cursor.clone().skip_char(1);
                 self.name += &letter_char.to_string();
             } else if letter_char == '{' {
                 self.name_collected = true;

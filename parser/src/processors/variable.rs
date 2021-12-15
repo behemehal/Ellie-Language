@@ -53,6 +53,7 @@ impl super::Processor for VariableCollector {
                     Some(self.data.hash.clone()),
                 )
             };
+
             let resolved_defining = if !self.data.has_type {
                 Ok(DefinerCollecting::Dynamic)
             } else {
@@ -63,6 +64,8 @@ impl super::Processor for VariableCollector {
                     Some(self.data.hash.clone()),
                 )
             };
+
+            //panic!("{:#?}", resolved_defining);
             if resolved_type.is_err() || resolved_defining.is_err() {
                 let mut type_error = resolved_type.err().unwrap_or(vec![]);
                 let defining_error = resolved_defining.err().unwrap_or(vec![]);

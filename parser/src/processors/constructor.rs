@@ -34,6 +34,7 @@ impl super::Processor for Constructor {
             })
             .unwrap_or_else(|| panic!("Failed to find class"));
         let page = parser.find_page(page_id).unwrap().clone();
+        let mut items = self.inside_code;
 
         for (index, parameter) in self.parameters.clone().iter().enumerate() {
             let deep_search = parser.deep_search(page_id, parameter.name.clone(), None, vec![], 0);
@@ -59,6 +60,12 @@ impl super::Processor for Constructor {
             }
 
             if deep_search.found {
+                items.push(ellie_tokenizer::processors::items::Processors::ConstructorParameter(
+                    ellie_tokenizer::syntax::items::constructor_parameter::ConstructorParameter {
+                        name: parameter.name.clone(),
+                        pos: parameter.pos.clone(),
+                    },
+                ));
                 match deep_search.found_item {
                     crate::parser::DeepSearchItems::Variable(_) => (),
                     crate::parser::DeepSearchItems::BrokenPageGraph => (),
@@ -97,13 +104,11 @@ impl super::Processor for Constructor {
         }
 
         let inner_page_id: u64 = ellie_core::utils::generate_hash_u64();
-
         let inner = ellie_tokenizer::tokenizer::Page {
             hash: inner_page_id,
             inner: Some(page.hash),
             path: page.path.clone(),
-            items: self.inside_code,
-            generics_allowed: false,
+            items,
             dependents: vec![],
             dependencies: vec![ellie_tokenizer::tokenizer::Dependency {
                 hash: page.hash.clone(),

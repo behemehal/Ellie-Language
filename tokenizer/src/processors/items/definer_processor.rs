@@ -75,6 +75,7 @@ impl crate::processors::Processor for DefinerCollector {
                     {
                         self.definer_type = DefinerTypes::Vector(VectorType {
                             rtype: array_type.rtype.clone(),
+                            pos: array_type.pos.clone(),
                         });
                     } else {
                         array_type
@@ -101,6 +102,7 @@ impl crate::processors::Processor for DefinerCollector {
                     }
                 } else {
                     if collective_type.child_cache.complete && letter_char == '}' {
+                        collective_type.pos.range_end = cursor.clone().skip_char(1);
                         self.complete = true;
                         collective_type.value =
                             Box::new(collective_type.child_cache.definer_type.clone());
@@ -112,7 +114,7 @@ impl crate::processors::Processor for DefinerCollector {
                     }
                 }
             }
-            DefinerTypes::Vector(_) => {
+            DefinerTypes::Vector(ref mut vector_type) => {
                 //Vector type resolved in array, if another character is found after brace
                 //it's a syntax error
                 if self.complete || letter_char != ']' {
@@ -128,6 +130,7 @@ impl crate::processors::Processor for DefinerCollector {
                 } else if letter_char == ']' {
                     //After we see '*' char in array size position, we update
                     //Type as vector, so completing array brace is up to vector
+                    vector_type.pos.range_end = cursor.clone().skip_char(1);
                     self.complete = true;
                 }
             }
@@ -209,13 +212,25 @@ impl crate::processors::Processor for DefinerCollector {
                             ..Default::default()
                         });
                     } else if letter_char == '{' && generic_type.rtype.is_empty() {
-                        self.definer_type = DefinerTypes::Collective(CollectiveType::default());
+                        self.definer_type = DefinerTypes::Collective(CollectiveType {
+                            pos: defs::Cursor::build_with_skip_char(cursor.clone()),
+                            ..Default::default()
+                        });
                     } else if letter_char == '@' && generic_type.rtype.is_empty() {
-                        self.definer_type = DefinerTypes::Function(FunctionType::default());
+                        self.definer_type = DefinerTypes::Function(FunctionType {
+                            pos: defs::Cursor::build_with_skip_char(cursor.clone()),
+                            ..Default::default()
+                        });
                     } else if letter_char == '(' && generic_type.rtype.is_empty() {
-                        self.definer_type = DefinerTypes::Cloak(CloakType::default());
+                        self.definer_type = DefinerTypes::Cloak(CloakType {
+                            pos: defs::Cursor::build_with_skip_char(cursor.clone()),
+                            ..Default::default()
+                        });
                     } else if letter_char == '[' && generic_type.rtype.is_empty() {
-                        self.definer_type = DefinerTypes::Array(ArrayType::default());
+                        self.definer_type = DefinerTypes::Array(ArrayType {
+                            pos: defs::Cursor::build_with_skip_char(cursor.clone()),
+                            ..Default::default()
+                        });
                     } else if letter_char == '<' && !generic_type.rtype.is_empty() {
                         self.definer_type = DefinerTypes::ParentGeneric(ParentGenericType {
                             parent: generic_type.rtype.clone(),
@@ -281,6 +296,8 @@ impl crate::processors::Processor for DefinerCollector {
                                     rtype: "void".to_owned(),
                                     ..Default::default()
                                 }));
+                            function_type.pos.range_end = cursor.clone().skip_char(1);
+
                             self.complete = true;
                         } else {
                             function_type.not_empty = true;
@@ -329,6 +346,7 @@ impl crate::processors::Processor for DefinerCollector {
                         function_type.returning =
                             Box::new(function_type.child_cache.definer_type.clone());
                         self.complete = function_type.child_cache.complete;
+                        function_type.pos.range_end = cursor.clone().skip_char(1);
                     }
                 }
             }

@@ -19,6 +19,7 @@ pub struct Function {
     pub parameters: Vec<FunctionParameter>,
     pub parameters_pos: defs::Cursor,
     pub return_type: definers::DefinerCollector,
+    pub no_return: bool,
     pub return_pos: defs::Cursor,
     pub body_pos: defs::Cursor,
     pub body: Vec<Processors>,
@@ -72,6 +73,7 @@ impl Converter<FunctionCollector, ellie_core::definite::items::function::Functio
             pos: self.data.pos,
             body_pos: self.data.body_pos,
             hash: self.data.hash,
+            no_return: self.data.no_return,
         }
     }
 
@@ -112,6 +114,7 @@ impl Converter<FunctionCollector, ellie_core::definite::items::function::Functio
                 pos: from.pos,
                 defining: false,
                 hash: from.hash,
+                no_return: from.no_return,
             },
             ..Default::default()
         }

@@ -1,3 +1,4 @@
+use alloc::string::ToString;
 use alloc::vec;
 use alloc::vec::Vec;
 use alloc::{borrow::ToOwned, string::String};
@@ -38,6 +39,20 @@ pub fn process(
                     crate::parser::DeepSearchItems::None => todo!(),
                     crate::parser::DeepSearchItems::SelfItem(_) => todo!(),
                     crate::parser::DeepSearchItems::GenericItem(_) => todo!(),
+                    crate::parser::DeepSearchItems::FunctionParameter(e) => {
+                        Ok(types::Types::VariableType(types::variable::VariableType {
+                            value: e.name,
+                            reference: "<virtual>".to_string(),
+                            pos: from.get_pos(),
+                        }))
+                    }
+                    crate::parser::DeepSearchItems::ConstructorParameter(e) => {
+                        Ok(types::Types::VariableType(types::variable::VariableType {
+                            value: e.name,
+                            reference: "<virtual>".to_string(),
+                            pos: e.pos,
+                        }))
+                    }
                 }
             } else {
                 errors.push(error::error_list::ERROR_S6.clone().build_with_path(

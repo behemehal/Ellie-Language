@@ -187,10 +187,14 @@ fn main() {
                                         .to_str()
                                         .unwrap()
                                         .to_owned();
-                                    let output_file = format!("{}_tokenized.json", output_file_name);
+                                    let output_file =
+                                        format!("{}_tokenized.json", output_file_name);
                                     match fs::write(format!("./{}", output_file), json) {
                                         Ok(_) => {
-                                            println!("\nTokenized output successfully wrote to {}", output_file);
+                                            println!(
+                                                "\nTokenized output successfully wrote to {}",
+                                                output_file
+                                            );
                                         }
                                         Err(e) => {
                                             println!("\nFailed to write to file {}", e);
@@ -209,7 +213,10 @@ fn main() {
                                     let output_file = format!("{}_parsed.json", output_file_name);
                                     match fs::write(format!("./{}", output_file), json) {
                                         Ok(_) => {
-                                            println!("\nParsed output successfully wrote to {}", output_file);
+                                            println!(
+                                                "\nParsed output successfully wrote to {}",
+                                                output_file
+                                            );
                                         }
                                         Err(e) => {
                                             println!("Failed to write to file {}", e);

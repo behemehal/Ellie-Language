@@ -15,8 +15,154 @@ pub fn process(
     let mut errors = vec![];
     let mut found = DefinerCollecting::Dynamic;
     match from.clone() {
-        DefinerTypes::Cloak(_) => todo!(),
-        DefinerTypes::Array(_) => todo!(),
+        DefinerTypes::Cloak(e) => {
+            let deep_search_result =
+                parser.deep_search(page_id, "cloak".to_string(), ignore_hash.clone(), vec![], 0);
+
+            if deep_search_result.found {
+                match deep_search_result.found_item {
+                    crate::parser::DeepSearchItems::Class(cloak_class) => {
+                        found = DefinerCollecting::Generic(definers::GenericType {
+                            hash: cloak_class.hash,
+                            rtype: "cloak".to_string(),
+                            pos: cloak_class.pos,
+                        });
+                    }
+                    _ => match deep_search_result.found_pos {
+                        Some(ref_pos) => {
+                            let mut error = error::error_list::ERROR_S45.clone().build_with_path(
+                                vec![error::ErrorBuildField {
+                                    key: "token".to_string(),
+                                    value: "vector".to_string(),
+                                }],
+                                "def_pr_0x57".to_owned(),
+                                parser.find_page(page_id).unwrap().path.clone(),
+                                e.pos,
+                            );
+                            error.reference_message = "Defined here".to_string();
+                            error.reference_block =
+                                Some((ref_pos, deep_search_result.found_page.path));
+                            errors.push(error);
+                        }
+                        None => {
+                            errors.push(error::error_list::ERROR_S45.clone().build_with_path(
+                                vec![error::ErrorBuildField {
+                                    key: "token".to_string(),
+                                    value: "vector".to_string(),
+                                }],
+                                "def_pr_0x57".to_owned(),
+                                parser.find_page(page_id).unwrap().path.clone(),
+                                e.pos,
+                            ));
+                        }
+                    },
+                }
+            } else {
+                errors.push(error::error_list::ERROR_S6.clone().build_with_path(
+                    vec![error::ErrorBuildField {
+                        key: "token".to_string(),
+                        value: "vector".to_string(),
+                    }],
+                    "def_pr_0x57".to_owned(),
+                    parser.find_page(page_id).unwrap().path.clone(),
+                    e.pos,
+                ));
+            }
+        }
+        DefinerTypes::Array(e) => {
+            let deep_search_result =
+                parser.deep_search(page_id, "array".to_string(), ignore_hash.clone(), vec![], 0);
+
+            if deep_search_result.found {
+                match deep_search_result.found_item {
+                    crate::parser::DeepSearchItems::Class(array_class) => {
+                        match process(*e.rtype.clone(), parser, page_id, ignore_hash) {
+                            Ok(inner_type) => {
+                                if array_class.generic_definings.len() != 1 {
+                                    let mut error =
+                                        error::error_list::ERROR_S44.clone().build_with_path(
+                                            vec![
+                                                error::ErrorBuildField {
+                                                    key: "token".to_string(),
+                                                    value: array_class
+                                                        .generic_definings
+                                                        .len()
+                                                        .to_string(),
+                                                },
+                                                error::ErrorBuildField {
+                                                    key: "token2".to_string(),
+                                                    value: 1.to_string(),
+                                                },
+                                            ],
+                                            "def_pr_0x57".to_owned(),
+                                            parser.find_page(page_id).unwrap().path.clone(),
+                                            e.rtype.get_pos(),
+                                        );
+                                    error.reference_message =
+                                        "Does not have required generic parameters".to_string();
+                                    error.reference_block =
+                                        Some((array_class.pos, deep_search_result.found_page.path));
+                                    errors.push(error);
+                                } else {
+                                    found = DefinerCollecting::ParentGeneric(
+                                        definers::ParentGenericType {
+                                            parent_pos: array_class.pos,
+                                            generics: vec![definers::GenericParameter {
+                                                value: inner_type,
+                                                pos: deep_search_result
+                                                    .found_pos
+                                                    .unwrap_or(ellie_core::defs::Cursor::default()),
+                                            }],
+                                            hash: array_class.hash,
+                                            rtype: "vector".to_string(),
+                                        },
+                                    );
+                                }
+                            }
+                            Err(e) => errors.extend(e),
+                        }
+                    }
+                    _ => match deep_search_result.found_pos {
+                        Some(ref_pos) => {
+                            let mut error = error::error_list::ERROR_S45.clone().build_with_path(
+                                vec![error::ErrorBuildField {
+                                    key: "token".to_string(),
+                                    value: "vector".to_string(),
+                                }],
+                                "def_pr_0x57".to_owned(),
+                                parser.find_page(page_id).unwrap().path.clone(),
+                                e.pos,
+                            );
+                            error.reference_message = "Defined here".to_string();
+                            error.reference_block =
+                                Some((ref_pos, deep_search_result.found_page.path));
+                            errors.push(error);
+                        }
+                        None => {
+                            errors.push(error::error_list::ERROR_S45.clone().build_with_path(
+                                vec![error::ErrorBuildField {
+                                    key: "token".to_string(),
+                                    value: "vector".to_string(),
+                                }],
+                                "def_pr_0x57".to_owned(),
+                                parser.find_page(page_id).unwrap().path.clone(),
+                                e.pos,
+                            ));
+                        }
+                    },
+                }
+            } else {
+                errors.push(error::error_list::ERROR_S6.clone().build_with_path(
+                    vec![error::ErrorBuildField {
+                        key: "token".to_string(),
+                        value: "vector".to_string(),
+                    }],
+                    "def_pr_0x57".to_owned(),
+                    parser.find_page(page_id).unwrap().path.clone(),
+                    e.pos,
+                ));
+            }
+        }
         DefinerTypes::Collective(e) => {
             let mut key = DefinerCollecting::Dynamic;
             let mut value = DefinerCollecting::Dynamic;
@@ -32,13 +178,280 @@ pub fn process(
                 }
                 Err(e) => errors.extend(e),
             }
-            found = DefinerCollecting::Collective(definers::CollectiveType {
-                key: Box::new(key),
-                value: Box::new(value),
-            });
+            let deep_search_result = parser.deep_search(
+                page_id,
+                "nullAble".to_string(),
+                ignore_hash.clone(),
+                vec![],
+                0,
+            );
+
+            if deep_search_result.found && errors.is_empty() {
+                match deep_search_result.found_item {
+                    crate::parser::DeepSearchItems::Class(nullable_class) => {
+                        found = DefinerCollecting::ParentGeneric(definers::ParentGenericType {
+                            parent_pos: nullable_class.pos,
+                            generics: vec![
+                                definers::GenericParameter {
+                                    value: key,
+                                    pos: deep_search_result
+                                        .found_pos
+                                        .unwrap_or(ellie_core::defs::Cursor::default()),
+                                },
+                                definers::GenericParameter {
+                                    value,
+                                    pos: deep_search_result
+                                        .found_pos
+                                        .unwrap_or(ellie_core::defs::Cursor::default()),
+                                },
+                            ],
+                            hash: nullable_class.hash,
+                            rtype: "vector".to_string(),
+                        });
+                    }
+                    _ => match deep_search_result.found_pos {
+                        Some(ref_pos) => {
+                            let mut error = error::error_list::ERROR_S45.clone().build_with_path(
+                                vec![error::ErrorBuildField {
+                                    key: "token".to_string(),
+                                    value: "vector".to_string(),
+                                }],
+                                "def_pr_0x57".to_owned(),
+                                parser.find_page(page_id).unwrap().path.clone(),
+                                e.pos,
+                            );
+                            error.reference_message = "Defined here".to_string();
+                            error.reference_block =
+                                Some((ref_pos, deep_search_result.found_page.path));
+                            errors.push(error);
+                        }
+                        None => {
+                            errors.push(error::error_list::ERROR_S45.clone().build_with_path(
+                                vec![error::ErrorBuildField {
+                                    key: "token".to_string(),
+                                    value: "vector".to_string(),
+                                }],
+                                "def_pr_0x57".to_owned(),
+                                parser.find_page(page_id).unwrap().path.clone(),
+                                e.pos,
+                            ));
+                        }
+                    },
+                }
+            } else {
+                errors.push(error::error_list::ERROR_S6.clone().build_with_path(
+                    vec![error::ErrorBuildField {
+                        key: "token".to_string(),
+                        value: "vector".to_string(),
+                    }],
+                    "def_pr_0x57".to_owned(),
+                    parser.find_page(page_id).unwrap().path.clone(),
+                    e.pos,
+                ));
+            }
         }
-        DefinerTypes::Vector(_) => todo!(),
-        DefinerTypes::Nullable(_) => todo!(),
+        DefinerTypes::Vector(e) => {
+            let deep_search_result = parser.deep_search(
+                page_id,
+                "vector".to_string(),
+                ignore_hash.clone(),
+                vec![],
+                0,
+            );
+
+            if deep_search_result.found {
+                match deep_search_result.found_item {
+                    crate::parser::DeepSearchItems::Class(vector_class) => {
+                        match process(*e.rtype.clone(), parser, page_id, ignore_hash) {
+                            Ok(inner_type) => {
+                                if vector_class.generic_definings.len() != 1 {
+                                    let mut error =
+                                        error::error_list::ERROR_S44.clone().build_with_path(
+                                            vec![
+                                                error::ErrorBuildField {
+                                                    key: "token".to_string(),
+                                                    value: vector_class
+                                                        .generic_definings
+                                                        .len()
+                                                        .to_string(),
+                                                },
+                                                error::ErrorBuildField {
+                                                    key: "token2".to_string(),
+                                                    value: 1.to_string(),
+                                                },
+                                            ],
+                                            "def_pr_0x57".to_owned(),
+                                            parser.find_page(page_id).unwrap().path.clone(),
+                                            e.rtype.get_pos(),
+                                        );
+                                    error.reference_message =
+                                        "Does not have required generic parameters".to_string();
+                                    error.reference_block = Some((
+                                        vector_class.pos,
+                                        deep_search_result.found_page.path,
+                                    ));
+                                    errors.push(error);
+                                } else {
+                                    found = DefinerCollecting::ParentGeneric(
+                                        definers::ParentGenericType {
+                                            parent_pos: vector_class.pos,
+                                            generics: vec![definers::GenericParameter {
+                                                value: inner_type,
+                                                pos: deep_search_result
+                                                    .found_pos
+                                                    .unwrap_or(ellie_core::defs::Cursor::default()),
+                                            }],
+                                            hash: vector_class.hash,
+                                            rtype: "vector".to_string(),
+                                        },
+                                    );
+                                }
+                            }
+                            Err(e) => errors.extend(e),
+                        }
+                    }
+                    _ => match deep_search_result.found_pos {
+                        Some(ref_pos) => {
+                            let mut error = error::error_list::ERROR_S45.clone().build_with_path(
+                                vec![error::ErrorBuildField {
+                                    key: "token".to_string(),
+                                    value: "vector".to_string(),
+                                }],
+                                "def_pr_0x57".to_owned(),
+                                parser.find_page(page_id).unwrap().path.clone(),
+                                e.pos,
+                            );
+                            error.reference_message = "Defined here".to_string();
+                            error.reference_block =
+                                Some((ref_pos, deep_search_result.found_page.path));
+                            errors.push(error);
+                        }
+                        None => {
+                            errors.push(error::error_list::ERROR_S45.clone().build_with_path(
+                                vec![error::ErrorBuildField {
+                                    key: "token".to_string(),
+                                    value: "vector".to_string(),
+                                }],
+                                "def_pr_0x57".to_owned(),
+                                parser.find_page(page_id).unwrap().path.clone(),
+                                e.pos,
+                            ));
+                        }
+                    },
+                }
+            } else {
+                errors.push(error::error_list::ERROR_S6.clone().build_with_path(
+                    vec![error::ErrorBuildField {
+                        key: "token".to_string(),
+                        value: "vector".to_string(),
+                    }],
+                    "def_pr_0x57".to_owned(),
+                    parser.find_page(page_id).unwrap().path.clone(),
+                    e.pos,
+                ));
+            }
+        }
+        DefinerTypes::Nullable(e) => {
+            let deep_search_result = parser.deep_search(
+                page_id,
+                "nullAble".to_string(),
+                ignore_hash.clone(),
+                vec![],
+                0,
+            );
+
+            if deep_search_result.found {
+                match deep_search_result.found_item {
+                    crate::parser::DeepSearchItems::Class(nullable_class) => {
+                        match process(*e.rtype.clone(), parser, page_id, ignore_hash) {
+                            Ok(inner_type) => {
+                                if nullable_class.generic_definings.len() != 1 {
+                                    let mut error =
+                                        error::error_list::ERROR_S44.clone().build_with_path(
+                                            vec![
+                                                error::ErrorBuildField {
+                                                    key: "token".to_string(),
+                                                    value: nullable_class
+                                                        .generic_definings
+                                                        .len()
+                                                        .to_string(),
+                                                },
+                                                error::ErrorBuildField {
+                                                    key: "token2".to_string(),
+                                                    value: 1.to_string(),
+                                                },
+                                            ],
+                                            "def_pr_0x57".to_owned(),
+                                            parser.find_page(page_id).unwrap().path.clone(),
+                                            e.rtype.get_pos(),
+                                        );
+                                    error.reference_message =
+                                        "Does not have required generic parameters".to_string();
+                                    error.reference_block = Some((
+                                        nullable_class.pos,
+                                        deep_search_result.found_page.path,
+                                    ));
+                                    errors.push(error);
+                                } else {
+                                    found = DefinerCollecting::ParentGeneric(
+                                        definers::ParentGenericType {
+                                            parent_pos: nullable_class.pos,
+                                            generics: vec![definers::GenericParameter {
+                                                value: inner_type,
+                                                pos: deep_search_result
+                                                    .found_pos
+                                                    .unwrap_or(ellie_core::defs::Cursor::default()),
+                                            }],
+                                            hash: nullable_class.hash,
+                                            rtype: "vector".to_string(),
+                                        },
+                                    );
+                                }
+                            }
+                            Err(e) => errors.extend(e),
+                        }
+                    }
+                    _ => match deep_search_result.found_pos {
+                        Some(ref_pos) => {
+                            let mut error = error::error_list::ERROR_S45.clone().build_with_path(
+                                vec![error::ErrorBuildField {
+                                    key: "token".to_string(),
+                                    value: "vector".to_string(),
+                                }],
+                                "def_pr_0x57".to_owned(),
+                                parser.find_page(page_id).unwrap().path.clone(),
+                                e.pos,
+                            );
+                            error.reference_message = "Defined here".to_string();
+                            error.reference_block =
+                                Some((ref_pos, deep_search_result.found_page.path));
+                            errors.push(error);
+                        }
+                        None => {
+                            errors.push(error::error_list::ERROR_S45.clone().build_with_path(
+                                vec![error::ErrorBuildField {
+                                    key: "token".to_string(),
+                                    value: "vector".to_string(),
+                                }],
+                                "def_pr_0x57".to_owned(),
+                                parser.find_page(page_id).unwrap().path.clone(),
+                                e.pos,
+                            ));
+                        }
+                    },
+                }
+            } else {
+                errors.push(error::error_list::ERROR_S6.clone().build_with_path(
+                    vec![error::ErrorBuildField {
+                        key: "token".to_string(),
+                        value: "vector".to_string(),
+                    }],
+                    "def_pr_0x57".to_owned(),
+                    parser.find_page(page_id).unwrap().path.clone(),
+                    e.pos,
+                ));
+            }
+        }
         DefinerTypes::ParentGeneric(generic) => {
             let deep_search_result = parser.deep_search(
                 page_id,
@@ -127,8 +540,13 @@ pub fn process(
             }
         }
         DefinerTypes::Generic(generic) => {
-            let deep_search_result =
-                parser.deep_search(page_id, generic.rtype.clone(), ignore_hash, vec![], 0);
+            let deep_search_result = parser.deep_search(
+                page_id,
+                generic.rtype.clone(),
+                ignore_hash.clone(),
+                vec![],
+                0,
+            );
 
             if deep_search_result.found {
                 match deep_search_result.found_item {
@@ -201,8 +619,63 @@ pub fn process(
                 ));
             }
         }
-        DefinerTypes::Function(_) => todo!(),
-        DefinerTypes::Dynamic => todo!(),
+        DefinerTypes::Function(e) => {
+            let deep_search_result =
+                parser.deep_search(page_id, "cloak".to_string(), ignore_hash.clone(), vec![], 0);
+
+            if deep_search_result.found {
+                match deep_search_result.found_item {
+                    crate::parser::DeepSearchItems::Class(cloak_class) => {
+                        found = DefinerCollecting::Generic(definers::GenericType {
+                            hash: cloak_class.hash,
+                            rtype: "function".to_string(),
+                            pos: cloak_class.pos,
+                        });
+                    }
+                    _ => match deep_search_result.found_pos {
+                        Some(ref_pos) => {
+                            let mut error = error::error_list::ERROR_S45.clone().build_with_path(
+                                vec![error::ErrorBuildField {
+                                    key: "token".to_string(),
+                                    value: "vector".to_string(),
+                                }],
+                                "def_pr_0x57".to_owned(),
+                                parser.find_page(page_id).unwrap().path.clone(),
+                                e.pos,
+                            );
+                            error.reference_message = "Defined here".to_string();
+                            error.reference_block =
+                                Some((ref_pos, deep_search_result.found_page.path));
+                            errors.push(error);
+                        }
+                        None => {
+                            errors.push(error::error_list::ERROR_S45.clone().build_with_path(
+                                vec![error::ErrorBuildField {
+                                    key: "token".to_string(),
+                                    value: "vector".to_string(),
+                                }],
+                                "def_pr_0x57".to_owned(),
+                                parser.find_page(page_id).unwrap().path.clone(),
+                                e.pos,
+                            ));
+                        }
+                    },
+                }
+            } else {
+                errors.push(error::error_list::ERROR_S6.clone().build_with_path(
+                    vec![error::ErrorBuildField {
+                        key: "token".to_string(),
+                        value: "vector".to_string(),
+                    }],
+                    "def_pr_0x57".to_owned(),
+                    parser.find_page(page_id).unwrap().path.clone(),
+                    e.pos,
+                ));
+            }
+        }
+        DefinerTypes::Dynamic => {
+            panic!("Unexpected behaviour")
+        }
     }
     if errors.len() > 0 {
         Err(errors)

@@ -35,8 +35,8 @@ pub enum Processors {
 
     SelfItem(self_item::SelfItem),          //VirtualValues
     GenericItem(generic_item::GenericItem), //VirtualValues
-    FunctionVariable(function_parameter::FunctionParameter), //VirtualValues
-    ConstructorVariable(constructor_parameter::ConstructorParameter), //DISABLED
+    FunctionParameter(function_parameter::FunctionParameter), //VirtualValues
+    ConstructorParameter(constructor_parameter::ConstructorParameter), //DISABLED
 }
 
 impl Processors {
@@ -57,8 +57,8 @@ impl Processors {
             Processors::Class(e) => e.complete,
             Processors::SelfItem(_) => panic!("Unexpected behaviour"),
             Processors::GenericItem(_) => panic!("Unexpected behaviour"),
-            Processors::FunctionVariable(_) => panic!("Unexpected behaviour"),
-            Processors::ConstructorVariable(_) => panic!("Unexpected behaviour"),
+            Processors::FunctionParameter(_) => panic!("Unexpected behaviour"),
+            Processors::ConstructorParameter(_) => panic!("Unexpected behaviour"),
         }
     }
 
@@ -67,8 +67,8 @@ impl Processors {
             Processors::GetterCall(e) => !e.data.is_not_initialized(),
             Processors::SelfItem(_) => panic!("Unexpected behaviour"),
             Processors::GenericItem(_) => panic!("Unexpected behaviour"),
-            Processors::FunctionVariable(_) => panic!("Unexpected behaviour"),
-            Processors::ConstructorVariable(_) => panic!("Unexpected behaviour"),
+            Processors::FunctionParameter(_) => panic!("Unexpected behaviour"),
+            Processors::ConstructorParameter(_) => panic!("Unexpected behaviour"),
             _ => true,
         }
     }
@@ -88,8 +88,8 @@ impl Processors {
             Processors::Class(e) => e.pos,
             Processors::SelfItem(_) => panic!("Unexpected behaviour"),
             Processors::GenericItem(_) => panic!("Unexpected behaviour"),
-            Processors::FunctionVariable(_) => panic!("Unexpected behaviour"),
-            Processors::ConstructorVariable(_) => panic!("Unexpected behaviour"),
+            Processors::FunctionParameter(_) => panic!("Unexpected behaviour"),
+            Processors::ConstructorParameter(_) => panic!("Unexpected behaviour"),
         }
     }
 
@@ -109,8 +109,8 @@ impl Processors {
 
             Processors::SelfItem(_) => panic!("Unexpected behaviour"),
             Processors::GenericItem(_) => panic!("Unexpected behaviour"),
-            Processors::FunctionVariable(_) => panic!("Unexpected behaviour"),
-            Processors::ConstructorVariable(_) => panic!("Unexpected behaviour"),
+            Processors::FunctionParameter(_) => panic!("Unexpected behaviour"),
+            Processors::ConstructorParameter(_) => panic!("Unexpected behaviour"),
         }
     }
 
@@ -237,10 +237,7 @@ impl super::Processor for ItemProcessor {
                 data: variable::Variable {
                     public: self.used_modifier == Modifier::Pub,
                     constant: letter_char == 'c',
-                    pos: defs::Cursor {
-                        range_start: cursor,
-                        ..Default::default()
-                    },
+                    pos: self.current.get_pos(),
                     ..Default::default()
                 },
                 ..Default::default()
@@ -341,8 +338,8 @@ impl super::Processor for ItemProcessor {
             Processors::Class(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::SelfItem(_) => panic!("Unexpected behaviour"),
             Processors::GenericItem(_) => panic!("Unexpected behaviour"),
-            Processors::FunctionVariable(_) => panic!("Unexpected behaviour"),
-            Processors::ConstructorVariable(_) => panic!("Unexpected behaviour"),
+            Processors::FunctionParameter(_) => panic!("Unexpected behaviour"),
+            Processors::ConstructorParameter(_) => panic!("Unexpected behaviour"),
         }
     }
 }

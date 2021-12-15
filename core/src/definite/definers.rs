@@ -8,11 +8,13 @@ use serde::{Deserialize, Serialize};
 pub struct ArrayType {
     pub rtype: Box<DefinerCollecting>,
     pub size: Box<Types>,
+    pub pos: defs::Cursor,
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct VectorType {
     pub rtype: Box<DefinerCollecting>,
+    pub pos: defs::Cursor,
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
@@ -45,12 +47,14 @@ pub struct FunctionType {
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct CloakType {
     pub rtype: Vec<DefinerCollecting>,
+    pub pos: defs::Cursor,
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct CollectiveType {
     pub key: Box<DefinerCollecting>,
     pub value: Box<DefinerCollecting>,
+    pub pos: defs::Cursor,
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]

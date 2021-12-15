@@ -25,7 +25,7 @@ impl crate::processors::Processor for function::FunctionCollector {
                         defs::Cursor::build_with_skip_char(cursor),
                     ));
                 }
-                self.data.name_pos.range_end = cursor;
+                self.data.name_pos.range_end = cursor.clone().skip_char(1);
                 self.data.name += &letter_char.to_string();
             } else if letter_char == '(' && self.data.name != "" {
                 self.name_collected = true;
@@ -118,13 +118,30 @@ impl crate::processors::Processor for function::FunctionCollector {
             if letter_char == ':' {
                 self.return_keyword_collected = true;
             } else if letter_char == '{' {
+                self.data.no_return = true;
                 self.return_keyword_collected = true;
+                self.data.return_type.definer_type =
+                    crate::syntax::items::definers::DefinerTypes::Generic(
+                        crate::syntax::items::definers::GenericType {
+                            rtype: "void".to_string(),
+                            pos: self.data.name_pos,
+                        },
+                    );
+                self.data.no_return = true;
                 self.return_collected = true;
             } else if letter_char == ';' {
                 self.data.defining = true;
                 self.return_keyword_collected = true;
                 self.return_collected = true;
                 self.complete = true;
+                self.data.no_return = true;
+                self.data.return_type.definer_type =
+                    crate::syntax::items::definers::DefinerTypes::Generic(
+                        crate::syntax::items::definers::GenericType {
+                            rtype: "void".to_string(),
+                            pos: self.data.name_pos,
+                        },
+                    );
             } else if letter_char != ' ' {
                 errors.push(error::error_list::ERROR_S1.clone().build(
                     vec![error::ErrorBuildField {
