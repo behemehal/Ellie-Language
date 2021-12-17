@@ -1,4 +1,6 @@
 use serde::{Deserialize, Serialize};
+
+use crate::defs;
 pub mod class;
 pub mod condition;
 pub mod constructor;
@@ -46,6 +48,29 @@ impl Default for Collecting {
 }
 
 impl Collecting {
+    pub fn get_pos(&self) -> defs::Cursor {
+        match self {
+            Collecting::Variable(e) => e.pos,
+            Collecting::Function(e) => e.pos,
+            Collecting::ForLoop(e) => e.pos,
+            Collecting::Condition(e) => e.pos,
+            Collecting::Class(e) => e.pos,
+            Collecting::Ret(e) => e.pos,
+            Collecting::Constructor(e) => e.pos,
+            Collecting::Import(e) => e.pos,
+            Collecting::FileKey(e) => e.pos,
+            Collecting::Getter(e) => e.pos,
+            Collecting::Setter(e) => e.pos,
+            Collecting::Generic(e) => e.pos,
+            Collecting::GetterCall(e) => e.pos,
+            Collecting::SetterCall(e) => e.pos,
+            Collecting::Enum(e) => e.pos,
+            Collecting::NativeFunction(e) => e.pos,
+            Collecting::None => todo!(),
+            Collecting::NativeClass => todo!(),
+        }
+    }
+
     pub fn is_pub(self) -> bool {
         match self {
             Collecting::Variable(e) => e.public,

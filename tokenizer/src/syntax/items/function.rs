@@ -74,6 +74,7 @@ impl Converter<FunctionCollector, ellie_core::definite::items::function::Functio
             body_pos: self.data.body_pos,
             hash: self.data.hash,
             no_return: self.data.no_return,
+            inner_page_id: 0,
         }
     }
 

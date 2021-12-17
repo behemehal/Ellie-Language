@@ -1,9 +1,6 @@
 use alloc::{borrow::ToOwned, string::ToString, vec, vec::Vec};
-use ellie_core::{
-    definite::{items::Collecting, Converter},
-    defs, error, warning,
-};
-use ellie_tokenizer::syntax::items::function;
+use ellie_core::{definite::Converter, error, warning};
+use ellie_tokenizer::{syntax::items::function, tokenizer::PageType};
 
 impl super::Processor for function::FunctionCollector {
     fn process(self, parser: &mut crate::parser::Parser, page_id: u64) {
@@ -129,6 +126,38 @@ impl super::Processor for function::FunctionCollector {
                             None,
                         ) {
                             Ok(e) => {
+                                #[cfg(feature = "standard_rules")]
+                                {
+                                    let (is_correct, fixed) =
+                                        (ellie_standard_rules::rules::CLASS_NAMING_ISSUE.worker)(
+                                            parameter.name.clone(),
+                                        );
+                                    if !is_correct
+                                        && !parser.page_has_file_key_with(
+                                            page_id,
+                                            "allow",
+                                            "FunctionParameterNameRule",
+                                        )
+                                    {
+                                        parser.informations.push(
+                                            &warning::warning_list::WARNING_S3.clone().build(
+                                                vec![
+                                                    warning::WarningBuildField {
+                                                        key: "current".to_owned(),
+                                                        value: parameter.name.clone(),
+                                                    },
+                                                    warning::WarningBuildField {
+                                                        key: "correct".to_owned(),
+                                                        value: fixed,
+                                                    },
+                                                ],
+                                                parser.find_page(page_id).unwrap().path.clone(),
+                                                parameter.pos,
+                                            ),
+                                        )
+                                    }
+                                }
+
                                 items.push(ellie_tokenizer::processors::items::Processors::FunctionParameter(
                                     ellie_tokenizer::syntax::items::function_parameter::FunctionParameter {
                                         name: parameter.name.clone(),
@@ -151,10 +180,38 @@ impl super::Processor for function::FunctionCollector {
                     }
                 }
             }
-            let mut inner = ellie_tokenizer::tokenizer::Page {
+
+            #[cfg(feature = "standard_rules")]
+            {
+                let (is_correct, fixed) = (ellie_standard_rules::rules::FUNCTION_NAMING_ISSUE
+                    .worker)(self.data.name.clone());
+                if !is_correct
+                    && !parser.page_has_file_key_with(page_id, "allow", "FunctionNameRule")
+                {
+                    parser
+                        .informations
+                        .push(&warning::warning_list::WARNING_S1.clone().build(
+                            vec![
+                                warning::WarningBuildField {
+                                    key: "current".to_owned(),
+                                    value: self.data.name.clone(),
+                                },
+                                warning::WarningBuildField {
+                                    key: "correct".to_owned(),
+                                    value: fixed,
+                                },
+                            ],
+                            parser.find_page(page_id).unwrap().path.clone(),
+                            self.data.name_pos,
+                        ))
+                }
+            }
+
+            let inner = ellie_tokenizer::tokenizer::Page {
                 hash: inner_page_id,
                 inner: Some(page.hash),
                 path: page.path.clone(),
+                page_type: PageType::FunctionBody,
                 items,
                 dependents: vec![],
                 dependencies: vec![ellie_tokenizer::tokenizer::Dependency {
@@ -164,24 +221,27 @@ impl super::Processor for function::FunctionCollector {
             };
             parser.pages.push(inner);
             parser.process_page(inner_page_id);
-            let processed_page = parser.find_processed_page(inner_page_id).unwrap();
+            let processed_page = parser.find_processed_page(page_id).unwrap();
 
-            let processed = ellie_core::definite::items::Collecting::Function(
-                ellie_core::definite::items::function::Function {
-                    name: self.data.name.clone(),
-                    pos: self.data.pos,
-                    parameters: parameters,
-                    body: processed_page.items.clone(),
-                    hash: self.data.hash.clone(),
-                    return_type: return_type,
-                    public: self.data.public,
-                    name_pos: self.data.name_pos,
-                    body_pos: self.data.body_pos,
-                    parameters_pos: self.data.parameters_pos,
-                    return_pos: self.data.return_pos,
-                    no_return: self.data.no_return,
-                },
-            );
+            processed_page
+                .items
+                .push(ellie_core::definite::items::Collecting::Function(
+                    ellie_core::definite::items::function::Function {
+                        name: self.data.name.clone(),
+                        pos: self.data.pos,
+                        parameters: parameters,
+                        body: processed_page.items.clone(),
+                        hash: self.data.hash.clone(),
+                        return_type: return_type,
+                        public: self.data.public,
+                        name_pos: self.data.name_pos,
+                        body_pos: self.data.body_pos,
+                        parameters_pos: self.data.parameters_pos,
+                        return_pos: self.data.return_pos,
+                        no_return: self.data.no_return,
+                        inner_page_id,
+                    },
+                ));
         }
     }
 }

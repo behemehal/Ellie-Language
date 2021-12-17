@@ -14,6 +14,7 @@ pub mod operator;
 pub mod reference;
 pub mod string;
 pub mod variable;
+pub mod vector;
 
 use serde::{Deserialize, Serialize};
 
@@ -30,6 +31,7 @@ pub enum Types {
     Operator(operator::OperatorType),
     Cloak(cloak::CloakType),
     Array(array::ArrayType),
+    Vector(vector::VectorType),
     //ArrowFunction(arrow_function::ArrowFunction),
     ClassCall(class_call::ClassCall),
     FunctionCall(function_call::FunctionCall),

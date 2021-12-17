@@ -1,3 +1,6 @@
+#![allow(dead_code)]
+
+
 use std::{
     collections::hash_map::DefaultHasher,
     fmt::Display,

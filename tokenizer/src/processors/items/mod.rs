@@ -88,7 +88,7 @@ impl Processors {
             Processors::Class(e) => e.pos,
             Processors::SelfItem(_) => panic!("Unexpected behaviour"),
             Processors::GenericItem(_) => panic!("Unexpected behaviour"),
-            Processors::FunctionParameter(_) => panic!("Unexpected behaviour"),
+            Processors::FunctionParameter(e) => e.pos,
             Processors::ConstructorParameter(_) => panic!("Unexpected behaviour"),
         }
     }

@@ -18,6 +18,7 @@ pub struct Function {
     pub name: String,
     pub parameters: Vec<FunctionParameter>,
     pub return_type: definers::DefinerCollecting,
+    pub inner_page_id: u64,
     pub public: bool,
     pub body: Vec<Collecting>,
     pub name_pos: defs::Cursor,
