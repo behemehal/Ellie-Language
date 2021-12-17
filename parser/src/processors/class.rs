@@ -1,6 +1,6 @@
 use alloc::{borrow::ToOwned, vec, vec::Vec};
 use ellie_core::{definite::items::Collecting, defs, error, warning};
-use ellie_tokenizer::syntax::items::class::Class;
+use ellie_tokenizer::{syntax::items::class::Class, tokenizer::PageType};
 
 impl super::Processor for Class {
     fn process(self, parser: &mut super::Parser, page_id: u64) {
@@ -151,6 +151,7 @@ impl super::Processor for Class {
                     hash: page.hash.clone(),
                     public: false,
                 }],
+                page_type: PageType::ClassBody,
             };
             parser.pages.push(inner);
             parser.process_page(inner_page_id);

@@ -1,3 +1,8 @@
+#![allow(dead_code)]
+#![allow(unused_variables)]
+#![allow(unused_imports)]
+
+
 use ellie_core;
 use ellie_parser::parser;
 use regex::Regex;

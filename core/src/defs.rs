@@ -90,6 +90,12 @@ impl CursorPosition {
     pub fn is_zero(&self) -> bool {
         self.0 == 0 && self.1 == 0
     }
+
+    pub fn increase_line(&mut self, n: usize) -> CursorPosition {
+        let mut clone = *self;
+        clone.0 += n;
+        clone
+    }
 }
 
 #[derive(PartialEq, Debug, Clone, Copy, Serialize, Deserialize)]

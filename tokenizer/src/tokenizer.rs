@@ -15,11 +15,27 @@ pub struct Dependency {
     pub public: bool,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum PageType {
+    FunctionBody,
+    ConstructorBody,
+    RawBody,
+    ClassBody,
+    ValueConditionBody,
+}
+
+impl Default for PageType {
+    fn default() -> Self {
+        PageType::RawBody
+    }
+}
+
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 
 pub struct Page {
     pub hash: u64,
     pub inner: Option<u64>,
+    pub page_type: PageType,
     pub path: String,
     pub items: Vec<items::Processors>,
     pub dependents: Vec<u64>,
@@ -103,6 +119,7 @@ where
                 items: vec![],
                 dependents: vec![],
                 dependencies: vec![],
+                page_type: PageType::RawBody,
             }],
             current_page: 0,
             import_resolver: import_resolver,
@@ -157,10 +174,10 @@ where
                                     inner: None,
                                     hash: resolved.hash,
                                     path: resolved.path,
-
                                     items: Vec::new(),
                                     dependents: vec![cr_page],
                                     dependencies: Vec::new(),
+                                    page_type: PageType::RawBody,
                                 });
                                 match self.resolve_page(resolved.hash, resolved.code) {
                                     Ok(inner_child) => {

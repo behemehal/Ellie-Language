@@ -20,9 +20,27 @@ lazy_static! {
 
     pub static ref WARNING_S3: warning::Warning = warning::Warning {
         code: 0x02,
-        title: "FunctionParameterRule".to_owned(),
+        title: "FunctionParameterNameRule".to_owned(),
         message: "Function parameter names names should be low camel case. Found '$current', expected '$correct'".to_owned(),
+        semi_assist: true,
+        ..Default::default()
+    };
+
+
+    pub static ref WARNING_S4: warning::Warning = warning::Warning {
+        code: 0x03,
+        title: "DeadCode".to_owned(),
+        message: "This stage of code is unreachable".to_owned(),
         full_assist: true,
         ..Default::default()
     };
+
+    pub static ref WARNING_S5: warning::Warning = warning::Warning {
+        code: 0x04,
+        title: "FunctionNameRule".to_owned(),
+        message: "Function names should be low camel case. Found '$current', expected '$correct'".to_owned(),
+        semi_assist: true,
+        ..Default::default()
+    };
+
 }

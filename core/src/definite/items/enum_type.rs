@@ -17,6 +17,7 @@ pub struct EnumType {
     pub public: bool,
     pub name: String,
     pub name_pos: crate::defs::Cursor,
+    pub pos: crate::defs::Cursor,
     pub brace_start_pos: crate::defs::Cursor,
     pub brace_end_pos: crate::defs::Cursor,
     pub items: Vec<EnumItem>,

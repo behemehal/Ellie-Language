@@ -7,6 +7,7 @@ pub mod function;
 pub mod import;
 pub mod type_processor;
 pub mod variable;
+pub mod ret;
 
 pub trait Processor {
     fn process(self, parser: &mut Parser, page_id: u64);

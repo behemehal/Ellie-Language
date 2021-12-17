@@ -1,6 +1,6 @@
-use alloc::{borrow::ToOwned, vec, vec::Vec};
-use ellie_core::{definite::items::Collecting, defs, error, warning};
-use ellie_tokenizer::syntax::items::constructor::Constructor;
+use alloc::{borrow::ToOwned, vec};
+use ellie_core::error;
+use ellie_tokenizer::{syntax::items::constructor::Constructor, tokenizer::PageType};
 
 impl super::Processor for Constructor {
     fn process(self, parser: &mut crate::parser::Parser, page_id: u64) {
@@ -35,6 +35,12 @@ impl super::Processor for Constructor {
             .unwrap_or_else(|| panic!("Failed to find class"));
         let page = parser.find_page(page_id).unwrap().clone();
         let mut items = self.inside_code;
+
+        //let return_element = items.into_iter().find_map(|item| {
+        //    match item {
+        //        ellie_tokenizer::processors::items::Processors::Ret(_) => todo!(),
+        //    }
+        //})
 
         for (index, parameter) in self.parameters.clone().iter().enumerate() {
             let deep_search = parser.deep_search(page_id, parameter.name.clone(), None, vec![], 0);
@@ -109,6 +115,7 @@ impl super::Processor for Constructor {
             inner: Some(page.hash),
             path: page.path.clone(),
             items,
+            page_type: PageType::ConstructorBody,
             dependents: vec![],
             dependencies: vec![ellie_tokenizer::tokenizer::Dependency {
                 hash: page.hash.clone(),

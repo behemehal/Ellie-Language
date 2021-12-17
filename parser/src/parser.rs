@@ -1,7 +1,9 @@
 use crate::processors::Processor;
+use alloc::borrow::ToOwned;
+use alloc::string::ToString;
 use alloc::vec::Vec;
 use alloc::{string::String, vec};
-use ellie_core::{defs, information};
+use ellie_core::{defs, information, warning};
 use ellie_tokenizer::processors::items::Processors;
 use ellie_tokenizer::tokenizer::{Dependency, Page};
 use serde::{Deserialize, Serialize};
@@ -10,10 +12,56 @@ use serde::{Deserialize, Serialize};
 pub struct ProcessedPage {
     pub hash: u64,
     pub inner: Option<u64>,
+    pub unreachable: bool,
+    pub unreachable_range: defs::Cursor,
     pub path: String,
     pub items: Vec<ellie_core::definite::items::Collecting>,
     pub dependents: Vec<u64>,
     pub dependencies: Vec<u64>,
+}
+
+impl ProcessedPage {
+    pub fn has_ret(&self) -> (bool, defs::Cursor) {
+        let mut found = (false, defs::Cursor::default());
+        for i in &self.items {
+            match i {
+                ellie_core::definite::items::Collecting::Ret(ret) => {
+                    found = (true, ret.value_position);
+                    break;
+                }
+                _ => {}
+            }
+        }
+        found
+    }
+
+    pub fn find_dead_code(&self) -> (bool, defs::Cursor) {
+        let mut dead = false;
+        let mut range_start = defs::CursorPosition::default();
+        let mut range_end = defs::CursorPosition::default();
+
+        for item in self.items.iter() {
+            match item {
+                ellie_core::definite::items::Collecting::Ret(e) => {
+                    dead = true;
+                    range_start = e.pos.range_start;
+                }
+                e => {
+                    if dead {
+                        range_end = e.get_pos().range_start;
+                    }
+                }
+            }
+        }
+
+        (
+            dead,
+            defs::Cursor {
+                range_start,
+                range_end,
+            },
+        )
+    }
 }
 
 pub struct Parser {
@@ -67,6 +115,54 @@ impl Parser {
             processed_pages: vec![],
             active_page: 0,
             informations: information::Informations::new(),
+        }
+    }
+
+    pub fn resolve_type_name(&self, rtype: ellie_core::definite::types::Types) -> String {
+        match rtype {
+            ellie_core::definite::types::Types::Integer(_) => "Int".to_string(),
+            ellie_core::definite::types::Types::Float(_) => "Flaot".to_string(),
+            ellie_core::definite::types::Types::Bool(_) => "Bool".to_string(),
+            ellie_core::definite::types::Types::String(_) => "String".to_string(),
+            ellie_core::definite::types::Types::Char(_) => "Char".to_string(),
+            ellie_core::definite::types::Types::Collective(_) => "Collective".to_string(),
+            ellie_core::definite::types::Types::Reference(_) => todo!(),
+            ellie_core::definite::types::Types::BraceReference(_) => todo!(),
+            ellie_core::definite::types::Types::Operator(_) => todo!(),
+            ellie_core::definite::types::Types::Cloak(_) => "Cloak".to_string(),
+            ellie_core::definite::types::Types::Array(_) => "Array".to_string(),
+            ellie_core::definite::types::Types::Vector(_) => "Vector".to_string(),
+            ellie_core::definite::types::Types::ClassCall(_) => todo!(),
+            ellie_core::definite::types::Types::FunctionCall(_) => todo!(),
+            ellie_core::definite::types::Types::Void => "Void".to_string(),
+            ellie_core::definite::types::Types::NullResolver(e) => self.resolve_type_name(*e.value),
+            ellie_core::definite::types::Types::Negative(e) => self.resolve_type_name(*e.value),
+            ellie_core::definite::types::Types::VariableType(_) => todo!(),
+            ellie_core::definite::types::Types::Null => "Null".to_string(),
+        }
+    }
+
+    pub fn resolve_definer_name(
+        &self,
+        definer: ellie_core::definite::definers::DefinerCollecting,
+    ) -> String {
+        match definer {
+            ellie_core::definite::definers::DefinerCollecting::Array(_) => "Array".to_string(),
+            ellie_core::definite::definers::DefinerCollecting::Vector(_) => "Vector".to_string(),
+            ellie_core::definite::definers::DefinerCollecting::Generic(e) => e.rtype,
+            ellie_core::definite::definers::DefinerCollecting::ParentGeneric(e) => e.rtype,
+            ellie_core::definite::definers::DefinerCollecting::Function(_) => {
+                "Function".to_string()
+            }
+
+            ellie_core::definite::definers::DefinerCollecting::Cloak(_) => "Cloak".to_string(),
+            ellie_core::definite::definers::DefinerCollecting::Collective(_) => {
+                "Collective".to_string()
+            }
+            ellie_core::definite::definers::DefinerCollecting::Nullable(_) => {
+                "NullAble".to_string()
+            }
+            ellie_core::definite::definers::DefinerCollecting::Dynamic => "Dynamic".to_string(),
         }
     }
 
@@ -304,7 +400,7 @@ impl Parser {
             .unwrap_or_else(|| panic!("Page not found"))
             .clone();
 
-        match self.find_processed_page(hash) {
+        let processed_page = match self.find_processed_page(hash) {
             None => {
                 self.processed_pages.push(ProcessedPage {
                     hash: hash,
@@ -313,28 +409,59 @@ impl Parser {
                     items: vec![],
                     dependents: vec![],
                     dependencies: vec![],
+                    unreachable: false,
+                    unreachable_range: defs::Cursor::default(),
                 });
-                for item in page.items.clone() {
-                    match item {
-                        Processors::Variable(e) => e.process(self, page.hash),
-                        Processors::GetterCall(_) => todo!(),
-                        Processors::SetterCall(_) => todo!(),
-                        Processors::Function(e) => e.process(self, page.hash),
-                        Processors::FileKey(e) => e.process(self, page.hash),
-                        Processors::Import(e) => e.process(self, page.hash),
-                        Processors::ForLoop(_) => todo!(),
-                        Processors::Condition(_) => todo!(),
-                        Processors::Constructor(e) => e.process(self, page.hash),
-                        Processors::Class(e) => e.process(self, page.hash),
-                        Processors::Ret(_) => todo!(),
-                        Processors::SelfItem(_) => (),
-                        Processors::GenericItem(_) => (),
-                        Processors::FunctionParameter(_) => (),
-                        Processors::ConstructorParameter(_) => (),
-                    }
+                None
+            }
+            Some(e) => Some(e.clone()),
+        };
+
+        for item in page.items.clone() {
+            if matches!(self.find_processed_page(hash), Some(e) if e.unreachable) {
+                #[cfg(feature = "std")]
+                std::println!("RANGE END");
+                self.find_processed_page(hash)
+                    .unwrap()
+                    .unreachable_range
+                    .range_end = item.get_pos().range_end;
+            } else {
+                match item {
+                    Processors::Variable(e) => e.process(self, page.hash),
+                    Processors::GetterCall(_) => todo!(),
+                    Processors::SetterCall(_) => todo!(),
+                    Processors::Function(e) => e.process(self, page.hash),
+                    Processors::FileKey(e) => e.process(self, page.hash),
+                    Processors::Import(e) => e.process(self, page.hash),
+                    Processors::ForLoop(_) => todo!(),
+                    Processors::Condition(_) => todo!(),
+                    Processors::Constructor(e) => e.process(self, page.hash),
+                    Processors::Class(e) => e.process(self, page.hash),
+                    Processors::Ret(e) => e.process(self, page.hash),
+                    Processors::SelfItem(_) => (),
+                    Processors::GenericItem(_) => (),
+                    Processors::FunctionParameter(_) => (),
+                    Processors::ConstructorParameter(_) => (),
                 }
             }
-            _ => (),
+        }
+
+        #[cfg(feature = "standard_rules")]
+        {
+            match self.find_processed_page(hash) {
+                Some(e) => {
+                    let q = e.clone();
+                    if q.unreachable {
+                        self.informations
+                            .push(&warning::warning_list::WARNING_S4.clone().build(
+                                vec![],
+                                q.path,
+                                q.unreachable_range,
+                            ));
+                    }
+                }
+                _ => (),
+            }
         }
     }
 
