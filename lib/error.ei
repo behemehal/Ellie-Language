@@ -1,18 +1,18 @@
 import int;
 import string;
 
-pub class CursorPosition {
+pub class cursorPosition {
     co(line, column);
     pub v line : int;
     pub v column : int;
 }
 
-pub class Error {
+pub class error {
     co(code, title, message);
 
     pub v code: int;
     pub v title: int;
     pub v message: int;
     pub v path: string;
-    pub v pos: CursorPosition;
+    pub v pos: cursorPosition;
 }

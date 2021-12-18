@@ -30,6 +30,7 @@ impl super::Processor for VariableCollector {
                 err.semi_assist = true;
                 parser.informations.push(&err);
             } else {
+                let page_path = parser.find_page(page_id).unwrap().path.clone();
                 parser
                     .informations
                     .push(&error::error_list::ERROR_S24.clone().build_with_path(
@@ -38,7 +39,7 @@ impl super::Processor for VariableCollector {
                             value: self.data.name,
                         }],
                         "pvr_0x23".to_owned(),
-                        parser.find_page(page_id).unwrap().path.clone(),
+                        page_path,
                         self.data.name_pos,
                     ))
             }
@@ -80,22 +81,23 @@ impl super::Processor for VariableCollector {
                     if !is_correct
                         && !parser.page_has_file_key_with(page_id, "allow", "VariableNameRule")
                     {
+                        let page_path = parser.find_page(page_id).unwrap().path.clone();
                         parser
-                        .informations
-                        .push(&warning::warning_list::WARNING_S2.clone().build(
-                            vec![
-                                warning::WarningBuildField {
-                                    key: "current".to_owned(),
-                                    value: self.data.name.clone(),
-                                },
-                                warning::WarningBuildField {
-                                    key: "correct".to_owned(),
-                                    value: fixed,
-                                },
-                            ],
-                            parser.find_page(page_id).unwrap().path.clone(),
-                            self.data.name_pos,
-                        ))
+                            .informations
+                            .push(&warning::warning_list::WARNING_S2.clone().build(
+                                vec![
+                                    warning::WarningBuildField {
+                                        key: "current".to_owned(),
+                                        value: self.data.name.clone(),
+                                    },
+                                    warning::WarningBuildField {
+                                        key: "correct".to_owned(),
+                                        value: fixed,
+                                    },
+                                ],
+                                page_path,
+                                self.data.name_pos,
+                            ))
                     }
                 }
 

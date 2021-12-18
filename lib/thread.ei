@@ -1,6 +1,13 @@
-import Error;
+import error;
 import int;
+import function;
+import string;
 
-pub fn panic(error: Error);
+pub class callStack {
+    pub v location: cursorPosition;
+    pub v path: string;
+} 
+
+pub fn panic(error: error);
 pub fn sleep(ms: int);
 pub fn create_thread(inside: @());

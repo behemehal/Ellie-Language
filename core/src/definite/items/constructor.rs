@@ -1,4 +1,3 @@
-use crate::definite::items::Collecting;
 use crate::defs;
 use alloc::string::String;
 use alloc::vec::Vec;
@@ -14,7 +13,6 @@ pub struct ConstructorParameter {
 pub struct Constructor {
     pub parameters: Vec<ConstructorParameter>,
     pub inner_page_id: u64,
-    pub inside_code: Vec<Collecting>,
     pub name_pos: defs::Cursor,
     pub parameters_pos: defs::Cursor,
     pub pos: defs::Cursor,

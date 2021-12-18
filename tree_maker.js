@@ -1,4 +1,4 @@
-var tree = require('./tree.json');
+var tree = require('./test.ei_parsed.json');
 var path = require('path');
 var fs = require('fs');
 
@@ -12,7 +12,7 @@ for (var i = 0; i < tree.length; i++) {
     for (var j = 0; j < item.dependencies.length; j++) {
         var dep = item.dependencies[j];
         var cr = path.basename(item.path).split(".")[0];
-        var tg = path.basename(tree.find(x => x.hash == dep.hash).path).split(".")[0];
+        var tg = path.basename(tree.find(x => x.hash == dep).path).split(".")[0];
         output += `    ${cr} -> ${tg} [ label= "depends to"]\n`
     }
 }

@@ -19,6 +19,7 @@ impl super::Processor for Import {
         };
 
         if duplicate {
+            let page_path = parser.find_page(page_id).unwrap().path.clone();
             parser
                 .informations
                 .push(&error::error_list::ERROR_S24.clone().build_with_path(
@@ -27,7 +28,7 @@ impl super::Processor for Import {
                         value: self.reference,
                     }],
                     "imp_0x14".to_owned(),
-                    parser.find_page(page_id).unwrap().path.clone(),
+                    page_path.clone(),
                     self.reference_pos,
                 ));
         } else {

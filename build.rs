@@ -2,9 +2,10 @@
 #![allow(unused_variables)]
 #![allow(unused_imports)]
 
-
 use ellie_core;
 use ellie_parser::parser;
+use ellie_tokenizer::tokenizer::{self, ResolvedImport};
+use path_absolutize::Absolutize;
 use regex::Regex;
 use toml::Value;
 
@@ -16,6 +17,7 @@ use std::{
     fs::{self, File},
     hash::{Hash, Hasher},
     io::Read,
+    path::Path,
 };
 
 fn main() {
@@ -52,6 +54,170 @@ fn main() {
             ).unwrap();
             let lib_version_number = &version_line_regex.captures(&ellie_lib).unwrap();
             let lib_version = lib_version_number["version"].to_owned();
+
+            match cli_utils::read_file(&("./core/src/builded_libraries.rs".to_owned())) {
+                Ok(builded_libraries) => {
+                    let current_version_number =
+                        &version_line_regex.captures(&builded_libraries).unwrap();
+                    let current_lib_version = current_version_number["version"].to_owned();
+
+                    if current_lib_version != lib_version {
+                        let mut pager = tokenizer::Pager::new(
+                            ellie_lib,
+                            Path::new("./lib/ellie.ei").to_str().unwrap().to_string(),
+                            |path, file_name| {
+                                let path = Path::new(&path)
+                                    .parent()
+                                    .unwrap()
+                                    .to_str()
+                                    .unwrap()
+                                    .to_string();
+                                let file = if cli_utils::file_exists(
+                                    path.clone() + "/" + &file_name.clone(),
+                                ) {
+                                    Some(path.clone() + "/" + &file_name.clone())
+                                } else if cli_utils::file_exists(
+                                    path.clone() + "/" + &file_name.clone() + ".ei",
+                                ) {
+                                    Some(path.clone() + "/" + &file_name.clone() + ".ei")
+                                } else {
+                                    None
+                                };
+
+                                match file {
+                                    Some(file) => {
+                                        let file = Path::new(&file).absolutize().unwrap();
+                                        match cli_utils::read_file(
+                                            &file.to_str().unwrap().to_string(),
+                                        ) {
+                                            Ok(ext) => {
+                                                let mut hasher = DefaultHasher::new();
+                                                ext.hash(&mut hasher);
+                                                ResolvedImport {
+                                                    found: true,
+                                                    code: ext,
+                                                    hash: hasher.finish(),
+                                                    path: file.to_str().unwrap().to_string(),
+                                                    ..Default::default()
+                                                }
+                                            }
+                                            Err(err) => ResolvedImport {
+                                                found: false,
+                                                resolve_error: err,
+                                                ..Default::default()
+                                            },
+                                        }
+                                    }
+                                    None => ResolvedImport {
+                                        found: false,
+                                        ..Default::default()
+                                    },
+                                }
+                            },
+                            Some(343),
+                        );
+
+                        match pager.run() {
+                            Err(e) => {
+                                cli_utils::print_errors(&e, |path| {
+                                    match cli_utils::read_file(&path) {
+                                        Ok(e) => e,
+                                        Err(err) => {
+                                            println!(
+                                                "Cannot read file '{}' {}[{}]{}",
+                                                path,
+                                                cli_utils::Colors::Red,
+                                                err,
+                                                cli_utils::Colors::Reset
+                                            );
+                                            std::process::exit(1);
+                                        }
+                                    }
+                                });
+                            }
+                            Ok(_) => {
+                                let mut parser = parser::Parser::new(pager.pages.clone(), Some(343));
+                                parser.parse();
+
+                                if !parser.informations.has_no_warnings() {
+                                    cli_utils::print_warnings(
+                                        &parser.informations.warnings,
+                                        |path| match cli_utils::read_file(&path) {
+                                            Ok(e) => e,
+                                            Err(err) => {
+                                                println!(
+                                                    "Cannot read file '{}' {}[{}]{}",
+                                                    path,
+                                                    cli_utils::Colors::Red,
+                                                    err,
+                                                    cli_utils::Colors::Reset
+                                                );
+                                                std::process::exit(1);
+                                            }
+                                        },
+                                    );
+                                }
+
+                                if !parser.informations.has_no_errors() {
+                                    cli_utils::print_errors(&parser.informations.errors, |path| {
+                                        match cli_utils::read_file(&path) {
+                                            Ok(e) => e,
+                                            Err(err) => {
+                                                println!(
+                                                    "Failed to ouput error. Cannot read file '{}' {}[{}]{}",
+                                                    path,
+                                                    cli_utils::Colors::Red,
+                                                    err,
+                                                    cli_utils::Colors::Reset
+                                                );
+                                                std::process::exit(1);
+                                            }
+                                        }
+                                    });
+                                    println!("\nCompiling {}failed{} with {}{} errors{} and {}{} warnings{}.",
+                                        cli_utils::Colors::Red,
+                                        cli_utils::Colors::Reset,
+                                        cli_utils::Colors::Red,
+                                        parser.informations.errors.len(),
+                                        cli_utils::Colors::Reset,
+                                        cli_utils::Colors::Yellow,
+                                        parser.informations.warnings.len(),
+                                        cli_utils::Colors::Reset,
+                                    );
+                                } else {
+                                    println!(
+                                        "\nCompiling {}succeeded{} with {}{} warnings{}.",
+                                        cli_utils::Colors::Green,
+                                        cli_utils::Colors::Reset,
+                                        cli_utils::Colors::Yellow,
+                                        parser.informations.warnings.len(),
+                                        cli_utils::Colors::Reset,
+                                    );
+
+                                    let json =
+                                        serde_json::to_string(&parser.processed_pages).unwrap();
+                                    fs::write(
+                                        "./core/src/builded_libraries.rs",
+                                        format!("//@version = \"{}\";\npub static ELLIE_STANDARD_LIBRARY : &str = {:#?};\n", lib_version, json),
+                                    )
+                                    .unwrap();
+                                }
+                            }
+                        }
+                    }
+                }
+                Err(err) => {
+                    panic!(
+                        "{}[Fail]{}: Cannot read file {}~./lib/{}.ei{}\n{:#?}",
+                        cli_utils::Colors::Red,
+                        cli_utils::Colors::Reset,
+                        cli_utils::Colors::Yellow,
+                        "builded_libraries.rs",
+                        cli_utils::Colors::Reset,
+                        err
+                    )
+                }
+            }
 
             fs::write(
                 "./src/cli_constants.rs",

@@ -1,6 +1,5 @@
 use crate::alloc::boxed::Box;
 use crate::alloc::vec::Vec;
-use crate::definite::items::Collecting;
 use crate::definite::types;
 use crate::defs;
 use serde::{Deserialize, Serialize};
@@ -16,7 +15,7 @@ pub enum ConditionType {
 pub struct ConditionChain {
     pub rtype: ConditionType,
     pub condition: Box<types::Types>,
-    pub code: Vec<Collecting>,
+    pub inner_page_id: u64,
     pub keyword_pos: defs::Cursor,
 }
 

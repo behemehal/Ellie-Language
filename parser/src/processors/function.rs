@@ -10,6 +10,7 @@ impl super::Processor for function::FunctionCollector {
             self.data.hash.clone(),
             self.data.pos,
         );
+        let page = parser.find_page(page_id).unwrap().clone();
 
         if duplicate {
             if let Some((page, cursor_pos)) = found {
@@ -35,13 +36,11 @@ impl super::Processor for function::FunctionCollector {
                             value: self.data.name,
                         }],
                         "pfn_0x38".to_owned(),
-                        parser.find_page(page_id).unwrap().path.clone(),
+                        page.path.clone(),
                         self.data.name_pos,
                     ))
             }
         } else {
-            let page = parser.find_page(page_id).unwrap().clone();
-
             let mut parameters: Vec<ellie_core::definite::items::function::FunctionParameter> =
                 Vec::new();
             let mut items = self.data.body.clone();
@@ -113,7 +112,7 @@ impl super::Processor for function::FunctionCollector {
                                         value: parameter.name.clone(),
                                     }],
                                     "pfn_0x98".to_owned(),
-                                    parser.find_page(page_id).unwrap().path.clone(),
+                                    page.path.clone(),
                                     parameter.pos,
                                 ),
                             )
@@ -152,7 +151,7 @@ impl super::Processor for function::FunctionCollector {
                                                         value: fixed,
                                                     },
                                                 ],
-                                                parser.find_page(page_id).unwrap().path.clone(),
+                                                page.path.clone(),
                                                 parameter.pos,
                                             ),
                                         )
@@ -202,112 +201,131 @@ impl super::Processor for function::FunctionCollector {
                                     value: fixed,
                                 },
                             ],
-                            parser.find_page(page_id).unwrap().path.clone(),
+                            page.path.clone(),
                             self.data.name_pos,
                         ))
                 }
             }
 
-            let mut dependencies = vec![ellie_tokenizer::tokenizer::Dependency {
-                hash: page.hash.clone(),
-                public: false,
-            }];
-            dependencies.extend(page.dependencies);
+            if self.data.defining {
+                let processed_page = parser.find_processed_page(page_id).unwrap();
+                processed_page
+                    .items
+                    .push(ellie_core::definite::items::Collecting::NativeFunction(
+                        ellie_core::definite::items::native_function::NativeFunction {
+                            name: self.data.name.clone(),
+                            pos: self.data.pos,
+                            parameters: parameters,
+                            hash: self.data.hash.clone(),
+                            return_type: return_type,
+                            public: self.data.public,
+                            name_pos: self.data.name_pos,
+                            parameters_pos: self.data.parameters_pos,
+                            return_pos: self.data.return_pos,
+                            no_return: self.data.no_return,
+                        },
+                    ));
+            } else {
+                let mut dependencies = vec![ellie_tokenizer::tokenizer::Dependency {
+                    hash: page.hash.clone(),
+                    processed: false,
+                    public: false,
+                }];
+                dependencies.extend(page.dependencies);
 
-            let inner = ellie_tokenizer::tokenizer::Page {
-                hash: inner_page_id,
-                inner: Some(page.hash),
-                path: page.path.clone(),
-                page_type: PageType::FunctionBody,
-                items,
-                dependents: vec![],
-                dependencies,
-            };
-            parser.pages.push(inner);
-            parser.process_page(inner_page_id);
+                let inner = ellie_tokenizer::tokenizer::Page {
+                    hash: inner_page_id,
+                    inner: Some(page.hash),
+                    path: page.path.clone(),
+                    page_type: PageType::FunctionBody,
+                    items,
+                    dependents: vec![],
+                    dependencies,
+                    ..Default::default()
+                };
+                parser.pages.push(inner);
+                parser.process_page(inner_page_id);
 
-            let found_ret = parser
-                .find_processed_page(inner_page_id)
-                .unwrap()
-                .items
-                .clone()
-                .into_iter()
-                .find_map(|item| match item {
-                    ellie_core::definite::items::Collecting::Ret(e) => Some(e),
-                    _ => None,
-                });
+                let found_ret = parser
+                    .find_processed_page(inner_page_id)
+                    .unwrap()
+                    .items
+                    .clone()
+                    .into_iter()
+                    .find_map(|item| match item {
+                        ellie_core::definite::items::Collecting::Ret(e) => Some(e),
+                        _ => None,
+                    });
 
-            if let Some(ret) = found_ret {
-                if self.data.no_return {
-                    let mut err = error::error_list::ERROR_S3.clone().build_with_path(
-                        vec![
-                            error::ErrorBuildField {
-                                key: "token1".to_owned(),
-                                value: "void".to_owned(),
-                            },
-                            error::ErrorBuildField {
-                                key: "token2".to_owned(),
-                                value: parser.resolve_type_name(ret.value),
-                            },
-                        ],
-                        "pfn_0x253".to_owned(),
-                        parser.find_page(page_id).unwrap().path.clone(),
-                        ret.pos,
-                    );
-                    err.reference_block = Some((self.data.name_pos, page.path));
-                    err.reference_message = "Function does not accept any ret".to_owned();
-                    err.semi_assist = true;
-                    parser.informations.push(&err);
-                } else {
-                    let defined = parser.resolve_definer_name(return_type.clone());
-                    let given = parser.resolve_type_name(ret.value);
-                    if defined != given {
+                if let Some(ret) = found_ret {
+                    if self.data.no_return {
                         let mut err = error::error_list::ERROR_S3.clone().build_with_path(
                             vec![
                                 error::ErrorBuildField {
                                     key: "token1".to_owned(),
-                                    value: defined,
+                                    value: "void".to_owned(),
                                 },
                                 error::ErrorBuildField {
                                     key: "token2".to_owned(),
-                                    value: given,
+                                    value: parser.resolve_type_name(ret.value),
                                 },
                             ],
-                            "pfn_0x276".to_owned(),
+                            "pfn_0x253".to_owned(),
                             parser.find_page(page_id).unwrap().path.clone(),
                             ret.pos,
                         );
-                        err.reference_block = Some((self.data.return_pos, page.path));
-                        err.reference_message = "Defined here".to_owned();
+                        err.reference_block = Some((self.data.name_pos, page.path));
+                        err.reference_message = "Function does not accept any ret".to_owned();
                         err.semi_assist = true;
                         parser.informations.push(&err);
+                    } else {
+                        let defined = parser.resolve_definer_name(return_type.clone());
+                        let given = parser.resolve_type_name(ret.value);
+                        if defined != given {
+                            let mut err = error::error_list::ERROR_S3.clone().build_with_path(
+                                vec![
+                                    error::ErrorBuildField {
+                                        key: "token1".to_owned(),
+                                        value: defined,
+                                    },
+                                    error::ErrorBuildField {
+                                        key: "token2".to_owned(),
+                                        value: given,
+                                    },
+                                ],
+                                "pfn_0x276".to_owned(),
+                                parser.find_page(page_id).unwrap().path.clone(),
+                                ret.pos,
+                            );
+                            err.reference_block = Some((self.data.return_pos, page.path));
+                            err.reference_message = "Defined here".to_owned();
+                            err.semi_assist = true;
+                            parser.informations.push(&err);
+                        }
                     }
-
-
-                    
                 }
-            }
 
-            let processed_page = parser.find_processed_page(page_id).unwrap();
-            processed_page
-                .items
-                .push(ellie_core::definite::items::Collecting::Function(
-                    ellie_core::definite::items::function::Function {
-                        name: self.data.name.clone(),
-                        pos: self.data.pos,
-                        parameters: parameters,
-                        body: processed_page.items.clone(),
-                        hash: self.data.hash.clone(),
-                        return_type: return_type,
-                        public: self.data.public,
-                        name_pos: self.data.name_pos,
-                        body_pos: self.data.body_pos,
-                        parameters_pos: self.data.parameters_pos,
-                        return_pos: self.data.return_pos,
-                        no_return: self.data.no_return,
-                        inner_page_id,
-                    },
-                ));
+                let processed_page = parser.find_processed_page(page_id).unwrap();
+
+                processed_page
+                    .items
+                    .push(ellie_core::definite::items::Collecting::Function(
+                        ellie_core::definite::items::function::Function {
+                            name: self.data.name.clone(),
+                            pos: self.data.pos,
+                            parameters: parameters,
+                            hash: self.data.hash.clone(),
+                            return_type: return_type,
+                            public: self.data.public,
+                            name_pos: self.data.name_pos,
+                            body_pos: self.data.body_pos,
+                            parameters_pos: self.data.parameters_pos,
+                            return_pos: self.data.return_pos,
+                            no_return: self.data.no_return,
+                            inner_page_id,
+                        },
+                    ));
+            }
         }
     }
 }

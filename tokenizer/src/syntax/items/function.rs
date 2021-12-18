@@ -61,12 +61,6 @@ impl Converter<FunctionCollector, ellie_core::definite::items::function::Functio
                 .collect(),
             return_type: self.data.return_type.definer_type.to_definite(),
             public: self.data.public,
-            body: self
-                .data
-                .body
-                .into_iter()
-                .map(|x| x.to_definite())
-                .collect(),
             name_pos: self.data.name_pos,
             parameters_pos: self.data.parameters_pos,
             return_pos: self.data.return_pos,
@@ -107,11 +101,7 @@ impl Converter<FunctionCollector, ellie_core::definite::items::function::Functio
                 },
                 return_pos: from.return_pos,
                 body_pos: from.body_pos,
-                body: from
-                    .body
-                    .into_iter()
-                    .map(|x| Processors::default().from_definite(x))
-                    .collect(),
+                body: vec![],
                 pos: from.pos,
                 defining: false,
                 hash: from.hash,

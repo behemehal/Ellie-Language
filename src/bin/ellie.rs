@@ -77,36 +77,47 @@ fn main() {
                                     None
                                 };
 
-                                match file {
-                                    Some(file) => {
-                                        let file = Path::new(&file).absolutize().unwrap();
-                                        match cli_utils::read_file(
-                                            &file.to_str().unwrap().to_string(),
-                                        ) {
-                                            Ok(ext) => {
-                                                let mut hasher = DefaultHasher::new();
-                                                ext.hash(&mut hasher);
-                                                ResolvedImport {
-                                                    found: true,
-                                                    code: ext,
-                                                    hash: hasher.finish(),
-                                                    path: file.to_str().unwrap().to_string(),
-                                                    ..Default::default()
-                                                }
-                                            }
-                                            Err(err) => ResolvedImport {
-                                                found: false,
-                                                resolve_error: err,
-                                                ..Default::default()
-                                            },
-                                        }
-                                    }
-                                    None => ResolvedImport {
-                                        found: false,
+                                if file_name == "ellie" {
+                                    ResolvedImport {
+                                        found: true,
+                                        code: String::new(),
+                                        hash: 343,
+                                        path: "<ellie_virtual>".to_string(),
                                         ..Default::default()
-                                    },
+                                    }
+                                } else {
+                                    match file {
+                                        Some(file) => {
+                                            let file = Path::new(&file).absolutize().unwrap();
+                                            match cli_utils::read_file(
+                                                &file.to_str().unwrap().to_string(),
+                                            ) {
+                                                Ok(ext) => {
+                                                    let mut hasher = DefaultHasher::new();
+                                                    ext.hash(&mut hasher);
+                                                    ResolvedImport {
+                                                        found: true,
+                                                        code: ext,
+                                                        hash: hasher.finish(),
+                                                        path: file.to_str().unwrap().to_string(),
+                                                        ..Default::default()
+                                                    }
+                                                }
+                                                Err(err) => ResolvedImport {
+                                                    found: false,
+                                                    resolve_error: err,
+                                                    ..Default::default()
+                                                },
+                                            }
+                                        }
+                                        None => ResolvedImport {
+                                            found: false,
+                                            ..Default::default()
+                                        },
+                                    }
                                 }
                             },
+                            None,
                         );
 
                         match pager.run() {
@@ -128,7 +139,15 @@ fn main() {
                                 });
                             }
                             Ok(_) => {
-                                let mut parser = parser::Parser::new(pager.pages.clone());
+                                let mut parser = parser::Parser::new(pager.pages.clone(), None);
+
+                                let std_pages: Vec<parser::ProcessedPage> = serde_json::from_str(
+                                    ellie_core::builded_libraries::ELLIE_STANDARD_LIBRARY,
+                                )
+                                .unwrap();
+
+                                parser.import_processed_module(std_pages);
+
                                 parser.parse();
 
                                 if !parser.informations.has_no_warnings() {

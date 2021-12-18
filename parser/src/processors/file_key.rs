@@ -9,12 +9,13 @@ impl super::Processor for FileKey {
                 ellie_core::definite::items::Collecting::FileKey(self.to_definite()),
             );
         } else {
+            let path = parser.find_page(page_id).unwrap().path.clone();
             parser
                 .informations
                 .push(&error::error_list::ERROR_S9.clone().build_with_path(
                     vec![],
                     "pcls_0x14".to_owned(),
-                    parser.find_page(page_id).unwrap().path.clone(),
+                    path,
                     self.value_location,
                 ));
         }

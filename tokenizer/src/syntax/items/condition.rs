@@ -1,9 +1,7 @@
 use ellie_core::definite::Converter;
 use ellie_core::defs;
 use serde::{Deserialize, Serialize};
-
 use crate::processors::items;
-use crate::processors::items::Processors;
 use crate::processors::types::{self, TypeProcessor};
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
@@ -57,8 +55,8 @@ impl Converter<Condition, ellie_core::definite::items::condition::Condition> for
                         }
                     },
                     condition: Box::new(x.condition.current.to_definite()),
-                    code: x.code.into_iter().map(|x| x.to_definite()).collect(),
                     keyword_pos: x.keyword_pos,
+                    inner_page_id: 0,
                 })
                 .collect(),
             pos: self.pos,
@@ -86,11 +84,7 @@ impl Converter<Condition, ellie_core::definite::items::condition::Condition> for
                         current: types::Processors::default().from_definite(*x.condition),
                         ignore: false,
                     },
-                    code: x
-                        .code
-                        .into_iter()
-                        .map(|x| Processors::default().from_definite(x))
-                        .collect(),
+                    code: vec![],
                     keyword_pos: x.keyword_pos,
                     ..Default::default()
                 })

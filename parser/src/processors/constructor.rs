@@ -6,7 +6,8 @@ impl super::Processor for Constructor {
     fn process(self, parser: &mut crate::parser::Parser, page_id: u64) {
         let class_body_page = parser
             .find_page(page_id)
-            .unwrap_or_else(|| panic!("Failed to find page"));
+            .unwrap_or_else(|| panic!("Failed to find page"))
+            .clone();
 
         //Class body should have a self which will reference us page of class and class hash
         let self_element = class_body_page
@@ -87,7 +88,7 @@ impl super::Processor for Constructor {
                                     value: parameter.name.clone(),
                                 }],
                                 "pvr_0x23".to_owned(),
-                                parser.find_page(page_id).unwrap().path.clone(),
+                                class_body_page.path.clone(),
                                 parameter.pos,
                             ),
                         );
@@ -119,13 +120,13 @@ impl super::Processor for Constructor {
             dependents: vec![],
             dependencies: vec![ellie_tokenizer::tokenizer::Dependency {
                 hash: page.hash.clone(),
+                processed: false,
                 public: false,
             }],
+            ..Default::default()
         };
         parser.pages.push(inner);
         parser.process_page(inner_page_id);
-
-        let processed_page = parser.find_processed_page(inner_page_id).unwrap();
 
         let processed = ellie_core::definite::items::Collecting::Constructor(
             ellie_core::definite::items::constructor::Constructor {
@@ -139,7 +140,6 @@ impl super::Processor for Constructor {
                         },
                     )
                     .collect(),
-                inside_code: processed_page.items.clone(),
                 name_pos: self.name_pos,
                 parameters_pos: self.parameters_pos,
                 pos: self.pos,

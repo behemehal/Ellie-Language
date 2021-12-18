@@ -23,13 +23,13 @@ impl Iterator {
         if !self.active.is_complete() && self.active.current.is_initalized() {
             self.errors.push(error::error_list::ERROR_S26.clone().build(
                 vec![],
-                "tok_0x23".to_owned(),
+                "tok_0x26".to_owned(),
                 self.active.current.get_pos(),
             ));
         } else if self.multi_comment {
             self.errors.push(error::error_list::ERROR_S26.clone().build(
                 vec![],
-                "ite_0x29".to_owned(),
+                "ite_0x32".to_owned(),
                 self.comment_pos,
             ));
         }

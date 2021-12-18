@@ -1,5 +1,5 @@
-use alloc::{borrow::ToOwned, vec, vec::Vec};
-use ellie_core::{definite::items::Collecting, defs, error, warning};
+use alloc::{borrow::ToOwned, vec};
+use ellie_core::{defs, error, warning};
 use ellie_tokenizer::{syntax::items::class::Class, tokenizer::PageType};
 
 impl super::Processor for Class {
@@ -22,6 +22,7 @@ impl super::Processor for Class {
                 err.semi_assist = true;
                 parser.informations.push(&err);
             } else {
+                let path = parser.find_page(page_id).unwrap().path.clone();
                 parser
                     .informations
                     .push(&error::error_list::ERROR_S24.clone().build_with_path(
@@ -30,7 +31,7 @@ impl super::Processor for Class {
                             value: self.name,
                         }],
                         "pcls_0x31".to_owned(),
-                        parser.find_page(page_id).unwrap().path.clone(),
+                        path,
                         self.name_pos,
                     ))
             }
@@ -41,6 +42,7 @@ impl super::Processor for Class {
                     (ellie_standard_rules::rules::CLASS_NAMING_ISSUE.worker)(self.name.clone());
                 if !is_correct && !parser.page_has_file_key_with(page_id, "allow", "ClassNameRule")
                 {
+                    let path = parser.find_page(page_id).unwrap().path.clone();
                     parser
                         .informations
                         .push(&warning::warning_list::WARNING_S1.clone().build(
@@ -54,14 +56,13 @@ impl super::Processor for Class {
                                     value: fixed,
                                 },
                             ],
-                            parser.find_page(page_id).unwrap().path.clone(),
+                            path,
                             self.name_pos,
                         ))
                 }
             }
 
             let page = parser.find_page(page_id).unwrap().clone();
-            let mut has_constructor: Option<defs::Cursor> = None;
 
             let constructors = self.body.iter().filter_map(|item| match item {
                 ellie_tokenizer::processors::items::Processors::Constructor(e) => Some(e),
@@ -141,6 +142,7 @@ impl super::Processor for Class {
 
             let mut dependencies = vec![ellie_tokenizer::tokenizer::Dependency {
                 hash: page.hash.clone(),
+                processed: false,
                 public: false,
             }];
             dependencies.extend(page.dependencies);
@@ -153,56 +155,17 @@ impl super::Processor for Class {
                 dependents: vec![],
                 dependencies,
                 page_type: PageType::ClassBody,
+                unreachable: false,
+                unreachable_range: defs::Cursor::default(),
+                processed: false,
             };
             parser.pages.push(inner);
             parser.process_page(inner_page_id);
-            let processed_page = parser.find_processed_page(inner_page_id).unwrap();
             let processed = ellie_core::definite::items::Collecting::Class(
                 ellie_core::definite::items::class::Class {
                     name: self.name,
                     public: self.public,
                     inner_page_id,
-                    constructor: processed_page
-                        .items
-                        .iter()
-                        .find_map(|f| match f {
-                            Collecting::Constructor(c) => Some(Some(c.clone())),
-                            _ => None,
-                        })
-                        .unwrap_or(None),
-                    generic_definings: processed_page
-                        .items
-                        .iter()
-                        .filter_map(|f| match f {
-                            Collecting::Generic(g) => {
-                                Some(ellie_core::definite::items::class::GenericDefining {
-                                    name: g.name.clone(),
-                                    pos: g.pos,
-                                })
-                            }
-                            _ => None,
-                        })
-                        .collect::<Vec<_>>(),
-                    properties: processed_page
-                        .items
-                        .clone()
-                        .into_iter()
-                        .filter_map(|f| match f {
-                            Collecting::Variable(p) => Some(p.clone()),
-                            _ => None,
-                        })
-                        .collect::<Vec<_>>(),
-                    getters: Vec::new(),
-                    setters: Vec::new(),
-                    methods: processed_page
-                        .items
-                        .clone()
-                        .into_iter()
-                        .filter_map(|f| match f {
-                            Collecting::Function(p) => Some(p.clone()),
-                            _ => None,
-                        })
-                        .collect::<Vec<_>>(),
                     name_pos: self.name_pos,
                     pos: self.pos,
                     hash: self.hash,

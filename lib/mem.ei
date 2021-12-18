@@ -3,6 +3,7 @@
 */
 import string;
 import int;
+import vector;
 import error;
 import thread;
 

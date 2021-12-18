@@ -1,5 +1,4 @@
 use crate::definite::definers;
-use crate::definite::items::Collecting;
 use crate::defs;
 use alloc::string::String;
 use alloc::vec::Vec;
@@ -20,7 +19,6 @@ pub struct Function {
     pub return_type: definers::DefinerCollecting,
     pub inner_page_id: u64,
     pub public: bool,
-    pub body: Vec<Collecting>,
     pub name_pos: defs::Cursor,
     pub body_pos: defs::Cursor,
     pub no_return: bool,

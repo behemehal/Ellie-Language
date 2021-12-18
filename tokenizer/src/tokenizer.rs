@@ -1,5 +1,5 @@
 use crate::processors::items;
-use ellie_core::error;
+use ellie_core::{defs, error};
 use serde::{Deserialize, Serialize};
 
 pub struct TokenizerOptions {
@@ -9,9 +9,10 @@ pub struct TokenizerOptions {
     pub imports: bool,
 }
 
-#[derive(Default, Debug, Clone, Serialize, Deserialize)]
+#[derive(PartialEq, Default, Debug, Clone, Serialize, Deserialize)]
 pub struct Dependency {
     pub hash: u64,
+    pub processed: bool,
     pub public: bool,
 }
 
@@ -35,11 +36,23 @@ impl Default for PageType {
 pub struct Page {
     pub hash: u64,
     pub inner: Option<u64>,
+    pub processed: bool,
+    pub unreachable: bool,
+    pub unreachable_range: defs::Cursor,
     pub page_type: PageType,
     pub path: String,
     pub items: Vec<items::Processors>,
     pub dependents: Vec<u64>,
     pub dependencies: Vec<Dependency>,
+}
+
+impl Page {
+    pub fn contains_dependency(&self, hash: u64) -> bool {
+        self.dependencies
+            .iter()
+            .position(|x| x.hash == hash)
+            .is_some()
+    }
 }
 
 #[derive(Default, Debug)]
@@ -76,7 +89,15 @@ impl Tokenizer {
         self.iterator.finalize();
         if !self.iterator.errors.is_empty() {
             for i in &mut self.iterator.errors {
+                if i.code == 0x25 {
+                    i.pos.range_start.1 = 0;
+                }
                 i.path = self.path.clone();
+                if let Some(ref mut ref_block) = i.reference_block {
+                    if ref_block.1 == "<fill>" {
+                        ref_block.1 = self.path.clone()
+                    }
+                }
             }
             Err(self.iterator.errors.clone())
         } else {
@@ -109,19 +130,22 @@ where
         self.pages.iter_mut().find(|page| page.hash == hash)
     }
 
-    pub fn new(main: String, path: String, import_resolver: E) -> Self {
+    pub fn new(main: String, path: String, import_resolver: E, initial_hash: Option<u64>) -> Self {
         Pager {
             main: main,
             pages: vec![Page {
-                hash: 0,
+                hash: initial_hash.unwrap_or(0),
                 inner: None,
                 path,
+                processed: false,
                 items: vec![],
                 dependents: vec![],
                 dependencies: vec![],
                 page_type: PageType::RawBody,
+                unreachable: false,
+                unreachable_range: defs::Cursor::default(),
             }],
-            current_page: 0,
+            current_page: initial_hash.unwrap_or(0),
             import_resolver: import_resolver,
         }
     }
@@ -145,21 +169,43 @@ where
                     })
                     .collect::<Vec<_>>();
 
+                let mut dependencies = vec![];
+
                 for import in imports {
                     let resolved = (self.import_resolver)(page.path.clone(), import.path.clone());
                     if resolved.found {
                         import.hash = resolved.hash.to_string();
-                        self.find_page(cr_page)
-                            .unwrap()
-                            .dependencies
-                            .push(Dependency {
-                                hash: resolved.hash,
-                                public: import.public,
-                            });
+
+                        let current_page = self.find_page(cr_page).unwrap();
+
+                        current_page.dependencies.push(Dependency {
+                            hash: resolved.hash,
+                            processed: false,
+                            public: import.public,
+                        });
+                        let dependents = current_page.dependents.clone();
+
+                        let mut fullfiled_depenents = vec![];
+
+                        if import.public {
+                            for dependent in dependents {
+                                fullfiled_depenents.push(dependent);
+                                let found_dependent = self.find_page(dependent.clone()).unwrap();
+
+                                if !found_dependent.contains_dependency(resolved.hash) {
+                                    found_dependent.dependencies.push(Dependency {
+                                        hash: resolved.hash,
+                                        processed: false,
+                                        public: import.public,
+                                    });
+                                }
+                            }
+                        }
+                        fullfiled_depenents.push(cr_page);
 
                         match self.find_page(resolved.hash) {
                             Some(inner_child) => {
-                                inner_child.dependents.push(cr_page);
+                                inner_child.dependents.extend(fullfiled_depenents);
                                 let public_dependencies = inner_child
                                     .dependencies
                                     .clone()
@@ -174,10 +220,13 @@ where
                                     inner: None,
                                     hash: resolved.hash,
                                     path: resolved.path,
+                                    processed: false,
                                     items: Vec::new(),
-                                    dependents: vec![cr_page],
-                                    dependencies: Vec::new(),
+                                    dependents: fullfiled_depenents,
+                                    dependencies: dependencies.clone(),
                                     page_type: PageType::RawBody,
+                                    unreachable: false,
+                                    unreachable_range: defs::Cursor::default(),
                                 });
                                 match self.resolve_page(resolved.hash, resolved.code) {
                                     Ok(inner_child) => {
@@ -226,9 +275,12 @@ where
     }
 
     pub fn run(&mut self) -> Result<Vec<RawPage>, Vec<ellie_core::error::Error>> {
-        match self.resolve_page(0, self.main.clone()) {
+        match self.resolve_page(self.current_page, self.main.clone()) {
             Ok(e) => {
-                self.find_page(0).unwrap().dependencies.extend(e);
+                self.find_page(self.current_page)
+                    .unwrap()
+                    .dependencies
+                    .extend(e);
                 Ok(self
                     .pages
                     .clone()

@@ -2,6 +2,7 @@ use crate::processors::Processor;
 use alloc::string::ToString;
 use alloc::vec::Vec;
 use alloc::{string::String, vec};
+use ellie_core::definite::{items::Collecting, Converter};
 use ellie_core::{defs, error, information, warning};
 use ellie_tokenizer::processors::items::Processors;
 use ellie_tokenizer::tokenizer::{Dependency, Page};
@@ -11,8 +12,6 @@ use serde::{Deserialize, Serialize};
 pub struct ProcessedPage {
     pub hash: u64,
     pub inner: Option<u64>,
-    pub unreachable: bool,
-    pub unreachable_range: defs::Cursor,
     pub path: String,
     pub items: Vec<ellie_core::definite::items::Collecting>,
     pub dependents: Vec<u64>,
@@ -66,7 +65,7 @@ impl ProcessedPage {
 pub struct Parser {
     pub pages: Vec<Page>,
     pub processed_pages: Vec<ProcessedPage>,
-    pub active_page: usize,
+    pub active_page: u64,
     pub informations: information::Informations,
 }
 
@@ -108,13 +107,50 @@ impl DeepSearchItems {
 }
 
 impl Parser {
-    pub fn new(pages: Vec<Page>) -> Parser {
+    pub fn new(pages: Vec<Page>, initial_hash: Option<u64>) -> Parser {
         Parser {
             pages: pages,
             processed_pages: vec![],
-            active_page: 0,
+            active_page: initial_hash.unwrap_or(0),
             informations: information::Informations::new(),
         }
+    }
+
+    pub fn import_processed_module(&mut self, processed_pages: Vec<ProcessedPage>) {
+        let unprocessed_pages = processed_pages
+            .iter()
+            .map(|p| ellie_tokenizer::tokenizer::Page {
+                hash: p.hash,
+                inner: p.inner,
+                path: p.path.clone(),
+                dependents: p.dependents.clone(),
+                dependencies: p
+                    .dependencies
+                    .iter()
+                    .map(|dep| ellie_tokenizer::tokenizer::Dependency {
+                        hash: *dep,
+                        processed: true,
+                        public: false,
+                    })
+                    .collect(),
+                ..Default::default()
+            })
+            .collect::<Vec<_>>();
+
+        let main_page = processed_pages
+            .iter()
+            .find_map(|x| if x.hash == 343 { Some(x) } else { None })
+            .unwrap().dependencies.iter().map(|x| {
+                Dependency {
+                    hash: *x,
+                    processed: true,
+                    public: false,
+                }
+            }).collect();
+
+        self.find_page(0).unwrap().dependencies = main_page;
+        self.pages.extend(unprocessed_pages);
+        self.processed_pages.extend(processed_pages);
     }
 
     pub fn resolve_type_name(&self, rtype: ellie_core::definite::types::Types) -> String {
@@ -166,7 +202,7 @@ impl Parser {
         }
     }
 
-    pub fn page_has_file_key_with(&self, page_id: u64, key: &str, value: &str) -> bool {
+    pub fn page_has_file_key_with(&mut self, page_id: u64, key: &str, value: &str) -> bool {
         let mut found = false;
         match self.find_page(page_id) {
             Some(e) => {
@@ -190,7 +226,7 @@ impl Parser {
     }
 
     pub fn is_duplicate(
-        &self,
+        &mut self,
         page_id: u64,
         name: String,
         hash: String,
@@ -222,7 +258,7 @@ impl Parser {
     }
 
     pub fn deep_search(
-        &self,
+        &mut self,
         target_page: u64,
         name: String,
         ignore_hash: Option<String>,
@@ -245,122 +281,204 @@ impl Parser {
 
         match self.find_page(target_page) {
             Some(page) => {
+                #[cfg(feature = "std")]
+                std::println!("Dependency extraction: {:?}\n", page);
                 self_dependendencies.extend(page.dependencies.clone());
                 inner_page = page.inner;
             }
-            None => {
-                alloc::format!("REMOVE THIS");
-            }
+            None => (),
         }
 
         if !searched.contains(&target_page) {
-            'pages: for (_, dep) in self_dependendencies.clone().iter().enumerate() {
+            for dep in self_dependendencies {
                 searched.push(target_page);
-                match self.find_page(dep.hash) {
-                    Some(page) => {
-                        for item in page.items.iter() {
-                            match item.clone() {
-                                Processors::Variable(e) => {
-                                    if e.data.name == name
-                                        && (e.data.public || level == 0)
-                                        && (ignore_hash.is_none()
-                                            || matches!(ignore_hash, Some(ref t) if &e.data.hash != t))
-                                    {
-                                        found_pos = Some(e.data.pos);
-                                        found = true;
-                                        found_page = page.clone();
-                                        found_type = DeepSearchItems::Variable(e.data);
+                if dep.processed {
+                    #[cfg(feature = "std")]
+                    std::println!("Find: {}", name);
+                    let unprocessed_page = self
+                        .find_page(dep.hash)
+                        .unwrap_or_else(|| panic!("BrokenPageGraph: {}", dep.hash))
+                        .clone();
+                    match self.find_processed_page(dep.hash) {
+                        Some(page) => {
+                            let page = page.clone();
+                            for item in page.items.iter() {
+                                match item.clone() {
+                                    Collecting::Variable(e) => {
+                                        if e.name == name
+                                            && (e.public || level == 0)
+                                            && (ignore_hash.is_none()
+                                                || matches!(ignore_hash, Some(ref t) if &e.hash != t))
+                                        {
+                                            found_pos = Some(e.pos);
+                                            found = true;
+                                            found_page = unprocessed_page.clone();
+                                            found_type = DeepSearchItems::Variable(ellie_tokenizer::syntax::items::variable::VariableCollector::default().from_definite(e).data);
+                                        }
                                     }
-                                }
-                                Processors::Function(e) => {
-                                    if e.data.name == name
-                                        && (e.data.public || level == 0)
-                                        && (ignore_hash.is_none()
-                                            || matches!(ignore_hash, Some(ref t) if &e.data.hash != t))
-                                    {
-                                        found_pos = Some(e.data.pos);
-                                        found = true;
-                                        found_page = page.clone();
-                                        found_type = DeepSearchItems::Function(e.data);
+                                    Collecting::Function(e) => {
+                                        if e.name == name
+                                            && (e.public || level == 0)
+                                            && (ignore_hash.is_none()
+                                                || matches!(ignore_hash, Some(ref t) if &e.hash != t))
+                                        {
+                                            found_pos = Some(e.pos);
+                                            found = true;
+                                            found_page = unprocessed_page.clone();
+                                            found_type = DeepSearchItems::Function(ellie_tokenizer::syntax::items::function::FunctionCollector::default().from_definite(e).data);
+                                        }
                                     }
-                                }
-                                Processors::Import(e) => {
-                                    if e.reference != ""
-                                        && e.reference == name
-                                        && (e.public
-                                            || level == 0
-                                            || matches!(inner_page, Some(ref parent_page_hash) if parent_page_hash == &page.hash))
-                                        && (ignore_hash.is_none()
-                                            || matches!(ignore_hash, Some(ref t) if &e.hash != t))
-                                    {
-                                        found_pos = Some(e.pos);
-                                        found = true;
-                                        found_page = page.clone();
-                                        found_type = DeepSearchItems::ImportReference(e);
-                                    } else {
+                                    Collecting::Import(e) => {
+                                        if e.reference != ""
+                                            && e.reference == name
+                                            && (e.public
+                                                || level == 0
+                                                || matches!(inner_page, Some(ref parent_page_hash) if parent_page_hash == &page.hash))
+                                            && (ignore_hash.is_none()
+                                                || matches!(ignore_hash, Some(ref t) if &e.hash != t))
+                                        {
+                                            found_pos = Some(e.pos);
+                                            found = true;
+                                            found_page = unprocessed_page.clone();
+                                            found_type = DeepSearchItems::ImportReference(ellie_tokenizer::syntax::items::import::Import::default().from_definite(e));
+                                        }
                                     }
-                                }
-                                Processors::Class(e) => {
-                                    if e.name == name
-                                        && (e.public
-                                            || level == 0
-                                            || matches!(inner_page, Some(ref parent_page_hash) if parent_page_hash == &page.hash))
-                                        && (ignore_hash.is_none()
-                                            || matches!(ignore_hash, Some(ref t) if &e.hash != t))
-                                    {
-                                        found_pos = Some(e.pos);
-                                        found = true;
-                                        found_page = page.clone();
-                                        found_type = DeepSearchItems::Class(e);
+                                    Collecting::Class(e) => {
+                                        #[cfg(feature = "std")]
+                                        std::println!("\nTarget:{}\nClass:{}\n", name, e.name);
+                                        if e.name == name {}
+                                        if e.name == name
+                                            && (e.public
+                                                || level == 0
+                                                || matches!(inner_page, Some(ref parent_page_hash) if parent_page_hash == &page.hash))
+                                            && (ignore_hash.is_none()
+                                                || matches!(ignore_hash, Some(ref t) if &e.hash != t))
+                                        {
+                                            found_pos = Some(e.pos);
+                                            found = true;
+                                            found_page = unprocessed_page.clone();
+                                            found_type = DeepSearchItems::Class(ellie_tokenizer::syntax::items::class::Class::default().from_definite(e));
+                                        }
                                     }
+                                    _ => (),
                                 }
-                                Processors::GenericItem(e) => {
-                                    if e.generic_name == name
-                                        && (level == 0
-                                            || matches!(inner_page, Some(ref parent_page_hash) if parent_page_hash == &page.hash))
-                                    {
-                                        found_pos = Some(e.pos);
-                                        found = true;
-                                        found_page = page.clone();
-                                        found_type = DeepSearchItems::GenericItem(e);
-                                    }
-                                }
-                                Processors::SelfItem(e) => {
-                                    if "self" == name
-                                        && (level == 0
-                                            || matches!(inner_page, Some(ref parent_page_hash) if parent_page_hash == &page.hash))
-                                    {
-                                        found = true;
-                                        found_page = page.clone();
-                                        found_type = DeepSearchItems::SelfItem(e);
-                                    }
-                                }
-                                Processors::FunctionParameter(e) => {
-                                    if e.name == name && level == 0 {
-                                        found_pos = Some(e.pos);
-                                        found = true;
-                                        found_page = page.clone();
-                                        found_type = DeepSearchItems::FunctionParameter(e);
-                                    }
-                                }
-                                Processors::ConstructorParameter(e) => {
-                                    if e.name == name && level == 0 {
-                                        found_pos = Some(e.pos);
-                                        found = true;
-                                        found_page = page.clone();
-                                        found_type = DeepSearchItems::ConstructorParameter(e);
-                                    }
-                                }
-                                _ => (),
                             }
                         }
+                        None => {
+                            panic!("Broken Page structure; Failed to find page {}", dep.hash);
+                            //found = true;
+                            //found_type = DeepSearchItems::BrokenPageGraph;
+                            //break 'pages;
+                        }
                     }
-                    None => {
-                        found = true;
-                        found_type = DeepSearchItems::BrokenPageGraph;
-                        break 'pages;
+                } else {
+                    match self.find_page(dep.hash) {
+                        Some(page) => {
+                            for item in page.items.iter() {
+                                match item.clone() {
+                                    Processors::Variable(e) => {
+                                        if e.data.name == name
+                                            && (e.data.public || level == 0)
+                                            && (ignore_hash.is_none()
+                                                || matches!(ignore_hash, Some(ref t) if &e.data.hash != t))
+                                        {
+                                            found_pos = Some(e.data.pos);
+                                            found = true;
+                                            found_page = page.clone();
+                                            found_type = DeepSearchItems::Variable(e.data);
+                                        }
+                                    }
+                                    Processors::Function(e) => {
+                                        if e.data.name == name
+                                            && (e.data.public || level == 0)
+                                            && (ignore_hash.is_none()
+                                                || matches!(ignore_hash, Some(ref t) if &e.data.hash != t))
+                                        {
+                                            found_pos = Some(e.data.pos);
+                                            found = true;
+                                            found_page = page.clone();
+                                            found_type = DeepSearchItems::Function(e.data);
+                                        }
+                                    }
+                                    Processors::Import(e) => {
+                                        if e.reference != ""
+                                            && e.reference == name
+                                            && (e.public
+                                                || level == 0
+                                                || matches!(inner_page, Some(ref parent_page_hash) if parent_page_hash == &page.hash))
+                                            && (ignore_hash.is_none()
+                                                || matches!(ignore_hash, Some(ref t) if &e.hash != t))
+                                        {
+                                            found_pos = Some(e.pos);
+                                            found = true;
+                                            found_page = page.clone();
+                                            found_type = DeepSearchItems::ImportReference(e);
+                                        }
+                                    }
+                                    Processors::Class(e) => {
+                                        if e.name == name
+                                            && (e.public
+                                                || level == 0
+                                                || matches!(inner_page, Some(ref parent_page_hash) if parent_page_hash == &page.hash))
+                                            && (ignore_hash.is_none()
+                                                || matches!(ignore_hash, Some(ref t) if &e.hash != t))
+                                        {
+                                            found_pos = Some(e.pos);
+                                            found = true;
+                                            found_page = page.clone();
+                                            found_type = DeepSearchItems::Class(e);
+                                        }
+                                    }
+                                    Processors::GenericItem(e) => {
+                                        if e.generic_name == name
+                                            && (level == 0
+                                                || matches!(inner_page, Some(ref parent_page_hash) if parent_page_hash == &page.hash))
+                                        {
+                                            found_pos = Some(e.pos);
+                                            found = true;
+                                            found_page = page.clone();
+                                            found_type = DeepSearchItems::GenericItem(e);
+                                        }
+                                    }
+                                    Processors::SelfItem(e) => {
+                                        if "self" == name
+                                            && (level == 0
+                                                || matches!(inner_page, Some(ref parent_page_hash) if parent_page_hash == &page.hash))
+                                        {
+                                            found = true;
+                                            found_page = page.clone();
+                                            found_type = DeepSearchItems::SelfItem(e);
+                                        }
+                                    }
+                                    Processors::FunctionParameter(e) => {
+                                        if e.name == name && level == 0 {
+                                            found_pos = Some(e.pos);
+                                            found = true;
+                                            found_page = page.clone();
+                                            found_type = DeepSearchItems::FunctionParameter(e);
+                                        }
+                                    }
+                                    Processors::ConstructorParameter(e) => {
+                                        if e.name == name && level == 0 {
+                                            found_pos = Some(e.pos);
+                                            found = true;
+                                            found_page = page.clone();
+                                            found_type = DeepSearchItems::ConstructorParameter(e);
+                                        }
+                                    }
+                                    _ => (),
+                                }
+                            }
+                        }
+                        None => {
+                            panic!("Broken Page structure; Failed to find page {}", dep.hash);
+                            //found = true;
+                            //found_type = DeepSearchItems::BrokenPageGraph;
+                            //break 'pages;
+                        }
                     }
                 }
+
                 level += 1;
             }
         }
@@ -393,12 +511,12 @@ impl Parser {
         self.processed_pages.iter_mut().find(|x| x.hash == hash)
     }
 
-    pub fn find_page(&self, hash: u64) -> Option<&Page> {
-        self.pages.iter().find(|x| x.hash == hash)
+    pub fn find_page(&mut self, hash: u64) -> Option<&mut Page> {
+        self.pages.iter_mut().find(|x| x.hash == hash)
     }
 
     pub fn process_page(&mut self, hash: u64) {
-        let page = self
+        let mut unprocessed_page = self
             .find_page(hash)
             .unwrap_or_else(|| panic!("Page not found"))
             .clone();
@@ -407,37 +525,38 @@ impl Parser {
             None => {
                 self.processed_pages.push(ProcessedPage {
                     hash: hash,
-                    inner: page.inner,
-                    path: page.path.clone(),
+                    inner: unprocessed_page.inner,
+                    path: unprocessed_page.path.clone(),
                     items: vec![],
-                    dependents: vec![],
-                    dependencies: vec![],
-                    unreachable: false,
-                    unreachable_range: defs::Cursor::default(),
+                    dependents: unprocessed_page.dependents,
+                    dependencies: unprocessed_page
+                        .dependencies
+                        .iter()
+                        .map(|x| x.hash)
+                        .collect(),
                 });
                 None
             }
             Some(e) => Some(e.clone()),
         };
 
-        for item in page.items.clone() {
-            if matches!(self.find_processed_page(hash), Some(e) if e.unreachable) {
+        for item in unprocessed_page.items.clone() {
+            if unprocessed_page.unreachable {
                 if !item.is_virtual() {
-                    let page = self.find_processed_page(hash).unwrap();
-                    page.unreachable_range.range_end = item.get_pos().range_end;
+                    unprocessed_page.unreachable_range.range_end = item.get_pos().range_end;
                 }
             } else {
-                match page.page_type {
+                match unprocessed_page.page_type {
                     ellie_tokenizer::tokenizer::PageType::FunctionBody => match item {
-                        Processors::Variable(e) => e.process(self, page.hash),
+                        Processors::Variable(e) => e.process(self, unprocessed_page.hash),
                         Processors::GetterCall(_) => todo!(),
                         Processors::SetterCall(_) => todo!(),
-                        Processors::Function(e) => e.process(self, page.hash),
-                        Processors::FileKey(e) => e.process(self, page.hash),
+                        Processors::Function(e) => e.process(self, unprocessed_page.hash),
+                        Processors::FileKey(e) => e.process(self, unprocessed_page.hash),
                         Processors::ForLoop(_) => todo!(),
                         Processors::Condition(_) => todo!(),
-                        Processors::Class(e) => e.process(self, page.hash),
-                        Processors::Ret(e) => e.process(self, page.hash),
+                        Processors::Class(e) => e.process(self, unprocessed_page.hash),
+                        Processors::Ret(e) => e.process(self, unprocessed_page.hash),
                         Processors::SelfItem(_) => (),
                         Processors::GenericItem(_) => (),
                         Processors::FunctionParameter(_) => (),
@@ -447,22 +566,22 @@ impl Parser {
                                 &error::error_list::ERROR_S22.clone().build_with_path(
                                     vec![],
                                     "p_0x465".to_string(),
-                                    page.path.clone(),
+                                    unprocessed_page.path.clone(),
                                     unexpected_element.get_pos(),
                                 ),
                             );
                         }
                     },
                     ellie_tokenizer::tokenizer::PageType::ConstructorBody => match item {
-                        Processors::Variable(e) => e.process(self, page.hash),
+                        Processors::Variable(e) => e.process(self, unprocessed_page.hash),
                         Processors::GetterCall(_) => todo!(),
                         Processors::SetterCall(_) => todo!(),
-                        Processors::Function(e) => e.process(self, page.hash),
-                        Processors::FileKey(e) => e.process(self, page.hash),
+                        Processors::Function(e) => e.process(self, unprocessed_page.hash),
+                        Processors::FileKey(e) => e.process(self, unprocessed_page.hash),
                         Processors::ForLoop(_) => todo!(),
                         Processors::Condition(_) => todo!(),
-                        Processors::Class(e) => e.process(self, page.hash),
-                        Processors::Ret(e) => e.process(self, page.hash),
+                        Processors::Class(e) => e.process(self, unprocessed_page.hash),
+                        Processors::Ret(e) => e.process(self, unprocessed_page.hash),
                         Processors::SelfItem(_) => (),
                         Processors::GenericItem(_) => (),
                         Processors::FunctionParameter(_) => (),
@@ -472,21 +591,21 @@ impl Parser {
                                 &error::error_list::ERROR_S22.clone().build_with_path(
                                     vec![],
                                     "p_0x465".to_string(),
-                                    page.path.clone(),
+                                    unprocessed_page.path.clone(),
                                     unexpected_element.get_pos(),
                                 ),
                             );
                         }
                     },
                     ellie_tokenizer::tokenizer::PageType::RawBody => match item {
-                        Processors::Variable(e) => e.process(self, page.hash),
+                        Processors::Variable(e) => e.process(self, unprocessed_page.hash),
                         Processors::GetterCall(_) => todo!(),
                         Processors::SetterCall(_) => todo!(),
-                        Processors::Function(e) => e.process(self, page.hash),
-                        Processors::FileKey(e) => e.process(self, page.hash),
+                        Processors::Function(e) => e.process(self, unprocessed_page.hash),
+                        Processors::FileKey(e) => e.process(self, unprocessed_page.hash),
                         Processors::Import(e) => {
                             let hash = e.hash.clone();
-                            e.process(self, page.hash);
+                            e.process(self, unprocessed_page.hash);
                             match hash.parse::<u64>() {
                                 Ok(hash) => {
                                     if self.find_processed_page(hash).is_none() {
@@ -500,7 +619,7 @@ impl Parser {
                         }
                         Processors::ForLoop(_) => todo!(),
                         Processors::Condition(_) => todo!(),
-                        Processors::Class(e) => e.process(self, page.hash),
+                        Processors::Class(e) => e.process(self, unprocessed_page.hash),
 
                         Processors::SelfItem(_) => (),
                         Processors::GenericItem(_) => (),
@@ -511,17 +630,17 @@ impl Parser {
                                 &error::error_list::ERROR_S22.clone().build_with_path(
                                     vec![],
                                     "p_0x465".to_string(),
-                                    page.path.clone(),
+                                    unprocessed_page.path.clone(),
                                     unexpected_element.get_pos(),
                                 ),
                             );
                         }
                     },
                     ellie_tokenizer::tokenizer::PageType::ClassBody => match item {
-                        Processors::Variable(e) => e.process(self, page.hash),
-                        Processors::Function(e) => e.process(self, page.hash),
-                        Processors::FileKey(e) => e.process(self, page.hash),
-                        Processors::Constructor(e) => e.process(self, page.hash),
+                        Processors::Variable(e) => e.process(self, unprocessed_page.hash),
+                        Processors::Function(e) => e.process(self, unprocessed_page.hash),
+                        Processors::FileKey(e) => e.process(self, unprocessed_page.hash),
+                        Processors::Constructor(e) => e.process(self, unprocessed_page.hash),
                         Processors::SelfItem(_) => (),
                         Processors::GenericItem(_) => (),
                         Processors::FunctionParameter(_) => (),
@@ -531,31 +650,31 @@ impl Parser {
                                 &error::error_list::ERROR_S22.clone().build_with_path(
                                     vec![],
                                     "p_0x465".to_string(),
-                                    page.path.clone(),
+                                    unprocessed_page.path.clone(),
                                     unexpected_element.get_pos(),
                                 ),
                             );
                         }
                     },
                     ellie_tokenizer::tokenizer::PageType::ValueConditionBody => match item {
-                        Processors::Variable(e) => e.process(self, page.hash),
+                        Processors::Variable(e) => e.process(self, unprocessed_page.hash),
                         Processors::GetterCall(_) => todo!(),
                         Processors::SetterCall(_) => todo!(),
-                        Processors::Function(e) => e.process(self, page.hash),
-                        Processors::FileKey(e) => e.process(self, page.hash),
+                        Processors::Function(e) => e.process(self, unprocessed_page.hash),
+                        Processors::FileKey(e) => e.process(self, unprocessed_page.hash),
                         Processors::ForLoop(_) => todo!(),
                         Processors::Condition(_) => todo!(),
-                        Processors::Class(e) => e.process(self, page.hash),
+                        Processors::Class(e) => e.process(self, unprocessed_page.hash),
                         Processors::Ret(e) => {
                             self.informations.push(
                                 &error::error_list::ERROR_S22.clone().build_with_path(
                                     vec![],
                                     "p_0x465_Not_YetSupported".to_string(),
-                                    page.path.clone(),
+                                    unprocessed_page.path.clone(),
                                     e.pos,
                                 ),
                             );
-                        },
+                        }
                         Processors::SelfItem(_) => (),
                         Processors::GenericItem(_) => (),
                         Processors::FunctionParameter(_) => (),
@@ -565,7 +684,7 @@ impl Parser {
                                 &error::error_list::ERROR_S22.clone().build_with_path(
                                     vec![],
                                     "p_0x465".to_string(),
-                                    page.path.clone(),
+                                    unprocessed_page.path.clone(),
                                     unexpected_element.get_pos(),
                                 ),
                             );
@@ -577,7 +696,7 @@ impl Parser {
 
         #[cfg(feature = "standard_rules")]
         {
-            match self.find_processed_page(hash) {
+            match self.find_page(hash) {
                 Some(e) => {
                     let q = e.clone();
                     if q.unreachable && !q.unreachable_range.range_end.is_zero() {
@@ -595,6 +714,6 @@ impl Parser {
     }
 
     pub fn parse(&mut self) {
-        self.process_page(0);
+        self.process_page(self.active_page);
     }
 }

@@ -1,4 +1,11 @@
 /*
     Copyright (c) 2020 Behemehal. See license file for details
 */
-pub class function {}
+
+import thread;
+import string;
+
+pub class function {
+    pub v name: string;
+    pub v call_stack: callStack;
+}

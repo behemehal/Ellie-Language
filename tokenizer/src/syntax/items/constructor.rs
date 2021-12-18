@@ -38,11 +38,6 @@ impl Converter<Constructor, ellie_core::definite::items::constructor::Constructo
                     },
                 )
                 .collect(),
-            inside_code: self
-                .inside_code
-                .into_iter()
-                .map(|x| x.to_definite())
-                .collect(),
             name_pos: self.name_pos,
             parameters_pos: self.parameters_pos,
             pos: self.pos,
@@ -63,11 +58,7 @@ impl Converter<Constructor, ellie_core::definite::items::constructor::Constructo
                     pos: p.pos,
                 })
                 .collect(),
-            inside_code: from
-                .inside_code
-                .into_iter()
-                .map(|x| Processors::default().from_definite(x))
-                .collect(),
+            inside_code: vec![],
             name_pos: from.name_pos,
             parameters_pos: from.parameters_pos,
             pos: from.pos,

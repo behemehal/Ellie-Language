@@ -31,7 +31,16 @@ impl Converter<Class, ellie_core::definite::items::class::Class> for Class {
         panic!("Not required")
     }
 
-    fn from_definite(self, _from: ellie_core::definite::items::class::Class) -> Class {
-        todo!()
+    fn from_definite(self, from: ellie_core::definite::items::class::Class) -> Class {
+        Class {
+            name: from.name,
+            public: from.public,
+            name_pos: from.name_pos,
+            body: vec![],
+            brace_count: 0,
+            hash: from.hash,
+            pos: from.pos,
+            ..Default::default()
+        }
     }
 }
