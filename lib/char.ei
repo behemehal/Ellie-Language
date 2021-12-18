@@ -1,6 +1,7 @@
 /*
     Copyright (c) 2020 Behemehal. See license file for details
 */
+import string;
 pub class char {
     @description = "Get type";
     @example = "

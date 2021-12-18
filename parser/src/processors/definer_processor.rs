@@ -16,14 +16,14 @@ pub fn process(
     match from.clone() {
         DefinerTypes::Cloak(e) => {
             let deep_search_result =
-                parser.deep_search(page_id, "Cloak".to_string(), ignore_hash.clone(), vec![], 0);
+                parser.deep_search(page_id, "cloak".to_string(), ignore_hash.clone(), vec![], 0);
 
             if deep_search_result.found {
                 match deep_search_result.found_item {
                     crate::parser::DeepSearchItems::Class(cloak_class) => {
                         found = DefinerCollecting::Generic(definers::GenericType {
                             hash: cloak_class.hash,
-                            rtype: "Cloak".to_string(),
+                            rtype: "cloak".to_string(),
                             pos: cloak_class.pos,
                         });
                     }
@@ -32,7 +32,7 @@ pub fn process(
                             let mut error = error::error_list::ERROR_S45.clone().build_with_path(
                                 vec![error::ErrorBuildField {
                                     key: "token".to_string(),
-                                    value: "Cloak".to_string(),
+                                    value: "cloak".to_string(),
                                 }],
                                 "def_pr_0x38".to_owned(),
                                 parser.find_page(page_id).unwrap().path.clone(),
@@ -47,7 +47,7 @@ pub fn process(
                             errors.push(error::error_list::ERROR_S45.clone().build_with_path(
                                 vec![error::ErrorBuildField {
                                     key: "token".to_string(),
-                                    value: "Cloak".to_string(),
+                                    value: "cloak".to_string(),
                                 }],
                                 "def_pr_0x53".to_owned(),
                                 parser.find_page(page_id).unwrap().path.clone(),
@@ -60,7 +60,7 @@ pub fn process(
                 errors.push(error::error_list::ERROR_S6.clone().build_with_path(
                     vec![error::ErrorBuildField {
                         key: "token".to_string(),
-                        value: "Cloak".to_string(),
+                        value: "cloak".to_string(),
                     }],
                     "def_pr_0x66".to_owned(),
                     parser.find_page(page_id).unwrap().path.clone(),
@@ -70,7 +70,7 @@ pub fn process(
         }
         DefinerTypes::Array(e) => {
             let deep_search_result =
-                parser.deep_search(page_id, "Array".to_string(), ignore_hash.clone(), vec![], 0);
+                parser.deep_search(page_id, "array".to_string(), ignore_hash.clone(), vec![], 0);
 
             if deep_search_result.found {
                 match deep_search_result.found_item {
@@ -113,7 +113,7 @@ pub fn process(
                                                     .unwrap_or(ellie_core::defs::Cursor::default()),
                                             }],
                                             hash: array_class.hash,
-                                            rtype: "Array".to_string(),
+                                            rtype: "array".to_string(),
                                         },
                                     );
                                 }
@@ -126,7 +126,7 @@ pub fn process(
                             let mut error = error::error_list::ERROR_S45.clone().build_with_path(
                                 vec![error::ErrorBuildField {
                                     key: "token".to_string(),
-                                    value: "Array".to_string(),
+                                    value: "array".to_string(),
                                 }],
                                 "def_pr_0x132".to_owned(),
                                 parser.find_page(page_id).unwrap().path.clone(),
@@ -141,7 +141,7 @@ pub fn process(
                             errors.push(error::error_list::ERROR_S45.clone().build_with_path(
                                 vec![error::ErrorBuildField {
                                     key: "token".to_string(),
-                                    value: "Array".to_string(),
+                                    value: "array".to_string(),
                                 }],
                                 "def_pr_0x147".to_owned(),
                                 parser.find_page(page_id).unwrap().path.clone(),
@@ -154,7 +154,7 @@ pub fn process(
                 errors.push(error::error_list::ERROR_S6.clone().build_with_path(
                     vec![error::ErrorBuildField {
                         key: "token".to_string(),
-                        value: "Array".to_string(),
+                        value: "array".to_string(),
                     }],
                     "def_pr_0x160".to_owned(),
                     parser.find_page(page_id).unwrap().path.clone(),
@@ -179,7 +179,7 @@ pub fn process(
             }
             let deep_search_result = parser.deep_search(
                 page_id,
-                "Collective".to_string(),
+                "collective".to_string(),
                 ignore_hash.clone(),
                 vec![],
                 0,
@@ -205,7 +205,7 @@ pub fn process(
                                 },
                             ],
                             hash: collective_class.hash,
-                            rtype: "Collective".to_string(),
+                            rtype: "collective".to_string(),
                         });
                     }
                     _ => match deep_search_result.found_pos {
@@ -213,7 +213,7 @@ pub fn process(
                             let mut error = error::error_list::ERROR_S45.clone().build_with_path(
                                 vec![error::ErrorBuildField {
                                     key: "token".to_string(),
-                                    value: "Collective".to_string(),
+                                    value: "collective".to_string(),
                                 }],
                                 "def_pr_0x219".to_owned(),
                                 parser.find_page(page_id).unwrap().path.clone(),
@@ -228,7 +228,7 @@ pub fn process(
                             errors.push(error::error_list::ERROR_S45.clone().build_with_path(
                                 vec![error::ErrorBuildField {
                                     key: "token".to_string(),
-                                    value: "Collective".to_string(),
+                                    value: "collective".to_string(),
                                 }],
                                 "def_pr_0x234".to_owned(),
                                 parser.find_page(page_id).unwrap().path.clone(),
@@ -241,7 +241,7 @@ pub fn process(
                 errors.push(error::error_list::ERROR_S6.clone().build_with_path(
                     vec![error::ErrorBuildField {
                         key: "token".to_string(),
-                        value: "Collective".to_string(),
+                        value: "collective".to_string(),
                     }],
                     "def_pr_0x247".to_owned(),
                     parser.find_page(page_id).unwrap().path.clone(),
@@ -252,7 +252,7 @@ pub fn process(
         DefinerTypes::Vector(e) => {
             let deep_search_result = parser.deep_search(
                 page_id,
-                "Vector".to_string(),
+                "vector".to_string(),
                 ignore_hash.clone(),
                 vec![],
                 0,
@@ -301,7 +301,7 @@ pub fn process(
                                                     .unwrap_or(ellie_core::defs::Cursor::default()),
                                             }],
                                             hash: vector_class.hash,
-                                            rtype: "Vector".to_string(),
+                                            rtype: "vector".to_string(),
                                         },
                                     );
                                 }
@@ -314,7 +314,7 @@ pub fn process(
                             let mut error = error::error_list::ERROR_S45.clone().build_with_path(
                                 vec![error::ErrorBuildField {
                                     key: "token".to_string(),
-                                    value: "Vector".to_string(),
+                                    value: "vector".to_string(),
                                 }],
                                 "def_pr_0x320".to_owned(),
                                 parser.find_page(page_id).unwrap().path.clone(),
@@ -329,7 +329,7 @@ pub fn process(
                             errors.push(error::error_list::ERROR_S45.clone().build_with_path(
                                 vec![error::ErrorBuildField {
                                     key: "token".to_string(),
-                                    value: "Vector".to_string(),
+                                    value: "vector".to_string(),
                                 }],
                                 "def_pr_0x335".to_owned(),
                                 parser.find_page(page_id).unwrap().path.clone(),
@@ -342,7 +342,7 @@ pub fn process(
                 errors.push(error::error_list::ERROR_S6.clone().build_with_path(
                     vec![error::ErrorBuildField {
                         key: "token".to_string(),
-                        value: "Vector".to_string(),
+                        value: "vector".to_string(),
                     }],
                     "def_pr_0x57".to_owned(),
                     parser.find_page(page_id).unwrap().path.clone(),
@@ -353,7 +353,7 @@ pub fn process(
         DefinerTypes::Nullable(e) => {
             let deep_search_result = parser.deep_search(
                 page_id,
-                "NullAble".to_string(),
+                "nullAble".to_string(),
                 ignore_hash.clone(),
                 vec![],
                 0,
@@ -402,7 +402,7 @@ pub fn process(
                                                     .unwrap_or(ellie_core::defs::Cursor::default()),
                                             }],
                                             hash: nullable_class.hash,
-                                            rtype: "NullAble".to_string(),
+                                            rtype: "nullAble".to_string(),
                                         },
                                     );
                                 }
@@ -415,7 +415,7 @@ pub fn process(
                             let mut error = error::error_list::ERROR_S45.clone().build_with_path(
                                 vec![error::ErrorBuildField {
                                     key: "token".to_string(),
-                                    value: "NullAble".to_string(),
+                                    value: "nullAble".to_string(),
                                 }],
                                 "def_pr_0x421".to_owned(),
                                 parser.find_page(page_id).unwrap().path.clone(),
@@ -430,7 +430,7 @@ pub fn process(
                             errors.push(error::error_list::ERROR_S45.clone().build_with_path(
                                 vec![error::ErrorBuildField {
                                     key: "token".to_string(),
-                                    value: "NullAble".to_string(),
+                                    value: "nullAble".to_string(),
                                 }],
                                 "def_pr_0x436".to_owned(),
                                 parser.find_page(page_id).unwrap().path.clone(),
@@ -443,7 +443,7 @@ pub fn process(
                 errors.push(error::error_list::ERROR_S6.clone().build_with_path(
                     vec![error::ErrorBuildField {
                         key: "token".to_string(),
-                        value: "NullAble".to_string(),
+                        value: "nullAble".to_string(),
                     }],
                     "def_pr_0x449".to_owned(),
                     parser.find_page(page_id).unwrap().path.clone(),
@@ -619,15 +619,20 @@ pub fn process(
             }
         }
         DefinerTypes::Function(e) => {
-            let deep_search_result =
-                parser.deep_search(page_id, "Function".to_string(), ignore_hash.clone(), vec![], 0);
+            let deep_search_result = parser.deep_search(
+                page_id,
+                "function".to_string(),
+                ignore_hash.clone(),
+                vec![],
+                0,
+            );
 
             if deep_search_result.found {
                 match deep_search_result.found_item {
                     crate::parser::DeepSearchItems::Class(cloak_class) => {
                         found = DefinerCollecting::Generic(definers::GenericType {
                             hash: cloak_class.hash,
-                            rtype: "Function".to_string(),
+                            rtype: "function".to_string(),
                             pos: cloak_class.pos,
                         });
                     }
@@ -636,7 +641,7 @@ pub fn process(
                             let mut error = error::error_list::ERROR_S45.clone().build_with_path(
                                 vec![error::ErrorBuildField {
                                     key: "token".to_string(),
-                                    value: "Function".to_string(),
+                                    value: "function".to_string(),
                                 }],
                                 "def_pr_0x642".to_owned(),
                                 parser.find_page(page_id).unwrap().path.clone(),
@@ -651,7 +656,7 @@ pub fn process(
                             errors.push(error::error_list::ERROR_S45.clone().build_with_path(
                                 vec![error::ErrorBuildField {
                                     key: "token".to_string(),
-                                    value: "Function".to_string(),
+                                    value: "function".to_string(),
                                 }],
                                 "def_pr_0x657".to_owned(),
                                 parser.find_page(page_id).unwrap().path.clone(),
@@ -664,7 +669,7 @@ pub fn process(
                 errors.push(error::error_list::ERROR_S6.clone().build_with_path(
                     vec![error::ErrorBuildField {
                         key: "token".to_string(),
-                        value: "Function".to_string(),
+                        value: "function".to_string(),
                     }],
                     "def_pr_0x670".to_owned(),
                     parser.find_page(page_id).unwrap().path.clone(),

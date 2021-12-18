@@ -14,10 +14,10 @@ impl crate::processors::Processor for Ret {
             self.value_position.range_end = cursor.clone().skip_char(1);
             self.pos.range_end = cursor.clone().skip_char(1);
         } else {
-            if self.value.current.is_not_initialized() {
-                self.value_position.range_start = cursor;
+            if letter_char != ' ' && self.value_position.range_start.is_zero() {
+                self.value_position.range_start = cursor.clone().skip_char(1);
             }
-            self.value.iterate(errors, cursor, last_char, letter_char)
+            self.value.iterate(errors, cursor, last_char, letter_char);
         }
     }
 }

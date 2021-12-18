@@ -134,7 +134,7 @@ lazy_static! {
     pub static ref ERROR_S22: error::Error = error::Error {
         code: 0x21,
         title: "SyntaxError".to_owned(),
-        message: "Defined item cannot exist in class".to_owned(),
+        message: "Unexpected item".to_owned(),
         ..Default::default()
     };
     pub static ref ERROR_S23: error::Error = error::Error {
@@ -275,6 +275,13 @@ lazy_static! {
         code: 0x44,
         title: "ReferenceError".to_owned(),
         message: "'$token' is not a type".to_owned(),
+        ..Default::default()
+    };
+
+    pub static ref ERROR_S46: error::Error = error::Error {
+        code: 0x45,
+        title: "ReferenceError".to_owned(),
+        message: "Referenced type does not implement 'as' convertor".to_owned(),
         ..Default::default()
     };
 }

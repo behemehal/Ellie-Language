@@ -32,19 +32,8 @@ impl super::Processor for Import {
                 ));
         } else {
             parser.find_processed_page(page_id).unwrap().items.push(
-                ellie_core::definite::items::Collecting::Import(self.to_definite()),
-            )
-            /*
-            match self.hash.parse::<u64>() {
-                Ok(hash) => {
-                    parser.process_page(hash);
-
-                }
-                Err(_) => {
-                    panic!("Import's hash is not valid");
-                }
-            }
-            */
+                ellie_core::definite::items::Collecting::Import(self.clone().to_definite()),
+            );
         }
     }
 }

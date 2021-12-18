@@ -15,7 +15,7 @@ pub struct Dependency {
     pub public: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub enum PageType {
     FunctionBody,
     ConstructorBody,

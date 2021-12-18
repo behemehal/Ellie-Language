@@ -1,6 +1,5 @@
 #![allow(dead_code)]
 
-
 use std::{
     collections::hash_map::DefaultHasher,
     fmt::Display,
@@ -404,6 +403,7 @@ pub fn render_code_block(
     reference: bool,
     is_error: bool,
 ) {
+    let multi_line = item_pos.range_start.0 != item_pos.range_end.0 || item_pos.range_start.1 == 0;
     println!(
         "  {}[{}]{}{}: {}{}:{}{}{}",
         if reference {
@@ -447,7 +447,7 @@ pub fn render_code_block(
         code.lines().count()
     };
 
-    if item_pos.range_start.0 != item_pos.range_end.0 {
+    if multi_line {
         println!(
             "  {}[!]{}{}: (Beta) Mutli line rendering",
             if reference {
@@ -477,7 +477,10 @@ pub fn render_code_block(
     }
 
     for i in line_start..line_end {
-        if item_pos.range_start.0 == item_pos.range_end.0 && i == item_pos.range_start.0 {
+        if item_pos.range_start.0 == item_pos.range_end.0
+            && i == item_pos.range_start.0
+            && !multi_line
+        {
             if reference {
                 println!(
                     "{}{}{}{} | {} {} {}{}",
@@ -555,9 +558,7 @@ pub fn render_code_block(
                 generate_blank((line_space - (i + 1).to_string().len()) + 1),
                 i + 1,
                 Colors::Reset,
-                if (i >= item_pos.range_start.0 && i <= item_pos.range_end.0)
-                    && item_pos.range_start.0 != item_pos.range_end.0
-                {
+                if (i >= item_pos.range_start.0 && i <= item_pos.range_end.0) && multi_line {
                     if reference {
                         Colors::Green
                     } else {

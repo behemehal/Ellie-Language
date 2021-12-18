@@ -129,8 +129,9 @@ impl super::Processor for function::FunctionCollector {
                                 #[cfg(feature = "standard_rules")]
                                 {
                                     let (is_correct, fixed) =
-                                        (ellie_standard_rules::rules::CLASS_NAMING_ISSUE.worker)(
-                                            parameter.name.clone(),
+                                        (ellie_standard_rules::rules::FUNCTION_PARAM_NAMING_ISSUE
+                                            .worker)(
+                                            parameter.name.clone()
                                         );
                                     if !is_correct
                                         && !parser.page_has_file_key_with(
@@ -207,6 +208,12 @@ impl super::Processor for function::FunctionCollector {
                 }
             }
 
+            let mut dependencies = vec![ellie_tokenizer::tokenizer::Dependency {
+                hash: page.hash.clone(),
+                public: false,
+            }];
+            dependencies.extend(page.dependencies);
+
             let inner = ellie_tokenizer::tokenizer::Page {
                 hash: inner_page_id,
                 inner: Some(page.hash),
@@ -214,15 +221,74 @@ impl super::Processor for function::FunctionCollector {
                 page_type: PageType::FunctionBody,
                 items,
                 dependents: vec![],
-                dependencies: vec![ellie_tokenizer::tokenizer::Dependency {
-                    hash: page.hash.clone(),
-                    public: false,
-                }],
+                dependencies,
             };
             parser.pages.push(inner);
             parser.process_page(inner_page_id);
-            let processed_page = parser.find_processed_page(page_id).unwrap();
 
+            let found_ret = parser
+                .find_processed_page(inner_page_id)
+                .unwrap()
+                .items
+                .clone()
+                .into_iter()
+                .find_map(|item| match item {
+                    ellie_core::definite::items::Collecting::Ret(e) => Some(e),
+                    _ => None,
+                });
+
+            if let Some(ret) = found_ret {
+                if self.data.no_return {
+                    let mut err = error::error_list::ERROR_S3.clone().build_with_path(
+                        vec![
+                            error::ErrorBuildField {
+                                key: "token1".to_owned(),
+                                value: "void".to_owned(),
+                            },
+                            error::ErrorBuildField {
+                                key: "token2".to_owned(),
+                                value: parser.resolve_type_name(ret.value),
+                            },
+                        ],
+                        "pfn_0x253".to_owned(),
+                        parser.find_page(page_id).unwrap().path.clone(),
+                        ret.pos,
+                    );
+                    err.reference_block = Some((self.data.name_pos, page.path));
+                    err.reference_message = "Function does not accept any ret".to_owned();
+                    err.semi_assist = true;
+                    parser.informations.push(&err);
+                } else {
+                    let defined = parser.resolve_definer_name(return_type.clone());
+                    let given = parser.resolve_type_name(ret.value);
+                    if defined != given {
+                        let mut err = error::error_list::ERROR_S3.clone().build_with_path(
+                            vec![
+                                error::ErrorBuildField {
+                                    key: "token1".to_owned(),
+                                    value: defined,
+                                },
+                                error::ErrorBuildField {
+                                    key: "token2".to_owned(),
+                                    value: given,
+                                },
+                            ],
+                            "pfn_0x276".to_owned(),
+                            parser.find_page(page_id).unwrap().path.clone(),
+                            ret.pos,
+                        );
+                        err.reference_block = Some((self.data.return_pos, page.path));
+                        err.reference_message = "Defined here".to_owned();
+                        err.semi_assist = true;
+                        parser.informations.push(&err);
+                    }
+
+
+                    
+                }
+            }
+
+            let processed_page = parser.find_processed_page(page_id).unwrap();
             processed_page
                 .items
                 .push(ellie_core::definite::items::Collecting::Function(

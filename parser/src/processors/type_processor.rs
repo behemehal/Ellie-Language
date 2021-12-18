@@ -1,3 +1,4 @@
+use alloc::boxed::Box;
 use alloc::string::ToString;
 use alloc::vec;
 use alloc::vec::Vec;
@@ -76,6 +77,36 @@ pub fn process(
         Processors::ClassCall(_) => todo!(),
         Processors::Cloak(_) => todo!(),
         Processors::Collective(_) => todo!(),
+        Processors::AsKeyword(as_keyword) => {
+            match process(*as_keyword.data.target, parser, page_id, ignore_hash.clone()) {
+                Ok(resolved_types) => {
+                    match crate::processors::definer_processor::process(
+                        as_keyword.data.rtype.definer_type,
+                        parser,
+                        page_id,
+                        ignore_hash,
+                    ) {
+                        Ok(resolved_definer) => {
+                            Ok(types::Types::AsKeyword(types::as_keyword::AsKeyword {
+                                target: Box::new(resolved_types),
+                                pos: as_keyword.data.pos,
+                                target_pos: as_keyword.data.target_pos,
+                                type_pos: as_keyword.data.type_pos,
+                                rtype: resolved_definer,
+                            }))
+                        }
+                        Err(type_errors) => {
+                            errors.extend(type_errors);
+                            Err(errors)
+                        }
+                    }
+                }
+                Err(val_errors) => {
+                    errors.extend(val_errors);
+                    Err(errors)
+                }
+            }
+        }
         _ => Ok(from.to_definite()),
     }
 }

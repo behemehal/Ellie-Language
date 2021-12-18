@@ -5,7 +5,7 @@ lazy_static! {
     pub static ref WARNING_S1: warning::Warning = warning::Warning {
         code: 0x00,
         title: "ClassNameRule".to_owned(),
-        message: "Class names should be high camel case. Found '$current', expected '$correct'".to_owned(),
+        message: "Class names should be low camel case. Found '$current', expected '$correct'".to_owned(),
         semi_assist: true,
         ..Default::default()
     };

@@ -15,6 +15,7 @@ pub mod reference;
 pub mod string;
 pub mod variable;
 pub mod vector;
+pub mod as_keyword;
 
 use serde::{Deserialize, Serialize};
 
@@ -39,6 +40,7 @@ pub enum Types {
     NullResolver(null_resolver::NullResolver),
     Negative(negative::Negative),
     VariableType(variable::VariableType),
+    AsKeyword(as_keyword::AsKeyword),
     Null,
 }
 

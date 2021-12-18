@@ -17,3 +17,4 @@ pub import class;
 pub import int;
 pub import dyn;
 pub import error;
+pub import mem;

@@ -1,9 +1,8 @@
 use crate::processors::Processor;
-use alloc::borrow::ToOwned;
 use alloc::string::ToString;
 use alloc::vec::Vec;
 use alloc::{string::String, vec};
-use ellie_core::{defs, information, warning};
+use ellie_core::{defs, error, information, warning};
 use ellie_tokenizer::processors::items::Processors;
 use ellie_tokenizer::tokenizer::{Dependency, Page};
 use serde::{Deserialize, Serialize};
@@ -120,25 +119,26 @@ impl Parser {
 
     pub fn resolve_type_name(&self, rtype: ellie_core::definite::types::Types) -> String {
         match rtype {
-            ellie_core::definite::types::Types::Integer(_) => "Int".to_string(),
-            ellie_core::definite::types::Types::Float(_) => "Flaot".to_string(),
-            ellie_core::definite::types::Types::Bool(_) => "Bool".to_string(),
-            ellie_core::definite::types::Types::String(_) => "String".to_string(),
-            ellie_core::definite::types::Types::Char(_) => "Char".to_string(),
-            ellie_core::definite::types::Types::Collective(_) => "Collective".to_string(),
+            ellie_core::definite::types::Types::Integer(_) => "int".to_string(),
+            ellie_core::definite::types::Types::Float(_) => "flaot".to_string(),
+            ellie_core::definite::types::Types::Bool(_) => "bool".to_string(),
+            ellie_core::definite::types::Types::String(_) => "string".to_string(),
+            ellie_core::definite::types::Types::Char(_) => "char".to_string(),
+            ellie_core::definite::types::Types::Collective(_) => "collective".to_string(),
             ellie_core::definite::types::Types::Reference(_) => todo!(),
             ellie_core::definite::types::Types::BraceReference(_) => todo!(),
             ellie_core::definite::types::Types::Operator(_) => todo!(),
-            ellie_core::definite::types::Types::Cloak(_) => "Cloak".to_string(),
-            ellie_core::definite::types::Types::Array(_) => "Array".to_string(),
-            ellie_core::definite::types::Types::Vector(_) => "Vector".to_string(),
+            ellie_core::definite::types::Types::Cloak(_) => "cloak".to_string(),
+            ellie_core::definite::types::Types::Array(_) => "array".to_string(),
+            ellie_core::definite::types::Types::Vector(_) => "vector".to_string(),
             ellie_core::definite::types::Types::ClassCall(_) => todo!(),
             ellie_core::definite::types::Types::FunctionCall(_) => todo!(),
-            ellie_core::definite::types::Types::Void => "Void".to_string(),
+            ellie_core::definite::types::Types::Void => "void".to_string(),
             ellie_core::definite::types::Types::NullResolver(e) => self.resolve_type_name(*e.value),
             ellie_core::definite::types::Types::Negative(e) => self.resolve_type_name(*e.value),
             ellie_core::definite::types::Types::VariableType(_) => todo!(),
-            ellie_core::definite::types::Types::Null => "Null".to_string(),
+            ellie_core::definite::types::Types::Null => "null".to_string(),
+            ellie_core::definite::types::Types::AsKeyword(e) => self.resolve_type_name(*e.target),
         }
     }
 
@@ -248,7 +248,9 @@ impl Parser {
                 self_dependendencies.extend(page.dependencies.clone());
                 inner_page = page.inner;
             }
-            None => (),
+            None => {
+                alloc::format!("REMOVE THIS");
+            }
         }
 
         if !searched.contains(&target_page) {
@@ -295,6 +297,7 @@ impl Parser {
                                         found = true;
                                         found_page = page.clone();
                                         found_type = DeepSearchItems::ImportReference(e);
+                                    } else {
                                     }
                                 }
                                 Processors::Class(e) => {
@@ -400,7 +403,7 @@ impl Parser {
             .unwrap_or_else(|| panic!("Page not found"))
             .clone();
 
-        let processed_page = match self.find_processed_page(hash) {
+        match self.find_processed_page(hash) {
             None => {
                 self.processed_pages.push(ProcessedPage {
                     hash: hash,
@@ -419,29 +422,155 @@ impl Parser {
 
         for item in page.items.clone() {
             if matches!(self.find_processed_page(hash), Some(e) if e.unreachable) {
-                #[cfg(feature = "std")]
-                std::println!("RANGE END");
-                self.find_processed_page(hash)
-                    .unwrap()
-                    .unreachable_range
-                    .range_end = item.get_pos().range_end;
+                if !item.is_virtual() {
+                    let page = self.find_processed_page(hash).unwrap();
+                    page.unreachable_range.range_end = item.get_pos().range_end;
+                }
             } else {
-                match item {
-                    Processors::Variable(e) => e.process(self, page.hash),
-                    Processors::GetterCall(_) => todo!(),
-                    Processors::SetterCall(_) => todo!(),
-                    Processors::Function(e) => e.process(self, page.hash),
-                    Processors::FileKey(e) => e.process(self, page.hash),
-                    Processors::Import(e) => e.process(self, page.hash),
-                    Processors::ForLoop(_) => todo!(),
-                    Processors::Condition(_) => todo!(),
-                    Processors::Constructor(e) => e.process(self, page.hash),
-                    Processors::Class(e) => e.process(self, page.hash),
-                    Processors::Ret(e) => e.process(self, page.hash),
-                    Processors::SelfItem(_) => (),
-                    Processors::GenericItem(_) => (),
-                    Processors::FunctionParameter(_) => (),
-                    Processors::ConstructorParameter(_) => (),
+                match page.page_type {
+                    ellie_tokenizer::tokenizer::PageType::FunctionBody => match item {
+                        Processors::Variable(e) => e.process(self, page.hash),
+                        Processors::GetterCall(_) => todo!(),
+                        Processors::SetterCall(_) => todo!(),
+                        Processors::Function(e) => e.process(self, page.hash),
+                        Processors::FileKey(e) => e.process(self, page.hash),
+                        Processors::ForLoop(_) => todo!(),
+                        Processors::Condition(_) => todo!(),
+                        Processors::Class(e) => e.process(self, page.hash),
+                        Processors::Ret(e) => e.process(self, page.hash),
+                        Processors::SelfItem(_) => (),
+                        Processors::GenericItem(_) => (),
+                        Processors::FunctionParameter(_) => (),
+                        Processors::ConstructorParameter(_) => (),
+                        unexpected_element => {
+                            self.informations.push(
+                                &error::error_list::ERROR_S22.clone().build_with_path(
+                                    vec![],
+                                    "p_0x465".to_string(),
+                                    page.path.clone(),
+                                    unexpected_element.get_pos(),
+                                ),
+                            );
+                        }
+                    },
+                    ellie_tokenizer::tokenizer::PageType::ConstructorBody => match item {
+                        Processors::Variable(e) => e.process(self, page.hash),
+                        Processors::GetterCall(_) => todo!(),
+                        Processors::SetterCall(_) => todo!(),
+                        Processors::Function(e) => e.process(self, page.hash),
+                        Processors::FileKey(e) => e.process(self, page.hash),
+                        Processors::ForLoop(_) => todo!(),
+                        Processors::Condition(_) => todo!(),
+                        Processors::Class(e) => e.process(self, page.hash),
+                        Processors::Ret(e) => e.process(self, page.hash),
+                        Processors::SelfItem(_) => (),
+                        Processors::GenericItem(_) => (),
+                        Processors::FunctionParameter(_) => (),
+                        Processors::ConstructorParameter(_) => (),
+                        unexpected_element => {
+                            self.informations.push(
+                                &error::error_list::ERROR_S22.clone().build_with_path(
+                                    vec![],
+                                    "p_0x465".to_string(),
+                                    page.path.clone(),
+                                    unexpected_element.get_pos(),
+                                ),
+                            );
+                        }
+                    },
+                    ellie_tokenizer::tokenizer::PageType::RawBody => match item {
+                        Processors::Variable(e) => e.process(self, page.hash),
+                        Processors::GetterCall(_) => todo!(),
+                        Processors::SetterCall(_) => todo!(),
+                        Processors::Function(e) => e.process(self, page.hash),
+                        Processors::FileKey(e) => e.process(self, page.hash),
+                        Processors::Import(e) => {
+                            let hash = e.hash.clone();
+                            e.process(self, page.hash);
+                            match hash.parse::<u64>() {
+                                Ok(hash) => {
+                                    if self.find_processed_page(hash).is_none() {
+                                        self.process_page(hash);
+                                    }
+                                }
+                                Err(_) => {
+                                    panic!("Import's hash is not valid");
+                                }
+                            }
+                        }
+                        Processors::ForLoop(_) => todo!(),
+                        Processors::Condition(_) => todo!(),
+                        Processors::Class(e) => e.process(self, page.hash),
+
+                        Processors::SelfItem(_) => (),
+                        Processors::GenericItem(_) => (),
+                        Processors::FunctionParameter(_) => (),
+                        Processors::ConstructorParameter(_) => (),
+                        unexpected_element => {
+                            self.informations.push(
+                                &error::error_list::ERROR_S22.clone().build_with_path(
+                                    vec![],
+                                    "p_0x465".to_string(),
+                                    page.path.clone(),
+                                    unexpected_element.get_pos(),
+                                ),
+                            );
+                        }
+                    },
+                    ellie_tokenizer::tokenizer::PageType::ClassBody => match item {
+                        Processors::Variable(e) => e.process(self, page.hash),
+                        Processors::Function(e) => e.process(self, page.hash),
+                        Processors::FileKey(e) => e.process(self, page.hash),
+                        Processors::Constructor(e) => e.process(self, page.hash),
+                        Processors::SelfItem(_) => (),
+                        Processors::GenericItem(_) => (),
+                        Processors::FunctionParameter(_) => (),
+                        Processors::ConstructorParameter(_) => (),
+                        unexpected_element => {
+                            self.informations.push(
+                                &error::error_list::ERROR_S22.clone().build_with_path(
+                                    vec![],
+                                    "p_0x465".to_string(),
+                                    page.path.clone(),
+                                    unexpected_element.get_pos(),
+                                ),
+                            );
+                        }
+                    },
+                    ellie_tokenizer::tokenizer::PageType::ValueConditionBody => match item {
+                        Processors::Variable(e) => e.process(self, page.hash),
+                        Processors::GetterCall(_) => todo!(),
+                        Processors::SetterCall(_) => todo!(),
+                        Processors::Function(e) => e.process(self, page.hash),
+                        Processors::FileKey(e) => e.process(self, page.hash),
+                        Processors::ForLoop(_) => todo!(),
+                        Processors::Condition(_) => todo!(),
+                        Processors::Class(e) => e.process(self, page.hash),
+                        Processors::Ret(e) => {
+                            self.informations.push(
+                                &error::error_list::ERROR_S22.clone().build_with_path(
+                                    vec![],
+                                    "p_0x465_Not_YetSupported".to_string(),
+                                    page.path.clone(),
+                                    e.pos,
+                                ),
+                            );
+                        },
+                        Processors::SelfItem(_) => (),
+                        Processors::GenericItem(_) => (),
+                        Processors::FunctionParameter(_) => (),
+                        Processors::ConstructorParameter(_) => (),
+                        unexpected_element => {
+                            self.informations.push(
+                                &error::error_list::ERROR_S22.clone().build_with_path(
+                                    vec![],
+                                    "p_0x465".to_string(),
+                                    page.path.clone(),
+                                    unexpected_element.get_pos(),
+                                ),
+                            );
+                        }
+                    },
                 }
             }
         }
@@ -451,7 +580,7 @@ impl Parser {
             match self.find_processed_page(hash) {
                 Some(e) => {
                     let q = e.clone();
-                    if q.unreachable {
+                    if q.unreachable && !q.unreachable_range.range_end.is_zero() {
                         self.informations
                             .push(&warning::warning_list::WARNING_S4.clone().build(
                                 vec![],

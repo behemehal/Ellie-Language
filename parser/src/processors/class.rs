@@ -63,40 +63,38 @@ impl super::Processor for Class {
             let page = parser.find_page(page_id).unwrap().clone();
             let mut has_constructor: Option<defs::Cursor> = None;
 
-            for element in self.body.clone() {
-                match element {
-                    ellie_tokenizer::processors::items::Processors::Constructor(x) => {
-                        if has_constructor.is_none() {
-                            has_constructor = Some(x.pos);
-                        } else {
-                            let mut err = error::error_list::ERROR_S30.clone().build_with_path(
-                                vec![],
-                                "pcls_0x74".to_owned(),
-                                parser.find_page(page_id).unwrap().path.clone(),
-                                self.name_pos,
-                            );
-                            err.reference_block =
-                                Some((has_constructor.unwrap(), page.path.clone()));
-                            err.reference_message = "Prime is here".to_owned();
-                            err.semi_assist = true;
-                            parser.informations.push(&err);
-                        }
-                    }
-                    ellie_tokenizer::processors::items::Processors::Variable(_) => (),
-                    ellie_tokenizer::processors::items::Processors::Function(_) => (),
-                    ellie_tokenizer::processors::items::Processors::SelfItem(_) => (),
-                    ellie_tokenizer::processors::items::Processors::GenericItem(_) => (),
-                    e => {
-                        let mut err = error::error_list::ERROR_S22.clone().build_with_path(
-                            vec![],
-                            "pcls_0x92".to_owned(),
-                            parser.find_page(page_id).unwrap().path.clone(),
-                            e.get_pos(),
-                        );
-                        err.full_assist = true;
-                        parser.informations.push(&err);
-                    }
-                };
+            let constructors = self.body.iter().filter_map(|item| match item {
+                ellie_tokenizer::processors::items::Processors::Constructor(e) => Some(e),
+                _ => None,
+            });
+
+            if constructors.clone().count() > 0 {
+                let prime = constructors.clone().nth(0).unwrap();
+                let duplicate_constructors = constructors
+                    .enumerate()
+                    .map(
+                        |(index, element)| {
+                            if index == 0 {
+                                None
+                            } else {
+                                Some(element)
+                            }
+                        },
+                    )
+                    .filter(|el| el.is_some());
+
+                for constructor in duplicate_constructors {
+                    let mut err = error::error_list::ERROR_S30.clone().build_with_path(
+                        vec![],
+                        "pcls_0x74".to_owned(),
+                        parser.find_page(page_id).unwrap().path.clone(),
+                        constructor.unwrap().pos,
+                    );
+                    err.reference_block = Some((prime.pos, page.path.clone()));
+                    err.reference_message = "Prime is here".to_owned();
+                    err.semi_assist = true;
+                    parser.informations.push(&err);
+                }
             }
 
             for (index, generic) in self.generic_definings.iter().enumerate() {
@@ -141,23 +139,24 @@ impl super::Processor for Class {
                 },
             ));
 
+            let mut dependencies = vec![ellie_tokenizer::tokenizer::Dependency {
+                hash: page.hash.clone(),
+                public: false,
+            }];
+            dependencies.extend(page.dependencies);
+
             let inner = ellie_tokenizer::tokenizer::Page {
                 hash: inner_page_id,
                 inner: Some(page.hash),
                 path: page.path.clone(),
                 items,
                 dependents: vec![],
-                dependencies: vec![ellie_tokenizer::tokenizer::Dependency {
-                    hash: page.hash.clone(),
-                    public: false,
-                }],
+                dependencies,
                 page_type: PageType::ClassBody,
             };
             parser.pages.push(inner);
             parser.process_page(inner_page_id);
-
             let processed_page = parser.find_processed_page(inner_page_id).unwrap();
-
             let processed = ellie_core::definite::items::Collecting::Class(
                 ellie_core::definite::items::class::Class {
                     name: self.name,

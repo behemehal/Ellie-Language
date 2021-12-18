@@ -1,0 +1,520 @@
+[
+    {
+        "hash": 0,
+        "inner": null,
+        "unreachable": false,
+        "unreachable_range": {
+            "range_start": [
+                0,
+                0
+            ],
+            "range_end": [
+                0,
+                0
+            ]
+        },
+        "path": ".\\lib\\ellie.ei",
+        "items": [
+            {
+                "FileKey": {
+                    "key_name": "version",
+                    "value": {
+                        "String": {
+                            "value": "1.0.0",
+                            "pos": {
+                                "range_start": [
+                                    3,
+                                    12
+                                ],
+                                "range_end": [
+                                    3,
+                                    19
+                                ]
+                            }
+                        }
+                    },
+                    "key_name_location": {
+                        "range_start": [
+                            3,
+                            2
+                        ],
+                        "range_end": [
+                            3,
+                            8
+                        ]
+                    },
+                    "value_location": {
+                        "range_start": [
+                            3,
+                            10
+                        ],
+                        "range_end": [
+                            3,
+                            19
+                        ]
+                    },
+                    "pos": {
+                        "range_start": [
+                            3,
+                            1
+                        ],
+                        "range_end": [
+                            3,
+                            19
+                        ]
+                    }
+                }
+            },
+            {
+                "Import": {
+                    "path": "void",
+                    "public": true,
+                    "reference": "",
+                    "path_pos": {
+                        "range_start": [
+                            4,
+                            12
+                        ],
+                        "range_end": [
+                            4,
+                            15
+                        ]
+                    },
+                    "pos": {
+                        "range_start": [
+                            4,
+                            5
+                        ],
+                        "range_end": [
+                            4,
+                            17
+                        ]
+                    },
+                    "hash": "9705453923843755915"
+                }
+            },
+            {
+                "Import": {
+                    "path": "string",
+                    "public": true,
+                    "reference": "",
+                    "path_pos": {
+                        "range_start": [
+                            5,
+                            12
+                        ],
+                        "range_end": [
+                            5,
+                            17
+                        ]
+                    },
+                    "pos": {
+                        "range_start": [
+                            5,
+                            5
+                        ],
+                        "range_end": [
+                            5,
+                            19
+                        ]
+                    },
+                    "hash": "3095844347870153631"
+                }
+            },
+            {
+                "Import": {
+                    "path": "char",
+                    "public": true,
+                    "reference": "",
+                    "path_pos": {
+                        "range_start": [
+                            6,
+                            12
+                        ],
+                        "range_end": [
+                            6,
+                            15
+                        ]
+                    },
+                    "pos": {
+                        "range_start": [
+                            6,
+                            5
+                        ],
+                        "range_end": [
+                            6,
+                            17
+                        ]
+                    },
+                    "hash": "5036704781114158587"
+                }
+            },
+            {
+                "Import": {
+                    "path": "collective",
+                    "public": true,
+                    "reference": "",
+                    "path_pos": {
+                        "range_start": [
+                            7,
+                            12
+                        ],
+                        "range_end": [
+                            7,
+                            21
+                        ]
+                    },
+                    "pos": {
+                        "range_start": [
+                            7,
+                            5
+                        ],
+                        "range_end": [
+                            7,
+                            23
+                        ]
+                    },
+                    "hash": "2265775706785941188"
+                }
+            },
+            {
+                "Import": {
+                    "path": "float",
+                    "public": true,
+                    "reference": "",
+                    "path_pos": {
+                        "range_start": [
+                            8,
+                            12
+                        ],
+                        "range_end": [
+                            8,
+                            16
+                        ]
+                    },
+                    "pos": {
+                        "range_start": [
+                            8,
+                            5
+                        ],
+                        "range_end": [
+                            8,
+                            18
+                        ]
+                    },
+                    "hash": "17002242560366547085"
+                }
+            },
+            {
+                "Import": {
+                    "path": "bool",
+                    "public": true,
+                    "reference": "",
+                    "path_pos": {
+                        "range_start": [
+                            9,
+                            12
+                        ],
+                        "range_end": [
+                            9,
+                            15
+                        ]
+                    },
+                    "pos": {
+                        "range_start": [
+                            9,
+                            5
+                        ],
+                        "range_end": [
+                            9,
+                            17
+                        ]
+                    },
+                    "hash": "2852754866441284315"
+                }
+            },
+            {
+                "Import": {
+                    "path": "cloak",
+                    "public": true,
+                    "reference": "",
+                    "path_pos": {
+                        "range_start": [
+                            10,
+                            12
+                        ],
+                        "range_end": [
+                            10,
+                            16
+                        ]
+                    },
+                    "pos": {
+                        "range_start": [
+                            10,
+                            5
+                        ],
+                        "range_end": [
+                            10,
+                            18
+                        ]
+                    },
+                    "hash": "2596114674330710893"
+                }
+            },
+            {
+                "Import": {
+                    "path": "array",
+                    "public": true,
+                    "reference": "",
+                    "path_pos": {
+                        "range_start": [
+                            11,
+                            12
+                        ],
+                        "range_end": [
+                            11,
+                            16
+                        ]
+                    },
+                    "pos": {
+                        "range_start": [
+                            11,
+                            5
+                        ],
+                        "range_end": [
+                            11,
+                            18
+                        ]
+                    },
+                    "hash": "1040919654813280692"
+                }
+            },
+            {
+                "Import": {
+                    "path": "vector",
+                    "public": true,
+                    "reference": "",
+                    "path_pos": {
+                        "range_start": [
+                            12,
+                            12
+                        ],
+                        "range_end": [
+                            12,
+                            17
+                        ]
+                    },
+                    "pos": {
+                        "range_start": [
+                            12,
+                            5
+                        ],
+                        "range_end": [
+                            12,
+                            19
+                        ]
+                    },
+                    "hash": "879761627405306800"
+                }
+            },
+            {
+                "Import": {
+                    "path": "function",
+                    "public": true,
+                    "reference": "",
+                    "path_pos": {
+                        "range_start": [
+                            13,
+                            12
+                        ],
+                        "range_end": [
+                            13,
+                            19
+                        ]
+                    },
+                    "pos": {
+                        "range_start": [
+                            13,
+                            5
+                        ],
+                        "range_end": [
+                            13,
+                            21
+                        ]
+                    },
+                    "hash": "9977532004551520778"
+                }
+            },
+            {
+                "Import": {
+                    "path": "nullAble",
+                    "public": true,
+                    "reference": "",
+                    "path_pos": {
+                        "range_start": [
+                            14,
+                            12
+                        ],
+                        "range_end": [
+                            14,
+                            19
+                        ]
+                    },
+                    "pos": {
+                        "range_start": [
+                            14,
+                            5
+                        ],
+                        "range_end": [
+                            14,
+                            21
+                        ]
+                    },
+                    "hash": "13910523989990449771"
+                }
+            },
+            {
+                "Import": {
+                    "path": "class",
+                    "public": true,
+                    "reference": "",
+                    "path_pos": {
+                        "range_start": [
+                            15,
+                            12
+                        ],
+                        "range_end": [
+                            15,
+                            16
+                        ]
+                    },
+                    "pos": {
+                        "range_start": [
+                            15,
+                            5
+                        ],
+                        "range_end": [
+                            15,
+                            18
+                        ]
+                    },
+                    "hash": "16316289034799634696"
+                }
+            },
+            {
+                "Import": {
+                    "path": "int",
+                    "public": true,
+                    "reference": "",
+                    "path_pos": {
+                        "range_start": [
+                            16,
+                            12
+                        ],
+                        "range_end": [
+                            16,
+                            14
+                        ]
+                    },
+                    "pos": {
+                        "range_start": [
+                            16,
+                            5
+                        ],
+                        "range_end": [
+                            16,
+                            16
+                        ]
+                    },
+                    "hash": "7659122406100850684"
+                }
+            },
+            {
+                "Import": {
+                    "path": "dyn",
+                    "public": true,
+                    "reference": "",
+                    "path_pos": {
+                        "range_start": [
+                            17,
+                            12
+                        ],
+                        "range_end": [
+                            17,
+                            14
+                        ]
+                    },
+                    "pos": {
+                        "range_start": [
+                            17,
+                            5
+                        ],
+                        "range_end": [
+                            17,
+                            16
+                        ]
+                    },
+                    "hash": "12732385855440395869"
+                }
+            },
+            {
+                "Import": {
+                    "path": "error",
+                    "public": true,
+                    "reference": "",
+                    "path_pos": {
+                        "range_start": [
+                            18,
+                            12
+                        ],
+                        "range_end": [
+                            18,
+                            16
+                        ]
+                    },
+                    "pos": {
+                        "range_start": [
+                            18,
+                            5
+                        ],
+                        "range_end": [
+                            18,
+                            18
+                        ]
+                    },
+                    "hash": "18071610980265677053"
+                }
+            },
+            {
+                "Import": {
+                    "path": "mem",
+                    "public": true,
+                    "reference": "",
+                    "path_pos": {
+                        "range_start": [
+                            19,
+                            12
+                        ],
+                        "range_end": [
+                            19,
+                            14
+                        ]
+                    },
+                    "pos": {
+                        "range_start": [
+                            19,
+                            5
+                        ],
+                        "range_end": [
+                            19,
+                            16
+                        ]
+                    },
+                    "hash": "3061227535577865901"
+                }
+            }
+        ],
+        "dependents": [],
+        "dependencies": []
+    }
+]

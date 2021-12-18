@@ -46,7 +46,7 @@ pub fn generate_hash_u64() -> u64 {
 
 pub fn generate_hash() -> String {
     alloc::format!(
-        "{:02x?}",
+        "{:?}",
         (0..24)
             .map(|_| { rand::random::<u8>() })
             .collect::<Vec<u8>>()

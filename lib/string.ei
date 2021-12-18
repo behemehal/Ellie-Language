@@ -5,6 +5,7 @@
 import array;
 import int;
 import char;
+import vector;
 
 @version = "1.0.0";
 @description = "Ellie string"
@@ -40,15 +41,6 @@ pub class string {
     @example = "
         v name = \"ELLIE\";
         print(name.lwrCase()); //ellie
-    ";
-    pub fn lwrCase() : string;
-
-    @description = "Make string's first letter upperCASE";
-    @availableSince = "3.7.3";
-    @native = true;
-    @example = "
-        v name = \"ellie\";
-        print(name.fuprCase()); //Ellie
     ";
     pub fn lwrCase() : string;
 

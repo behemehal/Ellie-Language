@@ -1,4 +1,5 @@
 pub mod array_processor;
+pub mod as_processor;
 pub mod brace_reference_processor;
 pub mod char_processor;
 pub mod class_call_processor;
@@ -37,6 +38,7 @@ pub enum Processors {
     ClassCall(class_call_type::ClassCallCollector),
     Cloak(cloak_type::CloakTypeCollector),
     Collective(collective_type::CollectiveTypeCollector),
+    AsKeyword(as_keyword::AsKeywordCollector),
 }
 
 impl Processors {
@@ -71,6 +73,9 @@ impl Processors {
             Processors::Cloak(e) => ellie_core::definite::types::Types::Cloak(e.to_definite()),
             Processors::Collective(e) => {
                 ellie_core::definite::types::Types::Collective(e.to_definite())
+            }
+            Processors::AsKeyword(e) => {
+                ellie_core::definite::types::Types::AsKeyword(e.to_definite())
             }
         }
     }
@@ -124,7 +129,13 @@ impl Processors {
             Processors::Char(_) => true,
             Processors::String(_) => true,
             Processors::FunctionCall(_) => false,
-            Processors::Variable(_) => false,
+            Processors::Variable(e) => {
+                if e.data.value == "false" || e.data.value == "true" {
+                    true
+                } else {
+                    false
+                }
+            }
             Processors::Negative(e) => e.value.is_static(),
             Processors::Array(e) => e.data.collective.iter().all(|e| e.value.is_static()),
             Processors::Operator(e) => e.data.first.is_static() && e.data.second.is_static(),
@@ -137,6 +148,7 @@ impl Processors {
                 .entries
                 .iter()
                 .all(|e| e.value.is_static() && e.key.is_static()),
+            Processors::AsKeyword(_) => false,
         }
     }
 
@@ -156,6 +168,7 @@ impl Processors {
             Processors::ClassCall(e) => e.complete,
             Processors::Cloak(e) => e.complete,
             Processors::Collective(e) => e.complete,
+            Processors::AsKeyword(e) => e.complete,
         }
     }
 
@@ -175,6 +188,7 @@ impl Processors {
             Processors::ClassCall(_) => false,
             Processors::Cloak(_) => false,
             Processors::Collective(_) => false,
+            Processors::AsKeyword(_) => false,
         }
     }
 
@@ -194,6 +208,7 @@ impl Processors {
             Processors::ClassCall(e) => e.data.pos,
             Processors::Cloak(e) => e.data.pos,
             Processors::Collective(e) => e.data.pos,
+            Processors::AsKeyword(e) => e.data.pos,
         }
     }
 }
@@ -363,6 +378,17 @@ impl super::Processor for TypeProcessor {
                 on_dot: false,
                 complete: true,
             });
+        } else if self.is_complete() && letter_char == 'a' && last_char == ' ' {
+            self.current = Processors::AsKeyword(as_keyword::AsKeywordCollector {
+                data: as_keyword::AsKeyword {
+                    target: Box::new(self.current.clone()),
+                    pos: self.current.get_pos(),
+                    target_pos: self.current.get_pos(),
+                    ..Default::default()
+                },
+                keyword_pos: 0,
+                ..Default::default()
+            })
         } else if self.is_complete() && letter_char == '.' {
             if self.current.as_reference().is_none() {
                 self.current = Processors::Reference(reference_type::ReferenceTypeCollector {
@@ -445,6 +471,7 @@ impl super::Processor for TypeProcessor {
             Processors::ClassCall(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::Cloak(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::Collective(e) => e.iterate(errors, cursor, last_char, letter_char),
+            Processors::AsKeyword(e) => e.iterate(errors, cursor, last_char, letter_char),
         };
     }
 }

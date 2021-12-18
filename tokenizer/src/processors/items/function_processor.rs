@@ -161,6 +161,10 @@ impl crate::processors::Processor for function::FunctionCollector {
                 self.return_collected = true;
                 self.complete = true;
             } else {
+                if self.data.return_pos.range_start.is_zero() && letter_char != ' ' {
+                    self.data.return_pos.range_start = cursor;
+                }
+                self.data.return_pos.range_end = cursor;
                 self.data
                     .return_type
                     .iterate(errors, cursor, last_char, letter_char);

@@ -73,6 +73,16 @@ impl Processors {
         }
     }
 
+    pub fn is_virtual(&self) -> bool {
+        match self.clone() {
+            Processors::SelfItem(_) => true,
+            Processors::GenericItem(_) => true,
+            Processors::FunctionParameter(_) => true,
+            Processors::ConstructorParameter(_) => true,
+            _ => false,
+        }
+    }
+
     pub fn get_pos(&self) -> defs::Cursor {
         match self {
             Processors::Variable(e) => e.data.pos,
@@ -290,7 +300,7 @@ impl super::Processor for ItemProcessor {
         } else if self.used_modifier == Modifier::None && keyword == "co" && letter_char == '(' {
             self.current = Processors::Constructor(constructor::Constructor {
                 pos: defs::Cursor {
-                    range_start: cursor.clone(),
+                    range_start: self.current.get_pos().range_start,
                     ..Default::default()
                 },
                 ..Default::default()

@@ -1,0 +1,12 @@
+/*
+    Copyright (c) 2020 Behemehal. See license file for details
+*/
+import string;
+import int;
+import error;
+import thread;
+
+pub class rawMemoryData {
+    pub v type_id: int;
+    pub v data: [int, *];
+}

@@ -5,12 +5,12 @@ lazy_static! {
     pub static ref CLASS_NAMING_ISSUE: Rule<String, (bool, String)> = Rule {
         warning_id: 0x00,
         worker: |class_name| {
-            let _ = Regex::new("([A-Z][a-z0-9]+[A-Z])+[a-z]+").unwrap();
+            let _ = Regex::new("([a-z][a-z0-9]+[A-Z])+[a-z]+").unwrap();
             let num_regex = Regex::new("[0-9]+").unwrap();
             let mut fixed: String;
             fixed = num_regex.replace_all(&class_name, "").to_string();
             fixed.get_mut(0..1).map(|s| {
-                s.make_ascii_uppercase();
+                s.make_ascii_lowercase();
                 &*s
             });
             (fixed == class_name, fixed)

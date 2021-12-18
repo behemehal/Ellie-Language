@@ -82,13 +82,11 @@
 
   ```ellie
       class Test<T> { //A generic type class
-
-
-          co Test(a, b) { //Constructor with body
+          co(a, b) { //Constructor with body
 
           };
 
-          co Test(a, b) //You can initialize a class without body
+          co(a, b) //You can initialize a class without body
 
           pri v a : T; //A private parameter with generic type
           pri v b : String = "ellie"; //A private parameter with initial data inside
@@ -133,7 +131,7 @@
 - For Loops
   ```ellie
       v reversedEllie : string;
-      for (character, ellie_chars.reverse()) { //Array.reverse is standard-library function
+      for character : ellie_chars.reverse() { //Array.reverse is standard-library function
           reversedEllie += character;
       }
       reversedEllie //eille
@@ -159,12 +157,12 @@
   - Arithmetic & Assignment
 
   ```ellie
-  d Addition = 1 + 1;
-  d Subtraction = 2 - 1;
-  d Multiplication = 2 * 2;
-  d Exponentiation = 2 ** 3;
-  d Division = 4 / 2;
-  d Modulus = 5 % 2;
+  v Addition = 1 + 1;
+  v Subtraction = 2 - 1;
+  v Multiplication = 2 * 2;
+  v Exponentiation = 2 ** 3;
+  v Division = 4 / 2;
+  v Modulus = 5 % 2;
 
   //Assignment
 
