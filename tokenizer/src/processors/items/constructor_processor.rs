@@ -48,14 +48,16 @@ impl crate::processors::Processor for constructor::Constructor {
             } else if letter_char == ')'
                 && (parameter_len == 0 || (self.parameters[parameter_len - 1].name != ""))
             {
-                self.parameters[parameter_len - 1].pos.range_end = cursor;
+                if parameter_len != 0 {
+                    self.parameters[parameter_len - 1].pos.range_end = cursor;
+                }
                 self.parameter_collected = true;
             }
         } else if !self.continuum_collected {
             if letter_char == '{' {
                 self.continuum_collected = true;
             } else if letter_char == ';' {
-                self.pos.range_start = cursor.clone().skip_char(1);
+                self.pos.range_end = cursor.clone().skip_char(1);
                 self.continuum_collected = true;
                 self.complete = true;
             } else if letter_char != ' ' {
@@ -70,7 +72,7 @@ impl crate::processors::Processor for constructor::Constructor {
             }
         } else if letter_char == '}' && self.brace_count == 0 {
             self.complete = true;
-            self.pos.range_start = cursor.clone().skip_char(1);
+            self.pos.range_end = cursor.clone().skip_char(1);
             self.iterator.finalize();
             errors.extend(self.iterator.errors.clone());
             self.inside_code = self.iterator.collected.clone();
