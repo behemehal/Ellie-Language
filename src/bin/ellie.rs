@@ -37,6 +37,8 @@ fn main() {
         println!("\t--help                       || -h   : Show Help");
         println!("\t--render-tokenized           || -rt  : Render tokenized code");
         println!("\t--render-parsed              || -rp  : Render parsed code");
+        println!("\t--compile-workspace          || -cw  : Compile workspace for running later");
+        println!("\t--exclude-std                || -es  : Exclude standard types from code");
         println!("\t--eval-code                  || -ec  : Evaluate code from parameters");
     } else {
         let args = env::args()
@@ -146,7 +148,9 @@ fn main() {
                                 )
                                 .unwrap();
 
-                                parser.import_processed_module(std_pages);
+                                if !env::args().any(|x| x == "-es" || x == "--exclude-std") {
+                                    parser.import_processed_module(std_pages);
+                                }
 
                                 parser.parse();
 
@@ -204,6 +208,31 @@ fn main() {
                                         parser.informations.warnings.len(),
                                         cli_utils::Colors::Reset,
                                     );
+
+                                    if env::args()
+                                        .any(|x| x == "-cp" || x == "--compile-workspace")
+                                    {
+                                        let bytes = bincode::serialize(&parser.processed_pages).unwrap();
+                                        let output_file_name = Path::new(main_path)
+                                            .file_name()
+                                            .unwrap()
+                                            .to_str()
+                                            .unwrap()
+                                            .to_owned();
+                                        let output_file =
+                                            format!("{}_workspace.bin", output_file_name);
+                                        match fs::write(format!("./{}", output_file), bytes) {
+                                            Ok(_) => {
+                                                println!(
+                                                    "\nCompiled workspace output successfully wrote to {}",
+                                                    output_file
+                                                );
+                                            }
+                                            Err(e) => {
+                                                println!("Failed to write to file {}", e);
+                                            }
+                                        }
+                                    }
 
                                     if env::args().any(|x| x == "-rt" || x == "--render-tokenized")
                                     {

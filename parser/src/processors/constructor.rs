@@ -121,6 +121,7 @@ impl super::Processor for Constructor {
             dependencies: vec![ellie_tokenizer::tokenizer::Dependency {
                 hash: page.hash.clone(),
                 processed: false,
+                deep_link: None,
                 public: false,
             }],
             ..Default::default()

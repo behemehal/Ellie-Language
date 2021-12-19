@@ -143,6 +143,7 @@ impl super::Processor for Class {
             let mut dependencies = vec![ellie_tokenizer::tokenizer::Dependency {
                 hash: page.hash.clone(),
                 processed: false,
+                deep_link: None,
                 public: false,
             }];
             dependencies.extend(page.dependencies);

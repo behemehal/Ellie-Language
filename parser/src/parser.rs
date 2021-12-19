@@ -15,7 +15,7 @@ pub struct ProcessedPage {
     pub path: String,
     pub items: Vec<ellie_core::definite::items::Collecting>,
     pub dependents: Vec<u64>,
-    pub dependencies: Vec<u64>,
+    pub dependencies: Vec<ellie_tokenizer::tokenizer::Dependency>,
 }
 
 impl ProcessedPage {
@@ -65,7 +65,7 @@ impl ProcessedPage {
 pub struct Parser {
     pub pages: Vec<Page>,
     pub processed_pages: Vec<ProcessedPage>,
-    pub active_page: u64,
+    pub initial_page: u64,
     pub informations: information::Informations,
 }
 
@@ -111,7 +111,7 @@ impl Parser {
         Parser {
             pages: pages,
             processed_pages: vec![],
-            active_page: initial_hash.unwrap_or(0),
+            initial_page: initial_hash.unwrap_or(0),
             informations: information::Informations::new(),
         }
     }
@@ -124,31 +124,19 @@ impl Parser {
                 inner: p.inner,
                 path: p.path.clone(),
                 dependents: p.dependents.clone(),
-                dependencies: p
-                    .dependencies
-                    .iter()
-                    .map(|dep| ellie_tokenizer::tokenizer::Dependency {
-                        hash: *dep,
-                        processed: true,
-                        public: false,
-                    })
-                    .collect(),
+                dependencies: p.dependencies.clone(),
                 ..Default::default()
             })
             .collect::<Vec<_>>();
-
-        let main_page = processed_pages
+        self.find_page(self.initial_page).unwrap().dependencies = unprocessed_pages
             .iter()
-            .find_map(|x| if x.hash == 343 { Some(x) } else { None })
-            .unwrap().dependencies.iter().map(|x| {
-                Dependency {
-                    hash: *x,
-                    processed: true,
-                    public: false,
-                }
-            }).collect();
-
-        self.find_page(0).unwrap().dependencies = main_page;
+            .map(|x| ellie_tokenizer::tokenizer::Dependency {
+                hash: x.hash,
+                processed: true,
+                deep_link: if x.hash == 343 { None } else { Some(343) },
+                public: false,
+            })
+            .collect();
         self.pages.extend(unprocessed_pages);
         self.processed_pages.extend(processed_pages);
     }
@@ -281,8 +269,6 @@ impl Parser {
 
         match self.find_page(target_page) {
             Some(page) => {
-                #[cfg(feature = "std")]
-                std::println!("Dependency extraction: {:?}\n", page);
                 self_dependendencies.extend(page.dependencies.clone());
                 inner_page = page.inner;
             }
@@ -293,8 +279,6 @@ impl Parser {
             for dep in self_dependendencies {
                 searched.push(target_page);
                 if dep.processed {
-                    #[cfg(feature = "std")]
-                    std::println!("Find: {}", name);
                     let unprocessed_page = self
                         .find_page(dep.hash)
                         .unwrap_or_else(|| panic!("BrokenPageGraph: {}", dep.hash))
@@ -344,9 +328,6 @@ impl Parser {
                                         }
                                     }
                                     Collecting::Class(e) => {
-                                        #[cfg(feature = "std")]
-                                        std::println!("\nTarget:{}\nClass:{}\n", name, e.name);
-                                        if e.name == name {}
                                         if e.name == name
                                             && (e.public
                                                 || level == 0
@@ -529,11 +510,7 @@ impl Parser {
                     path: unprocessed_page.path.clone(),
                     items: vec![],
                     dependents: unprocessed_page.dependents,
-                    dependencies: unprocessed_page
-                        .dependencies
-                        .iter()
-                        .map(|x| x.hash)
-                        .collect(),
+                    dependencies: unprocessed_page.dependencies,
                 });
                 None
             }
@@ -714,6 +691,6 @@ impl Parser {
     }
 
     pub fn parse(&mut self) {
-        self.process_page(self.active_page);
+        self.process_page(self.initial_page);
     }
 }

@@ -13,6 +13,7 @@ pub struct TokenizerOptions {
 pub struct Dependency {
     pub hash: u64,
     pub processed: bool,
+    pub deep_link: Option<u64>,
     pub public: bool,
 }
 
@@ -181,6 +182,7 @@ where
                         current_page.dependencies.push(Dependency {
                             hash: resolved.hash,
                             processed: false,
+                            deep_link: None,
                             public: import.public,
                         });
                         let dependents = current_page.dependents.clone();
@@ -192,10 +194,11 @@ where
                                 fullfiled_depenents.push(dependent);
                                 let found_dependent = self.find_page(dependent.clone()).unwrap();
 
-                                if !found_dependent.contains_dependency(resolved.hash) {
+                                if !found_dependent.contains_dependency(resolved.hash) && resolved.hash != found_dependent.hash {
                                     found_dependent.dependencies.push(Dependency {
                                         hash: resolved.hash,
                                         processed: false,
+                                        deep_link: Some(cr_page),
                                         public: import.public,
                                     });
                                 }
