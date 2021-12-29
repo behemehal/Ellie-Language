@@ -1,5 +1,5 @@
 use crate::alloc::borrow::ToOwned;
-use alloc::string::String;
+use alloc::{string::String, vec::Vec};
 use serde::{Deserialize, Serialize};
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
@@ -132,6 +132,52 @@ impl Default for Cursor {
         Cursor {
             range_start: CursorPosition::default(),
             range_end: CursorPosition::default(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Version {
+    pub minor: u8,
+    pub major: u8,
+    pub bug: u8,
+}
+
+impl Version {
+    pub fn build_from_string(input: String) -> Version {
+        Version {
+            minor: input.split(".").collect::<Vec<_>>()[0]
+                .parse::<u8>()
+                .unwrap_or_else(|_| panic!("Given 'minor', is not a number")),
+            major: input.split(".").collect::<Vec<_>>()[1]
+                .parse::<u8>()
+                .unwrap_or_else(|_| panic!("Given 'major', is not a number")),
+            bug: input.split(".").collect::<Vec<_>>()[2]
+                .parse::<u8>()
+                .unwrap_or_else(|_| panic!("Given 'bug', is not a number")),
+        }
+    }
+
+    pub fn build_from_string_checked(input: String) -> Result<Version, u8> {
+        if input.split(".").collect::<Vec<_>>().len() == 3 {
+            let major = input.split(".").collect::<Vec<_>>()[0]
+                .parse::<u8>()
+                .unwrap_or(0);
+            let minor = input.split(".").collect::<Vec<_>>()[1]
+                .parse::<u8>()
+                .unwrap_or(0);
+
+            let bug = input.split(".").collect::<Vec<_>>()[2]
+                .parse::<u8>()
+                .unwrap_or(0);
+
+            if major == 0 && minor == 0 && bug == 0 {
+                Err(1)
+            } else {
+                Ok(Version { minor, major, bug })
+            }
+        } else {
+            Err(0)
         }
     }
 }

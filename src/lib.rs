@@ -31,9 +31,10 @@ SOFTWARE.
 
 extern crate ellie_core;
 extern crate ellie_tokenizer;
-extern crate lazy_static;
-
-pub mod cli_constants;
 
 #[cfg(feature = "build-cli")]
+#[macro_use]
+extern crate lazy_static;
+pub mod cli_constants;
+pub mod cli_outputs;
 pub mod cli_utils;

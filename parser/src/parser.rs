@@ -62,9 +62,21 @@ impl ProcessedPage {
     }
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Module {
+    pub hash: u64,
+    pub name: String,
+    pub initial_page: u64,
+    pub pages: Vec<ProcessedPage>,
+    pub version: ellie_core::defs::Version,
+    pub modules: Vec<ellie_tokenizer::tokenizer::Module>,
+}
+
 pub struct Parser {
+    pub version: ellie_core::defs::Version,
     pub pages: Vec<Page>,
     pub processed_pages: Vec<ProcessedPage>,
+    pub modules: Vec<Module>,
     pub initial_page: u64,
     pub informations: information::Informations,
 }
@@ -107,15 +119,54 @@ impl DeepSearchItems {
 }
 
 impl Parser {
-    pub fn new(pages: Vec<Page>, initial_hash: Option<u64>) -> Parser {
+    pub fn new(
+        pages: Vec<Page>,
+        initial_hash: Option<u64>,
+        version: ellie_core::defs::Version,
+    ) -> Parser {
         Parser {
-            pages: pages,
+            version,
+            pages,
             processed_pages: vec![],
+            modules: vec![],
             initial_page: initial_hash.unwrap_or(0),
             informations: information::Informations::new(),
         }
     }
 
+    pub fn calculate_hash(&self) -> u64 {
+        self.pages[0].hash
+    }
+
+    pub fn import_module(&mut self, module: Module) {
+        self.modules.push(module.clone());
+        let unprocessed_pages = module
+            .pages
+            .iter()
+            .map(|p| ellie_tokenizer::tokenizer::Page {
+                hash: p.hash,
+                inner: p.inner,
+                path: p.path.clone(),
+                dependents: p.dependents.clone(),
+                dependencies: p.dependencies.clone(),
+                ..Default::default()
+            })
+            .collect::<Vec<_>>();
+        self.find_page(self.initial_page).unwrap().dependencies = module
+            .pages
+            .iter()
+            .map(|x| ellie_tokenizer::tokenizer::Dependency {
+                hash: x.hash,
+                processed: true,
+                module: Some(module.initial_page),
+                deep_link: if x.hash == 343 { None } else { Some(343) },
+                public: false,
+            })
+            .collect();
+        self.pages.extend(unprocessed_pages);
+    }
+
+    /*
     pub fn import_processed_module(&mut self, processed_pages: Vec<ProcessedPage>) {
         let unprocessed_pages = processed_pages
             .iter()
@@ -140,6 +191,7 @@ impl Parser {
         self.pages.extend(unprocessed_pages);
         self.processed_pages.extend(processed_pages);
     }
+    */
 
     pub fn resolve_type_name(&self, rtype: ellie_core::definite::types::Types) -> String {
         match rtype {
@@ -278,7 +330,82 @@ impl Parser {
         if !searched.contains(&target_page) {
             for dep in self_dependendencies {
                 searched.push(target_page);
-                if dep.processed {
+                if let Some(module_initial_page) = dep.module {
+                    let unprocessed_page = self
+                        .find_page(dep.hash)
+                        .unwrap_or_else(|| panic!("BrokenPageGraph: {}", dep.hash))
+                        .clone();
+
+                    match self.find_processed_page_in_module(module_initial_page, dep.hash) {
+                        Some(page) => {
+                            let page = page.clone();
+                            for item in page.items.iter() {
+                                match item.clone() {
+                                    Collecting::Variable(e) => {
+                                        if e.name == name
+                                            && (e.public || level == 0)
+                                            && (ignore_hash.is_none()
+                                                || matches!(ignore_hash, Some(ref t) if &e.hash != t))
+                                        {
+                                            found_pos = Some(e.pos);
+                                            found = true;
+                                            found_page = unprocessed_page.clone();
+                                            found_type = DeepSearchItems::Variable(ellie_tokenizer::syntax::items::variable::VariableCollector::default().from_definite(e).data);
+                                        }
+                                    }
+                                    Collecting::Function(e) => {
+                                        if e.name == name
+                                            && (e.public || level == 0)
+                                            && (ignore_hash.is_none()
+                                                || matches!(ignore_hash, Some(ref t) if &e.hash != t))
+                                        {
+                                            found_pos = Some(e.pos);
+                                            found = true;
+                                            found_page = unprocessed_page.clone();
+                                            found_type = DeepSearchItems::Function(ellie_tokenizer::syntax::items::function::FunctionCollector::default().from_definite(e).data);
+                                        }
+                                    }
+                                    Collecting::Import(e) => {
+                                        if e.reference != ""
+                                            && e.reference == name
+                                            && (e.public
+                                                || level == 0
+                                                || matches!(inner_page, Some(ref parent_page_hash) if parent_page_hash == &page.hash))
+                                            && (ignore_hash.is_none()
+                                                || matches!(ignore_hash, Some(ref t) if &e.hash != t))
+                                        {
+                                            found_pos = Some(e.pos);
+                                            found = true;
+                                            found_page = unprocessed_page.clone();
+                                            found_type = DeepSearchItems::ImportReference(ellie_tokenizer::syntax::items::import::Import::default().from_definite(e));
+                                        }
+                                    }
+                                    Collecting::Class(e) => {
+                                        if e.name == name
+                                            && (e.public
+                                                || level == 0
+                                                || matches!(inner_page, Some(ref parent_page_hash) if parent_page_hash == &page.hash))
+                                            && (ignore_hash.is_none()
+                                                || matches!(ignore_hash, Some(ref t) if &e.hash != t))
+                                        {
+                                            found_pos = Some(e.pos);
+                                            found = true;
+                                            found_page = unprocessed_page.clone();
+                                            found_type = DeepSearchItems::Class(ellie_tokenizer::syntax::items::class::Class::default().from_definite(e));
+                                        }
+                                    }
+                                    _ => (),
+                                }
+                            }
+                        }
+                        None => {
+                            panic!("Broken Page structure; Failed to find page {}", dep.hash);
+                            //found = true;
+                            //found_type = DeepSearchItems::BrokenPageGraph;
+                            //break 'pages;
+                        }
+                    }
+                } else if dep.processed {
                     let unprocessed_page = self
                         .find_page(dep.hash)
                         .unwrap_or_else(|| panic!("BrokenPageGraph: {}", dep.hash))
@@ -492,6 +619,17 @@ impl Parser {
         self.processed_pages.iter_mut().find(|x| x.hash == hash)
     }
 
+    pub fn find_processed_page_in_module(
+        &mut self,
+        module_hash: u64,
+        hash: u64,
+    ) -> Option<&mut ProcessedPage> {
+        match self.modules.iter_mut().find(|x| x.hash == module_hash) {
+            Some(e) => e.pages.iter_mut().find(|x| x.hash == hash),
+            None => None,
+        }
+    }
+
     pub fn find_page(&mut self, hash: u64) -> Option<&mut Page> {
         self.pages.iter_mut().find(|x| x.hash == hash)
     }
@@ -690,7 +828,24 @@ impl Parser {
         }
     }
 
-    pub fn parse(&mut self) {
+    pub fn parse(&mut self, module_name: String) -> Module {
         self.process_page(self.initial_page);
+        Module {
+            name: module_name,
+            initial_page: self.initial_page,
+            hash: self.calculate_hash(),
+            pages: self.processed_pages.clone(),
+            version: self.version.clone(),
+            modules: self
+                .modules
+                .iter()
+                .map(|x| ellie_tokenizer::tokenizer::Module {
+                    hash: x.hash,
+                    initial_page: x.initial_page,
+                    version: x.version.clone(),
+                    name: x.name.clone(),
+                })
+                .collect(),
+        }
     }
 }

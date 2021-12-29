@@ -143,6 +143,7 @@ impl super::Processor for Class {
             let mut dependencies = vec![ellie_tokenizer::tokenizer::Dependency {
                 hash: page.hash.clone(),
                 processed: false,
+                module: None,
                 deep_link: None,
                 public: false,
             }];
@@ -159,6 +160,7 @@ impl super::Processor for Class {
                 unreachable: false,
                 unreachable_range: defs::Cursor::default(),
                 processed: false,
+                module: false,
             };
             parser.pages.push(inner);
             parser.process_page(inner_page_id);

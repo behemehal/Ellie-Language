@@ -9,12 +9,7 @@ Building by `cargo build` command will output executable binary [bin\ellie](./sr
 ## Parsing ellie code
 
 ```
-ellie ./file.ei --render-tokenized
+elliec ./file.ei --set-version 1.0.0 --output json --output-path ./output_file.json
 ```
 
-This command will output tokenized elements in `file.ei` as json in `file_tokenized.json`.
-
-```
-ellie ./file.ei --render-parsed
-```
-This command will output parsed elements in `file.ei` as json in `file_parsed.json`.
+This command will save parsed code as `output_file.json`.

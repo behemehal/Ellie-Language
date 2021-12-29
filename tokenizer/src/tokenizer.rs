@@ -13,6 +13,7 @@ pub struct TokenizerOptions {
 pub struct Dependency {
     pub hash: u64,
     pub processed: bool,
+    pub module: Option<u64>,
     pub deep_link: Option<u64>,
     pub public: bool,
 }
@@ -38,6 +39,7 @@ pub struct Page {
     pub hash: u64,
     pub inner: Option<u64>,
     pub processed: bool,
+    pub module: bool,
     pub unreachable: bool,
     pub unreachable_range: defs::Cursor,
     pub page_type: PageType,
@@ -56,6 +58,18 @@ impl Page {
     }
 }
 
+#[derive(Debug)]
+pub enum ImportType {
+    Code(String),
+    Module(Module),
+}
+
+impl Default for ImportType {
+    fn default() -> Self {
+        ImportType::Code(String::new())
+    }
+}
+
 #[derive(Default, Debug)]
 
 pub struct ResolvedImport {
@@ -63,7 +77,7 @@ pub struct ResolvedImport {
     pub resolve_error: String,
     pub hash: u64,
     pub path: String,
-    pub code: String,
+    pub matched: ImportType,
 }
 
 pub struct Tokenizer {
@@ -107,10 +121,19 @@ impl Tokenizer {
     }
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Module {
+    pub hash: u64,
+    pub initial_page: u64,
+    pub version: ellie_core::defs::Version,
+    pub name: String,
+}
+
 #[derive(Debug, Clone)]
 pub struct Pager<E> {
     pub main: String,
     pub pages: Vec<Page>,
+    pub modules: Vec<Module>,
     pub current_page: u64,
     pub import_resolver: E,
 }
@@ -131,6 +154,10 @@ where
         self.pages.iter_mut().find(|page| page.hash == hash)
     }
 
+    pub fn find_module(&mut self, hash: u64) -> Option<&mut Module> {
+        self.modules.iter_mut().find(|module| module.hash == hash)
+    }
+
     pub fn new(main: String, path: String, import_resolver: E, initial_hash: Option<u64>) -> Self {
         Pager {
             main: main,
@@ -139,6 +166,7 @@ where
                 inner: None,
                 path,
                 processed: false,
+                module: false,
                 items: vec![],
                 dependents: vec![],
                 dependencies: vec![],
@@ -148,6 +176,7 @@ where
             }],
             current_page: initial_hash.unwrap_or(0),
             import_resolver: import_resolver,
+            modules: vec![],
         }
     }
 
@@ -170,8 +199,6 @@ where
                     })
                     .collect::<Vec<_>>();
 
-                let mut dependencies = vec![];
-
                 for import in imports {
                     let resolved = (self.import_resolver)(page.path.clone(), import.path.clone());
                     if resolved.found {
@@ -182,6 +209,10 @@ where
                         current_page.dependencies.push(Dependency {
                             hash: resolved.hash,
                             processed: false,
+                            module: match &resolved.matched {
+                                ImportType::Code(_) => None,
+                                ImportType::Module(x) => Some(x.initial_page.clone()),
+                            },
                             deep_link: None,
                             public: import.public,
                         });
@@ -194,10 +225,16 @@ where
                                 fullfiled_depenents.push(dependent);
                                 let found_dependent = self.find_page(dependent.clone()).unwrap();
 
-                                if !found_dependent.contains_dependency(resolved.hash) && resolved.hash != found_dependent.hash {
+                                if !found_dependent.contains_dependency(resolved.hash)
+                                    && resolved.hash != found_dependent.hash
+                                {
                                     found_dependent.dependencies.push(Dependency {
                                         hash: resolved.hash,
                                         processed: false,
+                                        module: match &resolved.matched {
+                                            ImportType::Code(_) => None,
+                                            ImportType::Module(x) => Some(x.initial_page),
+                                        },
                                         deep_link: Some(cr_page),
                                         public: import.public,
                                     });
@@ -206,41 +243,65 @@ where
                         }
                         fullfiled_depenents.push(cr_page);
 
-                        match self.find_page(resolved.hash) {
-                            Some(inner_child) => {
-                                inner_child.dependents.extend(fullfiled_depenents);
-                                let public_dependencies = inner_child
-                                    .dependencies
-                                    .clone()
-                                    .into_iter()
-                                    .clone()
-                                    .filter(|d| d.public)
-                                    .collect::<Vec<_>>();
-                                data.extend(public_dependencies);
-                            }
-                            None => {
-                                self.pages.push(Page {
-                                    inner: None,
-                                    hash: resolved.hash,
-                                    path: resolved.path,
-                                    processed: false,
-                                    items: Vec::new(),
-                                    dependents: fullfiled_depenents,
-                                    dependencies: dependencies.clone(),
-                                    page_type: PageType::RawBody,
-                                    unreachable: false,
-                                    unreachable_range: defs::Cursor::default(),
-                                });
-                                match self.resolve_page(resolved.hash, resolved.code) {
-                                    Ok(inner_child) => {
-                                        let public_dependencies = inner_child
-                                            .into_iter()
-                                            .clone()
-                                            .filter(|d| d.public)
-                                            .collect::<Vec<_>>();
-                                        data.extend(public_dependencies);
+                        match resolved.matched {
+                            ImportType::Code(code_str) => match self.find_page(resolved.hash) {
+                                Some(inner_child) => {
+                                    inner_child.dependents.extend(fullfiled_depenents);
+                                    let public_dependencies = inner_child
+                                        .dependencies
+                                        .clone()
+                                        .into_iter()
+                                        .clone()
+                                        .filter(|d| d.public)
+                                        .collect::<Vec<_>>();
+                                    data.extend(public_dependencies);
+                                }
+                                None => {
+                                    self.pages.push(Page {
+                                        inner: None,
+                                        hash: resolved.hash,
+                                        path: resolved.path,
+                                        processed: false,
+                                        module: false,
+                                        items: Vec::new(),
+                                        dependents: fullfiled_depenents,
+                                        dependencies: vec![],
+                                        page_type: PageType::RawBody,
+                                        unreachable: false,
+                                        unreachable_range: defs::Cursor::default(),
+                                    });
+                                    match self.resolve_page(resolved.hash, code_str) {
+                                        Ok(inner_child) => {
+                                            let public_dependencies = inner_child
+                                                .into_iter()
+                                                .clone()
+                                                .filter(|d| d.public)
+                                                .collect::<Vec<_>>();
+                                            data.extend(public_dependencies);
+                                        }
+                                        Err(e) => errors.extend(e),
                                     }
-                                    Err(e) => errors.extend(e),
+                                }
+                            },
+                            ImportType::Module(module) => {
+                                match self.find_module(resolved.hash) {
+                                    Some(module) => {}
+                                    None => {
+                                        self.modules.push(module);
+                                        /*
+                                        match self.resolve_page(resolved.hash, code_str) {
+                                            Ok(inner_child) => {
+                                                let public_dependencies = inner_child
+                                                    .into_iter()
+                                                    .clone()
+                                                    .filter(|d| d.public)
+                                                    .collect::<Vec<_>>();
+                                                data.extend(public_dependencies);
+                                            }
+                                            Err(e) => errors.extend(e),
+                                        }
+                                        */
+                                    }
                                 }
                             }
                         }

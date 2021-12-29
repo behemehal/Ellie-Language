@@ -95,7 +95,10 @@ fn main() {
                                                 ext.hash(&mut hasher);
                                                 ResolvedImport {
                                                     found: true,
-                                                    code: ext,
+                                                    matched:
+                                                        ellie_tokenizer::tokenizer::ImportType::Code(
+                                                            ext,
+                                                        ),
                                                     hash: hasher.finish(),
                                                     path: file.to_str().unwrap().to_string(),
                                                     ..Default::default()
@@ -136,8 +139,14 @@ fn main() {
                                 });
                             }
                             Ok(_) => {
-                                let mut parser = parser::Parser::new(pager.pages.clone(), Some(343));
-                                parser.parse();
+                                let mut parser = parser::Parser::new(
+                                    pager.pages.clone(),
+                                    Some(343),
+                                    ellie_core::defs::Version::build_from_string(
+                                        lib_version.clone(),
+                                    ),
+                                );
+                                let workspace = parser.parse("ellie_std".to_owned());
 
                                 if !parser.informations.has_no_warnings() {
                                     cli_utils::print_warnings(
@@ -194,11 +203,10 @@ fn main() {
                                         cli_utils::Colors::Reset,
                                     );
 
-                                    let json =
-                                        serde_json::to_string(&parser.processed_pages).unwrap();
+                                    let json = serde_json::to_string(&workspace).unwrap();
                                     fs::write(
                                         "./core/src/builded_libraries.rs",
-                                        format!("//@version = \"{}\";\npub static ELLIE_STANDARD_LIBRARY : &str = {:#?};\n", lib_version, json),
+                                        format!("//@version = \"{}\";\npub static ELLIE_STD_VERSION : crate::defs::Version = crate::defs::Version {{minor: {}, major: {}, bug: {} }};\npub static ELLIE_STANDARD_LIBRARY : &str = {:#?};\n", lib_version, lib_version.split(".").nth(0).unwrap(), lib_version.split(".").nth(1).unwrap(),lib_version.split(".").nth(2).unwrap(), json),
                                     )
                                     .unwrap();
                                 }

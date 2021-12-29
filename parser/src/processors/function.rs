@@ -229,6 +229,7 @@ impl super::Processor for function::FunctionCollector {
                 let mut dependencies = vec![ellie_tokenizer::tokenizer::Dependency {
                     hash: page.hash.clone(),
                     processed: false,
+                    module: None,
                     deep_link: None,
                     public: false,
                 }];

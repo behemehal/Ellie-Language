@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 
+use ellie_core::{defs, error, warning};
 use std::{
     collections::hash_map::DefaultHasher,
     fmt::Display,
@@ -40,7 +41,18 @@ impl Display for Colors {
     }
 }
 
-use ellie_core::{defs, error, warning};
+#[derive(Debug)]
+pub enum OutputTypes {
+    Bin,
+    DependencyAnalysis,
+    Json,
+}
+
+#[derive(PartialEq, Eq, Debug)]
+pub enum CliOutputType {
+    Json,
+    ConsoleOutput,
+}
 
 pub struct EllieModuleResolver {
     pub main_path: String,

@@ -5,7 +5,7 @@ version = "0.1.0"
 authors = ["Ahmetcan Aksu <ahmetcanaksu@behemehal.net>"]
 edition = "2021"
 license-file = "LICENSE"
-default-run = "ellie"
+default-run = "elliec"
 
 [dependencies]
 lazy_static = { version = "1.4.0", features = ["spin_no_std"] }
@@ -16,9 +16,9 @@ websocket = {version = "0.26.2", optional = true, default-features = false, feat
 regex = { version = "1.1.7", optional = true }
 bincode = { version = "1.0", optional = true }
 
-ellie_core = {path = "core", version = "0.1.0"}
-ellie_tokenizer = {path = "tokenizer", version = "0.1.0", default-features = false}
-ellie_parser = {path = "parser", version = "0.1.0", default-features = false}
+ellie_core = {path = "core", version = "0.2.0"}
+ellie_tokenizer = {path = "tokenizer", version = "0.2.0", default-features = false}
+ellie_parser = {path = "parser", version = "0.2.0", default-features = false}
 ellie_assist = {path = "EllieAssist", version = "0.1.0", optional = true}
 ellie_runtime = {path = "runtime", version = "0.1.0" }
 
@@ -30,20 +30,21 @@ standard_rules =  ["ellie_parser/standard_rules"]
 
 
 [[bin]]
-name = "ellie"
+name = "elliec"
 test = false
 bench = false
 required-features = ["build-cli"]  
 
 [build-dependencies]
 lazy_static = "1.4.0"
-ellie_core = { path = "core", version = "0.1.0" }
+ellie_core = { path = "core", version = "0.2.0" }
 serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
-ellie_parser = {path = "parser", version = "0.1.0", default-features = false}
+ellie_parser = {path = "parser", version = "0.2.0", default-features = false}
 path-absolutize = { version = "3.0.10" }
 toml = "0.5.8"
 regex = { version = "1.1.7" }
-ellie_tokenizer = {path = "tokenizer", version = "0.1.0", default-features = false}
+ellie_tokenizer = {path = "tokenizer", version = "0.2.0", default-features = false}
+bincode = { version = "1.0", optional = true }
 
 
 #[dev-dependencies]
