@@ -1,8 +1,8 @@
+use crate::processors::items;
+use crate::processors::types::{self, TypeProcessor};
 use ellie_core::definite::Converter;
 use ellie_core::defs;
 use serde::{Deserialize, Serialize};
-use crate::processors::items;
-use crate::processors::types::{self, TypeProcessor};
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub enum ConditionType {

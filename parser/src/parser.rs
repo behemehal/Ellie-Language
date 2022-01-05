@@ -811,7 +811,12 @@ impl Parser {
         }
     }
 
-    pub fn parse(&mut self, module_name: String, module_description: String, ellie_version: defs::Version) -> Module {
+    pub fn parse(
+        &mut self,
+        module_name: String,
+        module_description: String,
+        ellie_version: defs::Version,
+    ) -> Module {
         self.process_page(self.initial_page);
         Module {
             name: module_name,

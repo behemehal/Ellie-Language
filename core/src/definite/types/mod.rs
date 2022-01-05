@@ -1,4 +1,5 @@
 pub mod array;
+pub mod as_keyword;
 pub mod bool;
 pub mod brace_reference;
 pub mod class_call;
@@ -15,7 +16,6 @@ pub mod reference;
 pub mod string;
 pub mod variable;
 pub mod vector;
-pub mod as_keyword;
 
 use serde::{Deserialize, Serialize};
 

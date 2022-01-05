@@ -22,11 +22,12 @@ pub fn process(
                 Vec::new(),
                 0,
             );
-            
 
             if deep_search_result.found {
                 match deep_search_result.found_item {
-                    crate::parser::DeepSearchItems::Class(_) => todo!("class type not yet implemented"),
+                    crate::parser::DeepSearchItems::Class(_) => {
+                        todo!("class type not yet implemented")
+                    }
                     crate::parser::DeepSearchItems::Variable(e) => {
                         Ok(types::Types::VariableType(types::variable::VariableType {
                             value: e.name,
@@ -34,8 +35,12 @@ pub fn process(
                             pos: from.get_pos(),
                         }))
                     }
-                    crate::parser::DeepSearchItems::Function(_) => todo!("function type not yet implemented"),
-                    crate::parser::DeepSearchItems::ImportReference(_) => todo!("import reference type not yet implemented"),
+                    crate::parser::DeepSearchItems::Function(_) => {
+                        todo!("function type not yet implemented")
+                    }
+                    crate::parser::DeepSearchItems::ImportReference(_) => {
+                        todo!("import reference type not yet implemented")
+                    }
                     crate::parser::DeepSearchItems::BrokenPageGraph => todo!(),
                     crate::parser::DeepSearchItems::MixUp(_) => todo!(),
                     crate::parser::DeepSearchItems::None => todo!(),
@@ -79,7 +84,12 @@ pub fn process(
         Processors::Cloak(_) => todo!("cloak type not yet implemented"),
         Processors::Collective(_) => todo!("collective type not yet implemented"),
         Processors::AsKeyword(as_keyword) => {
-            match process(*as_keyword.data.target, parser, page_id, ignore_hash.clone()) {
+            match process(
+                *as_keyword.data.target,
+                parser,
+                page_id,
+                ignore_hash.clone(),
+            ) {
                 Ok(resolved_types) => {
                     match crate::processors::definer_processor::process(
                         as_keyword.data.rtype.definer_type,

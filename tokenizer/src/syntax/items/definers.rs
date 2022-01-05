@@ -130,8 +130,7 @@ impl definite::Converter<DefinerTypes, definite::definers::DefinerCollecting> fo
             DefinerTypes::Cloak(e) => {
                 definite::definers::DefinerCollecting::Cloak(definite::definers::CloakType {
                     rtype: e.entries.into_iter().map(|x| x.to_definite()).collect(),
-                pos: e.pos,
-
+                    pos: e.pos,
                 })
             }
             DefinerTypes::Array(e) => {

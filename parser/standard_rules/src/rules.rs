@@ -43,7 +43,7 @@ lazy_static! {
             });
             (param_name == fixed, fixed)
         }
-    };    
+    };
     pub static ref FUNCTION_PARAM_NAMING_ISSUE: Rule<String, (bool, String)> = Rule {
         warning_id: 0x02,
         worker: |param_name| {
