@@ -283,27 +283,12 @@ where
                                     }
                                 }
                             },
-                            ImportType::Module(module) => {
-                                match self.find_module(resolved.hash) {
-                                    Some(module) => {}
-                                    None => {
-                                        self.modules.push(module);
-                                        /*
-                                        match self.resolve_page(resolved.hash, code_str) {
-                                            Ok(inner_child) => {
-                                                let public_dependencies = inner_child
-                                                    .into_iter()
-                                                    .clone()
-                                                    .filter(|d| d.public)
-                                                    .collect::<Vec<_>>();
-                                                data.extend(public_dependencies);
-                                            }
-                                            Err(e) => errors.extend(e),
-                                        }
-                                        */
-                                    }
+                            ImportType::Module(module) => match self.find_module(resolved.hash) {
+                                Some(_) => {}
+                                None => {
+                                    self.modules.push(module);
                                 }
-                            }
+                            },
                         }
                     } else {
                         if resolved.resolve_error == "" {

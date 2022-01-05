@@ -66,7 +66,9 @@ impl ProcessedPage {
 pub struct Module {
     pub hash: u64,
     pub name: String,
+    pub description: String,
     pub initial_page: u64,
+    pub ellie_version: ellie_core::defs::Version,
     pub pages: Vec<ProcessedPage>,
     pub version: ellie_core::defs::Version,
     pub modules: Vec<ellie_tokenizer::tokenizer::Module>,
@@ -147,12 +149,14 @@ impl Parser {
                 hash: p.hash,
                 inner: p.inner,
                 path: p.path.clone(),
+                module: true,
                 dependents: p.dependents.clone(),
                 dependencies: p.dependencies.clone(),
                 ..Default::default()
             })
             .collect::<Vec<_>>();
-        self.find_page(self.initial_page).unwrap().dependencies = module
+
+        let imported_dependencies: Vec<Dependency> = module
             .pages
             .iter()
             .map(|x| ellie_tokenizer::tokenizer::Dependency {
@@ -163,35 +167,13 @@ impl Parser {
                 public: false,
             })
             .collect();
-        self.pages.extend(unprocessed_pages);
-    }
 
-    /*
-    pub fn import_processed_module(&mut self, processed_pages: Vec<ProcessedPage>) {
-        let unprocessed_pages = processed_pages
-            .iter()
-            .map(|p| ellie_tokenizer::tokenizer::Page {
-                hash: p.hash,
-                inner: p.inner,
-                path: p.path.clone(),
-                dependents: p.dependents.clone(),
-                dependencies: p.dependencies.clone(),
-                ..Default::default()
-            })
-            .collect::<Vec<_>>();
-        self.find_page(self.initial_page).unwrap().dependencies = unprocessed_pages
-            .iter()
-            .map(|x| ellie_tokenizer::tokenizer::Dependency {
-                hash: x.hash,
-                processed: true,
-                deep_link: if x.hash == 343 { None } else { Some(343) },
-                public: false,
-            })
-            .collect();
+        self.find_page(self.initial_page)
+            .unwrap()
+            .dependencies
+            .extend(imported_dependencies);
         self.pages.extend(unprocessed_pages);
-        self.processed_pages.extend(processed_pages);
     }
-    */
 
     pub fn resolve_type_name(&self, rtype: ellie_core::definite::types::Types) -> String {
         match rtype {
@@ -330,6 +312,7 @@ impl Parser {
         if !searched.contains(&target_page) {
             for dep in self_dependendencies {
                 searched.push(target_page);
+
                 if let Some(module_initial_page) = dep.module {
                     let unprocessed_page = self
                         .find_page(dep.hash)
@@ -828,14 +811,16 @@ impl Parser {
         }
     }
 
-    pub fn parse(&mut self, module_name: String) -> Module {
+    pub fn parse(&mut self, module_name: String, module_description: String, ellie_version: defs::Version) -> Module {
         self.process_page(self.initial_page);
         Module {
             name: module_name,
+            description: module_description,
             initial_page: self.initial_page,
             hash: self.calculate_hash(),
             pages: self.processed_pages.clone(),
             version: self.version.clone(),
+            ellie_version,
             modules: self
                 .modules
                 .iter()

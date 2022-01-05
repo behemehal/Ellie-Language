@@ -7,19 +7,21 @@ output += "\n    ratio=fill;";
 output += "\n    node [style=filled];\n";
 
 //http://webgraphviz.com/
-for (var i = 0; i < tree.length; i++) {
-    var item = tree[i];
+for (var i = 0; i < tree.pages.length; i++) {
+    var item = tree.pages[i];
     for (var j = 0; j < item.dependencies.length; j++) {
         var dep = item.dependencies[j];
         if (item.inner == null) {
-            if (dep.deep_link == null) {
+            if (dep.deep_link == null && dep.module == null) {
                 var cr = path.basename(item.path).split(".")[0]; //Ellie
-                var tg = path.basename(tree.find(x => x.hash == dep.hash).path).split(".")[0];
+                var tg = path.basename(tree.pages.find(x => x.hash == dep.hash).path).split(".")[0];
                 if (cr == tg) {
                     console.error("ERROR:", cr, tg, i, item);
-                    process.exit()
+                    process.exit();
                 }
                 output += `    ${cr} -> ${tg} [ label= "depends to"]\n`
+            } else if (dep.module != null) {
+                //output += `    ${tree.name} -> ${tree.modules.find(x => x.hash == dep.module).name} [ label= "requires module"]\n`
             } else if (process.argv.length == 4) {
                 var cr = path.basename(item.path).split(".")[0];
                 var tg = path.basename(tree.find(x => x.hash == dep.hash).path).split(".")[0];

@@ -12,6 +12,9 @@ use toml::Value;
 #[path = "src/cli_utils.rs"]
 mod cli_utils;
 
+#[path = "src/engine_constants.rs"]
+mod engine_constants;
+
 use std::{
     collections::hash_map::DefaultHasher,
     fs::{self, File},
@@ -61,7 +64,10 @@ fn main() {
                         &version_line_regex.captures(&builded_libraries).unwrap();
                     let current_lib_version = current_version_number["version"].to_owned();
 
-                    if current_lib_version != lib_version {
+                    if current_lib_version != lib_version
+                        || ellie_core::builded_libraries::BUILDED_ELLIE_VERSION
+                            != engine_constants::ELLIE_VERSION
+                    {
                         let mut pager = tokenizer::Pager::new(
                             ellie_lib,
                             Path::new("./lib/ellie.ei").to_str().unwrap().to_string(),
@@ -146,7 +152,13 @@ fn main() {
                                         lib_version.clone(),
                                     ),
                                 );
-                                let workspace = parser.parse("ellie_std".to_owned());
+                                let workspace = parser.parse(
+                                    "ellie_std".to_owned(),
+                                    "Ellie Standard Types".to_owned(),
+                                    ellie_core::defs::Version::build_from_string(
+                                        engine_constants::ELLIE_VERSION.to_owned(),
+                                    ),
+                                );
 
                                 if !parser.informations.has_no_warnings() {
                                     cli_utils::print_warnings(
@@ -206,7 +218,7 @@ fn main() {
                                     let json = serde_json::to_string(&workspace).unwrap();
                                     fs::write(
                                         "./core/src/builded_libraries.rs",
-                                        format!("//@version = \"{}\";\npub static ELLIE_STD_VERSION : crate::defs::Version = crate::defs::Version {{minor: {}, major: {}, bug: {} }};\npub static ELLIE_STANDARD_LIBRARY : &str = {:#?};\n", lib_version, lib_version.split(".").nth(0).unwrap(), lib_version.split(".").nth(1).unwrap(),lib_version.split(".").nth(2).unwrap(), json),
+                                        format!("//NEVER EDIT THIS FILE WHILE LANGUAGE SERVER IS RUNNING\n//@version = \"{}\";\npub static BUILDED_ELLIE_VERSION: &'static str = \"{}\";\npub static ELLIE_STD_VERSION : crate::defs::Version = crate::defs::Version {{minor: {}, major: {}, bug: {} }};\npub static ELLIE_STANDARD_LIBRARY : &str = {:#?};\n", lib_version, engine_constants::ELLIE_VERSION, lib_version.split(".").nth(0).unwrap(), lib_version.split(".").nth(1).unwrap(),lib_version.split(".").nth(2).unwrap(), json),
                                     )
                                     .unwrap();
                                 }
@@ -226,9 +238,8 @@ fn main() {
                     )
                 }
             }
-
             fs::write(
-                "./src/cli_constants.rs",
+                "./src/engine_constants.rs",
                 format!(
                     "pub static ELLIE_VERSION: &'static str = &{};\npub static ELLIE_VERSION_NAME: &'static str = &{};\npub static ELLIE_TOKENIZER_VERSION: &'static str = &{};\npub static ELLIE_PARSER_VERSION: &'static str = &{};\npub static ELLIE_RUNTIME_VERSION: &'static str = &{};\npub static ELLIE_CORE_VERSION: &'static str = &{};\npub static ELLIE_STD_VERSION: &'static str = &\"{}\";\n",
                     ellie_version,

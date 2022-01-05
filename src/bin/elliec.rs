@@ -1,623 +1,389 @@
-use ellie_engine::cli_outputs;
-use ellie_engine::cli_utils;
-use ellie_parser::parser;
-use ellie_tokenizer::tokenizer::{self, ResolvedImport};
-use path_absolutize::Absolutize;
-use std::collections::hash_map::DefaultHasher;
-use std::env;
-use std::fs;
-use std::hash::{Hash, Hasher};
+use clap::ValueHint;
+use clap::{App, AppSettings, Arg};
+use ellie_engine::{cli_outputs, cli_utils};
 use std::path::Path;
 
 fn main() {
-    println!("{}]0;{}{}", '\u{001b}', "Ellie", '\u{007}');
-    if env::args().any(|x| x == "-v" || x == "--version" || x == "-dv" || x == "--detailed-version")
-    {
-        if env::args().any(|x| x == "-dv" || x == "--detailed-version") {
-            println!(
-                "Ellie v{} - Code: {}\n\nTokenizer Version: v{}\nParser Version: v{}\nRuntime Version: v{}\nCore version: v{}\nEllie Standard Types Version: v{}\n",
-                ellie_engine::cli_constants::ELLIE_VERSION,
-                ellie_engine::cli_constants::ELLIE_VERSION_NAME,
-                ellie_engine::cli_constants::ELLIE_TOKENIZER_VERSION,
-                ellie_engine::cli_constants::ELLIE_PARSER_VERSION,
-                ellie_engine::cli_constants::ELLIE_RUNTIME_VERSION,
-                ellie_engine::cli_constants::ELLIE_CORE_VERSION,
-                ellie_engine::cli_constants::ELLIE_STD_VERSION,
-            );
-        } else {
-            println!(
-                "Ellie v{} - Code: {}",
-                ellie_engine::cli_constants::ELLIE_VERSION,
-                ellie_engine::cli_constants::ELLIE_VERSION_NAME
-            );
-        }
-    } else if env::args().any(|x| x == "-h" || x == "--help") {
-        println!("Ellie compiler");
-        println!("Usage: elliec [options] [file path | code]");
-        println!("Options:");
-        println!("\t--version                    || -v   : Show version");
-        println!("\t--version                    || -dv  : Show version with internal components");
-        println!("\t--help                       || -h   : Show help");
-        println!("\t--output                     || -o   : [Required] Desired code output; bin, json, depA");
-        println!("\t--output-path                || -op  : [Required] Compiled output path");
-        println!("\t--set-version                || -sv  : [Required] Set version for workspace");
-        println!("\t--json-output                || -jo  : Make error and warning output as json");
-        println!("\t--disable-warnings           || -dw  : Disable warnings");
-    } else {
-        let args = env::args()
-            .collect::<Vec<String>>()
-            .drain(1..)
-            .collect::<Vec<String>>();
+    println!("\x1B]0;{}\x07", "Ellie Compiler");
 
-        let mut cli_output_type = cli_utils::CliOutputType::ConsoleOutput;
-        let mut disable_warnings = false;
-        if args.is_empty() {
-            println!("No file present\n-h for help");
-            std::process::exit(1);
-        } else if !env::args().any(|x| x == "-o" || x == "--output") {
-            println!("No ouput present\n-h for help");
-            std::process::exit(1);
-        } else if !env::args().any(|x| x == "-op" || x == "--output-path") {
-            println!("No ouput path present\n-h for help");
-            std::process::exit(1);
-        } else if !env::args().any(|x| x == "-sv" || x == "--set-version") {
-            println!("No version name is set\n-h for help");
-            std::process::exit(1);
-        } else {
-            let output_arg = env::args()
-                .position(|x| x == "-o" || x == "--output")
-                .unwrap();
+    let app = App::new("EllieCompiler")
+        .setting(AppSettings::SubcommandRequiredElseHelp)
+        .subcommand(
+            App::new("compile")
+                .about("Compile option")
+                .arg(
+                    Arg::new("jsonLog")
+                        .help("Output json log")
+                        .short('j')
+                        .long("-json-log"),
+                )
+                .arg(
+                    Arg::new("disableWarnings")
+                        .help("Disable warnings")
+                        .short('d')
+                        .long("-disable-warnings"),
+                )
+                .arg(
+                    Arg::new("insertModule")
+                        .help("Insert a module from binary")
+                        .short('i')
+                        .long("--insert-module")
+                        .takes_value(true)
+                        .multiple_values(true)
+                        .value_hint(ValueHint::FilePath),
+                )
+                .arg(
+                    Arg::new("binaryVersion")
+                        .help("Binary version")
+                        .short('b')
+                        .long("--binary-version")
+                        .default_value("1.0.0")
+                        .takes_value(true),
+                )
+                .arg(
+                    Arg::new("description")
+                        .help("Description of module")
+                        .short('c')
+                        .long("--module-description")
+                        .default_value("A ellie package")
+                        .takes_value(true),
+                )
+                .arg(
+                    Arg::new("moduleName")
+                        .help("Name of module")
+                        .short('m')
+                        .long("--module-name")
+                        .takes_value(true),
+                )
+                .arg(
+                    Arg::new("outputPath")
+                        .help("Output path to write")
+                        .short('p')
+                        .long("--output-path")
+                        .takes_value(true)
+                        .value_hint(ValueHint::DirPath),
+                )
+                .arg(
+                    Arg::new("outputType")
+                        .help("Output type")
+                        .short('o')
+                        .long("--output-type")
+                        .takes_value(true)
+                        .default_value("bin"),
+                )
+                .arg(
+                    Arg::new("target")
+                        .help("Target file to compile")
+                        .takes_value(true)
+                        .required(true)
+                        .value_hint(ValueHint::FilePath),
+                ),
+        )
+        .subcommand(
+            App::new("viewModule")
+                .about("Analyze given module information")
+                .arg(
+                    Arg::new("jsonLog")
+                        .help("Output json log")
+                        .short('j')
+                        .long("-json-log"),
+                )
+                .arg(
+                    Arg::new("target")
+                        .help("Target module to analyze")
+                        .required(true)
+                        .value_hint(ValueHint::FilePath),
+                ),
+        )
+        .subcommand(
+            App::new("version")
+                .about("Get version")
+                .arg(
+                    Arg::new("jsonLog")
+                        .help("Output json log")
+                        .short('j')
+                        .long("-json-log"),
+                )
+                .arg(Arg::new("detailed").short('d').long("--detailed-version")),
+        );
 
-            let output_path_arg = env::args()
-                .position(|x| x == "-op" || x == "--output-path")
-                .unwrap();
-
-            let version_arg = env::args()
-                .position(|x| x == "-sv" || x == "--set-version")
-                .unwrap();
-
-            if output_arg == env::args().len() {
-                println!("No ouput type present\n-h for help");
+    let matches = app.get_matches();
+    match matches.subcommand() {
+        Some(("compile", matches)) => {
+            let version = ellie_core::defs::Version::build_from_string_checked(
+                matches.value_of("binaryVersion").unwrap().to_string(),
+            )
+            .unwrap_or_else(|_| {
+                println!(
+                    "{}Error:{} Given binary version does not fit to versioning format",
+                    cli_utils::Colors::Red,
+                    cli_utils::Colors::Reset
+                );
                 std::process::exit(1);
-            }
-
-            if output_path_arg == env::args().len() {
-                println!("No ouput name present\n-h for help");
-                std::process::exit(1);
-            }
-
-            if version_arg == env::args().len() {
-                println!("No version data presented to be set as workspace version\n-h for help");
-                std::process::exit(1);
-            }
-
-            let output_type = env::args().nth(output_arg + 1).unwrap();
-            let output_path = env::args().nth(output_path_arg + 1).unwrap();
-            let version_str = env::args().nth(version_arg + 1).unwrap();
-            let given_workspace_version = match ellie_core::defs::Version::build_from_string_checked(
-                version_str,
-            ) {
-                Ok(version) => version,
-                Err(_) => {
-                    println!("Presented version data is not correct, expected version type: '1.1.1'; Minor.Major.Bug\n-h for help");
+            });
+            let target_path = {
+                let path = Path::new(matches.value_of("target").unwrap().clone());
+                if path.exists() {
+                    matches.value_of("target").unwrap().to_string()
+                } else {
+                    println!(
+                        "{}Error:{} Target path does not exist",
+                        cli_utils::Colors::Red,
+                        cli_utils::Colors::Reset
+                    );
                     std::process::exit(1);
                 }
             };
+            let output_path = if let Some(output) = matches.value_of("outputPath") {
+                let path = Path::new(output.clone());
 
-            let prefered_output_type = if output_type == "bin"
-                || output_type == "json"
-                || output_type == "depA"
-            {
-                match output_type.as_str() {
-                    "bin" => cli_utils::OutputTypes::Bin,
-                    "json" => cli_utils::OutputTypes::Json,
-                    "depA" => cli_utils::OutputTypes::DependencyAnalysis,
-                    _ => unreachable!(),
+                //Check the output path is exists or check path is file and parent directory exists
+                if path.exists()
+                    || (path.is_file() && path.parent().is_some()
+                        || path.parent().unwrap().exists())
+                {
+                    output.to_string()
+                } else {
+                    println!(
+                        "{}Error:{} Output path does not exist",
+                        cli_utils::Colors::Red,
+                        cli_utils::Colors::Reset
+                    );
+                    std::process::exit(1);
                 }
             } else {
-                println!("Unknown ouput type present\nAvailable:\n\tbin, json, depA\n-h for help");
-                std::process::exit(1);
+                Path::new(&target_path)
+                    .parent()
+                    .unwrap()
+                    .to_str()
+                    .unwrap()
+                    .to_string()
             };
 
-            let file_args = args
-                .into_iter()
-                .enumerate()
-                .filter(|(index, path)| {
-                    Path::new(path).is_file() && index != &(output_path_arg)
-                })
-                .map(|x| x.1)
-                .collect::<Vec<String>>();
+            let modules = if let Some(modules) = matches.values_of("insertModule") {
+                let mut parsed_modules = vec![];
 
-            match file_args.first() {
-                Some(main_path) => match cli_utils::read_file(main_path) {
-                    Ok(file_content) => {
-                        let mut pager = tokenizer::Pager::new(
-                            file_content,
-                            Path::new(main_path).to_str().unwrap().to_string(),
-                            |path, file_name| {
-                                let path = Path::new(&path)
-                                    .parent()
-                                    .unwrap()
-                                    .to_str()
-                                    .unwrap()
-                                    .to_string();
-                                let file = if cli_utils::file_exists(
-                                    path.clone() + "/" + &file_name.clone(),
+                //Iter through all modules
+                for module in modules {
+                    let path = Path::new(module);
+
+                    //If module path is file
+                    if path.is_file() {
+                        //If module path is file
+                        match cli_utils::read_file_bin(path) {
+                            Ok(file_content) => {
+                                match bincode::deserialize::<ellie_parser::parser::Module>(
+                                    file_content.as_slice(),
                                 ) {
-                                    Some(path.clone() + "/" + &file_name.clone())
-                                } else if cli_utils::file_exists(
-                                    path.clone() + "/" + &file_name.clone() + ".ei",
-                                ) {
-                                    Some(path.clone() + "/" + &file_name.clone() + ".ei")
-                                } else {
-                                    None
-                                };
-
-                                if file_name == "ellie" {
-                                    ResolvedImport {
-                                        found: true,
-                                        matched: tokenizer::ImportType::Module(tokenizer::Module {
-                                            hash: 343,
-                                            initial_page: 343,
-                                            version:
-                                                ellie_core::builded_libraries::ELLIE_STD_VERSION
-                                                    .clone(),
-                                            name: "ellie".to_owned(),
-                                        }),
-                                        hash: 343,
-                                        path: "<ellie_virtual>".to_string(),
-                                        ..Default::default()
-                                    }
-                                } else {
-                                    match file {
-                                        Some(file) => {
-                                            let file = Path::new(&file).absolutize().unwrap();
-                                            match cli_utils::read_file(
-                                                &file.to_str().unwrap().to_string(),
-                                            ) {
-                                                Ok(ext) => {
-                                                    let mut hasher = DefaultHasher::new();
-                                                    ext.hash(&mut hasher);
-                                                    ResolvedImport {
-                                                        found: true,
-                                                        matched: ellie_tokenizer::tokenizer::ImportType::Code(ext),
-                                                        hash: hasher.finish(),
-                                                        path: file.to_str().unwrap().to_string(),
-                                                        ..Default::default()
-                                                    }
-                                                }
-                                                Err(err) => ResolvedImport {
-                                                    found: false,
-                                                    resolve_error: err,
-                                                    ..Default::default()
-                                                },
-                                            }
-                                        }
-                                        None => ResolvedImport {
-                                            found: false,
-                                            ..Default::default()
-                                        },
-                                    }
-                                }
-                            },
-                            None,
-                        );
-
-                        match pager.run() {
-                            Err(pager_errors) => {
-                                if cli_output_type == cli_utils::CliOutputType::Json {
-                                    for error in pager_errors.clone() {
-                                        let mut output = cli_outputs::COMPILER_ERROR.clone();
-                                        output.extra.push(cli_outputs::CliOuputExtraData {
-                                            key: "error".to_string(),
-                                            value: error,
-                                        });
-
-                                        println!("{}", serde_json::to_string(&output).unwrap());
-                                    }
-                                } else {
-                                    cli_utils::print_errors(&pager_errors, |path| {
-                                        match cli_utils::read_file(&path) {
-                                            Ok(e) => e,
-                                            Err(err) => {
-                                                println!(
-                                                    "Cannot read file '{}' {}[{}]{}",
-                                                    path,
-                                                    cli_utils::Colors::Red,
-                                                    err,
-                                                    cli_utils::Colors::Reset
-                                                );
-                                                std::process::exit(1);
-                                            }
-                                        }
-                                    });
-                                }
-                            }
-                            Ok(_) => {
-                                let mut parser = parser::Parser::new(
-                                    pager.pages.clone(),
-                                    None,
-                                    given_workspace_version,
-                                );
-
-                                if !env::args().any(|x| x == "-es" || x == "--exclude-std") {
-                                    let ellie_module: parser::Module = serde_json::from_str(
-                                        ellie_core::builded_libraries::ELLIE_STANDARD_LIBRARY,
-                                    )
-                                    .unwrap();
-
-                                    parser.import_module(ellie_module)
-                                    //parser.import_processed_module(std_pages);
-                                }
-
-                                if env::args().any(|x| x == "-jo" || x == "--json-output") {
-                                    cli_output_type = cli_utils::CliOutputType::Json;
-                                }
-
-                                if env::args().any(|x| x == "-dw" || x == "--disable-warnings") {
-                                    disable_warnings = true;
-                                }
-
-                                let workspace = parser.parse(
-                                    Path::new(main_path)
-                                        .file_name()
-                                        .unwrap()
-                                        .to_str()
-                                        .unwrap()
-                                        .to_owned(),
-                                );
-
-                                if !parser.informations.has_no_warnings() && !disable_warnings {
-                                    if cli_output_type == cli_utils::CliOutputType::Json {
-                                        for warning in parser.informations.warnings.clone() {
-                                            println!(
-                                                "{}",
-                                                serde_json::to_string(&warning).unwrap()
+                                    Ok(module) => {
+                                        let current_ellie_version =
+                                            ellie_core::defs::Version::build_from_string(
+                                                ellie_engine::engine_constants::ELLIE_VERSION
+                                                    .to_owned(),
                                             );
-                                        }
-                                    } else {
-                                        cli_utils::print_warnings(
-                                            &parser.informations.warnings,
-                                            |path| match cli_utils::read_file(&path) {
-                                                Ok(e) => e,
-                                                Err(err) => {
-                                                    println!(
-                                                        "Cannot read file '{}' {}[{}]{}",
-                                                        path,
-                                                        cli_utils::Colors::Red,
-                                                        err,
-                                                        cli_utils::Colors::Reset
-                                                    );
-                                                    std::process::exit(1);
-                                                }
-                                            },
-                                        );
-                                    }
-                                }
-
-                                if !parser.informations.has_no_errors() {
-                                    if cli_output_type == cli_utils::CliOutputType::Json {
-                                        for error in parser.informations.errors.clone() {
-                                            println!("{}", serde_json::to_string(&error).unwrap());
-                                        }
-                                    } else {
-                                        cli_utils::print_errors(
-                                            &parser.informations.errors,
-                                            |path| match cli_utils::read_file(&path) {
-                                                Ok(e) => e,
-                                                Err(err) => {
-                                                    println!(
-                                                        "Failed to ouput error. Cannot read file '{}' {}[{}]{}",
-                                                        path,
-                                                        cli_utils::Colors::Red,
-                                                        err,
-                                                        cli_utils::Colors::Reset
-                                                    );
-                                                    std::process::exit(1);
-                                                }
-                                            },
-                                        );
-                                    }
-
-                                    if parser.informations.warnings.len() == 0 {
-                                        if cli_output_type == cli_utils::CliOutputType::Json {
-                                            let mut output = cli_outputs::COMPILE_FAILED_WITH_ERRORS_WITH_NO_WARNINGS.clone();
-                                            output.extra.push(cli_outputs::CliOuputExtraData {
-                                                key: "errors".to_string(),
-                                                value: parser
-                                                    .informations
-                                                    .errors
-                                                    .len()
-                                                    .clone()
-                                                    .to_string(),
-                                            });
-                                            println!("{}", serde_json::to_string(&output).unwrap())
-                                        } else {
-                                            println!(
-                                                "\nCompiling {}failed{} with {}{} errors{}",
-                                                cli_utils::Colors::Red,
-                                                cli_utils::Colors::Reset,
-                                                cli_utils::Colors::Red,
-                                                parser.informations.errors.len(),
-                                                cli_utils::Colors::Reset,
-                                            );
-                                        }
-                                    } else {
-                                        if cli_output_type == cli_utils::CliOutputType::Json {
-                                            let mut output = cli_outputs::COMPILE_FAILED_WITH_ERRORS_WITH_WARNINGS.clone();
-                                            output.extra.push(cli_outputs::CliOuputExtraData {
-                                                key: "errors".to_string(),
-                                                value: parser
-                                                    .informations
-                                                    .errors
-                                                    .len()
-                                                    .clone()
-                                                    .to_string(),
-                                            });
-                                            output.extra.push(cli_outputs::CliOuputExtraData {
-                                                key: "warnings".to_string(),
-                                                value: parser.informations.errors.len().to_string(),
-                                            });
-                                            println!("{}", serde_json::to_string(&output).unwrap())
-                                        } else {
-                                            println!("\nCompiling {}failed{} with {}{} errors{} and {}{} warnings{}.",
-                                                cli_utils::Colors::Red,
-                                                cli_utils::Colors::Reset,
-                                                cli_utils::Colors::Red,
-                                                parser.informations.errors.len(),
-                                                cli_utils::Colors::Reset,
-                                                cli_utils::Colors::Yellow,
-                                                parser.informations.warnings.len(),
-                                                cli_utils::Colors::Reset,
-                                            );
-                                        }
-                                    }
-                                } else {
-                                    if parser.informations.warnings.len() == 0 {
-                                        if cli_output_type == cli_utils::CliOutputType::Json {
-                                            println!(
-                                                "{}",
-                                                serde_json::to_string(
-                                                    &cli_outputs::COMPILE_SUCCESS_WITH_NO_WARNINGS
-                                                        .clone()
+                                        if current_ellie_version != module.ellie_version {
+                                            if matches.is_present("jsonLog") {
+                                                let mut cli_module_output =
+                                                    crate::cli_outputs::LEGACY_MODULE.clone();
+                                                cli_module_output.extra.push(
+                                                    cli_outputs::CliOuputExtraData {
+                                                        key: 0,
+                                                        value: module.ellie_version.clone(),
+                                                    },
                                                 )
-                                                .unwrap()
-                                            )
-                                        } else {
-                                            println!(
-                                                "\nCompiling {}succeeded{}.",
-                                                cli_utils::Colors::Green,
-                                                cli_utils::Colors::Reset,
-                                            );
+                                            } else {
+                                                println!(
+                                                    "\n{}Info{}: This module is legacy, used ellie_version: {}{}.{}.{}{} current ellie_version: {}{}.{}.{}{}",
+                                                    cli_utils::Colors::Cyan,
+                                                    cli_utils::Colors::Reset,
+                                                    cli_utils::Colors::Yellow,
+                                                    module.ellie_version.major,
+                                                    module.ellie_version.minor,
+                                                    module.ellie_version.bug,
+                                                    cli_utils::Colors::Reset,
+                                                    cli_utils::Colors::Yellow,
+                                                    current_ellie_version.major,
+                                                    current_ellie_version.minor,
+                                                    current_ellie_version.bug,
+                                                    cli_utils::Colors::Reset,
+                                                );
+                                            }
                                         }
-                                    } else {
-                                        if cli_output_type == cli_utils::CliOutputType::Json {
-                                            let mut output =
-                                                cli_outputs::COMPILE_SUCCESS_WITH_WARNINGS.clone();
-                                            output.extra.push(cli_outputs::CliOuputExtraData {
-                                                key: "warnings".to_string(),
-                                                value: parser.informations.errors.len().to_string(),
-                                            });
-                                            println!("{}", serde_json::to_string(&output).unwrap())
+                                        parsed_modules.push(module);
+                                    }
+                                    Err(e) => {
+                                        if matches.is_present("jsonLog") {
+                                            let mut cli_module_output =
+                                                cli_outputs::READ_BINARY_MODULE_ERROR.clone();
+                                            cli_module_output.extra.push(
+                                                cli_outputs::CliOuputExtraData { key: 0, value: 0 },
+                                            );
+                                            println!(
+                                                "{}",
+                                                serde_json::to_string_pretty(&cli_module_output)
+                                                    .unwrap()
+                                            );
                                         } else {
                                             println!(
-                                                "\nCompiling {}succeeded{} with {}{} warnings{}.",
-                                                cli_utils::Colors::Green,
+                                                "{}Error{}: Failed to decode module '{}{}{}' [{}{}{}]].",
+                                                cli_utils::Colors::Red,
                                                 cli_utils::Colors::Reset,
                                                 cli_utils::Colors::Yellow,
-                                                parser.informations.warnings.len(),
+                                                module,
+                                                cli_utils::Colors::Reset,
+                                                cli_utils::Colors::Yellow,
+                                                e,
                                                 cli_utils::Colors::Reset,
                                             );
                                         }
-                                    }
-
-                                    match prefered_output_type {
-                                        cli_utils::OutputTypes::Bin => {
-                                            let bytes = bincode::serialize(&workspace).unwrap();
-
-                                            match Path::new(&output_path).absolutize() {
-                                                Ok(resolved_path) => {
-                                                    if let Err(write_error) =
-                                                        fs::write(resolved_path, bytes)
-                                                    {
-                                                        if cli_output_type
-                                                            == cli_utils::CliOutputType::Json
-                                                        {
-                                                            let mut output =
-                                                                cli_outputs::WRITE_FILE_ERROR
-                                                                    .clone();
-
-                                                            output.extra.push(
-                                                                cli_outputs::CliOuputExtraData {
-                                                                    key: "path".to_string(),
-                                                                    value: format!(
-                                                                        "{:?}",
-                                                                        write_error
-                                                                    ),
-                                                                },
-                                                            );
-
-                                                            println!(
-                                                                "{}",
-                                                                serde_json::to_string(&output)
-                                                                    .unwrap()
-                                                            )
-                                                        } else {
-                                                            println!(
-                                                                "\nFailed to write output. [{}{:?}{}]",
-                                                                cli_utils::Colors::Red,
-                                                                write_error,
-                                                                cli_utils::Colors::Reset,
-                                                            );
-                                                        }
-                                                    }
-                                                }
-                                                Err(path_error) => {
-                                                    if cli_output_type
-                                                        == cli_utils::CliOutputType::Json
-                                                    {
-                                                        let mut output =
-                                                            cli_outputs::PATH_ERROR.clone();
-
-                                                        output.extra.push(
-                                                            cli_outputs::CliOuputExtraData {
-                                                                key: "path".to_string(),
-                                                                value: format!("{:?}", path_error),
-                                                            },
-                                                        );
-
-                                                        println!(
-                                                            "{}",
-                                                            serde_json::to_string(&output).unwrap()
-                                                        )
-                                                    } else {
-                                                        println!(
-                                                                "\nFailed to find output path. [{}{:?}{}]",
-                                                                cli_utils::Colors::Red,
-                                                                path_error,
-                                                                cli_utils::Colors::Reset,
-                                                            );
-                                                    }
-                                                }
-                                            }
-                                        }
-                                        cli_utils::OutputTypes::DependencyAnalysis => todo!(),
-                                        cli_utils::OutputTypes::Json => {
-                                            let json = serde_json::to_string(&workspace).unwrap();
-
-                                            match Path::new(&output_path).absolutize() {
-                                                Ok(resolved_path) => {
-                                                    if let Err(write_error) =
-                                                        fs::write(resolved_path, json)
-                                                    {
-                                                        if cli_output_type
-                                                            == cli_utils::CliOutputType::Json
-                                                        {
-                                                            let mut output =
-                                                                cli_outputs::WRITE_FILE_ERROR
-                                                                    .clone();
-
-                                                            output.extra.push(
-                                                                cli_outputs::CliOuputExtraData {
-                                                                    key: "path".to_string(),
-                                                                    value: format!(
-                                                                        "{:?}",
-                                                                        write_error
-                                                                    ),
-                                                                },
-                                                            );
-
-                                                            println!(
-                                                                "{}",
-                                                                serde_json::to_string(&output)
-                                                                    .unwrap()
-                                                            )
-                                                        } else {
-                                                            println!(
-                                                                "\nFailed to write output. [{}{:?}{}]",
-                                                                cli_utils::Colors::Red,
-                                                                write_error,
-                                                                cli_utils::Colors::Reset,
-                                                            );
-                                                        }
-                                                    }
-                                                }
-                                                Err(path_error) => {
-                                                    if cli_output_type
-                                                        == cli_utils::CliOutputType::Json
-                                                    {
-                                                        let mut output =
-                                                            cli_outputs::PATH_ERROR.clone();
-
-                                                        output.extra.push(
-                                                            cli_outputs::CliOuputExtraData {
-                                                                key: "path".to_string(),
-                                                                value: format!("{:?}", path_error),
-                                                            },
-                                                        );
-
-                                                        println!(
-                                                            "{}",
-                                                            serde_json::to_string(&output).unwrap()
-                                                        )
-                                                    } else {
-                                                        println!(
-                                                                "\nFailed to find output path. [{}{:?}{}]",
-                                                                cli_utils::Colors::Red,
-                                                                path_error,
-                                                                cli_utils::Colors::Reset,
-                                                            );
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-
-                                    if env::args().any(|x| x == "-rt" || x == "--render-tokenized")
-                                    {
-                                        let json = serde_json::to_string(&pager.pages).unwrap();
-                                        let output_file_name = Path::new(main_path)
-                                            .file_name()
-                                            .unwrap()
-                                            .to_str()
-                                            .unwrap()
-                                            .to_owned();
-                                        let output_file =
-                                            format!("{}_tokenized.json", output_file_name);
-                                        match fs::write(format!("./{}", output_file), json) {
-                                            Ok(_) => {
-                                                println!(
-                                                    "\nTokenized output successfully wrote to {}",
-                                                    output_file
-                                                );
-                                            }
-                                            Err(e) => {
-                                                println!("\nFailed to write to file {}", e);
-                                            }
-                                        }
-                                    }
-
-                                    if env::args().any(|x| x == "-rp" || x == "--render-parsed") {
-                                        let json =
-                                            serde_json::to_string(&parser.processed_pages).unwrap();
-                                        let output_file_name = Path::new(main_path)
-                                            .file_name()
-                                            .unwrap()
-                                            .to_str()
-                                            .unwrap()
-                                            .to_owned();
-                                        let output_file =
-                                            format!("{}_parsed.json", output_file_name);
-                                        match fs::write(format!("./{}", output_file), json) {
-                                            Ok(_) => {
-                                                println!(
-                                                    "\nParsed output successfully wrote to {}",
-                                                    output_file
-                                                );
-                                            }
-                                            Err(e) => {
-                                                println!("Failed to write to file {}", e);
-                                            }
-                                        }
+                                        std::process::exit(1);
                                     }
                                 }
                             }
-                        }
-                    }
-                    Err(err) => {
-                        println!("Unable to read file ~{} [{}]", main_path.clone(), err);
+                            Err(e) => {
+                                println!(
+                                    "{}Error:{} Cannot read module file '{}{}{}' {}[{}]{}",
+                                    cli_utils::Colors::Red,
+                                    cli_utils::Colors::Reset,
+                                    cli_utils::Colors::Yellow,
+                                    module,
+                                    cli_utils::Colors::Reset,
+                                    cli_utils::Colors::Red,
+                                    e,
+                                    cli_utils::Colors::Reset,
+                                );
+                                std::process::exit(1);
+                            }
+                        };
+                    } else {
+                        println!(
+                            "{}Error:{} Module '{}{}{}' does not exist",
+                            cli_utils::Colors::Red,
+                            cli_utils::Colors::Reset,
+                            cli_utils::Colors::Yellow,
+                            module,
+                            cli_utils::Colors::Reset,
+                        );
                         std::process::exit(1);
                     }
-                },
-                None => {
-                    if env::args().any(|x| x == "-ec" || x == "--eval-code") {
-                        println!("Evaluating code is not yet supported");
-                    } else {
-                        println!("No file present\n-h for help");
-                    }
-                    std::process::exit(1);
+                }
+                parsed_modules
+            } else {
+                vec![]
+            };
+
+            let compiler_settings = ellie_engine::compile_file::CompilerSettings {
+                json_log: matches.is_present("jsonLog"),
+                description: matches.value_of("description").unwrap().to_string(),
+                name: matches
+                    .value_of("moduleName")
+                    .unwrap_or(&target_path)
+                    .to_string(),
+                version,
+                output_type: matches.value_of("outputType").unwrap().to_string(),
+                warnings: !matches.is_present("disableWarnings"),
+            };
+
+            ellie_engine::compile_file::compile(
+                Path::new(&target_path),
+                Path::new(&output_path),
+                modules,
+                compiler_settings,
+            );
+        }
+        Some(("version", matches)) => {
+            if matches.is_present("detailed") {
+                if matches.is_present("jsonLog") {
+                    let mut output = cli_outputs::VERSION_DETAILED.clone();
+                    output.extra.push(cli_outputs::CliOuputExtraData {
+                        key: "version".to_string(),
+                        value: ellie_engine::engine_constants::ELLIE_VERSION.to_owned(),
+                    });
+
+                    output.extra.push(cli_outputs::CliOuputExtraData {
+                        key: "code".to_string(),
+                        value: ellie_engine::engine_constants::ELLIE_VERSION_NAME.to_owned(),
+                    });
+
+                    output.extra.push(cli_outputs::CliOuputExtraData {
+                        key: "tokenizer_version".to_string(),
+                        value: ellie_engine::engine_constants::ELLIE_TOKENIZER_VERSION.to_owned(),
+                    });
+
+                    output.extra.push(cli_outputs::CliOuputExtraData {
+                        key: "parser_version".to_string(),
+                        value: ellie_engine::engine_constants::ELLIE_PARSER_VERSION.to_owned(),
+                    });
+
+                    output.extra.push(cli_outputs::CliOuputExtraData {
+                        key: "runtime_version".to_string(),
+                        value: ellie_engine::engine_constants::ELLIE_RUNTIME_VERSION.to_owned(),
+                    });
+
+                    output.extra.push(cli_outputs::CliOuputExtraData {
+                        key: "core_version".to_string(),
+                        value: ellie_engine::engine_constants::ELLIE_CORE_VERSION.to_owned(),
+                    });
+
+                    output.extra.push(cli_outputs::CliOuputExtraData {
+                        key: "std_version".to_string(),
+                        value: ellie_engine::engine_constants::ELLIE_STD_VERSION.to_owned(),
+                    });
+                    println!("{}", serde_json::to_string(&output).unwrap());
+                } else {
+                    println!(
+                        "Ellie v{} - Code: {}\n\nTokenizer Version: v{}\nParser Version: v{}\nRuntime Version: v{}\nCore version: v{}\nEllie Standard Types Version: v{}\n",
+                        ellie_engine::engine_constants::ELLIE_VERSION,
+                        ellie_engine::engine_constants::ELLIE_VERSION_NAME,
+                        ellie_engine::engine_constants::ELLIE_TOKENIZER_VERSION,
+                        ellie_engine::engine_constants::ELLIE_PARSER_VERSION,
+                        ellie_engine::engine_constants::ELLIE_RUNTIME_VERSION,
+                        ellie_engine::engine_constants::ELLIE_CORE_VERSION,
+                        ellie_engine::engine_constants::ELLIE_STD_VERSION,
+                    );
+                }
+            } else {
+                if matches.is_present("jsonLog") {
+                    let mut output = cli_outputs::VERSION.clone();
+                    output.extra.push(cli_outputs::CliOuputExtraData {
+                        key: "version".to_string(),
+                        value: ellie_engine::engine_constants::ELLIE_VERSION.to_owned(),
+                    });
+
+                    output.extra.push(cli_outputs::CliOuputExtraData {
+                        key: "code".to_string(),
+                        value: ellie_engine::engine_constants::ELLIE_VERSION_NAME.to_owned(),
+                    });
+                    println!("{}", serde_json::to_string(&output).unwrap());
+                } else {
+                    println!(
+                        "Ellie v{} - Code: {}",
+                        ellie_engine::engine_constants::ELLIE_VERSION,
+                        ellie_engine::engine_constants::ELLIE_VERSION_NAME
+                    );
                 }
             }
         }
+        Some(("viewModule", matches)) => {
+            let target_path = {
+                let path = Path::new(matches.value_of("target").unwrap().clone());
+                if path.exists() {
+                    matches.value_of("target").unwrap().to_string()
+                } else {
+                    println!(
+                        "{}Error:{} Target path does not exist",
+                        cli_utils::Colors::Red,
+                        cli_utils::Colors::Reset
+                    );
+                    std::process::exit(1);
+                }
+            };
+
+            ellie_engine::view_module::parse(
+                Path::new(&target_path),
+                matches.is_present("jsonLog"),
+            );
+        }
+        _ => unreachable!("clap should ensure we don't get here"),
     }
 }

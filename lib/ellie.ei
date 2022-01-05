@@ -1,7 +1,7 @@
 /*
     Copyright (c) 2020 Behemehal. See license file for details
 */
-@version = "0.2.0"; //Changing this triggers build.rs
+@version = "0.2.1"; //Changing this triggers build.rs
 pub import void;
 pub import string;
 pub import char;

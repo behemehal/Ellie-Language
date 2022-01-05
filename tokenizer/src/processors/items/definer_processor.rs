@@ -201,7 +201,7 @@ impl crate::processors::Processor for DefinerCollector {
                             generic_type.pos.range_start = cursor;
                             self.complete = true;
                         }
-                        generic_type.pos.range_end = cursor.clone().skip_char(1);
+                        generic_type.pos.range_end = cursor;
                         generic_type.rtype += &letter_char.to_string();
                     }
                 } else {

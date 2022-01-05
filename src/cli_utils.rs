@@ -41,7 +41,7 @@ impl Display for Colors {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum OutputTypes {
     Bin,
     DependencyAnalysis,
@@ -175,7 +175,7 @@ pub fn file_exists(path: String) -> bool {
     Path::new(&path).exists()
 }
 
-pub fn read_file(file_dir: &str) -> Result<String, String> {
+pub fn read_file<P: AsRef<Path>>(file_dir: P) -> Result<String, String> {
     let file_read = File::open(file_dir);
     match file_read {
         Err(r) => Err(r.to_string()),
@@ -187,6 +187,14 @@ pub fn read_file(file_dir: &str) -> Result<String, String> {
                 Err(e) => Err(e.to_string()),
             }
         }
+    }
+}
+
+pub fn read_file_bin<P: AsRef<Path>>(file_dir: P) -> Result<Vec<u8>, String> {
+    let file_read = File::open(file_dir);
+    match file_read {
+        Err(r) => Err(r.to_string()),
+        Ok(file) => Ok(file.bytes().collect::<Result<Vec<u8>, _>>().unwrap()),
     }
 }
 
@@ -524,7 +532,7 @@ pub fn render_code_block(
                     },
                     arrow(
                         (item_pos.range_start.1) as usize,
-                        item_pos.range_end.1 - item_pos.range_start.1
+                        (item_pos.range_end.1 + 1) - item_pos.range_start.1
                     ),
                     Colors::Reset,
                 );
@@ -550,7 +558,7 @@ pub fn render_code_block(
                     },
                     arrow(
                         (item_pos.range_start.1) as usize,
-                        item_pos.range_end.1 - item_pos.range_start.1
+                        (item_pos.range_end.1 + 1) - item_pos.range_start.1
                     ),
                     Colors::Reset,
                 );

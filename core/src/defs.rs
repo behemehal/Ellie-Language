@@ -143,6 +143,13 @@ pub struct Version {
     pub bug: u8,
 }
 
+impl PartialEq for Version {
+    fn eq(&self, other: &Self) -> bool {
+        //Ignore bug
+        self.minor == other.minor && self.major == other.major
+    }
+}
+
 impl Version {
     pub fn build_from_string(input: String) -> Version {
         Version {
