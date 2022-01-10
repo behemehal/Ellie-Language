@@ -85,7 +85,7 @@ impl DefinerCollecting {
                 } else {
                     false
                 }
-            },
+            }
             DefinerCollecting::Vector(data) => {
                 if let DefinerCollecting::Vector(other_data) = other {
                     other_data.rtype.same_as(*data.rtype.clone())

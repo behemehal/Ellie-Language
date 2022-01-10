@@ -21,8 +21,8 @@ pub mod definite;
 pub mod defs;
 pub mod error;
 pub mod information;
+pub mod module_path;
 #[doc(hidden)]
 pub mod native;
 pub mod utils;
 pub mod warning;
-pub mod module_path;

@@ -52,7 +52,7 @@ impl Default for PageType {
 /// * `items` - A list of processed language items that are on the page
 /// * `dependents` - A list of pages that depend on this page
 /// * `dependencies` - A list of dependencies of the page use
-/// 
+///
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 
 pub struct Page {
@@ -84,7 +84,6 @@ impl Page {
     }
 }
 
-
 /// `ImportType` is a type that represents either Code(String) or pre-built module Module([`Module`]).
 #[derive(Debug)]
 pub enum ImportType {
@@ -105,7 +104,7 @@ impl Default for ImportType {
 /// * `hash` - A unique hash of the imported file
 /// * `path` - The path of the imported file
 /// * `matched` - The type of the import see [`ImportType`]
-/// 
+///
 #[derive(Default, Debug)]
 
 pub struct ResolvedImport {
@@ -185,7 +184,6 @@ pub struct Module {
     pub name: String,
 }
 
-
 /// `Pager` is a struct for implementing **Low Level** [`Tokenizer`] interface, and handles modulation and importation.
 /// * Do not use this struct directly, use [`Pager::new`] instead
 #[derive(Debug, Clone)]
@@ -197,7 +195,6 @@ pub struct Pager<E> {
     pub current_page: u64,
     pub import_resolver: E,
 }
-
 
 /// RawPages
 /// This is a duplicate of [`Page`] but without code
@@ -267,7 +264,7 @@ where
     ///   // do something with path and filename usaly to resolve imports you should use `ellie_core::module_path::ModulePath`
     ///   // return a ResolvedImport
     /// }, None);
-    /// 
+    ///
     pub fn new(main: String, path: String, import_resolver: E, initial_hash: Option<u64>) -> Self {
         Pager {
             main: main,

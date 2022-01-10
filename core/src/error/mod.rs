@@ -19,7 +19,7 @@ pub mod error_list;
 /// * `reference_block` - [`Option`] acquires a tuple of [`crate::defs::Cursor`] and [`String`] which is the path of referenced file
 /// * `semi_assist` - Boolean value that indicates if the error is semi-assistive
 /// * `full_assist` - Boolean value that indicates if the error is full-assistive
-/// 
+///
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Error {
     pub code: u8,
@@ -47,7 +47,7 @@ pub struct ErrorBuildField {
 /// ## Fields
 /// * `builded` - Error message
 /// * `fields` - [`Vec`] of [`ErrorBuildField`]
-/// ## Example: 
+/// ## Example:
 /// ```
 /// use ellie_core::error::{BuildedError, ErrorBuildField};
 /// let mut builded = BuildedError {

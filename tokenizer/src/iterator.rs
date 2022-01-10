@@ -1,9 +1,9 @@
-use ellie_core::{defs, error};
-use serde::{Deserialize, Serialize};
 use crate::processors::{
     items::{self},
     Processor,
 };
+use ellie_core::{defs, error};
+use serde::{Deserialize, Serialize};
 
 /// Iterator struct is used for building a processor interface
 /// * Iterator is lower level of tokenizer and it's used for building a processor interface, Its not advised to use it directly, take a look at [`crate::tokenizer::Pager`] instead
