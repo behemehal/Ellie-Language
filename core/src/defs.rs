@@ -98,6 +98,10 @@ impl CursorPosition {
     }
 }
 
+/// Cursor position
+/// ## Fields
+/// * `range_start` - Start of range [`CursorPosition`]
+/// * `range_end` - End of range [`CursorPosition`]
 #[derive(PartialEq, Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct Cursor {
     pub range_start: CursorPosition,
@@ -105,10 +109,14 @@ pub struct Cursor {
 }
 
 impl Cursor {
+    /// Check range_start and range_end is zero by column and lines
     pub fn is_zero(&self) -> bool {
         self.range_start.is_zero() && self.range_end.is_zero()
     }
 
+    /// Check current cursor bigger than given [`Cursor`]
+    /// ## Arguments
+    /// * `cursor` - [`Cursor`] to compare
     pub fn is_bigger(&self, than: Cursor) -> bool {
         if than.range_end.0 == self.range_end.0 {
             self.range_end.1 > than.range_end.1
@@ -119,6 +127,9 @@ impl Cursor {
         }
     }
 
+    /// Create new [`Cursor`] range start and skip one column pos to define the end
+    /// ## Arguments
+    /// * `start` - Start of range [`CursorPosition`]
     pub fn build_with_skip_char(range_start: CursorPosition) -> Self {
         Cursor {
             range_start,
@@ -136,10 +147,15 @@ impl Default for Cursor {
     }
 }
 
+/// Version
+/// ## Fields
+/// * `major` - Major version [`u8`]
+/// * `minor` - Minor version [`u8`]
+/// * `bug` - Bug version [`u8`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Version {
-    pub minor: u8,
     pub major: u8,
+    pub minor: u8,
     pub bug: u8,
 }
 
@@ -151,6 +167,9 @@ impl PartialEq for Version {
 }
 
 impl Version {
+    /// Create new [`Version`] from given [`String`]
+    /// ## Arguments
+    /// * `version` - [`String`] to parse
     pub fn build_from_string(input: String) -> Version {
         Version {
             minor: input.split(".").collect::<Vec<_>>()[0]
@@ -165,6 +184,11 @@ impl Version {
         }
     }
 
+    /// Create new [`Version`] from given [`String`] with checks
+    /// ## Arguments
+    /// * `input` - [`String`] to parse
+    /// ## Return
+    /// [`Result`] - If versionb is valid [`Ok(Version)`] otherwise [`Err(u8)`]-
     pub fn build_from_string_checked(input: String) -> Result<Version, u8> {
         if input.split(".").collect::<Vec<_>>().len() == 3 {
             let major = input.split(".").collect::<Vec<_>>()[0]
@@ -188,5 +212,3 @@ impl Version {
         }
     }
 }
-
-pub trait NativePlugin {}

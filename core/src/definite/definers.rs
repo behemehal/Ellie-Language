@@ -75,3 +75,31 @@ pub enum DefinerCollecting {
     Nullable(NullableType),
     Dynamic,
 }
+
+impl DefinerCollecting {
+    pub fn same_as(&self, other: DefinerCollecting) -> bool {
+        match self {
+            DefinerCollecting::Array(data) => {
+                if let DefinerCollecting::Array(other_data) = other {
+                    other_data.size == data.size && other_data.rtype.same_as(*data.rtype.clone())
+                } else {
+                    false
+                }
+            },
+            DefinerCollecting::Vector(data) => {
+                if let DefinerCollecting::Vector(other_data) = other {
+                    other_data.rtype.same_as(*data.rtype.clone())
+                } else {
+                    false
+                }
+            }
+            DefinerCollecting::Generic(_) => todo!(),
+            DefinerCollecting::ParentGeneric(_) => todo!(),
+            DefinerCollecting::Function(_) => todo!(),
+            DefinerCollecting::Cloak(_) => todo!(),
+            DefinerCollecting::Collective(_) => todo!(),
+            DefinerCollecting::Nullable(_) => todo!(),
+            DefinerCollecting::Dynamic => todo!(),
+        }
+    }
+}

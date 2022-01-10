@@ -3,8 +3,23 @@ use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 use core::clone::Clone;
 use serde::{Deserialize, Serialize};
+#[doc(hidden)]
 pub mod error_list;
 
+/// `Ellie Error` struct
+/// ## Fields
+/// * `code` - Error code
+/// * `path` - Error path
+/// * `message` - Error message
+/// * `title` - Error title
+/// * `builded_message` - [`BuildedError`]
+/// * `debug_message` - Development error message used to identify the error in the language not presented to the user
+/// * `pos` - Error position in code by [`crate::defs::Cursor`]
+/// * `reference_message` - If error choses to reference a code point this is the message, `reference_block` should be [`Some`] for this to be rendered
+/// * `reference_block` - [`Option`] acquires a tuple of [`crate::defs::Cursor`] and [`String`] which is the path of referenced file
+/// * `semi_assist` - Boolean value that indicates if the error is semi-assistive
+/// * `full_assist` - Boolean value that indicates if the error is full-assistive
+/// 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Error {
     pub code: u8,
@@ -20,12 +35,31 @@ pub struct Error {
     pub full_assist: bool,
 }
 
+/// Instance of [`BuildedError`] represents $token in error message
+/// In this case key is `token` and value is pending to be write
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ErrorBuildField {
     pub key: String,
     pub value: String,
 }
 
+///`BuildedError` is a struct for modular error messages
+/// ## Fields
+/// * `builded` - Error message
+/// * `fields` - [`Vec`] of [`ErrorBuildField`]
+/// ## Example: 
+/// ```
+/// use ellie_core::error::{BuildedError, ErrorBuildField};
+/// let mut builded = BuildedError {
+///     builded: String::from("Duck does say $thing when gets angry"),
+///     fields: vec![    
+///         ErrorBuildField {
+///             key: String::from("thing"),
+///             value: String::from("Mooo"),
+///         }
+///     ],
+/// };
+/// ```
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
 pub struct BuildedError {
     pub builded: String,
@@ -33,6 +67,7 @@ pub struct BuildedError {
 }
 
 impl BuildedError {
+    #[deprecated]
     pub fn build_from_string(message: String) -> BuildedError {
         BuildedError {
             builded: message,
@@ -42,6 +77,29 @@ impl BuildedError {
 }
 
 impl Error {
+    /// Create a new error
+    /// ## Arguments
+    /// * `fields` - [`Vec`] of [`ErrorBuildField`]
+    /// * `debug_message` - Development error message used to identify the error in the language not presented to the user
+    /// * `pos` - Error position in code by [`crate::defs::Cursor`]
+    /// ## Returns
+    /// [`Error`]
+    /// ## Example
+    /// ```
+    /// use ellie_core::error::{BuildedError, ErrorBuildField};
+    /// let error = error::Error {
+    ///    code: 0x00,
+    ///    title: "SyntaxError".to_owned(),
+    ///    message: "Unexpected Token '$token'".to_owned(),
+    ///    ..Default::default()
+    /// };
+    /// let builded = error.build(vec![
+    ///    ErrorBuildField {
+    ///       key: String::from("token"),
+    ///       value: String::from("Mooo"),
+    ///   }
+    /// ],String::new("No Debug message for you"), Cursor::default());
+    /// ```
     pub fn build(
         self,
         fields: Vec<ErrorBuildField>,
@@ -77,6 +135,12 @@ impl Error {
         error
     }
 
+    /// Create a new error but with path
+    /// ## Arguments
+    /// * `fields` - [`Vec`] of [`ErrorBuildField`]
+    /// * `debug_message` - Development error message used to identify the error in the language not presented to the use
+    /// * `path` - Error path
+    /// * `pos` - Error position in code by [`crate::defs::Cursor`]
     pub fn build_with_path(
         self,
         fields: Vec<ErrorBuildField>,
@@ -114,6 +178,12 @@ impl Error {
         error
     }
 
+    /// Create a new error but without debug_message
+    /// ## Arguments
+    /// * `fields` - [`Vec`] of [`ErrorBuildField`]
+    /// * `debug_message` - Development error message used to identify the error in the language not presented to the use
+    /// * `path` - Error path
+    /// * `pos` - Error position in code by [`crate::defs::Cursor`]
     pub fn build_without_debug(
         &mut self,
         fields: Vec<ErrorBuildField>,

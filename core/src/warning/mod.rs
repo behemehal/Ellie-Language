@@ -5,6 +5,7 @@ use alloc::{
 };
 use core::clone::Clone;
 use serde::{Deserialize, Serialize};
+#[doc(hidden)]
 pub mod warning_list;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -28,22 +29,57 @@ impl BuildedWarning {
     }
 }
 
+/// A parser warning
+/// ## Fields
+/// * `code` - Warning code
+/// * `path` - Path of warning
+/// * `message` - Warning message
+/// * `title` - Warning title
+/// * `builded_message` - [`BuildedWarning`]
+/// * `pos` - Error position in code by [`crate::defs::Cursor`]
+/// * `reference_message` - If warning choses reference a code point this is the message, `reference_block` should be [`Some`] for this to be rendered
+/// * `reference_block` - [`Option`] acquires a tuple of [`crate::defs::Cursor`] and [`String`] which is the path of referenced file
+/// * `semi_assist` - Boolean value that indicates if the error is semi-assistive
+/// * `full_assist` - Boolean value that indicates if the error is full-assistive
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-
 pub struct Warning {
     pub code: u8,
     pub path: String,
     pub message: String,
     pub title: String,
-    pub reference_message: String,
     pub builded_message: BuildedWarning,
-    pub reference_block: Option<(crate::defs::Cursor, String)>,
     pub pos: crate::defs::Cursor,
+    pub reference_message: String,
+    pub reference_block: Option<(crate::defs::Cursor, String)>,
     pub semi_assist: bool,
     pub full_assist: bool,
 }
 
 impl Warning {
+    /// Create a new warning
+    /// ## Arguments
+    /// * `fields` - [`Vec`] of [`WarningBuildField`]
+    /// * `path` - [`String`] path of warning
+    /// * `pos` - Warning position in code by [`crate::defs::Cursor`]
+    /// ## Returns
+    /// [`Warning`]
+    /// ## Example
+    /// ```
+    /// use ellie_core::warning::{Warning, WarningBuildField};
+    /// let warning = warning::Warning {
+    ///    code: 0x00,
+    ///    title: "Title".to_owned(),
+    ///    message: "Found '$current', expected mooo".to_owned(),
+    ///    semi_assist: true,
+    ///    ..Default::default()
+    ///};
+    /// let builded = warning.build(vec![
+    ///    WarningBuildField {
+    ///       key: String::from("current"),
+    ///       value: String::from("Milk"),
+    ///   }
+    /// ],String::new("path/to/file"), Cursor::default());
+    /// ```
     pub fn build(
         self,
         fields: Vec<WarningBuildField>,

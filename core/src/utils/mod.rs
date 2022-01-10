@@ -2,15 +2,15 @@ use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 use rand;
 
+/// Response of [`reliable_name_range`] function
+/// ## Fields
+/// * `reliable` - Is char reliable
+/// * `at` - Column of char in character set if its reliable
+/// * `found` - Data set column index
 pub struct ReliableNameRangeResponse {
     pub reliable: bool,
     pub at: usize,
     pub found: char,
-}
-
-pub fn is_operators(value: &str) -> bool {
-    let operators = "|&";
-    operators.contains(&value)
 }
 
 pub fn is_escape(value: char) -> bool {
@@ -57,11 +57,18 @@ pub fn generate_hash() -> String {
     .replace("[", "")
 }
 
+/// ReliableNameRanges is a enum indicates which charachter set is to be used
+/// VariableName: QWERTYUIOPASDFGHJKLIZXCVBNMqwertyuıopasdfghjklizxcvbnm0123456789_
+/// Type: QWERTYUIOPASDFGHJKLIZXCVBNMqwertyuıopasdfghjklizxcvbnm0123456789
 pub enum ReliableNameRanges {
     VariableName,
     Type,
 }
 
+/// ReliableNameRange is a function that returns [`ReliableNameRangeResponse`]
+/// ## Arguments
+/// * `range` - [`ReliableNameRanges`]
+/// * `value` - Char to be checked
 pub fn reliable_name_range(range: ReliableNameRanges, value: char) -> ReliableNameRangeResponse {
     let variable_range = match range {
         ReliableNameRanges::VariableName => {
@@ -83,6 +90,7 @@ pub fn reliable_name_range(range: ReliableNameRanges, value: char) -> ReliableNa
     };
 }
 
+/// Trims text from left and right
 pub fn trim_good(line: String) -> String {
     let mut fixed = String::new();
     for i in 0..line.len() {
@@ -100,6 +108,7 @@ pub fn trim_good(line: String) -> String {
     fixed
 }
 
+/// Makes text's first letter uppercase
 pub fn upper_first_char(line: String) -> String {
     let mut c = line.chars();
     match c.next() {
@@ -108,6 +117,7 @@ pub fn upper_first_char(line: String) -> String {
     }
 }
 
+/// Makes text's first letter lowerCase
 pub fn lower_first_char(line: String) -> String {
     let mut c = line.chars();
     match c.next() {
@@ -116,6 +126,7 @@ pub fn lower_first_char(line: String) -> String {
     }
 }
 
+/// Check if the given char is a start of a operator
 pub fn is_operator_start(letter_char: char) -> bool {
     letter_char == '&'
         || letter_char == '|'
@@ -138,6 +149,7 @@ pub enum FoundExtended {
     AssignmentOperator,
 }
 
+/// Resolve given string to [`FoundExtended`]
 pub fn resolve_operator(operator: &str) -> Option<FoundExtended> {
     pub fn is_logical_operator(value: &str) -> bool {
         value == "&&" || value == "||"
