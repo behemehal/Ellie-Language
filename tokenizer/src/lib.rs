@@ -1,5 +1,7 @@
 pub mod iterator;
+#[doc(hidden)]
 pub mod processors;
+#[doc(hidden)]
 pub mod syntax;
 pub mod tokenizer;
 

@@ -2,6 +2,8 @@ use crate::processors::items;
 use ellie_core::{defs, error};
 use serde::{Deserialize, Serialize};
 
+/// TokenizerOptions
+/// This struct contains all the options that can be set for the tokenizer
 pub struct TokenizerOptions {
     pub functions: bool,
     pub variables: bool,
@@ -9,6 +11,8 @@ pub struct TokenizerOptions {
     pub imports: bool,
 }
 
+///Dependency
+///Dependency is a link to another `ellie_tokenizer::Page` which helps us to resolve project hierarchy
 #[derive(PartialEq, Default, Debug, Clone, Serialize, Deserialize)]
 pub struct Dependency {
     pub hash: u64,
@@ -18,6 +22,8 @@ pub struct Dependency {
     pub public: bool,
 }
 
+/// `PageType` is gives us hint about the type of the page
+/// Check [`Page`]
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub enum PageType {
     FunctionBody,
@@ -33,6 +39,20 @@ impl Default for PageType {
     }
 }
 
+/// Page is a miror of a imported file which waits to be processed
+/// # Fields
+/// * `hash` - A unique hash of the page
+/// * `inner` - A flag that indicates if the page is a inner page of function or class or maybe if block
+/// * `processed` - A flag that indicates if the page has been processed
+/// * `module` - A identifier that tells pager if its a pre-built module
+/// * `unreachable` - A flag that indicates if the page is on unreachable code
+/// * `unreachable_range` - A range of the unreachable code
+/// * `page_type` - The type of the page (function, class, if block, etc) see [`PageType`]
+/// * `path` - The path of the page
+/// * `items` - A list of processed language items that are on the page
+/// * `dependents` - A list of pages that depend on this page
+/// * `dependencies` - A list of dependencies of the page use
+/// 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 
 pub struct Page {
@@ -50,6 +70,12 @@ pub struct Page {
 }
 
 impl Page {
+    /// Check page contains dependency
+    /// ## Arguments
+    /// * `hash` - A hash of the dependency
+    /// ## Returns
+    /// * `true` - If the page contains the dependency
+    /// * `false` - If the page does not contain the dependency
     pub fn contains_dependency(&self, hash: u64) -> bool {
         self.dependencies
             .iter()
@@ -58,6 +84,8 @@ impl Page {
     }
 }
 
+
+/// `ImportType` is a type that represents either Code(String) or pre-built module Module([`Module`]).
 #[derive(Debug)]
 pub enum ImportType {
     Code(String),
@@ -69,7 +97,15 @@ impl Default for ImportType {
         ImportType::Code(String::new())
     }
 }
-
+/// ResolvedImport
+/// A struct that contains all the information about an imported file
+/// # Fields
+/// * `found` - A boolean that indicates if the import was found
+/// * `resolve_error` - A custom error given by import_resolver see [`Pager`]
+/// * `hash` - A unique hash of the imported file
+/// * `path` - The path of the imported file
+/// * `matched` - The type of the import see [`ImportType`]
+/// 
 #[derive(Default, Debug)]
 
 pub struct ResolvedImport {
@@ -80,6 +116,12 @@ pub struct ResolvedImport {
     pub matched: ImportType,
 }
 
+/// `Tokenizer` struct is used for building [`crate::iterator::Iterator`] interface
+/// * Warning: This implementation not meant to be used by high end side. This is the low level of tokenizer, check [`Pager`] instead
+/// ## Fields
+/// * `code` - A string that contains the code to be tokenized [`String`]
+/// * `path` - A string that contains the path of the code [`String`]
+/// * `iterator` - [`crate::iterator::Iterator`] interface
 pub struct Tokenizer {
     pub code: String,
     pub path: String,
@@ -87,6 +129,13 @@ pub struct Tokenizer {
 }
 
 impl Tokenizer {
+    /// ### Create a new tokenizer
+    /// [`Tokenizer`] is a base implementation of [`Iterator`], which iterates through the code
+    /// ## Arguments
+    /// * `code` - The code to tokenize
+    /// * `path` - The path of the file
+    /// ## Returns
+    /// A new tokenizer [`Tokenizer`] instance
     pub fn new(code: String, path: String) -> Self {
         Tokenizer {
             code,
@@ -95,6 +144,7 @@ impl Tokenizer {
         }
     }
 
+    /// `tokenize_page` is a function initalizes [`Iterator`] and iters through the code
     pub fn tokenize_page(&mut self) -> Result<&mut Vec<items::Processors>, Vec<error::Error>> {
         let mut last_char = '\0';
         for letter_char in self.code.chars() {
@@ -121,6 +171,12 @@ impl Tokenizer {
     }
 }
 
+/// `Module` is a struct that contains all the information about a pre-built modules
+/// # Fields
+/// * `hash` - A unique hash of the module
+/// * `initial_page` - A hash of the initial page of the module
+/// * `version` - The version of the module presented by [`defs::Version`]
+/// * `name` - Name of the module
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Module {
     pub hash: u64,
@@ -129,15 +185,22 @@ pub struct Module {
     pub name: String,
 }
 
+
+/// `Pager` is a struct for implementing **Low Level** [`Tokenizer`] interface, and handles modulation and importation.
+/// * Do not use this struct directly, use [`Pager::new`] instead
 #[derive(Debug, Clone)]
 pub struct Pager<E> {
     pub main: String,
+    pub main_path: String,
     pub pages: Vec<Page>,
     pub modules: Vec<Module>,
     pub current_page: u64,
     pub import_resolver: E,
 }
 
+
+/// RawPages
+/// This is a duplicate of [`Page`] but without code
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RawPage {
     pub hash: u64,
@@ -150,17 +213,65 @@ impl<E> Pager<E>
 where
     E: FnMut(String, String) -> ResolvedImport + Clone + Sized, //Path, filename
 {
+    /// Find page by hash
+    /// ## Arguments
+    /// * `hash` - page hash
+    /// ## Returns
+    /// Option<&mut [`Page`]>
+    /// ## Example
+    /// ```
+    /// let pre_constructed_pager = ellie_tokenizer::Pager::new(...);
+    /// match pre_constructed_pager.find_page_by_hash(0x12345678) {
+    ///   Some(page) => {
+    ///       // do something with page
+    ///   },
+    ///   None => {
+    ///      // Page not found
+    ///   },
+    /// };
+    /// ```
     pub fn find_page(&mut self, hash: u64) -> Option<&mut Page> {
         self.pages.iter_mut().find(|page| page.hash == hash)
     }
 
+    /// Find module by hash
+    /// ## Arguments
+    /// * `hash` - module hash
+    /// ## Returns
+    /// Option<&mut [`Module`]>
+    /// ## Example
+    /// ```
+    /// let pre_constructed_pager = ellie_tokenizer::Pager::new(...);
+    /// match pre_constructed_pager.find_module_by_hash(0x12345678) {
+    ///  Some(module) => {
+    ///     // do something with module
+    ///  },
+    ///  None => {
+    ///   // Module not found
+    ///  },
+    /// };
+    /// ```
     pub fn find_module(&mut self, hash: u64) -> Option<&mut Module> {
         self.modules.iter_mut().find(|module| module.hash == hash)
     }
 
+    /// ## Arguments
+    /// * `main` - Main file
+    /// * `main_path` - Main file path for example; If main is "C:\Users\User\Desktop\Project\main.ei" then main_path is "C:\Users\User\Desktop\Project"
+    /// * `import_resolver` - Pager's query mechanism for resolving imports see [`Pager`] for more info
+    /// * `initial_hash` - Initial page hash; Recommended to be None
+    /// ## Example
+    /// ```
+    /// let mut pager = ellie_tokenizer::Pager::new("C:\\Users\\User\\Desktop\\Project\\main.ei", "C:\\Users\\User\\Desktop\\Project", |path, filename| {
+    ///   // Example resolver located here 'NotReadyYet'
+    ///   // do something with path and filename usaly to resolve imports you should use `ellie_core::module_path::ModulePath`
+    ///   // return a ResolvedImport
+    /// }, None);
+    /// 
     pub fn new(main: String, path: String, import_resolver: E, initial_hash: Option<u64>) -> Self {
         Pager {
             main: main,
+            main_path: path.clone(),
             pages: vec![Page {
                 hash: initial_hash.unwrap_or(0),
                 inner: None,
@@ -175,11 +286,35 @@ where
                 unreachable_range: defs::Cursor::default(),
             }],
             current_page: initial_hash.unwrap_or(0),
-            import_resolver: import_resolver,
+            import_resolver,
             modules: vec![],
         }
     }
 
+    /// Tokenize a page
+    /// **Note: this is a inner function and should not be called directly**
+    /// ## Arguments
+    /// * `page` - Existing page hash
+    /// * `code` - Code to tokenize
+    /// ## Returns
+    /// If successful returns a vector of used inner pages [`Dependency`] (Dependencies) or vector of syntax errors ([`error::Error`]) from tokenized page
+    /// ## Example
+    /// ```
+    /// let mut pager = ellie_tokenizer::Pager::new("C:\\Users\\User\\Desktop\\Project\\main.ei", "C:\\Users\\User\\Desktop\\Project", |path, filename| {
+    ///  // TODO: Implement import resolver
+    ///  ellie_tokenizer::ResolvedImport::default()
+    /// }, None);
+    /// let page_hash = 0x12345678;
+    /// let code = "v test : string = \"test\";";
+    /// match pager.tokenize_page(page_hash, code) {
+    ///     Ok(dependencies) => {
+    ///         // do something with dependencies
+    ///     },
+    ///     Err(errors) => {
+    ///         // do something with errors
+    ///     }
+    /// };
+    /// ```
     pub fn resolve_page(
         &mut self,
         cr_page: u64,
@@ -292,21 +427,23 @@ where
                         }
                     } else {
                         if resolved.resolve_error == "" {
-                            errors.push(error::error_list::ERROR_S28.clone().build(
+                            errors.push(error::error_list::ERROR_S28.clone().build_with_path(
                                 vec![error::ErrorBuildField {
                                     key: "token".to_owned(),
                                     value: import.path.clone(),
                                 }],
                                 "tok_0x185".to_owned(),
+                                page.path.clone(),
                                 import.pos,
                             ));
                         } else {
-                            errors.push(error::error_list::ERROR_S32.clone().build(
+                            errors.push(error::error_list::ERROR_S32.clone().build_with_path(
                                 vec![error::ErrorBuildField {
                                     key: "token".to_owned(),
                                     value: resolved.resolve_error,
                                 }],
                                 "tok_0x194".to_owned(),
+                                page.path.clone(),
                                 import.pos,
                             ));
                         }
@@ -323,6 +460,20 @@ where
         }
     }
 
+    /// Run tokenizing process. Start resolving_pages from first page defined in `Pager::new`, and recursively resolve all dependencies.
+    /// ## Example
+    /// ```
+    /// use ellie_tokenizer::Pager;
+    /// let mut pager = Pager::new(...);
+    /// match pager.run() {
+    ///     Ok(raw_pages) => {
+    ///        // do something with `Vec<ellie_tokenizer::RawPage>`
+    ///     },
+    ///     Err(errors) => {
+    ///         // do something with errors
+    ///     }    
+    /// }
+    /// ```
     pub fn run(&mut self) -> Result<Vec<RawPage>, Vec<ellie_core::error::Error>> {
         match self.resolve_page(self.current_page, self.main.clone()) {
             Ok(e) => {

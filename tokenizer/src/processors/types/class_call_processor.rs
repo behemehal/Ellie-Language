@@ -27,6 +27,10 @@ impl crate::processors::Processor for class_call_type::ClassCallCollector {
                 }
                 self.itered_cache = Box::new(TypeProcessor::default());
             } else {
+                if self.data.target_pos.range_start.is_zero() && letter_char != ' ' {
+                    self.data.target_pos.range_start = cursor;
+                }
+                self.data.target_pos.range_end = cursor;
                 self.itered_cache
                     .iterate(errors, cursor, last_char, letter_char);
             }

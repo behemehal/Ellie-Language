@@ -27,7 +27,7 @@ impl crate::processors::Processor for variable_type::VariableTypeCollector {
                 if self.data.value == "" {
                     self.data.pos.range_start = cursor;
                 }
-                self.data.pos.range_end = cursor.clone().skip_char(1);
+                self.data.pos.range_end = cursor;
                 self.data.value += &letter_char.to_string();
             }
         } else if letter_char != ' ' {

@@ -1,11 +1,20 @@
 use ellie_core::{defs, error};
 use serde::{Deserialize, Serialize};
-
 use crate::processors::{
     items::{self},
     Processor,
 };
 
+/// Iterator struct is used for building a processor interface
+/// * Iterator is lower level of tokenizer and it's used for building a processor interface, Its not advised to use it directly, take a look at [`crate::tokenizer::Pager`] instead
+/// ## Fields
+/// * `pos` - Active position in iterating process [`defs::CursorPosition`]
+/// * `collected` - Collected raw language items [`items::Processor`]
+/// * `active` - Iterator's on going processor [`items::ItemProcessor`]
+/// * `comment_pos` - Position of comment in iterating process [`defs::CursorPosition`]
+/// * `comment_start` - Boolean flag for understanding if comment is started [`bool`]
+/// * `line_comment` - Boolean flag for understanding if line comment is started [`bool`]
+/// * `multi_comment` - Boolean flag for understanding if multi comment is started [`bool`]
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct Iterator {
     pub pos: defs::CursorPosition,
@@ -19,6 +28,7 @@ pub struct Iterator {
 }
 
 impl Iterator {
+    /// After the last char is processed, this method should be called to finish the iterating process
     pub fn finalize(&mut self) {
         if !self.active.is_complete() && self.active.current.is_initalized() {
             self.errors.push(error::error_list::ERROR_S26.clone().build(
@@ -35,6 +45,10 @@ impl Iterator {
         }
     }
 
+    /// This method iterates current data
+    /// ## Parameters
+    /// * `last_char` - Last char of the active char
+    /// * `letter_char` - Active char
     pub fn iterate(&mut self, last_char: char, letter_char: char) {
         let in_str_or_char = matches!(self.active.current.clone(),  items::Processors::GetterCall(e) if e.data.as_string().is_some() || e.data.as_char().is_some());
 
