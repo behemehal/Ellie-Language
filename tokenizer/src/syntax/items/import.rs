@@ -14,7 +14,7 @@ pub struct Import {
     pub path_pos: defs::Cursor,
     pub pos: defs::Cursor,
     pub complete: bool,
-    pub hash: String,
+    pub hash: u64,
 }
 
 impl Converter<Import, ellie_core::definite::items::import::Import> for Import {

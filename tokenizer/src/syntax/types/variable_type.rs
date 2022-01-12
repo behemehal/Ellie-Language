@@ -22,7 +22,7 @@ impl definite::Converter<VariableTypeCollector, definite::types::variable::Varia
         definite::types::variable::VariableType {
             value: self.data.value,
             pos: self.data.pos,
-            reference: String::new(),
+            reference: 0,
         }
     }
 

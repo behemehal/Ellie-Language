@@ -189,14 +189,89 @@ impl Parser {
             ellie_core::definite::types::Types::Cloak(_) => "cloak".to_string(),
             ellie_core::definite::types::Types::Array(_) => "array".to_string(),
             ellie_core::definite::types::Types::Vector(_) => "vector".to_string(),
-            ellie_core::definite::types::Types::ClassCall(_) => todo!(),
+            ellie_core::definite::types::Types::ClassCall(c) => self.resolve_type_name(*c.target),
             ellie_core::definite::types::Types::FunctionCall(_) => todo!(),
             ellie_core::definite::types::Types::Void => "void".to_string(),
             ellie_core::definite::types::Types::NullResolver(e) => self.resolve_type_name(*e.value),
             ellie_core::definite::types::Types::Negative(e) => self.resolve_type_name(*e.value),
-            ellie_core::definite::types::Types::VariableType(_) => todo!(),
+            ellie_core::definite::types::Types::VariableType(e) => e.value,
             ellie_core::definite::types::Types::Null => "null".to_string(),
             ellie_core::definite::types::Types::AsKeyword(e) => self.resolve_type_name(*e.target),
+        }
+    }
+
+    pub fn compare_defining_with_type(
+        &self,
+        defining: ellie_core::definite::definers::DefinerCollecting,
+        rtype: ellie_core::definite::types::Types,
+    ) -> (bool, String, String) {
+        match defining {
+            ellie_core::definite::definers::DefinerCollecting::Array(_) => todo!(),
+            ellie_core::definite::definers::DefinerCollecting::Vector(_) => todo!(),
+            ellie_core::definite::definers::DefinerCollecting::Generic(_) => todo!(),
+            ellie_core::definite::definers::DefinerCollecting::ParentGeneric(parent_generic) => {
+                match rtype {
+                    ellie_core::definite::types::Types::ClassCall(class_call) => {
+                        match *class_call.target {
+                            ellie_core::definite::types::Types::VariableType(class_variable) => {
+                                //If parent generic name not matches with class_call name
+                                if parent_generic.rtype != class_variable.value {
+                                    (false, parent_generic.rtype, class_variable.value)
+                                } else if parent_generic.generics.len()
+                                    != class_call.generic_parameters.len()
+                                {
+                                    //If parent_generic not matches with class_call generic parameters
+                                    //TODO: Replace this and next check (https://github.com/behemehal/Ellie-Language/issues/59)
+                                    (false, parent_generic.rtype, class_variable.value)
+                                } else if parent_generic
+                                    .generics
+                                    .iter()
+                                    .enumerate()
+                                    .position(|(ind, param)| {
+                                        param.value != class_call.generic_parameters[ind].value
+                                    })
+                                    .is_some()
+                                {
+                                    (false, parent_generic.rtype, class_variable.value)
+                                } else {
+                                    (true, parent_generic.rtype, class_variable.value)
+                                }
+                            }
+                            _ => unreachable!(),
+                        }
+                    }
+                    ellie_core::definite::types::Types::VariableType(class_call) => {
+                        //self.deep_search(target_page, name, ignore_hash, searched, level)
+                        unreachable!()
+                    }
+                    _ => unreachable!(), /*
+                                         ellie_core::definite::types::Types::Integer(_) => todo!(),
+                                         ellie_core::definite::types::Types::Float(_) => todo!(),
+                                         ellie_core::definite::types::Types::Bool(_) => todo!(),
+                                         ellie_core::definite::types::Types::String(_) => todo!(),
+                                         ellie_core::definite::types::Types::Char(_) => todo!(),
+                                         ellie_core::definite::types::Types::Collective(_) => todo!(),
+                                         ellie_core::definite::types::Types::Reference(_) => todo!(),
+                                         ellie_core::definite::types::Types::BraceReference(_) => todo!(),
+                                         ellie_core::definite::types::Types::Operator(_) => todo!(),
+                                         ellie_core::definite::types::Types::Cloak(_) => todo!(),
+                                         ellie_core::definite::types::Types::Array(_) => todo!(),
+                                         ellie_core::definite::types::Types::Vector(_) => todo!(),
+                                         ellie_core::definite::types::Types::FunctionCall(_) => todo!(),
+                                         ellie_core::definite::types::Types::Void => todo!(),
+                                         ellie_core::definite::types::Types::NullResolver(_) => todo!(),
+                                         ellie_core::definite::types::Types::Negative(_) => todo!(),
+                                         ellie_core::definite::types::Types::VariableType(_) => todo!(),
+                                         ellie_core::definite::types::Types::AsKeyword(_) => todo!(),
+                                         ellie_core::definite::types::Types::Null => todo!(),
+                                         */
+                }
+            }
+            ellie_core::definite::definers::DefinerCollecting::Function(_) => todo!(),
+            ellie_core::definite::definers::DefinerCollecting::Cloak(_) => todo!(),
+            ellie_core::definite::definers::DefinerCollecting::Collective(_) => todo!(),
+            ellie_core::definite::definers::DefinerCollecting::Nullable(_) => todo!(),
+            ellie_core::definite::definers::DefinerCollecting::Dynamic => todo!(),
         }
     }
 
@@ -251,13 +326,13 @@ impl Parser {
         &mut self,
         page_id: u64,
         name: String,
-        hash: String,
+        hash: u64,
         pos: defs::Cursor,
     ) -> (bool, Option<(Page, defs::Cursor)>) {
         let deep_search = self.deep_search(
             page_id,
             name,
-            if hash == "" { None } else { Some(hash) },
+            if hash == 0 { None } else { Some(hash) },
             vec![],
             0,
         );
@@ -283,7 +358,7 @@ impl Parser {
         &mut self,
         target_page: u64,
         name: String,
-        ignore_hash: Option<String>,
+        ignore_hash: Option<u64>,
         searched: Vec<u64>,
         _level: u32,
     ) -> DeepSearchResult {
@@ -569,7 +644,6 @@ impl Parser {
                         }
                     }
                 }
-
                 level += 1;
             }
         }
@@ -704,15 +778,8 @@ impl Parser {
                         Processors::Import(e) => {
                             let hash = e.hash.clone();
                             e.process(self, unprocessed_page.hash);
-                            match hash.parse::<u64>() {
-                                Ok(hash) => {
-                                    if self.find_processed_page(hash).is_none() {
-                                        self.process_page(hash);
-                                    }
-                                }
-                                Err(_) => {
-                                    panic!("Import's hash is not valid");
-                                }
+                            if self.find_processed_page(hash).is_none() {
+                                self.process_page(hash);
                             }
                         }
                         Processors::ForLoop(_) => todo!(),

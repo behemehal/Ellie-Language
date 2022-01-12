@@ -9,7 +9,7 @@ pub fn process(
     from: DefinerTypes,
     parser: &mut super::Parser,
     page_id: u64,
-    ignore_hash: Option<String>,
+    ignore_hash: Option<u64>,
 ) -> Result<DefinerCollecting, Vec<error::Error>> {
     let mut errors = vec![];
     let mut found = DefinerCollecting::Dynamic;
@@ -99,8 +99,10 @@ pub fn process(
                                         );
                                     error.reference_message =
                                         "Does not have required generic parameters".to_string();
-                                    error.reference_block =
-                                        Some((array_class.pos, deep_search_result.found_page.path));
+                                    error.reference_block = Some((
+                                        array_class.name_pos,
+                                        deep_search_result.found_page.path,
+                                    ));
                                     errors.push(error);
                                 } else {
                                     found = DefinerCollecting::ParentGeneric(
@@ -590,7 +592,7 @@ pub fn process(
                     crate::parser::DeepSearchItems::GenericItem(generic) => {
                         found = DefinerCollecting::Generic(definers::GenericType {
                             rtype: generic.generic_name.clone(),
-                            hash: format!("<virtual={}>", generic.generic_name),
+                            hash: 0,
                             pos: generic.pos,
                         });
                     }

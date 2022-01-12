@@ -6,6 +6,7 @@ use crate::processors::items::Processors;
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct GenericDefining {
     pub name: String,
+    pub hash: u64,
     pub pos: defs::Cursor,
 }
 
@@ -22,7 +23,7 @@ pub struct Class {
     pub body: Vec<Processors>,
     pub brace_count: usize,
     pub pos: defs::Cursor,
-    pub hash: String,
+    pub hash: u64,
     pub complete: bool,
 }
 
@@ -40,6 +41,15 @@ impl Converter<Class, ellie_core::definite::items::class::Class> for Class {
             brace_count: 0,
             hash: from.hash,
             pos: from.pos,
+            generic_definings: from
+                .generic_definings
+                .iter()
+                .map(|x| GenericDefining {
+                    name: x.name.clone(),
+                    hash: x.hash.clone(),
+                    pos: x.pos,
+                })
+                .collect::<Vec<_>>(),
             ..Default::default()
         }
     }

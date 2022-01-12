@@ -162,7 +162,7 @@ impl definite::Converter<DefinerTypes, definite::definers::DefinerCollecting> fo
             DefinerTypes::Generic(e) => {
                 definite::definers::DefinerCollecting::Generic(definite::definers::GenericType {
                     rtype: e.rtype,
-                    hash: String::new(),
+                    hash: 0,
                     pos: e.pos,
                 })
             }
@@ -175,7 +175,7 @@ impl definite::Converter<DefinerTypes, definite::definers::DefinerCollecting> fo
             DefinerTypes::Dynamic => definite::definers::DefinerCollecting::Dynamic,
             DefinerTypes::ParentGeneric(e) => definite::definers::DefinerCollecting::ParentGeneric(
                 definite::definers::ParentGenericType {
-                    hash: String::new(),
+                    hash: 0,
                     rtype: e.parent,
                     generics: e
                         .generics

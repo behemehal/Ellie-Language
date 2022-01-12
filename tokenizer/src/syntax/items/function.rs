@@ -24,7 +24,7 @@ pub struct Function {
     pub body_pos: defs::Cursor,
     pub body: Vec<Processors>,
     pub pos: defs::Cursor,
-    pub hash: String,
+    pub hash: u64,
 }
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]

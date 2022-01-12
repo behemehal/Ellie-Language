@@ -156,7 +156,7 @@ impl crate::processors::Processor for function::FunctionCollector {
             if self.data.return_type.complete && letter_char == '{' {
                 self.return_collected = true;
             } else if self.data.return_type.complete && letter_char == ';' {
-                self.data.hash = ellie_core::utils::generate_hash();
+                self.data.hash = ellie_core::utils::generate_hash_u64();
                 self.data.defining = true;
                 self.return_collected = true;
                 self.complete = true;
@@ -172,7 +172,7 @@ impl crate::processors::Processor for function::FunctionCollector {
         } else if letter_char == '}' && self.brace_count == 0 {
             self.complete = true;
             self.data.pos.range_end = cursor.clone().skip_char(1);
-            self.data.hash = ellie_core::utils::generate_hash();
+            self.data.hash = ellie_core::utils::generate_hash_u64();
             self.iterator.finalize();
             errors.extend(self.iterator.errors.clone());
             self.data.body = self.iterator.collected.clone();

@@ -17,7 +17,7 @@ pub struct Variable {
     pub name_pos: defs::Cursor,
     pub value_pos: defs::Cursor,
     pub type_pos: defs::Cursor,
-    pub hash: String,
+    pub hash: u64,
     pub rtype: crate::syntax::items::definers::DefinerCollector,
 }
 

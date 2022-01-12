@@ -265,14 +265,20 @@ where
     ///   // return a ResolvedImport
     /// }, None);
     ///
-    pub fn new(main: String, path: String, import_resolver: E, initial_hash: Option<u64>) -> Self {
+    pub fn new(
+        main: String,
+        main_file_name: String,
+        path: String,
+        import_resolver: E,
+        initial_hash: Option<u64>,
+    ) -> Self {
         Pager {
             main: main,
             main_path: path.clone(),
             pages: vec![Page {
                 hash: initial_hash.unwrap_or(0),
                 inner: None,
-                path,
+                path: path + &main_file_name,
                 processed: false,
                 module: false,
                 items: vec![],
@@ -334,8 +340,7 @@ where
                 for import in imports {
                     let resolved = (self.import_resolver)(page.path.clone(), import.path.clone());
                     if resolved.found {
-                        import.hash = resolved.hash.to_string();
-
+                        import.hash = resolved.hash;
                         let current_page = self.find_page(cr_page).unwrap();
 
                         current_page.dependencies.push(Dependency {

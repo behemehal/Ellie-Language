@@ -5,6 +5,6 @@ use serde::{Deserialize, Serialize};
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct VariableType {
     pub value: String,
-    pub reference: String,
+    pub reference: u64,
     pub pos: defs::Cursor,
 }

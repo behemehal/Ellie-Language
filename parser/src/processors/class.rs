@@ -1,6 +1,9 @@
-use alloc::{borrow::ToOwned, vec};
+use alloc::{borrow::ToOwned, vec::Vec, vec};
 use ellie_core::{defs, error, warning};
-use ellie_tokenizer::{syntax::items::class::Class, tokenizer::PageType};
+use ellie_tokenizer::{
+    syntax::items::class::Class,
+    tokenizer::PageType,
+};
 
 impl super::Processor for Class {
     fn process(self, parser: &mut super::Parser, page_id: u64) {
@@ -124,11 +127,12 @@ impl super::Processor for Class {
 
             let mut items = self.body;
 
-            for generic in self.generic_definings {
+            for generic in self.generic_definings.clone() {
                 items.push(ellie_tokenizer::processors::items::Processors::GenericItem(
                     ellie_tokenizer::syntax::items::generic_item::GenericItem {
                         generic_name: generic.name,
                         pos: generic.pos,
+                        hash: generic.hash,
                     },
                 ));
             }
@@ -172,6 +176,11 @@ impl super::Processor for Class {
                     name_pos: self.name_pos,
                     pos: self.pos,
                     hash: self.hash,
+                    generic_definings: self.generic_definings.iter().map(|x| ellie_core::definite::items::class::GenericDefining {
+                        name: x.name.clone(),
+                        hash: x.hash.clone(),
+                        pos: x.pos,
+                    }).collect::<Vec<_>>(),
                 },
             );
             parser
