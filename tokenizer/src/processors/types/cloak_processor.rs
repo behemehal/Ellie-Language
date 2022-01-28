@@ -18,7 +18,7 @@ impl crate::processors::Processor for cloak_type::CloakTypeCollector {
                         key: "val".to_owned(),
                         value: letter_char.to_string(),
                     }],
-                    "cloak_0x21".to_owned(),
+                    file!().to_owned(),
                     defs::Cursor::build_with_skip_char(cursor),
                 ));
             }
@@ -51,7 +51,7 @@ impl crate::processors::Processor for cloak_type::CloakTypeCollector {
                     key: "val".to_owned(),
                     value: letter_char.to_string(),
                 }],
-                "cloak_0x54".to_owned(),
+                file!().to_owned(),
                 defs::Cursor::build_with_skip_char(cursor),
             ));
         }

@@ -1,7 +1,7 @@
-import error;
-import int;
-import function;
-import string;
+import error.ei;
+import int.ei;
+import function.ei;
+import string.ei;
 
 pub class callStack {
     pub v location: cursorPosition;

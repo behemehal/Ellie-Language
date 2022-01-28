@@ -21,7 +21,7 @@ impl crate::processors::Processor for function::FunctionCollector {
                             key: "token".to_string(),
                             value: letter_char.to_string(),
                         }],
-                        "var_0x23".to_owned(),
+                        file!().to_owned(),
                         defs::Cursor::build_with_skip_char(cursor),
                     ));
                 }
@@ -35,7 +35,7 @@ impl crate::processors::Processor for function::FunctionCollector {
                         key: "token".to_string(),
                         value: letter_char.to_string(),
                     }],
-                    "var_0x40".to_owned(),
+                    file!().to_owned(),
                     defs::Cursor::build_with_skip_char(cursor),
                 ));
             }
@@ -92,7 +92,7 @@ impl crate::processors::Processor for function::FunctionCollector {
                             key: "token".to_string(),
                             value: letter_char.to_string(),
                         }],
-                        "var_0x40".to_owned(),
+                        file!().to_owned(),
                         defs::Cursor::build_with_skip_char(cursor),
                     ));
                 }
@@ -148,7 +148,7 @@ impl crate::processors::Processor for function::FunctionCollector {
                         key: "token".to_string(),
                         value: letter_char.to_string(),
                     }],
-                    "var_0x102".to_owned(),
+                    file!().to_owned(),
                     defs::Cursor::build_with_skip_char(cursor),
                 ));
             }

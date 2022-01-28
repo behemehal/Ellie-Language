@@ -16,9 +16,10 @@ use std::hash::{Hash, Hasher};
 pub struct CompilerSettings {
     pub json_log: bool,
     pub name: String,
+    pub file_name: String,
     pub description: String,
     pub version: Version,
-    pub output_type: String,
+    pub output_type: cli_utils::OutputTypes,
     pub warnings: bool,
 }
 
@@ -58,97 +59,81 @@ pub fn get_output_path(
 pub fn compile(
     target_path: &Path,
     output_path: &Path,
-    modules: Vec<parser::Module>,
+    modules: Vec<(parser::Module, String)>,
     compiler_settings: CompilerSettings,
 ) {
-    let prefered_output_type = match compiler_settings.output_type.as_str() {
-        "bin" => cli_utils::OutputTypes::Bin,
-        "json" => cli_utils::OutputTypes::Json,
-        "depA" => cli_utils::OutputTypes::DependencyAnalysis,
-        _ => unreachable!(),
-    };
-
+    let starter_name = format!("<ellie_module_{}>", compiler_settings.name);
     match cli_utils::read_file(target_path) {
         Ok(main_file_content) => {
             //Auto import 'ellieStd'
             let used_modules = Mutex::new(vec!["ellieStd".to_string()]);
             let mut pager = tokenizer::Pager::new(
                 main_file_content,
-                target_path.to_str().unwrap().to_string(),
-                |path, file_name| {
-                    let path = Path::new(&path)
-                        .parent()
-                        .unwrap()
-                        .to_str()
-                        .unwrap()
-                        .to_string();
-                    let file = if cli_utils::file_exists(path.clone() + "/" + &file_name.clone()) {
-                        Some(path.clone() + "/" + &file_name.clone())
-                    } else if cli_utils::file_exists(
-                        path.clone() + "/" + &file_name.clone() + ".ei",
-                    ) {
-                        Some(path.clone() + "/" + &file_name.clone() + ".ei")
+                compiler_settings.file_name,
+                format!("{}/", starter_name),
+                |path, module_identifier| {
+                    if module_identifier.starts_with("@") {
+                        panic!("Link module not ready");
                     } else {
-                        None
-                    };
-
-                    if !compiler_settings.json_log && compiler_settings.warnings {
-                        println!(
-                            "{}[Warning]{}: A import used but resolver is not 100% ready. Be aware of {}errors{}",
-                            cli_utils::Colors::Yellow,
-                            cli_utils::Colors::Reset,
-                            cli_utils::Colors::Red,
-                            cli_utils::Colors::Reset
-                        );
-                    }
-
-                    if let Some(module) = modules.iter().find(|x| x.name == file_name) {
-                        if module.name != "ellieStd" {
-                            used_modules.lock().unwrap().push(module.name.clone());
-                        }
-                        ResolvedImport {
-                            found: true,
-                            matched: tokenizer::ImportType::Module(
-                                ellie_tokenizer::tokenizer::Module {
-                                    hash: module.hash,
-                                    initial_page: module.initial_page,
-                                    version: module.version.clone(),
-                                    name: module.name.clone(),
-                                },
-                            ),
-                            hash: module.hash,
-                            path: "<lia_virtual>".to_string(),
-                            ..Default::default()
-                        }
-                    } else {
-                        match file {
-                            Some(file) => {
-                                let file = Path::new(&file).absolutize().unwrap();
-                                match cli_utils::read_file(&file.to_str().unwrap().to_string()) {
-                                    Ok(ext) => {
-                                        let mut hasher = DefaultHasher::new();
-                                        ext.hash(&mut hasher);
-                                        ResolvedImport {
-                                            found: true,
-                                            matched: ellie_tokenizer::tokenizer::ImportType::Code(
-                                                ext,
-                                            ),
-                                            hash: hasher.finish(),
-                                            path: file.to_str().unwrap().to_string(),
-                                            ..Default::default()
+                        match ellie_core::module_path::parse_module_import(
+                            &path,
+                            &module_identifier,
+                        ) {
+                            Ok(path) => {
+                                let real_path = path
+                                    .replace(
+                                        &starter_name,
+                                        Path::new(target_path)
+                                            .absolutize()
+                                            .unwrap()
+                                            .parent()
+                                            .unwrap()
+                                            .to_str()
+                                            .unwrap(),
+                                    )
+                                    .clone();
+                                if Path::new(&real_path).exists() {
+                                    match cli_utils::read_file(real_path) {
+                                        Ok(data) => {
+                                            let mut hasher = DefaultHasher::new();
+                                            data.hash(&mut hasher);
+                                            ResolvedImport {
+                                                found: true,
+                                                matched:
+                                                    ellie_tokenizer::tokenizer::ImportType::Code(
+                                                        data,
+                                                    ),
+                                                hash: hasher.finish(),
+                                                path,
+                                                ..Default::default()
+                                            }
                                         }
+                                        Err(_) => ResolvedImport {
+                                            found: false,
+                                            resolve_error: "Cannot find file".to_string(),
+                                            ..Default::default()
+                                        },
                                     }
-                                    Err(err) => ResolvedImport {
+                                } else {
+                                    ResolvedImport {
                                         found: false,
-                                        resolve_error: err,
+                                        resolve_error: "Path is not exists".to_string(),
                                         ..Default::default()
-                                    },
+                                    }
                                 }
                             }
-                            None => ResolvedImport {
-                                found: false,
-                                ..Default::default()
-                            },
+                            Err(e) => {
+                                if e == 1 {
+                                    ResolvedImport {
+                                        found: false,
+                                        resolve_error: "Cannot access outside of workspace"
+                                            .to_string(),
+                                        ..Default::default()
+                                    }
+                                } else {
+                                    unreachable!()
+                                }
+                            }
                         }
                     }
                 },
@@ -159,9 +144,12 @@ pub fn compile(
                 Ok(_) => {
                     let mut parser =
                         parser::Parser::new(pager.pages.clone(), None, compiler_settings.version);
-                    for i in modules.iter() {
-                        if used_modules.lock().unwrap().contains(&(&i.name)) {
-                            parser.import_module(i.clone());
+
+                    for (module, path) in modules.iter() {
+                        if module.name == "ellie" {
+                            parser.import_module(module.clone());
+                        } else if used_modules.lock().unwrap().contains(&(&module.name)) {
+                            parser.import_module(module.clone());
                         }
                     }
 
@@ -186,14 +174,15 @@ pub fn compile(
                                 match cli_utils::read_file(&path) {
                                     Ok(e) => e,
                                     Err(err) => {
-                                        println!(
-                                            "Cannot read file '{}' {}[{}]{}",
+                                        panic!(
+                                            "{}[Internal Error]{} Cannot build warning, read file failed '{}' {}[{}]{}",
+                                            cli_utils::Colors::Red,
+                                            cli_utils::Colors::Reset,
                                             path,
                                             cli_utils::Colors::Red,
                                             err,
                                             cli_utils::Colors::Reset
                                         );
-                                        std::process::exit(1);
                                     }
                                 }
                             });
@@ -210,18 +199,60 @@ pub fn compile(
                             println!("{}", serde_json::to_string(&output).unwrap());
                         } else {
                             cli_utils::print_errors(&parser.informations.errors, |path| {
-                                match cli_utils::read_file(&path) {
-                                    Ok(e) => e,
-                                    Err(err) => {
-                                        println!(
-                                            "Failed to ouput error. Cannot read file '{}' {}[{}]{}",
-                                            path,
-                                            cli_utils::Colors::Red,
-                                            err,
-                                            cli_utils::Colors::Reset
-                                        );
-                                        std::process::exit(1);
+                                let path_starter = path.split("/").next().unwrap();
+                                let virtual_path_identifier =
+                                    match path_starter.split("<ellie_module_").last() {
+                                        Some(e) => e.split(">").next().unwrap(),
+                                        None => "",
+                                    };
+                                if path_starter == starter_name {
+                                    let real_path = path
+                                        .replace(
+                                            &starter_name,
+                                            Path::new(target_path)
+                                                .absolutize()
+                                                .unwrap()
+                                                .parent()
+                                                .unwrap()
+                                                .to_str()
+                                                .unwrap(),
+                                        )
+                                        .clone();
+                                    match cli_utils::read_file(real_path) {
+                                        Ok(e) => e,
+                                        Err(err) => {
+                                            panic!(
+                                                "Failed to ouput error. Cannot read file '{}' {}[{}]{}",
+                                                path,
+                                                cli_utils::Colors::Red,
+                                                err,
+                                                cli_utils::Colors::Reset
+                                            );
+                                        }
                                     }
+                                } else if let Some((module, module_path)) = modules
+                                    .iter()
+                                    .find(|(module, path)| module.name == virtual_path_identifier)
+                                {
+                                    let real_path =
+                                        path.replace(&path_starter, module_path).clone();
+                                    match cli_utils::read_file(real_path) {
+                                        Ok(e) => e,
+                                        Err(err) => {
+                                            panic!(
+                                                "Failed to ouput error. Cannot read file '{}' {}[{}]{}",
+                                                path,
+                                                cli_utils::Colors::Red,
+                                                err,
+                                                cli_utils::Colors::Reset
+                                            );
+                                        }
+                                    }
+                                } else {
+                                    panic!(
+                                        "Failed to ouput error. Cannot identify module '{}'",
+                                        path,
+                                    );
                                 }
                             });
                         }
@@ -312,9 +343,9 @@ pub fn compile(
                         let output_path = &get_output_path(
                             target_path,
                             output_path,
-                            prefered_output_type.clone(),
+                            compiler_settings.output_type.clone(),
                         );
-                        match prefered_output_type {
+                        match compiler_settings.output_type {
                             cli_utils::OutputTypes::Bin => {
                                 let bytes = bincode::serialize(&workspace).unwrap();
                                 if let Err(write_error) = fs::write(output_path, bytes) {
@@ -413,17 +444,29 @@ pub fn compile(
                         println!("{}", serde_json::to_string(&output).unwrap());
                     } else {
                         cli_utils::print_errors(&pager_errors, |path| {
-                            match cli_utils::read_file(&path) {
+                            match cli_utils::read_file(
+                                &path.replace(
+                                    &starter_name,
+                                    Path::new(target_path)
+                                        .absolutize()
+                                        .unwrap()
+                                        .parent()
+                                        .unwrap()
+                                        .to_str()
+                                        .unwrap(),
+                                ),
+                            ) {
                                 Ok(e) => e,
                                 Err(err) => {
-                                    println!(
-                                        "Cannot read file '{}' {}[{}]{}",
+                                    panic!(
+                                        "{}[Internal Error]{} Cannot build error, read file failed '{}' {}[{}]{}",
+                                        cli_utils::Colors::Red,
+                                        cli_utils::Colors::Reset,
                                         path,
                                         cli_utils::Colors::Red,
                                         err,
                                         cli_utils::Colors::Reset
                                     );
-                                    std::process::exit(1);
                                 }
                             }
                         });

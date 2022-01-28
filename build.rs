@@ -68,59 +68,68 @@ fn main() {
                         || ellie_core::builded_libraries::BUILDED_ELLIE_VERSION
                             != engine_constants::ELLIE_VERSION
                     {
+                        let starter_name = "<ellie_module_std>".to_string();
                         let mut pager = tokenizer::Pager::new(
                             ellie_lib,
-                            Path::new("./lib/ellie.ei").to_str().unwrap().to_string(),
-                            |path, file_name| {
-                                let path = Path::new(&path)
-                                    .parent()
-                                    .unwrap()
-                                    .to_str()
-                                    .unwrap()
-                                    .to_string();
-                                let file = if cli_utils::file_exists(
-                                    path.clone() + "/" + &file_name.clone(),
-                                ) {
-                                    Some(path.clone() + "/" + &file_name.clone())
-                                } else if cli_utils::file_exists(
-                                    path.clone() + "/" + &file_name.clone() + ".ei",
-                                ) {
-                                    Some(path.clone() + "/" + &file_name.clone() + ".ei")
+                            "/ellie.ei".to_string(),
+                            format!("{}/", starter_name),
+                            |path, module_identifier| {
+                                if module_identifier.starts_with("@") {
+                                    panic!("Link module not ready");
                                 } else {
-                                    None
-                                };
-
-                                match file {
-                                    Some(file) => {
-                                        let file = Path::new(&file).absolutize().unwrap();
-                                        match cli_utils::read_file(
-                                            &file.to_str().unwrap().to_string(),
-                                        ) {
-                                            Ok(ext) => {
-                                                let mut hasher = DefaultHasher::new();
-                                                ext.hash(&mut hasher);
+                                    match ellie_core::module_path::parse_module_import(
+                                        &path,
+                                        &module_identifier,
+                                    ) {
+                                        Ok(path) => {
+                                            let real_path = path
+                                                .replace(&starter_name, "./lib/ellie.ei")
+                                                .clone();
+                                            if Path::new(&real_path).exists() {
+                                                match cli_utils::read_file(real_path) {
+                                                    Ok(data) => {
+                                                        let mut hasher = DefaultHasher::new();
+                                                        data.hash(&mut hasher);
+                                                        ResolvedImport {
+                                                            found: true,
+                                                            matched:
+                                                                ellie_tokenizer::tokenizer::ImportType::Code(
+                                                                    data,
+                                                                ),
+                                                            hash: hasher.finish(),
+                                                            path,
+                                                            ..Default::default()
+                                                        }
+                                                    }
+                                                    Err(_) => ResolvedImport {
+                                                        found: false,
+                                                        resolve_error: "Cannot find file"
+                                                            .to_string(),
+                                                        ..Default::default()
+                                                    },
+                                                }
+                                            } else {
                                                 ResolvedImport {
-                                                    found: true,
-                                                    matched:
-                                                        ellie_tokenizer::tokenizer::ImportType::Code(
-                                                            ext,
-                                                        ),
-                                                    hash: hasher.finish(),
-                                                    path: file.to_str().unwrap().to_string(),
+                                                    found: false,
+                                                    resolve_error: "Path is not exists".to_string(),
                                                     ..Default::default()
                                                 }
                                             }
-                                            Err(err) => ResolvedImport {
-                                                found: false,
-                                                resolve_error: err,
-                                                ..Default::default()
-                                            },
+                                        }
+                                        Err(e) => {
+                                            if e == 1 {
+                                                ResolvedImport {
+                                                    found: false,
+                                                    resolve_error:
+                                                        "Cannot access outside of workspace"
+                                                            .to_string(),
+                                                    ..Default::default()
+                                                }
+                                            } else {
+                                                unreachable!()
+                                            }
                                         }
                                     }
-                                    None => ResolvedImport {
-                                        found: false,
-                                        ..Default::default()
-                                    },
                                 }
                             },
                             Some(343),
@@ -129,7 +138,9 @@ fn main() {
                         match pager.run() {
                             Err(e) => {
                                 cli_utils::print_errors(&e, |path| {
-                                    match cli_utils::read_file(&path) {
+                                    match cli_utils::read_file(
+                                        &path.replace(&starter_name, "./lib/"),
+                                    ) {
                                         Ok(e) => e,
                                         Err(err) => {
                                             println!(
@@ -163,17 +174,20 @@ fn main() {
                                 if !parser.informations.has_no_warnings() {
                                     cli_utils::print_warnings(
                                         &parser.informations.warnings,
-                                        |path| match cli_utils::read_file(&path) {
+                                        |path| match cli_utils::read_file(
+                                            &path.replace(&starter_name, "./lib/"),
+                                        ) {
                                             Ok(e) => e,
                                             Err(err) => {
-                                                println!(
-                                                    "Cannot read file '{}' {}[{}]{}",
+                                                panic!(
+                                                    "{}[Internal Error]{} Cannot build warning, read file failed '{}' {}[{}]{}",
+                                                    cli_utils::Colors::Red,
+                                                    cli_utils::Colors::Reset,
                                                     path,
                                                     cli_utils::Colors::Red,
                                                     err,
                                                     cli_utils::Colors::Reset
                                                 );
-                                                std::process::exit(1);
                                             }
                                         },
                                     );
@@ -181,7 +195,9 @@ fn main() {
 
                                 if !parser.informations.has_no_errors() {
                                     cli_utils::print_errors(&parser.informations.errors, |path| {
-                                        match cli_utils::read_file(&path) {
+                                        match cli_utils::read_file(
+                                            &path.replace(&starter_name, "./lib/"),
+                                        ) {
                                             Ok(e) => e,
                                             Err(err) => {
                                                 println!(

@@ -1,5 +1,5 @@
-import int;
-import string;
+import int.ei;
+import string.ei;
 
 pub class cursorPosition {
     co(line, column);

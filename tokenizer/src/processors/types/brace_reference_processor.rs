@@ -18,7 +18,7 @@ impl crate::processors::Processor for brace_reference_type::BraceReferenceTypeCo
                         key: "val".to_owned(),
                         value: letter_char.to_string(),
                     }],
-                    "brace_refence_0x34".to_owned(),
+                    file!().to_owned(),
                     defs::Cursor::build_with_skip_char(cursor),
                 ));
             }
@@ -36,7 +36,7 @@ impl crate::processors::Processor for brace_reference_type::BraceReferenceTypeCo
                     key: "val".to_owned(),
                     value: letter_char.to_string(),
                 }],
-                "array_0x21".to_owned(),
+                file!().to_owned(),
                 defs::Cursor::build_with_skip_char(cursor),
             ));
         }

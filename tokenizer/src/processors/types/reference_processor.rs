@@ -29,7 +29,7 @@ impl crate::processors::Processor for reference_type::ReferenceTypeCollector {
                     key: "token".to_string(),
                     value: letter_char.to_string(),
                 }],
-                "ref_0x40".to_owned(),
+                file!().to_owned(),
                 defs::Cursor::build_with_skip_char(cursor),
             ));
         }

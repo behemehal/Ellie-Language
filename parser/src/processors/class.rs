@@ -16,7 +16,7 @@ impl super::Processor for Class {
                         key: "token".to_owned(),
                         value: self.name,
                     }],
-                    "pcls_0x16".to_owned(),
+                    file!().to_owned(),
                     parser.find_page(page_id).unwrap().path.clone(),
                     self.name_pos,
                 );
@@ -33,7 +33,7 @@ impl super::Processor for Class {
                             key: "token".to_owned(),
                             value: self.name,
                         }],
-                        "pcls_0x31".to_owned(),
+                        file!().to_owned(),
                         path,
                         self.name_pos,
                     ))
@@ -90,7 +90,7 @@ impl super::Processor for Class {
                 for constructor in duplicate_constructors {
                     let mut err = error::error_list::ERROR_S30.clone().build_with_path(
                         vec![],
-                        "pcls_0x74".to_owned(),
+                        file!().to_owned(),
                         parser.find_page(page_id).unwrap().path.clone(),
                         constructor.unwrap().pos,
                     );
@@ -110,7 +110,7 @@ impl super::Processor for Class {
                     if other_index < index {
                         let mut err = error::error_list::ERROR_S10.clone().build_with_path(
                             vec![],
-                            "pcls_0x74".to_owned(),
+                            file!().to_owned(),
                             parser.find_page(page_id).unwrap().path.clone(),
                             generic.pos,
                         );

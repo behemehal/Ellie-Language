@@ -19,7 +19,7 @@ impl super::Processor for function::FunctionCollector {
                         key: "token".to_owned(),
                         value: self.data.name,
                     }],
-                    "pfn_0x22".to_owned(),
+                    file!().to_owned(),
                     parser.find_page(page_id).unwrap().path.clone(),
                     self.data.name_pos,
                 );
@@ -35,7 +35,7 @@ impl super::Processor for function::FunctionCollector {
                             key: "token".to_owned(),
                             value: self.data.name,
                         }],
-                        "pfn_0x38".to_owned(),
+                        file!().to_owned(),
                         page.path.clone(),
                         self.data.name_pos,
                     ))
@@ -71,7 +71,7 @@ impl super::Processor for function::FunctionCollector {
                     if other_index < index {
                         let mut err = error::error_list::ERROR_S10.clone().build_with_path(
                             vec![],
-                            "pfn_0x58".to_owned(),
+                            file!().to_owned(),
                             parser.find_page(page_id).unwrap().path.clone(),
                             parameter.pos,
                         );
@@ -85,7 +85,7 @@ impl super::Processor for function::FunctionCollector {
                     let (duplicate, found) = parser.is_duplicate(
                         page_id,
                         parameter.name.clone(),
-                        "".to_string(),
+                        0,
                         parameter.pos,
                     );
 
@@ -96,7 +96,7 @@ impl super::Processor for function::FunctionCollector {
                                     key: "token".to_owned(),
                                     value: parameter.name.clone(),
                                 }],
-                                "pfn_0x83".to_owned(),
+                                file!().to_owned(),
                                 parser.find_page(page_id).unwrap().path.clone(),
                                 parameter.pos,
                             );
@@ -111,7 +111,7 @@ impl super::Processor for function::FunctionCollector {
                                         key: "token".to_owned(),
                                         value: parameter.name.clone(),
                                     }],
-                                    "pfn_0x98".to_owned(),
+                                    file!().to_owned(),
                                     page.path.clone(),
                                     parameter.pos,
                                 ),
@@ -272,7 +272,7 @@ impl super::Processor for function::FunctionCollector {
                                     value: parser.resolve_type_name(ret.value),
                                 },
                             ],
-                            "pfn_0x253".to_owned(),
+                            file!().to_owned(),
                             parser.find_page(page_id).unwrap().path.clone(),
                             ret.pos,
                         );
@@ -295,7 +295,7 @@ impl super::Processor for function::FunctionCollector {
                                         value: given,
                                     },
                                 ],
-                                "pfn_0x276".to_owned(),
+                                file!().to_owned(),
                                 parser.find_page(page_id).unwrap().path.clone(),
                                 ret.pos,
                             );

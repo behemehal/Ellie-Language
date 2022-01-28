@@ -63,7 +63,7 @@ impl crate::processors::Processor for class_call_type::ClassCallCollector {
                         key: "val".to_owned(),
                         value: letter_char.to_string(),
                     }],
-                    "brace_refence_0x36".to_owned(),
+                    file!().to_owned(),
                     defs::Cursor::build_with_skip_char(cursor),
                 ));
             }
@@ -101,7 +101,7 @@ impl crate::processors::Processor for class_call_type::ClassCallCollector {
                     key: "val".to_owned(),
                     value: letter_char.to_string(),
                 }],
-                "class_call_0x101".to_owned(),
+                file!().to_owned(),
                 defs::Cursor::build_with_skip_char(cursor),
             ));
         }

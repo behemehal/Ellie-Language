@@ -9,28 +9,39 @@
       "request": "launch",
       "name": "Debug executable file",
       "cargo": {
-        "args": ["build", "--bin=ellie", "--package=ellie_engine"],
+        "args": ["build", "--bin=elliec", "--package=ellie_engine"],
         "filter": {
-          "name": "ellie",
+          "name": "elliec",
           "kind": "bin"
         }
       },
-      "args": ["${workspaceFolder}/test_dir/test.ei", "-rp"],
+      "args": [
+        "compile",
+        "${workspaceFolder}/test_dir/test.ei",
+        "--allow-panics",
+        "-i ${workspaceFolder}/test_dir/ellie.bin=${workspaceFolder}/lib/",
+        "--"
+      ],
       "cwd": "${workspaceFolder}"
     },
     {
       "type": "lldb",
       "request": "launch",
-      "name": "Debug builder file",
+      "name": "Debug executable (no std) file",
       "cargo": {
-        "args": ["build", "--bin=ellie", "--package=ellie_engine"],
+        "args": ["build", "--bin=elliec", "--package=ellie_engine"],
         "filter": {
-          "name": "ellie",
+          "name": "elliec",
           "kind": "bin"
         }
       },
-      "args": ["./test_dir_/test.ei", "-d"],
+      "args": [
+        "compile",
+        "${workspaceFolder}/test_dir/test.ei",
+        "--allow-panics",
+        "--"
+      ],
       "cwd": "${workspaceFolder}"
-    },
+    }
   ]
 }

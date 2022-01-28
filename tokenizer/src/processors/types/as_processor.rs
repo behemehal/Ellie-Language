@@ -19,7 +19,7 @@ impl crate::processors::Processor for as_keyword::AsKeywordCollector {
                             key: "token".to_string(),
                             value: letter_char.to_string(),
                         }],
-                        "a_0x67".to_owned(),
+                        file!().to_owned(),
                         defs::Cursor::build_with_skip_char(cursor),
                     ));
                 }
@@ -32,7 +32,7 @@ impl crate::processors::Processor for as_keyword::AsKeywordCollector {
                             key: "token".to_string(),
                             value: letter_char.to_string(),
                         }],
-                        "a_0x67".to_owned(),
+                        file!().to_owned(),
                         defs::Cursor::build_with_skip_char(cursor),
                     ));
                 }

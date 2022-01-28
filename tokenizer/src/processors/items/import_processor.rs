@@ -35,7 +35,7 @@ impl crate::processors::Processor for Import {
                                     key: "token".to_string(),
                                     value: letter_char.to_string(),
                                 }],
-                                "ip_0x36".to_owned(),
+                                file!().to_owned(),
                                 defs::Cursor::build_with_skip_char(cursor),
                             ));
                         }
@@ -49,7 +49,7 @@ impl crate::processors::Processor for Import {
                                 key: "token".to_string(),
                                 value: letter_char.to_string(),
                             }],
-                            "var_0x22".to_owned(),
+                            file!().to_owned(),
                             defs::Cursor::build_with_skip_char(cursor),
                         ));
                     } else if self.path != "" || (self.path == "" && letter_char != ' ') {
@@ -70,7 +70,7 @@ impl crate::processors::Processor for Import {
                             key: "token".to_string(),
                             value: letter_char.to_string(),
                         }],
-                        "var_0x43".to_owned(),
+                        file!().to_owned(),
                         defs::Cursor::build_with_skip_char(cursor),
                     ));
                 }

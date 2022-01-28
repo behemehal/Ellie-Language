@@ -33,13 +33,13 @@ impl Iterator {
         if !self.active.is_complete() && self.active.current.is_initalized() {
             self.errors.push(error::error_list::ERROR_S26.clone().build(
                 vec![],
-                "tok_0x26".to_owned(),
+                file!().to_owned(),
                 self.active.current.get_pos(),
             ));
         } else if self.multi_comment {
             self.errors.push(error::error_list::ERROR_S26.clone().build(
                 vec![],
-                "ite_0x32".to_owned(),
+                file!().to_owned(),
                 self.comment_pos,
             ));
         }
@@ -65,7 +65,7 @@ impl Iterator {
                         key: "token".to_string(),
                         value: letter_char.to_string(),
                     }],
-                    "ite_0x67".to_owned(),
+                    file!().to_owned(),
                     defs::Cursor::build_with_skip_char(self.pos),
                 ));
             }
@@ -101,7 +101,7 @@ impl Iterator {
                     if !e.cache.current.is_not_initialized() {
                         self.errors.push(error::error_list::ERROR_S26.clone().build(
                             vec![],
-                            "tok_0x68".to_owned(),
+                            file!().to_owned(),
                             e.pos,
                         ));
                         self.active = items::ItemProcessor::default();
@@ -136,7 +136,7 @@ impl Iterator {
                                 crate::syntax::items::condition::ConditionType::If => "",
                             }.to_string(),
                         }],
-                        "ite_0x141".to_owned(),
+                        file!().to_owned(),
                         last_chain.keyword_pos,
                     ));
                 } else if let items::Processors::Condition(past) =
@@ -174,7 +174,7 @@ impl Iterator {
                                     key: "token".to_string(),
                                     value: "else".to_string(),
                                 }],
-                                "ite_0x141".to_owned(),
+                                file!().to_owned(),
                                 last_chain.keyword_pos,
                             ));
                         }
@@ -189,7 +189,7 @@ impl Iterator {
                                 crate::syntax::items::condition::ConditionType::If => "",
                             }.to_string(),
                         }],
-                        "ite_0x153".to_owned(),
+                        file!().to_owned(),
                         last_chain.keyword_pos,
                     ));
                 }

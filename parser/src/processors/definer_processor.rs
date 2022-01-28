@@ -1,3 +1,5 @@
+use core::ops::Add;
+
 use alloc::format;
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
@@ -34,7 +36,7 @@ pub fn process(
                                     key: "token".to_string(),
                                     value: "cloak".to_string(),
                                 }],
-                                "def_pr_0x38".to_owned(),
+                                file!().to_owned(),
                                 parser.find_page(page_id).unwrap().path.clone(),
                                 e.pos,
                             );
@@ -49,7 +51,7 @@ pub fn process(
                                     key: "token".to_string(),
                                     value: "cloak".to_string(),
                                 }],
-                                "def_pr_0x53".to_owned(),
+                                file!().to_owned(),
                                 parser.find_page(page_id).unwrap().path.clone(),
                                 e.pos,
                             ));
@@ -62,7 +64,7 @@ pub fn process(
                         key: "token".to_string(),
                         value: "cloak".to_string(),
                     }],
-                    "def_pr_0x66".to_owned(),
+                    file!().to_owned(),
                     parser.find_page(page_id).unwrap().path.clone(),
                     e.pos,
                 ));
@@ -77,7 +79,7 @@ pub fn process(
                     crate::parser::DeepSearchItems::Class(array_class) => {
                         match process(*e.rtype.clone(), parser, page_id, ignore_hash) {
                             Ok(inner_type) => {
-                                if array_class.generic_definings.len() != 1 {
+                                if array_class.generic_definings.len() != 1 {        
                                     let mut error =
                                         error::error_list::ERROR_S44.clone().build_with_path(
                                             vec![
@@ -93,7 +95,7 @@ pub fn process(
                                                     value: 1.to_string(),
                                                 },
                                             ],
-                                            "def_pr_0x97".to_owned(),
+                                            file!().to_owned(),
                                             parser.find_page(page_id).unwrap().path.clone(),
                                             e.rtype.get_pos(),
                                         );
@@ -130,7 +132,7 @@ pub fn process(
                                     key: "token".to_string(),
                                     value: "array".to_string(),
                                 }],
-                                "def_pr_0x132".to_owned(),
+                                file!().to_owned(),
                                 parser.find_page(page_id).unwrap().path.clone(),
                                 e.pos,
                             );
@@ -145,7 +147,7 @@ pub fn process(
                                     key: "token".to_string(),
                                     value: "array".to_string(),
                                 }],
-                                "def_pr_0x147".to_owned(),
+                                file!().to_owned(),
                                 parser.find_page(page_id).unwrap().path.clone(),
                                 e.pos,
                             ));
@@ -158,7 +160,7 @@ pub fn process(
                         key: "token".to_string(),
                         value: "array".to_string(),
                     }],
-                    "def_pr_0x160".to_owned(),
+                    file!().to_owned(),
                     parser.find_page(page_id).unwrap().path.clone(),
                     e.pos,
                 ));
@@ -217,7 +219,7 @@ pub fn process(
                                     key: "token".to_string(),
                                     value: "collective".to_string(),
                                 }],
-                                "def_pr_0x219".to_owned(),
+                                file!().to_owned(),
                                 parser.find_page(page_id).unwrap().path.clone(),
                                 e.pos,
                             );
@@ -232,7 +234,7 @@ pub fn process(
                                     key: "token".to_string(),
                                     value: "collective".to_string(),
                                 }],
-                                "def_pr_0x234".to_owned(),
+                                file!().to_owned(),
                                 parser.find_page(page_id).unwrap().path.clone(),
                                 e.pos,
                             ));
@@ -245,7 +247,7 @@ pub fn process(
                         key: "token".to_string(),
                         value: "collective".to_string(),
                     }],
-                    "def_pr_0x247".to_owned(),
+                    file!().to_owned(),
                     parser.find_page(page_id).unwrap().path.clone(),
                     e.pos,
                 ));
@@ -281,7 +283,7 @@ pub fn process(
                                                     value: 1.to_string(),
                                                 },
                                             ],
-                                            "def_pr_0x283".to_owned(),
+                                            file!().to_owned(),
                                             parser.find_page(page_id).unwrap().path.clone(),
                                             e.rtype.get_pos(),
                                         );
@@ -318,7 +320,7 @@ pub fn process(
                                     key: "token".to_string(),
                                     value: "vector".to_string(),
                                 }],
-                                "def_pr_0x320".to_owned(),
+                                file!().to_owned(),
                                 parser.find_page(page_id).unwrap().path.clone(),
                                 e.pos,
                             );
@@ -333,7 +335,7 @@ pub fn process(
                                     key: "token".to_string(),
                                     value: "vector".to_string(),
                                 }],
-                                "def_pr_0x335".to_owned(),
+                                file!().to_owned(),
                                 parser.find_page(page_id).unwrap().path.clone(),
                                 e.pos,
                             ));
@@ -346,7 +348,7 @@ pub fn process(
                         key: "token".to_string(),
                         value: "vector".to_string(),
                     }],
-                    "def_pr_0x57".to_owned(),
+                    file!().to_owned(),
                     parser.find_page(page_id).unwrap().path.clone(),
                     e.pos,
                 ));
@@ -382,7 +384,7 @@ pub fn process(
                                                     value: 1.to_string(),
                                                 },
                                             ],
-                                            "def_pr_0x384".to_owned(),
+                                            file!().to_owned(),
                                             parser.find_page(page_id).unwrap().path.clone(),
                                             e.rtype.get_pos(),
                                         );
@@ -419,7 +421,7 @@ pub fn process(
                                     key: "token".to_string(),
                                     value: "nullAble".to_string(),
                                 }],
-                                "def_pr_0x421".to_owned(),
+                                file!().to_owned(),
                                 parser.find_page(page_id).unwrap().path.clone(),
                                 e.pos,
                             );
@@ -434,7 +436,7 @@ pub fn process(
                                     key: "token".to_string(),
                                     value: "nullAble".to_string(),
                                 }],
-                                "def_pr_0x436".to_owned(),
+                                file!().to_owned(),
                                 parser.find_page(page_id).unwrap().path.clone(),
                                 e.pos,
                             ));
@@ -447,7 +449,7 @@ pub fn process(
                         key: "token".to_string(),
                         value: "nullAble".to_string(),
                     }],
-                    "def_pr_0x449".to_owned(),
+                    file!().to_owned(),
                     parser.find_page(page_id).unwrap().path.clone(),
                     e.pos,
                 ));
@@ -477,7 +479,7 @@ pub fn process(
                                         value: generic.generics.len().to_string(),
                                     },
                                 ],
-                                "def_pr_0x67".to_owned(),
+                                file!().to_owned(),
                                 parser.find_page(page_id).unwrap().path.clone(),
                                 generic.pos,
                             );
@@ -511,7 +513,7 @@ pub fn process(
                                 key: "token".to_owned(),
                                 value: generic.parent,
                             }],
-                            "def_pr_0x71".to_owned(),
+                            file!().to_owned(),
                             parser.find_page(page_id).unwrap().path.clone(),
                             generic.parent_pos,
                         ));
@@ -522,7 +524,7 @@ pub fn process(
                                 key: "token".to_owned(),
                                 value: generic.parent,
                             }],
-                            "def_pr_0x48".to_owned(),
+                            file!().to_owned(),
                             parser.find_page(page_id).unwrap().path.clone(),
                             generic.parent_pos,
                         ));
@@ -534,7 +536,7 @@ pub fn process(
                         key: "token".to_owned(),
                         value: generic.parent,
                     }],
-                    "def_pr_0x94".to_owned(),
+                    file!().to_owned(),
                     parser.find_page(page_id).unwrap().path.clone(),
                     generic.parent_pos,
                 ));
@@ -570,7 +572,7 @@ pub fn process(
                                         value: "0".to_string(),
                                     },
                                 ],
-                                "def_pr_0x121".to_owned(),
+                                file!().to_owned(),
                                 parser.find_page(page_id).unwrap().path.clone(),
                                 generic.pos,
                             ));
@@ -584,7 +586,7 @@ pub fn process(
                                 key: "token".to_owned(),
                                 value: generic.rtype,
                             }],
-                            "def_pr_0x134".to_owned(),
+                            file!().to_owned(),
                             parser.find_page(page_id).unwrap().path.clone(),
                             generic.pos,
                         ));
@@ -602,7 +604,7 @@ pub fn process(
                                 key: "token".to_owned(),
                                 value: generic.rtype,
                             }],
-                            "def_pr_0x604".to_owned(),
+                            file!().to_owned(),
                             parser.find_page(page_id).unwrap().path.clone(),
                             generic.pos,
                         ));
@@ -614,7 +616,7 @@ pub fn process(
                         key: "token".to_owned(),
                         value: generic.rtype,
                     }],
-                    "def_pr_0x616".to_owned(),
+                    file!().to_owned(),
                     parser.find_page(page_id).unwrap().path.clone(),
                     generic.pos,
                 ));
@@ -645,7 +647,7 @@ pub fn process(
                                     key: "token".to_string(),
                                     value: "function".to_string(),
                                 }],
-                                "def_pr_0x642".to_owned(),
+                                file!().to_owned(),
                                 parser.find_page(page_id).unwrap().path.clone(),
                                 e.pos,
                             );
@@ -660,7 +662,7 @@ pub fn process(
                                     key: "token".to_string(),
                                     value: "function".to_string(),
                                 }],
-                                "def_pr_0x657".to_owned(),
+                                file!().to_owned(),
                                 parser.find_page(page_id).unwrap().path.clone(),
                                 e.pos,
                             ));
@@ -673,7 +675,7 @@ pub fn process(
                         key: "token".to_string(),
                         value: "function".to_string(),
                     }],
-                    "def_pr_0x670".to_owned(),
+                    file!().to_owned(),
                     parser.find_page(page_id).unwrap().path.clone(),
                     e.pos,
                 ));

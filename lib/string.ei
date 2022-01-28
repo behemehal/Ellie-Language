@@ -2,10 +2,10 @@
     Copyright (c) 2020 Behemehal. See license file for details
 */
 
-import array;
-import int;
-import char;
-import vector;
+import array.ei;
+import int.ei;
+import char.ei;
+import vector.ei;
 
 @version = "1.0.0";
 @description = "Ellie string"

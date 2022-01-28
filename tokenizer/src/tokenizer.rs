@@ -434,7 +434,7 @@ where
                                     key: "token".to_owned(),
                                     value: import.path.clone(),
                                 }],
-                                "tok_0x185".to_owned(),
+                                file!().to_owned(),
                                 page.path.clone(),
                                 import.pos,
                             ));
@@ -444,7 +444,7 @@ where
                                     key: "token".to_owned(),
                                     value: resolved.resolve_error,
                                 }],
-                                "tok_0x194".to_owned(),
+                                file!().to_owned(),
                                 page.path.clone(),
                                 import.pos,
                             ));

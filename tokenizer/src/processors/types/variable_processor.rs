@@ -19,7 +19,7 @@ impl crate::processors::Processor for variable_type::VariableTypeCollector {
                         key: "token".to_string(),
                         value: letter_char.to_string(),
                     }],
-                    "var_0x38".to_owned(),
+                    file!().to_owned(),
                     defs::Cursor::build_with_skip_char(cursor),
                 ));
             } else {
@@ -36,7 +36,7 @@ impl crate::processors::Processor for variable_type::VariableTypeCollector {
                     key: "token".to_string(),
                     value: letter_char.to_string(),
                 }],
-                "var_0x47".to_owned(),
+                file!().to_owned(),
                 defs::Cursor::build_with_skip_char(cursor),
             ));
         }

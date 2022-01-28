@@ -15,3 +15,4 @@ extern crate std;
 
 pub mod parser;
 pub mod processors;
+pub mod deep_search_extensions;

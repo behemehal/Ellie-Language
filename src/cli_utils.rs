@@ -1,5 +1,4 @@
 #![allow(dead_code)]
-
 use ellie_core::{defs, error, warning};
 use std::{
     collections::hash_map::DefaultHasher,
@@ -11,6 +10,25 @@ use std::{
 };
 
 extern crate path_absolutize;
+
+pub enum TextStyles {
+    Bold,
+    Dim,
+    Italic,
+    Underline,
+}
+
+impl Display for TextStyles {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let type_id = match self {
+            TextStyles::Bold => "[1m",
+            TextStyles::Dim => "[2m",
+            TextStyles::Italic => "[3m",
+            TextStyles::Underline => "[4m",
+        };
+        write!(f, "{}{}", '\u{001b}', type_id)
+    }
+}
 
 pub enum Colors {
     Black,
@@ -37,7 +55,7 @@ impl Display for Colors {
             Colors::White => "[37m",
             Colors::Reset => "[0m",
         };
-        return write!(f, "{}{}", '\u{001b}', color_id);
+        write!(f, "{}{}", '\u{001b}', color_id)
     }
 }
 
@@ -210,7 +228,10 @@ pub fn hash_warning(warning: &warning::Warning) -> String {
     hasher.finish().to_string()
 }
 
-pub fn print_warnings(warnings: &Vec<warning::Warning>, file_reader: fn(String) -> String) {
+pub fn print_warnings<E>(warnings: &Vec<warning::Warning>, file_reader: E)
+where
+    E: FnOnce(String) -> String + Clone + Copy + Sized,
+{
     for warning in warnings {
         println!(
             "\n{}Warning[{}]{}: {}{}{}\n",
@@ -306,7 +327,10 @@ pub fn print_warnings(warnings: &Vec<warning::Warning>, file_reader: fn(String) 
     }
 }
 
-pub fn print_errors(errors: &Vec<error::Error>, file_reader: fn(String) -> String) {
+pub fn print_errors<E>(errors: &Vec<error::Error>, file_reader: E)
+where
+    E: FnOnce(String) -> String + Clone + Copy + Sized,
+{
     for error in errors {
         println!(
             "\n{}Error[{:#04x} - {}]{}: {}{}{}\n",
@@ -318,11 +342,8 @@ pub fn print_errors(errors: &Vec<error::Error>, file_reader: fn(String) -> Strin
             error.builded_message.builded,
             Colors::Reset,
         );
-
         let file_content = file_reader(error.path.clone());
-
         let mut line_space = error.pos.range_start.0.to_string().len() + 1;
-
         if let Some(refr) = error.reference_block.clone() {
             let ref_file_content = file_reader(refr.1.clone());
             if line_space < refr.0.range_start.0.to_string().len() + 1 {
@@ -402,7 +423,7 @@ pub fn print_errors(errors: &Vec<error::Error>, file_reader: fn(String) -> Strin
             }
         }
 
-        if error.code == 0x00 {
+        if error.code == 0x00 && errors.len() > 2 {
             println!(
                 "\n{}{}{} other error omitted",
                 Colors::Red,

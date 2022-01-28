@@ -3,6 +3,9 @@ use clap::{App, AppSettings, Arg};
 use ellie_engine::{cli_outputs, cli_utils};
 use std::path::Path;
 
+#[derive(Debug, Clone)]
+struct EllieError {}
+
 fn main() {
     println!("\x1B]0;{}\x07", "Ellie Compiler");
 
@@ -11,6 +14,12 @@ fn main() {
         .subcommand(
             App::new("compile")
                 .about("Compile option")
+                .arg(
+                    Arg::new("allowPanics")
+                        .help("Allow panics")
+                        .short('a')
+                        .long("--allow-panics"),
+                )
                 .arg(
                     Arg::new("jsonLog")
                         .help("Output json log")
@@ -108,8 +117,44 @@ fn main() {
         );
 
     let matches = app.get_matches();
+
     match matches.subcommand() {
         Some(("compile", matches)) => {
+            if !matches.is_present("allowPanics") {
+                std::panic::set_hook(Box::new(|e| {
+                    println!(
+                        "\n\n{}-----------------{}\n",
+                        cli_utils::Colors::Blue,
+                        cli_utils::Colors::Reset
+                    );
+                    println!(
+                        "{}{}Oh no! A internal error occured;{}",
+                        cli_utils::Colors::Red,
+                        cli_utils::TextStyles::Bold,
+                        cli_utils::Colors::Red
+                    );
+                    println!(
+                        "{}Can you please share this error with us? This can help us solve issue faster. All you have to do is follow the link below {}[{}CTRL + Mouse Left Click might help{}]",
+                        cli_utils::Colors::Green,
+                        cli_utils::Colors::Reset,
+                        cli_utils::Colors::Yellow,
+                        cli_utils::Colors::Reset,
+                    );
+
+                    let line_and_col = if let Some(real_loc) = e.location() {
+                        format!("{}:{}", real_loc.line(), real_loc.column())
+                    } else {
+                        "?:?".to_string()
+                    };
+                    println!("\n{}{}https://github.com/behemehal/Ellie-Language/issues/new?labels=bug,Internal%20Error&title=Ellie%20Internal%20Error-{}&body=%23%20Ellie%20Internal%20Error%0AGenerated%20by%20elliec%20located%20at%20{}%0AEllieStd%20Version:{}%0AEllieVersion:{}%0A{}", cli_utils::TextStyles::Underline,cli_utils::Colors::Green,line_and_col, line_and_col, ellie_engine::engine_constants::ELLIE_STD_VERSION,ellie_engine::engine_constants::ELLIE_VERSION, cli_utils::Colors::Reset);
+                    println!(
+                        "\n{}-----------------{}\n\n",
+                        cli_utils::Colors::Blue,
+                        cli_utils::Colors::Reset
+                    );
+                    std::process::exit(1);
+                }));
+            }
             let version = ellie_core::defs::Version::build_from_string_checked(
                 matches.value_of("binaryVersion").unwrap().to_string(),
             )
@@ -121,6 +166,23 @@ fn main() {
                 );
                 std::process::exit(1);
             });
+
+            let output_type = match matches.value_of("outputType").unwrap() {
+                "bin" => cli_utils::OutputTypes::Bin,
+                "json" => cli_utils::OutputTypes::Json,
+                "depA" => cli_utils::OutputTypes::DependencyAnalysis,
+                _ => {
+                    println!(
+                        "{}Error:{} Given output type does not exist",
+                        cli_utils::Colors::Red,
+                        cli_utils::Colors::Reset
+                    );
+                    std::process::exit(1);
+                }
+            };
+
+            matches.value_of("binaryVersion").unwrap().to_string();
+
             let target_path = {
                 let path = Path::new(matches.value_of("target").unwrap().clone());
                 if path.exists() {
@@ -165,34 +227,39 @@ fn main() {
 
                 //Iter through all modules
                 for module in modules {
-                    let path = Path::new(module);
+                    let path = module.trim().split("=").collect::<Vec<_>>();
+                    if path.len() == 2 {
+                        let module_path = Path::new(path[0].trim());
+                        let code_path = Path::new(path[1].trim());
 
-                    //If module path is file
-                    if path.is_file() {
                         //If module path is file
-                        match cli_utils::read_file_bin(path) {
-                            Ok(file_content) => {
-                                match bincode::deserialize::<ellie_parser::parser::Module>(
-                                    file_content.as_slice(),
-                                ) {
-                                    Ok(module) => {
-                                        let current_ellie_version =
-                                            ellie_core::defs::Version::build_from_string(
-                                                ellie_engine::engine_constants::ELLIE_VERSION
-                                                    .to_owned(),
-                                            );
-                                        if current_ellie_version != module.ellie_version {
-                                            if matches.is_present("jsonLog") {
-                                                let mut cli_module_output =
-                                                    crate::cli_outputs::LEGACY_MODULE.clone();
-                                                cli_module_output.extra.push(
-                                                    cli_outputs::CliOuputExtraData {
-                                                        key: 0,
-                                                        value: module.ellie_version.clone(),
-                                                    },
-                                                )
-                                            } else {
-                                                println!(
+                        if module_path.is_file() {
+                            //If module path is file
+                            match cli_utils::read_file_bin(module_path) {
+                                Ok(file_content) => {
+                                    match bincode::deserialize::<ellie_parser::parser::Module>(
+                                        file_content.as_slice(),
+                                    ) {
+                                        Ok(module) => {
+                                            if code_path.is_dir() {
+                                                let current_ellie_version =
+                                                ellie_core::defs::Version::build_from_string(
+                                                    ellie_engine::engine_constants::ELLIE_VERSION
+                                                        .to_owned(),
+                                                );
+                                                if current_ellie_version != module.ellie_version {
+                                                    if matches.is_present("jsonLog") {
+                                                        let mut cli_module_output =
+                                                            crate::cli_outputs::LEGACY_MODULE
+                                                                .clone();
+                                                        cli_module_output.extra.push(
+                                                            cli_outputs::CliOuputExtraData {
+                                                                key: 0,
+                                                                value: module.ellie_version.clone(),
+                                                            },
+                                                        )
+                                                    } else {
+                                                        println!(
                                                     "\n{}Info{}: This module is legacy, used ellie_version: {}{}.{}.{}{} current ellie_version: {}{}.{}.{}{}",
                                                     cli_utils::Colors::Cyan,
                                                     cli_utils::Colors::Reset,
@@ -207,24 +274,40 @@ fn main() {
                                                     current_ellie_version.bug,
                                                     cli_utils::Colors::Reset,
                                                 );
+                                                    }
+                                                }
+                                                parsed_modules.push((module, path[1].to_string()));
+                                            } else {
+                                                println!(
+                                                    "{}Error:{} Module code path '{}{}{}' does not exist",
+                                                    cli_utils::Colors::Red,
+                                                    cli_utils::Colors::Reset,
+                                                    cli_utils::Colors::Yellow,
+                                                    path[1],
+                                                    cli_utils::Colors::Reset,
+                                                );
+                                                std::process::exit(1);
                                             }
                                         }
-                                        parsed_modules.push(module);
-                                    }
-                                    Err(e) => {
-                                        if matches.is_present("jsonLog") {
-                                            let mut cli_module_output =
-                                                cli_outputs::READ_BINARY_MODULE_ERROR.clone();
-                                            cli_module_output.extra.push(
-                                                cli_outputs::CliOuputExtraData { key: 0, value: 0 },
-                                            );
-                                            println!(
-                                                "{}",
-                                                serde_json::to_string_pretty(&cli_module_output)
+                                        Err(e) => {
+                                            if matches.is_present("jsonLog") {
+                                                let mut cli_module_output =
+                                                    cli_outputs::READ_BINARY_MODULE_ERROR.clone();
+                                                cli_module_output.extra.push(
+                                                    cli_outputs::CliOuputExtraData {
+                                                        key: 0,
+                                                        value: 0,
+                                                    },
+                                                );
+                                                println!(
+                                                    "{}",
+                                                    serde_json::to_string_pretty(
+                                                        &cli_module_output
+                                                    )
                                                     .unwrap()
-                                            );
-                                        } else {
-                                            println!(
+                                                );
+                                            } else {
+                                                println!(
                                                 "{}Error{}: Failed to decode module '{}{}{}' [{}{}{}]].",
                                                 cli_utils::Colors::Red,
                                                 cli_utils::Colors::Reset,
@@ -235,33 +318,41 @@ fn main() {
                                                 e,
                                                 cli_utils::Colors::Reset,
                                             );
+                                            }
+                                            std::process::exit(1);
                                         }
-                                        std::process::exit(1);
                                     }
                                 }
-                            }
-                            Err(e) => {
-                                println!(
-                                    "{}Error:{} Cannot read module file '{}{}{}' {}[{}]{}",
-                                    cli_utils::Colors::Red,
-                                    cli_utils::Colors::Reset,
-                                    cli_utils::Colors::Yellow,
-                                    module,
-                                    cli_utils::Colors::Reset,
-                                    cli_utils::Colors::Red,
-                                    e,
-                                    cli_utils::Colors::Reset,
-                                );
-                                std::process::exit(1);
-                            }
-                        };
+                                Err(e) => {
+                                    println!(
+                                        "{}Error:{} Cannot read module file '{}{}{}' {}[{}]{}",
+                                        cli_utils::Colors::Red,
+                                        cli_utils::Colors::Reset,
+                                        cli_utils::Colors::Yellow,
+                                        module,
+                                        cli_utils::Colors::Reset,
+                                        cli_utils::Colors::Red,
+                                        e,
+                                        cli_utils::Colors::Reset,
+                                    );
+                                    std::process::exit(1);
+                                }
+                            };
+                        } else {
+                            println!(
+                                "{}Error:{} Module '{}{}{}' does not exist",
+                                cli_utils::Colors::Red,
+                                cli_utils::Colors::Reset,
+                                cli_utils::Colors::Yellow,
+                                path[0].trim(),
+                                cli_utils::Colors::Reset,
+                            );
+                            std::process::exit(1);
+                        }
                     } else {
                         println!(
-                            "{}Error:{} Module '{}{}{}' does not exist",
+                            "{}Error:{} Modules without paths are not yet supported. Usage: --import-module ./binaryFile.bin=./ModuleFilesDirectory",
                             cli_utils::Colors::Red,
-                            cli_utils::Colors::Reset,
-                            cli_utils::Colors::Yellow,
-                            module,
                             cli_utils::Colors::Reset,
                         );
                         std::process::exit(1);
@@ -272,15 +363,57 @@ fn main() {
                 vec![]
             };
 
+            let project_name = match matches.value_of("moduleName") {
+                Some(e) => e.to_string(),
+                None => {
+                    let file_name = Path::new(&target_path)
+                        .file_name()
+                        .unwrap()
+                        .to_str()
+                        .unwrap();
+
+                    if file_name.contains(".") {
+                        file_name.split(".").next().unwrap().to_string()
+                    } else {
+                        file_name.to_string()
+                    }
+                }
+            };
+
+            if project_name.contains(" ")
+                || project_name.contains("/")
+                || project_name.contains(".")
+            {
+                println!(
+                    "{}Error:{} Wrong project name '{}{}{}'{}{}{}",
+                    cli_utils::Colors::Red,
+                    cli_utils::Colors::Reset,
+                    cli_utils::Colors::Yellow,
+                    project_name,
+                    cli_utils::Colors::Reset,
+                    cli_utils::Colors::Cyan,
+                    if matches.value_of("moduleName").is_none() {
+                        " (Which is the name of the file, you can change project name with '--module-name' option)"
+                    } else {
+                        ""
+                    },
+                    cli_utils::Colors::Reset,
+                );
+                std::process::exit(1);
+            }
+
             let compiler_settings = ellie_engine::compile_file::CompilerSettings {
                 json_log: matches.is_present("jsonLog"),
                 description: matches.value_of("description").unwrap().to_string(),
-                name: matches
-                    .value_of("moduleName")
-                    .unwrap_or(&target_path)
-                    .to_string(),
+                name: project_name,
                 version,
-                output_type: matches.value_of("outputType").unwrap().to_string(),
+                output_type,
+                file_name: Path::new(&target_path)
+                    .file_name()
+                    .unwrap()
+                    .to_str()
+                    .unwrap()
+                    .to_string(),
                 warnings: !matches.is_present("disableWarnings"),
             };
 

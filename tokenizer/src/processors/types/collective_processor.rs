@@ -18,7 +18,7 @@ impl crate::processors::Processor for collective_type::CollectiveTypeCollector {
                         key: "val".to_owned(),
                         value: letter_char.to_string(),
                     }],
-                    "collective_0x21".to_owned(),
+                    file!().to_owned(),
                     defs::Cursor::build_with_skip_char(cursor),
                 ));
             }
@@ -65,7 +65,7 @@ impl crate::processors::Processor for collective_type::CollectiveTypeCollector {
                     key: "val".to_owned(),
                     value: letter_char.to_string(),
                 }],
-                "collective_0x68".to_owned(),
+                file!().to_owned(),
                 defs::Cursor::build_with_skip_char(cursor),
             ));
         }

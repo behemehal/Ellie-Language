@@ -27,7 +27,7 @@ impl super::Processor for Import {
                         key: "token".to_owned(),
                         value: self.reference,
                     }],
-                    "imp_0x14".to_owned(),
+                    file!().to_owned(),
                     page_path.clone(),
                     self.reference_pos,
                 ));

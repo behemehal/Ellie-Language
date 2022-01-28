@@ -18,7 +18,7 @@ impl crate::processors::Processor for negative_type::Negative {
                         key: "token".to_string(),
                         value: letter_char.to_string(),
                     }],
-                    "neg_0x33".to_owned(),
+                    file!().to_owned(),
                     defs::Cursor::build_with_skip_char(cursor),
                 ));
             }

@@ -74,7 +74,7 @@ impl crate::processors::Processor for float_type::FloatTypeCollector {
                         key: "token".to_string(),
                         value: letter_char.to_string(),
                     }],
-                    "float_0x89".to_owned(),
+                    file!().to_owned(),
                     defs::Cursor::build_with_skip_char(cursor),
                 ));
             }

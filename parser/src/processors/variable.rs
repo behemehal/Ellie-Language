@@ -21,7 +21,7 @@ impl super::Processor for VariableCollector {
                         key: "token".to_owned(),
                         value: self.data.name,
                     }],
-                    "pvr_0x23".to_owned(),
+                    file!().to_owned(),
                     parser.find_page(page_id).unwrap().path.clone(),
                     self.data.name_pos,
                 );
@@ -38,7 +38,7 @@ impl super::Processor for VariableCollector {
                             key: "token".to_owned(),
                             value: self.data.name,
                         }],
-                        "pvr_0x23".to_owned(),
+                        file!().to_owned(),
                         page_path,
                         self.data.name_pos,
                     ))
@@ -119,11 +119,17 @@ impl super::Processor for VariableCollector {
                 );
 
                 if self.data.has_value && self.data.has_type {
-                    let defined = parser.resolve_definer_name(resolved_defining.unwrap());
-                    let given = parser.resolve_type_name(resolved_type.unwrap());
+                    //panic!("{:#?}\n{:#?}", resolved_defining.unwrap(), resolved_type.unwrap());
+                    //let defined = parser.resolve_definer_name(resolved_defining.unwrap());
+                    //let given = parser.resolve_type_name(resolved_type.unwrap());
+                    let (compare, defined, given) = parser.compare_defining_with_type(
+                        resolved_defining.unwrap(),
+                        resolved_type.unwrap(),
+                        page_id,
+                    );
                     let current_page = parser.find_processed_page(page_id).unwrap();
 
-                    if defined != given {
+                    if !compare {
                         let mut err = error::error_list::ERROR_S3.clone().build_with_path(
                             vec![
                                 error::ErrorBuildField {
@@ -135,7 +141,7 @@ impl super::Processor for VariableCollector {
                                     value: given,
                                 },
                             ],
-                            "pv_0x107".to_owned(),
+                            file!().to_owned(),
                             current_page.path.clone(),
                             self.data.value_pos,
                         );

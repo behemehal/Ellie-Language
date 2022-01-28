@@ -18,7 +18,7 @@ impl crate::processors::Processor for function_call_type::FunctionCallCollector 
                         key: "val".to_owned(),
                         value: letter_char.to_string(),
                     }],
-                    "function_call_0x36".to_owned(),
+                    file!().to_owned(),
                     defs::Cursor::build_with_skip_char(cursor),
                 ));
             }
@@ -58,7 +58,7 @@ impl crate::processors::Processor for function_call_type::FunctionCallCollector 
                     key: "token".to_owned(),
                     value: letter_char.to_string(),
                 }],
-                "function_call_0x60".to_owned(),
+                file!().to_owned(),
                 defs::Cursor::build_with_skip_char(cursor),
             ));
         }

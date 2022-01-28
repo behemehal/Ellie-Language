@@ -33,7 +33,7 @@ impl crate::processors::Processor for constructor::Constructor {
                                 key: "token".to_string(),
                                 value: letter_char.to_string(),
                             }],
-                            "co_0x37".to_owned(),
+                            file!().to_owned(),
                             defs::Cursor::build_with_skip_char(cursor),
                         ));
                     }
@@ -66,7 +66,7 @@ impl crate::processors::Processor for constructor::Constructor {
                         key: "token".to_string(),
                         value: letter_char.to_string(),
                     }],
-                    "co_0x65".to_owned(),
+                    file!().to_owned(),
                     defs::Cursor::build_with_skip_char(cursor),
                 ));
             }

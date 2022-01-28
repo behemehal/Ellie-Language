@@ -1,11 +1,11 @@
 /*
     Copyright (c) 2020 Behemehal. See license file for details
 */
-import string;
-import int;
-import vector;
-import error;
-import thread;
+import string.ei;
+import int.ei;
+import vector.ei;
+import error.ei;
+import thread.ei;
 
 pub class rawMemoryData {
     pub v type_id: int;

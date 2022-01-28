@@ -54,6 +54,9 @@ impl crate::processors::Processor for DefinerCollector {
                 }
             }
             DefinerTypes::Array(ref mut array_type) => {
+                if letter_char !=  ' ' {
+                    array_type.pos.range_end = cursor.clone();
+                }
                 if !array_type.type_collected {
                     if array_type.child_cache.complete && letter_char == ',' {
                         array_type.type_collected = true;

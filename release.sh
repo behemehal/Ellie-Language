@@ -1,6 +1,7 @@
 #!/bin/bash
 ver=(`sed -n 4p Cargo.toml`)
-echo -e "\e[33m[Info]\e[0m Starting build v${ver[2]//\"}"
+ellie_std_ver=(`sed -n 4p ./lib/ellie.ei | sed 's/;//'`)
+echo -e "\e[33m[Info]\e[0m Starting build v${ver[2]//\"} - EllieSTD v${ellie_std_ver[2]//\"}"
 {
     mkdir ./Release
 } &> /dev/null || { 
@@ -27,8 +28,17 @@ echo -e "\e[33m[Info]\e[0m Building for Linux"
 }
 echo -e "\e[33m[Info]\e[0m Moving target"
 {
-    mv './target/release/ellie' './Release/ellie'
+    mv './target/release/elliec' './Release/elliec'
     echo -e "\e[32m[Info]\e[0m Move success"
+} || { 
+    rm -r ./Release/
+    echo -e "\e[31m[Error]\e[0m Failed to move build output, cleaning folder"
+    exit 1
+}
+echo -e "\e[33m[Info]\e[0m Building ellieStd"
+{
+    ./Release/elliec compile ./lib/ellie.ei -m ellieStd -c "Ellie Standard Types" -p ./Release/ellieStd.bin -b ${ellie_std_ver[2]//\"}
+    echo -e "\e[32m[Info]\e[0m Building ellieStd success"
 } || { 
     rm -r ./Release/
     echo -e "\e[31m[Error]\e[0m Failed to move build output, cleaning folder"
@@ -54,7 +64,7 @@ echo -e "\e[33m[Info]\e[0m Building for Windows"
 }
 echo -e "\e[33m[Info]\e[0m Moving target"
 {
-    mv './target/x86_64-pc-windows-gnu/release/ellie.exe' './Release/ellie.exe'
+    mv './target/x86_64-pc-windows-gnu/release/elliec.exe' './Release/elliec.exe'
     echo -e "\e[32m[Info]\e[0m Move success"
 } || { 
     rm -r ./Release/
@@ -68,6 +78,7 @@ echo -e "\e[33m[Info]\e[0m Cleaning leftovers"
 } || {
     echo -e "\e[33m[Warning]\e[0m Failed to clean build continuing anyway, running command manualy may help `cargo clean`"
 }
+: '
 cd ./native-bridge
 echo -e "\e[33m[Info]\e[0m Creating native_bridge headers"
 {
@@ -78,14 +89,16 @@ echo -e "\e[33m[Info]\e[0m Creating native_bridge headers"
     echo -e "\e[31m[Error]\e[0m Failed to build headers. Cleaning folder anyways"
     exit 1
 }
-cd ../
+: '
+#cd ../
 cd ./Release
 echo -e "\e[33m[Info]\e[0m Creating shasum"
 {
-    windows_s=`sha256sum -b ./ellie.exe`
-    linux_s=`sha256sum -b ./ellie`
-    headers=`sha256sum -b ./ellie_native_bridge.h`
-    file="EllieBuild: v${ver[2]//\"}\\n\\t$windows_s\\n\\t$linux_s\\n\\t$headers"
+    windows_s=`sha256sum -b ./elliec.exe`
+    linux_s=`sha256sum -b ./elliec`
+    #headers=`sha256sum -b ./ellie_native_bridge.h`
+    std=`sha256sum -b ./ellieStd.bin`
+    file="EllieBuild: v${ver[2]//\"}\\n\\t$windows_s\\n\\t$linux_s\\n\\t$std"
     printf "$file" > ./SHASUMS256.txt
     echo -e "\e[32m[Info]\e[0m Release complete"
     exit 0

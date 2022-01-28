@@ -21,7 +21,7 @@ impl crate::processors::Processor for class::Class {
                             key: "token".to_string(),
                             value: letter_char.to_string(),
                         }],
-                        "class_0x24".to_owned(),
+                        file!().to_owned(),
                         defs::Cursor::build_with_skip_char(cursor),
                     ));
                 }
@@ -39,7 +39,7 @@ impl crate::processors::Processor for class::Class {
                         key: "token".to_string(),
                         value: letter_char.to_string(),
                     }],
-                    "class_0x41".to_owned(),
+                    file!().to_owned(),
                     defs::Cursor::build_with_skip_char(cursor),
                 ));
             }
@@ -64,7 +64,7 @@ impl crate::processors::Processor for class::Class {
                                 key: "token".to_string(),
                                 value: letter_char.to_string(),
                             }],
-                            "class_0x66".to_owned(),
+                            file!().to_owned(),
                             defs::Cursor::build_with_skip_char(cursor),
                         ));
                     }
@@ -88,7 +88,7 @@ impl crate::processors::Processor for class::Class {
                         key: "token".to_string(),
                         value: letter_char.to_string(),
                     }],
-                    "class_0x89".to_owned(),
+                    file!().to_owned(),
                     defs::Cursor::build_with_skip_char(cursor),
                 ));
             }
@@ -101,7 +101,7 @@ impl crate::processors::Processor for class::Class {
                         key: "token".to_string(),
                         value: letter_char.to_string(),
                     }],
-                    "class_0x102".to_owned(),
+                    file!().to_owned(),
                     defs::Cursor::build_with_skip_char(cursor),
                 ));
             }

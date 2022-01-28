@@ -1,5 +1,5 @@
 use crate::{definite::types::Types, defs};
-use alloc::boxed::Box;
+use alloc::{boxed::Box, borrow::ToOwned};
 use alloc::string::String;
 use alloc::vec::Vec;
 use serde::{Deserialize, Serialize};
@@ -77,6 +77,20 @@ pub enum DefinerCollecting {
 }
 
 impl DefinerCollecting {
+    pub fn to_string(&self) -> String {
+        match self {
+            DefinerCollecting::Array(_) => "array".to_owned(),
+            DefinerCollecting::Vector(_) => "vector".to_owned(),
+            DefinerCollecting::Generic(generic) => generic.rtype.to_owned(),
+            DefinerCollecting::ParentGeneric(parent_generic) => parent_generic.rtype.to_owned(),
+            DefinerCollecting::Function(_) => "function".to_owned(),
+            DefinerCollecting::Cloak(_) => "cloak".to_owned(),
+            DefinerCollecting::Collective(_) => "collective".to_owned(),
+            DefinerCollecting::Nullable(_) => "nullAble".to_owned(),
+            DefinerCollecting::Dynamic => "dynamic".to_owned(),
+        }
+    }
+
     pub fn same_as(&self, other: DefinerCollecting) -> bool {
         match self {
             DefinerCollecting::Array(data) => {

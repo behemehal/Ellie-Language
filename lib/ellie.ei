@@ -1,20 +1,20 @@
 /*
     Copyright (c) 2020 Behemehal. See license file for details
 */
-@version = "0.2.1"; //Changing this triggers build.rs
-pub import void;
-pub import string;
-pub import char;
-pub import collective;
-pub import float;
-pub import bool;
-pub import cloak;
-pub import array;
-pub import vector;
-pub import function;
-pub import nullAble;
-pub import class;
-pub import int;
-pub import dyn;
-pub import error;
-pub import mem;
+@version = "0.2.2"; //Changing this triggers build.rs
+pub import void.ei;
+pub import string.ei;
+pub import char.ei;
+pub import collective.ei;
+pub import float.ei;
+pub import bool.ei;
+pub import cloak.ei;
+pub import array.ei;
+pub import vector.ei;
+pub import function.ei;
+pub import nullAble.ei;
+pub import class.ei;
+pub import int.ei;
+pub import dyn.ei;
+pub import error.ei;
+pub import mem.ei;

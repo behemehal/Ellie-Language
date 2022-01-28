@@ -18,7 +18,7 @@ impl crate::processors::Processor for FileKey {
                         key: "token".to_string(),
                         value: letter_char.to_string(),
                     }],
-                    "filek_0x24".to_owned(),
+                    file!().to_owned(),
                     defs::Cursor::build_with_skip_char(cursor),
                 ));
             }
@@ -34,7 +34,7 @@ impl crate::processors::Processor for FileKey {
                             key: "token".to_string(),
                             value: letter_char.to_string(),
                         }],
-                        "var_0x23".to_owned(),
+                        file!().to_owned(),
                         defs::Cursor::build_with_skip_char(cursor),
                     ));
                 }
@@ -49,7 +49,7 @@ impl crate::processors::Processor for FileKey {
                         key: "token".to_string(),
                         value: letter_char.to_string(),
                     }],
-                    "var_0x40".to_owned(),
+                    file!().to_owned(),
                     defs::Cursor::build_with_skip_char(cursor),
                 ));
             }

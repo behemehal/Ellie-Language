@@ -2,8 +2,8 @@
     Copyright (c) 2020 Behemehal. See license file for details
 */
 
-import thread;
-import string;
+import thread.ei;
+import string.ei;
 
 pub class function {
     pub v name: string;
