@@ -1,7 +1,9 @@
+use crate::utils::generate_hash;
 use crate::{definite::types::Types, defs};
-use alloc::{boxed::Box, borrow::ToOwned};
+use alloc::format;
 use alloc::string::String;
 use alloc::vec::Vec;
+use alloc::{borrow::ToOwned, boxed::Box};
 use serde::{Deserialize, Serialize};
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
@@ -82,12 +84,21 @@ impl DefinerCollecting {
             DefinerCollecting::Array(_) => "array".to_owned(),
             DefinerCollecting::Vector(_) => "vector".to_owned(),
             DefinerCollecting::Generic(generic) => generic.rtype.to_owned(),
-            DefinerCollecting::ParentGeneric(parent_generic) => parent_generic.rtype.to_owned(),
+            DefinerCollecting::ParentGeneric(parent_generic) => format!(
+                "{}<{}>",
+                parent_generic.rtype,
+                parent_generic
+                    .generics
+                    .iter()
+                    .map(|g| g.value.to_string())
+                    .collect::<Vec<String>>()
+                    .join(", ")
+            ),
             DefinerCollecting::Function(_) => "function".to_owned(),
             DefinerCollecting::Cloak(_) => "cloak".to_owned(),
             DefinerCollecting::Collective(_) => "collective".to_owned(),
             DefinerCollecting::Nullable(_) => "nullAble".to_owned(),
-            DefinerCollecting::Dynamic => "dynamic".to_owned(),
+            DefinerCollecting::Dynamic => "dyn".to_owned(),
         }
     }
 
@@ -107,8 +118,26 @@ impl DefinerCollecting {
                     false
                 }
             }
-            DefinerCollecting::Generic(_) => todo!(),
-            DefinerCollecting::ParentGeneric(_) => todo!(),
+            DefinerCollecting::Generic(generic) => {
+                if let DefinerCollecting::Generic(other_generic) = other {
+                    other_generic.rtype == generic.rtype && other_generic.hash == generic.hash
+                } else {
+                    false
+                }
+            },
+            DefinerCollecting::ParentGeneric(parent_generic) => {
+                if let DefinerCollecting::ParentGeneric(other_parent_generic) = other {
+                    other_parent_generic.rtype == parent_generic.rtype && other_parent_generic.hash == parent_generic.hash
+                        && other_parent_generic.generics.len() == parent_generic.generics.len()
+                        && other_parent_generic
+                            .generics
+                            .iter()
+                            .zip(parent_generic.generics.iter())
+                            .all(|(a, b)| a.value.same_as(b.value.clone()))
+                } else {
+                    false
+                }
+            },
             DefinerCollecting::Function(_) => todo!(),
             DefinerCollecting::Cloak(_) => todo!(),
             DefinerCollecting::Collective(_) => todo!(),
@@ -116,4 +145,6 @@ impl DefinerCollecting {
             DefinerCollecting::Dynamic => todo!(),
         }
     }
+
+    
 }

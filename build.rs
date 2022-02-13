@@ -68,6 +68,11 @@ fn main() {
                         || ellie_core::builded_libraries::BUILDED_ELLIE_VERSION
                             != engine_constants::ELLIE_VERSION
                     {
+                        let mut main_hasher = DefaultHasher::new();
+                        ellie_lib.hash(&mut main_hasher);
+
+                        let first_page_hash = main_hasher.finish();
+
                         let starter_name = "<ellie_module_std>".to_string();
                         let mut pager = tokenizer::Pager::new(
                             ellie_lib,
@@ -132,7 +137,7 @@ fn main() {
                                     }
                                 }
                             },
-                            Some(343),
+                            first_page_hash.clone(),
                         );
 
                         match pager.run() {
@@ -158,7 +163,7 @@ fn main() {
                             Ok(_) => {
                                 let mut parser = parser::Parser::new(
                                     pager.pages.clone(),
-                                    Some(343),
+                                    first_page_hash,
                                     ellie_core::defs::Version::build_from_string(
                                         lib_version.clone(),
                                     ),

@@ -54,7 +54,6 @@ impl Default for PageType {
 /// * `dependencies` - A list of dependencies of the page use
 ///
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
-
 pub struct Page {
     pub hash: u64,
     pub inner: Option<u64>,
@@ -106,7 +105,6 @@ impl Default for ImportType {
 /// * `matched` - The type of the import see [`ImportType`]
 ///
 #[derive(Default, Debug)]
-
 pub struct ResolvedImport {
     pub found: bool,
     pub resolve_error: String,
@@ -270,13 +268,13 @@ where
         main_file_name: String,
         path: String,
         import_resolver: E,
-        initial_hash: Option<u64>,
+        initial_hash: u64,
     ) -> Self {
         Pager {
             main: main,
             main_path: path.clone(),
             pages: vec![Page {
-                hash: initial_hash.unwrap_or(0),
+                hash: initial_hash,
                 inner: None,
                 path: path + &main_file_name,
                 processed: false,
@@ -288,7 +286,7 @@ where
                 unreachable: false,
                 unreachable_range: defs::Cursor::default(),
             }],
-            current_page: initial_hash.unwrap_or(0),
+            current_page: initial_hash,
             import_resolver,
             modules: vec![],
         }

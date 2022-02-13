@@ -76,16 +76,7 @@ pub fn parse(target_path: &Path, json_log: bool) {
                 } else {
                     let mut output = format!("ModuleName        = {}\nModuleDescription = {}\nModuleVersion     = {}.{}.{}\nEllieVersion      = {}.{}.{}", module.name, module.description, module.version.major, module.version.minor, module.version.bug, module.ellie_version.major, module.ellie_version.minor, module.ellie_version.bug);
                     if module.modules.len() > 0 {
-                        output.push_str("\\nInnerModules  :\n");
-                        for module in module.modules.iter() {
-                            output.push_str(&format!(
-                                "\t{} {}.{}.{}\n",
-                                module.name,
-                                module.version.major,
-                                module.version.minor,
-                                module.version.bug
-                            ));
-                        }
+                        output.push_str("\nInnerModules      =\n");
                     }
 
                     for inner_module in module.modules {

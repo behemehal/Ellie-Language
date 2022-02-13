@@ -65,6 +65,9 @@ pub fn compile(
     let starter_name = format!("<ellie_module_{}>", compiler_settings.name);
     match cli_utils::read_file(target_path) {
         Ok(main_file_content) => {
+            let mut main_file_hasher = DefaultHasher::new();
+            main_file_content.hash(&mut main_file_hasher);
+            let first_page_hash = main_file_hasher.finish();
             //Auto import 'ellieStd'
             let used_modules = Mutex::new(vec!["ellieStd".to_string()]);
             let mut pager = tokenizer::Pager::new(
@@ -137,13 +140,13 @@ pub fn compile(
                         }
                     }
                 },
-                None,
+                first_page_hash.clone()
             );
 
             match pager.run() {
                 Ok(_) => {
                     let mut parser =
-                        parser::Parser::new(pager.pages.clone(), None, compiler_settings.version);
+                        parser::Parser::new(pager.pages.clone(), first_page_hash, compiler_settings.version);
 
                     for (module, path) in modules.iter() {
                         if module.name == "ellie" {

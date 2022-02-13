@@ -54,7 +54,7 @@ fn main() {
                         .help("Description of module")
                         .short('c')
                         .long("--module-description")
-                        .default_value("A ellie package")
+                        .default_value("A ellie module")
                         .takes_value(true),
                 )
                 .arg(

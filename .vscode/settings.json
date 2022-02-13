@@ -1,4 +1,9 @@
 {
     "editor.wordWrap": "off",
-    "editor.ruler": 180
+    "editor.ruler": 180,
+    "editor.suggest.preview": true,
+    "editor.suggest.showStatusBar": true,
+    "workbench.list.smoothScrolling": true,
+    "workbench.editor.highlightModifiedTabs": true,
+    "search.showLineNumbers": true
 }

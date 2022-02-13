@@ -26,24 +26,22 @@ pub fn process(
 
             if deep_search_result.found {
                 match deep_search_result.found_item {
-                    crate::parser::DeepSearchItems::Class(e) => {
-                        Ok(types::Types::ClassCall(
-                            ellie_core::definite::types::class_call::ClassCall {
-                                target: Box::new(ellie_core::definite::types::Types::VariableType(
-                                    ellie_core::definite::types::variable::VariableType {
-                                        value: e.name.clone(),
-                                        reference: e.hash,
-                                        pos: ellie_core::defs::Cursor::default(),
-                                    },
-                                )),
-                                params: vec![],
-                                keyword_pos: ellie_core::defs::Cursor::default(),
-                                target_pos: ellie_core::defs::Cursor::default(),
-                                generic_parameters: vec![],
-                                pos: ellie_core::defs::Cursor::default(),
-                            },
-                        ))
-                    }
+                    crate::parser::DeepSearchItems::Class(e) => Ok(types::Types::ClassCall(
+                        ellie_core::definite::types::class_call::ClassCall {
+                            target: Box::new(ellie_core::definite::types::Types::VariableType(
+                                ellie_core::definite::types::variable::VariableType {
+                                    value: e.name.clone(),
+                                    reference: e.hash,
+                                    pos: ellie_core::defs::Cursor::default(),
+                                },
+                            )),
+                            params: vec![],
+                            keyword_pos: ellie_core::defs::Cursor::default(),
+                            target_pos: ellie_core::defs::Cursor::default(),
+                            generic_parameters: vec![],
+                            pos: ellie_core::defs::Cursor::default(),
+                        },
+                    )),
                     crate::parser::DeepSearchItems::Variable(e) => {
                         Ok(types::Types::VariableType(types::variable::VariableType {
                             value: e.name,
@@ -92,11 +90,28 @@ pub fn process(
         }
         Processors::Negative(_) => todo!("negative type not yet implemented"),
         Processors::Array(array_type) => {
+            let mut collective = vec![];
             for i in array_type.data.collective {
-                
+                let response = process(i.value, parser, page_id, ignore_hash);
+                if response.is_err() {
+                    errors.append(&mut response.unwrap_err());
+                } else {
+                    collective.push(types::array::ArrayEntry {
+                        value: response.unwrap(),
+                        location: i.location,
+                    });
+                }
             }
-            todo!("array type not yet implemented")
-        },
+
+            if errors.len() == 0 {
+                Ok(types::Types::Array(types::array::ArrayType {
+                    collective,
+                    pos: from.get_pos(),
+                }))
+            } else {
+                Err(errors)
+            }
+        }
         Processors::Operator(_) => todo!("operator type not yet implemented"),
         Processors::Reference(_) => todo!("reference type not yet implemented"),
         Processors::BraceReference(_) => todo!("brace_reference_type type not yet implemented"),

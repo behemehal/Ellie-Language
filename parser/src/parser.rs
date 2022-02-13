@@ -1,3 +1,4 @@
+use crate::deep_search_extensions;
 use crate::processors::Processor;
 use alloc::borrow::ToOwned;
 use alloc::string::ToString;
@@ -122,17 +123,13 @@ impl DeepSearchItems {
 }
 
 impl Parser {
-    pub fn new(
-        pages: Vec<Page>,
-        initial_hash: Option<u64>,
-        version: ellie_core::defs::Version,
-    ) -> Parser {
+    pub fn new(pages: Vec<Page>, initial_hash: u64, version: ellie_core::defs::Version) -> Parser {
         Parser {
             version,
             pages,
             processed_pages: vec![],
             modules: vec![],
-            initial_page: initial_hash.unwrap_or(0),
+            initial_page: initial_hash,
             informations: information::Informations::new(),
         }
     }
@@ -163,7 +160,11 @@ impl Parser {
             .map(|x| ellie_tokenizer::tokenizer::Dependency {
                 hash: x.hash,
                 processed: true,
-                module: Some(module.initial_page),
+                module: if x.hash == module.initial_page {
+                    None
+                } else {
+                    Some(module.initial_page)
+                },
                 deep_link: if x.hash == 343 { None } else { Some(343) },
                 public: false,
             })
@@ -174,6 +175,7 @@ impl Parser {
             .dependencies
             .extend(imported_dependencies);
         self.pages.extend(unprocessed_pages);
+        self.processed_pages.extend(module.pages);
     }
 
     pub fn resolve_type_name(&self, rtype: ellie_core::definite::types::Types) -> String {
@@ -207,11 +209,10 @@ impl Parser {
         rtype: ellie_core::definite::types::Types,
         target_page: u64,
     ) -> (bool, String, String) {
-        let c = crate::deep_search_extensions::resolve_deep_type(self, target_page, rtype);
+        let c = crate::deep_search_extensions::resolve_deep_type(self, target_page, rtype.clone());
         match c {
             crate::deep_search_extensions::DeepTypeResult::Integer(_) => {
                 if let ellie_core::definite::definers::DefinerCollecting::Generic(_) = defining {
-                    let q = defining.to_string();
                     if defining.to_string() == "int" {
                         (true, defining.to_string(), "int".to_owned())
                     } else {
@@ -268,7 +269,41 @@ impl Parser {
             crate::deep_search_extensions::DeepTypeResult::Collective(_) => todo!(),
             crate::deep_search_extensions::DeepTypeResult::Operator(_) => todo!(),
             crate::deep_search_extensions::DeepTypeResult::Cloak(_) => todo!(),
-            crate::deep_search_extensions::DeepTypeResult::Array(_) => todo!(),
+            crate::deep_search_extensions::DeepTypeResult::Array(arr) => {
+                let value_gen = deep_search_extensions::resolve_type(rtype, target_page, self);
+
+                if value_gen.same_as(defining.clone()) {
+                    (true, defining.to_string(), value_gen.to_string())
+                } else {
+                    (false, defining.to_string(), value_gen.to_string())
+                }
+
+                /*
+                if let ellie_core::definite::definers::DefinerCollecting::ParentGeneric(
+                    parent_generic,
+                ) = defining.clone()
+                {
+                    if parent_generic.rtype == "array" {
+                        if let ellie_core::definite::definers::DefinerCollecting::ParentGeneric(
+                            value_generic,
+                        ) = value_gen.clone()
+                        {
+                            if value_generic.rtype == "array" {
+                                panic!("{:#?} == {:#?}", value_generic, parent_generic);
+                            } else {
+                                (false, defining.to_string(), value_gen.to_string())
+                            }
+                        } else {
+                            (false, defining.to_string(), value_gen.to_string())
+                        }
+                    } else {
+                        (false, defining.to_string(), "arrayE".to_owned())
+                    }
+                } else {
+                    (false, defining.to_string(), "arrayC".to_owned())
+                }
+                */
+            }
             crate::deep_search_extensions::DeepTypeResult::Vector(_) => todo!(),
             crate::deep_search_extensions::DeepTypeResult::ClassCall(_) => todo!(),
             crate::deep_search_extensions::DeepTypeResult::FunctionCall(_) => todo!(),
@@ -318,7 +353,7 @@ impl Parser {
             ellie_core::definite::definers::DefinerCollecting::Nullable(_) => {
                 "NullAble".to_string()
             }
-            ellie_core::definite::definers::DefinerCollecting::Dynamic => "Dynamic".to_string(),
+            ellie_core::definite::definers::DefinerCollecting::Dynamic => "dyn".to_string(),
         }
     }
 
