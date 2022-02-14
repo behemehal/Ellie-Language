@@ -1,11 +1,12 @@
+use alloc::borrow::ToOwned;
 use alloc::boxed::Box;
 use alloc::string::ToString;
 use alloc::vec;
 use alloc::vec::Vec;
-use alloc::{borrow::ToOwned, string::String};
-use ellie_core::definite::Converter;
 use ellie_core::{definite::types, error};
 use ellie_tokenizer::processors::types::Processors;
+
+use crate::deep_search_extensions::{resolve_deep_type, resolve_type};
 
 pub fn process(
     from: Processors,
@@ -14,6 +15,24 @@ pub fn process(
     ignore_hash: Option<u64>,
 ) -> Result<types::Types, Vec<error::Error>> {
     let mut errors = Vec::new();
+
+    let (type_allowed, err_str) = parser.parser_settings.is_type_allowed(from.clone());
+
+    if !type_allowed {
+        let path = parser.find_page(page_id).unwrap().path.clone();
+        parser
+            .informations
+            .push(&error::error_list::ERROR_S47.clone().build_with_path(
+                vec![error::ErrorBuildField {
+                    key: "token".to_owned(),
+                    value: err_str,
+                }],
+                file!().to_owned(),
+                path,
+                from.get_pos(),
+            ));
+    }
+
     match from.clone() {
         Processors::Variable(variable) => {
             let deep_search_result = parser.deep_search(
@@ -114,7 +133,114 @@ pub fn process(
         }
         Processors::Operator(_) => todo!("operator type not yet implemented"),
         Processors::Reference(_) => todo!("reference type not yet implemented"),
-        Processors::BraceReference(_) => todo!("brace_reference_type type not yet implemented"),
+        Processors::BraceReference(brace_reference) => {
+            let index = process(*brace_reference.data.value, parser, page_id, ignore_hash);
+            match index {
+                Ok(index) => {
+                    let index_type = resolve_type(index.clone(), page_id, parser);
+                    let reference = process(
+                        *brace_reference.data.reference,
+                        parser,
+                        page_id,
+                        ignore_hash,
+                    );
+                    match reference {
+                        Ok(found_reference) => {
+                            let reference_type =
+                                resolve_type(found_reference.clone(), page_id, parser);
+                            // TODO Ellie should let developers implement indexable properties in classes
+                            //Example
+                            // class A {
+                            //     pub v indexable_property : array<int>;
+                            //
+                            //     @index="GET"
+                            //     fn get(index: int) : int {
+                            //         ret indexable_property[index];
+                            //     }
+                            //
+                            //     @index="SET"
+                            //     fn set(index: int, value: int) {
+                            //         indexable_property[index] = value;
+                            //     }
+                            //
+                            // }
+                            //
+                            // v a = new A();
+                            // a[0] = 1;
+                            match reference_type.clone() {
+                                ellie_core::definite::definers::DefinerCollecting::ParentGeneric(reference_generic) => {
+                                    if reference_generic.rtype == "array" {
+                                        match index_type.clone() {
+                                            ellie_core::definite::definers::DefinerCollecting::Generic(index_generic_type) => {
+                                                if index_generic_type.rtype == "int" {
+                                                    Ok(types::Types::BraceReference(types::brace_reference::BraceReferenceType {
+                                                        reference: Box::new(found_reference),
+                                                        reference_pos: brace_reference.data.reference_pos,
+                                                        brace_pos: brace_reference.data.brace_pos,
+                                                        value: Box::new(index),
+                                                        pos: brace_reference.data.pos,
+                                                    }))
+                                                } else {
+                                                    errors.push(error::error_list::ERROR_S49.clone().build_with_path(
+                                                        vec![error::ErrorBuildField {
+                                                            key: "target".to_string(),
+                                                            value: reference_type.to_string(),
+                                                        },error::ErrorBuildField {
+                                                            key: "token".to_string(),
+                                                            value: index_type.to_string(),
+                                                        }],
+                                                        file!().to_owned(),
+                                                        parser.find_page(page_id).unwrap().path.clone(),
+                                                        brace_reference.data.brace_pos
+                                                    ));
+                                                    Err(errors)
+
+                                                }
+                                            },
+                                            _ => {
+                                                errors.push(error::error_list::ERROR_S49.clone().build_with_path(
+                                                    vec![error::ErrorBuildField {
+                                                        key: "target".to_string(),
+                                                        value: reference_type.to_string(),
+                                                    },error::ErrorBuildField {
+                                                        key: "token".to_string(),
+                                                        value: index_type.to_string(),
+                                                    }],
+                                                    file!().to_owned(),
+                                                    parser.find_page(page_id).unwrap().path.clone(),
+                                                    brace_reference.data.brace_pos
+                                                ));
+                                                Err(errors)
+                                            }
+                                        }
+                                    } else if reference_generic.rtype == "cloak" {
+                                        todo!("cloak index queries type not yet implemented")
+                                    } else if reference_generic.rtype == "collective" {
+                                        todo!("collective index queries type not yet implemented")
+                                    } else {
+                                        todo!("custom index queries type not yet implemented")
+                                    }
+                                },
+                                _ => {
+                                    errors.push(error::error_list::ERROR_S48.clone().build_with_path(
+                                        vec![error::ErrorBuildField {
+                                            key: "token".to_string(),
+                                            value: reference_type.to_string(),
+                                        }],
+                                        file!().to_owned(),
+                                        parser.find_page(page_id).unwrap().path.clone(),
+                                        brace_reference.data.reference_pos
+                                    ));
+                                    Err(errors)
+                                }
+                            }
+                        }
+                        Err(e) => Err(e),
+                    }
+                }
+                Err(e) => Err(e),
+            }
+        }
         Processors::FunctionCall(_) => todo!("functionCall type not yet implemented"),
         Processors::ClassCall(class_call) => match (*class_call.data.target).clone() {
             Processors::Integer(_) => {
@@ -271,7 +397,7 @@ pub fn process(
                                         vec![
                                             error::ErrorBuildField {
                                                 key: "token".to_string(),
-                                                value: 0.to_string(),
+                                                value: "0".to_string(),
                                             },
                                             error::ErrorBuildField {
                                                 key: "token2".to_string(),

@@ -4,6 +4,7 @@ use alloc::format;
 use alloc::string::String;
 use alloc::vec::Vec;
 use alloc::{borrow::ToOwned, boxed::Box};
+use enum_as_inner::EnumAsInner;
 use serde::{Deserialize, Serialize};
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
@@ -65,7 +66,7 @@ pub struct NullableType {
     pub value: Box<DefinerCollecting>,
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize, EnumAsInner)]
 pub enum DefinerCollecting {
     Array(ArrayType),
     Vector(VectorType),

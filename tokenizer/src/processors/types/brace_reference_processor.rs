@@ -12,6 +12,7 @@ impl crate::processors::Processor for brace_reference_type::BraceReferenceTypeCo
         if !self.brace_started {
             if letter_char == '[' {
                 self.brace_started = true;
+                self.data.brace_pos.range_start = cursor;
             } else if letter_char != ' ' {
                 errors.push(error::error_list::ERROR_S1.clone().build(
                     vec![error::ErrorBuildField {
@@ -24,6 +25,8 @@ impl crate::processors::Processor for brace_reference_type::BraceReferenceTypeCo
             }
         } else if !self.complete {
             if self.itered_cache.is_complete() && letter_char == ']' {
+                self.data.brace_pos.range_end = cursor;
+                self.data.pos.range_end = cursor;
                 self.complete = true;
                 self.data.value = Box::new(self.itered_cache.current.clone());
             } else {
@@ -33,11 +36,14 @@ impl crate::processors::Processor for brace_reference_type::BraceReferenceTypeCo
         } else if letter_char != ' ' {
             errors.push(error::error_list::ERROR_S1.clone().build(
                 vec![error::ErrorBuildField {
-                    key: "val".to_owned(),
+                    key: "token".to_owned(),
                     value: letter_char.to_string(),
                 }],
                 file!().to_owned(),
-                defs::Cursor::build_with_skip_char(cursor),
+                defs::Cursor {
+                    range_start: cursor,
+                    range_end: cursor,
+                },
             ));
         }
     }

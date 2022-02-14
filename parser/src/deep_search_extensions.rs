@@ -8,13 +8,17 @@ use alloc::{
     vec::Vec,
 };
 use ellie_core::{
-    definite::{definers, items::Collecting, types::Types},
+    definite::{
+        definers,
+        items::Collecting,
+        types::{brace_reference, Types},
+    },
     defs, error,
 };
 use ellie_tokenizer::tokenizer::Dependency;
 use enum_as_inner::EnumAsInner;
 
-use crate::parser::{Parser, ProcessedPage};
+use crate::parser::{DeepSearchItems, DeepSearchResult, Parser, ProcessedPage};
 
 /*
     This folder contains parser extensions for deep search.
@@ -34,6 +38,7 @@ pub enum DeepTypeResult {
     Vector(ellie_core::definite::types::vector::VectorType),
     ClassCall(ellie_core::definite::types::class_call::ClassCall),
     FunctionCall(ellie_core::definite::types::function_call::FunctionCall),
+    BraceReference(ellie_core::definite::types::brace_reference::BraceReferenceType),
     Void,
     Null,
     NotFound,
@@ -47,7 +52,53 @@ fn iterate_deep_type(parser: &mut Parser, page_id: u64, rtype: Types) -> DeepTyp
         Types::Char(char) => DeepTypeResult::Char(char),
         Types::Collective(collective) => DeepTypeResult::Collective(collective),
         Types::Reference(_) => todo!(),
-        Types::BraceReference(_) => todo!(),
+        Types::BraceReference(e) => {
+            let resolved_reference = resolve_deep_type(parser, page_id, *e.reference);
+            let resolved_index = resolve_deep_type(parser, page_id, *e.value);
+            DeepTypeResult::BraceReference(
+                ellie_core::definite::types::brace_reference::BraceReferenceType {
+                    reference: Box::new(match resolved_reference {
+                        DeepTypeResult::Integer(e) => Types::Integer(e),
+                        DeepTypeResult::Float(e) => Types::Float(e),
+                        DeepTypeResult::Bool(e) => Types::Bool(e),
+                        DeepTypeResult::String(e) => Types::String(e),
+                        DeepTypeResult::Char(e) => Types::Char(e),
+                        DeepTypeResult::Collective(e) => Types::Collective(e),
+                        DeepTypeResult::Operator(e) => Types::Operator(e),
+                        DeepTypeResult::Cloak(e) => Types::Cloak(e),
+                        DeepTypeResult::Array(e) => Types::Array(e),
+                        DeepTypeResult::Vector(e) => Types::Vector(e),
+                        DeepTypeResult::ClassCall(e) => Types::ClassCall(e),
+                        DeepTypeResult::FunctionCall(e) => Types::FunctionCall(e),
+                        DeepTypeResult::BraceReference(e) => Types::BraceReference(e),
+                        DeepTypeResult::Void => unreachable!(),
+                        DeepTypeResult::Null => unreachable!(),
+                        DeepTypeResult::NotFound => unreachable!(),
+                    }),
+                    reference_pos: e.reference_pos,
+                    brace_pos: e.brace_pos,
+                    value: Box::new(match resolved_index {
+                        DeepTypeResult::Integer(e) => Types::Integer(e),
+                        DeepTypeResult::Float(e) => Types::Float(e),
+                        DeepTypeResult::Bool(e) => Types::Bool(e),
+                        DeepTypeResult::String(e) => Types::String(e),
+                        DeepTypeResult::Char(e) => Types::Char(e),
+                        DeepTypeResult::Collective(e) => Types::Collective(e),
+                        DeepTypeResult::Operator(e) => Types::Operator(e),
+                        DeepTypeResult::Cloak(e) => Types::Cloak(e),
+                        DeepTypeResult::Array(e) => Types::Array(e),
+                        DeepTypeResult::Vector(e) => Types::Vector(e),
+                        DeepTypeResult::ClassCall(e) => Types::ClassCall(e),
+                        DeepTypeResult::FunctionCall(e) => Types::FunctionCall(e),
+                        DeepTypeResult::BraceReference(e) => Types::BraceReference(e),
+                        DeepTypeResult::Void => unreachable!(),
+                        DeepTypeResult::Null => unreachable!(),
+                        DeepTypeResult::NotFound => unreachable!(),
+                    }),
+                    pos: e.pos,
+                },
+            )
+        }
         Types::Operator(_) => todo!(),
         Types::Cloak(cloak) => {
             if cloak.collective.len() == 1 {
@@ -152,6 +203,12 @@ fn iterate_deep_type(parser: &mut Parser, page_id: u64, rtype: Types) -> DeepTyp
                     DeepTypeResult::NotFound => {
                         return DeepTypeResult::NotFound;
                     }
+                    DeepTypeResult::BraceReference(brace_reference) => {
+                        collective.push(ellie_core::definite::types::array::ArrayEntry {
+                            value: Types::BraceReference(brace_reference),
+                            location: i.location,
+                        });
+                    }
                 }
             }
             DeepTypeResult::Array(ellie_core::definite::types::array::ArrayType {
@@ -165,8 +222,7 @@ fn iterate_deep_type(parser: &mut Parser, page_id: u64, rtype: Types) -> DeepTyp
         Types::NullResolver(_) => todo!(),
         Types::Negative(_) => todo!(),
         Types::VariableType(variable) => {
-            let hash_deep_search =
-                deep_search_hash(parser, page_id, variable.reference, vec![], true, 0);
+            let hash_deep_search = deep_search_hash(parser, page_id, variable.reference, vec![], 0);
             if hash_deep_search.found {
                 match hash_deep_search.found_item {
                     ProcessedDeepSearchItems::Class(e) => {
@@ -219,13 +275,106 @@ fn iterate_deep_type(parser: &mut Parser, page_id: u64, rtype: Types) -> DeepTyp
                     ProcessedDeepSearchItems::None => todo!(),
                 }
             } else {
-                unreachable!(
-                    "VariableName: {}, Hash: {}, {:#?}",
-                    variable.value, variable.reference, rtype
-                );
+                let path = parser.find_page(page_id).unwrap().path.clone();
+                parser
+                    .informations
+                    .push(&error::error_list::ERROR_S6.clone().build_with_path(
+                        vec![error::ErrorBuildField {
+                            key: "token".to_string(),
+                            value: "class".to_string(),
+                        }],
+                        file!().to_string(),
+                        path,
+                        variable.pos,
+                    ));
+                DeepTypeResult::NotFound
             }
         }
-        Types::AsKeyword(_) => todo!(),
+        Types::AsKeyword(as_keyword) => {
+            #[cfg(feature = "std")]
+            std::println!("Warning: As will be deprecated");
+            let from_type = resolve_type(*as_keyword.target.clone(), page_id, parser);
+            match as_keyword.rtype.clone() {
+                definers::DefinerCollecting::Generic(e) => {
+                    let targeted_type = find_type(e.rtype, page_id, parser);
+
+                    match targeted_type.clone() {
+                        Some(target_type_gen) => match from_type.clone() {
+                            definers::DefinerCollecting::ParentGeneric(pg) => {
+                                if pg.rtype == "nullAble" {
+                                    DeepTypeResult::Integer(
+                                        ellie_core::definite::types::integer::IntegerType {
+                                            value: ellie_core::definite::types::integer::IntegerSize::U8(0),
+                                            rtype: ellie_core::definite::types::integer::IntegerTypes::U8,
+                                            pos: defs::Cursor::default(),
+                                        },
+                                    )
+                                } else {
+                                    let path = parser.find_page(page_id).unwrap().path.clone();
+                                    parser.informations.push(
+                                        &error::error_list::ERROR_S50.clone().build_with_path(
+                                            vec![
+                                                error::ErrorBuildField {
+                                                    key: "target".to_string(),
+                                                    value: from_type.to_string(),
+                                                },
+                                                error::ErrorBuildField {
+                                                    key: "token".to_string(),
+                                                    value: target_type_gen.rtype,
+                                                },
+                                            ],
+                                            file!().to_string(),
+                                            path,
+                                            as_keyword.pos,
+                                        ),
+                                    );
+                                    DeepTypeResult::NotFound
+                                }
+                            }
+                            _ => {
+                                let path = parser.find_page(page_id).unwrap().path.clone();
+                                parser.informations.push(
+                                    &error::error_list::ERROR_S50.clone().build_with_path(
+                                        vec![
+                                            error::ErrorBuildField {
+                                                key: "target".to_string(),
+                                                value: from_type.to_string(),
+                                            },
+                                            error::ErrorBuildField {
+                                                key: "token".to_string(),
+                                                value: target_type_gen.rtype,
+                                            },
+                                        ],
+                                        file!().to_string(),
+                                        path,
+                                        as_keyword.pos,
+                                    ),
+                                );
+                                DeepTypeResult::NotFound
+                            }
+                        },
+                        None => {
+                            let path = parser.find_page(page_id).unwrap().path.clone();
+                            parser.informations.push(
+                                &error::error_list::ERROR_S6.clone().build_with_path(
+                                    vec![error::ErrorBuildField {
+                                        key: "token".to_string(),
+                                        value: as_keyword.rtype.to_string(),
+                                    }],
+                                    file!().to_string(),
+                                    path,
+                                    as_keyword.type_pos,
+                                ),
+                            );
+                            DeepTypeResult::NotFound
+                        }
+                    }
+                }
+                _ => {
+                    todo!()
+                }
+            }
+        }
 
         //Types::ArrowFunction(_) => todo!(),
         Types::Bool(_) => unreachable!(),
@@ -266,7 +415,6 @@ pub fn deep_search_hash(
     target_page: u64,
     target_hash: u64,
     searched: Vec<u64>,
-    processed_only: bool,
     _level: u32,
 ) -> ProcessedDeepSearchResult {
     let mut level = _level;
@@ -407,7 +555,6 @@ pub fn deep_search(
     let has_mixup = false;
     let mut inner_page = None;
     let mut searched: Vec<u64> = searched;
-    let mixup_hashes: Vec<(String, String)> = Vec::new();
     let mut self_dependencies = vec![Dependency {
         hash: target_page,
         ..Default::default()
@@ -590,8 +737,24 @@ pub fn resolve_type(
                 }
             }
         }
-        DeepTypeResult::Float(_) => todo!(),
-        DeepTypeResult::Bool(_) => todo!(),
+        DeepTypeResult::Float(_) => {
+            let float_type = find_type("float".to_string(), target_page, parser);
+            match float_type {
+                Some(e) => definers::DefinerCollecting::Generic(e),
+                None => {
+                    panic!("Unhandled behaviour, failed to find string type");
+                }
+            }
+        }
+        DeepTypeResult::Bool(_) => {
+            let bool_type = find_type("bool".to_string(), target_page, parser);
+            match bool_type {
+                Some(e) => definers::DefinerCollecting::Generic(e),
+                None => {
+                    panic!("Unhandled behaviour, failed to find string type");
+                }
+            }
+        }
         DeepTypeResult::String(_) => {
             let string_type = find_type("string".to_string(), target_page, parser);
             match string_type {
@@ -601,7 +764,15 @@ pub fn resolve_type(
                 }
             }
         }
-        DeepTypeResult::Char(_) => todo!(),
+        DeepTypeResult::Char(_) => {
+            let char_type = find_type("char".to_string(), target_page, parser);
+            match char_type {
+                Some(e) => definers::DefinerCollecting::Generic(e),
+                None => {
+                    panic!("Unhandled behaviour, failed to find char type");
+                }
+            }
+        }
         DeepTypeResult::Collective(_) => todo!(),
         DeepTypeResult::Operator(_) => todo!(),
         DeepTypeResult::Cloak(_) => todo!(),
@@ -620,13 +791,15 @@ pub fn resolve_type(
                     let dyn_type = find_type("dyn".to_string(), target_page, parser);
                     match dyn_type {
                         Some(dynamic_type) => {
-                            child_generic = GenericExists::Generic(definers::DefinerCollecting::Generic(dynamic_type));
-                        },
+                            child_generic = GenericExists::Generic(
+                                definers::DefinerCollecting::Generic(dynamic_type),
+                            );
+                        }
                         None => {
                             panic!("Unhandled behaviour, failed to find string type");
                         }
                     }
-                    
+
                     break;
                 }
                 child_generic = GenericExists::Generic(resolved);
@@ -658,6 +831,34 @@ pub fn resolve_type(
         DeepTypeResult::Void => todo!(),
         DeepTypeResult::Null => todo!(),
         DeepTypeResult::NotFound => todo!(),
+        DeepTypeResult::BraceReference(e) => {
+            let nullable_type = find_type("nullAble".to_string(), target_page, parser);
+            match nullable_type {
+                Some(nullable_generic) => {
+                    let nullable_child_generic = match *e.reference.clone() {
+                        Types::Array(_) => {
+                            let array_type = resolve_type(*e.reference, target_page, parser);
+                            array_type.as_parent_generic().unwrap().generics[0]
+                                .value
+                                .clone()
+                        }
+                        _ => {
+                            unimplemented!("Custom index queries are not yet supported",)
+                        }
+                    };
+                    definers::DefinerCollecting::ParentGeneric(definers::ParentGenericType {
+                        rtype: "nullAble".to_string(),
+                        generics: vec![definers::GenericParameter {
+                            value: nullable_child_generic,
+                            pos: ellie_core::defs::Cursor::default(),
+                        }],
+                        hash: nullable_generic.hash,
+                        parent_pos: ellie_core::defs::Cursor::default(),
+                    })
+                }
+                None => panic!("Unhandled behaviour"),
+            }
+        }
     }
 }
 

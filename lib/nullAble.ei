@@ -8,7 +8,7 @@ pub class nullAble<Type> {
     co(type);
     pub v type : Type;
     pub fn resolve() : Type {
-        //if type == null {
+        //if this.type == null {
         //    panic("nullAble.resolve() called on null");
         //}
     }

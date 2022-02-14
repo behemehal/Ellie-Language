@@ -284,4 +284,32 @@ lazy_static! {
         message: "Referenced type does not implement 'as' convertor".to_owned(),
         ..Default::default()
     };
+
+    pub static ref ERROR_S47: error::Error = error::Error {
+        code: 0x46,
+        title: "RuntimeRestriction".to_owned(),
+        message: "$token".to_owned(),
+        ..Default::default()
+    };
+
+    pub static ref ERROR_S48: error::Error = error::Error {
+        code: 0x47,
+        title: "ReferenceError".to_owned(),
+        message: "'$token' does not implement index queries".to_owned(),
+        ..Default::default()
+    };
+
+    pub static ref ERROR_S49: error::Error = error::Error {
+        code: 0x49,
+        title: "ReferenceError".to_owned(),
+        message: "Cannot query index to '$target' with '$token'".to_owned(),
+        ..Default::default()
+    };
+
+    pub static ref ERROR_S50: error::Error = error::Error {
+        code: 0x50,
+        title: "TypeError".to_owned(),
+        message: "Unimplemented type conversion '$target' to '$type'".to_owned(),
+        ..Default::default()
+    };
 }

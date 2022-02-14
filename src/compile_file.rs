@@ -140,15 +140,18 @@ pub fn compile(
                         }
                     }
                 },
-                first_page_hash.clone()
+                first_page_hash.clone(),
             );
 
             match pager.run() {
                 Ok(_) => {
-                    let mut parser =
-                        parser::Parser::new(pager.pages.clone(), first_page_hash, compiler_settings.version);
+                    let mut parser = parser::Parser::new(
+                        pager.pages.clone(),
+                        first_page_hash,
+                        compiler_settings.version,
+                    );
 
-                    for (module, path) in modules.iter() {
+                    for (module, _) in modules.iter() {
                         if module.name == "ellie" {
                             parser.import_module(module.clone());
                         } else if used_modules.lock().unwrap().contains(&(&module.name)) {
@@ -233,9 +236,9 @@ pub fn compile(
                                             );
                                         }
                                     }
-                                } else if let Some((module, module_path)) = modules
+                                } else if let Some((_, module_path)) = modules
                                     .iter()
-                                    .find(|(module, path)| module.name == virtual_path_identifier)
+                                    .find(|(module, _)| module.name == virtual_path_identifier)
                                 {
                                     let real_path =
                                         path.replace(&path_starter, module_path).clone();

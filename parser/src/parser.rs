@@ -76,6 +76,83 @@ pub struct Module {
     pub modules: Vec<ellie_tokenizer::tokenizer::Module>,
 }
 
+pub struct ParserSettings {
+    pub max_int_size: Option<(
+        ellie_tokenizer::syntax::types::integer_type::IntegerTypes,
+        String,
+    )>,
+    pub dynamics: (bool, String),
+    pub nullables: (bool, String),
+    pub integers: (bool, String),
+    pub floats: (bool, String),
+    pub strings: (bool, String),
+    pub chars: (bool, String),
+    pub booleans: (bool, String),
+    pub arrays: (bool, String),
+    pub cloaks: (bool, String),
+    pub enums: (bool, String),
+    pub collectives: (bool, String),
+    pub type_conversions: (bool, String),
+    pub force_types: (bool, String),
+}
+
+impl Default for ParserSettings {
+    fn default() -> Self {
+        ParserSettings {
+            max_int_size: None,
+            dynamics: (true, String::new()),
+            nullables: (true, String::new()),
+            integers: (true, String::new()),
+            floats: (true, String::new()),
+            strings: (true, String::new()),
+            chars: (true, String::new()),
+            booleans: (true, String::new()),
+            arrays: (true, String::new()),
+            cloaks: (true, String::new()),
+            enums: (true, String::new()),
+            collectives: (true, String::new()),
+            type_conversions: (true, String::new()),
+            force_types: (false, String::new()),
+        }
+    }
+}
+
+impl ParserSettings {
+    pub fn is_type_allowed(
+        &self,
+        type_: ellie_tokenizer::processors::types::Processors,
+    ) -> (bool, String) {
+        match type_ {
+            ellie_tokenizer::processors::types::Processors::Integer(e) => {
+                if self.integers.0 {
+                    if let Some(limit) = self.max_int_size.clone() {
+                        (e.data.rtype.is_greater(limit.0), limit.1)
+                    } else {
+                        (true, String::new())
+                    }
+                } else {
+                    self.integers.clone()
+                }
+            }
+            ellie_tokenizer::processors::types::Processors::Float(_) => self.floats.clone(),
+            ellie_tokenizer::processors::types::Processors::Char(_) => self.chars.clone(),
+            ellie_tokenizer::processors::types::Processors::String(_) => self.strings.clone(),
+            ellie_tokenizer::processors::types::Processors::Array(_) => self.arrays.clone(),
+            ellie_tokenizer::processors::types::Processors::BraceReference(_) => self.nullables.clone(),
+            ellie_tokenizer::processors::types::Processors::Cloak(_) => self.cloaks.clone(),
+            ellie_tokenizer::processors::types::Processors::Collective(_) => self.collectives.clone(),
+            ellie_tokenizer::processors::types::Processors::AsKeyword(_) => self.type_conversions.clone(),
+            _ => (true, String::new()),
+        }
+    }
+
+    pub fn is_item_allowed(&self, type_: Processors) -> bool {
+        match type_ {
+            _ => true,
+        }
+    }
+}
+
 pub struct Parser {
     pub version: ellie_core::defs::Version,
     pub pages: Vec<Page>,
@@ -83,6 +160,7 @@ pub struct Parser {
     pub modules: Vec<Module>,
     pub initial_page: u64,
     pub informations: information::Informations,
+    pub parser_settings: ParserSettings,
 }
 
 #[derive(Debug, Clone)]
@@ -131,6 +209,7 @@ impl Parser {
             modules: vec![],
             initial_page: initial_hash,
             informations: information::Informations::new(),
+            parser_settings: ParserSettings::default(),
         }
     }
 
@@ -329,7 +408,31 @@ impl Parser {
                     (false, defining.to_string(), "null".to_owned())
                 }
             }
-            crate::deep_search_extensions::DeepTypeResult::NotFound => unreachable!(),
+            deep_search_extensions::DeepTypeResult::BraceReference(e) => {
+                let value_gen = deep_search_extensions::resolve_type(rtype, target_page, self);
+
+                if value_gen.same_as(defining.clone()) {
+                    (true, defining.to_string(), value_gen.to_string())
+                } else {
+                    (false, defining.to_string(), value_gen.to_string())
+                }
+            },
+            crate::deep_search_extensions::DeepTypeResult::NotFound => (true, String::new(), String::new()),
+            deep_search_extensions::DeepTypeResult::Integer(_) => todo!(),
+            deep_search_extensions::DeepTypeResult::Float(_) => todo!(),
+            deep_search_extensions::DeepTypeResult::Bool(_) => todo!(),
+            deep_search_extensions::DeepTypeResult::String(_) => todo!(),
+            deep_search_extensions::DeepTypeResult::Char(_) => todo!(),
+            deep_search_extensions::DeepTypeResult::Collective(_) => todo!(),
+            deep_search_extensions::DeepTypeResult::Operator(_) => todo!(),
+            deep_search_extensions::DeepTypeResult::Cloak(_) => todo!(),
+            deep_search_extensions::DeepTypeResult::Array(_) => todo!(),
+            deep_search_extensions::DeepTypeResult::Vector(_) => todo!(),
+            deep_search_extensions::DeepTypeResult::ClassCall(_) => todo!(),
+            deep_search_extensions::DeepTypeResult::FunctionCall(_) => todo!(),
+            deep_search_extensions::DeepTypeResult::Void => todo!(),
+            deep_search_extensions::DeepTypeResult::Null => todo!(),
+            deep_search_extensions::DeepTypeResult::NotFound => todo!(),
         }
     }
 

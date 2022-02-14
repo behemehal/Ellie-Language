@@ -275,7 +275,7 @@ impl super::Processor for TypeProcessor {
                         data: brace_reference_type::BraceReferenceType {
                             reference: Box::new(self.current.clone()),
                             reference_pos: self.current.get_pos(),
-                            pos: defs::Cursor::build_with_skip_char(cursor.clone()),
+                            pos: self.current.get_pos(),
                             ..Default::default()
                         },
                         ..Default::default()

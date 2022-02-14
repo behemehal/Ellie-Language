@@ -38,15 +38,15 @@ impl crate::processors::Processor for as_keyword::AsKeywordCollector {
                 }
             }
         } else {
-            if self.data.type_pos.is_zero() {
+            if self.data.type_pos.range_start.is_zero() && letter_char != ' ' {
                 self.data.type_pos.range_start = cursor;
             }
             self.data
                 .rtype
                 .iterate(errors, cursor, last_char, letter_char);
             self.complete = self.data.rtype.complete;
-            self.data.type_pos.range_end = cursor.clone().skip_char(1);
+            self.data.type_pos.range_end = cursor;
         }
-        self.data.pos.range_end = cursor.clone().skip_char(1);
+        self.data.pos.range_end = cursor;
     }
 }

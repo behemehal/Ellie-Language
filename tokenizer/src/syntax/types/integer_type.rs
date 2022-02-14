@@ -21,6 +21,29 @@ pub enum IntegerTypes {
     Usize,
 }
 
+impl IntegerTypes {
+    pub fn is_greater(&self, limit: IntegerTypes) -> bool {
+        self.get_id() > limit.get_id()
+    }
+
+    pub fn get_id(&self) -> i8 {
+        match self {
+            IntegerTypes::I8 => 0,
+            IntegerTypes::I16 => 1,
+            IntegerTypes::I32 => 2,
+            IntegerTypes::I64 => 3,
+            IntegerTypes::I128 => 4,
+            IntegerTypes::Isize => 5,
+            IntegerTypes::U8 => 6,
+            IntegerTypes::U16 => 7,
+            IntegerTypes::U32 => 8,
+            IntegerTypes::U64 => 9,
+            IntegerTypes::U128 => 10,
+            IntegerTypes::Usize => 11,
+        }
+    }
+}
+
 impl Default for IntegerTypes {
     fn default() -> Self {
         IntegerTypes::I8
