@@ -10,5 +10,11 @@ pub mod type_processor;
 pub mod variable;
 
 pub trait Processor {
-    fn process(self, parser: &mut Parser, page_id: u64);
+    /// Parser element processor
+    /// ## Arguments
+    /// * `parser` - [`Parser`]
+    /// * `page_id` - [`u64`]
+    /// ## Returns
+    /// [`bool`] - `true` if parsing should continue
+    fn process(self, parser: &mut Parser, page_id: u64) -> bool;
 }

@@ -3,7 +3,7 @@ use ellie_core::{definite::Converter, error};
 use ellie_tokenizer::syntax::items::file_key::FileKey;
 
 impl super::Processor for FileKey {
-    fn process(self, parser: &mut super::Parser, page_id: u64) {
+    fn process(self, parser: &mut super::Parser, page_id: u64) -> bool {
         if self.value.is_static() {
             parser.find_processed_page(page_id).unwrap().items.push(
                 ellie_core::definite::items::Collecting::FileKey(self.to_definite()),
@@ -19,5 +19,6 @@ impl super::Processor for FileKey {
                     self.value_location,
                 ));
         }
+        true
     }
 }

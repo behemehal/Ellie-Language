@@ -2,7 +2,7 @@ use ellie_core::defs;
 use ellie_tokenizer::syntax::items::ret::Ret;
 
 impl super::Processor for Ret {
-    fn process(self, parser: &mut super::Parser, page_id: u64) {
+    fn process(self, parser: &mut super::Parser, page_id: u64) -> bool {
         match super::type_processor::process(self.value.current, parser, page_id, None) {
             Ok(value) => {
                 let unprocessed_page = parser.find_page(page_id).unwrap();
@@ -19,8 +19,12 @@ impl super::Processor for Ret {
                             pos: self.pos,
                         },
                     ));
+                    true
             }
-            Err(type_error) => parser.informations.extend(&type_error),
+            Err(type_error) => {
+                parser.informations.extend(&type_error);
+                false
+            },
         }
     }
 }

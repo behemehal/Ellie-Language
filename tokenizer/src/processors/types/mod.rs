@@ -9,6 +9,7 @@ pub mod float_processor;
 pub mod function_call_processor;
 pub mod integer_processor;
 pub mod negative_processor;
+pub mod null_resolver_processor;
 pub mod operator_processor;
 pub mod reference_processor;
 pub mod string_processor;
@@ -34,6 +35,7 @@ pub enum Processors {
     Operator(operator_type::OperatorTypeCollector),
     Reference(reference_type::ReferenceTypeCollector),
     BraceReference(brace_reference_type::BraceReferenceTypeCollector),
+    NullResolver(null_resolver::NullResolver),
     FunctionCall(function_call_type::FunctionCallCollector),
     ClassCall(class_call_type::ClassCallCollector),
     Cloak(cloak_type::CloakTypeCollector),
@@ -76,6 +78,9 @@ impl Processors {
             }
             Processors::AsKeyword(e) => {
                 ellie_core::definite::types::Types::AsKeyword(e.to_definite())
+            }
+            Processors::NullResolver(e) => {
+                ellie_core::definite::types::Types::NullResolver(e.to_definite())
             }
         }
     }
@@ -149,6 +154,7 @@ impl Processors {
                 .iter()
                 .all(|e| e.value.is_static() && e.key.is_static()),
             Processors::AsKeyword(_) => false,
+            Processors::NullResolver(_) => false,
         }
     }
 
@@ -169,6 +175,7 @@ impl Processors {
             Processors::Cloak(e) => e.complete,
             Processors::Collective(e) => e.complete,
             Processors::AsKeyword(e) => e.complete,
+            Processors::NullResolver(e) => true,
         }
     }
 
@@ -189,6 +196,7 @@ impl Processors {
             Processors::Cloak(_) => false,
             Processors::Collective(_) => false,
             Processors::AsKeyword(_) => false,
+            Processors::NullResolver(_) => false,
         }
     }
 
@@ -209,6 +217,7 @@ impl Processors {
             Processors::Cloak(e) => e.data.pos,
             Processors::Collective(e) => e.data.pos,
             Processors::AsKeyword(e) => e.data.pos,
+            Processors::NullResolver(e) => e.pos,
         }
     }
 }
@@ -307,11 +316,22 @@ impl super::Processor for TypeProcessor {
                 pos: defs::Cursor::build_with_skip_char(cursor.clone()),
                 ..Default::default()
             });
-        } else if letter_char == '!' && not_initalized {
-            self.current = Processors::Negative(negative_type::Negative {
-                pos: defs::Cursor::build_with_skip_char(cursor.clone()),
-                ..Default::default()
-            });
+        } else if letter_char == '!' {
+            if (not_initalized) {
+                self.current = Processors::Negative(negative_type::Negative {
+                    pos: defs::Cursor::build_with_skip_char(cursor.clone()),
+                    ..Default::default()
+                });
+            } else {
+                self.current = Processors::NullResolver(null_resolver::NullResolver {
+                    target: Box::new(self.current.clone()),
+                    target_pos: self.current.get_pos(),
+                    pos: defs::Cursor {
+                        range_start: self.current.get_pos().range_start,
+                        range_end: defs::CursorPosition::default(),
+                    },
+                });
+            }
         } else if letter_char == '"' && not_initalized {
             self.current = Processors::String(string_type::StringTypeCollector {
                 data: string_type::StringType {
@@ -472,6 +492,7 @@ impl super::Processor for TypeProcessor {
             Processors::Cloak(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::Collective(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::AsKeyword(e) => e.iterate(errors, cursor, last_char, letter_char),
+            Processors::NullResolver(e) => e.iterate(errors, cursor, last_char, letter_char),
         };
     }
 }

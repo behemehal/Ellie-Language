@@ -3,7 +3,7 @@ use ellie_core::error;
 use ellie_tokenizer::{syntax::items::constructor::Constructor, tokenizer::PageType};
 
 impl super::Processor for Constructor {
-    fn process(self, parser: &mut crate::parser::Parser, page_id: u64) {
+    fn process(self, parser: &mut crate::parser::Parser, page_id: u64) -> bool {
         let class_body_page = parser
             .find_page(page_id)
             .unwrap_or_else(|| panic!("Failed to find page"))
@@ -152,6 +152,7 @@ impl super::Processor for Constructor {
             .find_processed_page(page_id)
             .unwrap()
             .items
-            .push(processed)
+            .push(processed);
+        true
     }
 }

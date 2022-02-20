@@ -1,12 +1,9 @@
-use alloc::{borrow::ToOwned, vec::Vec, vec};
+use alloc::{borrow::ToOwned, vec, vec::Vec};
 use ellie_core::{defs, error, warning};
-use ellie_tokenizer::{
-    syntax::items::class::Class,
-    tokenizer::PageType,
-};
+use ellie_tokenizer::{syntax::items::class::Class, tokenizer::PageType};
 
 impl super::Processor for Class {
-    fn process(self, parser: &mut super::Parser, page_id: u64) {
+    fn process(self, parser: &mut super::Parser, page_id: u64) -> bool {
         let (duplicate, found) =
             parser.is_duplicate(page_id, self.name.clone(), self.hash.clone(), self.pos);
         if duplicate {
@@ -176,18 +173,23 @@ impl super::Processor for Class {
                     name_pos: self.name_pos,
                     pos: self.pos,
                     hash: self.hash,
-                    generic_definings: self.generic_definings.iter().map(|x| ellie_core::definite::items::class::GenericDefining {
-                        name: x.name.clone(),
-                        hash: x.hash.clone(),
-                        pos: x.pos,
-                    }).collect::<Vec<_>>(),
+                    generic_definings: self
+                        .generic_definings
+                        .iter()
+                        .map(|x| ellie_core::definite::items::class::GenericDefining {
+                            name: x.name.clone(),
+                            hash: x.hash.clone(),
+                            pos: x.pos,
+                        })
+                        .collect::<Vec<_>>(),
                 },
             );
             parser
                 .find_processed_page(page_id)
                 .unwrap()
                 .items
-                .push(processed)
+                .push(processed);
         }
+        true
     }
 }

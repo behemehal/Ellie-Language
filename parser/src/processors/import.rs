@@ -3,7 +3,7 @@ use ellie_core::{definite::Converter, error};
 use ellie_tokenizer::syntax::items::import::Import;
 
 impl super::Processor for Import {
-    fn process(self, parser: &mut super::Parser, page_id: u64) {
+    fn process(self, parser: &mut super::Parser, page_id: u64) -> bool {
         let duplicate = if self.reference == "" {
             false
         } else {
@@ -36,5 +36,6 @@ impl super::Processor for Import {
                 ellie_core::definite::items::Collecting::Import(self.clone().to_definite()),
             );
         }
+        true
     }
 }

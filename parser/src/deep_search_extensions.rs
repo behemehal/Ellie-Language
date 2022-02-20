@@ -11,7 +11,7 @@ use ellie_core::{
     definite::{
         definers,
         items::Collecting,
-        types::{brace_reference, Types},
+        types::{brace_reference, Types, null_resolver},
     },
     defs, error,
 };
@@ -53,7 +53,7 @@ fn iterate_deep_type(parser: &mut Parser, page_id: u64, rtype: Types) -> DeepTyp
         Types::Collective(collective) => DeepTypeResult::Collective(collective),
         Types::Reference(_) => todo!(),
         Types::BraceReference(e) => {
-            let resolved_reference = resolve_deep_type(parser, page_id, *e.reference);
+            let resolved_reference = resolve_deep_type(parser, page_id, *e.reference.clone());
             let resolved_index = resolve_deep_type(parser, page_id, *e.value);
             DeepTypeResult::BraceReference(
                 ellie_core::definite::types::brace_reference::BraceReferenceType {
@@ -73,7 +73,7 @@ fn iterate_deep_type(parser: &mut Parser, page_id: u64, rtype: Types) -> DeepTyp
                         DeepTypeResult::BraceReference(e) => Types::BraceReference(e),
                         DeepTypeResult::Void => unreachable!(),
                         DeepTypeResult::Null => unreachable!(),
-                        DeepTypeResult::NotFound => unreachable!(),
+                        DeepTypeResult::NotFound => unreachable!("cannot find reference: {:?}", *e.reference),
                     }),
                     reference_pos: e.reference_pos,
                     brace_pos: e.brace_pos,
@@ -219,7 +219,10 @@ fn iterate_deep_type(parser: &mut Parser, page_id: u64, rtype: Types) -> DeepTyp
         Types::Vector(vector) => DeepTypeResult::Vector(vector),
         Types::ClassCall(class_call) => DeepTypeResult::ClassCall(class_call),
         Types::FunctionCall(_) => todo!(),
-        Types::NullResolver(_) => todo!(),
+        Types::NullResolver(null_resolver) => {
+            let from_type = resolve_type(*null_resolver.target.clone(), page_id, parser);
+            panic!("{:?}", from_type);
+        },
         Types::Negative(_) => todo!(),
         Types::VariableType(variable) => {
             let hash_deep_search = deep_search_hash(parser, page_id, variable.reference, vec![], 0);
@@ -291,8 +294,6 @@ fn iterate_deep_type(parser: &mut Parser, page_id: u64, rtype: Types) -> DeepTyp
             }
         }
         Types::AsKeyword(as_keyword) => {
-            #[cfg(feature = "std")]
-            std::println!("Warning: As will be deprecated");
             let from_type = resolve_type(*as_keyword.target.clone(), page_id, parser);
             match as_keyword.rtype.clone() {
                 definers::DefinerCollecting::Generic(e) => {
@@ -301,6 +302,8 @@ fn iterate_deep_type(parser: &mut Parser, page_id: u64, rtype: Types) -> DeepTyp
                     match targeted_type.clone() {
                         Some(target_type_gen) => match from_type.clone() {
                             definers::DefinerCollecting::ParentGeneric(pg) => {
+
+                                //TODO Implement more types
                                 if pg.rtype == "nullAble" {
                                     DeepTypeResult::Integer(
                                         ellie_core::definite::types::integer::IntegerType {
@@ -830,7 +833,7 @@ pub fn resolve_type(
         DeepTypeResult::FunctionCall(_) => todo!(),
         DeepTypeResult::Void => todo!(),
         DeepTypeResult::Null => todo!(),
-        DeepTypeResult::NotFound => todo!(),
+        DeepTypeResult::NotFound => unreachable!(),
         DeepTypeResult::BraceReference(e) => {
             let nullable_type = find_type("nullAble".to_string(), target_page, parser);
             match nullable_type {

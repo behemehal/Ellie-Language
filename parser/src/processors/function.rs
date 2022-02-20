@@ -3,7 +3,7 @@ use ellie_core::{definite::Converter, error, warning};
 use ellie_tokenizer::{syntax::items::function, tokenizer::PageType};
 
 impl super::Processor for function::FunctionCollector {
-    fn process(self, parser: &mut crate::parser::Parser, page_id: u64) {
+    fn process(self, parser: &mut crate::parser::Parser, page_id: u64) -> bool {
         let (duplicate, found) = parser.is_duplicate(
             page_id,
             self.data.name.clone(),
@@ -40,6 +40,7 @@ impl super::Processor for function::FunctionCollector {
                         self.data.name_pos,
                     ))
             }
+            true
         } else {
             let mut parameters: Vec<ellie_core::definite::items::function::FunctionParameter> =
                 Vec::new();
@@ -82,12 +83,8 @@ impl super::Processor for function::FunctionCollector {
                         parser.informations.push(&err);
                     }
 
-                    let (duplicate, found) = parser.is_duplicate(
-                        page_id,
-                        parameter.name.clone(),
-                        0,
-                        parameter.pos,
-                    );
+                    let (duplicate, found) =
+                        parser.is_duplicate(page_id, parameter.name.clone(), 0, parameter.pos);
 
                     if duplicate {
                         if let Some((page, cursor_pos)) = found {
@@ -225,6 +222,7 @@ impl super::Processor for function::FunctionCollector {
                             no_return: self.data.no_return,
                         },
                     ));
+                true
             } else {
                 let mut dependencies = vec![ellie_tokenizer::tokenizer::Dependency {
                     hash: page.hash.clone(),
@@ -280,6 +278,7 @@ impl super::Processor for function::FunctionCollector {
                         err.reference_message = "Function does not accept any ret".to_owned();
                         err.semi_assist = true;
                         parser.informations.push(&err);
+                        return false;
                     } else {
                         let defined = parser.resolve_definer_name(return_type.clone());
                         let given = parser.resolve_type_name(ret.value);
@@ -303,6 +302,7 @@ impl super::Processor for function::FunctionCollector {
                             err.reference_message = "Defined here".to_owned();
                             err.semi_assist = true;
                             parser.informations.push(&err);
+                            return false;
                         }
                     }
                 }
@@ -327,6 +327,7 @@ impl super::Processor for function::FunctionCollector {
                             inner_page_id,
                         },
                     ));
+                true
             }
         }
     }

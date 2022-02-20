@@ -273,7 +273,7 @@ impl Parser {
             ellie_core::definite::types::Types::ClassCall(c) => self.resolve_type_name(*c.target),
             ellie_core::definite::types::Types::FunctionCall(_) => todo!(),
             ellie_core::definite::types::Types::Void => "void".to_string(),
-            ellie_core::definite::types::Types::NullResolver(e) => self.resolve_type_name(*e.value),
+            ellie_core::definite::types::Types::NullResolver(e) => self.resolve_type_name(*e.target),
             ellie_core::definite::types::Types::Negative(e) => self.resolve_type_name(*e.value),
             ellie_core::definite::types::Types::VariableType(e) => e.value,
             ellie_core::definite::types::Types::Null => "null".to_string(),
@@ -417,7 +417,7 @@ impl Parser {
                     (false, defining.to_string(), value_gen.to_string())
                 }
             },
-            crate::deep_search_extensions::DeepTypeResult::NotFound => (true, String::new(), String::new()),
+            crate::deep_search_extensions::DeepTypeResult::NotFound => (false, String::new(), String::new()),
             deep_search_extensions::DeepTypeResult::Integer(_) => todo!(),
             deep_search_extensions::DeepTypeResult::Float(_) => todo!(),
             deep_search_extensions::DeepTypeResult::Bool(_) => todo!(),
@@ -879,7 +879,7 @@ impl Parser {
                     unprocessed_page.unreachable_range.range_end = item.get_pos().range_end;
                 }
             } else {
-                match unprocessed_page.page_type {
+                let terminated = match unprocessed_page.page_type {
                     ellie_tokenizer::tokenizer::PageType::FunctionBody => match item {
                         Processors::Variable(e) => e.process(self, unprocessed_page.hash),
                         Processors::GetterCall(_) => todo!(),
@@ -890,10 +890,10 @@ impl Parser {
                         Processors::Condition(_) => todo!(),
                         Processors::Class(e) => e.process(self, unprocessed_page.hash),
                         Processors::Ret(e) => e.process(self, unprocessed_page.hash),
-                        Processors::SelfItem(_) => (),
-                        Processors::GenericItem(_) => (),
-                        Processors::FunctionParameter(_) => (),
-                        Processors::ConstructorParameter(_) => (),
+                        Processors::SelfItem(_) => true,
+                        Processors::GenericItem(_) => true,
+                        Processors::FunctionParameter(_) => true,
+                        Processors::ConstructorParameter(_) => true,
                         unexpected_element => {
                             self.informations.push(
                                 &error::error_list::ERROR_S22.clone().build_with_path(
@@ -903,6 +903,7 @@ impl Parser {
                                     unexpected_element.get_pos(),
                                 ),
                             );
+                            false
                         }
                     },
                     ellie_tokenizer::tokenizer::PageType::ConstructorBody => match item {
@@ -915,10 +916,10 @@ impl Parser {
                         Processors::Condition(_) => todo!(),
                         Processors::Class(e) => e.process(self, unprocessed_page.hash),
                         Processors::Ret(e) => e.process(self, unprocessed_page.hash),
-                        Processors::SelfItem(_) => (),
-                        Processors::GenericItem(_) => (),
-                        Processors::FunctionParameter(_) => (),
-                        Processors::ConstructorParameter(_) => (),
+                        Processors::SelfItem(_) => true,
+                        Processors::GenericItem(_) => true,
+                        Processors::FunctionParameter(_) => true,
+                        Processors::ConstructorParameter(_) => true,
                         unexpected_element => {
                             self.informations.push(
                                 &error::error_list::ERROR_S22.clone().build_with_path(
@@ -928,6 +929,7 @@ impl Parser {
                                     unexpected_element.get_pos(),
                                 ),
                             );
+                            false
                         }
                     },
                     ellie_tokenizer::tokenizer::PageType::RawBody => match item {
@@ -942,15 +944,16 @@ impl Parser {
                             if self.find_processed_page(hash).is_none() {
                                 self.process_page(hash);
                             }
+                            true
                         }
                         Processors::ForLoop(_) => todo!(),
                         Processors::Condition(_) => todo!(),
                         Processors::Class(e) => e.process(self, unprocessed_page.hash),
 
-                        Processors::SelfItem(_) => (),
-                        Processors::GenericItem(_) => (),
-                        Processors::FunctionParameter(_) => (),
-                        Processors::ConstructorParameter(_) => (),
+                        Processors::SelfItem(_) => true,
+                        Processors::GenericItem(_) => true,
+                        Processors::FunctionParameter(_) => true,
+                        Processors::ConstructorParameter(_) => true,
                         unexpected_element => {
                             self.informations.push(
                                 &error::error_list::ERROR_S22.clone().build_with_path(
@@ -960,6 +963,7 @@ impl Parser {
                                     unexpected_element.get_pos(),
                                 ),
                             );
+                            false
                         }
                     },
                     ellie_tokenizer::tokenizer::PageType::ClassBody => match item {
@@ -967,10 +971,10 @@ impl Parser {
                         Processors::Function(e) => e.process(self, unprocessed_page.hash),
                         Processors::FileKey(e) => e.process(self, unprocessed_page.hash),
                         Processors::Constructor(e) => e.process(self, unprocessed_page.hash),
-                        Processors::SelfItem(_) => (),
-                        Processors::GenericItem(_) => (),
-                        Processors::FunctionParameter(_) => (),
-                        Processors::ConstructorParameter(_) => (),
+                        Processors::SelfItem(_) => true,
+                        Processors::GenericItem(_) => true,
+                        Processors::FunctionParameter(_) => true,
+                        Processors::ConstructorParameter(_) => true,
                         unexpected_element => {
                             self.informations.push(
                                 &error::error_list::ERROR_S22.clone().build_with_path(
@@ -980,6 +984,7 @@ impl Parser {
                                     unexpected_element.get_pos(),
                                 ),
                             );
+                            false
                         }
                     },
                     ellie_tokenizer::tokenizer::PageType::ValueConditionBody => match item {
@@ -1000,11 +1005,12 @@ impl Parser {
                                     e.pos,
                                 ),
                             );
+                            false
                         }
-                        Processors::SelfItem(_) => (),
-                        Processors::GenericItem(_) => (),
-                        Processors::FunctionParameter(_) => (),
-                        Processors::ConstructorParameter(_) => (),
+                        Processors::SelfItem(_) => true,
+                        Processors::GenericItem(_) => true,
+                        Processors::FunctionParameter(_) => true,
+                        Processors::ConstructorParameter(_) => true,
                         unexpected_element => {
                             self.informations.push(
                                 &error::error_list::ERROR_S22.clone().build_with_path(
@@ -1014,8 +1020,12 @@ impl Parser {
                                     unexpected_element.get_pos(),
                                 ),
                             );
+                            false
                         }
                     },
+                };
+                if !terminated {
+                    break;
                 }
             }
         }

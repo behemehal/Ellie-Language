@@ -6,7 +6,7 @@ use ellie_core::{
 use ellie_tokenizer::syntax::items::variable::VariableCollector;
 
 impl super::Processor for VariableCollector {
-    fn process(self, parser: &mut super::Parser, page_id: u64) {
+    fn process(self, parser: &mut super::Parser, page_id: u64) -> bool {
         let (duplicate, found) = parser.is_duplicate(
             page_id,
             self.data.name.clone(),
@@ -43,6 +43,7 @@ impl super::Processor for VariableCollector {
                         self.data.name_pos,
                     ))
             }
+            return false;
         } else {
             let resolved_type = if !self.data.has_value {
                 Ok(Types::Void)
@@ -71,6 +72,7 @@ impl super::Processor for VariableCollector {
                 let defining_error = resolved_defining.err().unwrap_or(vec![]);
                 type_error.extend(defining_error);
                 parser.informations.extend(&type_error);
+                return false;
             } else {
                 #[cfg(feature = "standard_rules")]
                 {
@@ -149,15 +151,18 @@ impl super::Processor for VariableCollector {
                         err.reference_message = "Defined here".to_owned();
                         err.semi_assist = true;
                         parser.informations.push(&err);
+                        return false;
                     } else {
-                        current_page.items.push(processed)
+                        current_page.items.push(processed);
+                        return true;
                     }
                 } else {
                     parser
                         .find_processed_page(page_id)
                         .unwrap()
                         .items
-                        .push(processed)
+                        .push(processed);
+                        return true;
                 }
             }
         }

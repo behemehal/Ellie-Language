@@ -17,7 +17,7 @@ echo -e "\e[33m[Info]\e[0m Cleaning previous build"
     echo -e "\e[31m[Error]\e[0m Failed to clean build, running command manualy may help `cargo clean`"
     exit 1
 }
-echo -e "\e[33m[Info]\e[0m Building for Linux"
+echo -e "\e[33m[Info]\e[0m Building for Linux x64"
 {
     cargo build -q --release
     echo -e "\e[32m[Info]\e[0m Build success"
@@ -53,7 +53,7 @@ echo -e "\e[33m[Info]\e[0m Cleaning linux build"
     echo -e "\e[31m[Error]\e[0m Failed to clean build, running command manualy may help `cargo clean`"
     exit 1
 }
-echo -e "\e[33m[Info]\e[0m Building for Windows"
+echo -e "\e[33m[Info]\e[0m Building for Windows x64"
 {
     cargo build --release -q --target x86_64-pc-windows-gnu
     echo -e "\e[32m[Info]\e[0m Build success"
@@ -64,7 +64,7 @@ echo -e "\e[33m[Info]\e[0m Building for Windows"
 }
 echo -e "\e[33m[Info]\e[0m Moving target"
 {
-    mv './target/x86_64-pc-windows-gnu/release/elliec.exe' './Release/elliec.exe'
+    mv './target/x86_64-pc-windows-gnu/release/elliec.exe' './Release/elliec_windows_x64.exe'
     echo -e "\e[32m[Info]\e[0m Move success"
 } || { 
     rm -r ./Release/
@@ -78,6 +78,34 @@ echo -e "\e[33m[Info]\e[0m Cleaning leftovers"
 } || {
     echo -e "\e[33m[Warning]\e[0m Failed to clean build continuing anyway, running command manualy may help `cargo clean`"
 }
+
+
+echo -e "\e[33m[Info]\e[0m Building for MacOS m1"
+{
+    cargo build --release -q --target aarch64-apple-darwin
+    echo -e "\e[32m[Info]\e[0m Build success"
+} || { 
+    rm -r ./Release/
+    echo -e "\e[31m[Error]\e[0m Failed to build release for windows, maybe `aarch64-apple-darwin` toolkit is not downloaded\nRuning:\nrustup target add aarch64-apple-darwin\nrustup toolchain install stable-aarch64-apple-darwin\ncommands may help. Cleaning folder anyways"
+    exit 1
+}
+echo -e "\e[33m[Info]\e[0m Moving target"
+{
+    mv './target/aarch64-apple-darwin/release/elliec' './Release/elliec_macos_m1'
+    echo -e "\e[32m[Info]\e[0m Move success"
+} || { 
+    rm -r ./Release/
+    echo -e "\e[31m[Error]\e[0m Failed to move build output, cleaning folder"
+    exit 1
+}
+echo -e "\e[33m[Info]\e[0m Cleaning leftovers"
+{
+    cargo clean
+    echo -e "\e[32m[Info]\e[0m Clean success"
+} || {
+    echo -e "\e[33m[Warning]\e[0m Failed to clean build continuing anyway, running command manualy may help `cargo clean`"
+}
+
 : '
 cd ./native-bridge
 echo -e "\e[33m[Info]\e[0m Creating native_bridge headers"

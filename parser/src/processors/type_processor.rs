@@ -532,6 +532,7 @@ pub fn process(
             Processors::BraceReference(_) => todo!(),
             Processors::FunctionCall(_) => todo!(),
             Processors::AsKeyword(_) => todo!(),
+            Processors::NullResolver(_) => todo!(),
         },
         Processors::Cloak(_) => todo!("cloak type not yet implemented"),
         Processors::Collective(_) => todo!("collective type not yet implemented"),
