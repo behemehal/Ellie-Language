@@ -327,16 +327,20 @@ where
     }
 }
 
-pub fn print_errors<E>(errors: &Vec<error::Error>, file_reader: E)
+pub fn print_errors<E>(errors: &Vec<error::Error>, file_reader: E, show_debug_lines: bool)
 where
     E: FnOnce(String) -> String + Clone + Copy + Sized,
 {
     for error in errors {
         println!(
-            "\n{}Error[{:#04x} - {}]{}: {}{}{}\n",
+            "\n{}Error[{:#04x}{}]{}: {}{}{}\n",
             Colors::Red,
             error.code,
-            error.debug_message,
+            if show_debug_lines {
+                format!(" - {}", error.debug_message)
+            } else {
+                "".to_owned()
+            },
             Colors::Reset,
             Colors::Cyan,
             error.builded_message.builded,

@@ -124,37 +124,46 @@ impl super::Processor for VariableCollector {
                     //panic!("{:#?}\n{:#?}", resolved_defining.unwrap(), resolved_type.unwrap());
                     //let defined = parser.resolve_definer_name(resolved_defining.unwrap());
                     //let given = parser.resolve_type_name(resolved_type.unwrap());
-                    let (compare, defined, given) = parser.compare_defining_with_type(
+                    let comperable = parser.compare_defining_with_type(
                         resolved_defining.unwrap(),
                         resolved_type.unwrap(),
                         page_id,
                     );
+
                     let current_page = parser.find_processed_page(page_id).unwrap();
 
-                    if !compare {
-                        let mut err = error::error_list::ERROR_S3.clone().build_with_path(
-                            vec![
-                                error::ErrorBuildField {
-                                    key: "token1".to_string(),
-                                    value: defined,
-                                },
-                                error::ErrorBuildField {
-                                    key: "token2".to_string(),
-                                    value: given,
-                                },
-                            ],
-                            file!().to_owned(),
-                            current_page.path.clone(),
-                            self.data.value_pos,
-                        );
-                        err.reference_block = Some((self.data.type_pos, current_page.path.clone()));
-                        err.reference_message = "Defined here".to_owned();
-                        err.semi_assist = true;
-                        parser.informations.push(&err);
-                        return false;
-                    } else {
-                        current_page.items.push(processed);
-                        return true;
+                    match comperable {
+                        Ok((compare, defined, given) ) => {
+                            if !compare {
+                                let mut err = error::error_list::ERROR_S3.clone().build_with_path(
+                                    vec![
+                                        error::ErrorBuildField {
+                                            key: "token1".to_string(),
+                                            value: defined,
+                                        },
+                                        error::ErrorBuildField {
+                                            key: "token2".to_string(),
+                                            value: given,
+                                        },
+                                    ],
+                                    file!().to_owned(),
+                                    current_page.path.clone(),
+                                    self.data.value_pos,
+                                );
+                                err.reference_block = Some((self.data.type_pos, current_page.path.clone()));
+                                err.reference_message = "Defined here".to_owned();
+                                err.semi_assist = true;
+                                parser.informations.push(&err);
+                                return false;
+                            } else {
+                                current_page.items.push(processed);
+                                return true;
+                            }
+                        },
+                        Err(err) => {
+                            parser.informations.extend(&err);
+                            return false;
+                        },
                     }
                 } else {
                     parser

@@ -4,4 +4,4 @@ pub static ELLIE_TOKENIZER_VERSION: &'static str = &"0.2.0";
 pub static ELLIE_PARSER_VERSION: &'static str = &"0.2.0";
 pub static ELLIE_RUNTIME_VERSION: &'static str = &"0.1.0";
 pub static ELLIE_CORE_VERSION: &'static str = &"0.2.0";
-pub static ELLIE_STD_VERSION: &'static str = &"0.2.3";
+pub static ELLIE_STD_VERSION: &'static str = &"0.3.3";

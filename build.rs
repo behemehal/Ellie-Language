@@ -158,7 +158,7 @@ fn main() {
                                             std::process::exit(1);
                                         }
                                     }
-                                });
+                                }, true);
                             }
                             Ok(_) => {
                                 let mut parser = parser::Parser::new(
@@ -215,7 +215,7 @@ fn main() {
                                                 std::process::exit(1);
                                             }
                                         }
-                                    });
+                                    }, true);
                                     println!("\nCompiling {}failed{} with {}{} errors{} and {}{} warnings{}.",
                                         cli_utils::Colors::Red,
                                         cli_utils::Colors::Reset,

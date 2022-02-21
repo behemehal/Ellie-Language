@@ -20,7 +20,7 @@ impl crate::processors::Processor for variable_type::VariableTypeCollector {
                         value: letter_char.to_string(),
                     }],
                     file!().to_owned(),
-                    defs::Cursor::build_with_skip_char(cursor),
+                    defs::Cursor::build_from_cursor(cursor),
                 ));
             } else {
                 self.complete = true;
@@ -37,7 +37,7 @@ impl crate::processors::Processor for variable_type::VariableTypeCollector {
                     value: letter_char.to_string(),
                 }],
                 file!().to_owned(),
-                defs::Cursor::build_with_skip_char(cursor),
+                defs::Cursor::build_from_cursor(cursor),
             ));
         }
     }

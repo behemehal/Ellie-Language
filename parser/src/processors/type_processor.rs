@@ -137,7 +137,7 @@ pub fn process(
             let index = process(*brace_reference.data.value, parser, page_id, ignore_hash);
             match index {
                 Ok(index) => {
-                    let index_type = resolve_type(index.clone(), page_id, parser);
+                    let index_type = resolve_type(index.clone(), page_id, parser, &mut errors);
                     let reference = process(
                         *brace_reference.data.reference,
                         parser,
@@ -147,7 +147,7 @@ pub fn process(
                     match reference {
                         Ok(found_reference) => {
                             let reference_type =
-                                resolve_type(found_reference.clone(), page_id, parser);
+                                resolve_type(found_reference.clone(), page_id, parser, &mut errors);
                             // TODO Ellie should let developers implement indexable properties in classes
                             //Example
                             // class A {

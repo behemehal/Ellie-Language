@@ -15,8 +15,6 @@ pub mod reference_processor;
 pub mod string_processor;
 pub mod variable_processor;
 
-use std::thread::panicking;
-
 use crate::syntax::types::*;
 use ellie_core::{
     definite::{self, Converter},
@@ -177,7 +175,7 @@ impl Processors {
             Processors::Cloak(e) => e.complete,
             Processors::Collective(e) => e.complete,
             Processors::AsKeyword(e) => e.complete,
-            Processors::NullResolver(e) => true,
+            Processors::NullResolver(_) => true,
         }
     }
 

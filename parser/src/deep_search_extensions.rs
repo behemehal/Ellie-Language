@@ -1,5 +1,3 @@
-use core::panic;
-
 use alloc::{
     borrow::ToOwned,
     boxed::Box,
@@ -11,7 +9,7 @@ use ellie_core::{
     definite::{
         definers,
         items::Collecting,
-        types::{brace_reference, Types, null_resolver},
+        types::{brace_reference, null_resolver, Types},
     },
     defs, error,
 };
@@ -41,10 +39,16 @@ pub enum DeepTypeResult {
     BraceReference(ellie_core::definite::types::brace_reference::BraceReferenceType),
     Void,
     Null,
+    Dynamic,
     NotFound,
 }
 
-fn iterate_deep_type(parser: &mut Parser, page_id: u64, rtype: Types) -> DeepTypeResult {
+fn iterate_deep_type(
+    parser: &mut Parser,
+    page_id: u64,
+    rtype: Types,
+    errors: &mut Vec<error::Error>,
+) -> DeepTypeResult {
     match rtype.clone() {
         Types::Integer(integer) => DeepTypeResult::Integer(integer),
         Types::Float(float) => DeepTypeResult::Float(float),
@@ -53,8 +57,9 @@ fn iterate_deep_type(parser: &mut Parser, page_id: u64, rtype: Types) -> DeepTyp
         Types::Collective(collective) => DeepTypeResult::Collective(collective),
         Types::Reference(_) => todo!(),
         Types::BraceReference(e) => {
-            let resolved_reference = resolve_deep_type(parser, page_id, *e.reference.clone());
-            let resolved_index = resolve_deep_type(parser, page_id, *e.value);
+            let resolved_reference =
+                resolve_deep_type(parser, page_id, *e.reference.clone(), errors);
+            let resolved_index = resolve_deep_type(parser, page_id, *e.value, errors);
             DeepTypeResult::BraceReference(
                 ellie_core::definite::types::brace_reference::BraceReferenceType {
                     reference: Box::new(match resolved_reference {
@@ -71,9 +76,12 @@ fn iterate_deep_type(parser: &mut Parser, page_id: u64, rtype: Types) -> DeepTyp
                         DeepTypeResult::ClassCall(e) => Types::ClassCall(e),
                         DeepTypeResult::FunctionCall(e) => Types::FunctionCall(e),
                         DeepTypeResult::BraceReference(e) => Types::BraceReference(e),
+                        DeepTypeResult::Dynamic => Types::Dynamic,
                         DeepTypeResult::Void => unreachable!(),
                         DeepTypeResult::Null => unreachable!(),
-                        DeepTypeResult::NotFound => unreachable!("cannot find reference: {:?}", *e.reference),
+                        DeepTypeResult::NotFound => {
+                            unreachable!("cannot find reference: {:?}", *e.reference)
+                        }
                     }),
                     reference_pos: e.reference_pos,
                     brace_pos: e.brace_pos,
@@ -94,6 +102,7 @@ fn iterate_deep_type(parser: &mut Parser, page_id: u64, rtype: Types) -> DeepTyp
                         DeepTypeResult::Void => unreachable!(),
                         DeepTypeResult::Null => unreachable!(),
                         DeepTypeResult::NotFound => unreachable!(),
+                        DeepTypeResult::Dynamic => Types::Dynamic,
                     }),
                     pos: e.pos,
                 },
@@ -106,6 +115,7 @@ fn iterate_deep_type(parser: &mut Parser, page_id: u64, rtype: Types) -> DeepTyp
                     parser,
                     page_id,
                     cloak.collective.last().unwrap().clone().value,
+                    errors,
                 )
             } else {
                 DeepTypeResult::Cloak(cloak)
@@ -114,7 +124,7 @@ fn iterate_deep_type(parser: &mut Parser, page_id: u64, rtype: Types) -> DeepTyp
         Types::Array(array) => {
             let mut collective = vec![];
             for i in array.collective {
-                let resolved_collective = resolve_deep_type(parser, page_id, i.value);
+                let resolved_collective = resolve_deep_type(parser, page_id, i.value, errors);
                 match resolved_collective {
                     DeepTypeResult::Integer(integer_type) => {
                         collective.push(ellie_core::definite::types::array::ArrayEntry {
@@ -209,6 +219,7 @@ fn iterate_deep_type(parser: &mut Parser, page_id: u64, rtype: Types) -> DeepTyp
                             location: i.location,
                         });
                     }
+                    DeepTypeResult::Dynamic => todo!(),
                 }
             }
             DeepTypeResult::Array(ellie_core::definite::types::array::ArrayType {
@@ -220,9 +231,9 @@ fn iterate_deep_type(parser: &mut Parser, page_id: u64, rtype: Types) -> DeepTyp
         Types::ClassCall(class_call) => DeepTypeResult::ClassCall(class_call),
         Types::FunctionCall(_) => todo!(),
         Types::NullResolver(null_resolver) => {
-            let from_type = resolve_type(*null_resolver.target.clone(), page_id, parser);
+            let from_type = resolve_type(*null_resolver.target.clone(), page_id, parser, errors);
             panic!("{:?}", from_type);
-        },
+        }
         Types::Negative(_) => todo!(),
         Types::VariableType(variable) => {
             let hash_deep_search = deep_search_hash(parser, page_id, variable.reference, vec![], 0);
@@ -271,7 +282,7 @@ fn iterate_deep_type(parser: &mut Parser, page_id: u64, rtype: Types) -> DeepTyp
                         }
                     }
                     ProcessedDeepSearchItems::Variable(e) => {
-                        iterate_deep_type(parser, page_id, e.value)
+                        iterate_deep_type(parser, page_id, e.value, errors)
                     }
                     ProcessedDeepSearchItems::Function(_) => todo!(),
                     ProcessedDeepSearchItems::ImportReference(_) => todo!(),
@@ -294,87 +305,179 @@ fn iterate_deep_type(parser: &mut Parser, page_id: u64, rtype: Types) -> DeepTyp
             }
         }
         Types::AsKeyword(as_keyword) => {
-            let from_type = resolve_type(*as_keyword.target.clone(), page_id, parser);
-            match as_keyword.rtype.clone() {
-                definers::DefinerCollecting::Generic(e) => {
-                    let targeted_type = find_type(e.rtype, page_id, parser);
+            let targeted = resolve_type(*as_keyword.target.clone(), page_id, parser, errors);
 
-                    match targeted_type.clone() {
-                        Some(target_type_gen) => match from_type.clone() {
-                            definers::DefinerCollecting::ParentGeneric(pg) => {
-
-                                //TODO Implement more types
-                                if pg.rtype == "nullAble" {
-                                    DeepTypeResult::Integer(
-                                        ellie_core::definite::types::integer::IntegerType {
-                                            value: ellie_core::definite::types::integer::IntegerSize::U8(0),
-                                            rtype: ellie_core::definite::types::integer::IntegerTypes::U8,
-                                            pos: defs::Cursor::default(),
-                                        },
-                                    )
-                                } else {
-                                    let path = parser.find_page(page_id).unwrap().path.clone();
-                                    parser.informations.push(
-                                        &error::error_list::ERROR_S50.clone().build_with_path(
-                                            vec![
-                                                error::ErrorBuildField {
-                                                    key: "target".to_string(),
-                                                    value: from_type.to_string(),
-                                                },
-                                                error::ErrorBuildField {
-                                                    key: "token".to_string(),
-                                                    value: target_type_gen.rtype,
-                                                },
-                                            ],
-                                            file!().to_string(),
-                                            path,
-                                            as_keyword.pos,
-                                        ),
-                                    );
-                                    DeepTypeResult::NotFound
-                                }
-                            }
-                            _ => {
-                                let path = parser.find_page(page_id).unwrap().path.clone();
-                                parser.informations.push(
-                                    &error::error_list::ERROR_S50.clone().build_with_path(
-                                        vec![
-                                            error::ErrorBuildField {
-                                                key: "target".to_string(),
-                                                value: from_type.to_string(),
-                                            },
-                                            error::ErrorBuildField {
-                                                key: "token".to_string(),
-                                                value: target_type_gen.rtype,
-                                            },
-                                        ],
-                                        file!().to_string(),
-                                        path,
-                                        as_keyword.pos,
-                                    ),
-                                );
-                                DeepTypeResult::NotFound
-                            }
-                        },
-                        None => {
-                            let path = parser.find_page(page_id).unwrap().path.clone();
-                            parser.informations.push(
-                                &error::error_list::ERROR_S6.clone().build_with_path(
-                                    vec![error::ErrorBuildField {
-                                        key: "token".to_string(),
-                                        value: as_keyword.rtype.to_string(),
-                                    }],
-                                    file!().to_string(),
-                                    path,
-                                    as_keyword.type_pos,
-                                ),
-                            );
-                            DeepTypeResult::NotFound
+            fn generate_type_from_defining(rtype: definers::DefinerCollecting) -> Option<Types> {
+                match rtype {
+                    definers::DefinerCollecting::Generic(generic) => {
+                        if generic.rtype == "int" {
+                            Some(Types::Integer(
+                                ellie_core::definite::types::integer::IntegerType {
+                                    value: ellie_core::definite::types::integer::IntegerSize::I8(0),
+                                    rtype: ellie_core::definite::types::integer::IntegerTypes::I8,
+                                    pos: defs::Cursor::default(),
+                                },
+                            ))
+                        } else if generic.rtype == "float" {
+                            Some(Types::Float(
+                                ellie_core::definite::types::float::FloatType {
+                                    value: ellie_core::definite::types::float::FloatSize::F32(0.0),
+                                    rtype: ellie_core::definite::types::float::FloatTypes::F32,
+                                    pos: defs::Cursor::default(),
+                                },
+                            ))
+                        } else if generic.rtype == "string" {
+                            Some(Types::String(
+                                ellie_core::definite::types::string::StringType {
+                                    value: "".to_owned(),
+                                    pos: defs::Cursor::default(),
+                                },
+                            ))
+                        } else if generic.rtype == "bool" {
+                            Some(Types::Bool(ellie_core::definite::types::bool::BoolType {
+                                value: true,
+                            }))
+                        } else if generic.rtype == "dyn" {
+                            Some(Types::Dynamic)
+                        } else if generic.rtype == "void" {
+                            Some(Types::Void)
+                        } else if generic.rtype == "char" {
+                            Some(Types::Char(
+                                ellie_core::definite::types::ellie_char::CharType { value: '\0' },
+                            ))
+                        } else if generic.rtype == "null" {
+                            Some(Types::Null)
+                        } else {
+                            None
                         }
                     }
+                    definers::DefinerCollecting::ParentGeneric(parent_generic) => {
+                        if parent_generic.rtype == "array" {
+                            match generate_type_from_defining(
+                                parent_generic.generics[0].value.clone(),
+                            ) {
+                                Some(t) => Some(Types::Array(
+                                    ellie_core::definite::types::array::ArrayType {
+                                        collective: vec![
+                                            ellie_core::definite::types::array::ArrayEntry {
+                                                value: t,
+                                                location: defs::Cursor::default(),
+                                            },
+                                        ],
+                                        pos: defs::Cursor::default(),
+                                    },
+                                )),
+                                None => None,
+                            }
+                        } else if parent_generic.rtype == "cloak" {
+                            let mut cloak_entries = vec![];
+                            let mut unresolved_element_available = false;
+                            for generic in parent_generic.generics {
+                                match generate_type_from_defining(generic.value) {
+                                    Some(t) => cloak_entries.push(
+                                        ellie_core::definite::types::cloak::CloakEntry {
+                                            value: t,
+                                            location: defs::Cursor::default(),
+                                        },
+                                    ),
+                                    None => {
+                                        unresolved_element_available = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            if unresolved_element_available {
+                                None
+                            } else {
+                                Some(Types::Cloak(
+                                    ellie_core::definite::types::cloak::CloakType {
+                                        collective: cloak_entries,
+                                        pos: defs::Cursor::default(),
+                                    },
+                                ))
+                            }
+                        } else if parent_generic.rtype == "collective" {
+                            match generate_type_from_defining(parent_generic.generics[0].value.clone()) {
+                                Some(k) =>
+                                match generate_type_from_defining(parent_generic.generics[1].value.clone()) {
+                                    Some(t) => Some(Types::Collective(
+                                    ellie_core::definite::types::collective::CollectiveType {
+                                        entries: vec![
+                                            ellie_core::definite::types::collective::CollectiveEntry {
+                                                key: k,
+                                                value: t,
+                                                key_pos: defs::Cursor::default(),
+                                                value_pos: defs::Cursor::default(),
+                                            },
+                                        ],
+                                        pos: defs::Cursor::default(),
+                                    },
+                                )),
+                                    None => None,
+                                },
+                                None => None,
+                            }
+                        } else if parent_generic.rtype == "vector" {
+                            match generate_type_from_defining(
+                                parent_generic.generics[0].value.clone(),
+                            ) {
+                                Some(t) => Some(Types::Vector(
+                                    ellie_core::definite::types::vector::VectorType {
+                                        collective: vec![
+                                            ellie_core::definite::types::vector::VectorEntry {
+                                                value: t,
+                                                location: defs::Cursor::default(),
+                                            },
+                                        ],
+                                        pos: defs::Cursor::default(),
+                                    },
+                                )),
+                                None => None,
+                            }
+                        } else {
+                            None
+                        }
+                    }
+                    _ => unreachable!(),
                 }
-                _ => {
-                    todo!()
+            }
+
+            let resolved_type = generate_type_from_defining(as_keyword.rtype.clone());
+
+            match resolved_type {
+                Some(types) => match types {
+                    Types::Integer(e) => DeepTypeResult::Integer(e),
+                    Types::Float(e) => DeepTypeResult::Float(e),
+                    Types::Bool(e) => DeepTypeResult::Bool(e),
+                    Types::String(e) => DeepTypeResult::String(e),
+                    Types::Char(e) => DeepTypeResult::Char(e),
+                    Types::Collective(e) => DeepTypeResult::Collective(e),
+                    Types::Cloak(e) => DeepTypeResult::Cloak(e),
+                    Types::Array(e) => DeepTypeResult::Array(e),
+                    Types::Vector(e) => DeepTypeResult::Vector(e),
+                    Types::Dynamic => DeepTypeResult::Dynamic,
+                    _ => unreachable!("Unexpected return: {:#?}", types),
+                },
+                None => {
+                    let path = parser.find_page(page_id).unwrap().path.clone();
+                    parser.informations.push(
+                        &error::error_list::ERROR_S50.clone().build_with_path(
+                            vec![
+                                error::ErrorBuildField {
+                                    key: "target".to_string(),
+                                    value: targeted.to_string(),
+                                },
+                                error::ErrorBuildField {
+                                    key: "type".to_string(),
+                                    value: as_keyword.rtype.to_string(),
+                                },
+                            ],
+                            file!().to_string(),
+                            path,
+                            as_keyword.pos,
+                        ),
+                    );
+                    DeepTypeResult::NotFound
                 }
             }
         }
@@ -383,11 +486,17 @@ fn iterate_deep_type(parser: &mut Parser, page_id: u64, rtype: Types) -> DeepTyp
         Types::Bool(_) => unreachable!(),
         Types::Void => todo!(),
         Types::Null => todo!(),
+        Types::Dynamic => todo!(),
     }
 }
 
-pub fn resolve_deep_type(parser: &mut Parser, page_id: u64, rtype: Types) -> DeepTypeResult {
-    iterate_deep_type(parser, page_id, rtype)
+pub fn resolve_deep_type(
+    parser: &mut Parser,
+    page_id: u64,
+    rtype: Types,
+    errors: &mut Vec<error::Error>,
+) -> DeepTypeResult {
+    iterate_deep_type(parser, page_id, rtype, errors)
 }
 
 #[derive(Debug, Clone)]
@@ -726,9 +835,14 @@ pub fn resolve_type(
     target_type: Types,
     target_page: u64,
     parser: &mut Parser,
+    errors: &mut Vec<error::Error>,
 ) -> definers::DefinerCollecting {
-    let deep_type =
-        crate::deep_search_extensions::resolve_deep_type(parser, target_page, target_type.clone());
+    let deep_type = crate::deep_search_extensions::resolve_deep_type(
+        parser,
+        target_page,
+        target_type.clone(),
+        errors,
+    );
 
     match deep_type {
         DeepTypeResult::Integer(_) => {
@@ -787,7 +901,7 @@ pub fn resolve_type(
             }
             let mut child_generic = GenericExists::Null;
             for entry in array_type.collective {
-                let resolved = resolve_type(entry.value, target_page, parser);
+                let resolved = resolve_type(entry.value, target_page, parser, errors);
                 if child_generic != GenericExists::Null
                     && resolved != *child_generic.as_generic().unwrap()
                 {
@@ -840,7 +954,8 @@ pub fn resolve_type(
                 Some(nullable_generic) => {
                     let nullable_child_generic = match *e.reference.clone() {
                         Types::Array(_) => {
-                            let array_type = resolve_type(*e.reference, target_page, parser);
+                            let array_type =
+                                resolve_type(*e.reference, target_page, parser, errors);
                             array_type.as_parent_generic().unwrap().generics[0]
                                 .value
                                 .clone()
@@ -859,6 +974,13 @@ pub fn resolve_type(
                         parent_pos: ellie_core::defs::Cursor::default(),
                     })
                 }
+                None => panic!("Unhandled behaviour"),
+            }
+        }
+        DeepTypeResult::Dynamic => {
+            let dyn_type = find_type("dyn".to_string(), target_page, parser);
+            match dyn_type {
+                Some(dynamic_type) => definers::DefinerCollecting::Generic(dynamic_type),
                 None => panic!("Unhandled behaviour"),
             }
         }

@@ -136,6 +136,16 @@ impl Cursor {
             range_end: range_start.clone().skip_char(1),
         }
     }
+
+    /// Create new [`Cursor`]
+    /// ## Arguments
+    /// * `start` - Start of range [`CursorPosition`]
+    pub fn build_from_cursor(range_start: CursorPosition) -> Self {
+        Cursor {
+            range_start,
+            range_end: range_start,
+        }
+    }
 }
 
 impl Default for Cursor {

@@ -138,10 +138,16 @@ impl ParserSettings {
             ellie_tokenizer::processors::types::Processors::Char(_) => self.chars.clone(),
             ellie_tokenizer::processors::types::Processors::String(_) => self.strings.clone(),
             ellie_tokenizer::processors::types::Processors::Array(_) => self.arrays.clone(),
-            ellie_tokenizer::processors::types::Processors::BraceReference(_) => self.nullables.clone(),
+            ellie_tokenizer::processors::types::Processors::BraceReference(_) => {
+                self.nullables.clone()
+            }
             ellie_tokenizer::processors::types::Processors::Cloak(_) => self.cloaks.clone(),
-            ellie_tokenizer::processors::types::Processors::Collective(_) => self.collectives.clone(),
-            ellie_tokenizer::processors::types::Processors::AsKeyword(_) => self.type_conversions.clone(),
+            ellie_tokenizer::processors::types::Processors::Collective(_) => {
+                self.collectives.clone()
+            }
+            ellie_tokenizer::processors::types::Processors::AsKeyword(_) => {
+                self.type_conversions.clone()
+            }
             _ => (true, String::new()),
         }
     }
@@ -273,12 +279,15 @@ impl Parser {
             ellie_core::definite::types::Types::ClassCall(c) => self.resolve_type_name(*c.target),
             ellie_core::definite::types::Types::FunctionCall(_) => todo!(),
             ellie_core::definite::types::Types::Void => "void".to_string(),
-            ellie_core::definite::types::Types::NullResolver(e) => self.resolve_type_name(*e.target),
+            ellie_core::definite::types::Types::NullResolver(e) => {
+                self.resolve_type_name(*e.target)
+            }
             ellie_core::definite::types::Types::Negative(e) => self.resolve_type_name(*e.value),
             ellie_core::definite::types::Types::VariableType(e) => e.value,
             ellie_core::definite::types::Types::Null => "null".to_string(),
             ellie_core::definite::types::Types::AsKeyword(e) => self.resolve_type_name(*e.target),
             ellie_core::definite::types::Types::Bool(_) => "bool".to_string(),
+            ellie_core::definite::types::Types::Dynamic => "dyn".to_string(),
         }
     }
 
@@ -287,74 +296,149 @@ impl Parser {
         defining: ellie_core::definite::definers::DefinerCollecting,
         rtype: ellie_core::definite::types::Types,
         target_page: u64,
-    ) -> (bool, String, String) {
-        let c = crate::deep_search_extensions::resolve_deep_type(self, target_page, rtype.clone());
+    ) -> Result<(bool, String, String), Vec<error::Error>> {
+        let mut errors: Vec<error::Error> = Vec::new();
+        let c = crate::deep_search_extensions::resolve_deep_type(
+            self,
+            target_page,
+            rtype.clone(),
+            &mut errors,
+        );
         match c {
             crate::deep_search_extensions::DeepTypeResult::Integer(_) => {
                 if let ellie_core::definite::definers::DefinerCollecting::Generic(_) = defining {
                     if defining.to_string() == "int" {
-                        (true, defining.to_string(), "int".to_owned())
+                        if errors.is_empty() {
+                            Ok((true, defining.to_string(), "int".to_owned()))
+                        } else {
+                            Err(errors)
+                        }
                     } else {
-                        (false, defining.to_string(), "int".to_owned())
+                        if errors.is_empty() {
+                            Ok((false, defining.to_string(), "int".to_owned()))
+                        } else {
+                            Err(errors)
+                        }
                     }
                 } else {
-                    (false, defining.to_string(), "int".to_owned())
+                    if errors.is_empty() {
+                        Ok((false, defining.to_string(), "int".to_owned()))
+                    } else {
+                        Err(errors)
+                    }
                 }
             }
             crate::deep_search_extensions::DeepTypeResult::Float(_) => {
                 if let ellie_core::definite::definers::DefinerCollecting::Generic(_) = defining {
                     if defining.to_string() == "float" {
-                        (true, defining.to_string(), "float".to_owned())
+                        if errors.is_empty() {
+                            Ok((true, defining.to_string(), "float".to_owned()))
+                        } else {
+                            Err(errors)
+                        }
                     } else {
-                        (false, defining.to_string(), "float".to_owned())
+                        if errors.is_empty() {
+                            Ok((false, defining.to_string(), "float".to_owned()))
+                        } else {
+                            Err(errors)
+                        }
                     }
                 } else {
-                    (false, defining.to_string(), "float".to_owned())
+                    if errors.is_empty() {
+                        Ok((false, defining.to_string(), "float".to_owned()))
+                    } else {
+                        Err(errors)
+                    }
                 }
             }
             crate::deep_search_extensions::DeepTypeResult::Bool(_) => {
                 if let ellie_core::definite::definers::DefinerCollecting::Generic(_) = defining {
                     if defining.to_string() == "bool" {
-                        (true, defining.to_string(), "bool".to_owned())
+                        if errors.is_empty() {
+                            Ok((true, defining.to_string(), "bool".to_owned()))
+                        } else {
+                            Err(errors)
+                        }
                     } else {
-                        (false, defining.to_string(), "bool".to_owned())
+                        if errors.is_empty() {
+                            Ok((false, defining.to_string(), "bool".to_owned()))
+                        } else {
+                            Err(errors)
+                        }
                     }
                 } else {
-                    (false, defining.to_string(), "bool".to_owned())
+                    if errors.is_empty() {
+                        Ok((false, defining.to_string(), "bool".to_owned()))
+                    } else {
+                        Err(errors)
+                    }
                 }
             }
             crate::deep_search_extensions::DeepTypeResult::String(_) => {
                 if let ellie_core::definite::definers::DefinerCollecting::Generic(_) = defining {
                     if defining.to_string() == "string" {
-                        (true, defining.to_string(), "string".to_owned())
+                        if errors.is_empty() {
+                            Ok((true, defining.to_string(), "string".to_owned()))
+                        } else {
+                            Err(errors)
+                        }
                     } else {
-                        (false, defining.to_string(), "string".to_owned())
+                        if errors.is_empty() {
+                            Ok((false, defining.to_string(), "string".to_owned()))
+                        } else {
+                            Err(errors)
+                        }
                     }
                 } else {
-                    (false, defining.to_string(), "string".to_owned())
+                    if errors.is_empty() {
+                        Ok((false, defining.to_string(), "string".to_owned()))
+                    } else {
+                        Err(errors)
+                    }
                 }
             }
             crate::deep_search_extensions::DeepTypeResult::Char(_) => {
                 if let ellie_core::definite::definers::DefinerCollecting::Generic(_) = defining {
                     if defining.to_string() == "char" {
-                        (true, defining.to_string(), "char".to_owned())
+                        if errors.is_empty() {
+                            Ok((true, defining.to_string(), "char".to_owned()))
+                        } else {
+                            Err(errors)
+                        }
                     } else {
-                        (false, defining.to_string(), "char".to_owned())
+                        if errors.is_empty() {
+                            Ok((false, defining.to_string(), "char".to_owned()))
+                        } else {
+                            Err(errors)
+                        }
                     }
                 } else {
-                    (false, defining.to_string(), "char".to_owned())
+                    if errors.is_empty() {
+                        Ok((false, defining.to_string(), "char".to_owned()))
+                    } else {
+                        Err(errors)
+                    }
                 }
             }
             crate::deep_search_extensions::DeepTypeResult::Collective(_) => todo!(),
             crate::deep_search_extensions::DeepTypeResult::Operator(_) => todo!(),
             crate::deep_search_extensions::DeepTypeResult::Cloak(_) => todo!(),
             crate::deep_search_extensions::DeepTypeResult::Array(arr) => {
-                let value_gen = deep_search_extensions::resolve_type(rtype, target_page, self);
+                let value_gen =
+                    deep_search_extensions::resolve_type(rtype, target_page, self, &mut errors);
 
                 if value_gen.same_as(defining.clone()) {
-                    (true, defining.to_string(), value_gen.to_string())
+                    if errors.is_empty() {
+                        Ok((true, defining.to_string(), value_gen.to_string()))
+                    } else {
+                        Err(errors)
+                    }
                 } else {
-                    (false, defining.to_string(), value_gen.to_string())
+                    if errors.is_empty() {
+                        Ok((false, defining.to_string(), value_gen.to_string()))
+                    } else {
+                        Err(errors)
+                    }
                 }
 
                 /*
@@ -389,35 +473,104 @@ impl Parser {
             crate::deep_search_extensions::DeepTypeResult::Void => {
                 if let ellie_core::definite::definers::DefinerCollecting::Generic(_) = defining {
                     if defining.clone().to_string() == "void" {
-                        (true, defining.to_string(), "void".to_owned())
+                        if errors.is_empty() {
+                            Ok((true, defining.to_string(), "void".to_owned()))
+                        } else {
+                            Err(errors)
+                        }
                     } else {
-                        (false, defining.to_string(), "void".to_owned())
+                        if errors.is_empty() {
+                            Ok((false, defining.to_string(), "void".to_owned()))
+                        } else {
+                            Err(errors)
+                        }
                     }
                 } else {
-                    (false, defining.to_string(), "void".to_owned())
+                    if errors.is_empty() {
+                        Ok((false, defining.to_string(), "void".to_owned()))
+                    } else {
+                        Err(errors)
+                    }
                 }
             }
             crate::deep_search_extensions::DeepTypeResult::Null => {
                 if let ellie_core::definite::definers::DefinerCollecting::Generic(_) = defining {
                     if defining.to_string() == "null" {
-                        (true, defining.to_string(), "null".to_owned())
+                        if errors.is_empty() {
+                            Ok((true, defining.to_string(), "null".to_owned()))
+                        } else {
+                            Err(errors)
+                        }
                     } else {
-                        (false, defining.to_string(), "null".to_owned())
+                        if errors.is_empty() {
+                            Ok((false, defining.to_string(), "null".to_owned()))
+                        } else {
+                            Err(errors)
+                        }
                     }
                 } else {
-                    (false, defining.to_string(), "null".to_owned())
+                    if errors.is_empty() {
+                        Ok((false, defining.to_string(), "null".to_owned()))
+                    } else {
+                        Err(errors)
+                    }
                 }
             }
-            deep_search_extensions::DeepTypeResult::BraceReference(e) => {
-                let value_gen = deep_search_extensions::resolve_type(rtype, target_page, self);
+            deep_search_extensions::DeepTypeResult::BraceReference(_) => {
+                let value_gen =
+                    deep_search_extensions::resolve_type(rtype, target_page, self, &mut errors);
 
                 if value_gen.same_as(defining.clone()) {
-                    (true, defining.to_string(), value_gen.to_string())
+                    if errors.is_empty() {
+                        Ok((true, defining.to_string(), value_gen.to_string()))
+                    } else {
+                        Err(errors)
+                    }
                 } else {
-                    (false, defining.to_string(), value_gen.to_string())
+                    if errors.is_empty() {
+                        Ok((false, defining.to_string(), value_gen.to_string()))
+                    } else {
+                        Err(errors)
+                    }
                 }
-            },
-            crate::deep_search_extensions::DeepTypeResult::NotFound => (false, String::new(), String::new()),
+            }
+            deep_search_extensions::DeepTypeResult::Dynamic => {
+                if let ellie_core::definite::definers::DefinerCollecting::Generic(_) = defining {
+                    if defining.to_string() == "dyn" {
+                        if errors.is_empty() {
+                            Ok((true, defining.to_string(), "dyn".to_owned()))
+                        } else {
+                            Err(errors)
+                        }
+                    } else {
+                        if errors.is_empty() {
+                            Ok((false, defining.to_string(), "dyn".to_owned()))
+                        } else {
+                            Err(errors)
+                        }
+                    }
+                } else if let ellie_core::definite::definers::DefinerCollecting::Dynamic = defining
+                {
+                    if errors.is_empty() {
+                        Ok((true, defining.to_string(), "dyn".to_owned()))
+                    } else {
+                        Err(errors)
+                    }
+                } else {
+                    if errors.is_empty() {
+                        Ok((false, defining.to_string(), "dyn".to_owned()))
+                    } else {
+                        Err(errors)
+                    }
+                }
+            }
+            crate::deep_search_extensions::DeepTypeResult::NotFound => {
+                if errors.is_empty() {
+                    Ok((false, String::new(), String::new()))
+                } else {
+                    Err(errors)
+                }
+            }
             deep_search_extensions::DeepTypeResult::Integer(_) => todo!(),
             deep_search_extensions::DeepTypeResult::Float(_) => todo!(),
             deep_search_extensions::DeepTypeResult::Bool(_) => todo!(),

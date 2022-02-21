@@ -20,6 +20,7 @@ pub struct CompilerSettings {
     pub description: String,
     pub version: Version,
     pub output_type: cli_utils::OutputTypes,
+    pub show_debug_lines: bool,
     pub warnings: bool,
 }
 
@@ -260,7 +261,7 @@ pub fn compile(
                                         path,
                                     );
                                 }
-                            });
+                            }, compiler_settings.show_debug_lines);
                         }
 
                         if parser.informations.warnings.len() == 0 {
@@ -449,8 +450,9 @@ pub fn compile(
                         });
                         println!("{}", serde_json::to_string(&output).unwrap());
                     } else {
-                        cli_utils::print_errors(&pager_errors, |path| {
-                            match cli_utils::read_file(
+                        cli_utils::print_errors(
+                            &pager_errors,
+                            |path| match cli_utils::read_file(
                                 &path.replace(
                                     &starter_name,
                                     Path::new(target_path)
@@ -474,8 +476,9 @@ pub fn compile(
                                         cli_utils::Colors::Reset
                                     );
                                 }
-                            }
-                        });
+                            },
+                            compiler_settings.show_debug_lines,
+                        );
                     }
                 }
             }

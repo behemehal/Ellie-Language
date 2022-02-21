@@ -1,5 +1,5 @@
 use clap::ValueHint;
-use clap::{App, AppSettings, Arg};
+use clap::{Arg, Command};
 use ellie_engine::{cli_outputs, cli_utils};
 use std::path::Path;
 
@@ -9,16 +9,22 @@ struct EllieError {}
 fn main() {
     println!("\x1B]0;{}\x07", "Ellie Compiler");
 
-    let app = App::new("EllieCompiler")
-        .setting(AppSettings::SubcommandRequiredElseHelp)
+    let app = Command::new("EllieCompiler")
+        .arg_required_else_help(true)
         .subcommand(
-            App::new("compile")
+            Command::new("compile")
                 .about("Compile option")
                 .arg(
                     Arg::new("allowPanics")
                         .help("Allow panics")
                         .short('a')
                         .long("--allow-panics"),
+                )
+                .arg(
+                    Arg::new("showDebugLines")
+                        .help("Show debugging lines")
+                        .short('s')
+                        .long("--show-debug-lines"),
                 )
                 .arg(
                     Arg::new("jsonLog")
@@ -89,7 +95,7 @@ fn main() {
                 ),
         )
         .subcommand(
-            App::new("viewModule")
+            Command::new("viewModule")
                 .about("Analyze given module information")
                 .arg(
                     Arg::new("jsonLog")
@@ -105,7 +111,7 @@ fn main() {
                 ),
         )
         .subcommand(
-            App::new("version")
+            Command::new("version")
                 .about("Get version")
                 .arg(
                     Arg::new("jsonLog")
@@ -414,6 +420,7 @@ fn main() {
                     .to_str()
                     .unwrap()
                     .to_string(),
+                show_debug_lines: matches.is_present("showDebugLines"),
                 warnings: !matches.is_present("disableWarnings"),
             };
 

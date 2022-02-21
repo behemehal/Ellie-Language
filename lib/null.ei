@@ -1,0 +1,15 @@
+/*
+    Copyright (c) 2020 Behemehal. See license file for details
+*/
+import string.ei;
+
+@version = "1.0.0";
+@description = "Ellie null"
+@notConstructable = true;
+pub class null {
+    @description = "Get type";
+    @avoidUsage = true;
+    pub fn getType() : string {
+        ret "null";
+    }
+}

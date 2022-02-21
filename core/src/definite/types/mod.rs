@@ -42,6 +42,7 @@ pub enum Types {
     VariableType(variable::VariableType),
     AsKeyword(as_keyword::AsKeyword),
     Null,
+    Dynamic
 }
 
 impl Default for Types {
