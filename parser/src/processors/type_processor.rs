@@ -343,6 +343,25 @@ pub fn process(
                 if deep_search_result.found {
                     match deep_search_result.found_item {
                         crate::parser::DeepSearchItems::Class(e) => {
+                            let undefined_generics = class_call
+                                .data
+                                .generic_parameters
+                                .iter()
+                                .filter_map(|g| {
+                                    match crate::processors::definer_processor::process(
+                                        g.value.clone(),
+                                        parser,
+                                        page_id,
+                                        ignore_hash,
+                                    ) {
+                                        Ok(_) => None,
+                                        Err(err) => {
+                                            errors.extend(err);
+                                            Some(g)
+                                        }
+                                    }
+                                })
+                                .collect::<Vec<_>>();
                             if e.generic_definings.len() != class_call.data.generic_parameters.len()
                             {
                                 let mut error =
@@ -373,6 +392,19 @@ pub fn process(
                                 ));
                                 error.reference_message = "Defined here".to_owned();
                                 errors.push(error);
+                                Err(errors)
+                            } else if undefined_generics.len() > 0 {
+                                for g in undefined_generics {
+                                    errors.push(error::error_list::ERROR_S6.clone().build_with_path(
+                                        vec![error::ErrorBuildField {
+                                            key: "token".to_string(),
+                                            value: g.value.clone().to_definite().to_string(),
+                                        }],
+                                        file!().to_owned(),
+                                        parser.find_page(page_id).unwrap().path.clone(),
+                                        g.pos,
+                                    ));
+                                }
                                 Err(errors)
                             } else if let Some(_) = e.body.iter().find_map(|x| match x {
                                 ellie_tokenizer::processors::items::Processors::Constructor(e) => {
