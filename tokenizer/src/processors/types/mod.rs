@@ -15,6 +15,8 @@ pub mod reference_processor;
 pub mod string_processor;
 pub mod variable_processor;
 
+use std::thread::panicking;
+
 use crate::syntax::types::*;
 use ellie_core::{
     definite::{self, Converter},
@@ -422,7 +424,7 @@ impl super::Processor for TypeProcessor {
                     complete: false,
                 });
             }
-        } else if self.is_complete() && utils::is_operator_start(letter_char) {
+        } else if self.is_complete() && utils::is_operator_start(letter_char) && !(matches!(self.current.clone(), Processors::AsKeyword(e) if matches!(e.data.rtype.definer_type, crate::syntax::items::definers::DefinerTypes::Generic(_)))) {
             //Operator priority
             if let Processors::Operator(operator) = self.current.clone() {
                 if letter_char == '/' || letter_char == '*' || letter_char == '%' {
