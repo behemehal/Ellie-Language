@@ -25,7 +25,7 @@ pub fn is_escape(value: char) -> bool {
         || value == '0'
 }
 
-pub fn is_reserved(value: &str) -> bool {
+pub fn is_reserved(value: &str, allow_core_naming: bool) -> bool {
     value == "fn"
         || value == "class"
         || value == "if"
@@ -38,6 +38,26 @@ pub fn is_reserved(value: &str) -> bool {
         || value == "get"
         || value == "set"
         || value == "new"
+        
+        || (value == "array" && !allow_core_naming)
+        || (value == "collective" && !allow_core_naming)
+        || (value == "cloak" && !allow_core_naming)
+        || (value == "vector" && !allow_core_naming)
+        || (value == "string" && !allow_core_naming)
+        || (value == "char" && !allow_core_naming)
+        || (value == "int" && !allow_core_naming)
+        || (value == "float" && !allow_core_naming)
+        || (value == "bool" && !allow_core_naming)
+        || (value == "dyn" && !allow_core_naming)
+        || (value == "void" && !allow_core_naming)
+        || (value == "null" && !allow_core_naming)
+        || (value == "nullAble" && !allow_core_naming)
+        || (value == "function" && !allow_core_naming)
+        || (value == "panic" && !allow_core_naming)
+        || (value == "createThread" && !allow_core_naming)
+        || (value == "cursorPosition" && !allow_core_naming)
+        || (value == "error" && !allow_core_naming)
+        || (value == "rawMemoryData" && !allow_core_naming)
 }
 
 pub fn generate_hash_u64() -> u64 {

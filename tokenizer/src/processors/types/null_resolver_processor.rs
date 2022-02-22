@@ -6,7 +6,7 @@ impl crate::processors::Processor for null_resolver::NullResolver {
         &mut self,
         errors: &mut Vec<error::Error>,
         cursor: defs::CursorPosition,
-        last_char: char,
+        _last_char: char,
         letter_char: char,
     ) {
         if self.pos.range_end.is_zero() {

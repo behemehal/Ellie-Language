@@ -8,7 +8,6 @@ struct EllieError {}
 
 fn main() {
     println!("\x1B]0;{}\x07", "Ellie Compiler");
-
     let app = Command::new("EllieCompiler")
         .arg_required_else_help(true)
         .subcommand(

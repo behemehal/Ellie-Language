@@ -3,6 +3,8 @@
 */
 import string.ei;
 
+@dont_fix_variant=true;
+@notConstructable = true;
 pub class char {
     @description = "Get type";
     @example = "

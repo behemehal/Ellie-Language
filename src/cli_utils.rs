@@ -199,11 +199,16 @@ pub fn read_file<P: AsRef<Path>>(file_dir: P) -> Result<String, String> {
         Err(r) => Err(r.to_string()),
         Ok(mut file) => {
             let mut file_content = Vec::new();
-            file.read_to_end(&mut file_content).expect("Unable to read");
-            match String::from_utf8(file_content) {
-                Ok(code_string) => Ok(code_string),
+            match file.read_to_end(&mut file_content) {
+                Ok(_) => {
+                    match String::from_utf8(file_content) {
+                        Ok(code_string) => Ok(code_string),
+                        Err(e) => Err(e.to_string()),
+                    }
+                },
                 Err(e) => Err(e.to_string()),
             }
+           
         }
     }
 }

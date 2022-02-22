@@ -6,6 +6,7 @@ import string.ei;
 @version = "1.0.0";
 @description = "Ellie void"
 @notConstructable = true;
+@dont_fix_variant=true;
 pub class void {
     @description = "Get type";
     @avoidUsage = true;

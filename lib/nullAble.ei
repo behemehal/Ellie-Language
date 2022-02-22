@@ -4,6 +4,7 @@
 
 import thread.ei;
 
+@dont_fix_variant=true;
 pub class nullAble<Type> {
     co(type);
     pub v type : Type;

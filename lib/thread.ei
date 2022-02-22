@@ -3,11 +3,17 @@ import int.ei;
 import function.ei;
 import string.ei;
 
+@dont_fix_variant=true;
 pub class callStack {
     pub v location: cursorPosition;
     pub v path: string;
-} 
+}
 
+@dont_fix_variant=true;
 pub fn panic(error: error);
+
+@dont_fix_variant=true;
 pub fn sleep(ms: int);
-pub fn create_thread(inside: @());
+
+@dont_fix_variant=true;
+pub fn createThread(inside: @());

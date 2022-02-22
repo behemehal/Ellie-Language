@@ -317,7 +317,7 @@ impl super::Processor for TypeProcessor {
                 ..Default::default()
             });
         } else if letter_char == '!' {
-            if (not_initalized) {
+            if not_initalized {
                 self.current = Processors::Negative(negative_type::Negative {
                     pos: defs::Cursor::build_with_skip_char(cursor.clone()),
                     ..Default::default()

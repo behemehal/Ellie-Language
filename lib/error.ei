@@ -1,12 +1,14 @@
 import int.ei;
 import string.ei;
 
+@dont_fix_variant=true;
 pub class cursorPosition {
     co(line, column);
     pub v line : int;
     pub v column : int;
 }
 
+@dont_fix_variant=true;
 pub class error {
     co(code, title, message);
 

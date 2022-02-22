@@ -5,6 +5,8 @@
 import thread.ei;
 import string.ei;
 
+@dont_fix_variant=true;
+@notConstructable = true;
 pub class function {
     pub v name: string;
     pub v call_stack: callStack;

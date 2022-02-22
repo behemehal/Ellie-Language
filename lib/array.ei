@@ -7,6 +7,7 @@ import int.ei;
 @version = "1.0.0";
 @description = "Ellie array"
 @notConstructable = true;
+@dont_fix_variant=true;
 pub class array<Type> {
     @description = "Get type";
     @example = "

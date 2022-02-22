@@ -1,5 +1,3 @@
-use std::thread::panicking;
-
 use crate::syntax::items::variable::VariableCollector;
 use ellie_core::{defs, error, utils};
 

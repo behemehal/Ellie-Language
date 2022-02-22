@@ -178,34 +178,6 @@ pub fn compile(
                             println!("{}", serde_json::to_string(&output).unwrap());
                         } else {
                             cli_utils::print_warnings(&parser.informations.warnings, |path| {
-                                match cli_utils::read_file(&path) {
-                                    Ok(e) => e,
-                                    Err(err) => {
-                                        panic!(
-                                            "{}[Internal Error]{} Cannot build warning, read file failed '{}' {}[{}]{}",
-                                            cli_utils::Colors::Red,
-                                            cli_utils::Colors::Reset,
-                                            path,
-                                            cli_utils::Colors::Red,
-                                            err,
-                                            cli_utils::Colors::Reset
-                                        );
-                                    }
-                                }
-                            });
-                        }
-                    }
-
-                    if !parser.informations.has_no_errors() {
-                        if compiler_settings.json_log {
-                            let mut output = cli_outputs::COMPILER_ERRORS.clone();
-                            output.extra.push(cli_outputs::CliOuputExtraData {
-                                key: "errors".to_string(),
-                                value: parser.informations.errors.clone(),
-                            });
-                            println!("{}", serde_json::to_string(&output).unwrap());
-                        } else {
-                            cli_utils::print_errors(&parser.informations.errors, |path| {
                                 let path_starter = path.split("/").next().unwrap();
                                 let virtual_path_identifier =
                                     match path_starter.split("<ellie_module_").last() {
@@ -261,7 +233,80 @@ pub fn compile(
                                         path,
                                     );
                                 }
-                            }, compiler_settings.show_debug_lines);
+                            });
+                        }
+                    }
+
+                    if !parser.informations.has_no_errors() {
+                        if compiler_settings.json_log {
+                            let mut output = cli_outputs::COMPILER_ERRORS.clone();
+                            output.extra.push(cli_outputs::CliOuputExtraData {
+                                key: "errors".to_string(),
+                                value: parser.informations.errors.clone(),
+                            });
+                            println!("{}", serde_json::to_string(&output).unwrap());
+                        } else {
+                            cli_utils::print_errors(
+                                &parser.informations.errors,
+                                |path| {
+                                    let path_starter = path.split("/").next().unwrap();
+                                    let virtual_path_identifier =
+                                        match path_starter.split("<ellie_module_").last() {
+                                            Some(e) => e.split(">").next().unwrap(),
+                                            None => "",
+                                        };
+                                    if path_starter == starter_name {
+                                        let real_path = path
+                                            .replace(
+                                                &starter_name,
+                                                Path::new(target_path)
+                                                    .absolutize()
+                                                    .unwrap()
+                                                    .parent()
+                                                    .unwrap()
+                                                    .to_str()
+                                                    .unwrap(),
+                                            )
+                                            .clone();
+                                        match cli_utils::read_file(real_path) {
+                                            Ok(e) => e,
+                                            Err(err) => {
+                                                panic!(
+                                                "Failed to ouput error. Cannot read file '{}' {}[{}]{}",
+                                                path,
+                                                cli_utils::Colors::Red,
+                                                err,
+                                                cli_utils::Colors::Reset
+                                            );
+                                            }
+                                        }
+                                    } else if let Some((_, module_path)) = modules
+                                        .iter()
+                                        .find(|(module, _)| module.name == virtual_path_identifier)
+                                    {
+                                        let real_path =
+                                            path.replace(&path_starter, module_path).clone();
+                                        match cli_utils::read_file(real_path) {
+                                            Ok(e) => e,
+                                            Err(err) => {
+                                                panic!(
+                                                "Failed to ouput error. Cannot read file '{}' {}[{}]{}",
+                                                path,
+                                                cli_utils::Colors::Red,
+                                                err,
+                                                cli_utils::Colors::Reset
+                                            );
+                                            }
+                                        }
+                                    } else {
+                                        panic!(
+                                            "Failed to ouput error. Cannot identify module '{}'",
+                                            path,
+                                        );
+                                    }
+                                },
+                                compiler_settings.show_debug_lines,
+                            );
                         }
 
                         if parser.informations.warnings.len() == 0 {

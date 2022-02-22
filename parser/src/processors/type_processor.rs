@@ -3,10 +3,13 @@ use alloc::boxed::Box;
 use alloc::string::ToString;
 use alloc::vec;
 use alloc::vec::Vec;
-use ellie_core::{definite::types, error};
+use ellie_core::{
+    definite::{types, Converter},
+    error, utils::generate_hash,
+};
 use ellie_tokenizer::processors::types::Processors;
 
-use crate::deep_search_extensions::{resolve_deep_type, resolve_type};
+use crate::deep_search_extensions::{resolve_type, find_type};
 
 pub fn process(
     from: Processors,
@@ -347,8 +350,8 @@ pub fn process(
                                 .data
                                 .generic_parameters
                                 .iter()
-                                .filter_map(|g| {
-                                    match crate::processors::definer_processor::process(
+                                .filter_map(
+                                    |g| match crate::processors::definer_processor::process(
                                         g.value.clone(),
                                         parser,
                                         page_id,
@@ -359,8 +362,8 @@ pub fn process(
                                             errors.extend(err);
                                             Some(g)
                                         }
-                                    }
-                                })
+                                    },
+                                )
                                 .collect::<Vec<_>>();
                             if e.generic_definings.len() != class_call.data.generic_parameters.len()
                             {
@@ -395,15 +398,17 @@ pub fn process(
                                 Err(errors)
                             } else if undefined_generics.len() > 0 {
                                 for g in undefined_generics {
-                                    errors.push(error::error_list::ERROR_S6.clone().build_with_path(
-                                        vec![error::ErrorBuildField {
-                                            key: "token".to_string(),
-                                            value: g.value.clone().to_definite().to_string(),
-                                        }],
-                                        file!().to_owned(),
-                                        parser.find_page(page_id).unwrap().path.clone(),
-                                        g.pos,
-                                    ));
+                                    errors.push(
+                                        error::error_list::ERROR_S6.clone().build_with_path(
+                                            vec![error::ErrorBuildField {
+                                                key: "token".to_string(),
+                                                value: g.value.clone().to_definite().to_string(),
+                                            }],
+                                            file!().to_owned(),
+                                            parser.find_page(page_id).unwrap().path.clone(),
+                                            g.pos,
+                                        ),
+                                    );
                                 }
                                 Err(errors)
                             } else if let Some(_) = e.body.iter().find_map(|x| match x {
@@ -458,7 +463,30 @@ pub fn process(
                                         )),
                                         keyword_pos: class_call.data.keyword_pos,
                                         target_pos: class_call.data.target_pos,
-                                        generic_parameters: class_call.data.generic_parameters.iter().map(|x| ellie_core::definite::types::class_call::ClassCallGenericParameter { value: ellie_core::definite::Converter::to_definite(x.value.clone()), pos: x.pos }).collect::<Vec<_>>(),
+                                        generic_parameters: class_call.data.generic_parameters.iter().map(|x| {
+                                            let definite_type = match x.value.clone() {
+                                                ellie_tokenizer::syntax::items::definers::DefinerTypes::ParentGeneric(_) => todo!(),
+                                                ellie_tokenizer::syntax::items::definers::DefinerTypes::Generic(generic) => {
+                                                    //ellie_core::definite::Converter::to_definite(x.value.clone())
+                                                    let found_type = find_type(generic.rtype.clone(), page_id, parser).unwrap();
+                                                    ellie_core::definite::definers::DefinerCollecting::Generic(
+                                                        ellie_core::definite::definers::GenericType {
+                                                            rtype: generic.rtype.clone(),
+                                                            pos: x.pos,
+                                                            hash: found_type.hash,
+                                                        }
+                                                    )
+                                                    
+                                                },
+                                                _ => todo!(),
+                                            };
+
+
+                                            ellie_core::definite::types::class_call::ClassCallGenericParameter {
+                                                value: definite_type,
+                                                pos: x.pos
+                                            }
+                                        }).collect::<Vec<_>>(),
                                         params: class_call.data.parameters.iter().map(|x| types::class_call::ClassCallParameter { value: x.value.to_definite(), pos: x.pos }).collect::<Vec<_>>(),
                                         pos: class_call.data.pos,
                                     },
@@ -597,6 +625,21 @@ pub fn process(
                         }
                     }
                 }
+                Err(val_errors) => {
+                    errors.extend(val_errors);
+                    Err(errors)
+                }
+            }
+        }
+        Processors::NullResolver(null_resolver) => {
+            match process(*null_resolver.target, parser, page_id, ignore_hash.clone()) {
+                Ok(resolved_types) => Ok(types::Types::NullResolver(
+                    types::null_resolver::NullResolver {
+                        target: Box::new(resolved_types),
+                        pos: null_resolver.pos,
+                        target_pos: null_resolver.target_pos,
+                    },
+                )),
                 Err(val_errors) => {
                     errors.extend(val_errors);
                     Err(errors)

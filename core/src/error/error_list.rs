@@ -300,16 +300,23 @@ lazy_static! {
     };
 
     pub static ref ERROR_S49: error::Error = error::Error {
-        code: 0x49,
+        code: 0x48,
         title: "ReferenceError".to_owned(),
         message: "Cannot query index to '$target' with '$token'".to_owned(),
         ..Default::default()
     };
 
     pub static ref ERROR_S50: error::Error = error::Error {
-        code: 0x50,
+        code: 0x49,
         title: "TypeError".to_owned(),
         message: "Unimplemented type conversion '$target' to '$type'".to_owned(),
+        ..Default::default()
+    };
+
+    pub static ref ERROR_S51: error::Error = error::Error {
+        code: 0x50,
+        title: "TypeError".to_owned(),
+        message: "Cannot resolve non nullAble foreign type".to_owned(),
         ..Default::default()
     };
 }

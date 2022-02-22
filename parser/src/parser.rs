@@ -1,5 +1,5 @@
-use crate::deep_search_extensions;
-use crate::processors::Processor;
+use crate::deep_search_extensions::{self, resolve_type};
+use crate::processors::{class, Processor};
 use alloc::borrow::ToOwned;
 use alloc::string::ToString;
 use alloc::vec::Vec;
@@ -423,7 +423,7 @@ impl Parser {
             crate::deep_search_extensions::DeepTypeResult::Collective(_) => todo!(),
             crate::deep_search_extensions::DeepTypeResult::Operator(_) => todo!(),
             crate::deep_search_extensions::DeepTypeResult::Cloak(_) => todo!(),
-            crate::deep_search_extensions::DeepTypeResult::Array(arr) => {
+            crate::deep_search_extensions::DeepTypeResult::Array(_) => {
                 let value_gen =
                     deep_search_extensions::resolve_type(rtype, target_page, self, &mut errors);
 
@@ -468,7 +468,23 @@ impl Parser {
                 */
             }
             crate::deep_search_extensions::DeepTypeResult::Vector(_) => todo!(),
-            crate::deep_search_extensions::DeepTypeResult::ClassCall(_) => todo!(),
+            crate::deep_search_extensions::DeepTypeResult::ClassCall(class_call) => {
+                let class_call_type = resolve_type(
+                    ellie_core::definite::types::Types::ClassCall(class_call.clone()),
+                    target_page,
+                    self,
+                    &mut errors,
+                );
+                if errors.is_empty() {
+                    if class_call_type.same_as(defining.clone()) {
+                        Ok((true, defining.to_string(), class_call_type.to_string()))
+                    } else {
+                        Ok((false, defining.to_string(), class_call_type.to_string()))
+                    }
+                } else {
+                    Err(errors)
+                }
+            }
             crate::deep_search_extensions::DeepTypeResult::FunctionCall(_) => todo!(),
             crate::deep_search_extensions::DeepTypeResult::Void => {
                 if let ellie_core::definite::definers::DefinerCollecting::Generic(_) = defining {

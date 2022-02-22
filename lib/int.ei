@@ -7,6 +7,7 @@ import float.ei;
 @version = "1.0.0";
 @description = "Ellie integer"
 @notConstructable = true;
+@dont_fix_variant=true;
 pub class int {
     @description = "Convert integer to string";
     @availableSince = "3.7.3";

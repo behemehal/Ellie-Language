@@ -7,6 +7,7 @@ import vector.ei;
 import error.ei;
 import thread.ei;
 
+@dont_fix_variant=true;
 pub class rawMemoryData {
     pub v type_id: int;
     pub v data: [int, *];
