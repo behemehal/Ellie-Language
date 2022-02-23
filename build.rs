@@ -88,8 +88,11 @@ fn main() {
                                     ) {
                                         Ok(path) => {
                                             let real_path = path
-                                                .replace(&starter_name, "./lib/ellie.ei")
-                                                .clone();
+                                            .replace(
+                                                &starter_name,
+                                                "./lib/"
+                                            )
+                                            .clone();
                                             if Path::new(&real_path).exists() {
                                                 match cli_utils::read_file(real_path) {
                                                     Ok(data) => {
@@ -106,19 +109,17 @@ fn main() {
                                                             ..Default::default()
                                                         }
                                                     }
-                                                    Err(_) => ResolvedImport {
-                                                        found: false,
-                                                        resolve_error: "Cannot find file"
-                                                            .to_string(),
-                                                        ..Default::default()
+                                                    Err(e) =>{
+                                                        ResolvedImport {
+                                                            found: false,
+                                                            resolve_error: "Cannot find file"
+                                                                .to_string(),
+                                                            ..Default::default()
+                                                        }
                                                     },
                                                 }
                                             } else {
-                                                ResolvedImport {
-                                                    found: false,
-                                                    resolve_error: "Path is not exists".to_string(),
-                                                    ..Default::default()
-                                                }
+                                                panic!("Cannot find file {}", Path::new(&real_path).absolutize().unwrap().display());
                                             }
                                         }
                                         Err(e) => {
@@ -159,6 +160,7 @@ fn main() {
                                         }
                                     }
                                 }, true);
+                                panic!("Build failed");
                             }
                             Ok(_) => {
                                 let mut parser = parser::Parser::new(
@@ -216,7 +218,7 @@ fn main() {
                                             }
                                         }
                                     }, true);
-                                    println!("\nCompiling {}failed{} with {}{} errors{} and {}{} warnings{}.",
+                                    panic!("\nCompiling {}failed{} with {}{} errors{} and {}{} warnings{}.",
                                         cli_utils::Colors::Red,
                                         cli_utils::Colors::Reset,
                                         cli_utils::Colors::Red,
@@ -227,15 +229,6 @@ fn main() {
                                         cli_utils::Colors::Reset,
                                     );
                                 } else {
-                                    println!(
-                                        "\nCompiling {}succeeded{} with {}{} warnings{}.",
-                                        cli_utils::Colors::Green,
-                                        cli_utils::Colors::Reset,
-                                        cli_utils::Colors::Yellow,
-                                        parser.informations.warnings.len(),
-                                        cli_utils::Colors::Reset,
-                                    );
-
                                     let json = serde_json::to_string(&workspace).unwrap();
                                     fs::write(
                                         "./core/src/builded_libraries.rs",

@@ -293,7 +293,6 @@ fn iterate_deep_type(
                                         match hash_deep_search.found_item {
                                             ProcessedDeepSearchItems::Class(matched_class) => {
 
-
                                                 if matched_class.generic_definings.is_empty() {
                                                     Some(
                                                         Types::ClassCall(
@@ -760,9 +759,9 @@ fn iterate_deep_type(
         }
         //Types::ArrowFunction(_) => todo!(),
         Types::Bool(_) => unreachable!(),
-        Types::Void => todo!(),
-        Types::Null => todo!(),
-        Types::Dynamic => todo!(),
+        Types::Void => DeepTypeResult::Void,
+        Types::Null => DeepTypeResult::Null,
+        Types::Dynamic => DeepTypeResult::Dynamic,
     }
 }
 
@@ -841,10 +840,20 @@ pub fn deep_search_hash(
     };
 
     if !searched.contains(&target_page) {
-        for dep in self_dependencies {
+        let mut i = 0;
+        loop {
+            let dep = self_dependencies[i].clone();
             searched.push(target_page);
             match parser.find_processed_page(dep.hash) {
                 Some(page) => {
+                    let page = page.clone();
+                    let internal_deps = page
+                        .dependencies
+                        .iter()
+                        .filter_map(|x| if x.public { Some(x.clone()) } else { None })
+                        .collect::<Vec<Dependency>>();
+                    self_dependencies.extend(internal_deps);
+
                     for item in &page.items {
                         match item.clone() {
                             Collecting::Variable(e) => {
@@ -897,6 +906,11 @@ pub fn deep_search_hash(
                 }
             }
             level += 1;
+            level += 1;
+            if i == self_dependencies.len() - 1 {
+                break;
+            }
+            i += 1;
         }
     }
 
@@ -1311,8 +1325,24 @@ pub fn resolve_type(
             _ => unreachable!(),
         },
         DeepTypeResult::FunctionCall(_) => todo!(),
-        DeepTypeResult::Void => todo!(),
-        DeepTypeResult::Null => todo!(),
+        DeepTypeResult::Void => {
+            let void_type = find_type("void".to_string(), target_page, parser);
+            match void_type {
+                Some(e) => definers::DefinerCollecting::Generic(e),
+                None => {
+                    panic!("Unhandled behaviour, failed to find void type");
+                }
+            }
+        },
+        DeepTypeResult::Null => {
+            let null_type = find_type("null".to_string(), target_page, parser);
+            match null_type {
+                Some(e) => definers::DefinerCollecting::Generic(e),
+                None => {
+                    panic!("Unhandled behaviour, failed to find null type");
+                }
+            }
+        },
         DeepTypeResult::NotFound => unreachable!(),
         DeepTypeResult::BraceReference(e) => {
             let nullable_type = find_type("nullAble".to_string(), target_page, parser);
