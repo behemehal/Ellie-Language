@@ -718,20 +718,7 @@ pub fn process(
             let index = process(*function_call.data.target, parser, page_id, ignore_hash);
             match index {
                 Ok(index) => {
-                    match index {
-                        types::Types::Integer(_) => todo!(),
-                        types::Types::Float(_) => todo!(),
-                        types::Types::Bool(_) => todo!(),
-                        types::Types::String(_) => todo!(),
-                        types::Types::Char(_) => todo!(),
-                        types::Types::Collective(_) => todo!(),
-                        types::Types::Reference(_) => todo!(),
-                        types::Types::BraceReference(_) => todo!(),
-                        types::Types::Operator(_) => todo!(),
-                        types::Types::Cloak(_) => todo!(),
-                        types::Types::Array(_) => todo!(),
-                        types::Types::Vector(_) => todo!(),
-                        types::Types::ClassCall(_) => todo!(),
+                    match index.clone() {
                         types::Types::FunctionCall(d) => {
                            Ok(
                                ellie_core::definite::types::Types::FunctionCall(
@@ -745,17 +732,20 @@ pub fn process(
                                )
                             )
                         },
-                        types::Types::Void => todo!(),
-                        types::Types::NullResolver(_) => todo!(),
-                        types::Types::Negative(_) => todo!(),
-                        types::Types::VariableType(variable_type) => {
-                            let found_item = deep_search_hash(parser, page_id, variable_type.reference, vec![], 0);
-                            panic!("{:#?}", found_item);
-
-                        },
-                        types::Types::AsKeyword(_) => todo!(),
-                        types::Types::Null => todo!(),
-                        types::Types::Dynamic => todo!(),
+                        _ => {
+                            let reference_type =
+                                resolve_type(index.clone(), page_id, parser, &mut errors);
+                            errors.push(error::error_list::ERROR_S25.clone().build_with_path(
+                                vec![error::ErrorBuildField {
+                                    key: "token".to_string(),
+                                    value: reference_type.to_string(),
+                                }],
+                                file!().to_owned(),
+                                parser.find_page(page_id).unwrap().path.clone(),
+                                function_call.data.target_pos
+                            ));
+                            Err(errors)
+                        }
                     }
                 }
                 Err(e) => Err(e),
