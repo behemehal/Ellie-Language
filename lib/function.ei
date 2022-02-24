@@ -10,4 +10,6 @@ import string.ei;
 pub class function {
     pub v name: string;
     pub v call_stack: callStack;
+    pub v native: bool;
+    pub v hash: string;
 }

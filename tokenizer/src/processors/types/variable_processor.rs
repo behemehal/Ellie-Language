@@ -12,7 +12,6 @@ impl crate::processors::Processor for variable_type::VariableTypeCollector {
         last_char: char,
         letter_char: char,
     ) -> bool {
-        let mut hang = false;
         if reliable_name_range(ReliableNameRanges::VariableName, letter_char).reliable {
             if last_char == ' ' && self.data.value != "" {
                 errors.push(error::error_list::ERROR_S1.clone().build(
@@ -41,6 +40,6 @@ impl crate::processors::Processor for variable_type::VariableTypeCollector {
                 defs::Cursor::build_from_cursor(cursor),
             ));
         }
-        hang
+        false
     }
 }

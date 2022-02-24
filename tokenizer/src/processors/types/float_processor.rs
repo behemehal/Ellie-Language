@@ -9,7 +9,6 @@ impl crate::processors::Processor for float_type::FloatTypeCollector {
         _last_char: char,
         letter_char: char,
     ) -> bool {
-        let mut hang = false;
         if !self.at_point {
             if letter_char == '.' {
                 self.at_point = true;
@@ -80,6 +79,6 @@ impl crate::processors::Processor for float_type::FloatTypeCollector {
                 ));
             }
         }
-        hang
+        false
     }
 }

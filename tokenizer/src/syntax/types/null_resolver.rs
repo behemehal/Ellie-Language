@@ -1,5 +1,4 @@
 use crate::processors::types;
-use crate::syntax::items;
 use alloc::boxed::Box;
 use ellie_core::{definite, defs};
 use serde::{Deserialize, Serialize};

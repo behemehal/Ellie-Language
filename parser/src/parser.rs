@@ -1,5 +1,5 @@
-use crate::deep_search_extensions::{self, resolve_type};
-use crate::processors::{class, Processor};
+use crate::deep_search_extensions::{self, find_type, resolve_type};
+use crate::processors::Processor;
 use alloc::borrow::ToOwned;
 use alloc::string::ToString;
 use alloc::vec::Vec;
@@ -7,6 +7,7 @@ use alloc::{string::String, vec};
 use ellie_core::definite::{items::Collecting, Converter};
 use ellie_core::{defs, error, information, warning};
 use ellie_tokenizer::processors::items::Processors;
+use ellie_tokenizer::syntax::types::function_call_type;
 use ellie_tokenizer::tokenizer::{Dependency, Page};
 use serde::{Deserialize, Serialize};
 
@@ -485,7 +486,28 @@ impl Parser {
                     Err(errors)
                 }
             }
-            crate::deep_search_extensions::DeepTypeResult::FunctionCall(_) => todo!(),
+            crate::deep_search_extensions::DeepTypeResult::FunctionCall(e) => match *e.target {
+                ellie_core::definite::types::Types::Null => {
+                    let function_type =
+                        find_type("function".to_owned(), target_page, self).unwrap();
+                    Ok((
+                        defining.same_as(
+                            ellie_core::definite::definers::DefinerCollecting::Generic(
+                                function_type.clone(),
+                            ),
+                        ),
+                        defining.to_string(),
+                        ellie_core::definite::definers::DefinerCollecting::Generic(function_type)
+                            .to_string(),
+                    ))
+                }
+                ellie_core::definite::types::Types::Dynamic => Ok((
+                    defining.same_as(e.returning.clone()),
+                    defining.to_string(),
+                    e.returning.to_string(),
+                )),
+                _ => unreachable!(),
+            },
             crate::deep_search_extensions::DeepTypeResult::Void => {
                 if let ellie_core::definite::definers::DefinerCollecting::Generic(_) = defining {
                     if defining.clone().to_string() == "void" {
@@ -587,21 +609,7 @@ impl Parser {
                     Err(errors)
                 }
             }
-            deep_search_extensions::DeepTypeResult::Integer(_) => todo!(),
-            deep_search_extensions::DeepTypeResult::Float(_) => todo!(),
-            deep_search_extensions::DeepTypeResult::Bool(_) => todo!(),
-            deep_search_extensions::DeepTypeResult::String(_) => todo!(),
-            deep_search_extensions::DeepTypeResult::Char(_) => todo!(),
-            deep_search_extensions::DeepTypeResult::Collective(_) => todo!(),
-            deep_search_extensions::DeepTypeResult::Operator(_) => todo!(),
-            deep_search_extensions::DeepTypeResult::Cloak(_) => todo!(),
-            deep_search_extensions::DeepTypeResult::Array(_) => todo!(),
-            deep_search_extensions::DeepTypeResult::Vector(_) => todo!(),
-            deep_search_extensions::DeepTypeResult::ClassCall(_) => todo!(),
-            deep_search_extensions::DeepTypeResult::FunctionCall(_) => todo!(),
-            deep_search_extensions::DeepTypeResult::Void => todo!(),
-            deep_search_extensions::DeepTypeResult::Null => todo!(),
-            deep_search_extensions::DeepTypeResult::NotFound => todo!(),
+            _ => unreachable!(),
         }
     }
 

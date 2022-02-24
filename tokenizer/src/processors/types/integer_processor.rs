@@ -9,7 +9,6 @@ impl crate::processors::Processor for integer_type::IntegerTypeCollector {
         _last_char: char,
         letter_char: char,
     ) -> bool {
-        let mut hang = false;
         let is_num = letter_char.to_string().parse::<i8>().is_ok();
 
         if is_num {
@@ -61,6 +60,6 @@ impl crate::processors::Processor for integer_type::IntegerTypeCollector {
                 ));
             }
         }
-        hang
+        false
     }
 }

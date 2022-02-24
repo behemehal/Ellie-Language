@@ -6,18 +6,13 @@ use alloc::{
     vec::Vec,
 };
 use ellie_core::{
-    definite::{
-        definers,
-        items::Collecting,
-        types::{brace_reference, null_resolver, Types},
-    },
+    definite::{definers, items::Collecting, types::Types},
     defs, error,
-    utils::generate_hash,
 };
-use ellie_tokenizer::{processors::types::Processors, tokenizer::Dependency};
+use ellie_tokenizer::tokenizer::Dependency;
 use enum_as_inner::EnumAsInner;
 
-use crate::parser::{DeepSearchItems, DeepSearchResult, Parser, ProcessedPage};
+use crate::parser::{Parser, ProcessedPage};
 
 /*
     This folder contains parser extensions for deep search.
@@ -228,9 +223,9 @@ fn iterate_deep_type(
                 pos: array.pos,
             })
         }
-        Types::Vector(vector) => todo!(),
+        Types::Vector(_) => todo!(),
         Types::ClassCall(class_call) => DeepTypeResult::ClassCall(class_call),
-        Types::FunctionCall(_) => todo!(),
+        Types::FunctionCall(e) => DeepTypeResult::FunctionCall(e),
         Types::NullResolver(null_resolver) => {
             let from_type = resolve_type(*null_resolver.target.clone(), page_id, parser, errors);
 
@@ -964,7 +959,7 @@ pub fn deep_search(
         ..Default::default()
     }];
 
-    match parser.find_processed_page(target_page) {
+    match parser.find_processed_page(target_page).cloned() {
         Some(page) => {
             self_dependencies.push(Dependency {
                 hash: target_page,
@@ -975,7 +970,8 @@ pub fn deep_search(
                 page.dependencies
                     .iter()
                     .filter_map(|x| {
-                        if x.processed && x.module.is_none() {
+                        let dependency = parser.find_processed_page(x.hash);
+                        if (x.processed || dependency.is_some()) && x.module.is_none() {
                             Some(x.clone())
                         } else {
                             None

@@ -1,4 +1,4 @@
-use crate::definite::types;
+use crate::definite::{types, definers::DefinerCollecting};
 use crate::defs;
 use alloc::{boxed::Box, vec::Vec};
 use serde::{Deserialize, Serialize};
@@ -13,6 +13,7 @@ pub struct FunctionCallParameter {
 pub struct FunctionCall {
     pub target: Box<types::Types>,
     pub target_pos: defs::Cursor,
+    pub returning: DefinerCollecting,
     pub params: Vec<FunctionCallParameter>,
     pub pos: defs::Cursor,
 }

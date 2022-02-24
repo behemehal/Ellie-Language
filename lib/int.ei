@@ -3,6 +3,7 @@
 */
 import string.ei;
 import float.ei;
+import function.ei;
 
 @version = "1.0.0";
 @description = "Ellie integer"

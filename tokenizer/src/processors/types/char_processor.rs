@@ -9,7 +9,6 @@ impl crate::processors::Processor for char_type::CharType {
         last_char: char,
         letter_char: char,
     ) -> bool {
-        let mut hang = false;
         if !self.comma_started {
             if letter_char == '\'' {
                 self.comma_started = true;
@@ -42,6 +41,6 @@ impl crate::processors::Processor for char_type::CharType {
                 ));
             }
         }
-        hang
+        false
     }
 }

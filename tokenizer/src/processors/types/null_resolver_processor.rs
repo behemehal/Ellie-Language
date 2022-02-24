@@ -9,7 +9,6 @@ impl crate::processors::Processor for null_resolver::NullResolver {
         _last_char: char,
         letter_char: char,
     ) -> bool {
-        let mut hang = false;
         if self.pos.range_end.is_zero() {
             self.pos.range_end = cursor;
         } else {
@@ -22,6 +21,6 @@ impl crate::processors::Processor for null_resolver::NullResolver {
                 defs::Cursor::build_with_skip_char(cursor),
             ));
         }
-        hang
+        false
     }
 }

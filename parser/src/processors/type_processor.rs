@@ -1,4 +1,5 @@
 use core::panic;
+use core::ptr::NonNull;
 
 use alloc::boxed::Box;
 use alloc::string::ToString;
@@ -6,15 +7,16 @@ use alloc::vec;
 use alloc::vec::Vec;
 use alloc::{borrow::ToOwned, string::String};
 use ellie_core::definite::definers::DefinerCollecting;
+use ellie_core::definite::items::variable;
 use ellie_core::{
     definite::{items::Collecting, types, Converter},
     error,
-    utils::generate_hash,
 };
 use ellie_tokenizer::processors::types::Processors;
+use ellie_tokenizer::syntax::types::variable_type;
 use enum_as_inner::EnumAsInner;
 
-use crate::deep_search_extensions::{find_type, resolve_type};
+use crate::deep_search_extensions::{deep_search_hash, find_type, resolve_type};
 
 pub fn process(
     from: Processors,
@@ -149,7 +151,7 @@ pub fn process(
             );
             match processed_reference {
                 Ok(found_reference) => {
-                    #[derive(Debug, Clone)]
+                    #[derive(Debug, Clone, PartialEq)]
                     enum AttributeType {
                         Property,
                         Method,
@@ -255,9 +257,7 @@ pub fn process(
                                     }
                                 }
                             }
-                            ellie_core::definite::definers::DefinerCollecting::ParentGeneric(
-                                parent_generic,
-                            ) => {
+                            DefinerCollecting::ParentGeneric(parent_generic) => {
                                 if parent_generic.rtype == "array" {
                                     match generate_type_from_defining(
                                         parent_generic.generics[0].value.clone(),
@@ -393,6 +393,17 @@ pub fn process(
                                     }
                                 }
                             }
+                            DefinerCollecting::Function(function) => {
+                                Some(types::Types::FunctionCall(
+                                    ellie_core::definite::types::function_call::FunctionCall {
+                                        target: Box::new(types::Types::Null),
+                                        returning: *function.returning,
+                                        target_pos: ellie_core::defs::Cursor::default(),
+                                        params: vec![],
+                                        pos: ellie_core::defs::Cursor::default(),
+                                    }
+                                ))
+                            }
                             _ => unreachable!(),
                         }
                     }
@@ -433,13 +444,33 @@ pub fn process(
                                                                 })
                                                             },
                                                             Collecting::Function(e) => {
-                                                                let function_type = find_type("function".to_string(), class_inner_page.hash, parser);
                                                                 Some(Attribute {
                                                                     rtype: AttributeType::Method,
                                                                     name: e.name.clone(),
-                                                                    value: DefinerCollecting::Generic(function_type.unwrap())
+                                                                    value: DefinerCollecting::Function(
+                                                                        ellie_core::definite::definers::FunctionType {
+                                                                            params: e.parameters.iter().map(|param| {
+                                                                                param.rtype.clone()
+                                                                            }).collect::<Vec<_>>(),
+                                                                            returning: Box::new(e.return_type),
+                                                                        }
+                                                                    )
                                                                 })
                                                             },
+                                                            Collecting::NativeFunction(e) => {
+                                                                Some(Attribute {
+                                                                    rtype: AttributeType::Method,
+                                                                    name: e.name.clone(),
+                                                                    value: DefinerCollecting::Function(
+                                                                        ellie_core::definite::definers::FunctionType {
+                                                                            params: e.parameters.iter().map(|param| {
+                                                                                param.rtype.clone()
+                                                                            }).collect::<Vec<_>>(),
+                                                                            returning: Box::new(e.return_type),
+                                                                        }
+                                                                    )
+                                                                })
+                                                            }
                                                             _ => None,
                                                         }
                                                     }).collect::<Vec<_>>();
@@ -474,7 +505,13 @@ pub fn process(
                                 todo!()
                             }
                             ellie_core::definite::definers::DefinerCollecting::Function(_) => {
-                                todo!()
+                                let rtype = find_type("function".to_owned(), page_id, parser);
+                                match resolve_chain(DefinerCollecting::Generic(rtype.unwrap()), ellie_core::defs::Cursor::default(), page_id, parser) {
+                                    Ok(e) => {
+                                        Ok(e)
+                                    },
+                                    Err(_) => todo!(),
+                                }
                             }
                             ellie_core::definite::definers::DefinerCollecting::Cloak(_) => todo!(),
                             ellie_core::definite::definers::DefinerCollecting::Collective(_) => {
@@ -484,6 +521,15 @@ pub fn process(
                                 todo!()
                             }
                             ellie_core::definite::definers::DefinerCollecting::Dynamic => todo!(),
+                            DefinerCollecting::Array(_) => todo!(),
+                            DefinerCollecting::Vector(_) => todo!(),
+                            DefinerCollecting::Generic(_) => todo!(),
+                            DefinerCollecting::ParentGeneric(_) => todo!(),
+                            DefinerCollecting::Function(_) => todo!(),
+                            DefinerCollecting::Cloak(_) => todo!(),
+                            DefinerCollecting::Collective(_) => todo!(),
+                            DefinerCollecting::Nullable(_) => todo!(),
+                            DefinerCollecting::Dynamic => todo!(),
                         }
                     }
 
@@ -668,7 +714,53 @@ pub fn process(
                 Err(e) => Err(e),
             }
         }
-        Processors::FunctionCall(_) => todo!("functionCall type not yet implemented"),
+        Processors::FunctionCall(function_call) => {
+            let index = process(*function_call.data.target, parser, page_id, ignore_hash);
+            match index {
+                Ok(index) => {
+                    match index {
+                        types::Types::Integer(_) => todo!(),
+                        types::Types::Float(_) => todo!(),
+                        types::Types::Bool(_) => todo!(),
+                        types::Types::String(_) => todo!(),
+                        types::Types::Char(_) => todo!(),
+                        types::Types::Collective(_) => todo!(),
+                        types::Types::Reference(_) => todo!(),
+                        types::Types::BraceReference(_) => todo!(),
+                        types::Types::Operator(_) => todo!(),
+                        types::Types::Cloak(_) => todo!(),
+                        types::Types::Array(_) => todo!(),
+                        types::Types::Vector(_) => todo!(),
+                        types::Types::ClassCall(_) => todo!(),
+                        types::Types::FunctionCall(d) => {
+                           Ok(
+                               ellie_core::definite::types::Types::FunctionCall(
+                                      ellie_core::definite::types::function_call::FunctionCall {
+                                        target: Box::new(types::Types::Dynamic),
+                                        target_pos: d.target_pos,
+                                        returning: d.returning,
+                                        params: d.params,
+                                        pos: d.pos,
+                                    }
+                               )
+                            )
+                        },
+                        types::Types::Void => todo!(),
+                        types::Types::NullResolver(_) => todo!(),
+                        types::Types::Negative(_) => todo!(),
+                        types::Types::VariableType(variable_type) => {
+                            let found_item = deep_search_hash(parser, page_id, variable_type.reference, vec![], 0);
+                            panic!("{:#?}", found_item);
+
+                        },
+                        types::Types::AsKeyword(_) => todo!(),
+                        types::Types::Null => todo!(),
+                        types::Types::Dynamic => todo!(),
+                    }
+                }
+                Err(e) => Err(e),
+            }
+        }
         Processors::ClassCall(class_call) => match (*class_call.data.target).clone() {
             Processors::Integer(_) => {
                 errors.push(error::error_list::ERROR_S11.clone().build_with_path(

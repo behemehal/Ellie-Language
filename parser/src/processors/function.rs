@@ -1,4 +1,4 @@
-use alloc::{borrow::ToOwned, string::ToString, vec, vec::Vec};
+use alloc::{borrow::ToOwned, vec, vec::Vec};
 use ellie_core::{definite::Converter, error, warning};
 use ellie_tokenizer::{syntax::items::function, tokenizer::PageType};
 
