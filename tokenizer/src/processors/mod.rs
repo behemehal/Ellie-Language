@@ -9,5 +9,5 @@ pub trait Processor {
         cursor: defs::CursorPosition,
         last_char: char,
         letter_char: char,
-    );
+    ) -> bool;
 }

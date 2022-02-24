@@ -87,12 +87,8 @@ fn main() {
                                         &module_identifier,
                                     ) {
                                         Ok(path) => {
-                                            let real_path = path
-                                            .replace(
-                                                &starter_name,
-                                                "./lib/"
-                                            )
-                                            .clone();
+                                            let real_path =
+                                                path.replace(&starter_name, "./lib/").clone();
                                             if Path::new(&real_path).exists() {
                                                 match cli_utils::read_file(real_path) {
                                                     Ok(data) => {
@@ -109,17 +105,21 @@ fn main() {
                                                             ..Default::default()
                                                         }
                                                     }
-                                                    Err(e) =>{
-                                                        ResolvedImport {
-                                                            found: false,
-                                                            resolve_error: "Cannot find file"
-                                                                .to_string(),
-                                                            ..Default::default()
-                                                        }
+                                                    Err(e) => ResolvedImport {
+                                                        found: false,
+                                                        resolve_error: "Cannot find file"
+                                                            .to_string(),
+                                                        ..Default::default()
                                                     },
                                                 }
                                             } else {
-                                                panic!("Cannot find file {}", Path::new(&real_path).absolutize().unwrap().display());
+                                                panic!(
+                                                    "Cannot find file {}",
+                                                    Path::new(&real_path)
+                                                        .absolutize()
+                                                        .unwrap()
+                                                        .display()
+                                                );
                                             }
                                         }
                                         Err(e) => {
@@ -143,8 +143,9 @@ fn main() {
 
                         match pager.run() {
                             Err(e) => {
-                                cli_utils::print_errors(&e, |path| {
-                                    match cli_utils::read_file(
+                                cli_utils::print_errors(
+                                    &e,
+                                    |path| match cli_utils::read_file(
                                         &path.replace(&starter_name, "./lib/"),
                                     ) {
                                         Ok(e) => e,
@@ -158,8 +159,9 @@ fn main() {
                                             );
                                             std::process::exit(1);
                                         }
-                                    }
-                                }, true);
+                                    },
+                                    true,
+                                );
                                 panic!("Build failed");
                             }
                             Ok(_) => {
@@ -201,8 +203,9 @@ fn main() {
                                 }
 
                                 if !parser.informations.has_no_errors() {
-                                    cli_utils::print_errors(&parser.informations.errors, |path| {
-                                        match cli_utils::read_file(
+                                    cli_utils::print_errors(
+                                        &parser.informations.errors,
+                                        |path| match cli_utils::read_file(
                                             &path.replace(&starter_name, "./lib/"),
                                         ) {
                                             Ok(e) => e,
@@ -216,8 +219,9 @@ fn main() {
                                                 );
                                                 std::process::exit(1);
                                             }
-                                        }
-                                    }, true);
+                                        },
+                                        true,
+                                    );
                                     panic!("\nCompiling {}failed{} with {}{} errors{} and {}{} warnings{}.",
                                         cli_utils::Colors::Red,
                                         cli_utils::Colors::Reset,

@@ -49,7 +49,10 @@ impl Iterator {
     /// ## Parameters
     /// * `last_char` - Last char of the active char
     /// * `letter_char` - Active char
-    pub fn iterate(&mut self, last_char: char, letter_char: char) {
+    /// ## Returns
+    /// * `bool` - Returns true if the iterating process is hang
+    pub fn iterate(&mut self, last_char: char, letter_char: char) -> bool {
+        let mut hang = false;
         let in_str_or_char = matches!(self.active.current.clone(),  items::Processors::GetterCall(e) if e.data.as_string().is_some() || e.data.as_char().is_some());
 
         if self.comment_start {
@@ -87,6 +90,9 @@ impl Iterator {
             if !self.comment_start {
                 self.active
                     .iterate(&mut self.errors, self.pos, last_char, letter_char);
+            }
+            if self.errors.iter().any(|e| e.code == 0x00) {
+                hang = true;
             }
         }
 
@@ -199,5 +205,6 @@ impl Iterator {
                 self.active = items::ItemProcessor::default();
             }
         }
+        hang
     }
 }

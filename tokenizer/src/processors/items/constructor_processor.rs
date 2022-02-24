@@ -8,7 +8,8 @@ impl crate::processors::Processor for constructor::Constructor {
         cursor: defs::CursorPosition,
         last_char: char,
         letter_char: char,
-    ) {
+    ) -> bool {
+        let mut hang = false;
         if !self.parameter_collected {
             let parameter_len = self.parameters.len();
 
@@ -83,7 +84,8 @@ impl crate::processors::Processor for constructor::Constructor {
                 self.brace_count -= 1;
             }
             self.iterator.pos = cursor;
-            self.iterator.iterate(last_char, letter_char);
+            hang = self.iterator.iterate(last_char, letter_char);
         }
+        hang
     }
 }

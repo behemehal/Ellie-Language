@@ -8,7 +8,8 @@ impl crate::processors::Processor for as_keyword::AsKeywordCollector {
         cursor: defs::CursorPosition,
         last_char: char,
         letter_char: char,
-    ) {
+    ) -> bool {
+        let mut hang = false;
         if !self.keyword_collected {
             if self.keyword_pos == 0 {
                 if letter_char == 'a' {
@@ -41,12 +42,14 @@ impl crate::processors::Processor for as_keyword::AsKeywordCollector {
             if self.data.type_pos.range_start.is_zero() && letter_char != ' ' {
                 self.data.type_pos.range_start = cursor;
             }
-            self.data
+            hang = self
+                .data
                 .rtype
                 .iterate(errors, cursor, last_char, letter_char);
             self.complete = self.data.rtype.complete;
             self.data.type_pos.range_end = cursor;
         }
         self.data.pos.range_end = cursor;
+        hang
     }
 }

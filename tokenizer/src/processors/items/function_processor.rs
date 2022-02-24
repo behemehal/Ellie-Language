@@ -8,7 +8,8 @@ impl crate::processors::Processor for function::FunctionCollector {
         cursor: defs::CursorPosition,
         last_char: char,
         letter_char: char,
-    ) {
+    ) -> bool {
+        let mut hang = false;
         if !self.name_collected {
             if utils::reliable_name_range(utils::ReliableNameRanges::VariableName, letter_char)
                 .reliable
@@ -106,12 +107,12 @@ impl crate::processors::Processor for function::FunctionCollector {
                     self.key_collected = true;
                     self.parameters_collected = true;
                 } else {
-                    self.data.parameters[param_len - 1].rtype.iterate(
+                    hang = self.data.parameters[param_len - 1].rtype.iterate(
                         errors,
                         cursor,
                         last_char,
                         letter_char,
-                    )
+                    );
                 }
             }
         } else if !self.return_keyword_collected {
@@ -165,7 +166,8 @@ impl crate::processors::Processor for function::FunctionCollector {
                     self.data.return_pos.range_start = cursor;
                 }
                 self.data.return_pos.range_end = cursor;
-                self.data
+                hang = self
+                    .data
                     .return_type
                     .iterate(errors, cursor, last_char, letter_char);
             }
@@ -183,8 +185,9 @@ impl crate::processors::Processor for function::FunctionCollector {
                 self.brace_count -= 1;
             }
             self.iterator.pos = cursor;
-            self.iterator.iterate(last_char, letter_char);
+            hang = self.iterator.iterate(last_char, letter_char);
         }
+        hang
     }
 }
 

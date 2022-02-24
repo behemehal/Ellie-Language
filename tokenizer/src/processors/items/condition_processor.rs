@@ -8,7 +8,8 @@ impl crate::processors::Processor for condition::Condition {
         cursor: defs::CursorPosition,
         last_char: char,
         letter_char: char,
-    ) {
+    ) -> bool {
+        let mut hang = false;
         let chain_len = self.chains.clone().len();
         let mut chain = &mut self.chains[chain_len - 1];
 
@@ -105,9 +106,10 @@ impl crate::processors::Processor for condition::Condition {
                     } else if letter_char == '}' && chain.brace_count != 0 {
                         chain.brace_count -= 1;
                     }
-                    chain.iterator.iterate(last_char, letter_char);
+                    hang = chain.iterator.iterate(last_char, letter_char);
                 }
             }
         }
+        hang
     }
 }

@@ -8,7 +8,8 @@ impl crate::processors::Processor for negative_type::Negative {
         cursor: ellie_core::defs::CursorPosition,
         last_char: char,
         letter_char: char,
-    ) {
+    ) -> bool {
+        let mut hang = false;
         if !self.char_available {
             if letter_char == '!' {
                 self.char_available = true;
@@ -23,11 +24,13 @@ impl crate::processors::Processor for negative_type::Negative {
                 ));
             }
         } else {
-            self.itered_cache
+            hang = self
+                .itered_cache
                 .iterate(errors, cursor, last_char, letter_char);
             if self.itered_cache.is_complete() {
                 self.value = Box::new(self.itered_cache.current.clone());
             }
         }
+        hang
     }
 }

@@ -19,12 +19,12 @@ impl super::Processor for Ret {
                             pos: self.pos,
                         },
                     ));
-                    true
+                true
             }
             Err(type_error) => {
                 parser.informations.extend(&type_error);
                 false
-            },
+            }
         }
     }
 }

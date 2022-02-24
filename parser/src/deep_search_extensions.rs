@@ -292,7 +292,6 @@ fn iterate_deep_type(
                                     if hash_deep_search.found {
                                         match hash_deep_search.found_item {
                                             ProcessedDeepSearchItems::Class(matched_class) => {
-
                                                 if matched_class.generic_definings.is_empty() {
                                                     Some(
                                                         Types::ClassCall(
@@ -315,8 +314,6 @@ fn iterate_deep_type(
                                                 } else {
                                                     unimplemented!()
                                                 }
-
-                                                
                                             }
                                             _ => unreachable!(),
                                         }
@@ -419,8 +416,13 @@ fn iterate_deep_type(
                                         None => None,
                                     }
                                 } else {
-                                    let hash_deep_search =
-                                        deep_search_hash(parser, page_id, parent_generic.hash, vec![], 0);
+                                    let hash_deep_search = deep_search_hash(
+                                        parser,
+                                        page_id,
+                                        parent_generic.hash,
+                                        vec![],
+                                        0,
+                                    );
                                     if hash_deep_search.found {
                                         match hash_deep_search.found_item {
                                             ProcessedDeepSearchItems::Class(matched_class) => {
@@ -478,7 +480,7 @@ fn iterate_deep_type(
                                 Types::Vector(e) => DeepTypeResult::Vector(e),
                                 Types::Dynamic => DeepTypeResult::Dynamic,
                                 Types::ClassCall(e) => DeepTypeResult::ClassCall(e),
-                                _ => unreachable!()
+                                _ => unreachable!(),
                             },
                             None => {
                                 let path = parser.find_page(page_id).unwrap().path.clone();
@@ -1273,7 +1275,6 @@ pub fn resolve_type(
                                                     value: x.value.clone(),
                                                     pos: defs::Cursor::default(),
                                                 }
-                                                
                                             }).collect::<Vec<_>>(),
                                             parent_pos: defs::Cursor::default(),
                                             hash: targeted_class.hash,
@@ -1296,7 +1297,6 @@ pub fn resolve_type(
                                                     value: x.value.clone(),
                                                     pos: defs::Cursor::default(),
                                                 }
-                                                
                                             }).collect::<Vec<_>>(),
                                             parent_pos: defs::Cursor::default(),
                                             hash: targeted_class.hash,
@@ -1333,7 +1333,7 @@ pub fn resolve_type(
                     panic!("Unhandled behaviour, failed to find void type");
                 }
             }
-        },
+        }
         DeepTypeResult::Null => {
             let null_type = find_type("null".to_string(), target_page, parser);
             match null_type {
@@ -1342,7 +1342,7 @@ pub fn resolve_type(
                     panic!("Unhandled behaviour, failed to find null type");
                 }
             }
-        },
+        }
         DeepTypeResult::NotFound => unreachable!(),
         DeepTypeResult::BraceReference(e) => {
             let nullable_type = find_type("nullAble".to_string(), target_page, parser);

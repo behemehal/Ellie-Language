@@ -13,6 +13,6 @@ extern crate alloc;
 #[cfg(feature = "std")]
 extern crate std;
 
+pub mod deep_search_extensions;
 pub mod parser;
 pub mod processors;
-pub mod deep_search_extensions;

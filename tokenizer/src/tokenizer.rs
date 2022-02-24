@@ -145,8 +145,11 @@ impl Tokenizer {
     pub fn tokenize_page(&mut self) -> Result<&mut Vec<items::Processors>, Vec<error::Error>> {
         let mut last_char = '\0';
         for letter_char in self.code.chars() {
-            self.iterator.iterate(last_char, letter_char);
+            let hang = self.iterator.iterate(last_char, letter_char);
             last_char = letter_char;
+            if hang {
+                break;
+            }
         }
         self.iterator.finalize();
         if !self.iterator.errors.is_empty() {

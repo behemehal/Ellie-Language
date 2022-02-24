@@ -8,7 +8,8 @@ impl crate::processors::Processor for VariableCollector {
         cursor: defs::CursorPosition,
         last_char: char,
         letter_char: char,
-    ) {
+    ) -> bool {
+        let mut hang = false;
         if !self.name_collected {
             if utils::reliable_name_range(utils::ReliableNameRanges::VariableName, letter_char)
                 .reliable
@@ -62,8 +63,9 @@ impl crate::processors::Processor for VariableCollector {
                 if letter_char != ' ' {
                     self.data.type_pos.range_end = cursor;
                 }
-                self.type_cache
-                    .iterate(errors, cursor, last_char, letter_char)
+                hang = self
+                    .type_cache
+                    .iterate(errors, cursor, last_char, letter_char);
             }
         } else if !self.value_collected {
             if self.value_cache.is_complete() && letter_char == ';' {
@@ -76,9 +78,11 @@ impl crate::processors::Processor for VariableCollector {
                     self.data.value_pos.range_start = cursor;
                 }
                 self.data.value_pos.range_end = cursor;
-                self.value_cache
-                    .iterate(errors, cursor, last_char, letter_char)
+                hang = self
+                    .value_cache
+                    .iterate(errors, cursor, last_char, letter_char);
             }
         }
+        hang
     }
 }

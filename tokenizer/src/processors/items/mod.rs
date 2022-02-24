@@ -202,7 +202,7 @@ impl super::Processor for ItemProcessor {
         cursor: defs::CursorPosition,
         last_char: char,
         letter_char: char,
-    ) {
+    ) -> bool {
         let (is_var, keyword) = if let Processors::GetterCall(x) = self.current.clone() {
             match x.cache.current {
                 super::types::Processors::Variable(e) => (true, e.data.value),

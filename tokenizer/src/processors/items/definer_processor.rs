@@ -9,7 +9,8 @@ impl crate::processors::Processor for DefinerCollector {
         cursor: defs::CursorPosition,
         last_char: char,
         letter_char: char,
-    ) {
+    ) -> bool {
+        let mut hang = false;
         match self.definer_type {
             DefinerTypes::Cloak(ref mut cloak_type) => {
                 if cloak_type.child_cache.complete && letter_char == ',' && !cloak_type.at_comma {
@@ -48,13 +49,13 @@ impl crate::processors::Processor for DefinerCollector {
                 } else {
                     cloak_type.not_empty = true;
                     cloak_type.at_comma = false;
-                    cloak_type
+                    hang = cloak_type
                         .child_cache
                         .iterate(errors, cursor, last_char, letter_char);
                 }
             }
             DefinerTypes::Array(ref mut array_type) => {
-                if letter_char !=  ' ' {
+                if letter_char != ' ' {
                     array_type.pos.range_end = cursor.clone();
                 }
                 if !array_type.type_collected {
@@ -63,9 +64,10 @@ impl crate::processors::Processor for DefinerCollector {
                         array_type.rtype = Box::new(array_type.child_cache.definer_type.clone());
                         array_type.child_cache = Box::new(DefinerCollector::default());
                     } else {
-                        array_type
-                            .child_cache
-                            .iterate(errors, cursor, last_char, letter_char);
+                        hang =
+                            array_type
+                                .child_cache
+                                .iterate(errors, cursor, last_char, letter_char);
                     }
                 } else if !array_type.size_collected {
                     if array_type.size_child_cache.is_complete() && letter_char == ']' {
@@ -81,9 +83,12 @@ impl crate::processors::Processor for DefinerCollector {
                             pos: array_type.pos.clone(),
                         });
                     } else {
-                        array_type
-                            .size_child_cache
-                            .iterate(errors, cursor, last_char, letter_char);
+                        hang = array_type.size_child_cache.iterate(
+                            errors,
+                            cursor,
+                            last_char,
+                            letter_char,
+                        );
                         if array_type.size_child_cache.is_complete() {
                             array_type.size =
                                 Box::new(array_type.size_child_cache.current.to_definite());
@@ -99,9 +104,12 @@ impl crate::processors::Processor for DefinerCollector {
                             Box::new(collective_type.child_cache.definer_type.clone());
                         collective_type.child_cache = Box::new(DefinerCollector::default());
                     } else {
-                        collective_type
-                            .child_cache
-                            .iterate(errors, cursor, last_char, letter_char);
+                        hang = collective_type.child_cache.iterate(
+                            errors,
+                            cursor,
+                            last_char,
+                            letter_char,
+                        );
                     }
                 } else {
                     if collective_type.child_cache.complete && letter_char == '}' {
@@ -111,9 +119,12 @@ impl crate::processors::Processor for DefinerCollector {
                             Box::new(collective_type.child_cache.definer_type.clone());
                         collective_type.child_cache = Box::new(DefinerCollector::default());
                     } else {
-                        collective_type
-                            .child_cache
-                            .iterate(errors, cursor, last_char, letter_char);
+                        hang = collective_type.child_cache.iterate(
+                            errors,
+                            cursor,
+                            last_char,
+                            letter_char,
+                        );
                     }
                 }
             }
@@ -148,7 +159,7 @@ impl crate::processors::Processor for DefinerCollector {
                         defs::Cursor::build_with_skip_char(cursor),
                     ));
                 }
-                nullable_type
+                hang = nullable_type
                     .child_cache
                     .iterate(errors, cursor, last_char, letter_char);
                 if nullable_type.child_cache.complete {
@@ -182,9 +193,10 @@ impl crate::processors::Processor for DefinerCollector {
                     }
                     parent_generic_type.generics[len - 1].pos.range_end =
                         cursor.clone().skip_char(1);
-                    parent_generic_type
-                        .cache
-                        .iterate(errors, cursor, last_char, letter_char);
+                    hang =
+                        parent_generic_type
+                            .cache
+                            .iterate(errors, cursor, last_char, letter_char);
                 }
             }
             DefinerTypes::Generic(ref mut generic_type) => {
@@ -305,7 +317,7 @@ impl crate::processors::Processor for DefinerCollector {
                         } else {
                             function_type.not_empty = true;
                             function_type.at_comma = false;
-                            function_type.child_cache.iterate(
+                            hang = function_type.child_cache.iterate(
                                 errors,
                                 cursor,
                                 last_char,
@@ -343,9 +355,12 @@ impl crate::processors::Processor for DefinerCollector {
                             ));
                         }
                     } else {
-                        function_type
-                            .child_cache
-                            .iterate(errors, cursor, last_char, letter_char);
+                        hang = function_type.child_cache.iterate(
+                            errors,
+                            cursor,
+                            last_char,
+                            letter_char,
+                        );
                         function_type.returning =
                             Box::new(function_type.child_cache.definer_type.clone());
                         self.complete = function_type.child_cache.complete;
@@ -355,6 +370,7 @@ impl crate::processors::Processor for DefinerCollector {
             }
             DefinerTypes::Dynamic => panic!("Unexpected behaviour"),
         }
+        hang
     }
 }
 

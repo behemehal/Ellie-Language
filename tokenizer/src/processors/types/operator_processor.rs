@@ -8,7 +8,8 @@ impl crate::processors::Processor for operator_type::OperatorTypeCollector {
         cursor: defs::CursorPosition,
         last_char: char,
         letter_char: char,
-    ) {
+    ) -> bool {
+        let mut hang = false;
         if !self.operator_collected {
             if let Some(operator) =
                 utils::resolve_operator(&(self.operator_collect.clone() + &letter_char.to_string()))
@@ -65,7 +66,8 @@ impl crate::processors::Processor for operator_type::OperatorTypeCollector {
         if !self.operator_collected {
             self.operator_collect += &letter_char.to_string();
         } else {
-            self.itered_cache
+            hang = self
+                .itered_cache
                 .iterate(errors, cursor, last_char, letter_char);
 
             if letter_char != ' ' && self.data.second_pos.range_start.is_zero() {
@@ -78,19 +80,6 @@ impl crate::processors::Processor for operator_type::OperatorTypeCollector {
             }
         }
 
-        /*
-        if self.complete {
-
-
-
-            self.definite = self.data.clone();
-
-
-
-            if letter_char == '3' {
-                panic!("{:#?}", self.data);
-            }
-        }
-        */
+        hang
     }
 }

@@ -9,7 +9,8 @@ impl crate::processors::Processor for class_call_type::ClassCallCollector {
         cursor: defs::CursorPosition,
         last_char: char,
         letter_char: char,
-    ) {
+    ) -> bool {
+        let mut hang = false;
         if !self.base_collected {
             if (letter_char == '(' || letter_char == '<') && self.itered_cache.is_complete() {
                 self.base_collected = true;
@@ -31,7 +32,8 @@ impl crate::processors::Processor for class_call_type::ClassCallCollector {
                     self.data.target_pos.range_start = cursor;
                 }
                 self.data.target_pos.range_end = cursor;
-                self.itered_cache
+                hang = self
+                    .itered_cache
                     .iterate(errors, cursor, last_char, letter_char);
             }
         } else if !self.generic_collected {
@@ -51,7 +53,8 @@ impl crate::processors::Processor for class_call_type::ClassCallCollector {
                     self.generic_cache = DefinerCollector::default();
                 }
             } else {
-                self.generic_cache
+                hang = self
+                    .generic_cache
                     .iterate(errors, cursor, last_char, letter_char);
             }
         } else if !self.param_collected {
@@ -60,7 +63,7 @@ impl crate::processors::Processor for class_call_type::ClassCallCollector {
             } else if letter_char != ' ' {
                 errors.push(error::error_list::ERROR_S1.clone().build(
                     vec![error::ErrorBuildField {
-                        key: "val".to_owned(),
+                        key: "token".to_owned(),
                         value: letter_char.to_string(),
                     }],
                     file!().to_owned(),
@@ -79,7 +82,8 @@ impl crate::processors::Processor for class_call_type::ClassCallCollector {
                 self.itered_cache = Box::new(super::TypeProcessor::default());
                 self.complete = true;
             } else {
-                self.itered_cache
+                hang = self
+                    .itered_cache
                     .iterate(errors, cursor, last_char, letter_char);
 
                 let param_len = self.data.parameters.len();
@@ -98,12 +102,13 @@ impl crate::processors::Processor for class_call_type::ClassCallCollector {
         } else if letter_char != ' ' {
             errors.push(error::error_list::ERROR_S1.clone().build(
                 vec![error::ErrorBuildField {
-                    key: "val".to_owned(),
+                    key: "token".to_owned(),
                     value: letter_char.to_string(),
                 }],
                 file!().to_owned(),
                 defs::Cursor::build_with_skip_char(cursor),
             ));
         }
+        hang
     }
 }

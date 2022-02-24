@@ -79,7 +79,7 @@ pub fn process(
                     crate::parser::DeepSearchItems::Class(array_class) => {
                         match process(*e.rtype.clone(), parser, page_id, ignore_hash) {
                             Ok(inner_type) => {
-                                if array_class.generic_definings.len() != 1 {        
+                                if array_class.generic_definings.len() != 1 {
                                     let mut error =
                                         error::error_list::ERROR_S44.clone().build_with_path(
                                             vec![

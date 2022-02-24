@@ -8,7 +8,8 @@ impl crate::processors::Processor for ForLoop {
         cursor: defs::CursorPosition,
         last_char: char,
         letter_char: char,
-    ) {
+    ) -> bool {
+        let mut hang = false;
         if self.parameter.is_zero() {
             self.parameter.range_start = cursor;
         }
@@ -17,7 +18,8 @@ impl crate::processors::Processor for ForLoop {
                 if self.variable.is_complete() && letter_char == ':' {
                     self.variable_filled = true;
                 } else {
-                    self.variable
+                    hang = self
+                        .variable
                         .iterate(errors, cursor, last_char, letter_char);
                 }
             } else {
@@ -26,7 +28,8 @@ impl crate::processors::Processor for ForLoop {
                     self.parameter.range_end = cursor;
                     self.body_pos.range_start = cursor;
                 } else {
-                    self.target_iterator
+                    hang = self
+                        .target_iterator
                         .iterate(errors, cursor, last_char, letter_char);
                 }
             }
@@ -43,7 +46,8 @@ impl crate::processors::Processor for ForLoop {
                 self.brace_count -= 1;
             }
             self.iterator.pos = cursor;
-            self.iterator.iterate(last_char, letter_char);
+            hang = self.iterator.iterate(last_char, letter_char);
         }
+        hang
     }
 }

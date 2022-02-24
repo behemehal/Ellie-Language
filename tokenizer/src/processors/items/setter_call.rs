@@ -7,7 +7,8 @@ impl crate::processors::Processor for SetterCall {
         cursor: ellie_core::defs::CursorPosition,
         last_char: char,
         letter_char: char,
-    ) {
+    ) -> bool {
+        let mut hang = false;
         if self.cache.is_complete() && letter_char == ';' {
             self.complete = true;
             self.value = self.cache.current.clone();
@@ -16,7 +17,8 @@ impl crate::processors::Processor for SetterCall {
             if self.cache.current.is_not_initialized() {
                 self.pos.range_start = cursor;
             }
-            self.cache.iterate(errors, cursor, last_char, letter_char);
+            hang = self.cache.iterate(errors, cursor, last_char, letter_char);
         }
+        hang
     }
 }

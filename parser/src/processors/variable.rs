@@ -134,7 +134,7 @@ impl super::Processor for VariableCollector {
                     let current_page = parser.find_processed_page(page_id).unwrap();
 
                     match comperable {
-                        Ok((compare, defined, given) ) => {
+                        Ok((compare, defined, given)) => {
                             if !compare {
                                 let mut err = error::error_list::ERROR_S3.clone().build_with_path(
                                     vec![
@@ -151,7 +151,8 @@ impl super::Processor for VariableCollector {
                                     current_page.path.clone(),
                                     self.data.value_pos,
                                 );
-                                err.reference_block = Some((self.data.type_pos, current_page.path.clone()));
+                                err.reference_block =
+                                    Some((self.data.type_pos, current_page.path.clone()));
                                 err.reference_message = "Defined here".to_owned();
                                 err.semi_assist = true;
                                 parser.informations.push(&err);
@@ -160,11 +161,11 @@ impl super::Processor for VariableCollector {
                                 current_page.items.push(processed);
                                 return true;
                             }
-                        },
+                        }
                         Err(err) => {
                             parser.informations.extend(&err);
                             return false;
-                        },
+                        }
                     }
                 } else {
                     parser
@@ -172,7 +173,7 @@ impl super::Processor for VariableCollector {
                         .unwrap()
                         .items
                         .push(processed);
-                        return true;
+                    return true;
                 }
             }
         }

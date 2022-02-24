@@ -6,5 +6,5 @@ use serde::Serialize;
 pub struct GenericItem {
     pub generic_name: String,
     pub pos: defs::Cursor,
-    pub hash: u64
+    pub hash: u64,
 }

@@ -200,15 +200,12 @@ pub fn read_file<P: AsRef<Path>>(file_dir: P) -> Result<String, String> {
         Ok(mut file) => {
             let mut file_content = Vec::new();
             match file.read_to_end(&mut file_content) {
-                Ok(_) => {
-                    match String::from_utf8(file_content) {
-                        Ok(code_string) => Ok(code_string),
-                        Err(e) => Err(e.to_string()),
-                    }
+                Ok(_) => match String::from_utf8(file_content) {
+                    Ok(code_string) => Ok(code_string),
+                    Err(e) => Err(e.to_string()),
                 },
                 Err(e) => Err(e.to_string()),
             }
-           
         }
     }
 }

@@ -124,10 +124,11 @@ impl DefinerCollecting {
                 } else {
                     false
                 }
-            },
-            DefinerCollecting::ParentGeneric(parent_generic) => {                
+            }
+            DefinerCollecting::ParentGeneric(parent_generic) => {
                 if let DefinerCollecting::ParentGeneric(other_parent_generic) = other {
-                    other_parent_generic.rtype == parent_generic.rtype && other_parent_generic.hash == parent_generic.hash
+                    other_parent_generic.rtype == parent_generic.rtype
+                        && other_parent_generic.hash == parent_generic.hash
                         && other_parent_generic.generics.len() == parent_generic.generics.len()
                         && other_parent_generic
                             .generics
@@ -137,7 +138,7 @@ impl DefinerCollecting {
                 } else {
                     false
                 }
-            },
+            }
             DefinerCollecting::Function(_) => todo!(),
             DefinerCollecting::Cloak(_) => todo!(),
             DefinerCollecting::Collective(_) => todo!(),
@@ -145,6 +146,4 @@ impl DefinerCollecting {
             DefinerCollecting::Dynamic => todo!(),
         }
     }
-
-    
 }

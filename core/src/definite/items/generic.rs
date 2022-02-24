@@ -6,5 +6,5 @@ use serde::{Deserialize, Serialize};
 pub struct Generic {
     pub name: String,
     pub pos: defs::Cursor,
-    pub hash: u64
+    pub hash: u64,
 }

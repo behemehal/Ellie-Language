@@ -8,7 +8,8 @@ impl crate::processors::Processor for Import {
         cursor: defs::CursorPosition,
         last_char: char,
         letter_char: char,
-    ) {
+    ) -> bool {
+        let mut hang = false;
         if !self.path_filled {
             if letter_char == ':' && self.path != "" {
                 self.path_filled = true;
@@ -81,5 +82,6 @@ impl crate::processors::Processor for Import {
                 self.complete = true;
             }
         }
+        hang
     }
 }

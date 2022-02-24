@@ -247,7 +247,7 @@ impl super::Processor for TypeProcessor {
         cursor: ellie_core::defs::CursorPosition,
         last_char: char,
         letter_char: char,
-    ) {
+    ) -> bool {
         let not_initalized = matches!(&self.current, Processors::Variable(x) if x.data.value == "");
 
         if letter_char == '{' && not_initalized {
@@ -422,7 +422,10 @@ impl super::Processor for TypeProcessor {
                     complete: false,
                 });
             }
-        } else if self.is_complete() && utils::is_operator_start(letter_char) && !(matches!(self.current.clone(), Processors::AsKeyword(e) if matches!(e.data.rtype.definer_type, crate::syntax::items::definers::DefinerTypes::Generic(_)))) {
+        } else if self.is_complete()
+            && utils::is_operator_start(letter_char)
+            && !(matches!(self.current.clone(), Processors::AsKeyword(e) if matches!(e.data.rtype.definer_type, crate::syntax::items::definers::DefinerTypes::Generic(_))))
+        {
             //Operator priority
             if let Processors::Operator(operator) = self.current.clone() {
                 if letter_char == '/' || letter_char == '*' || letter_char == '%' {
@@ -493,6 +496,6 @@ impl super::Processor for TypeProcessor {
             Processors::Collective(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::AsKeyword(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::NullResolver(e) => e.iterate(errors, cursor, last_char, letter_char),
-        };
+        }
     }
 }

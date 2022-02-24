@@ -8,7 +8,8 @@ impl crate::processors::Processor for brace_reference_type::BraceReferenceTypeCo
         cursor: defs::CursorPosition,
         last_char: char,
         letter_char: char,
-    ) {
+    ) -> bool {
+        let mut hang = false;
         if !self.brace_started {
             if letter_char == '[' {
                 self.brace_started = true;
@@ -16,7 +17,7 @@ impl crate::processors::Processor for brace_reference_type::BraceReferenceTypeCo
             } else if letter_char != ' ' {
                 errors.push(error::error_list::ERROR_S1.clone().build(
                     vec![error::ErrorBuildField {
-                        key: "val".to_owned(),
+                        key: "token".to_owned(),
                         value: letter_char.to_string(),
                     }],
                     file!().to_owned(),
@@ -30,7 +31,8 @@ impl crate::processors::Processor for brace_reference_type::BraceReferenceTypeCo
                 self.complete = true;
                 self.data.value = Box::new(self.itered_cache.current.clone());
             } else {
-                self.itered_cache
+                hang = self
+                    .itered_cache
                     .iterate(errors, cursor, last_char, letter_char);
             }
         } else if letter_char != ' ' {
@@ -46,5 +48,6 @@ impl crate::processors::Processor for brace_reference_type::BraceReferenceTypeCo
                 },
             ));
         }
+        hang
     }
 }

@@ -8,14 +8,15 @@ impl crate::processors::Processor for function_call_type::FunctionCallCollector 
         cursor: defs::CursorPosition,
         last_char: char,
         letter_char: char,
-    ) {
+    ) -> bool {
+        let mut hang = false;
         if !self.param_started {
             if letter_char == '(' {
                 self.param_started = true;
             } else if letter_char != ' ' {
                 errors.push(error::error_list::ERROR_S1.clone().build(
                     vec![error::ErrorBuildField {
-                        key: "val".to_owned(),
+                        key: "token".to_owned(),
                         value: letter_char.to_string(),
                     }],
                     file!().to_owned(),
@@ -35,7 +36,8 @@ impl crate::processors::Processor for function_call_type::FunctionCallCollector 
                 self.itered_cache = Box::new(super::TypeProcessor::default());
                 self.complete = true;
             } else {
-                self.itered_cache
+                hang = self
+                    .itered_cache
                     .iterate(errors, cursor, last_char, letter_char);
 
                 let param_len = self.data.parameters.len();
@@ -62,5 +64,6 @@ impl crate::processors::Processor for function_call_type::FunctionCallCollector 
                 defs::Cursor::build_with_skip_char(cursor),
             ));
         }
+        hang
     }
 }

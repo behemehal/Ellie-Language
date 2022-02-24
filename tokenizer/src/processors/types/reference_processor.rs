@@ -8,7 +8,8 @@ impl crate::processors::Processor for reference_type::ReferenceTypeCollector {
         cursor: ellie_core::defs::CursorPosition,
         _last_char: char,
         letter_char: char,
-    ) {
+    ) -> bool {
+        let mut hang = false;
         let chain_len = self.data.chain.clone().len();
         if letter_char == '.' && !self.on_dot {
             self.complete = false;
@@ -33,5 +34,6 @@ impl crate::processors::Processor for reference_type::ReferenceTypeCollector {
                 defs::Cursor::build_with_skip_char(cursor),
             ));
         }
+        hang
     }
 }

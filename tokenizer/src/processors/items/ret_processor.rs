@@ -8,7 +8,8 @@ impl crate::processors::Processor for Ret {
         cursor: defs::CursorPosition,
         last_char: char,
         letter_char: char,
-    ) {
+    ) -> bool {
+        let mut hang = false;
         if self.value.is_complete() && letter_char == ';' {
             self.complete = true;
             self.value_position.range_end = cursor.clone().skip_char(1);
@@ -17,7 +18,8 @@ impl crate::processors::Processor for Ret {
             if letter_char != ' ' && self.value_position.range_start.is_zero() {
                 self.value_position.range_start = cursor.clone().skip_char(1);
             }
-            self.value.iterate(errors, cursor, last_char, letter_char);
+            hang = self.value.iterate(errors, cursor, last_char, letter_char);
         }
+        hang
     }
 }

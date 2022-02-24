@@ -8,14 +8,15 @@ impl crate::processors::Processor for array_type::ArrayTypeCollector {
         cursor: defs::CursorPosition,
         last_char: char,
         letter_char: char,
-    ) {
+    ) -> bool {
+        let mut hang = false;
         if !self.brace_started {
             if letter_char == '[' {
                 self.brace_started = true;
             } else if letter_char != ' ' {
                 errors.push(error::error_list::ERROR_S1.clone().build(
                     vec![error::ErrorBuildField {
-                        key: "val".to_owned(),
+                        key: "token".to_owned(),
                         value: letter_char.to_string(),
                     }],
                     file!().to_owned(),
@@ -31,7 +32,8 @@ impl crate::processors::Processor for array_type::ArrayTypeCollector {
             self.complete = true;
             self.itered_cache = Box::new(super::TypeProcessor::default())
         } else if !self.complete {
-            self.itered_cache
+            hang = self
+                .itered_cache
                 .iterate(errors, cursor, last_char, letter_char);
 
             let param_len = self.data.collective.len();
@@ -48,12 +50,13 @@ impl crate::processors::Processor for array_type::ArrayTypeCollector {
         } else if letter_char != ' ' {
             errors.push(error::error_list::ERROR_S1.clone().build(
                 vec![error::ErrorBuildField {
-                    key: "val".to_owned(),
+                    key: "token".to_owned(),
                     value: letter_char.to_string(),
                 }],
                 file!().to_owned(),
                 defs::Cursor::build_with_skip_char(cursor),
             ));
         }
+        hang
     }
 }

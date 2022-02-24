@@ -8,7 +8,8 @@ impl crate::processors::Processor for class::Class {
         cursor: ellie_core::defs::CursorPosition,
         last_char: char,
         letter_char: char,
-    ) {
+    ) -> bool {
+        let mut hang = false;
         if !self.name_collected {
             if utils::reliable_name_range(utils::ReliableNameRanges::VariableName, letter_char)
                 .reliable
@@ -119,7 +120,8 @@ impl crate::processors::Processor for class::Class {
                 self.brace_count -= 1;
             }
             self.iterator.pos = cursor;
-            self.iterator.iterate(last_char, letter_char);
+            hang = self.iterator.iterate(last_char, letter_char);
         }
+        hang
     }
 }

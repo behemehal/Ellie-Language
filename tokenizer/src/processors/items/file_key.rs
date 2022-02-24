@@ -8,7 +8,8 @@ impl crate::processors::Processor for FileKey {
         cursor: defs::CursorPosition,
         last_char: char,
         letter_char: char,
-    ) {
+    ) -> bool {
+        let mut hang = false;
         if !self.keyword_collected {
             if letter_char == '@' {
                 self.keyword_collected = true;
@@ -60,10 +61,12 @@ impl crate::processors::Processor for FileKey {
                 self.value_location.range_end = cursor;
                 self.value = self.value_cache.current.clone();
             } else {
-                self.value_cache
+                hang = self
+                    .value_cache
                     .iterate(errors, cursor, last_char, letter_char)
             }
         }
         self.pos.range_end = cursor;
+        hang
     }
 }
