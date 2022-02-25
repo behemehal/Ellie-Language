@@ -365,7 +365,7 @@ impl super::Processor for TypeProcessor {
                 },
                 ..Default::default()
             });
-        } else if letter_char.to_string().parse::<i8>().is_ok() && not_initalized {
+        } else if (letter_char.to_string().parse::<i8>().is_ok() || letter_char == '-') && not_initalized {
             self.current = Processors::Integer(integer_type::IntegerTypeCollector {
                 data: integer_type::IntegerType {
                     pos: defs::Cursor::build_with_skip_char(cursor.clone()),
