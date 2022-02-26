@@ -319,4 +319,11 @@ lazy_static! {
         message: "Cannot resolve non nullAble foreign type".to_owned(),
         ..Default::default()
     };
+
+    pub static ref ERROR_S52: error::Error = error::Error {
+        code: 0x51,
+        title: "TypeError".to_owned(),
+        message: "'$opType' not implemented in '$target' for '$value'".to_owned(),
+        ..Default::default()
+    };
 }

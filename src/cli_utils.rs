@@ -375,10 +375,10 @@ where
             true,
         );
         println!(
-            "{}{}[?]{}: Check online error repo for more info {}{}{}",
-            generate_blank(line_space - 1),
+            "  {}[?]{}{}: Check online error repo for more info {}{}{}",
             Colors::Magenta,
             Colors::Reset,
+            generate_blank(line_space - 3),
             Colors::Green,
             format!(
                 "https://ellie.behemehal.net/errorIndex.html#{:#04x}",

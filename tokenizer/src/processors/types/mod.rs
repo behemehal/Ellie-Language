@@ -278,7 +278,7 @@ impl super::Processor for TypeProcessor {
                     },
                     ..Default::default()
                 });
-            } else {
+            } else if self.current.as_operator().is_none() {
                 self.current =
                     Processors::BraceReference(brace_reference_type::BraceReferenceTypeCollector {
                         data: brace_reference_type::BraceReferenceType {
@@ -316,13 +316,13 @@ impl super::Processor for TypeProcessor {
                 pos: defs::Cursor::build_with_skip_char(cursor.clone()),
                 ..Default::default()
             });
-        } else if letter_char == '!' {
+        } else if letter_char == '!' && (not_initalized ||  (self.current.as_operator().is_none() && last_char != ' ')) {
             if not_initalized {
                 self.current = Processors::Negative(negative_type::Negative {
                     pos: defs::Cursor::build_with_skip_char(cursor.clone()),
                     ..Default::default()
                 });
-            } else {
+            } else if self.current.as_operator().is_none() && last_char != ' ' {
                 self.current = Processors::NullResolver(null_resolver::NullResolver {
                     target: Box::new(self.current.clone()),
                     target_pos: self.current.get_pos(),
@@ -379,25 +379,28 @@ impl super::Processor for TypeProcessor {
             && utils::reliable_name_range(utils::ReliableNameRanges::VariableName, letter_char)
                 .reliable
         {
-            self.current = Processors::Reference(reference_type::ReferenceTypeCollector {
-                data: reference_type::ReferenceType {
-                    reference: Box::new(Processors::Integer(
-                        self.current.as_float().unwrap().base_p.clone(),
-                    )),
-                    reference_pos: self.current.get_pos(),
-                    chain: vec![reference_type::Chain {
-                        pos: defs::Cursor {
-                            range_start: cursor,
+            if self.current.as_operator().is_none() {
+                self.current = Processors::Reference(reference_type::ReferenceTypeCollector {
+                    data: reference_type::ReferenceType {
+                        reference: Box::new(Processors::Integer(
+                            self.current.as_float().unwrap().base_p.clone(),
+                        )),
+                        reference_pos: self.current.get_pos(),
+                        chain: vec![reference_type::Chain {
+                            pos: defs::Cursor {
+                                range_start: cursor,
+                                ..Default::default()
+                            },
                             ..Default::default()
-                        },
+                        }],
+                        pos: defs::Cursor::build_with_skip_char(cursor.clone()),
                         ..Default::default()
-                    }],
-                    pos: defs::Cursor::build_with_skip_char(cursor.clone()),
-                    ..Default::default()
-                },
-                on_dot: false,
-                complete: true,
-            });
+                    },
+                    on_dot: false,
+                    complete: true,
+                });
+            }
+            
         } else if self.is_complete() && letter_char == 'a' && last_char == ' ' {
             self.current = Processors::AsKeyword(as_keyword::AsKeywordCollector {
                 data: as_keyword::AsKeyword {
@@ -410,7 +413,7 @@ impl super::Processor for TypeProcessor {
                 ..Default::default()
             })
         } else if self.is_complete() && letter_char == '.' {
-            if self.current.as_reference().is_none() {
+            if self.current.as_reference().is_none() && self.current.as_operator().is_none(){
                 self.current = Processors::Reference(reference_type::ReferenceTypeCollector {
                     data: reference_type::ReferenceType {
                         reference: Box::new(self.current.clone()),

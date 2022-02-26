@@ -8,6 +8,7 @@ use alloc::vec::Vec;
 use alloc::{borrow::ToOwned, string::String};
 use ellie_core::definite::definers::DefinerCollecting;
 use ellie_core::definite::items::variable;
+use ellie_core::definite::types::ellie_char;
 use ellie_core::{
     definite::{items::Collecting, types, Converter},
     error,
@@ -16,7 +17,7 @@ use ellie_tokenizer::processors::types::Processors;
 use ellie_tokenizer::syntax::types::variable_type;
 use enum_as_inner::EnumAsInner;
 
-use crate::deep_search_extensions::{deep_search_hash, find_type, resolve_type};
+use crate::deep_search_extensions::{deep_search_hash, find_type, resolve_deep_type, resolve_type};
 
 pub fn process(
     from: Processors,
@@ -141,7 +142,59 @@ pub fn process(
                 Err(errors)
             }
         }
-        Processors::Operator(_) => todo!("operator type not yet implemented"),
+        Processors::Operator(operator) => {
+            let first_value = resolve_type(
+                operator.data.first.to_definite(),
+                page_id,
+                parser,
+                &mut errors,
+            );
+            let second_value = resolve_type(
+                operator.data.second.to_definite(),
+                page_id,
+                parser,
+                &mut errors,
+            );
+
+            match operator.data.operator {
+                ellie_tokenizer::syntax::types::operator_type::Operators::ComparisonType(_) => {
+                    if first_value.same_as(second_value.clone()) {
+                        Ok(types::Types::Bool(types::bool::BoolType {
+                            value: true,
+                        }))
+                    } else {
+                        errors.push(error::error_list::ERROR_S52.clone().build_with_path(
+                            vec![
+                                error::ErrorBuildField {
+                                    key: "opType".to_owned(),
+                                    value: operator.data.operator.to_string(),
+                                },
+                                error::ErrorBuildField {
+                                    key: "target".to_owned(),
+                                    value: first_value.to_string(),
+                                },
+                                error::ErrorBuildField {
+                                    key: "value".to_owned(),
+                                    value: second_value.to_string(),
+                                },
+                            ],
+                            file!().to_owned(),
+                            parser.find_page(page_id).unwrap().path.clone(),
+                            from.get_pos(),
+                        ));
+                        Err(errors)
+                    }
+                }
+                ellie_tokenizer::syntax::types::operator_type::Operators::LogicalType(_) => todo!(),
+                ellie_tokenizer::syntax::types::operator_type::Operators::ArithmeticType(_) => {
+                    todo!()
+                }
+                ellie_tokenizer::syntax::types::operator_type::Operators::AssignmentType(_) => {
+                    todo!()
+                }
+                ellie_tokenizer::syntax::types::operator_type::Operators::Null => todo!(),
+            }
+        }
         Processors::Reference(reference) => {
             let processed_reference = process(
                 *reference.data.reference.clone(),
@@ -401,7 +454,7 @@ pub fn process(
                                         target_pos: ellie_core::defs::Cursor::default(),
                                         params: vec![],
                                         pos: ellie_core::defs::Cursor::default(),
-                                    }
+                                    },
                                 ))
                             }
                             _ => unreachable!(),
@@ -506,10 +559,13 @@ pub fn process(
                             }
                             ellie_core::definite::definers::DefinerCollecting::Function(_) => {
                                 let rtype = find_type("function".to_owned(), page_id, parser);
-                                match resolve_chain(DefinerCollecting::Generic(rtype.unwrap()), ellie_core::defs::Cursor::default(), page_id, parser) {
-                                    Ok(e) => {
-                                        Ok(e)
-                                    },
+                                match resolve_chain(
+                                    DefinerCollecting::Generic(rtype.unwrap()),
+                                    ellie_core::defs::Cursor::default(),
+                                    page_id,
+                                    parser,
+                                ) {
+                                    Ok(e) => Ok(e),
                                     Err(_) => todo!(),
                                 }
                             }
@@ -534,7 +590,7 @@ pub fn process(
                     }
 
                     let reference_type =
-                        resolve_type(found_reference, page_id, parser, &mut errors);
+                        resolve_type(found_reference.clone(), page_id, parser, &mut errors);
                     #[derive(Debug, EnumAsInner)]
                     enum LastEntry {
                         Type(types::Types),
@@ -543,9 +599,14 @@ pub fn process(
                     let mut resolved_types = LastEntry::Null;
                     let mut last_chain_attributes = (
                         reference_type.clone(),
-                        resolve_chain(reference_type, from.get_pos(), page_id, parser),
+                        resolve_chain(
+                            reference_type,
+                            reference.data.reference_pos,
+                            page_id,
+                            parser,
+                        ),
                     );
-                    for chain in reference.data.chain {
+                    for chain in reference.data.chain.clone() {
                         match last_chain_attributes.1.clone() {
                             Ok(e) => {
                                 let attribute = e.iter().find(|a| a.name == chain.value);
@@ -563,7 +624,7 @@ pub fn process(
                                             a.value.clone(),
                                             resolve_chain(
                                                 a.value.clone(),
-                                                from.get_pos(),
+                                                chain.pos,
                                                 page_id,
                                                 parser,
                                             ),
@@ -584,7 +645,7 @@ pub fn process(
                                                 ],
                                                 file!().to_owned(),
                                                 parser.find_page(page_id).unwrap().path.clone(),
-                                                from.get_pos(),
+                                                chain.pos,
                                             ),
                                         );
                                     }
@@ -598,7 +659,20 @@ pub fn process(
 
                     if errors.is_empty() {
                         //panic!("{:#?}", resolved_types);
-                        Ok(resolved_types.as_type().unwrap().clone())
+                        Ok(types::Types::Reference(types::reference::ReferenceType {
+                            reference: Box::new(found_reference),
+                            reference_pos: reference.data.reference_pos,
+                            chain: reference
+                                .data
+                                .chain
+                                .iter()
+                                .map(|chain| types::reference::Chain {
+                                    pos: chain.pos,
+                                    value: chain.value.clone(),
+                                })
+                                .collect::<Vec<_>>(),
+                            pos: reference.data.pos,
+                        }))
                     } else {
                         Err(errors)
                     }
@@ -610,6 +684,8 @@ pub fn process(
             let index = process(*brace_reference.data.value, parser, page_id, ignore_hash);
             match index {
                 Ok(index) => {
+                    //if matches!(index, types::Types::Integer(x) if matches!()) {}
+
                     let index_type = resolve_type(index.clone(), page_id, parser, &mut errors);
                     let reference = process(
                         *brace_reference.data.reference,
@@ -715,41 +791,82 @@ pub fn process(
             }
         }
         Processors::FunctionCall(function_call) => {
-            let index = process(*function_call.data.target, parser, page_id, ignore_hash);
-            match index {
-                Ok(index) => {
-                    match index.clone() {
-                        types::Types::FunctionCall(d) => {
-                           Ok(
-                               ellie_core::definite::types::Types::FunctionCall(
-                                      ellie_core::definite::types::function_call::FunctionCall {
-                                        target: Box::new(types::Types::Dynamic),
-                                        target_pos: d.target_pos,
-                                        returning: d.returning,
-                                        params: d.params,
-                                        pos: d.pos,
-                                    }
-                               )
-                            )
+            // let mut errors = Vec::new();
+            let index = resolve_type(
+                function_call.data.target.clone().to_definite(),
+                page_id,
+                parser,
+                &mut errors,
+            );
+            //let target_resolution = resolve_deep_type(parser, page_id, function_call.data.target.clone().to_definite(), &mut errors);
+            //panic!("Target resolution: {:#?} - {:#?}", target_resolution, function_call.data.target.to_definite());
+
+            match index.clone() {
+                DefinerCollecting::Function(function) => {
+                    Ok(ellie_core::definite::types::Types::FunctionCall(
+                        ellie_core::definite::types::function_call::FunctionCall {
+                            target: Box::new(function_call.data.target.to_definite()),
+                            target_pos: ellie_core::defs::Cursor::default(),
+                            returning: *function.returning,
+                            params: function.params.iter().map(|param| {
+                                ellie_core::definite::types::function_call::FunctionCallParameter {
+                                    value: types::Types::Dynamic,
+                                    pos: ellie_core::defs::Cursor::default()
+                                }
+                            }).collect::<Vec<_>>(),
+                            pos: ellie_core::defs::Cursor::default(),
                         },
-                        _ => {
-                            let reference_type =
-                                resolve_type(index.clone(), page_id, parser, &mut errors);
-                            errors.push(error::error_list::ERROR_S25.clone().build_with_path(
-                                vec![error::ErrorBuildField {
-                                    key: "token".to_string(),
-                                    value: reference_type.to_string(),
-                                }],
-                                file!().to_owned(),
-                                parser.find_page(page_id).unwrap().path.clone(),
-                                function_call.data.target_pos
-                            ));
-                            Err(errors)
-                        }
-                    }
+                    ))
+                },
+                _ => {
+                    errors.push(error::error_list::ERROR_S25.clone().build_with_path(
+                        vec![error::ErrorBuildField {
+                            key: "token".to_string(),
+                            value: index.to_string(),
+                        }],
+                        file!().to_owned(),
+                        parser.find_page(page_id).unwrap().path.clone(),
+                        function_call.data.target_pos,
+                    ));
+                    Err(errors)
                 }
-                Err(e) => Err(e),
             }
+
+            /*
+            match index.clone() {
+                types::Types::Function(d) => {
+                    Ok(ellie_core::definite::types::Types::FunctionCall(
+                        ellie_core::definite::types::function_call::FunctionCall {
+                            target: Box::new(types::Types::Dynamic),
+                            target_pos: ellie_core::defs::Cursor::default(),
+                            returning: d.return_type,
+                            params: d.parameters.iter().map(|param| {
+                                ellie_core::definite::types::function_call::FunctionCallParameter {
+                                    value: types::Types::Dynamic,
+                                    pos: param.pos
+                                }
+                            }).collect::<Vec<_>>(),
+                            pos: ellie_core::defs::Cursor::default(),
+                        },
+                    ))
+                }
+                _ => {
+                    panic!("{:#?}", index);
+                    let reference_type =
+                        resolve_type(index.clone(), page_id, parser, &mut errors);
+                    errors.push(error::error_list::ERROR_S25.clone().build_with_path(
+                        vec![error::ErrorBuildField {
+                            key: "token".to_string(),
+                            value: reference_type.to_string(),
+                        }],
+                        file!().to_owned(),
+                        parser.find_page(page_id).unwrap().path.clone(),
+                        function_call.data.target_pos,
+                    ));
+                    Err(errors)
+                }
+            }
+            */
         }
         Processors::ClassCall(class_call) => match (*class_call.data.target).clone() {
             Processors::Integer(_) => {

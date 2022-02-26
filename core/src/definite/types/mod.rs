@@ -16,6 +16,7 @@ pub mod reference;
 pub mod string;
 pub mod variable;
 pub mod vector;
+pub mod function;
 
 use serde::{Deserialize, Serialize};
 
@@ -33,7 +34,7 @@ pub enum Types {
     Cloak(cloak::CloakType),
     Array(array::ArrayType),
     Vector(vector::VectorType),
-    //ArrowFunction(arrow_function::ArrowFunction),
+    Function(function::Function),
     ClassCall(class_call::ClassCall),
     FunctionCall(function_call::FunctionCall),
     Void,

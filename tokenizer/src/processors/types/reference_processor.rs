@@ -6,7 +6,7 @@ impl crate::processors::Processor for reference_type::ReferenceTypeCollector {
         &mut self,
         errors: &mut Vec<ellie_core::error::Error>,
         cursor: ellie_core::defs::CursorPosition,
-        _last_char: char,
+        last_char: char,
         letter_char: char,
     ) -> bool {
         let chain_len = self.data.chain.clone().len();
@@ -19,11 +19,22 @@ impl crate::processors::Processor for reference_type::ReferenceTypeCollector {
         } else if utils::reliable_name_range(utils::ReliableNameRanges::VariableName, letter_char)
             .reliable
         {
-            self.on_dot = false;
-            self.complete = true;
-            self.data.chain[chain_len - 1].pos.range_end = cursor;
-            self.data.chain[chain_len - 1].value += &letter_char.to_string();
-        } else {
+            if last_char == ' ' && self.data.chain[chain_len - 1].value != "" {
+                errors.push(error::error_list::ERROR_S1.clone().build(
+                    vec![error::ErrorBuildField {
+                        key: "token".to_string(),
+                        value: letter_char.to_string(),
+                    }],
+                    file!().to_owned(),
+                    defs::Cursor::build_with_skip_char(cursor),
+                ));
+            } else {
+                self.data.chain[chain_len - 1].pos.range_end = cursor;
+                self.on_dot = false;
+                self.complete = true;
+                self.data.chain[chain_len - 1].value += &letter_char.to_string();
+            }
+        } else if letter_char != ' ' {
             errors.push(error::error_list::ERROR_S1.clone().build(
                 vec![error::ErrorBuildField {
                     key: "token".to_string(),

@@ -140,6 +140,41 @@ impl Operators {
             Operators::Null => todo!(),
         }
     }
+
+    pub fn to_string(&self) -> String {
+        match self {
+            Operators::ComparisonType(value) => {
+                match value {
+                    ComparisonOperators::Equal => "Equal".to_string(),
+                    ComparisonOperators::NotEqual => "NotEqual".to_string(),
+                    ComparisonOperators::GreaterThan => "GreaterThan".to_string(),
+                    ComparisonOperators::LessThan => "LessThan".to_string(),
+                    ComparisonOperators::GreaterThanOrEqual => "GreaterThanOrEqual".to_string(),
+                    ComparisonOperators::LessThanOrEqual => "LessThanOrEqual".to_string(),
+                    ComparisonOperators::Null => unreachable!(),
+                }
+            },
+            Operators::LogicalType(value) => {
+                match value {
+                    LogicalOperators::And => "And".to_string(),
+                    LogicalOperators::Or => "Or".to_string(),
+                    LogicalOperators::Null => unreachable!(),
+                }
+            },
+            Operators::ArithmeticType(value) => {
+                match value {
+                    ArithmeticOperators::Addition => "Add".to_string(),
+                    ArithmeticOperators::Subtraction => "Sub".to_string(),
+                    ArithmeticOperators::Multiplication => "Mul".to_string(),
+                    ArithmeticOperators::Exponentiation => "Exp".to_string(),
+                    ArithmeticOperators::Division => "Div".to_string(),
+                    ArithmeticOperators::Modulus => "Mod".to_string(),
+                    ArithmeticOperators::Null => unreachable!(),
+                }
+            },
+            _ => unreachable!(),
+        }
+    }
 }
 
 impl Default for Operators {
