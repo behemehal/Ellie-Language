@@ -11,7 +11,7 @@ impl crate::processors::Processor for null_resolver::NullResolver {
     ) -> bool {
         if self.pos.range_end.is_zero() {
             self.pos.range_end = cursor;
-        } else {
+        } else if letter_char != ' ' {
             errors.push(error::error_list::ERROR_S1.clone().build(
                 vec![error::ErrorBuildField {
                     key: "token".to_string(),
