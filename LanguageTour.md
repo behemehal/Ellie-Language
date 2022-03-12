@@ -40,6 +40,16 @@
             'e'
         ];
     ```
+  - Vector
+    ```ellie
+        v letters : [char, 5] = {
+            'e',
+            'l',
+            'l',
+            'i',
+            'e'
+        };
+    ```
   - Collective
     ```ellie
         v letters : {int, char} = {

@@ -67,14 +67,14 @@ pub fn process(
                 ));
             }
         }
-        DefinerTypes::Array(e) => {
+        DefinerTypes::Array(array_type) => {
             let deep_search_result =
                 parser.deep_search(page_id, "array".to_string(), ignore_hash.clone(), vec![], 0);
 
             if deep_search_result.found {
                 match deep_search_result.found_item {
                     crate::parser::DeepSearchItems::Class(array_class) => {
-                        match process(*e.rtype.clone(), parser, page_id, ignore_hash) {
+                        match process(*array_type.rtype.clone(), parser, page_id, ignore_hash) {
                             Ok(inner_type) => {
                                 if array_class.generic_definings.len() != 1 {
                                     let mut error =
@@ -94,7 +94,7 @@ pub fn process(
                                             ],
                                             file!().to_owned(),
                                             parser.find_page(page_id).unwrap().path.clone(),
-                                            e.rtype.get_pos(),
+                                            array_type.rtype.get_pos(),
                                         );
                                     error.reference_message =
                                         "Does not have required generic parameters".to_string();
@@ -104,19 +104,31 @@ pub fn process(
                                     ));
                                     errors.push(error);
                                 } else {
-                                    found = DefinerCollecting::ParentGeneric(
-                                        definers::ParentGenericType {
-                                            parent_pos: array_class.pos,
-                                            generics: vec![definers::GenericParameter {
-                                                value: inner_type,
-                                                pos: deep_search_result
-                                                    .found_pos
-                                                    .unwrap_or(ellie_core::defs::Cursor::default()),
-                                            }],
-                                            hash: array_class.hash,
-                                            rtype: "array".to_string(),
+                                    match super::type_processor::process(
+                                        ellie_tokenizer::processors::types::Processors::default().from_definite(*array_type.size),
+                                        parser,
+                                        page_id,
+                                        ignore_hash,
+                                    ) {
+                                        Ok(_) => {
+                                            found = DefinerCollecting::ParentGeneric(
+                                                definers::ParentGenericType {
+                                                    parent_pos: array_class.pos,
+                                                    generics: vec![definers::GenericParameter {
+                                                        value: inner_type,
+                                                        pos: deep_search_result
+                                                            .found_pos
+                                                            .unwrap_or(ellie_core::defs::Cursor::default()),
+                                                    }],
+                                                    hash: array_class.hash,
+                                                    rtype: "array".to_string(),
+                                                },
+                                            );
                                         },
-                                    );
+                                        Err(processed_errors) => {
+                                            errors.extend(processed_errors);
+                                        },
+                                    }
                                 }
                             }
                             Err(e) => errors.extend(e),
@@ -131,7 +143,7 @@ pub fn process(
                                 }],
                                 file!().to_owned(),
                                 parser.find_page(page_id).unwrap().path.clone(),
-                                e.pos,
+                                array_type.pos,
                             );
                             error.reference_message = "Defined here".to_string();
                             error.reference_block =
@@ -146,7 +158,7 @@ pub fn process(
                                 }],
                                 file!().to_owned(),
                                 parser.find_page(page_id).unwrap().path.clone(),
-                                e.pos,
+                                array_type.pos,
                             ));
                         }
                     },
@@ -159,7 +171,7 @@ pub fn process(
                     }],
                     file!().to_owned(),
                     parser.find_page(page_id).unwrap().path.clone(),
-                    e.pos,
+                    array_type.pos,
                 ));
             }
         }
