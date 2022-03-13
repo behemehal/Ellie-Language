@@ -1064,7 +1064,7 @@ impl Parser {
                             self.informations.push(
                                 &error::error_list::ERROR_S22.clone().build_with_path(
                                     vec![],
-                                    file!().to_owned(),
+                                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                                     unprocessed_page.path.clone(),
                                     unexpected_element.get_pos(),
                                 ),
@@ -1090,7 +1090,7 @@ impl Parser {
                             self.informations.push(
                                 &error::error_list::ERROR_S22.clone().build_with_path(
                                     vec![],
-                                    file!().to_owned(),
+                                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                                     unprocessed_page.path.clone(),
                                     unexpected_element.get_pos(),
                                 ),
@@ -1124,7 +1124,7 @@ impl Parser {
                             self.informations.push(
                                 &error::error_list::ERROR_S22.clone().build_with_path(
                                     vec![],
-                                    file!().to_owned(),
+                                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                                     unprocessed_page.path.clone(),
                                     unexpected_element.get_pos(),
                                 ),
@@ -1145,7 +1145,7 @@ impl Parser {
                             self.informations.push(
                                 &error::error_list::ERROR_S22.clone().build_with_path(
                                     vec![],
-                                    file!().to_owned(),
+                                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                                     unprocessed_page.path.clone(),
                                     unexpected_element.get_pos(),
                                 ),
@@ -1166,7 +1166,7 @@ impl Parser {
                             self.informations.push(
                                 &error::error_list::ERROR_S22.clone().build_with_path(
                                     vec![],
-                                    file!().to_owned(),
+                                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                                     unprocessed_page.path.clone(),
                                     e.pos,
                                 ),
@@ -1181,7 +1181,7 @@ impl Parser {
                             self.informations.push(
                                 &error::error_list::ERROR_S22.clone().build_with_path(
                                     vec![],
-                                    file!().to_owned(),
+                                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                                     unprocessed_page.path.clone(),
                                     unexpected_element.get_pos(),
                                 ),

@@ -4,6 +4,10 @@ use alloc::{borrow::ToOwned, vec};
 use ellie_core::{definite::definers, definite::definers::DefinerCollecting, error};
 use ellie_tokenizer::syntax::items::definers::DefinerTypes;
 
+use crate::deep_search_extensions::DeepTypeResult;
+
+use super::ret;
+
 pub fn process(
     from: DefinerTypes,
     parser: &mut super::Parser,
@@ -33,7 +37,7 @@ pub fn process(
                                     key: "token".to_string(),
                                     value: "cloak".to_string(),
                                 }],
-                                file!().to_owned(),
+                                alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                                 parser.find_page(page_id).unwrap().path.clone(),
                                 e.pos,
                             );
@@ -48,7 +52,7 @@ pub fn process(
                                     key: "token".to_string(),
                                     value: "cloak".to_string(),
                                 }],
-                                file!().to_owned(),
+                                alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                                 parser.find_page(page_id).unwrap().path.clone(),
                                 e.pos,
                             ));
@@ -61,7 +65,7 @@ pub fn process(
                         key: "token".to_string(),
                         value: "cloak".to_string(),
                     }],
-                    file!().to_owned(),
+                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                     parser.find_page(page_id).unwrap().path.clone(),
                     e.pos,
                 ));
@@ -92,7 +96,12 @@ pub fn process(
                                                     value: 1.to_string(),
                                                 },
                                             ],
-                                            file!().to_owned(),
+                                            alloc::format!(
+                                                "{}:{}:{}",
+                                                file!().to_owned(),
+                                                line!(),
+                                                column!()
+                                            ),
                                             parser.find_page(page_id).unwrap().path.clone(),
                                             array_type.rtype.get_pos(),
                                         );
@@ -104,30 +113,75 @@ pub fn process(
                                     ));
                                     errors.push(error);
                                 } else {
-                                    match super::type_processor::process(
-                                        ellie_tokenizer::processors::types::Processors::default().from_definite(*array_type.size),
-                                        parser,
-                                        page_id,
-                                        ignore_hash,
-                                    ) {
-                                        Ok(_) => {
-                                            found = DefinerCollecting::ParentGeneric(
-                                                definers::ParentGenericType {
-                                                    parent_pos: array_class.pos,
-                                                    generics: vec![definers::GenericParameter {
-                                                        value: inner_type,
-                                                        pos: deep_search_result
-                                                            .found_pos
-                                                            .unwrap_or(ellie_core::defs::Cursor::default()),
-                                                    }],
-                                                    hash: array_class.hash,
-                                                    rtype: "array".to_string(),
-                                                },
-                                            );
-                                        },
-                                        Err(processed_errors) => {
-                                            errors.extend(processed_errors);
-                                        },
+                                    let found_type =
+                                        crate::deep_search_extensions::resolve_deep_type(
+                                            parser,
+                                            page_id,
+                                            *array_type.size.clone(),
+                                            &mut errors,
+                                        );
+
+                                    match found_type {
+                                        DeepTypeResult::NotFound => {
+                                            return Err(errors);
+                                        }
+                                        _ => {
+                                            let resolved_deep_size =
+                                                crate::deep_search_extensions::resolve_type(
+                                                    *array_type.size,
+                                                    page_id,
+                                                    parser,
+                                                    &mut errors,
+                                                );
+
+                                            if matches!(resolved_deep_size.clone(), DefinerCollecting::Generic(x) if x.rtype == "int")
+                                            {
+                                                found = DefinerCollecting::ParentGeneric(
+                                                    definers::ParentGenericType {
+                                                        parent_pos: array_class.pos,
+                                                        generics: vec![definers::GenericParameter {
+                                                value: inner_type,
+                                                pos: deep_search_result
+                                                    .found_pos
+                                                    .unwrap_or(ellie_core::defs::Cursor::default()),
+                                            }],
+                                                        hash: array_class.hash,
+                                                        rtype: "array".to_string(),
+                                                    },
+                                                );
+                                            } else {
+                                                errors.push(
+                                                    error::error_list::ERROR_S3
+                                                        .clone()
+                                                        .build_with_path(
+                                                            vec![
+                                                                error::ErrorBuildField {
+                                                                    key: "token1".to_string(),
+                                                                    value: "int".to_string(),
+                                                                },
+                                                                error::ErrorBuildField {
+                                                                    key: "token2".to_string(),
+                                                                    value: resolved_deep_size
+                                                                        .to_string(),
+                                                                },
+                                                            ],
+                                                            alloc::format!(
+                                                                "{}:{}:{}",
+                                                                file!().to_owned(),
+                                                                line!(),
+                                                                column!()
+                                                            ),
+                                                            parser
+                                                                .find_page(page_id)
+                                                                .unwrap()
+                                                                .path
+                                                                .clone(),
+                                                            array_type.size_pos,
+                                                        ),
+                                                );
+                                                return Err(errors);
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -141,7 +195,7 @@ pub fn process(
                                     key: "token".to_string(),
                                     value: "array".to_string(),
                                 }],
-                                file!().to_owned(),
+                                alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                                 parser.find_page(page_id).unwrap().path.clone(),
                                 array_type.pos,
                             );
@@ -156,7 +210,7 @@ pub fn process(
                                     key: "token".to_string(),
                                     value: "array".to_string(),
                                 }],
-                                file!().to_owned(),
+                                alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                                 parser.find_page(page_id).unwrap().path.clone(),
                                 array_type.pos,
                             ));
@@ -169,7 +223,7 @@ pub fn process(
                         key: "token".to_string(),
                         value: "array".to_string(),
                     }],
-                    file!().to_owned(),
+                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                     parser.find_page(page_id).unwrap().path.clone(),
                     array_type.pos,
                 ));
@@ -228,7 +282,7 @@ pub fn process(
                                     key: "token".to_string(),
                                     value: "collective".to_string(),
                                 }],
-                                file!().to_owned(),
+                                alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                                 parser.find_page(page_id).unwrap().path.clone(),
                                 e.pos,
                             );
@@ -243,7 +297,7 @@ pub fn process(
                                     key: "token".to_string(),
                                     value: "collective".to_string(),
                                 }],
-                                file!().to_owned(),
+                                alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                                 parser.find_page(page_id).unwrap().path.clone(),
                                 e.pos,
                             ));
@@ -256,7 +310,7 @@ pub fn process(
                         key: "token".to_string(),
                         value: "collective".to_string(),
                     }],
-                    file!().to_owned(),
+                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                     parser.find_page(page_id).unwrap().path.clone(),
                     e.pos,
                 ));
@@ -292,7 +346,12 @@ pub fn process(
                                                     value: 1.to_string(),
                                                 },
                                             ],
-                                            file!().to_owned(),
+                                            alloc::format!(
+                                                "{}:{}:{}",
+                                                file!().to_owned(),
+                                                line!(),
+                                                column!()
+                                            ),
                                             parser.find_page(page_id).unwrap().path.clone(),
                                             e.rtype.get_pos(),
                                         );
@@ -329,7 +388,7 @@ pub fn process(
                                     key: "token".to_string(),
                                     value: "vector".to_string(),
                                 }],
-                                file!().to_owned(),
+                                alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                                 parser.find_page(page_id).unwrap().path.clone(),
                                 e.pos,
                             );
@@ -344,7 +403,7 @@ pub fn process(
                                     key: "token".to_string(),
                                     value: "vector".to_string(),
                                 }],
-                                file!().to_owned(),
+                                alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                                 parser.find_page(page_id).unwrap().path.clone(),
                                 e.pos,
                             ));
@@ -357,7 +416,7 @@ pub fn process(
                         key: "token".to_string(),
                         value: "vector".to_string(),
                     }],
-                    file!().to_owned(),
+                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                     parser.find_page(page_id).unwrap().path.clone(),
                     e.pos,
                 ));
@@ -393,7 +452,12 @@ pub fn process(
                                                     value: 1.to_string(),
                                                 },
                                             ],
-                                            file!().to_owned(),
+                                            alloc::format!(
+                                                "{}:{}:{}",
+                                                file!().to_owned(),
+                                                line!(),
+                                                column!()
+                                            ),
                                             parser.find_page(page_id).unwrap().path.clone(),
                                             e.rtype.get_pos(),
                                         );
@@ -430,7 +494,7 @@ pub fn process(
                                     key: "token".to_string(),
                                     value: "nullAble".to_string(),
                                 }],
-                                file!().to_owned(),
+                                alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                                 parser.find_page(page_id).unwrap().path.clone(),
                                 e.pos,
                             );
@@ -445,7 +509,7 @@ pub fn process(
                                     key: "token".to_string(),
                                     value: "nullAble".to_string(),
                                 }],
-                                file!().to_owned(),
+                                alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                                 parser.find_page(page_id).unwrap().path.clone(),
                                 e.pos,
                             ));
@@ -458,7 +522,7 @@ pub fn process(
                         key: "token".to_string(),
                         value: "nullAble".to_string(),
                     }],
-                    file!().to_owned(),
+                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                     parser.find_page(page_id).unwrap().path.clone(),
                     e.pos,
                 ));
@@ -488,7 +552,7 @@ pub fn process(
                                         value: generic.generics.len().to_string(),
                                     },
                                 ],
-                                file!().to_owned(),
+                                alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                                 parser.find_page(page_id).unwrap().path.clone(),
                                 generic.pos,
                             );
@@ -522,7 +586,7 @@ pub fn process(
                                 key: "token".to_owned(),
                                 value: generic.parent,
                             }],
-                            file!().to_owned(),
+                            alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                             parser.find_page(page_id).unwrap().path.clone(),
                             generic.parent_pos,
                         ));
@@ -533,7 +597,7 @@ pub fn process(
                                 key: "token".to_owned(),
                                 value: generic.parent,
                             }],
-                            file!().to_owned(),
+                            alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                             parser.find_page(page_id).unwrap().path.clone(),
                             generic.parent_pos,
                         ));
@@ -545,7 +609,7 @@ pub fn process(
                         key: "token".to_owned(),
                         value: generic.parent,
                     }],
-                    file!().to_owned(),
+                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                     parser.find_page(page_id).unwrap().path.clone(),
                     generic.parent_pos,
                 ));
@@ -581,7 +645,7 @@ pub fn process(
                                         value: "0".to_string(),
                                     },
                                 ],
-                                file!().to_owned(),
+                                alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                                 parser.find_page(page_id).unwrap().path.clone(),
                                 generic.pos,
                             ));
@@ -595,7 +659,7 @@ pub fn process(
                                 key: "token".to_owned(),
                                 value: generic.rtype,
                             }],
-                            file!().to_owned(),
+                            alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                             parser.find_page(page_id).unwrap().path.clone(),
                             generic.pos,
                         ));
@@ -613,7 +677,7 @@ pub fn process(
                                 key: "token".to_owned(),
                                 value: generic.rtype,
                             }],
-                            file!().to_owned(),
+                            alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                             parser.find_page(page_id).unwrap().path.clone(),
                             generic.pos,
                         ));
@@ -625,7 +689,7 @@ pub fn process(
                         key: "token".to_owned(),
                         value: generic.rtype,
                     }],
-                    file!().to_owned(),
+                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                     parser.find_page(page_id).unwrap().path.clone(),
                     generic.pos,
                 ));
@@ -656,7 +720,7 @@ pub fn process(
                                     key: "token".to_string(),
                                     value: "function".to_string(),
                                 }],
-                                file!().to_owned(),
+                                alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                                 parser.find_page(page_id).unwrap().path.clone(),
                                 e.pos,
                             );
@@ -671,7 +735,7 @@ pub fn process(
                                     key: "token".to_string(),
                                     value: "function".to_string(),
                                 }],
-                                file!().to_owned(),
+                                alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                                 parser.find_page(page_id).unwrap().path.clone(),
                                 e.pos,
                             ));
@@ -684,7 +748,7 @@ pub fn process(
                         key: "token".to_string(),
                         value: "function".to_string(),
                     }],
-                    file!().to_owned(),
+                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                     parser.find_page(page_id).unwrap().path.clone(),
                     e.pos,
                 ));

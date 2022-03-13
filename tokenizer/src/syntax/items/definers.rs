@@ -16,7 +16,9 @@ pub struct CloakType {
 #[derive(Default, Clone, Debug, Serialize, Deserialize)]
 pub struct ArrayType {
     pub rtype: Box<DefinerTypes>,
+    pub rtype_pos: defs::Cursor,
     pub size: Box<definite::types::Types>,
+    pub size_pos: defs::Cursor,
     pub size_collected: bool,
     pub raw_size: String,
     pub at_comma: bool,

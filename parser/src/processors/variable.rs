@@ -21,7 +21,7 @@ impl super::Processor for VariableCollector {
                         key: "token".to_owned(),
                         value: self.data.name,
                     }],
-                    file!().to_owned(),
+                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                     parser.find_page(page_id).unwrap().path.clone(),
                     self.data.name_pos,
                 );
@@ -38,7 +38,7 @@ impl super::Processor for VariableCollector {
                             key: "token".to_owned(),
                             value: self.data.name,
                         }],
-                        file!().to_owned(),
+                        alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                         page_path,
                         self.data.name_pos,
                     ))
@@ -147,7 +147,7 @@ impl super::Processor for VariableCollector {
                                             value: given,
                                         },
                                     ],
-                                    file!().to_owned(),
+                                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                                     current_page.path.clone(),
                                     self.data.value_pos,
                                 );

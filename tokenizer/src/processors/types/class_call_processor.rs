@@ -66,7 +66,7 @@ impl crate::processors::Processor for class_call_type::ClassCallCollector {
                         key: "token".to_owned(),
                         value: letter_char.to_string(),
                     }],
-                    file!().to_owned(),
+                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                     defs::Cursor::build_with_skip_char(cursor),
                 ));
             }
@@ -105,7 +105,7 @@ impl crate::processors::Processor for class_call_type::ClassCallCollector {
                     key: "token".to_owned(),
                     value: letter_char.to_string(),
                 }],
-                file!().to_owned(),
+                alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                 defs::Cursor::build_with_skip_char(cursor),
             ));
         }

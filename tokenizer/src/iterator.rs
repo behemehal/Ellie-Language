@@ -33,13 +33,13 @@ impl Iterator {
         if !self.active.is_complete() && self.active.current.is_initalized() {
             self.errors.push(error::error_list::ERROR_S26.clone().build(
                 vec![],
-                file!().to_owned(),
+                alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                 self.active.current.get_pos(),
             ));
         } else if self.multi_comment {
             self.errors.push(error::error_list::ERROR_S26.clone().build(
                 vec![],
-                file!().to_owned(),
+                alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                 self.comment_pos,
             ));
         }
@@ -68,7 +68,7 @@ impl Iterator {
                         key: "token".to_string(),
                         value: letter_char.to_string(),
                     }],
-                    file!().to_owned(),
+                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                     defs::Cursor::build_with_skip_char(self.pos),
                 ));
             }
@@ -107,7 +107,7 @@ impl Iterator {
                     if !e.cache.current.is_not_initialized() {
                         self.errors.push(error::error_list::ERROR_S26.clone().build(
                             vec![],
-                            file!().to_owned(),
+                            alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                             e.pos,
                         ));
                         self.active = items::ItemProcessor::default();
@@ -142,7 +142,7 @@ impl Iterator {
                                 crate::syntax::items::condition::ConditionType::If => "",
                             }.to_string(),
                         }],
-                        file!().to_owned(),
+                        alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                         last_chain.keyword_pos,
                     ));
                 } else if let items::Processors::Condition(past) =
@@ -180,7 +180,7 @@ impl Iterator {
                                     key: "token".to_string(),
                                     value: "else".to_string(),
                                 }],
-                                file!().to_owned(),
+                                alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                                 last_chain.keyword_pos,
                             ));
                         }
@@ -195,7 +195,7 @@ impl Iterator {
                                 crate::syntax::items::condition::ConditionType::If => "",
                             }.to_string(),
                         }],
-                        file!().to_owned(),
+                        alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                         last_chain.keyword_pos,
                     ));
                 }

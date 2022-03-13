@@ -40,7 +40,7 @@ impl crate::processors::Processor for integer_type::IntegerTypeCollector {
                         key: "val".to_owned(),
                         value: self.raw.clone(),
                     }],
-                    file!().to_owned(),
+                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                     defs::Cursor::build_with_skip_char(cursor),
                 ));
             }
@@ -55,7 +55,7 @@ impl crate::processors::Processor for integer_type::IntegerTypeCollector {
                         key: "token".to_string(),
                         value: letter_char.to_string(),
                     }],
-                    file!().to_owned(),
+                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                     defs::Cursor::build_with_skip_char(cursor),
                 ));
             }

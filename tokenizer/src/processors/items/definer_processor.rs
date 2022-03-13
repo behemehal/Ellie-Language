@@ -68,6 +68,7 @@ impl crate::processors::Processor for DefinerCollector {
                             array_type
                                 .child_cache
                                 .iterate(errors, cursor, last_char, letter_char);
+                        array_type.rtype_pos = array_type.child_cache.definer_type.get_pos();
                     }
                 } else if !array_type.size_collected {
                     if array_type.size_child_cache.is_complete() && letter_char == ']' {
@@ -93,6 +94,10 @@ impl crate::processors::Processor for DefinerCollector {
                             array_type.size =
                                 Box::new(array_type.size_child_cache.current.to_definite());
                         }
+                        if array_type.size_pos.range_start.is_zero() && letter_char != ' ' {
+                            array_type.size_pos.range_start = cursor;
+                        }
+                        array_type.size_pos.range_end = cursor.clone().pop_char(1);
                     }
                 }
             }

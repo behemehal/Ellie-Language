@@ -435,7 +435,7 @@ where
                                     key: "token".to_owned(),
                                     value: import.path.clone(),
                                 }],
-                                file!().to_owned(),
+                                alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                                 page.path.clone(),
                                 import.pos,
                             ));
@@ -445,7 +445,7 @@ where
                                     key: "token".to_owned(),
                                     value: resolved.resolve_error,
                                 }],
-                                file!().to_owned(),
+                                alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                                 page.path.clone(),
                                 import.pos,
                             ));

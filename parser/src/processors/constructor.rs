@@ -54,7 +54,7 @@ impl super::Processor for Constructor {
                 if other_index < index {
                     let mut err = error::error_list::ERROR_S10.clone().build_with_path(
                         vec![],
-                        file!().to_owned(),
+                        alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                         parser.find_page(page_id).unwrap().path.clone(),
                         parameter.pos,
                     );
@@ -87,7 +87,7 @@ impl super::Processor for Constructor {
                                     key: "token".to_owned(),
                                     value: parameter.name.clone(),
                                 }],
-                                file!().to_owned(),
+                                alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                                 class_body_page.path.clone(),
                                 parameter.pos,
                             ),
@@ -100,7 +100,7 @@ impl super::Processor for Constructor {
                         key: "token".to_owned(),
                         value: parameter.name.clone(),
                     }],
-                    file!().to_owned(),
+                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                     parser.find_page(page_id).unwrap().path.clone(),
                     parameter.pos,
                 );

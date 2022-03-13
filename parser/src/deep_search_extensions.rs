@@ -390,7 +390,7 @@ fn iterate_deep_type(
                                     key: "token".to_owned(),
                                     value: reference_type.to_string(),
                                 }],
-                                file!().to_owned(),
+                                alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                                 parser.find_page(page_id).unwrap().path.clone(),
                                 reference_pos,
                             ));
@@ -461,7 +461,12 @@ fn iterate_deep_type(
                                             value: last_chain_attributes.0.to_string(),
                                         },
                                     ],
-                                    file!().to_owned(),
+                                    alloc::format!(
+                                        "{}:{}:{}",
+                                        file!().to_owned(),
+                                        line!(),
+                                        column!()
+                                    ),
                                     parser.find_page(page_id).unwrap().path.clone(),
                                     chain.pos,
                                 ));
@@ -485,55 +490,62 @@ fn iterate_deep_type(
             let resolved_reference =
                 resolve_deep_type(parser, page_id, *e.reference.clone(), errors);
             let resolved_index = resolve_deep_type(parser, page_id, *e.value, errors);
-            DeepTypeResult::BraceReference(
-                ellie_core::definite::types::brace_reference::BraceReferenceType {
-                    reference: Box::new(match resolved_reference {
-                        DeepTypeResult::Integer(e) => Types::Integer(e),
-                        DeepTypeResult::Float(e) => Types::Float(e),
-                        DeepTypeResult::Bool(e) => Types::Bool(e),
-                        DeepTypeResult::String(e) => Types::String(e),
-                        DeepTypeResult::Char(e) => Types::Char(e),
-                        DeepTypeResult::Collective(e) => Types::Collective(e),
-                        DeepTypeResult::Operator(e) => Types::Operator(e),
-                        DeepTypeResult::Cloak(e) => Types::Cloak(e),
-                        DeepTypeResult::Array(e) => Types::Array(e),
-                        DeepTypeResult::Vector(e) => Types::Vector(e),
-                        DeepTypeResult::ClassCall(e) => Types::ClassCall(e),
-                        DeepTypeResult::FunctionCall(e) => Types::FunctionCall(e),
-                        DeepTypeResult::BraceReference(e) => Types::BraceReference(e),
-                        DeepTypeResult::Dynamic => Types::Dynamic,
-                        DeepTypeResult::Void => unreachable!(),
-                        DeepTypeResult::Null => unreachable!(),
-                        DeepTypeResult::NotFound => {
-                            unreachable!("cannot find reference: {:?}", *e.reference)
-                        }
-                        DeepTypeResult::Function(_) => todo!(),
-                    }),
-                    reference_pos: e.reference_pos,
-                    brace_pos: e.brace_pos,
-                    value: Box::new(match resolved_index {
-                        DeepTypeResult::Integer(e) => Types::Integer(e),
-                        DeepTypeResult::Float(e) => Types::Float(e),
-                        DeepTypeResult::Bool(e) => Types::Bool(e),
-                        DeepTypeResult::String(e) => Types::String(e),
-                        DeepTypeResult::Char(e) => Types::Char(e),
-                        DeepTypeResult::Collective(e) => Types::Collective(e),
-                        DeepTypeResult::Operator(e) => Types::Operator(e),
-                        DeepTypeResult::Cloak(e) => Types::Cloak(e),
-                        DeepTypeResult::Array(e) => Types::Array(e),
-                        DeepTypeResult::Vector(e) => Types::Vector(e),
-                        DeepTypeResult::ClassCall(e) => Types::ClassCall(e),
-                        DeepTypeResult::FunctionCall(e) => Types::FunctionCall(e),
-                        DeepTypeResult::BraceReference(e) => Types::BraceReference(e),
-                        DeepTypeResult::Void => unreachable!(),
-                        DeepTypeResult::Null => unreachable!(),
-                        DeepTypeResult::NotFound => unreachable!(),
-                        DeepTypeResult::Dynamic => Types::Dynamic,
-                        DeepTypeResult::Function(e) => Types::Function(e),
-                    }),
-                    pos: e.pos,
-                },
-            )
+
+            if matches!(resolved_reference, DeepTypeResult::NotFound)
+                || matches!(resolved_index, DeepTypeResult::NotFound)
+            {
+                DeepTypeResult::NotFound
+            } else {
+                DeepTypeResult::BraceReference(
+                    ellie_core::definite::types::brace_reference::BraceReferenceType {
+                        reference: Box::new(match resolved_reference {
+                            DeepTypeResult::Integer(e) => Types::Integer(e),
+                            DeepTypeResult::Float(e) => Types::Float(e),
+                            DeepTypeResult::Bool(e) => Types::Bool(e),
+                            DeepTypeResult::String(e) => Types::String(e),
+                            DeepTypeResult::Char(e) => Types::Char(e),
+                            DeepTypeResult::Collective(e) => Types::Collective(e),
+                            DeepTypeResult::Operator(e) => Types::Operator(e),
+                            DeepTypeResult::Cloak(e) => Types::Cloak(e),
+                            DeepTypeResult::Array(e) => Types::Array(e),
+                            DeepTypeResult::Vector(e) => Types::Vector(e),
+                            DeepTypeResult::ClassCall(e) => Types::ClassCall(e),
+                            DeepTypeResult::FunctionCall(e) => Types::FunctionCall(e),
+                            DeepTypeResult::BraceReference(e) => Types::BraceReference(e),
+                            DeepTypeResult::Dynamic => Types::Dynamic,
+                            DeepTypeResult::Void => unreachable!(),
+                            DeepTypeResult::Null => unreachable!(),
+                            DeepTypeResult::NotFound => {
+                                unreachable!("cannot find reference: {:?}", *e.reference)
+                            }
+                            DeepTypeResult::Function(_) => todo!(),
+                        }),
+                        reference_pos: e.reference_pos,
+                        brace_pos: e.brace_pos,
+                        value: Box::new(match resolved_index {
+                            DeepTypeResult::Integer(e) => Types::Integer(e),
+                            DeepTypeResult::Float(e) => Types::Float(e),
+                            DeepTypeResult::Bool(e) => Types::Bool(e),
+                            DeepTypeResult::String(e) => Types::String(e),
+                            DeepTypeResult::Char(e) => Types::Char(e),
+                            DeepTypeResult::Collective(e) => Types::Collective(e),
+                            DeepTypeResult::Operator(e) => Types::Operator(e),
+                            DeepTypeResult::Cloak(e) => Types::Cloak(e),
+                            DeepTypeResult::Array(e) => Types::Array(e),
+                            DeepTypeResult::Vector(e) => Types::Vector(e),
+                            DeepTypeResult::ClassCall(e) => Types::ClassCall(e),
+                            DeepTypeResult::FunctionCall(e) => Types::FunctionCall(e),
+                            DeepTypeResult::BraceReference(e) => Types::BraceReference(e),
+                            DeepTypeResult::Void => unreachable!(),
+                            DeepTypeResult::Null => unreachable!(),
+                            DeepTypeResult::NotFound => unreachable!(),
+                            DeepTypeResult::Dynamic => Types::Dynamic,
+                            DeepTypeResult::Function(e) => Types::Function(e),
+                        }),
+                        pos: e.pos,
+                    },
+                )
+            }
         }
         Types::Operator(_) => todo!(),
         Types::Cloak(cloak) => {
@@ -917,7 +929,12 @@ fn iterate_deep_type(
                                 let path = parser.find_page(page_id).unwrap().path.clone();
                                 errors.push(error::error_list::ERROR_S51.clone().build_with_path(
                                     vec![],
-                                    file!().to_string(),
+                                    alloc::format!(
+                                        "{}:{}:{}",
+                                        file!().to_owned(),
+                                        line!(),
+                                        column!()
+                                    ),
                                     path,
                                     null_resolver.pos,
                                 ));
@@ -928,7 +945,7 @@ fn iterate_deep_type(
                         let path = parser.find_page(page_id).unwrap().path.clone();
                         errors.push(error::error_list::ERROR_S51.clone().build_with_path(
                             vec![],
-                            file!().to_string(),
+                            alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                             path,
                             null_resolver.pos,
                         ));
@@ -939,7 +956,7 @@ fn iterate_deep_type(
                     let path = parser.find_page(page_id).unwrap().path.clone();
                     errors.push(error::error_list::ERROR_S51.clone().build_with_path(
                         vec![],
-                        file!().to_string(),
+                        alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                         path,
                         null_resolver.pos,
                     ));
@@ -949,7 +966,8 @@ fn iterate_deep_type(
         }
         Types::Negative(_) => todo!(),
         Types::VariableType(variable) => {
-            let hash_deep_search = deep_search(parser, page_id, variable.value, None, vec![], 0);
+            let hash_deep_search =
+                deep_search(parser, page_id, variable.value.clone(), None, vec![], 0);
             if hash_deep_search.found {
                 match hash_deep_search.found_item {
                     ProcessedDeepSearchItems::Class(e) => {
@@ -985,7 +1003,7 @@ fn iterate_deep_type(
                                     key: "token".to_string(),
                                     value: "class".to_string(),
                                 }],
-                                file!().to_string(),
+                                alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                                 path,
                                 e.pos,
                             ));
@@ -1006,9 +1024,9 @@ fn iterate_deep_type(
                     .push(&error::error_list::ERROR_S6.clone().build_with_path(
                         vec![error::ErrorBuildField {
                             key: "token".to_string(),
-                            value: "class".to_string(),
+                            value: variable.value.to_owned(),
                         }],
-                        file!().to_string(),
+                        alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                         path,
                         variable.pos,
                     ));
@@ -1182,7 +1200,7 @@ fn iterate_deep_type(
                                 value: as_keyword.rtype.to_string(),
                             },
                         ],
-                        file!().to_string(),
+                        alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                         path,
                         as_keyword.pos,
                     ));

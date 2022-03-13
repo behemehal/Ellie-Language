@@ -55,7 +55,7 @@ impl crate::processors::Processor for condition::Condition {
                                         key: "token".to_string(),
                                         value: letter_char.to_string(),
                                     }],
-                                    file!().to_owned(),
+                                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                                     e.data.pos,
                                 ));
                             }
@@ -66,7 +66,7 @@ impl crate::processors::Processor for condition::Condition {
                                     key: "token".to_string(),
                                     value: letter_char.to_string(),
                                 }],
-                                file!().to_owned(),
+                                alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                                 e.get_pos(),
                             ));
                         }

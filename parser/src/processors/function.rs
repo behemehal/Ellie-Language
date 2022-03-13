@@ -19,7 +19,7 @@ impl super::Processor for function::FunctionCollector {
                         key: "token".to_owned(),
                         value: self.data.name,
                     }],
-                    file!().to_owned(),
+                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                     parser.find_page(page_id).unwrap().path.clone(),
                     self.data.name_pos,
                 );
@@ -35,7 +35,7 @@ impl super::Processor for function::FunctionCollector {
                             key: "token".to_owned(),
                             value: self.data.name,
                         }],
-                        file!().to_owned(),
+                        alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                         page.path.clone(),
                         self.data.name_pos,
                     ))
@@ -72,7 +72,7 @@ impl super::Processor for function::FunctionCollector {
                     if other_index < index {
                         let mut err = error::error_list::ERROR_S10.clone().build_with_path(
                             vec![],
-                            file!().to_owned(),
+                            alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                             parser.find_page(page_id).unwrap().path.clone(),
                             parameter.pos,
                         );
@@ -93,7 +93,7 @@ impl super::Processor for function::FunctionCollector {
                                     key: "token".to_owned(),
                                     value: parameter.name.clone(),
                                 }],
-                                file!().to_owned(),
+                                alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                                 parser.find_page(page_id).unwrap().path.clone(),
                                 parameter.pos,
                             );
@@ -108,7 +108,7 @@ impl super::Processor for function::FunctionCollector {
                                         key: "token".to_owned(),
                                         value: parameter.name.clone(),
                                     }],
-                                    file!().to_owned(),
+                                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                                     page.path.clone(),
                                     parameter.pos,
                                 ),
@@ -270,7 +270,7 @@ impl super::Processor for function::FunctionCollector {
                                     value: parser.resolve_type_name(ret.value),
                                 },
                             ],
-                            file!().to_owned(),
+                            alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                             parser.find_page(page_id).unwrap().path.clone(),
                             ret.pos,
                         );
@@ -294,7 +294,7 @@ impl super::Processor for function::FunctionCollector {
                                         value: given,
                                     },
                                 ],
-                                file!().to_owned(),
+                                alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                                 parser.find_page(page_id).unwrap().path.clone(),
                                 ret.pos,
                             );

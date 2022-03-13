@@ -14,7 +14,7 @@ impl super::Processor for FileKey {
                 .informations
                 .push(&error::error_list::ERROR_S9.clone().build_with_path(
                     vec![],
-                    file!().to_owned(),
+                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                     path,
                     self.value_location,
                 ));

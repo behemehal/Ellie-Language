@@ -27,7 +27,7 @@ impl super::Processor for Import {
                         key: "token".to_owned(),
                         value: self.reference,
                     }],
-                    file!().to_owned(),
+                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                     page_path.clone(),
                     self.reference_pos,
                 ));
