@@ -32,7 +32,8 @@ impl crate::processors::Processor for cloak_type::CloakTypeCollector {
             self.itered_cache = Box::new(super::TypeProcessor::default());
             self.complete = true;
         } else if !self.complete {
-            hang = self.itered_cache
+            hang = self
+                .itered_cache
                 .iterate(errors, cursor, last_char, letter_char);
 
             let param_len = self.data.collective.len();

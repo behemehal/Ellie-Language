@@ -108,7 +108,12 @@ impl super::Processor for function::FunctionCollector {
                                         key: "token".to_owned(),
                                         value: parameter.name.clone(),
                                     }],
-                                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                                    alloc::format!(
+                                        "{}:{}:{}",
+                                        file!().to_owned(),
+                                        line!(),
+                                        column!()
+                                    ),
                                     page.path.clone(),
                                     parameter.pos,
                                 ),

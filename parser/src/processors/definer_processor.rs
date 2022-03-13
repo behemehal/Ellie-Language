@@ -6,8 +6,6 @@ use ellie_tokenizer::syntax::items::definers::DefinerTypes;
 
 use crate::deep_search_extensions::DeepTypeResult;
 
-use super::ret;
-
 pub fn process(
     from: DefinerTypes,
     parser: &mut super::Parser,

@@ -147,7 +147,12 @@ impl super::Processor for VariableCollector {
                                             value: given,
                                         },
                                     ],
-                                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                                    alloc::format!(
+                                        "{}:{}:{}",
+                                        file!().to_owned(),
+                                        line!(),
+                                        column!()
+                                    ),
                                     current_page.path.clone(),
                                     self.data.value_pos,
                                 );

@@ -7,6 +7,7 @@ pub mod cloak;
 pub mod collective;
 pub mod ellie_char;
 pub mod float;
+pub mod function;
 pub mod function_call;
 pub mod integer;
 pub mod negative;
@@ -16,7 +17,6 @@ pub mod reference;
 pub mod string;
 pub mod variable;
 pub mod vector;
-pub mod function;
 
 use serde::{Deserialize, Serialize};
 

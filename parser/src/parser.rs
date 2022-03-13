@@ -1,4 +1,4 @@
-use crate::deep_search_extensions::{self, find_type, resolve_type, resolve_deep_type};
+use crate::deep_search_extensions::{self, find_type, resolve_deep_type, resolve_type};
 use crate::processors::Processor;
 use alloc::borrow::ToOwned;
 use alloc::string::ToString;
@@ -487,16 +487,19 @@ impl Parser {
                 }
             }
             deep_search_extensions::DeepTypeResult::FunctionCall(e) => {
-                let resolved_target = resolve_deep_type(self, target_page, *e.target.clone(), &mut errors);
+                let resolved_target =
+                    resolve_deep_type(self, target_page, *e.target.clone(), &mut errors);
                 match resolved_target {
-                    deep_search_extensions::DeepTypeResult::Function(e) => {
-                        Ok((defining.same_as(e.return_type.clone()), defining.to_string(), e.return_type.to_string()))
-                    },
+                    deep_search_extensions::DeepTypeResult::Function(e) => Ok((
+                        defining.same_as(e.return_type.clone()),
+                        defining.to_string(),
+                        e.return_type.to_string(),
+                    )),
                     _ => {
                         unreachable!()
                     }
                 }
-            },
+            }
             deep_search_extensions::DeepTypeResult::Void => {
                 if let ellie_core::definite::definers::DefinerCollecting::Generic(_) = defining {
                     if defining.clone().to_string() == "void" {
@@ -1064,7 +1067,12 @@ impl Parser {
                             self.informations.push(
                                 &error::error_list::ERROR_S22.clone().build_with_path(
                                     vec![],
-                                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                                    alloc::format!(
+                                        "{}:{}:{}",
+                                        file!().to_owned(),
+                                        line!(),
+                                        column!()
+                                    ),
                                     unprocessed_page.path.clone(),
                                     unexpected_element.get_pos(),
                                 ),
@@ -1090,7 +1098,12 @@ impl Parser {
                             self.informations.push(
                                 &error::error_list::ERROR_S22.clone().build_with_path(
                                     vec![],
-                                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                                    alloc::format!(
+                                        "{}:{}:{}",
+                                        file!().to_owned(),
+                                        line!(),
+                                        column!()
+                                    ),
                                     unprocessed_page.path.clone(),
                                     unexpected_element.get_pos(),
                                 ),
@@ -1124,7 +1137,12 @@ impl Parser {
                             self.informations.push(
                                 &error::error_list::ERROR_S22.clone().build_with_path(
                                     vec![],
-                                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                                    alloc::format!(
+                                        "{}:{}:{}",
+                                        file!().to_owned(),
+                                        line!(),
+                                        column!()
+                                    ),
                                     unprocessed_page.path.clone(),
                                     unexpected_element.get_pos(),
                                 ),
@@ -1145,7 +1163,12 @@ impl Parser {
                             self.informations.push(
                                 &error::error_list::ERROR_S22.clone().build_with_path(
                                     vec![],
-                                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                                    alloc::format!(
+                                        "{}:{}:{}",
+                                        file!().to_owned(),
+                                        line!(),
+                                        column!()
+                                    ),
                                     unprocessed_page.path.clone(),
                                     unexpected_element.get_pos(),
                                 ),
@@ -1166,7 +1189,12 @@ impl Parser {
                             self.informations.push(
                                 &error::error_list::ERROR_S22.clone().build_with_path(
                                     vec![],
-                                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                                    alloc::format!(
+                                        "{}:{}:{}",
+                                        file!().to_owned(),
+                                        line!(),
+                                        column!()
+                                    ),
                                     unprocessed_page.path.clone(),
                                     e.pos,
                                 ),
@@ -1181,7 +1209,12 @@ impl Parser {
                             self.informations.push(
                                 &error::error_list::ERROR_S22.clone().build_with_path(
                                     vec![],
-                                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                                    alloc::format!(
+                                        "{}:{}:{}",
+                                        file!().to_owned(),
+                                        line!(),
+                                        column!()
+                                    ),
                                     unprocessed_page.path.clone(),
                                     unexpected_element.get_pos(),
                                 ),

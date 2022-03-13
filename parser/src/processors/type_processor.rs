@@ -159,9 +159,7 @@ pub fn process(
             match operator.data.operator {
                 ellie_tokenizer::syntax::types::operator_type::Operators::ComparisonType(_) => {
                     if first_value.same_as(second_value.clone()) {
-                        Ok(types::Types::Bool(types::bool::BoolType {
-                            value: true,
-                        }))
+                        Ok(types::Types::Bool(types::bool::BoolType { value: true }))
                     } else {
                         errors.push(error::error_list::ERROR_S52.clone().build_with_path(
                             vec![
@@ -546,7 +544,12 @@ pub fn process(
                                                 key: "token".to_owned(),
                                                 value: reference_type.to_string(),
                                             }],
-                                            alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                                            alloc::format!(
+                                                "{}:{}:{}",
+                                                file!().to_owned(),
+                                                line!(),
+                                                column!()
+                                            ),
                                             parser.find_page(page_id).unwrap().path.clone(),
                                             reference_pos,
                                         ),
@@ -643,7 +646,12 @@ pub fn process(
                                                         value: last_chain_attributes.0.to_string(),
                                                     },
                                                 ],
-                                                alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                                                alloc::format!(
+                                                    "{}:{}:{}",
+                                                    file!().to_owned(),
+                                                    line!(),
+                                                    column!()
+                                                ),
                                                 parser.find_page(page_id).unwrap().path.clone(),
                                                 chain.pos,
                                             ),
@@ -1006,7 +1014,12 @@ pub fn process(
                                                     .to_string(),
                                             },
                                         ],
-                                        alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                                        alloc::format!(
+                                            "{}:{}:{}",
+                                            file!().to_owned(),
+                                            line!(),
+                                            column!()
+                                        ),
                                         parser.find_page(page_id).unwrap().path.clone(),
                                         class_call.data.target_pos,
                                     );
@@ -1027,7 +1040,12 @@ pub fn process(
                                                 key: "token".to_string(),
                                                 value: g.value.clone().to_definite().to_string(),
                                             }],
-                                            alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                                            alloc::format!(
+                                                "{}:{}:{}",
+                                                file!().to_owned(),
+                                                line!(),
+                                                column!()
+                                            ),
                                             parser.find_page(page_id).unwrap().path.clone(),
                                             g.pos,
                                         ),
@@ -1068,7 +1086,12 @@ pub fn process(
                                                     .to_string(),
                                             },
                                         ],
-                                        alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                                        alloc::format!(
+                                            "{}:{}:{}",
+                                            file!().to_owned(),
+                                            line!(),
+                                            column!()
+                                        ),
                                         parser.find_page(page_id).unwrap().path.clone(),
                                         class_call.data.target_pos,
                                     ),
