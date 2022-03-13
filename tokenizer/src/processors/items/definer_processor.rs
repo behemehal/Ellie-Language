@@ -136,8 +136,10 @@ impl crate::processors::Processor for DefinerCollector {
             DefinerTypes::Vector(ref mut vector_type) => {
                 //Vector type resolved in array, if another character is found after brace
                 //it's a syntax error
-                if self.complete || letter_char != ']' {
-                    //If brace is already put or char is not close brace
+                if !self.complete && letter_char != '*' {
+                    vector_type.pos.range_end = cursor.clone();
+                    self.complete = true;
+                } else if letter_char != ' ' {
                     errors.push(error::error_list::ERROR_S1.clone().build(
                         vec![error::ErrorBuildField {
                             key: "token".to_string(),
@@ -146,11 +148,6 @@ impl crate::processors::Processor for DefinerCollector {
                         "0x00257".to_owned(),
                         defs::Cursor::build_with_skip_char(cursor),
                     ));
-                } else if letter_char == ']' {
-                    //After we see '*' char in array size position, we update
-                    //Type as vector, so completing array brace is up to vector
-                    vector_type.pos.range_end = cursor.clone().skip_char(1);
-                    self.complete = true;
                 }
             }
             DefinerTypes::Nullable(ref mut nullable_type) => {
