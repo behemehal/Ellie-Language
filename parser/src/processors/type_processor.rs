@@ -7,7 +7,7 @@ use alloc::vec;
 use alloc::vec::Vec;
 use alloc::{borrow::ToOwned, string::String};
 use ellie_core::definite::definers::DefinerCollecting;
-use ellie_core::definite::items::variable;
+use ellie_core::definite::items::{constructor, variable};
 use ellie_core::definite::types::ellie_char;
 use ellie_core::{
     definite::{items::Collecting, types, Converter},
@@ -1052,52 +1052,57 @@ pub fn process(
                                     );
                                 }
                                 Err(errors)
-                            } else if let Some(_) = e.body.iter().find_map(|x| match x {
-                                ellie_tokenizer::processors::items::Processors::Constructor(e) => {
-                                    Some(e)
-                                }
-                                _ => None,
-                            }) {
-                                todo!();
-                                Ok(types::Types::ClassCall(
-                                    ellie_core::definite::types::class_call::ClassCall {
-                                        target: Box::new(class_call.data.target.clone().to_definite()),
-                                        keyword_pos: class_call.data.keyword_pos,
-                                        target_pos: class_call.data.target_pos,
-                                        generic_parameters: class_call.data.generic_parameters.iter().map(|x| ellie_core::definite::types::class_call::ClassCallGenericParameter { value: ellie_core::definite::Converter::to_definite(x.value.clone()), pos: x.pos }).collect::<Vec<_>>(),
-                                        params: class_call.data.parameters.iter().map(|x| types::class_call::ClassCallParameter { value: x.value.to_definite(), pos: x.pos }).collect::<Vec<_>>(),
-                                        pos: class_call.data.pos,
-                                    },
-                                ))
-                            } else if class_call.data.parameters.len() != 0 {
-                                errors.push(
-                                    error::error_list::ERROR_S44.clone().build_with_path(
-                                        vec![
-                                            error::ErrorBuildField {
-                                                key: "token".to_string(),
-                                                value: "0".to_string(),
-                                            },
-                                            error::ErrorBuildField {
-                                                key: "token2".to_string(),
-                                                value: class_call
-                                                    .data
-                                                    .generic_parameters
-                                                    .len()
-                                                    .to_string(),
-                                            },
-                                        ],
-                                        alloc::format!(
-                                            "{}:{}:{}",
-                                            file!().to_owned(),
-                                            line!(),
-                                            column!()
-                                        ),
-                                        parser.find_page(page_id).unwrap().path.clone(),
-                                        class_call.data.target_pos,
-                                    ),
-                                );
-                                Err(errors)
                             } else {
+                                let constructor = e.body.iter().find_map(|x| match x {
+                                    ellie_tokenizer::processors::items::Processors::Constructor(
+                                        e,
+                                    ) => Some(e),
+                                    _ => None,
+                                });
+
+                                if constructor.is_some() {
+                                    if constructor.unwrap().parameters.len()
+                                        != class_call.data.parameters.len()
+                                    {
+                                        errors.push(
+                                            error::error_list::ERROR_S7.clone().build_with_path(
+                                                vec![
+                                                    error::ErrorBuildField {
+                                                        key: "name".to_string(),
+                                                        value: e.name.clone(),
+                                                    },
+                                                    error::ErrorBuildField {
+                                                        key: "token".to_string(),
+                                                        value: class_call
+                                                            .data
+                                                            .generic_parameters
+                                                            .len()
+                                                            .to_string(),
+                                                    },
+                                                    error::ErrorBuildField {
+                                                        key: "token2".to_string(),
+                                                        value: class_call
+                                                            .data
+                                                            .parameters
+                                                            .len()
+                                                            .to_string(),
+                                                    },
+                                                ],
+                                                alloc::format!(
+                                                    "{}:{}:{}",
+                                                    file!().to_owned(),
+                                                    line!(),
+                                                    column!()
+                                                ),
+                                                parser.find_page(page_id).unwrap().path.clone(),
+                                                class_call.data.target_pos,
+                                            ),
+                                        );
+                                        return Err(errors);
+                                    } else {
+                                        todo!()
+                                    }
+                                }
                                 Ok(types::Types::ClassCall(
                                     ellie_core::definite::types::class_call::ClassCall {
                                         target: Box::new(ellie_core::definite::types::Types::VariableType(
@@ -1125,8 +1130,6 @@ pub fn process(
                                                 },
                                                 _ => todo!(),
                                             };
-
-
                                             ellie_core::definite::types::class_call::ClassCallGenericParameter {
                                                 value: definite_type,
                                                 pos: x.pos
