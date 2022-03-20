@@ -156,6 +156,35 @@ fn main() {
         Some(("tokenize", matches)) => {
             if !matches.is_present("allowPanics") {
                 std::panic::set_hook(Box::new(|e| {
+                    if e.to_string().contains("@Halt") {
+                        println!(
+                            "\n\n{}-----------------{}\n",
+                            cli_utils::Colors::Blue,
+                            cli_utils::Colors::Reset
+                        );
+                        println!(
+                            "{}{}Compiler halted{}\n",
+                            cli_utils::Colors::Yellow,
+                            cli_utils::TextStyles::Bold,
+                            cli_utils::Colors::Reset
+                        );
+                        println!(
+                            "{}{}{}",
+                            cli_utils::Colors::Blue,
+                            e.to_string().split("@Halt:").collect::<Vec<&str>>()[1]
+                                .split("@")
+                                .collect::<Vec<&str>>()[0]
+                                .trim(),
+                            cli_utils::Colors::Red
+                        );
+                        println!(
+                            "\n{}-----------------{}\n\n",
+                            cli_utils::Colors::Blue,
+                            cli_utils::Colors::Reset
+                        );
+                        return;
+                    }
+
                     println!(
                         "\n\n{}-----------------{}\n",
                         cli_utils::Colors::Blue,
@@ -246,6 +275,34 @@ fn main() {
         Some(("compile", matches)) => {
             if !matches.is_present("allowPanics") {
                 std::panic::set_hook(Box::new(|e| {
+                    if e.to_string().contains("@Halt") {
+                        println!(
+                            "\n\n{}-----------------{}\n",
+                            cli_utils::Colors::Blue,
+                            cli_utils::Colors::Reset
+                        );
+                        println!(
+                            "{}{}Compiler halted{}\n",
+                            cli_utils::Colors::Yellow,
+                            cli_utils::TextStyles::Bold,
+                            cli_utils::Colors::Reset
+                        );
+                        println!(
+                            "{}{}{}",
+                            cli_utils::Colors::Blue,
+                            e.to_string().split("@Halt:").collect::<Vec<&str>>()[1]
+                                .split("@")
+                                .collect::<Vec<&str>>()[0]
+                                .trim(),
+                            cli_utils::Colors::Red
+                        );
+                        println!(
+                            "\n{}-----------------{}\n\n",
+                            cli_utils::Colors::Blue,
+                            cli_utils::Colors::Reset
+                        );
+                        return;
+                    }
                     println!(
                         "\n\n{}-----------------{}\n",
                         cli_utils::Colors::Blue,

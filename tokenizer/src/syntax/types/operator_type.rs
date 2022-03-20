@@ -141,6 +141,16 @@ impl Operators {
         }
     }
 
+    pub fn name_of_group(&self) -> &'static str {
+        match *self {
+            Operators::ComparisonType(_) => "Comparison operator",
+            Operators::LogicalType(_) => "Logical operator",
+            Operators::ArithmeticType(_) => "Arithmetic operator",
+            Operators::AssignmentType(_) => "Assignment operator",
+            Operators::Null => "Null",
+        }
+    }
+
     pub fn to_string(&self) -> String {
         match self {
             Operators::ComparisonType(value) => match value {
@@ -167,6 +177,136 @@ impl Operators {
                 ArithmeticOperators::Null => unreachable!(),
             },
             _ => unreachable!(),
+        }
+    }
+}
+
+impl definite::Converter<Operators, definite::types::operator::Operators> for Operators {
+    fn to_definite(self) -> definite::types::operator::Operators {
+        match self {
+            Operators::ComparisonType(e) => match e {
+                ComparisonOperators::Equal => ellie_core::definite::types::operator::Operators::ComparisonType(ellie_core::definite::types::operator::ComparisonOperators::Equal),
+                ComparisonOperators::NotEqual => ellie_core::definite::types::operator::Operators::ComparisonType(ellie_core::definite::types::operator::ComparisonOperators::NotEqual),
+                ComparisonOperators::GreaterThan => ellie_core::definite::types::operator::Operators::ComparisonType(ellie_core::definite::types::operator::ComparisonOperators::GreaterThan),
+                ComparisonOperators::LessThan => ellie_core::definite::types::operator::Operators::ComparisonType(ellie_core::definite::types::operator::ComparisonOperators::LessThan),
+                ComparisonOperators::GreaterThanOrEqual => ellie_core::definite::types::operator::Operators::ComparisonType(ellie_core::definite::types::operator::ComparisonOperators::GreaterThanOrEqual),
+                ComparisonOperators::LessThanOrEqual => ellie_core::definite::types::operator::Operators::ComparisonType(ellie_core::definite::types::operator::ComparisonOperators::LessThanOrEqual),
+                ComparisonOperators::Null => ellie_core::definite::types::operator::Operators::ComparisonType(ellie_core::definite::types::operator::ComparisonOperators::Null),
+            },
+            Operators::LogicalType(e) => match e {
+                LogicalOperators::And => ellie_core::definite::types::operator::Operators::LogicalType(ellie_core::definite::types::operator::LogicalOperators::And),
+                LogicalOperators::Or => ellie_core::definite::types::operator::Operators::LogicalType(ellie_core::definite::types::operator::LogicalOperators::Or),
+                LogicalOperators::Null => ellie_core::definite::types::operator::Operators::LogicalType(ellie_core::definite::types::operator::LogicalOperators::Null),
+            },
+            Operators::ArithmeticType(e) => match e {
+                ArithmeticOperators::Addition => ellie_core::definite::types::operator::Operators::ArithmeticType(ellie_core::definite::types::operator::ArithmeticOperators::Addition),
+                ArithmeticOperators::Subtraction => ellie_core::definite::types::operator::Operators::ArithmeticType(ellie_core::definite::types::operator::ArithmeticOperators::Subtraction),
+                ArithmeticOperators::Multiplication => ellie_core::definite::types::operator::Operators::ArithmeticType(ellie_core::definite::types::operator::ArithmeticOperators::Multiplication),
+                ArithmeticOperators::Exponentiation => ellie_core::definite::types::operator::Operators::ArithmeticType(ellie_core::definite::types::operator::ArithmeticOperators::Exponentiation),
+                ArithmeticOperators::Division => ellie_core::definite::types::operator::Operators::ArithmeticType(ellie_core::definite::types::operator::ArithmeticOperators::Division),
+                ArithmeticOperators::Modulus => ellie_core::definite::types::operator::Operators::ArithmeticType(ellie_core::definite::types::operator::ArithmeticOperators::Modulus),
+                ArithmeticOperators::Null => ellie_core::definite::types::operator::Operators::ArithmeticType(ellie_core::definite::types::operator::ArithmeticOperators::Null),
+            },
+            Operators::AssignmentType(e) => match e {
+                AssignmentOperators::Assignment => ellie_core::definite::types::operator::Operators::AssignmentType(ellie_core::definite::types::operator::AssignmentOperators::Assignment),
+                AssignmentOperators::AdditionAssignment => ellie_core::definite::types::operator::Operators::AssignmentType(ellie_core::definite::types::operator::AssignmentOperators::AdditionAssignment),
+                AssignmentOperators::SubtractionAssignment => ellie_core::definite::types::operator::Operators::AssignmentType(ellie_core::definite::types::operator::AssignmentOperators::SubtractionAssignment),
+                AssignmentOperators::MultiplicationAssignment => ellie_core::definite::types::operator::Operators::AssignmentType(ellie_core::definite::types::operator::AssignmentOperators::MultiplicationAssignment),
+                AssignmentOperators::DivisionAssignment => ellie_core::definite::types::operator::Operators::AssignmentType(ellie_core::definite::types::operator::AssignmentOperators::DivisionAssignment),
+                AssignmentOperators::ModulusAssignment => ellie_core::definite::types::operator::Operators::AssignmentType(ellie_core::definite::types::operator::AssignmentOperators::ModulusAssignment),
+                AssignmentOperators::ExponentiationAssignment => ellie_core::definite::types::operator::Operators::AssignmentType(ellie_core::definite::types::operator::AssignmentOperators::ExponentiationAssignment),
+                AssignmentOperators::Null => ellie_core::definite::types::operator::Operators::AssignmentType(ellie_core::definite::types::operator::AssignmentOperators::Null),
+            },
+            Operators::Null => panic!("Unexpected behaviour"),
+        }
+    }
+
+    fn from_definite(self, from: definite::types::operator::Operators) -> Operators {
+        match from {
+            definite::types::operator::Operators::ComparisonType(e) => match e {
+                definite::types::operator::ComparisonOperators::Equal => {
+                    Operators::ComparisonType(ComparisonOperators::Equal)
+                }
+                definite::types::operator::ComparisonOperators::NotEqual => {
+                    Operators::ComparisonType(ComparisonOperators::NotEqual)
+                }
+                definite::types::operator::ComparisonOperators::GreaterThan => {
+                    Operators::ComparisonType(ComparisonOperators::GreaterThan)
+                }
+                definite::types::operator::ComparisonOperators::LessThan => {
+                    Operators::ComparisonType(ComparisonOperators::LessThan)
+                }
+                definite::types::operator::ComparisonOperators::GreaterThanOrEqual => {
+                    Operators::ComparisonType(ComparisonOperators::GreaterThanOrEqual)
+                }
+                definite::types::operator::ComparisonOperators::LessThanOrEqual => {
+                    Operators::ComparisonType(ComparisonOperators::LessThanOrEqual)
+                }
+                definite::types::operator::ComparisonOperators::Null => {
+                    Operators::ComparisonType(ComparisonOperators::Null)
+                }
+            },
+            definite::types::operator::Operators::LogicalType(e) => match e {
+                definite::types::operator::LogicalOperators::And => {
+                    Operators::LogicalType(LogicalOperators::And)
+                }
+                definite::types::operator::LogicalOperators::Or => {
+                    Operators::LogicalType(LogicalOperators::Or)
+                }
+                definite::types::operator::LogicalOperators::Null => {
+                    Operators::LogicalType(LogicalOperators::Null)
+                }
+            },
+            definite::types::operator::Operators::ArithmeticType(e) => match e {
+                definite::types::operator::ArithmeticOperators::Addition => {
+                    Operators::ArithmeticType(ArithmeticOperators::Addition)
+                }
+                definite::types::operator::ArithmeticOperators::Subtraction => {
+                    Operators::ArithmeticType(ArithmeticOperators::Subtraction)
+                }
+                definite::types::operator::ArithmeticOperators::Multiplication => {
+                    Operators::ArithmeticType(ArithmeticOperators::Multiplication)
+                }
+                definite::types::operator::ArithmeticOperators::Exponentiation => {
+                    Operators::ArithmeticType(ArithmeticOperators::Exponentiation)
+                }
+                definite::types::operator::ArithmeticOperators::Division => {
+                    Operators::ArithmeticType(ArithmeticOperators::Division)
+                }
+                definite::types::operator::ArithmeticOperators::Modulus => {
+                    Operators::ArithmeticType(ArithmeticOperators::Modulus)
+                }
+                definite::types::operator::ArithmeticOperators::Null => {
+                    Operators::ArithmeticType(ArithmeticOperators::Null)
+                }
+            },
+            definite::types::operator::Operators::AssignmentType(e) => match e {
+                definite::types::operator::AssignmentOperators::Assignment => {
+                    Operators::AssignmentType(AssignmentOperators::Assignment)
+                }
+                definite::types::operator::AssignmentOperators::AdditionAssignment => {
+                    Operators::AssignmentType(AssignmentOperators::AdditionAssignment)
+                }
+                definite::types::operator::AssignmentOperators::SubtractionAssignment => {
+                    Operators::AssignmentType(AssignmentOperators::SubtractionAssignment)
+                }
+                definite::types::operator::AssignmentOperators::MultiplicationAssignment => {
+                    Operators::AssignmentType(AssignmentOperators::MultiplicationAssignment)
+                }
+                definite::types::operator::AssignmentOperators::DivisionAssignment => {
+                    Operators::AssignmentType(AssignmentOperators::DivisionAssignment)
+                }
+                definite::types::operator::AssignmentOperators::ModulusAssignment => {
+                    Operators::AssignmentType(AssignmentOperators::ModulusAssignment)
+                }
+                definite::types::operator::AssignmentOperators::ExponentiationAssignment => {
+                    Operators::AssignmentType(AssignmentOperators::ExponentiationAssignment)
+                }
+                definite::types::operator::AssignmentOperators::Null => {
+                    Operators::AssignmentType(AssignmentOperators::Null)
+                }
+            },
+            definite::types::operator::Operators::Null => Operators::Null,
         }
     }
 }
@@ -207,42 +347,7 @@ impl definite::Converter<OperatorTypeCollector, definite::types::operator::Opera
             first_pos: self.data.first_pos,
             second_pos: self.data.second_pos,
             second: Box::new(self.data.second.to_definite()),
-            operator: match self.data.operator {
-                Operators::ComparisonType(e) => match e {
-                    ComparisonOperators::Equal => ellie_core::definite::types::operator::Operators::ComparisonType(ellie_core::definite::types::operator::ComparisonOperators::Equal),
-                    ComparisonOperators::NotEqual => ellie_core::definite::types::operator::Operators::ComparisonType(ellie_core::definite::types::operator::ComparisonOperators::NotEqual),
-                    ComparisonOperators::GreaterThan => ellie_core::definite::types::operator::Operators::ComparisonType(ellie_core::definite::types::operator::ComparisonOperators::GreaterThan),
-                    ComparisonOperators::LessThan => ellie_core::definite::types::operator::Operators::ComparisonType(ellie_core::definite::types::operator::ComparisonOperators::LessThan),
-                    ComparisonOperators::GreaterThanOrEqual => ellie_core::definite::types::operator::Operators::ComparisonType(ellie_core::definite::types::operator::ComparisonOperators::GreaterThanOrEqual),
-                    ComparisonOperators::LessThanOrEqual => ellie_core::definite::types::operator::Operators::ComparisonType(ellie_core::definite::types::operator::ComparisonOperators::LessThanOrEqual),
-                    ComparisonOperators::Null => ellie_core::definite::types::operator::Operators::ComparisonType(ellie_core::definite::types::operator::ComparisonOperators::Null),
-                },
-                Operators::LogicalType(e) => match e {
-                    LogicalOperators::And => ellie_core::definite::types::operator::Operators::LogicalType(ellie_core::definite::types::operator::LogicalOperators::And),
-                    LogicalOperators::Or => ellie_core::definite::types::operator::Operators::LogicalType(ellie_core::definite::types::operator::LogicalOperators::Or),
-                    LogicalOperators::Null => ellie_core::definite::types::operator::Operators::LogicalType(ellie_core::definite::types::operator::LogicalOperators::Null),
-                },
-                Operators::ArithmeticType(e) => match e {
-                    ArithmeticOperators::Addition => ellie_core::definite::types::operator::Operators::ArithmeticType(ellie_core::definite::types::operator::ArithmeticOperators::Addition),
-                    ArithmeticOperators::Subtraction => ellie_core::definite::types::operator::Operators::ArithmeticType(ellie_core::definite::types::operator::ArithmeticOperators::Subtraction),
-                    ArithmeticOperators::Multiplication => ellie_core::definite::types::operator::Operators::ArithmeticType(ellie_core::definite::types::operator::ArithmeticOperators::Multiplication),
-                    ArithmeticOperators::Exponentiation => ellie_core::definite::types::operator::Operators::ArithmeticType(ellie_core::definite::types::operator::ArithmeticOperators::Exponentiation),
-                    ArithmeticOperators::Division => ellie_core::definite::types::operator::Operators::ArithmeticType(ellie_core::definite::types::operator::ArithmeticOperators::Division),
-                    ArithmeticOperators::Modulus => ellie_core::definite::types::operator::Operators::ArithmeticType(ellie_core::definite::types::operator::ArithmeticOperators::Modulus),
-                    ArithmeticOperators::Null => ellie_core::definite::types::operator::Operators::ArithmeticType(ellie_core::definite::types::operator::ArithmeticOperators::Null),
-                },
-                Operators::AssignmentType(e) => match e {
-                    AssignmentOperators::Assignment => ellie_core::definite::types::operator::Operators::AssignmentType(ellie_core::definite::types::operator::AssignmentOperators::Assignment),
-                    AssignmentOperators::AdditionAssignment => ellie_core::definite::types::operator::Operators::AssignmentType(ellie_core::definite::types::operator::AssignmentOperators::AdditionAssignment),
-                    AssignmentOperators::SubtractionAssignment => ellie_core::definite::types::operator::Operators::AssignmentType(ellie_core::definite::types::operator::AssignmentOperators::SubtractionAssignment),
-                    AssignmentOperators::MultiplicationAssignment => ellie_core::definite::types::operator::Operators::AssignmentType(ellie_core::definite::types::operator::AssignmentOperators::MultiplicationAssignment),
-                    AssignmentOperators::DivisionAssignment => ellie_core::definite::types::operator::Operators::AssignmentType(ellie_core::definite::types::operator::AssignmentOperators::DivisionAssignment),
-                    AssignmentOperators::ModulusAssignment => ellie_core::definite::types::operator::Operators::AssignmentType(ellie_core::definite::types::operator::AssignmentOperators::ModulusAssignment),
-                    AssignmentOperators::ExponentiationAssignment => ellie_core::definite::types::operator::Operators::AssignmentType(ellie_core::definite::types::operator::AssignmentOperators::ExponentiationAssignment),
-                    AssignmentOperators::Null => ellie_core::definite::types::operator::Operators::AssignmentType(ellie_core::definite::types::operator::AssignmentOperators::Null),
-                },
-                Operators::Null => panic!("Unexpected behaviour"),
-            },
+            operator: self.data.operator.to_definite(),
             pos: self.data.pos,
         }
     }
@@ -254,42 +359,7 @@ impl definite::Converter<OperatorTypeCollector, definite::types::operator::Opera
                 first_pos: from.first_pos,
                 second: Box::new(types::Processors::default().from_definite(*from.second)),
                 second_pos: from.second_pos,
-                operator: match from.operator {
-                    definite::types::operator::Operators::ComparisonType(e) => match e {
-                        definite::types::operator::ComparisonOperators::Equal => Operators::ComparisonType(ComparisonOperators::Equal),
-                        definite::types::operator::ComparisonOperators::NotEqual => Operators::ComparisonType(ComparisonOperators::NotEqual),
-                        definite::types::operator::ComparisonOperators::GreaterThan => Operators::ComparisonType(ComparisonOperators::GreaterThan),
-                        definite::types::operator::ComparisonOperators::LessThan => Operators::ComparisonType(ComparisonOperators::LessThan),
-                        definite::types::operator::ComparisonOperators::GreaterThanOrEqual => Operators::ComparisonType(ComparisonOperators::GreaterThanOrEqual),
-                        definite::types::operator::ComparisonOperators::LessThanOrEqual => Operators::ComparisonType(ComparisonOperators::LessThanOrEqual),
-                        definite::types::operator::ComparisonOperators::Null => Operators::ComparisonType(ComparisonOperators::Null),
-                    },
-                    definite::types::operator::Operators::LogicalType(e) => match e {
-                        definite::types::operator::LogicalOperators::And => Operators::LogicalType(LogicalOperators::And),
-                        definite::types::operator::LogicalOperators::Or => Operators::LogicalType(LogicalOperators::Or),
-                        definite::types::operator::LogicalOperators::Null => Operators::LogicalType(LogicalOperators::Null),
-                    },
-                    definite::types::operator::Operators::ArithmeticType(e) => match e {
-                        definite::types::operator::ArithmeticOperators::Addition => Operators::ArithmeticType(ArithmeticOperators::Addition),
-                        definite::types::operator::ArithmeticOperators::Subtraction => Operators::ArithmeticType(ArithmeticOperators::Subtraction),
-                        definite::types::operator::ArithmeticOperators::Multiplication => Operators::ArithmeticType(ArithmeticOperators::Multiplication),
-                        definite::types::operator::ArithmeticOperators::Exponentiation => Operators::ArithmeticType(ArithmeticOperators::Exponentiation),
-                        definite::types::operator::ArithmeticOperators::Division => Operators::ArithmeticType(ArithmeticOperators::Division),
-                        definite::types::operator::ArithmeticOperators::Modulus => Operators::ArithmeticType(ArithmeticOperators::Modulus),
-                        definite::types::operator::ArithmeticOperators::Null => Operators::ArithmeticType(ArithmeticOperators::Null),
-                    },
-                    definite::types::operator::Operators::AssignmentType(e) => match e {
-                        definite::types::operator::AssignmentOperators::Assignment => Operators::AssignmentType(AssignmentOperators::Assignment),
-                        definite::types::operator::AssignmentOperators::AdditionAssignment => Operators::AssignmentType(AssignmentOperators::AdditionAssignment),
-                        definite::types::operator::AssignmentOperators::SubtractionAssignment => Operators::AssignmentType(AssignmentOperators::SubtractionAssignment),
-                        definite::types::operator::AssignmentOperators::MultiplicationAssignment => Operators::AssignmentType(AssignmentOperators::MultiplicationAssignment),
-                        definite::types::operator::AssignmentOperators::DivisionAssignment => Operators::AssignmentType(AssignmentOperators::DivisionAssignment),
-                        definite::types::operator::AssignmentOperators::ModulusAssignment => Operators::AssignmentType(AssignmentOperators::ModulusAssignment),
-                        definite::types::operator::AssignmentOperators::ExponentiationAssignment => Operators::AssignmentType(AssignmentOperators::ExponentiationAssignment),
-                        definite::types::operator::AssignmentOperators::Null => Operators::AssignmentType(AssignmentOperators::Null),
-                    },
-                    definite::types::operator::Operators::Null => Operators::Null,
-                },
+                operator: Operators::Null.from_definite(from.operator),
                 pos: from.pos,
             },
             ..Default::default()

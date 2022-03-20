@@ -141,25 +141,14 @@ pub fn process(
             }
         }
         Processors::Operator(operator) => {
+            let processed_first_value =
+                process(*operator.data.first.clone(), parser, page_id, ignore_hash);
 
-            let processed_first_value = process(
-                *operator.data.first.clone(),
-                parser,
-                page_id,
-                ignore_hash,
-            );
-
-
-            let processed_second_value = process(
-                *operator.data.second.clone(),
-                parser,
-                page_id,
-                ignore_hash,
-            );
+            let processed_second_value =
+                process(*operator.data.second.clone(), parser, page_id, ignore_hash);
 
             #[cfg(feature = "std")]
             std::println!("{:#?} - {:#?}", operator.data.first, operator.data.operator);
-
 
             let first_value = resolve_type(
                 operator.data.first.to_definite(),
@@ -469,6 +458,7 @@ pub fn process(
                                         returning: *function.returning,
                                         target_pos: ellie_core::defs::Cursor::default(),
                                         params: vec![],
+                                        generic_parameters: vec![],
                                         pos: ellie_core::defs::Cursor::default(),
                                     },
                                 ))
@@ -841,6 +831,7 @@ pub fn process(
                                 }
                             }).collect::<Vec<_>>(),
                             pos: ellie_core::defs::Cursor::default(),
+                            generic_parameters: vec![],
                         },
                     ))
                 },

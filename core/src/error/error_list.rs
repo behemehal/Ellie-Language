@@ -326,4 +326,11 @@ lazy_static! {
         message: "'$opType' not implemented in '$target' for '$value'".to_owned(),
         ..Default::default()
     };
+
+    pub static ref ERROR_S53: error::Error = error::Error {
+        code: 0x52,
+        title: "SyntaxError".to_owned(),
+        message: "$opType is not chainable".to_owned(),
+        ..Default::default()
+    };
 }
