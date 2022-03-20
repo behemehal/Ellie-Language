@@ -96,7 +96,20 @@ impl crate::processors::Processor for operator_type::OperatorTypeCollector {
                                         ComparisonOperators::GreaterThan,
                                     )
                             {
-                                panic!("@Halt: Unimplemented feature, functions with generics are not supported yet. See progress here https://github.com/behemehal/Ellie-Language/issues/60@");
+                                errors.push(error::error_list::ERROR_S41.clone().build(
+                                    vec![error::ErrorBuildField {
+                                        key: "token".to_string(),
+                                        value: "Functions with generics are not supported yet. See progress here https://github.com/behemehal/Ellie-Language/issues/60".to_string(),
+                                    }],
+                                    alloc::format!(
+                                        "{}:{}:{}",
+                                        file!().to_owned(),
+                                        line!(),
+                                        column!()
+                                    ),
+                                    defs::Cursor { range_start: e.data.first_pos.range_start, range_end: self.data.second_pos.range_end },
+                                ));
+                                hang = true;
                             } else {
                                 errors.push(error::error_list::ERROR_S53.clone().build(
                                     vec![error::ErrorBuildField {

@@ -247,7 +247,7 @@ lazy_static! {
     };
     pub static ref ERROR_S41: error::Error = error::Error {
         code: 0x40,
-        title: "ParserIntegrityError".to_owned(),
+        title: "UnimplementedFeature".to_owned(),
         message: "$token".to_owned(),
         ..Default::default()
     };
