@@ -1,6 +1,6 @@
 # Building and running Ellie
 
-Please note ellie is in active **alpha** stage and is not ready for use. Planed runtime postponed due to [#55](https://github.com/behemehal/Ellie-Language/issues/55), but after (12.04.2021) runtime work is started. You can follow progress in [blog](https://ellie.behemehal.net/blog.html) or you can join our community on [Discord](https://discord.gg/EqVh4T959N)
+Please note ellie is in active **alpha** stage and is not ready for use. Planed runtime postponed due to [#55](https://github.com/behemehal/Ellie-Language/issues/55), but after (12.04.2021) runtime work is started. You can follow progress in [blog](https://www.ellie-lang.org/blog.html) or you can join our community on [Discord](https://discord.gg/EqVh4T959N)
 
 
 ## Building ellie compiler
