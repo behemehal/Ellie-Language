@@ -147,9 +147,6 @@ pub fn process(
             let processed_second_value =
                 process(*operator.data.second.clone(), parser, page_id, ignore_hash);
 
-            #[cfg(feature = "std")]
-            std::println!("{:#?} - {:#?}", operator.data.first, operator.data.operator);
-
             let first_value = resolve_type(
                 operator.data.first.to_definite(),
                 page_id,
@@ -311,7 +308,11 @@ pub fn process(
                                             _ => unreachable!(),
                                         }
                                     } else {
-                                        unreachable!()
+                                        match parser.find_processed_page(page_id) {
+                                            Some(e) => todo!("{:#?}", e),
+                                            None => todo!(),
+                                        }
+                                        unreachable!("Not found: {:?}", generic)
                                     }
                                 }
                             }
@@ -565,8 +566,27 @@ pub fn process(
                                     Err(errors)
                                 }
                             }
-                            ellie_core::definite::definers::DefinerCollecting::ParentGeneric(_) => {
-                                todo!()
+                            ellie_core::definite::definers::DefinerCollecting::ParentGeneric(rtype) => {
+                                
+                                if rtype.rtype == "D" {
+                                    match parser.find_processed_page(page_id) {
+                                        Some(e) => todo!("{:#?}", e),
+                                        None => todo!(),
+                                    }
+                                    panic!("D: {:?}", rtype);
+                                }
+
+                                let rtype = find_type(rtype.rtype, page_id, parser);
+
+                                match resolve_chain(
+                                    DefinerCollecting::Generic(rtype.unwrap()),
+                                    ellie_core::defs::Cursor::default(),
+                                    page_id,
+                                    parser,
+                                ) {
+                                    Ok(e) => Ok(e),
+                                    Err(_) => todo!(),
+                                }
                             }
                             ellie_core::definite::definers::DefinerCollecting::Function(_) => {
                                 let rtype = find_type("function".to_owned(), page_id, parser);
