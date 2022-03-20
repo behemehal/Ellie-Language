@@ -1558,13 +1558,13 @@ pub fn find_type(
                 hash: e.hash,
             }),
             ProcessedDeepSearchItems::Variable(_) => {
-                panic!("Unexpected internal crash, parser should have prevented this")
+                panic!("Unexpected internal crash, parser should have prevented this, {:?}", result);
             }
             ProcessedDeepSearchItems::Function(_) => {
-                panic!("Unexpected internal crash, parser should have prevented this")
+                panic!("Unexpected internal crash, parser should have prevented this, {:?}", result);
             }
             ProcessedDeepSearchItems::ImportReference(_) => {
-                panic!("Unexpected internal crash, parser should have prevented this")
+                panic!("Unexpected internal crash, parser should have prevented this, {:?}", result);
             }
             ProcessedDeepSearchItems::None => None,
         }

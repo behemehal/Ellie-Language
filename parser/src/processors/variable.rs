@@ -48,6 +48,8 @@ impl super::Processor for VariableCollector {
             let resolved_type = if !self.data.has_value {
                 Ok(Types::Void)
             } else {
+                #[cfg(feature = "std")]
+                std::println!("{:?}\n--\n", self.data.value);
                 super::type_processor::process(
                     self.data.value,
                     parser,

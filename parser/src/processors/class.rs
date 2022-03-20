@@ -35,6 +35,7 @@ impl super::Processor for Class {
                         self.name_pos,
                     ))
             }
+            return false;
         } else {
             #[cfg(feature = "standard_rules")]
             {

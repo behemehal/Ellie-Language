@@ -8,16 +8,14 @@ use alloc::vec::Vec;
 use alloc::{borrow::ToOwned, string::String};
 use ellie_core::definite::definers::DefinerCollecting;
 use ellie_core::definite::items::{constructor, variable};
-use ellie_core::definite::types::ellie_char;
 use ellie_core::{
     definite::{items::Collecting, types, Converter},
     error,
 };
 use ellie_tokenizer::processors::types::Processors;
-use ellie_tokenizer::syntax::types::variable_type;
 use enum_as_inner::EnumAsInner;
 
-use crate::deep_search_extensions::{deep_search_hash, find_type, resolve_deep_type, resolve_type};
+use crate::deep_search_extensions::{find_type, resolve_type};
 
 pub fn process(
     from: Processors,
@@ -143,6 +141,26 @@ pub fn process(
             }
         }
         Processors::Operator(operator) => {
+
+            let processed_first_value = process(
+                *operator.data.first.clone(),
+                parser,
+                page_id,
+                ignore_hash,
+            );
+
+
+            let processed_second_value = process(
+                *operator.data.second.clone(),
+                parser,
+                page_id,
+                ignore_hash,
+            );
+
+            #[cfg(feature = "std")]
+            std::println!("{:#?} - {:#?}", operator.data.first, operator.data.operator);
+
+
             let first_value = resolve_type(
                 operator.data.first.to_definite(),
                 page_id,
@@ -816,7 +834,7 @@ pub fn process(
                             target: Box::new(function_call.data.target.to_definite()),
                             target_pos: ellie_core::defs::Cursor::default(),
                             returning: *function.returning,
-                            params: function.params.iter().map(|param| {
+                            params: function.params.iter().map(|_| {
                                 ellie_core::definite::types::function_call::FunctionCallParameter {
                                     value: types::Types::Dynamic,
                                     pos: ellie_core::defs::Cursor::default()

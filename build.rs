@@ -161,6 +161,7 @@ fn main() {
                                         }
                                     },
                                     true,
+                                    |path| path.replace(&starter_name, "./lib/").to_string(),
                                 );
                                 panic!("Build failed");
                             }
@@ -184,7 +185,7 @@ fn main() {
                                     cli_utils::print_warnings(
                                         &parser.informations.warnings,
                                         |path| match cli_utils::read_file(
-                                            &path.replace(&starter_name, "./lib/"),
+                                            &path.replace(&starter_name.clone(), "./lib/"),
                                         ) {
                                             Ok(e) => e,
                                             Err(err) => {
@@ -198,6 +199,9 @@ fn main() {
                                                     cli_utils::Colors::Reset
                                                 );
                                             }
+                                        },
+                                        |path: String| {
+                                            path.replace(&starter_name, "./lib/").to_string()
                                         },
                                     );
                                 }
@@ -221,6 +225,7 @@ fn main() {
                                             }
                                         },
                                         true,
+                                        |path| path.replace(&starter_name, "./lib/").to_string(),
                                     );
                                     panic!("\nCompiling {}failed{} with {}{} errors{} and {}{} warnings{}.",
                                         cli_utils::Colors::Red,

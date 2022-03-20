@@ -233,6 +233,38 @@ pub fn compile(
                                         path,
                                     );
                                 }
+                            }, |path| {
+                                let path_starter = path.split("/").next().unwrap();
+                                let virtual_path_identifier =
+                                    match path_starter.split("<ellie_module_").last() {
+                                        Some(e) => e.split(">").next().unwrap(),
+                                        None => "",
+                                    };
+                                if path_starter == starter_name {
+                                    path
+                                        .replace(
+                                            &starter_name,
+                                            Path::new(target_path)
+                                                .absolutize()
+                                                .unwrap()
+                                                .parent()
+                                                .unwrap()
+                                                .to_str()
+                                                .unwrap(),
+                                        )
+                                        .clone()
+                                } else if let Some((_, module_path)) = modules
+                                    .iter()
+                                    .find(|(module, _)| module.name == virtual_path_identifier)
+                                {
+                                    path.replace(&path_starter, module_path).clone()
+                                        
+                                } else {
+                                    panic!(
+                                        "Failed to ouput error. Cannot identify module '{}'",
+                                        path,
+                                    );
+                                }
                             });
                         }
                     }
@@ -306,6 +338,38 @@ pub fn compile(
                                     }
                                 },
                                 compiler_settings.show_debug_lines,
+                                |path| {
+                                    let path_starter = path.split("/").next().unwrap();
+                                    let virtual_path_identifier =
+                                        match path_starter.split("<ellie_module_").last() {
+                                            Some(e) => e.split(">").next().unwrap(),
+                                            None => "",
+                                        };
+                                    if path_starter == starter_name {
+                                        path
+                                            .replace(
+                                                &starter_name,
+                                                Path::new(target_path)
+                                                    .absolutize()
+                                                    .unwrap()
+                                                    .parent()
+                                                    .unwrap()
+                                                    .to_str()
+                                                    .unwrap(),
+                                            )
+                                            .clone()
+                                    } else if let Some((_, module_path)) = modules
+                                        .iter()
+                                        .find(|(module, _)| module.name == virtual_path_identifier)
+                                    {
+                                        path.replace(&path_starter, module_path).clone()
+                                    } else {
+                                        panic!(
+                                            "Failed to ouput error. Cannot identify module '{}'",
+                                            path,
+                                        );
+                                    }
+                                }
                             );
                         }
 
@@ -321,7 +385,9 @@ pub fn compile(
                                 println!("{}", serde_json::to_string(&output).unwrap())
                             } else {
                                 println!(
-                                    "\nCompiling {}failed{} with {}{} errors{}",
+                                    "\n{}[!]{}: Compiling {}failed{} with {}{} errors{}",
+                                    cli_utils::Colors::Red,
+                                    cli_utils::Colors::Reset,
                                     cli_utils::Colors::Red,
                                     cli_utils::Colors::Reset,
                                     cli_utils::Colors::Red,
@@ -343,7 +409,9 @@ pub fn compile(
                                 });
                                 println!("{}", serde_json::to_string(&output).unwrap())
                             } else {
-                                println!("\nCompiling {}failed{} with {}{} errors{} and {}{} warnings{}.",
+                                println!("\n{}[!]{}: Compiling {}failed{} with {}{} errors{} and {}{} warnings{}.",
+                                    cli_utils::Colors::Red,
+                                    cli_utils::Colors::Reset,    
                                     cli_utils::Colors::Red,
                                     cli_utils::Colors::Reset,
                                     cli_utils::Colors::Red,
@@ -367,7 +435,9 @@ pub fn compile(
                                 )
                             } else {
                                 println!(
-                                    "\nCompiling {}succeeded{}.",
+                                    "\n{}[!]{}: Compiling {}succeeded{}.",
+                                    cli_utils::Colors::Green,
+                                    cli_utils::Colors::Reset,
                                     cli_utils::Colors::Green,
                                     cli_utils::Colors::Reset,
                                 );
@@ -382,7 +452,9 @@ pub fn compile(
                                 println!("{}", serde_json::to_string(&output).unwrap())
                             } else {
                                 println!(
-                                    "\nCompiling {}succeeded{} with {}{} warnings{}.",
+                                    "\n{}[!]{}: Compiling {}succeeded{} with {}{} warnings{}.",
+                                    cli_utils::Colors::Yellow,
+                                    cli_utils::Colors::Reset,
                                     cli_utils::Colors::Green,
                                     cli_utils::Colors::Reset,
                                     cli_utils::Colors::Yellow,
@@ -432,7 +504,9 @@ pub fn compile(
                                         println!("{}", serde_json::to_string(&output).unwrap())
                                     } else {
                                         println!(
-                                            "\nBinary output written to {}{}{}",
+                                            "{}[!]{}: Binary output written to {}{}{}",
+                                            cli_utils::Colors::Green,
+                                            cli_utils::Colors::Reset,
                                             cli_utils::Colors::Yellow,
                                             output_path.absolutize().unwrap().to_str().unwrap(),
                                             cli_utils::Colors::Reset
@@ -440,7 +514,20 @@ pub fn compile(
                                     }
                                 }
                             }
-                            cli_utils::OutputTypes::DependencyAnalysis => todo!(),
+                            cli_utils::OutputTypes::DependencyAnalysis => {
+                                println!(
+                                    "{}[!]{}: Dependency analysis output is not yet implemented.",
+                                    cli_utils::Colors::Red,
+                                    cli_utils::Colors::Reset,
+                                );
+                            },
+                            cli_utils::OutputTypes::byteCode => {
+                                println!(
+                                    "{}[!]{}: ByteCode output is not yet implemented.",
+                                    cli_utils::Colors::Red,
+                                    cli_utils::Colors::Reset,
+                                );
+                            },
                             cli_utils::OutputTypes::Json => {
                                 let json = serde_json::to_string(&workspace).unwrap();
                                 if let Err(write_error) = fs::write(&output_path, json) {
@@ -475,7 +562,9 @@ pub fn compile(
                                         println!("{}", serde_json::to_string(&output).unwrap())
                                     } else {
                                         println!(
-                                            "\nJSON output written to {}{}{}",
+                                            "{}[!]{}: JSON output written to {}{}{}",
+                                            cli_utils::Colors::Green,
+                                            cli_utils::Colors::Reset,
                                             cli_utils::Colors::Yellow,
                                             output_path.absolutize().unwrap().to_str().unwrap(),
                                             cli_utils::Colors::Reset,
@@ -485,6 +574,17 @@ pub fn compile(
                             }
                         }
                     }
+                    println!(
+                        "{}[?]{}: Ellie v{}",
+                        cli_utils::Colors::Green,
+                        cli_utils::Colors::Reset,
+                        crate::engine_constants::ELLIE_VERSION
+                    );
+                    println!(
+                        "{}[!]{}: Ellie is on development and may not be stable.",
+                        cli_utils::Colors::Red,
+                        cli_utils::Colors::Reset,
+                    );
                 }
                 Err(pager_errors) => {
                     if compiler_settings.json_log {
@@ -523,6 +623,18 @@ pub fn compile(
                                 }
                             },
                             compiler_settings.show_debug_lines,
+                            |path| {
+                                path.replace(
+                                    &starter_name,
+                                    Path::new(target_path)
+                                        .absolutize()
+                                        .unwrap()
+                                        .parent()
+                                        .unwrap()
+                                        .to_str()
+                                        .unwrap(),
+                                ).to_string()
+                            }
                         );
                     }
                 }

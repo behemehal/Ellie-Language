@@ -64,6 +64,7 @@ pub enum OutputTypes {
     Bin,
     DependencyAnalysis,
     Json,
+    byteCode,
 }
 
 #[derive(PartialEq, Eq, Debug)]
@@ -230,9 +231,10 @@ pub fn hash_warning(warning: &warning::Warning) -> String {
     hasher.finish().to_string()
 }
 
-pub fn print_warnings<E>(warnings: &Vec<warning::Warning>, file_reader: E)
+pub fn print_warnings<E, F>(warnings: &Vec<warning::Warning>, file_reader: E, path_resolver: F)
 where
     E: FnOnce(String) -> String + Clone + Copy + Sized,
+    F: FnOnce(String) -> String + Clone + Copy + Sized,
 {
     for warning in warnings {
         println!(
@@ -264,7 +266,7 @@ where
             )
         }
         render_code_block(
-            warning.path.clone(),
+            path_resolver(warning.path.clone()),
             warning.pos,
             file_content,
             "".to_owned(),
@@ -279,7 +281,7 @@ where
             Colors::Reset,
             Colors::Green,
             format!(
-                "https://ellie.behemehal.net/standardRules.html#{:#04x}",
+                "https://www.ellie-lang.org/standardRules.html#{:#04x}",
                 warning.code
             ),
             Colors::Reset,
@@ -329,9 +331,14 @@ where
     }
 }
 
-pub fn print_errors<E>(errors: &Vec<error::Error>, file_reader: E, show_debug_lines: bool)
-where
+pub fn print_errors<E, F>(
+    errors: &Vec<error::Error>,
+    file_reader: E,
+    show_debug_lines: bool,
+    path_resolver: F,
+) where
     E: FnOnce(String) -> String + Clone + Copy + Sized,
+    F: FnOnce(String) -> String + Clone + Copy + Sized,
 {
     for error in errors {
         println!(
@@ -366,7 +373,7 @@ where
             )
         }
         render_code_block(
-            error.path.clone(),
+            path_resolver(error.path.clone()),
             error.pos,
             file_content,
             "".to_owned(),
@@ -378,10 +385,14 @@ where
             "  {}[?]{}{}: Check online error repo for more info {}{}{}",
             Colors::Magenta,
             Colors::Reset,
-            generate_blank(line_space - 3),
+            if line_space < 3 {
+                String::new()
+            } else {
+                generate_blank(line_space - 3)
+            },
             Colors::Green,
             format!(
-                "https://ellie.behemehal.net/errorIndex.html#{:#04x}",
+                "https://www.ellie-lang.org/errorIndex.html#{:#04x}",
                 error.code
             ),
             Colors::Reset,
