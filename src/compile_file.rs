@@ -521,7 +521,7 @@ pub fn compile(
                                     cli_utils::Colors::Reset,
                                 );
                             },
-                            cli_utils::OutputTypes::byteCode => {
+                            cli_utils::OutputTypes::ByteCode => {
                                 println!(
                                     "{}[!]{}: ByteCode output is not yet implemented.",
                                     cli_utils::Colors::Red,

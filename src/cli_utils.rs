@@ -64,7 +64,7 @@ pub enum OutputTypes {
     Bin,
     DependencyAnalysis,
     Json,
-    byteCode,
+    ByteCode,
 }
 
 #[derive(PartialEq, Eq, Debug)]

@@ -351,7 +351,7 @@ fn main() {
             let output_type = match matches.value_of("outputType").unwrap() {
                 "bin" => cli_utils::OutputTypes::Bin,
                 "json" => cli_utils::OutputTypes::Json,
-                "byteCode" => cli_utils::OutputTypes::byteCode,
+                "byteCode" => cli_utils::OutputTypes::ByteCode,
                 "depA" => cli_utils::OutputTypes::DependencyAnalysis,
                 _ => {
                     println!(
