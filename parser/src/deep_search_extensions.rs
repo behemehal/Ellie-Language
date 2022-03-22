@@ -424,6 +424,7 @@ fn iterate_deep_type(
             }
 
             let reference_type = resolve_type(*reference.reference, page_id, parser, errors);
+            panic!("{:#?}", reference_type);
             #[derive(Debug, EnumAsInner)]
             enum LastEntry {
                 Type(Types),
@@ -966,6 +967,7 @@ fn iterate_deep_type(
         }
         Types::Negative(_) => todo!(),
         Types::VariableType(variable) => {
+            panic!("{:#?}", variable);
             let hash_deep_search =
                 deep_search(parser, page_id, variable.value.clone(), None, vec![], 0);
             if hash_deep_search.found {
@@ -1558,13 +1560,22 @@ pub fn find_type(
                 hash: e.hash,
             }),
             ProcessedDeepSearchItems::Variable(_) => {
-                panic!("Unexpected internal crash, parser should have prevented this, {:?}", result);
+                panic!(
+                    "Unexpected internal crash, parser should have prevented this, {:?}",
+                    result
+                );
             }
             ProcessedDeepSearchItems::Function(_) => {
-                panic!("Unexpected internal crash, parser should have prevented this, {:?}", result);
+                panic!(
+                    "Unexpected internal crash, parser should have prevented this, {:?}",
+                    result
+                );
             }
             ProcessedDeepSearchItems::ImportReference(_) => {
-                panic!("Unexpected internal crash, parser should have prevented this, {:?}", result);
+                panic!(
+                    "Unexpected internal crash, parser should have prevented this, {:?}",
+                    result
+                );
             }
             ProcessedDeepSearchItems::None => None,
         }
@@ -1585,6 +1596,7 @@ pub fn resolve_type(
         target_type.clone(),
         errors,
     );
+
 
     match deep_type {
         DeepTypeResult::Integer(_) => {
@@ -1702,9 +1714,12 @@ pub fn resolve_type(
                 if deep_search_result.found {
                     match deep_search_result.found_item {
                         crate::parser::DeepSearchItems::Class(e) => {
+                            /*
                             if e.generic_definings.len() != class_call.generic_parameters.len() {
                                 unreachable!()
-                            } else if let Some(_) = e.body.iter().find_map(|x| match x {
+                            } else 
+                            */
+                            if let Some(_) = e.body.iter().find_map(|x| match x {
                                 ellie_tokenizer::processors::items::Processors::Constructor(e) => {
                                     Some(e)
                                 }

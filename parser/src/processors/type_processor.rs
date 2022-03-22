@@ -54,22 +54,43 @@ pub fn process(
 
             if deep_search_result.found {
                 match deep_search_result.found_item {
-                    crate::parser::DeepSearchItems::Class(e) => Ok(types::Types::ClassCall(
-                        ellie_core::definite::types::class_call::ClassCall {
-                            target: Box::new(ellie_core::definite::types::Types::VariableType(
-                                ellie_core::definite::types::variable::VariableType {
-                                    value: e.name.clone(),
-                                    reference: e.hash,
-                                    pos: ellie_core::defs::Cursor::default(),
-                                },
-                            )),
-                            params: vec![],
-                            keyword_pos: ellie_core::defs::Cursor::default(),
-                            target_pos: ellie_core::defs::Cursor::default(),
-                            generic_parameters: vec![],
-                            pos: ellie_core::defs::Cursor::default(),
-                        },
-                    )),
+                    crate::parser::DeepSearchItems::Class(e) => {
+                        
+                        //ERROR_S15
+                        let path = parser.find_page(page_id).unwrap().path.clone();
+                        errors.push(
+                            error::error_list::ERROR_S15.clone().build_with_path(
+                                vec![],
+                                alloc::format!(
+                                    "{}:{}:{}",
+                                    file!().to_owned(),
+                                    line!(),
+                                    column!()
+                                ),
+                                path.clone(),
+                                variable.data.pos,
+                            ),
+                        );
+
+                        return Err(errors);
+
+                        Ok(types::Types::ClassCall(
+                            ellie_core::definite::types::class_call::ClassCall {
+                                target: Box::new(ellie_core::definite::types::Types::VariableType(
+                                    ellie_core::definite::types::variable::VariableType {
+                                        value: e.name.clone(),
+                                        reference: e.hash,
+                                        pos: ellie_core::defs::Cursor::default(),
+                                    },
+                                )),
+                                params: vec![],
+                                keyword_pos: ellie_core::defs::Cursor::default(),
+                                target_pos: ellie_core::defs::Cursor::default(),
+                                generic_parameters: vec![],
+                                pos: ellie_core::defs::Cursor::default(),
+                            },
+                        ))
+                    }
                     crate::parser::DeepSearchItems::Variable(e) => {
                         Ok(types::Types::VariableType(types::variable::VariableType {
                             value: e.name,
@@ -308,10 +329,6 @@ pub fn process(
                                             _ => unreachable!(),
                                         }
                                     } else {
-                                        match parser.find_processed_page(page_id) {
-                                            Some(e) => todo!("{:#?}", e),
-                                            None => todo!(),
-                                        }
                                         unreachable!("Not found: {:?}", generic)
                                     }
                                 }
@@ -566,8 +583,9 @@ pub fn process(
                                     Err(errors)
                                 }
                             }
-                            ellie_core::definite::definers::DefinerCollecting::ParentGeneric(rtype) => {
-                                
+                            ellie_core::definite::definers::DefinerCollecting::ParentGeneric(
+                                rtype,
+                            ) => {
                                 if rtype.rtype == "D" {
                                     match parser.find_processed_page(page_id) {
                                         Some(e) => todo!("{:#?}", e),
@@ -637,6 +655,7 @@ pub fn process(
                             parser,
                         ),
                     );
+
                     for chain in reference.data.chain.clone() {
                         match last_chain_attributes.1.clone() {
                             Ok(e) => {

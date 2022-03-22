@@ -82,7 +82,7 @@ lazy_static! {
         message: "Expected operator found '$token'".to_owned(),
         ..Default::default()
     };
-    pub static ref ERROR_S14: error::Error = error::Error {
+    pub static ref UNUSED_ERROR_S14: error::Error = error::Error {
         code: 0x13,
         title: "TypeError".to_owned(),
         message: "Cannot leave char empty".to_owned(),
@@ -91,7 +91,7 @@ lazy_static! {
     pub static ref ERROR_S15: error::Error = error::Error {
         code: 0x14,
         title: "TypeError".to_owned(),
-        message: "Char type can take one character only".to_owned(),
+        message: "Cannot invoke class without new".to_owned(),
         ..Default::default()
     };
     pub static ref ERROR_S16: error::Error = error::Error {
@@ -106,7 +106,7 @@ lazy_static! {
         message: "The value '$val' has infinite size".to_owned(),
         ..Default::default()
     };
-    pub static ref ERROR_S18: error::Error = error::Error {
+    pub static ref UNUSED_ERROR_S18: error::Error = error::Error {
         code: 0x17,
         title: "TypeError".to_owned(),
         message: "Types cannot have number properties".to_owned(),
