@@ -224,9 +224,7 @@ impl Parser {
         self.pages[0].hash
     }
 
-    pub fn convert_to_definite() {
-
-    }
+    pub fn convert_to_definite() {}
 
     pub fn import_module(&mut self, module: Module) {
         self.modules.push(module.clone());
@@ -496,13 +494,11 @@ impl Parser {
                     resolve_deep_type(self, target_page, *e.target.clone(), &mut errors);
 
                 match resolved_target {
-                    deep_search_extensions::DeepTypeResult::Function(e) => {
-                        Ok((
-                            defining.same_as(e.return_type.clone()),
-                            defining.to_string(),
-                            e.return_type.to_string(),
-                        ))
-                    }
+                    deep_search_extensions::DeepTypeResult::Function(e) => Ok((
+                        defining.same_as(e.return_type.clone()),
+                        defining.to_string(),
+                        e.return_type.to_string(),
+                    )),
                     _ => {
                         unreachable!()
                     }
@@ -1117,9 +1113,14 @@ impl Parser {
         for item in unprocessed_page.items.clone() {
             if unprocessed_page.unreachable {
                 if !item.is_virtual() {
+                    if unprocessed_page.unreachable_range.range_start.is_zero() {
+                        unprocessed_page.unreachable_range.range_start =
+                            defs::CursorPosition(item.get_pos().range_start.0, 0);
+                    }
                     unprocessed_page.unreachable_range.range_end = item.get_pos().range_end;
                 }
             } else {
+                let item_location = item.get_pos();
                 let terminated = match unprocessed_page.page_type {
                     ellie_tokenizer::tokenizer::PageType::FunctionBody => match item {
                         Processors::Variable(e) => e.process(self, unprocessed_page.hash),
@@ -1130,7 +1131,10 @@ impl Parser {
                         Processors::ForLoop(_) => todo!(),
                         Processors::Condition(_) => todo!(),
                         Processors::Class(e) => e.process(self, unprocessed_page.hash),
-                        Processors::Ret(e) => e.process(self, unprocessed_page.hash),
+                        Processors::Ret(e) => {
+                            unprocessed_page.unreachable = true;
+                            e.process(self, unprocessed_page.hash)
+                        }
                         Processors::SelfItem(_) => true,
                         Processors::GenericItem(_) => true,
                         Processors::FunctionParameter(_) => true,
@@ -1303,19 +1307,15 @@ impl Parser {
 
         #[cfg(feature = "standard_rules")]
         {
-            match self.find_page(hash) {
-                Some(e) => {
-                    let q = e.clone();
-                    if q.unreachable && !q.unreachable_range.range_end.is_zero() {
-                        self.informations
-                            .push(&warning::warning_list::WARNING_S4.clone().build(
-                                vec![],
-                                q.path,
-                                q.unreachable_range,
-                            ));
-                    }
-                }
-                _ => (),
+            if unprocessed_page.unreachable
+                && !unprocessed_page.unreachable_range.range_end.is_zero()
+            {
+                self.informations
+                    .push(&warning::warning_list::WARNING_S4.clone().build(
+                        vec![],
+                        unprocessed_page.path,
+                        unprocessed_page.unreachable_range,
+                    ));
             }
         }
     }
