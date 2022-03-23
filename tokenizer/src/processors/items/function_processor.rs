@@ -23,10 +23,10 @@ impl crate::processors::Processor for function::FunctionCollector {
                             value: letter_char.to_string(),
                         }],
                         alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                        defs::Cursor::build_with_skip_char(cursor),
+                        defs::Cursor::build_from_cursor(cursor),
                     ));
                 }
-                self.data.name_pos.range_end = cursor.clone().skip_char(1);
+                self.data.name_pos.range_end = cursor;
                 self.data.name += &letter_char.to_string();
             } else if letter_char == '(' && self.data.name != "" {
                 self.name_collected = true;
@@ -37,7 +37,7 @@ impl crate::processors::Processor for function::FunctionCollector {
                         value: letter_char.to_string(),
                     }],
                     alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                    defs::Cursor::build_with_skip_char(cursor),
+                    defs::Cursor::build_from_cursor(cursor),
                 ));
             }
         } else if !self.parameters_collected {
@@ -94,7 +94,7 @@ impl crate::processors::Processor for function::FunctionCollector {
                             value: letter_char.to_string(),
                         }],
                         alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                        defs::Cursor::build_with_skip_char(cursor),
+                        defs::Cursor::build_from_cursor(cursor),
                     ));
                 }
             } else {
@@ -150,7 +150,7 @@ impl crate::processors::Processor for function::FunctionCollector {
                         value: letter_char.to_string(),
                     }],
                     alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                    defs::Cursor::build_with_skip_char(cursor),
+                    defs::Cursor::build_from_cursor(cursor),
                 ));
             }
         } else if !self.return_collected {
