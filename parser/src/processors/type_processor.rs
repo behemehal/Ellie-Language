@@ -15,7 +15,7 @@ use ellie_core::{
 use ellie_tokenizer::processors::types::Processors;
 use enum_as_inner::EnumAsInner;
 
-use crate::deep_search_extensions::{find_type, resolve_type};
+use crate::deep_search_extensions::{deep_search, find_type, resolve_type};
 
 pub fn process(
     from: Processors,
@@ -55,22 +55,14 @@ pub fn process(
             if deep_search_result.found {
                 match deep_search_result.found_item {
                     crate::parser::DeepSearchItems::Class(e) => {
-                        
                         //ERROR_S15
                         let path = parser.find_page(page_id).unwrap().path.clone();
-                        errors.push(
-                            error::error_list::ERROR_S15.clone().build_with_path(
-                                vec![],
-                                alloc::format!(
-                                    "{}:{}:{}",
-                                    file!().to_owned(),
-                                    line!(),
-                                    column!()
-                                ),
-                                path.clone(),
-                                variable.data.pos,
-                            ),
-                        );
+                        errors.push(error::error_list::ERROR_S15.clone().build_with_path(
+                            vec![],
+                            alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                            path.clone(),
+                            variable.data.pos,
+                        ));
 
                         return Err(errors);
 
@@ -98,8 +90,25 @@ pub fn process(
                             pos: from.get_pos(),
                         }))
                     }
-                    crate::parser::DeepSearchItems::Function(_) => {
-                        todo!("function type not yet implemented")
+                    crate::parser::DeepSearchItems::Function(function) => {
+                        let rtype = find_type("function".to_owned(), page_id, parser);
+                        match rtype {
+                            Some(e) => Ok(types::Types::ClassCall(types::class_call::ClassCall {
+                                pos: from.get_pos(),
+                                target: Box::new(ellie_core::definite::types::Types::VariableType(
+                                    ellie_core::definite::types::variable::VariableType {
+                                        value: "function".to_owned(),
+                                        reference: e.hash,
+                                        pos: ellie_core::defs::Cursor::default(),
+                                    },
+                                )),
+                                params: vec![],
+                                keyword_pos: ellie_core::defs::Cursor::default(),
+                                target_pos: ellie_core::defs::Cursor::default(),
+                                generic_parameters: vec![],
+                            })),
+                            None => panic!("function class not found, ellie-std possibly missing"),
+                        }
                     }
                     crate::parser::DeepSearchItems::ImportReference(_) => {
                         todo!("import reference type not yet implemented")
@@ -208,14 +217,66 @@ pub fn process(
                         Err(errors)
                     }
                 }
-                ellie_tokenizer::syntax::types::operator_type::Operators::LogicalType(_) => todo!(),
+                ellie_tokenizer::syntax::types::operator_type::Operators::LogicalType(_) => {
+                    if first_value.same_as(second_value.clone()) {
+                        Ok(types::Types::Bool(types::bool::BoolType { value: true }))
+                    } else {
+                        errors.push(error::error_list::ERROR_S52.clone().build_with_path(
+                            vec![
+                                error::ErrorBuildField {
+                                    key: "opType".to_owned(),
+                                    value: operator.data.operator.to_string(),
+                                },
+                                error::ErrorBuildField {
+                                    key: "target".to_owned(),
+                                    value: first_value.to_string(),
+                                },
+                                error::ErrorBuildField {
+                                    key: "value".to_owned(),
+                                    value: second_value.to_string(),
+                                },
+                            ],
+                            alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                            parser.find_page(page_id).unwrap().path.clone(),
+                            from.get_pos(),
+                        ));
+                        Err(errors)
+                    }
+                },
                 ellie_tokenizer::syntax::types::operator_type::Operators::ArithmeticType(_) => {
-                    todo!()
+                    if first_value.same_as(second_value.clone()) {
+                        Ok(types::Types::Integer(types::integer::IntegerType {
+                            value: types::integer::IntegerSize::I8(0),
+                            rtype: types::integer::IntegerTypes::I8,
+                            pos: ellie_core::defs::Cursor::default(),
+                        }))
+                    } else {
+                        errors.push(error::error_list::ERROR_S52.clone().build_with_path(
+                            vec![
+                                error::ErrorBuildField {
+                                    key: "opType".to_owned(),
+                                    value: operator.data.operator.to_string(),
+                                },
+                                error::ErrorBuildField {
+                                    key: "target".to_owned(),
+                                    value: first_value.to_string(),
+                                },
+                                error::ErrorBuildField {
+                                    key: "value".to_owned(),
+                                    value: second_value.to_string(),
+                                },
+                            ],
+                            alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                            parser.find_page(page_id).unwrap().path.clone(),
+                            from.get_pos(),
+                        ));
+                        Err(errors)
+                    }
                 }
                 ellie_tokenizer::syntax::types::operator_type::Operators::AssignmentType(_) => {
                     todo!()
                 }
-                ellie_tokenizer::syntax::types::operator_type::Operators::Null => todo!(),
+                ellie_tokenizer::syntax::types::operator_type::Operators::Null => unreachable!(),
             }
         }
         Processors::Reference(reference) => {

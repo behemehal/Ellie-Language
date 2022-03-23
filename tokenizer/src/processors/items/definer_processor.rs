@@ -180,7 +180,7 @@ impl crate::processors::Processor for DefinerCollector {
                     parent_generic_type.cache = Box::new(DefinerCollector::default());
                 } else if letter_char == '>' && parent_generic_type.cache.complete {
                     self.complete = true;
-                    parent_generic_type.pos.range_end = cursor.clone().skip_char(1);
+                    parent_generic_type.pos.range_end = cursor;
                     parent_generic_type.generics[len - 1].value =
                         parent_generic_type.cache.definer_type.clone();
                     parent_generic_type.cache = Box::new(DefinerCollector::default());

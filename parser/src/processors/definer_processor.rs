@@ -1,6 +1,8 @@
+use alloc::boxed::Box;
 use alloc::string::ToString;
 use alloc::vec::Vec;
 use alloc::{borrow::ToOwned, vec};
+use ellie_core::definite::Converter;
 use ellie_core::{definite::definers, definite::definers::DefinerCollecting, error};
 use ellie_tokenizer::syntax::items::definers::DefinerTypes;
 
@@ -705,11 +707,49 @@ pub fn process(
             if deep_search_result.found {
                 match deep_search_result.found_item {
                     crate::parser::DeepSearchItems::Class(cloak_class) => {
+                        /*
                         found = DefinerCollecting::Generic(definers::GenericType {
                             hash: cloak_class.hash,
                             rtype: "function".to_string(),
                             pos: cloak_class.pos,
                         });
+                        */
+
+                        let params = e
+                            .params
+                            .iter()
+                            .filter_map(|x| {
+                                match process(x.clone(), parser, page_id, ignore_hash.clone()) {
+                                    Ok(e) => Some(e),
+                                    Err(e) => {
+                                        errors.extend(e);
+                                        None
+                                    }
+                                }
+                            })
+                            .collect();
+
+                        let returning = match process(
+                            *e.returning.clone(),
+                            parser,
+                            page_id,
+                            ignore_hash.clone(),
+                        ) {
+                            Ok(e) => Some(e),
+                            Err(e) => {
+                                errors.extend(e);
+                                None
+                            }
+                        };
+
+                        if errors.len() == 0 {
+                            found = DefinerCollecting::Function(definers::FunctionType {
+                                params: params,
+                                returning: Box::new(returning.unwrap()),
+                            });
+                        } else {
+                            return Err(errors);
+                        }
                     }
                     _ => match deep_search_result.found_pos {
                         Some(ref_pos) => {

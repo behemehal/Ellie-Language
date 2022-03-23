@@ -123,7 +123,7 @@ impl Processors {
             definite::types::Types::Collective(e) => Processors::Collective(
                 collective_type::CollectiveTypeCollector::default().from_definite(e),
             ),
-            _ => panic!("NOT SUPPORTED"),
+            _ => panic!("NOT SUPPORTED, {:?}", from),
         }
     }
 

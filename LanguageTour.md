@@ -15,8 +15,14 @@
 
   - Numeric
     ```rust
+        bool
         int
         float
+        string
+        char
+        vector
+        array
+        void
     ```
   - String
     ```ellie
@@ -62,7 +68,7 @@
     ```
   - Arrow Functions
     ```ellie
-        v callingAwesomeness : @(string, int):string = @(name, count) {
+        v callingAwesomeness : @(string, int):string = @(name, count):string {
             v awesomenes : string;
             for (element, count) {
                 awesomenes += "ellie";
