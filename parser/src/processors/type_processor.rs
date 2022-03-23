@@ -177,6 +177,16 @@ pub fn process(
             let processed_second_value =
                 process(*operator.data.second.clone(), parser, page_id, ignore_hash);
 
+            if processed_first_value.is_err() || processed_second_value.is_err() {
+                if processed_first_value.is_err() {
+                    errors.append(&mut processed_first_value.unwrap_err());
+                }
+                if processed_second_value.is_err() {
+                    errors.append(&mut processed_second_value.unwrap_err());
+                }
+                return Err(errors); 
+            }
+
             let first_value = resolve_type(
                 operator.data.first.to_definite(),
                 page_id,
