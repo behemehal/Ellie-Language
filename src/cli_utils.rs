@@ -256,7 +256,7 @@ where
                 line_space = refr.0.range_start.0.to_string().len() + 1;
             }
             render_code_block(
-                refr.1.clone(),
+                path_resolver(refr.1.clone()),
                 refr.0,
                 ref_file_content,
                 warning.reference_message.clone(),
@@ -363,7 +363,7 @@ pub fn print_errors<E, F>(
                 line_space = refr.0.range_start.0.to_string().len() + 1;
             }
             render_code_block(
-                refr.1.clone(),
+                path_resolver(refr.1.clone()),
                 refr.0,
                 ref_file_content,
                 error.reference_message.clone(),
