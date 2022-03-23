@@ -939,13 +939,6 @@ impl Thread {
                     definite::types::Types::Void => (),
                     definite::types::Types::Null => (),
                 }
-                /*
-                match self.look_up_for_item_by_name() {
-                    Some(_) => todo!(),
-                    None => todo!(),
-                }
-                std::println!("{:#?}", value_call);
-                */
                 Some((0, false, false))
             }
             definite::items::Collecting::Enum(_) => Some((0, false, false)),

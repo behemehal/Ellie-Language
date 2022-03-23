@@ -1,5 +1,5 @@
-use crate::syntax::types::operator_type;
-use ellie_core::{defs, error, utils};
+use crate::syntax::types::operator_type::{self, ComparisonOperators};
+use ellie_core::{definite::Converter, defs, error, utils};
 
 impl crate::processors::Processor for operator_type::OperatorTypeCollector {
     fn iterate(
@@ -56,6 +56,7 @@ impl crate::processors::Processor for operator_type::OperatorTypeCollector {
                         }
                     }
                 }
+                self.data.pos.range_end = cursor;
             } else {
                 if self.operator_collect != "" {
                     self.operator_collected = true;
@@ -77,6 +78,57 @@ impl crate::processors::Processor for operator_type::OperatorTypeCollector {
             if self.itered_cache.is_complete() {
                 self.data.second_pos.range_end = cursor.clone();
                 self.data.second = Box::new(self.itered_cache.current.clone());
+                match *self.data.first.clone() {
+                    crate::processors::types::Processors::Operator(e) => {
+                        if !utils::is_operators_chainable(
+                            e.data.operator.clone().to_definite(),
+                            self.data.operator.clone().to_definite(),
+                        ) {
+                            if matches!(
+                                *e.data.first,
+                                crate::processors::types::Processors::Variable(_)
+                            ) && e.data.operator
+                                == operator_type::Operators::ComparisonType(
+                                    ComparisonOperators::LessThan,
+                                )
+                                && self.data.operator
+                                    == operator_type::Operators::ComparisonType(
+                                        ComparisonOperators::GreaterThan,
+                                    )
+                            {
+                                errors.push(error::error_list::ERROR_S41.clone().build(
+                                    vec![error::ErrorBuildField {
+                                        key: "token".to_string(),
+                                        value: "Functions with generics are not supported yet. See progress here https://github.com/behemehal/Ellie-Language/issues/60".to_string(),
+                                    }],
+                                    alloc::format!(
+                                        "{}:{}:{}",
+                                        file!().to_owned(),
+                                        line!(),
+                                        column!()
+                                    ),
+                                    defs::Cursor { range_start: e.data.first_pos.range_start, range_end: self.data.second_pos.range_end },
+                                ));
+                                hang = true;
+                            } else {
+                                errors.push(error::error_list::ERROR_S53.clone().build(
+                                    vec![error::ErrorBuildField {
+                                        key: "opType".to_string(),
+                                        value: e.data.operator.clone().name_of_group().to_string(),
+                                    }],
+                                    alloc::format!(
+                                        "{}:{}:{}",
+                                        file!().to_owned(),
+                                        line!(),
+                                        column!()
+                                    ),
+                                    e.data.pos,
+                                ));
+                            }
+                        }
+                    }
+                    _ => (),
+                }
             }
         }
 

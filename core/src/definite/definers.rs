@@ -6,6 +6,8 @@ use alloc::{borrow::ToOwned, boxed::Box};
 use enum_as_inner::EnumAsInner;
 use serde::{Deserialize, Serialize};
 
+use super::items::function;
+
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct ArrayType {
     pub rtype: Box<DefinerCollecting>,
@@ -94,7 +96,16 @@ impl DefinerCollecting {
                     .collect::<Vec<String>>()
                     .join(", ")
             ),
-            DefinerCollecting::Function(_) => "function".to_owned(),
+            DefinerCollecting::Function(function) => format!(
+                "Fn({}):{}",
+                function
+                    .params
+                    .iter()
+                    .map(|x| x.to_string())
+                    .collect::<Vec<_>>()
+                    .join(","),
+                function.returning.to_string()
+            ),
             DefinerCollecting::Cloak(_) => "cloak".to_owned(),
             DefinerCollecting::Collective(_) => "collective".to_owned(),
             DefinerCollecting::Nullable(_) => "nullAble".to_owned(),
@@ -139,7 +150,15 @@ impl DefinerCollecting {
                     false
                 }
             }
-            DefinerCollecting::Function(_) => todo!(),
+            DefinerCollecting::Function(e) => {
+                if let DefinerCollecting::Function(other_e) = other {
+                    e.params.len() == other_e.params.len()
+                        && e.params.iter().zip(other_e.params.iter()).all(|(a, b)| a.same_as(b.clone()))
+                        && e.returning.same_as(*other_e.returning.clone())
+                } else {
+                    false
+                }
+            },
             DefinerCollecting::Cloak(_) => todo!(),
             DefinerCollecting::Collective(_) => todo!(),
             DefinerCollecting::Nullable(_) => todo!(),

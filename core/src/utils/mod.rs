@@ -2,6 +2,8 @@ use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 use rand;
 
+use crate::definite::types::operator::Operators;
+
 /// Response of [`reliable_name_range`] function
 /// ## Fields
 /// * `reliable` - Is char reliable
@@ -166,6 +168,25 @@ pub enum FoundExtended {
     ComparisonOperator,
     ArithmeticOperator,
     AssignmentOperator,
+}
+
+pub fn is_operators_chainable(target: Operators, current: Operators) -> bool {
+    match target {
+        Operators::ComparisonType(_) => match current {
+            Operators::LogicalType(_) => true,
+            _ => false,
+        },
+        Operators::LogicalType(_) => true,
+        Operators::ArithmeticType(_) => match current {
+            Operators::LogicalType(_) => true,
+            _ => false,
+        },
+        Operators::AssignmentType(_) => match current {
+            Operators::LogicalType(_) => true,
+            _ => false,
+        },
+        Operators::Null => false,
+    }
 }
 
 /// Resolve given string to [`FoundExtended`]

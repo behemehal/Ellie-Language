@@ -1,6 +1,7 @@
 use crate::deep_search_extensions::{self, find_type, resolve_deep_type, resolve_type};
 use crate::processors::Processor;
 use alloc::borrow::ToOwned;
+use alloc::format;
 use alloc::string::ToString;
 use alloc::vec::Vec;
 use alloc::{string::String, vec};
@@ -221,6 +222,10 @@ impl Parser {
 
     pub fn calculate_hash(&self) -> u64 {
         self.pages[0].hash
+    }
+
+    pub fn convert_to_definite() {
+
     }
 
     pub fn import_module(&mut self, module: Module) {
@@ -489,12 +494,15 @@ impl Parser {
             deep_search_extensions::DeepTypeResult::FunctionCall(e) => {
                 let resolved_target =
                     resolve_deep_type(self, target_page, *e.target.clone(), &mut errors);
+
                 match resolved_target {
-                    deep_search_extensions::DeepTypeResult::Function(e) => Ok((
-                        defining.same_as(e.return_type.clone()),
-                        defining.to_string(),
-                        e.return_type.to_string(),
-                    )),
+                    deep_search_extensions::DeepTypeResult::Function(e) => {
+                        Ok((
+                            defining.same_as(e.return_type.clone()),
+                            defining.to_string(),
+                            e.return_type.to_string(),
+                        ))
+                    }
                     _ => {
                         unreachable!()
                     }
@@ -601,7 +609,71 @@ impl Parser {
                     Err(errors)
                 }
             }
-            _ => unreachable!("C: {:#?}"),
+            deep_search_extensions::DeepTypeResult::Function(function) => {
+                if defining.as_function().is_some()
+                    && function
+                        .return_type
+                        .same_as(*defining.as_function().unwrap().returning.clone())
+                    && defining.as_function().unwrap().params.len() == function.parameters.len()
+                    && function
+                        .parameters
+                        .iter()
+                        .enumerate()
+                        .find(|(index, e)| match e.rtype.clone() {
+                            Some(rtype) => {
+                                let def = defining.as_function().unwrap();
+                                !def.params[*index].same_as(rtype)
+                            }
+                            None => true,
+                        })
+                        .is_none()
+                {
+                    if errors.is_empty() {
+                        Ok((
+                            true,
+                            defining.to_string(),
+                            format!(
+                                "Fn({}):{}",
+                                function
+                                    .parameters
+                                    .iter()
+                                    .map(|x| match &x.rtype {
+                                        Some(x) => x.to_string(),
+                                        None => "?".to_string(),
+                                    })
+                                    .collect::<Vec<_>>()
+                                    .join(","),
+                                function.return_type.to_string()
+                            ),
+                        ))
+                    } else {
+                        Err(errors)
+                    }
+                } else {
+                    if errors.is_empty() {
+                        Ok((
+                            false,
+                            defining.to_string(),
+                            format!(
+                                "Fn({}):{}",
+                                function
+                                    .parameters
+                                    .iter()
+                                    .map(|x| match &x.rtype {
+                                        Some(x) => x.to_string(),
+                                        None => "?".to_string(),
+                                    })
+                                    .collect::<Vec<_>>()
+                                    .join(","),
+                                function.return_type.to_string()
+                            ),
+                        ))
+                    } else {
+                        Err(errors)
+                    }
+                }
+            }
+            _ => unreachable!("C: {:#?}", c),
         }
     }
 

@@ -123,7 +123,7 @@ impl Processors {
             definite::types::Types::Collective(e) => Processors::Collective(
                 collective_type::CollectiveTypeCollector::default().from_definite(e),
             ),
-            _ => panic!("NOT SUPPORTED"),
+            _ => panic!("NOT SUPPORTED, {:?}", from),
         }
     }
 
@@ -440,7 +440,7 @@ impl super::Processor for TypeProcessor {
                             first: operator.data.first,
                             first_pos: self.current.get_pos(),
                             operator: operator.data.operator,
-                            pos: defs::Cursor::build_with_skip_char(cursor.clone()),
+                            pos: defs::Cursor::build_from_cursor(cursor.clone()),
                             ..Default::default()
                         },
                         itered_cache: Box::new(TypeProcessor {
@@ -464,7 +464,7 @@ impl super::Processor for TypeProcessor {
                         data: operator_type::OperatorType {
                             first: Box::new(self.current.clone()),
                             first_pos: self.current.get_pos(),
-                            pos: defs::Cursor::build_with_skip_char(cursor.clone()),
+                            pos: defs::Cursor::build_from_cursor(cursor.clone()),
                             ..Default::default()
                         },
                         first_filled: true,
@@ -476,7 +476,7 @@ impl super::Processor for TypeProcessor {
                     data: operator_type::OperatorType {
                         first: Box::new(self.current.clone()),
                         first_pos: self.current.get_pos(),
-                        pos: defs::Cursor::build_with_skip_char(cursor.clone()),
+                        pos: defs::Cursor::build_from_cursor(cursor.clone()),
                         ..Default::default()
                     },
                     first_filled: true,

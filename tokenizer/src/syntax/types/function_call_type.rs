@@ -1,6 +1,12 @@
-use crate::processors::types;
+use crate::{processors::types, syntax::items::definers::DefinerTypes};
 use ellie_core::{definite, defs};
 use serde::{Deserialize, Serialize};
+
+#[derive(Default, Debug, Clone, Serialize, Deserialize)]
+pub struct FunctionCallGenericParameter {
+    pub value: DefinerTypes,
+    pub pos: defs::Cursor,
+}
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct FunctionCallParameter {
@@ -13,6 +19,7 @@ pub struct FunctionCall {
     pub target: Box<types::Processors>,
     pub target_pos: defs::Cursor,
     pub parameters: Vec<FunctionCallParameter>,
+    pub generic_parameters: Vec<FunctionCallGenericParameter>,
     pub pos: defs::Cursor,
 }
 
@@ -42,6 +49,17 @@ impl definite::Converter<FunctionCallCollector, definite::types::function_call::
                 .collect(),
             pos: self.data.pos,
             returning: todo!(),
+            generic_parameters: self
+                .data
+                .generic_parameters
+                .into_iter()
+                .map(
+                    |x| definite::types::function_call::FunctionCallGenericParameter {
+                        value: x.value.to_definite(),
+                        pos: x.pos,
+                    },
+                )
+                .collect(),
         }
     }
 
@@ -62,6 +80,7 @@ impl definite::Converter<FunctionCallCollector, definite::types::function_call::
                     })
                     .collect(),
                 pos: from.pos,
+                generic_parameters: todo!(),
             },
             ..Default::default()
         }
