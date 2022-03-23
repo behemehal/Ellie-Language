@@ -8,6 +8,7 @@ use serde::Serialize;
 pub struct Ret {
     pub value: TypeProcessor,
     pub keyword_pos: defs::Cursor,
+    pub not_empty: bool,
     pub value_position: defs::Cursor,
     pub pos: defs::Cursor,
     pub complete: bool,
@@ -33,6 +34,7 @@ impl Converter<Ret, ellie_core::definite::items::ret::Ret> for Ret {
             value_position: self.value_position,
             pos: self.pos,
             complete: true,
+            not_empty: false,
         }
     }
 }
