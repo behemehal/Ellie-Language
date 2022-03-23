@@ -50,10 +50,10 @@ impl crate::processors::Processor for integer_type::IntegerTypeCollector {
                         value: self.raw.clone(),
                     }],
                     alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                    defs::Cursor::build_with_skip_char(cursor),
+                    defs::Cursor::build_from_cursor(cursor),
                 ));
             }
-            self.data.pos.range_end = cursor.clone().skip_char(1);
+            self.data.pos.range_end = cursor;
             self.complete = true;
         } else {
             if letter_char == '-' && self.raw == "" {
