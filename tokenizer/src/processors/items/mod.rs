@@ -282,27 +282,18 @@ impl super::Processor for ItemProcessor {
             });
         } else if not_initialized && self.used_modifier == Modifier::None && letter_char == '@' {
             self.current = Processors::FileKey(file_key::FileKey {
-                pos: defs::Cursor {
-                    range_start: cursor,
-                    ..Default::default()
-                },
+                pos: self.current.get_pos(),
                 ..Default::default()
             });
         } else if self.used_modifier == Modifier::None && keyword == "ret" && letter_char == ' ' {
             self.current = Processors::Ret(ret::Ret {
                 keyword_pos: self.current.get_pos(),
-                pos: defs::Cursor {
-                    range_start: cursor.clone(),
-                    ..Default::default()
-                },
+                pos: self.current.get_pos(),
                 ..Default::default()
             });
         } else if self.used_modifier == Modifier::None && keyword == "co" && letter_char == '(' {
             self.current = Processors::Constructor(constructor::Constructor {
-                pos: defs::Cursor {
-                    range_start: self.current.get_pos().range_start,
-                    ..Default::default()
-                },
+                pos: self.current.get_pos(),
                 ..Default::default()
             });
         } else if self.used_modifier == Modifier::None && keyword == "for" && letter_char == ' ' {
