@@ -619,8 +619,10 @@ pub fn render_code_block(
                 if (i >= item_pos.range_start.0 && i <= item_pos.range_end.0) && multi_line {
                     if reference {
                         Colors::Green
-                    } else {
+                    } else if is_error {
                         Colors::Red
+                    } else {
+                        Colors::Yellow
                     }
                 } else {
                     Colors::White
