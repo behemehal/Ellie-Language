@@ -2,6 +2,7 @@
 #![allow(unused_variables)]
 #![allow(unused_imports)]
 
+use clap_complete::generate;
 use ellie_core;
 use ellie_parser::parser;
 use ellie_tokenizer::tokenizer::{self, ResolvedImport};
@@ -49,6 +50,40 @@ fn main() {
             )
         }
     }
+
+    let mut bash = File::create("./target/elliec_completion_bash").unwrap();
+    let mut fish = File::create("./target/elliec_completion_fish").unwrap();
+    let mut zsh = File::create("./target/elliec_completion_zsh").unwrap();
+    let mut powershell = File::create("./target/elliec_completion_powershell").unwrap();
+
+    let cmd = cli_utils::generate_elliec_options();
+    generate(
+        clap_complete::shells::Bash,
+        &mut cmd.clone(),
+        cmd.get_name().to_string(),
+        &mut bash,
+    );
+
+    generate(
+        clap_complete::shells::Fish,
+        &mut cmd.clone(),
+        cmd.get_name().to_string(),
+        &mut fish,
+    );
+
+    generate(
+        clap_complete::shells::Fish,
+        &mut cmd.clone(),
+        cmd.get_name().to_string(),
+        &mut zsh,
+    );
+
+    generate(
+        clap_complete::shells::Fish,
+        &mut cmd.clone(),
+        cmd.get_name().to_string(),
+        &mut powershell,
+    );
 
     match cli_utils::read_file(&("./lib/ellie.ei".to_owned())) {
         Ok(ellie_lib) => {

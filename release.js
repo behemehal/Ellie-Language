@@ -41,14 +41,12 @@ function resolveHash(file) {
 
 function moveItem(src, dest) {
   return new Promise((resolve, reject) => {
-    exec(`mv ${src} ${dest}`,
-      (err, stdout, stderr) => {
-        if (err) {
-          reject(err);
-        }
-        resolve(stdout);
+    exec(`mv ${src} ${dest}`, (err, stdout, stderr) => {
+      if (err) {
+        reject(err);
       }
-    );
+      resolve(stdout);
+    });
   });
 }
 
@@ -75,10 +73,20 @@ async function buildTargets(target_list) {
         `./target/${arch}/release/elliec${
           target_list[arch][1] != "" ? "." + target_list[arch][1] : ""
         }`,
-        `./ellieRelease/${target_list[arch][0]}${target_list[arch][1] != "" ? "." + target_list[arch][1] : ""}`
+        `./ellieRelease/${target_list[arch][0]}${
+          target_list[arch][1] != "" ? "." + target_list[arch][1] : ""
+        }`
       );
-      var hash = await resolveHash(`./ellieRelease/${target_list[arch][0]}${target_list[arch][1] != "" ? "." + target_list[arch][1] : ""}`);
-      SHASUMS.push(hash);
+      var hash = await resolveHash(
+        `./ellieRelease/${target_list[arch][0]}${
+          target_list[arch][1] != "" ? "." + target_list[arch][1] : ""
+        }`
+      );
+      SHASUMS.push({
+        arch: arch,
+        hash: hash.split(":")[0].trim(),
+        file: hash.split(":")[1].trim(),
+      });
       console.log(
         chalk.green("✔") + " Arch '" + chalk.yellow(arch) + "' builded"
       );
@@ -193,7 +201,7 @@ exec(`rustup target list --installed`, (err, stdout, stderr) => {
             Object.keys(targeted_archs).length
           )}' archs`
         );
-        buildTargets(targeted_archs).then((binary_shasums) => {
+        buildTargets(targeted_archs).then(async (binary_shasums) => {
           console.log(
             `${chalk.green("✔")} All ${chalk.yellow(
               Object.keys(targeted_archs).length
@@ -213,17 +221,76 @@ exec(`rustup target list --installed`, (err, stdout, stderr) => {
             .replaceAll('"', "")
             .trim();
 
+          //Move file to release folder
+          await moveItem(
+            "./target/elliec_completion_bash",
+            "./ellieRelease/elliec_completion_bash"
+          );
+          await moveItem(
+            "./target/elliec_completion_zsh",
+            "./ellieRelease/elliec_completion_zsh"
+          );
+          await moveItem(
+            "./target/elliec_completion_fish",
+            "./ellieRelease/elliec_completion_fish"
+          );
+          await moveItem(
+            "./target/elliec_completion_powershell",
+            "./ellieRelease/elliec_completion_powershell"
+          );
+
+          let elliec_completion_powershell_shasum = await resolveHash(
+            "./ellieRelease/elliec_completion_powershell"
+          );
+          let elliec_completion_bash_shasum = await resolveHash(
+            "./ellieRelease/elliec_completion_bash"
+          );
+          let elliec_completion_zsh_shasum = await resolveHash(
+            "./ellieRelease/elliec_completion_zsh"
+          );
+          let elliec_completion_fish_shasum = await resolveHash(
+            "./ellieRelease/elliec_completion_fish"
+          );
+
+          binary_shasums.push({
+            arch: "powershell",
+            hash: elliec_completion_powershell_shasum.split(":")[0].trim(),
+            file: "./ellieRelease/elliec_completion_powershell",
+            completion: true,
+          });
+          binary_shasums.push({
+            arch: "bash",
+            hash: elliec_completion_bash_shasum.split(":")[0].trim(),
+            file: "./ellieRelease/elliec_completion_bash",
+            completion: true,
+          });
+          binary_shasums.push({
+            arch: "zsh",
+            hash: elliec_completion_zsh_shasum.split(":")[0].trim(),
+            file: "./ellieRelease/elliec_completion_zsh",
+            completion: true,
+          });
+          binary_shasums.push({
+            arch: "fish",
+            hash: elliec_completion_fish_shasum.split(":")[0].trim(),
+            file: "./ellieRelease/elliec_completion_fish",
+            completion: true,
+          });
+
           var shasums = `EllieVersion = v${ellie_version} - ${ellie_ver_code}`;
-          shasums += "\n\t" + binary_shasums.join("\n\t");
+          shasums += "\n\t" + binary_shasums.map(x => x.hash + " : " + x.file).join("\n\t");
+          fs.writeFileSync("./ellieRelease/output.json", JSON.stringify(binary_shasums));
           fs.writeFileSync("./ellieRelease/SHASUMS256.txt", shasums);
           console.log(
             `${chalk.green("✔")} SHASUM of all ${chalk.yellow(
               Object.keys(targeted_archs).length
             )} builded archs saved in '${chalk.yellow(
-              "./release/SHASUMS256.txt"
+              "./ellieRelease/SHASUMS256.txt"
             )}'`
           );
-          spinner.succeed(`All builds finished in '${chalk.yellow(start_time.toNow(true))}'`);
+          spinner.succeed(
+            `All builds finished in '${chalk.yellow(start_time.toNow(true))}'`
+          );
         });
       });
     }
