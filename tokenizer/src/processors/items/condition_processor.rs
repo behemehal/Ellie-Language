@@ -45,7 +45,7 @@ impl crate::processors::Processor for condition::Condition {
                                     crate::processors::types::TypeProcessor::default();
                                 chain.rtype = condition::ConditionType::ElseIf;
                                 chain.keyword_captured = true;
-                                chain.keyword_pos.range_end = cursor.clone().skip_char(1);
+                                chain.keyword_pos.range_end = cursor;
                             } else if e.data.value == "" && letter_char == '{' {
                                 chain.keyword_captured = true;
                                 chain.rtype = condition::ConditionType::Else;
@@ -115,6 +115,7 @@ impl crate::processors::Processor for condition::Condition {
                 }
             }
         }
+        self.pos.range_end = cursor;
         hang
     }
 }
