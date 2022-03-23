@@ -67,6 +67,12 @@ fn main() {
                         .long("-disable-warnings"),
                 )
                 .arg(
+                    Arg::new("excludeStd")
+                        .help("Don't import standard library")
+                        .short('e')
+                        .long("-exclude-std"),
+                )
+                .arg(
                     Arg::new("insertModule")
                         .help("Insert a module from binary")
                         .short('i')
@@ -353,6 +359,7 @@ fn main() {
                 "json" => cli_utils::OutputTypes::Json,
                 "byteCode" => cli_utils::OutputTypes::ByteCode,
                 "depA" => cli_utils::OutputTypes::DependencyAnalysis,
+                "nop" => cli_utils::OutputTypes::Nop,
                 _ => {
                     println!(
                         "{}Error:{} Given output type does not exist",
@@ -588,6 +595,7 @@ fn main() {
                 name: project_name,
                 version,
                 output_type,
+                exclude_stdlib: matches.is_present("excludeStd"),
                 file_name: Path::new(&target_path)
                     .file_name()
                     .unwrap()

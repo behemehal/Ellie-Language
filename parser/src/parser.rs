@@ -1,4 +1,4 @@
-use crate::deep_search_extensions::{self, find_type, resolve_deep_type, resolve_type};
+use crate::deep_search_extensions::{self, resolve_deep_type, resolve_type};
 use crate::processors::Processor;
 use alloc::borrow::ToOwned;
 use alloc::format;
@@ -669,7 +669,6 @@ impl Parser {
                     }
                 }
             }
-            _ => unreachable!("C: {:#?}", c),
         }
     }
 
@@ -1120,7 +1119,6 @@ impl Parser {
                     unprocessed_page.unreachable_range.range_end = item.get_pos().range_end;
                 }
             } else {
-                let item_location = item.get_pos();
                 let terminated = match unprocessed_page.page_type {
                     ellie_tokenizer::tokenizer::PageType::FunctionBody => match item {
                         Processors::Variable(e) => e.process(self, unprocessed_page.hash),

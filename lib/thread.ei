@@ -2,6 +2,7 @@ import error.ei;
 import int.ei;
 import function.ei;
 import string.ei;
+import void.ei;
 
 @dont_fix_variant=true;
 pub class callStack {

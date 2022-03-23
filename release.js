@@ -13,14 +13,14 @@ const targeted_archs = {
   //"armv7-linux-androideabi": ["elliec_armv7_android", ""],
   //"armv7-unknown-linux-gnueabi": ["elliec_armv7_gnuabi_linux", ""],
   //"armv7-unknown-linux-gnueabihf": ["elliec_armv7_gnuabihf_linux", ""],
-  "i686-pc-windows-gnu": ["elliec_i686_windows", "exe"],
-  "i686-unknown-linux-gnu": ["elliec_i686_linux", ""],
+  //"i686-pc-windows-gnu": ["elliec_i686_windows", "exe"],
+  //"i686-unknown-linux-gnu": ["elliec_i686_linux", ""],
   //"mips-unknown-linux-gnu": ["elliec_mips_linux", ""],
   //"mips64-unknown-linux-gnuabi64": ["elliec_mips64_linux", ""],
   "x86_64-apple-darwin": ["elliec_x86_64_apple_darwin", ""],
   "x86_64-pc-windows-gnu": ["elliec_x86_64_windows", "exe"],
   "x86_64-unknown-linux-gnu": ["elliec_x86_64_linux", ""],
-  "x86_64-unknown-redox": ["elliec_x86_64_redox", ""],
+  //"x86_64-unknown-redox": ["elliec_x86_64_redox", ""],
 };
 
 var start_time = moment();
@@ -214,7 +214,7 @@ exec(`rustup target list --installed`, (err, stdout, stderr) => {
             .trim();
 
           var shasums = `EllieVersion = v${ellie_version} - ${ellie_ver_code}`;
-          shasums += "\t" + shasums.join("\n");
+          shasums += "\n\t" + binary_shasums.join("\n\t");
           fs.writeFileSync("./ellieRelease/SHASUMS256.txt", shasums);
           console.log(
             `${chalk.green("✔")} SHASUM of all ${chalk.yellow(

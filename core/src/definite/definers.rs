@@ -6,8 +6,6 @@ use alloc::{borrow::ToOwned, boxed::Box};
 use enum_as_inner::EnumAsInner;
 use serde::{Deserialize, Serialize};
 
-use super::items::function;
-
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct ArrayType {
     pub rtype: Box<DefinerCollecting>,

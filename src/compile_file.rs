@@ -21,6 +21,7 @@ pub struct CompilerSettings {
     pub version: Version,
     pub output_type: cli_utils::OutputTypes,
     pub show_debug_lines: bool,
+    pub exclude_stdlib: bool,
     pub warnings: bool,
 }
 
@@ -152,10 +153,11 @@ pub fn compile(
                         compiler_settings.version,
                     );
 
+                    let ellie_std : parser::Module = serde_json::from_str(ellie_core::builded_libraries::ELLIE_STANDARD_LIBRARY).unwrap();
+                    parser.import_module(ellie_std);
+
                     for (module, _) in modules.iter() {
-                        if module.name == "ellie" {
-                            parser.import_module(module.clone());
-                        } else if used_modules.lock().unwrap().contains(&(&module.name)) {
+                        if used_modules.lock().unwrap().contains(&(&module.name)) {
                             parser.import_module(module.clone());
                         }
                     }
@@ -571,20 +573,25 @@ pub fn compile(
                                         );
                                     }
                                 }
-                            }
+                            },
+                            cli_utils::OutputTypes::Nop => (),
+                            
                         }
                     }
-                    println!(
-                        "{}[?]{}: Ellie v{}",
-                        cli_utils::Colors::Green,
-                        cli_utils::Colors::Reset,
-                        crate::engine_constants::ELLIE_VERSION
-                    );
-                    println!(
-                        "{}[!]{}: Ellie is on development and may not be stable.",
-                        cli_utils::Colors::Red,
-                        cli_utils::Colors::Reset,
-                    );
+
+                    if !compiler_settings.json_log {
+                        println!(
+                            "{}[?]{}: Ellie v{}",
+                            cli_utils::Colors::Green,
+                            cli_utils::Colors::Reset,
+                            crate::engine_constants::ELLIE_VERSION
+                        );
+                        println!(
+                            "{}[!]{}: Ellie is on development and may not be stable.",
+                            cli_utils::Colors::Red,
+                            cli_utils::Colors::Reset,
+                        );
+                    }
                 }
                 Err(pager_errors) => {
                     if compiler_settings.json_log {

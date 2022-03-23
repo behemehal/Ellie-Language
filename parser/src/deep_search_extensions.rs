@@ -61,7 +61,7 @@ fn iterate_deep_type(
 
             #[derive(Debug, Clone)]
             struct Attribute {
-                rtype: AttributeType,
+                _rtype: AttributeType,
                 name: String,
                 value: definers::DefinerCollecting,
             }
@@ -336,14 +336,14 @@ fn iterate_deep_type(
                                                             Collecting::Variable(e) => {
                                                                 let resolved_type = if e.has_type { e.rtype } else { resolve_type(e.value, class_inner_page.hash, parser, &mut errors) };
                                                                 Some(Attribute {
-                                                                    rtype: AttributeType::Property,
+                                                                    _rtype: AttributeType::Property,
                                                                     name: e.name.clone(),
                                                                     value: resolved_type
                                                                 })
                                                             },
                                                             Collecting::Function(e) => {
                                                                 Some(Attribute {
-                                                                    rtype: AttributeType::Method,
+                                                                    _rtype: AttributeType::Method,
                                                                     name: e.name.clone(),
                                                                     value: definers::DefinerCollecting::Function(
                                                                         ellie_core::definite::definers::FunctionType {
@@ -357,7 +357,7 @@ fn iterate_deep_type(
                                                             },
                                                             Collecting::NativeFunction(e) => {
                                                                 Some(Attribute {
-                                                                    rtype: AttributeType::Method,
+                                                                    _rtype: AttributeType::Method,
                                                                     name: e.name.clone(),
                                                                     value: definers::DefinerCollecting::Function(
                                                                         ellie_core::definite::definers::FunctionType {

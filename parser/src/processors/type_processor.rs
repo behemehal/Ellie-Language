@@ -1,21 +1,17 @@
 use core::panic;
-use core::ptr::NonNull;
-
 use alloc::boxed::Box;
 use alloc::string::ToString;
 use alloc::vec;
 use alloc::vec::Vec;
 use alloc::{borrow::ToOwned, string::String};
 use ellie_core::definite::definers::DefinerCollecting;
-use ellie_core::definite::items::{constructor, variable};
 use ellie_core::{
     definite::{items::Collecting, types, Converter},
     error,
 };
 use ellie_tokenizer::processors::types::Processors;
-use enum_as_inner::EnumAsInner;
 
-use crate::deep_search_extensions::{deep_search, find_type, resolve_type};
+use crate::deep_search_extensions::{find_type, resolve_type};
 
 pub fn process(
     from: Processors,
@@ -54,7 +50,7 @@ pub fn process(
 
             if deep_search_result.found {
                 match deep_search_result.found_item {
-                    crate::parser::DeepSearchItems::Class(e) => {
+                    crate::parser::DeepSearchItems::Class(_) => {
                         //ERROR_S15
                         let path = parser.find_page(page_id).unwrap().path.clone();
                         errors.push(error::error_list::ERROR_S15.clone().build_with_path(
@@ -63,25 +59,7 @@ pub fn process(
                             path.clone(),
                             variable.data.pos,
                         ));
-
                         return Err(errors);
-
-                        Ok(types::Types::ClassCall(
-                            ellie_core::definite::types::class_call::ClassCall {
-                                target: Box::new(ellie_core::definite::types::Types::VariableType(
-                                    ellie_core::definite::types::variable::VariableType {
-                                        value: e.name.clone(),
-                                        reference: e.hash,
-                                        pos: ellie_core::defs::Cursor::default(),
-                                    },
-                                )),
-                                params: vec![],
-                                keyword_pos: ellie_core::defs::Cursor::default(),
-                                target_pos: ellie_core::defs::Cursor::default(),
-                                generic_parameters: vec![],
-                                pos: ellie_core::defs::Cursor::default(),
-                            },
-                        ))
                     }
                     crate::parser::DeepSearchItems::Variable(e) => {
                         Ok(types::Types::VariableType(types::variable::VariableType {
@@ -90,7 +68,7 @@ pub fn process(
                             pos: from.get_pos(),
                         }))
                     }
-                    crate::parser::DeepSearchItems::Function(function) => {
+                    crate::parser::DeepSearchItems::Function(_) => {
                         let rtype = find_type("function".to_owned(), page_id, parser);
                         match rtype {
                             Some(e) => Ok(types::Types::ClassCall(types::class_call::ClassCall {
@@ -306,7 +284,7 @@ pub fn process(
 
                     #[derive(Debug, Clone)]
                     struct Attribute {
-                        rtype: AttributeType,
+                        _rtype: AttributeType,
                         name: String,
                         value: DefinerCollecting,
                     }
@@ -586,14 +564,14 @@ pub fn process(
                                                             Collecting::Variable(e) => {
                                                                 let resolved_type = if e.has_type { e.rtype } else { resolve_type(e.value, class_inner_page.hash, parser, &mut errors) };
                                                                 Some(Attribute {
-                                                                    rtype: AttributeType::Property,
+                                                                    _rtype: AttributeType::Property,
                                                                     name: e.name.clone(),
                                                                     value: resolved_type
                                                                 })
                                                             },
                                                             Collecting::Function(e) => {
                                                                 Some(Attribute {
-                                                                    rtype: AttributeType::Method,
+                                                                    _rtype: AttributeType::Method,
                                                                     name: e.name.clone(),
                                                                     value: DefinerCollecting::Function(
                                                                         ellie_core::definite::definers::FunctionType {
@@ -607,7 +585,7 @@ pub fn process(
                                                             },
                                                             Collecting::NativeFunction(e) => {
                                                                 Some(Attribute {
-                                                                    rtype: AttributeType::Method,
+                                                                    _rtype: AttributeType::Method,
                                                                     name: e.name.clone(),
                                                                     value: DefinerCollecting::Function(
                                                                         ellie_core::definite::definers::FunctionType {
@@ -657,14 +635,6 @@ pub fn process(
                             ellie_core::definite::definers::DefinerCollecting::ParentGeneric(
                                 rtype,
                             ) => {
-                                if rtype.rtype == "D" {
-                                    match parser.find_processed_page(page_id) {
-                                        Some(e) => todo!("{:#?}", e),
-                                        None => todo!(),
-                                    }
-                                    panic!("D: {:?}", rtype);
-                                }
-
                                 let rtype = find_type(rtype.rtype, page_id, parser);
 
                                 match resolve_chain(
@@ -697,26 +667,17 @@ pub fn process(
                                 todo!()
                             }
                             ellie_core::definite::definers::DefinerCollecting::Dynamic => todo!(),
-                            DefinerCollecting::Array(_) => todo!(),
-                            DefinerCollecting::Vector(_) => todo!(),
-                            DefinerCollecting::Generic(_) => todo!(),
-                            DefinerCollecting::ParentGeneric(_) => todo!(),
-                            DefinerCollecting::Function(_) => todo!(),
-                            DefinerCollecting::Cloak(_) => todo!(),
-                            DefinerCollecting::Collective(_) => todo!(),
-                            DefinerCollecting::Nullable(_) => todo!(),
-                            DefinerCollecting::Dynamic => todo!(),
                         }
                     }
 
                     let reference_type =
                         resolve_type(found_reference.clone(), page_id, parser, &mut errors);
-                    #[derive(Debug, EnumAsInner)]
-                    enum LastEntry {
-                        Type(types::Types),
-                        Null,
-                    }
-                    let mut resolved_types = LastEntry::Null;
+                    //#[derive(Debug, EnumAsInner)]
+                    //enum LastEntry {
+                    //    Type(types::Types),
+                    //    Null,
+                    //}
+                    //let mut resolved_types = LastEntry::Null;
                     let mut last_chain_attributes = (
                         reference_type.clone(),
                         resolve_chain(
@@ -733,14 +694,14 @@ pub fn process(
                                 let attribute = e.iter().find(|a| a.name == chain.value);
                                 match attribute {
                                     Some(a) => {
-                                        resolved_types = LastEntry::Type(
-                                            generate_type_from_defining(
-                                                a.value.clone(),
-                                                page_id,
-                                                parser,
-                                            )
-                                            .unwrap(),
-                                        );
+                                        //resolved_types = LastEntry::Type(
+                                        //    generate_type_from_defining(
+                                        //        a.value.clone(),
+                                        //        page_id,
+                                        //        parser,
+                                        //    )
+                                        //    .unwrap(),
+                                        //);
                                         last_chain_attributes = (
                                             a.value.clone(),
                                             resolve_chain(
