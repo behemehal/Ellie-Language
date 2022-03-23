@@ -96,10 +96,10 @@ impl Processors {
             Processors::Constructor(e) => e.pos,
             Processors::Ret(e) => e.pos,
             Processors::Class(e) => e.pos,
-            Processors::SelfItem(_) => panic!("Unexpected behaviour"),
-            Processors::GenericItem(_) => panic!("Unexpected behaviour"),
+            Processors::SelfItem(_) => ellie_core::defs::Cursor::default(),
+            Processors::GenericItem(_) => ellie_core::defs::Cursor::default(),
             Processors::FunctionParameter(e) => e.pos,
-            Processors::ConstructorParameter(_) => panic!("Unexpected behaviour"),
+            Processors::ConstructorParameter(_) => ellie_core::defs::Cursor::default(),
         }
     }
 
