@@ -1,6 +1,6 @@
 [submodule "EllieAssist"]
 	path = EllieAssist
 	url = https://github.com/behemehal/EllieAssist
-[submodule "stdlib"]
+[submodule "Ellie-Standard-Library"]
 	path = Ellie-Standard-Library
 	url = https://github.com/behemehal/Ellie-Standard-Library
