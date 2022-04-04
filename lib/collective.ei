@@ -1,7 +1,0 @@
-/*
-    Copyright (c) 2020 Behemehal. See license file for details
-*/
-
-@dont_fix_variant=true;
-@notConstructable = true;
-pub class collective<Key, Value> {}
