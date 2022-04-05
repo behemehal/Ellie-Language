@@ -1187,7 +1187,7 @@ impl Parser {
                     },
                     ellie_tokenizer::tokenizer::PageType::RawBody => match item {
                         Processors::Variable(e) => e.process(self, unprocessed_page.hash),
-                        Processors::GetterCall(_) => todo!(),
+                        Processors::GetterCall(e) => e.process(self, unprocessed_page.hash),
                         Processors::SetterCall(_) => todo!(),
                         Processors::Function(e) => e.process(self, unprocessed_page.hash),
                         Processors::FileKey(e) => e.process(self, unprocessed_page.hash),

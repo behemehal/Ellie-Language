@@ -8,6 +8,7 @@ pub mod import;
 pub mod ret;
 pub mod type_processor;
 pub mod variable;
+pub mod getter;
 
 pub trait Processor {
     /// Parser element processor
