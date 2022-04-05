@@ -278,8 +278,22 @@ exec(`rustup target list --installed`, (err, stdout, stderr) => {
           });
 
           var shasums = `EllieVersion = v${ellie_version} - ${ellie_ver_code}`;
-          shasums += "\n\t" + binary_shasums.map(x => x.hash + " : " + x.file).join("\n\t");
-          fs.writeFileSync("./ellieRelease/output.json", JSON.stringify(binary_shasums));
+          shasums +=
+            "\n\t" +
+            binary_shasums.map((x) => x.hash + " : " + x.file).join("\n\t");
+          fs.writeFileSync(
+            "./ellieRelease/output.json",
+            JSON.stringify(
+              binary_shasums.map((x) => {
+                return {
+                  arch: x.arch,
+                  hash: x.hash,
+                  file: x.file.split("/").pop(),
+                  completion: x.completion,
+                };
+              })
+            )
+          );
           fs.writeFileSync("./ellieRelease/SHASUMS256.txt", shasums);
           console.log(
             `${chalk.green("✔")} SHASUM of all ${chalk.yellow(
