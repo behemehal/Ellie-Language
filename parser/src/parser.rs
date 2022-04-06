@@ -308,6 +308,13 @@ impl Parser {
             rtype.clone(),
             &mut errors,
         );
+
+        //Ignre everything since defining is dynamic
+        if matches!(defining.clone(), ellie_core::definite::definers::DefinerCollecting::Generic(e) if e.rtype == "dyn")
+        {
+            return Ok((true, "dyn".to_string(), "dyn".to_string()));
+        }
+
         match c {
             deep_search_extensions::DeepTypeResult::Integer(_) => {
                 if let ellie_core::definite::definers::DefinerCollecting::Generic(_) = defining {
@@ -1188,7 +1195,7 @@ impl Parser {
                     ellie_tokenizer::tokenizer::PageType::RawBody => match item {
                         Processors::Variable(e) => e.process(self, unprocessed_page.hash),
                         Processors::GetterCall(e) => e.process(self, unprocessed_page.hash),
-                        Processors::SetterCall(_) => todo!(),
+                        Processors::SetterCall(e) => e.process(self, unprocessed_page.hash),
                         Processors::Function(e) => e.process(self, unprocessed_page.hash),
                         Processors::FileKey(e) => e.process(self, unprocessed_page.hash),
                         Processors::Import(e) => {

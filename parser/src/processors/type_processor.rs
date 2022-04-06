@@ -1,9 +1,9 @@
-use core::panic;
 use alloc::boxed::Box;
 use alloc::string::ToString;
 use alloc::vec;
 use alloc::vec::Vec;
 use alloc::{borrow::ToOwned, string::String};
+use core::panic;
 use ellie_core::definite::definers::DefinerCollecting;
 use ellie_core::{
     definite::{items::Collecting, types, Converter},
@@ -162,7 +162,7 @@ pub fn process(
                 if processed_second_value.is_err() {
                     errors.append(&mut processed_second_value.unwrap_err());
                 }
-                return Err(errors); 
+                return Err(errors);
             }
 
             let first_value = resolve_type(
@@ -230,7 +230,7 @@ pub fn process(
                         ));
                         Err(errors)
                     }
-                },
+                }
                 ellie_tokenizer::syntax::types::operator_type::Operators::ArithmeticType(_) => {
                     if first_value.same_as(second_value.clone()) {
                         Ok(types::Types::Integer(types::integer::IntegerType {
