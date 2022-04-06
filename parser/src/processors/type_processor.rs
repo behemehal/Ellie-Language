@@ -1153,9 +1153,9 @@ pub fn process(
                                                     },
                                                     error::ErrorBuildField {
                                                         key: "token".to_string(),
-                                                        value: class_call
-                                                            .data
-                                                            .generic_parameters
+                                                        value: constructor
+                                                            .unwrap()
+                                                            .parameters
                                                             .len()
                                                             .to_string(),
                                                     },
