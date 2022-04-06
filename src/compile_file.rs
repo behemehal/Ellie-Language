@@ -153,7 +153,9 @@ pub fn compile(
                         compiler_settings.version,
                     );
 
-                    let ellie_std : parser::Module = serde_json::from_str(ellie_core::builded_libraries::ELLIE_STANDARD_LIBRARY).unwrap();
+                    let ellie_std: parser::Module =
+                        serde_json::from_str(ellie_core::builded_libraries::ELLIE_STANDARD_LIBRARY)
+                            .unwrap();
                     parser.import_module(ellie_std);
 
                     for (module, _) in modules.iter() {
@@ -179,72 +181,74 @@ pub fn compile(
                             });
                             println!("{}", serde_json::to_string(&output).unwrap());
                         } else {
-                            cli_utils::print_warnings(&parser.informations.warnings, |path| {
-                                let path_starter = path.split("/").next().unwrap();
-                                let virtual_path_identifier =
-                                    match path_starter.split("<ellie_module_").last() {
-                                        Some(e) => e.split(">").next().unwrap(),
-                                        None => "",
-                                    };
-                                if path_starter == starter_name {
-                                    let real_path = path
-                                        .replace(
-                                            &starter_name,
-                                            Path::new(target_path)
-                                                .absolutize()
-                                                .unwrap()
-                                                .parent()
-                                                .unwrap()
-                                                .to_str()
-                                                .unwrap(),
-                                        )
-                                        .clone();
-                                    match cli_utils::read_file(real_path) {
-                                        Ok(e) => e,
-                                        Err(err) => {
-                                            panic!(
+                            cli_utils::print_warnings(
+                                &parser.informations.warnings,
+                                |path| {
+                                    let path_starter = path.split("/").next().unwrap();
+                                    let virtual_path_identifier =
+                                        match path_starter.split("<ellie_module_").last() {
+                                            Some(e) => e.split(">").next().unwrap(),
+                                            None => "",
+                                        };
+                                    if path_starter == starter_name {
+                                        let real_path = path
+                                            .replace(
+                                                &starter_name,
+                                                Path::new(target_path)
+                                                    .absolutize()
+                                                    .unwrap()
+                                                    .parent()
+                                                    .unwrap()
+                                                    .to_str()
+                                                    .unwrap(),
+                                            )
+                                            .clone();
+                                        match cli_utils::read_file(real_path) {
+                                            Ok(e) => e,
+                                            Err(err) => {
+                                                panic!(
                                                 "Failed to ouput error. Cannot read file '{}' {}[{}]{}",
                                                 path,
                                                 cli_utils::Colors::Red,
                                                 err,
                                                 cli_utils::Colors::Reset
                                             );
+                                            }
                                         }
-                                    }
-                                } else if let Some((_, module_path)) = modules
-                                    .iter()
-                                    .find(|(module, _)| module.name == virtual_path_identifier)
-                                {
-                                    let real_path =
-                                        path.replace(&path_starter, module_path).clone();
-                                    match cli_utils::read_file(real_path) {
-                                        Ok(e) => e,
-                                        Err(err) => {
-                                            panic!(
+                                    } else if let Some((_, module_path)) = modules
+                                        .iter()
+                                        .find(|(module, _)| module.name == virtual_path_identifier)
+                                    {
+                                        let real_path =
+                                            path.replace(&path_starter, module_path).clone();
+                                        match cli_utils::read_file(real_path) {
+                                            Ok(e) => e,
+                                            Err(err) => {
+                                                panic!(
                                                 "Failed to ouput error. Cannot read file '{}' {}[{}]{}",
                                                 path,
                                                 cli_utils::Colors::Red,
                                                 err,
                                                 cli_utils::Colors::Reset
                                             );
+                                            }
                                         }
+                                    } else {
+                                        panic!(
+                                            "Failed to ouput error. Cannot identify module '{}'",
+                                            path,
+                                        );
                                     }
-                                } else {
-                                    panic!(
-                                        "Failed to ouput error. Cannot identify module '{}'",
-                                        path,
-                                    );
-                                }
-                            }, |path| {
-                                let path_starter = path.split("/").next().unwrap();
-                                let virtual_path_identifier =
-                                    match path_starter.split("<ellie_module_").last() {
-                                        Some(e) => e.split(">").next().unwrap(),
-                                        None => "",
-                                    };
-                                if path_starter == starter_name {
-                                    path
-                                        .replace(
+                                },
+                                |path| {
+                                    let path_starter = path.split("/").next().unwrap();
+                                    let virtual_path_identifier =
+                                        match path_starter.split("<ellie_module_").last() {
+                                            Some(e) => e.split(">").next().unwrap(),
+                                            None => "",
+                                        };
+                                    if path_starter == starter_name {
+                                        path.replace(
                                             &starter_name,
                                             Path::new(target_path)
                                                 .absolutize()
@@ -255,19 +259,19 @@ pub fn compile(
                                                 .unwrap(),
                                         )
                                         .clone()
-                                } else if let Some((_, module_path)) = modules
-                                    .iter()
-                                    .find(|(module, _)| module.name == virtual_path_identifier)
-                                {
-                                    path.replace(&path_starter, module_path).clone()
-                                        
-                                } else {
-                                    panic!(
-                                        "Failed to ouput error. Cannot identify module '{}'",
-                                        path,
-                                    );
-                                }
-                            });
+                                    } else if let Some((_, module_path)) = modules
+                                        .iter()
+                                        .find(|(module, _)| module.name == virtual_path_identifier)
+                                    {
+                                        path.replace(&path_starter, module_path).clone()
+                                    } else {
+                                        panic!(
+                                            "Failed to ouput error. Cannot identify module '{}'",
+                                            path,
+                                        );
+                                    }
+                                },
+                            );
                         }
                     }
 
@@ -348,18 +352,17 @@ pub fn compile(
                                             None => "",
                                         };
                                     if path_starter == starter_name {
-                                        path
-                                            .replace(
-                                                &starter_name,
-                                                Path::new(target_path)
-                                                    .absolutize()
-                                                    .unwrap()
-                                                    .parent()
-                                                    .unwrap()
-                                                    .to_str()
-                                                    .unwrap(),
-                                            )
-                                            .clone()
+                                        path.replace(
+                                            &starter_name,
+                                            Path::new(target_path)
+                                                .absolutize()
+                                                .unwrap()
+                                                .parent()
+                                                .unwrap()
+                                                .to_str()
+                                                .unwrap(),
+                                        )
+                                        .clone()
                                     } else if let Some((_, module_path)) = modules
                                         .iter()
                                         .find(|(module, _)| module.name == virtual_path_identifier)
@@ -371,7 +374,7 @@ pub fn compile(
                                             path,
                                         );
                                     }
-                                }
+                                },
                             );
                         }
 
@@ -413,7 +416,7 @@ pub fn compile(
                             } else {
                                 println!("\n{}[!]{}: Compiling {}failed{} with {}{} errors{} and {}{} warnings{}.",
                                     cli_utils::Colors::Red,
-                                    cli_utils::Colors::Reset,    
+                                    cli_utils::Colors::Reset,
                                     cli_utils::Colors::Red,
                                     cli_utils::Colors::Reset,
                                     cli_utils::Colors::Red,
@@ -522,14 +525,14 @@ pub fn compile(
                                     cli_utils::Colors::Red,
                                     cli_utils::Colors::Reset,
                                 );
-                            },
+                            }
                             cli_utils::OutputTypes::ByteCode => {
                                 println!(
                                     "{}[!]{}: ByteCode output is not yet implemented.",
                                     cli_utils::Colors::Red,
                                     cli_utils::Colors::Reset,
                                 );
-                            },
+                            }
                             cli_utils::OutputTypes::Json => {
                                 let json = serde_json::to_string(&workspace).unwrap();
                                 if let Err(write_error) = fs::write(&output_path, json) {
@@ -573,9 +576,8 @@ pub fn compile(
                                         );
                                     }
                                 }
-                            },
+                            }
                             cli_utils::OutputTypes::Nop => (),
-                            
                         }
                     }
 
@@ -640,8 +642,9 @@ pub fn compile(
                                         .unwrap()
                                         .to_str()
                                         .unwrap(),
-                                ).to_string()
-                            }
+                                )
+                                .to_string()
+                            },
                         );
                     }
                 }

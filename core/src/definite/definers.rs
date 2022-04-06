@@ -151,12 +151,15 @@ impl DefinerCollecting {
             DefinerCollecting::Function(e) => {
                 if let DefinerCollecting::Function(other_e) = other {
                     e.params.len() == other_e.params.len()
-                        && e.params.iter().zip(other_e.params.iter()).all(|(a, b)| a.same_as(b.clone()))
+                        && e.params
+                            .iter()
+                            .zip(other_e.params.iter())
+                            .all(|(a, b)| a.same_as(b.clone()))
                         && e.returning.same_as(*other_e.returning.clone())
                 } else {
                     false
                 }
-            },
+            }
             DefinerCollecting::Cloak(_) => todo!(),
             DefinerCollecting::Collective(_) => todo!(),
             DefinerCollecting::Nullable(_) => todo!(),

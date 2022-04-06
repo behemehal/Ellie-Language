@@ -6,7 +6,7 @@ import fs from "fs";
 import crypto from "crypto";
 
 const targeted_archs = {
-  "aarch64-apple-darwin": ["elliec_aarch64_apple_m1", ""],
+  "aarch64-apple-darwin": ["elliec_aarch64_apple_darwin", ""],
   //"aarch64-pc-windows-msvc": ["elliec_aarch64_windows", "exe"],
   //"aarch64-unknown-linux-gnu": ["elliec_aarch64_linux", ""],
   //"aarch64-linux-android": ["elliec_aarch64_android", ""],
@@ -256,25 +256,21 @@ exec(`rustup target list --installed`, (err, stdout, stderr) => {
             arch: "powershell",
             hash: elliec_completion_powershell_shasum.split(":")[0].trim(),
             file: "./ellieRelease/elliec_completion_powershell",
-            completion: true,
           });
           binary_shasums.push({
             arch: "bash",
             hash: elliec_completion_bash_shasum.split(":")[0].trim(),
             file: "./ellieRelease/elliec_completion_bash",
-            completion: true,
           });
           binary_shasums.push({
             arch: "zsh",
             hash: elliec_completion_zsh_shasum.split(":")[0].trim(),
             file: "./ellieRelease/elliec_completion_zsh",
-            completion: true,
           });
           binary_shasums.push({
             arch: "fish",
             hash: elliec_completion_fish_shasum.split(":")[0].trim(),
             file: "./ellieRelease/elliec_completion_fish",
-            completion: true,
           });
 
           var shasums = `EllieVersion = v${ellie_version} - ${ellie_ver_code}`;
@@ -289,7 +285,6 @@ exec(`rustup target list --installed`, (err, stdout, stderr) => {
                   arch: x.arch,
                   hash: x.hash,
                   file: x.file.split("/").pop(),
-                  completion: x.completion,
                 };
               })
             )

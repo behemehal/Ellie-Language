@@ -85,7 +85,7 @@ fn main() {
         &mut powershell,
     );
 
-    match cli_utils::read_file(&("./lib/ellie.ei".to_owned())) {
+    match cli_utils::read_file(&("./Ellie-Standard-Library/ellie.ei".to_owned())) {
         Ok(ellie_lib) => {
             let version_line_regex = Regex::new(
                 "(@(\\s)*version(\\s)*=)(\\s)*(\")*(?P<version>\"\\^|\\~?(\\d|x|\\*)+\\.(\\d|x|\\*)+\\.(\\d|x|\\*))*(\"|()*;)",
@@ -122,8 +122,9 @@ fn main() {
                                         &module_identifier,
                                     ) {
                                         Ok(path) => {
-                                            let real_path =
-                                                path.replace(&starter_name, "./lib/").clone();
+                                            let real_path = path
+                                                .replace(&starter_name, "./Ellie-Standard-Library/")
+                                                .clone();
                                             if Path::new(&real_path).exists() {
                                                 match cli_utils::read_file(real_path) {
                                                     Ok(data) => {
@@ -181,7 +182,7 @@ fn main() {
                                 cli_utils::print_errors(
                                     &e,
                                     |path| match cli_utils::read_file(
-                                        &path.replace(&starter_name, "./lib/"),
+                                        &path.replace(&starter_name, "./Ellie-Standard-Library/"),
                                     ) {
                                         Ok(e) => e,
                                         Err(err) => {
@@ -196,7 +197,10 @@ fn main() {
                                         }
                                     },
                                     true,
-                                    |path| path.replace(&starter_name, "./lib/").to_string(),
+                                    |path| {
+                                        path.replace(&starter_name, "./Ellie-Standard-Library/")
+                                            .to_string()
+                                    },
                                 );
                                 panic!("Build failed");
                             }
@@ -219,9 +223,10 @@ fn main() {
                                 if !parser.informations.has_no_warnings() {
                                     cli_utils::print_warnings(
                                         &parser.informations.warnings,
-                                        |path| match cli_utils::read_file(
-                                            &path.replace(&starter_name.clone(), "./lib/"),
-                                        ) {
+                                        |path| match cli_utils::read_file(&path.replace(
+                                            &starter_name.clone(),
+                                            "./Ellie-Standard-Library/",
+                                        )) {
                                             Ok(e) => e,
                                             Err(err) => {
                                                 panic!(
@@ -236,7 +241,8 @@ fn main() {
                                             }
                                         },
                                         |path: String| {
-                                            path.replace(&starter_name, "./lib/").to_string()
+                                            path.replace(&starter_name, "./Ellie-Standard-Library/")
+                                                .to_string()
                                         },
                                     );
                                 }
@@ -245,7 +251,10 @@ fn main() {
                                     cli_utils::print_errors(
                                         &parser.informations.errors,
                                         |path| match cli_utils::read_file(
-                                            &path.replace(&starter_name, "./lib/"),
+                                            &path.replace(
+                                                &starter_name,
+                                                "./Ellie-Standard-Library/",
+                                            ),
                                         ) {
                                             Ok(e) => e,
                                             Err(err) => {
@@ -260,7 +269,10 @@ fn main() {
                                             }
                                         },
                                         true,
-                                        |path| path.replace(&starter_name, "./lib/").to_string(),
+                                        |path| {
+                                            path.replace(&starter_name, "./Ellie-Standard-Library/")
+                                                .to_string()
+                                        },
                                     );
                                     panic!("\nCompiling {}failed{} with {}{} errors{} and {}{} warnings{}.",
                                         cli_utils::Colors::Red,
@@ -286,7 +298,7 @@ fn main() {
                 }
                 Err(err) => {
                     panic!(
-                        "{}[Fail]{}: Cannot read file {}~./lib/{}.ei{}\n{:#?}",
+                        "{}[Fail]{}: Cannot read file {}~./Ellie-Standard-Library/{}.ei{}\n{:#?}",
                         cli_utils::Colors::Red,
                         cli_utils::Colors::Reset,
                         cli_utils::Colors::Yellow,
@@ -312,7 +324,7 @@ fn main() {
         }
         Err(err) => {
             panic!(
-                "{}[Fail]{}: Cannot read file {}~./lib/{}.ei{}\n{:#?}",
+                "{}[Fail]{}: Cannot read file {}~./Ellie-Standard-Library/{}.ei{}\n{:#?}",
                 cli_utils::Colors::Red,
                 cli_utils::Colors::Reset,
                 cli_utils::Colors::Yellow,
