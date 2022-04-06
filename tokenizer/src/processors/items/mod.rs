@@ -246,7 +246,7 @@ impl super::Processor for ItemProcessor {
             self.current = Processors::Variable(variable::VariableCollector {
                 data: variable::Variable {
                     public: self.used_modifier == Modifier::Pub,
-                    constant: letter_char == 'c',
+                    constant: keyword == "c",
                     pos: self.current.get_pos(),
                     ..Default::default()
                 },
