@@ -11,7 +11,8 @@ pub struct SetterCall {
     pub value: Processors,
     pub operator: AssignmentOperators,
     pub cache: TypeProcessor,
-    pub pos: defs::Cursor,
+    pub target_pos: defs::Cursor,
+    pub value_pos: defs::Cursor,
     pub hash: u64,
     pub complete: bool,
 }
@@ -31,7 +32,8 @@ impl Converter<SetterCall, ellie_core::definite::items::setter_call::SetterCall>
                 AssignmentOperators::ExponentiationAssignment => ellie_core::definite::types::operator::AssignmentOperators::ExponentiationAssignment,
                 AssignmentOperators::Null => ellie_core::definite::types::operator::AssignmentOperators::Null,
             },
-            pos: self.pos,
+            target_pos: self.target_pos,
+            value_pos: self.value_pos,
         }
     }
 
@@ -52,6 +54,8 @@ impl Converter<SetterCall, ellie_core::definite::items::setter_call::SetterCall>
                 ellie_core::definite::types::operator::AssignmentOperators::ExponentiationAssignment => AssignmentOperators::ExponentiationAssignment,
                 ellie_core::definite::types::operator::AssignmentOperators::Null => AssignmentOperators::Null,
             },
+            target_pos: from.target_pos,
+            value_pos: from.value_pos,
             ..Default::default()
         }
     }

@@ -1,3 +1,5 @@
+use core::panic;
+
 use ellie_core::{
     definite::{items::Collecting, Converter},
     defs, error,
@@ -87,7 +89,10 @@ impl Processors {
         match self {
             Processors::Variable(e) => e.data.pos,
             Processors::GetterCall(e) => e.pos,
-            Processors::SetterCall(e) => e.pos,
+            Processors::SetterCall(e) => defs::Cursor {
+                range_start: e.target_pos.range_start,
+                range_end: e.value_pos.range_end,
+            },
             Processors::Function(e) => e.data.pos,
             Processors::FileKey(e) => e.pos,
             Processors::Import(e) => e.pos,
@@ -218,7 +223,7 @@ impl super::Processor for ItemProcessor {
                             target: *e.data.first,
                             operator: e.data.operator.as_assignment_type().unwrap().clone(),
                             cache: *e.itered_cache,
-                            pos: x.pos,
+                            target_pos: x.pos,
                             ..Default::default()
                         })
                     }
