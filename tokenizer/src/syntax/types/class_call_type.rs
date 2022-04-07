@@ -2,7 +2,10 @@ use crate::{
     processors::types::{self, Processors},
     syntax::items::definers::{DefinerCollector, DefinerTypes},
 };
-use ellie_core::{definite, defs};
+use ellie_core::{
+    definite::{self, definers::DefinerCollecting},
+    defs,
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
@@ -23,6 +26,7 @@ pub struct ClassCall {
     pub target_pos: defs::Cursor,
     pub keyword_pos: defs::Cursor,
     pub generic_parameters: Vec<ClassCallGenericParameter>,
+    pub resolved_generics: Vec<DefinerCollecting>,
     pub parameters: Vec<ClassCallParameter>,
     pub pos: defs::Cursor,
 }
@@ -55,6 +59,7 @@ impl definite::Converter<ClassCallCollector, definite::types::class_call::ClassC
                     pos: x.pos,
                 })
                 .collect(),
+            resolved_generics: self.data.resolved_generics,
             generic_parameters: self
                 .data
                 .generic_parameters
@@ -75,20 +80,25 @@ impl definite::Converter<ClassCallCollector, definite::types::class_call::ClassC
                 target_pos: from.target_pos,
                 generic_parameters: from
                     .generic_parameters
-                    .into_iter()
+                    .iter()
                     .map(|x| ClassCallGenericParameter {
-                        value: DefinerTypes::default().from_definite(x.value),
+                        value: DefinerTypes::default().from_definite(x.value.clone()),
                         pos: x.pos,
                     })
                     .collect(),
-
                 parameters: from
                     .params
-                    .into_iter()
+                    .iter()
                     .map(|x| ClassCallParameter {
-                        value: Processors::default().from_definite(x.value),
+                        value: Processors::default().from_definite(x.value.clone()),
                         pos: x.pos,
                     })
+                    .collect(),
+                resolved_generics: from
+                    .generic_parameters
+                    .clone()
+                    .iter()
+                    .map(|x| x.value.clone())
                     .collect(),
                 keyword_pos: from.keyword_pos,
                 pos: from.pos,

@@ -1,4 +1,4 @@
-use crate::deep_search_extensions::{self, resolve_deep_type, resolve_type};
+use crate::deep_search_extensions::{self, deep_search_hash, resolve_deep_type, resolve_type};
 use crate::processors::Processor;
 use alloc::borrow::ToOwned;
 use alloc::format;
@@ -1141,7 +1141,7 @@ impl Parser {
                             e.process(self, unprocessed_page.hash)
                         }
                         Processors::SelfItem(_) => true,
-                        Processors::GenericItem(_) => true,
+                        Processors::GenericItem(e) => e.process(self, unprocessed_page.hash),
                         Processors::FunctionParameter(_) => true,
                         Processors::ConstructorParameter(_) => true,
                         unexpected_element => {
@@ -1172,7 +1172,7 @@ impl Parser {
                         Processors::Class(e) => e.process(self, unprocessed_page.hash),
                         Processors::Ret(e) => e.process(self, unprocessed_page.hash),
                         Processors::SelfItem(_) => true,
-                        Processors::GenericItem(_) => true,
+                        Processors::GenericItem(e) => e.process(self, unprocessed_page.hash),
                         Processors::FunctionParameter(_) => true,
                         Processors::ConstructorParameter(_) => true,
                         unexpected_element => {
@@ -1211,7 +1211,7 @@ impl Parser {
                         Processors::Class(e) => e.process(self, unprocessed_page.hash),
 
                         Processors::SelfItem(_) => true,
-                        Processors::GenericItem(_) => true,
+                        Processors::GenericItem(e) => e.process(self, unprocessed_page.hash),
                         Processors::FunctionParameter(_) => true,
                         Processors::ConstructorParameter(_) => true,
                         unexpected_element => {
@@ -1237,7 +1237,7 @@ impl Parser {
                         Processors::FileKey(e) => e.process(self, unprocessed_page.hash),
                         Processors::Constructor(e) => e.process(self, unprocessed_page.hash),
                         Processors::SelfItem(_) => true,
-                        Processors::GenericItem(_) => true,
+                        Processors::GenericItem(e) => e.process(self, unprocessed_page.hash),
                         Processors::FunctionParameter(_) => true,
                         Processors::ConstructorParameter(_) => true,
                         unexpected_element => {
@@ -1283,7 +1283,7 @@ impl Parser {
                             false
                         }
                         Processors::SelfItem(_) => true,
-                        Processors::GenericItem(_) => true,
+                        Processors::GenericItem(e) => e.process(self, unprocessed_page.hash),
                         Processors::FunctionParameter(_) => true,
                         Processors::ConstructorParameter(_) => true,
                         unexpected_element => {

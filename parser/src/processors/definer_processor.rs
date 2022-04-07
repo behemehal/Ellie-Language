@@ -666,7 +666,7 @@ pub fn process(
                     crate::parser::DeepSearchItems::GenericItem(generic) => {
                         found = DefinerCollecting::Generic(definers::GenericType {
                             rtype: generic.generic_name.clone(),
-                            hash: 0,
+                            hash: generic.hash,
                             pos: generic.pos,
                         });
                     }

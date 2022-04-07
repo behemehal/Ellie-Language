@@ -21,10 +21,7 @@ impl crate::processors::Processor for class_call_type::ClassCallCollector {
                 } else {
                     self.data
                         .generic_parameters
-                        .push(class_call_type::ClassCallGenericParameter {
-                            pos: defs::Cursor::build_with_skip_char(cursor),
-                            ..Default::default()
-                        });
+                        .push(class_call_type::ClassCallGenericParameter::default());
                 }
                 self.itered_cache = Box::new(TypeProcessor::default());
             } else {
@@ -37,8 +34,8 @@ impl crate::processors::Processor for class_call_type::ClassCallCollector {
                     .iterate(errors, cursor, last_char, letter_char);
             }
         } else if !self.generic_collected {
+            let len = self.data.generic_parameters.len();
             if (letter_char == ',' || letter_char == '>') && self.generic_cache.complete {
-                let len = self.data.generic_parameters.len();
                 self.data.generic_parameters[len - 1].pos.range_end = cursor;
                 self.data.generic_parameters[len - 1].value =
                     self.generic_cache.definer_type.clone();
@@ -49,10 +46,24 @@ impl crate::processors::Processor for class_call_type::ClassCallCollector {
                     self.data.generic_parameters[len - 1].pos.range_start = cursor;
                     self.data
                         .generic_parameters
-                        .push(class_call_type::ClassCallGenericParameter::default());
+                        .push(class_call_type::ClassCallGenericParameter {
+                            pos: defs::Cursor {
+                                range_start: cursor,
+                                ..Default::default()
+                            },
+                            ..Default::default()
+                        });
                     self.generic_cache = DefinerCollector::default();
                 }
             } else {
+                if self.data.generic_parameters[len - 1]
+                    .pos
+                    .range_start
+                    .is_zero()
+                    && letter_char == ' '
+                {
+                    self.data.generic_parameters[len - 1].pos.range_start = cursor;
+                }
                 hang = self
                     .generic_cache
                     .iterate(errors, cursor, last_char, letter_char);
@@ -95,8 +106,16 @@ impl crate::processors::Processor for class_call_type::ClassCallCollector {
                             pos: defs::Cursor::build_with_skip_char(cursor),
                         });
                 } else {
+                    if self.data.parameters[param_len - 1]
+                        .pos
+                        .range_start
+                        .is_zero()
+                        && letter_char != ' '
+                    {
+                        self.data.parameters[param_len - 1].pos.range_start = cursor;
+                    }
                     self.data.parameters[param_len - 1].value = self.itered_cache.current.clone();
-                    self.data.parameters[param_len - 1].pos.range_end = cursor.clone().skip_char(1);
+                    self.data.parameters[param_len - 1].pos.range_end = cursor;
                 }
             }
         } else if letter_char != ' ' {

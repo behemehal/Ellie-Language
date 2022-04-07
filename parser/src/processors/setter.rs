@@ -104,8 +104,11 @@ impl super::Processor for SetterCall {
                                 return true;
                             }
 
-                            if  matches!(target_type.clone(), ellie_core::definite::definers::DefinerCollecting::ParentGeneric(e) if e.rtype == "nullAble") {
-                                target_type = target_type.as_parent_generic().unwrap().generics[0].clone().value;
+                            if matches!(target_type.clone(), ellie_core::definite::definers::DefinerCollecting::ParentGeneric(e) if e.rtype == "nullAble")
+                            {
+                                target_type = target_type.as_parent_generic().unwrap().generics[0]
+                                    .clone()
+                                    .value;
                             }
 
                             let comperable = parser.compare_defining_with_type(
