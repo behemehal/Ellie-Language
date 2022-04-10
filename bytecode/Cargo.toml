@@ -1,0 +1,19 @@
+[package]
+name = "ellie_bytecode"
+description = "Bytecode assembler/encoder/decoder for ellie language"
+version = "0.1.0"
+edition = "2021"
+authors = ["Ahmetcan Aksu <ahmetcanaksu@behemehal.net>"]
+license = "GPL-2.0"
+
+[dependencies]
+ellie_core = { path = "../core", version = "0.2.0" }
+ellie_parser = { path = "../parser", version = "0.2.0" }
+enum-as-inner = "0.3.3"
+
+[features]
+default = ["std"]
+std = []
+
+[profile.release]
+opt-level = 3

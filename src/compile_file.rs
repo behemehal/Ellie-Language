@@ -3,6 +3,7 @@ use std::path::Path;
 use std::path::PathBuf;
 use std::sync::Mutex;
 
+use ellie_bytecode::assembler::PlatformArchitecture;
 use ellie_core::defs::Version;
 
 use crate::cli_outputs;
@@ -528,10 +529,19 @@ pub fn compile(
                             }
                             cli_utils::OutputTypes::ByteCode => {
                                 println!(
-                                    "{}[!]{}: ByteCode output is not yet implemented.",
+                                    "{}[!]{}: ByteCode fixed to 64 bit architecture",
                                     cli_utils::Colors::Red,
                                     cli_utils::Colors::Reset,
                                 );
+                                ellie_bytecode::assembler::Assembler::new(
+                                    workspace,
+                                    ellie_bytecode::assembler::PlatformAttributes {
+                                        architecture:
+                                            ellie_bytecode::assembler::PlatformArchitecture::B64, //64 Bit Limit
+                                        memory_size: 512000, //512kb memory limit
+                                    },
+                                )
+                                .assemble();
                             }
                             cli_utils::OutputTypes::Json => {
                                 let json = serde_json::to_string(&workspace).unwrap();

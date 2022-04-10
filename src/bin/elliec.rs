@@ -235,6 +235,7 @@ fn main() {
                     std::process::exit(1);
                 }
             };
+            
             let output_path = if let Some(output) = matches.value_of("outputPath") {
                 let path = Path::new(output.clone());
 

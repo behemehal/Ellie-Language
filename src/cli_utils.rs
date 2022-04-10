@@ -807,7 +807,7 @@ pub fn generate_elliec_options() -> Command<'static> {
                         .short('o')
                         .long("--output-type")
                         .takes_value(true)
-                        .default_value("bin"),
+                        .default_value("byteCode"),
                 )
                 .arg(
                     Arg::new("target")
