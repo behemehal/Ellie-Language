@@ -1,4 +1,7 @@
-use crate::{instructions::{self, AddressingModes, Instruction}, utils};
+use crate::{
+    instructions::{self, AddressingModes, Instruction},
+    utils,
+};
 use alloc::{string::String, vec::Vec};
 use ellie_parser::parser::Module;
 
@@ -99,7 +102,7 @@ impl Assembler {
                             name: variable.name.clone(),
                             cursor: variable.pos,
                         });
-                        
+
                         //page.assign_instruction(instructions::Instructions::LDA(
                         //    Instruction::absolute(utils::convert_to_raw_type(variable.value).join("").),
                         //));

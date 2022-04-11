@@ -2,6 +2,7 @@
 #![allow(unused_variables)]
 #![allow(unused_imports)]
 
+#[cfg(feature = "build-cli")]
 use clap_complete::generate;
 use ellie_core;
 use ellie_parser::parser;
@@ -52,44 +53,50 @@ fn main() {
         }
     }
 
-    let mut bash =
-        File::create(env::var("OUT_DIR").unwrap().to_owned() + "/elliec_completion_bash").unwrap();
-    let mut fish =
-        File::create(env::var("OUT_DIR").unwrap().to_owned() + "/elliec_completion_fish").unwrap();
-    let mut zsh =
-        File::create(env::var("OUT_DIR").unwrap().to_owned() + "/elliec_completion_zsh").unwrap();
-    let mut powershell =
-        File::create(env::var("OUT_DIR").unwrap().to_owned() + "/elliec_completion_powershell")
-            .unwrap();
+    #[cfg(feature = "build-cli")]
+    {
+        let mut bash =
+            File::create(env::var("OUT_DIR").unwrap().to_owned() + "/elliec_completion_bash")
+                .unwrap();
+        let mut fish =
+            File::create(env::var("OUT_DIR").unwrap().to_owned() + "/elliec_completion_fish")
+                .unwrap();
+        let mut zsh =
+            File::create(env::var("OUT_DIR").unwrap().to_owned() + "/elliec_completion_zsh")
+                .unwrap();
+        let mut powershell =
+            File::create(env::var("OUT_DIR").unwrap().to_owned() + "/elliec_completion_powershell")
+                .unwrap();
 
-    let cmd = cli_utils::generate_elliec_options();
-    generate(
-        clap_complete::shells::Bash,
-        &mut cmd.clone(),
-        cmd.get_name().to_string(),
-        &mut bash,
-    );
+        let cmd = cli_utils::generate_elliec_options();
+        generate(
+            clap_complete::shells::Bash,
+            &mut cmd.clone(),
+            cmd.get_name().to_string(),
+            &mut bash,
+        );
 
-    generate(
-        clap_complete::shells::Fish,
-        &mut cmd.clone(),
-        cmd.get_name().to_string(),
-        &mut fish,
-    );
+        generate(
+            clap_complete::shells::Fish,
+            &mut cmd.clone(),
+            cmd.get_name().to_string(),
+            &mut fish,
+        );
 
-    generate(
-        clap_complete::shells::Fish,
-        &mut cmd.clone(),
-        cmd.get_name().to_string(),
-        &mut zsh,
-    );
+        generate(
+            clap_complete::shells::Fish,
+            &mut cmd.clone(),
+            cmd.get_name().to_string(),
+            &mut zsh,
+        );
 
-    generate(
-        clap_complete::shells::Fish,
-        &mut cmd.clone(),
-        cmd.get_name().to_string(),
-        &mut powershell,
-    );
+        generate(
+            clap_complete::shells::Fish,
+            &mut cmd.clone(),
+            cmd.get_name().to_string(),
+            &mut powershell,
+        );
+    }
 
     match cli_utils::read_file(
         &(env!("CARGO_MANIFEST_DIR").to_owned() + &"/Ellie-Standard-Library/ellie.ei".to_owned()),
@@ -339,7 +346,8 @@ fn main() {
                 cli_utils::Colors::Red,
                 cli_utils::Colors::Reset,
                 cli_utils::Colors::Yellow,
-                &(env!("CARGO_MANIFEST_DIR").to_owned() + &"/Ellie-Standard-Library/ellie.ei".to_owned()),
+                &(env!("CARGO_MANIFEST_DIR").to_owned()
+                    + &"/Ellie-Standard-Library/ellie.ei".to_owned()),
                 "ellie",
                 cli_utils::Colors::Reset,
                 err

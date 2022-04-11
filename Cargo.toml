@@ -24,7 +24,7 @@ ellie_runtime = {path = "runtime", version = "0.1.0" }
 ellie_bytecode = { path = "bytecode", version = "0.1.0" }
 
 [features]
-default = ["build-cli", "standard_rules"]
+default = ["standard_rules"]
 build-cli = ["path-absolutize", "regex", "bincode", "clap", "clap_complete"]
 ellie_asist = ["ellie_assist"]
 standard_rules =  ["ellie_parser/standard_rules"]
@@ -34,6 +34,7 @@ name = "elliec"
 test = false
 bench = false
 required-features = ["build-cli"]  
+features = [ "build-cli" ]
 
 [build-dependencies]
 clap = { version = "3.1.1", optional = true }

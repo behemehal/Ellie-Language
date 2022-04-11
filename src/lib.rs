@@ -12,13 +12,15 @@
 extern crate ellie_core;
 extern crate ellie_tokenizer;
 
-#[cfg(feature = "build-cli")]
 #[macro_use]
 extern crate lazy_static;
 pub mod cli_outputs;
 #[cfg(feature = "build-cli")]
 pub mod cli_utils;
+#[cfg(feature = "build-cli")]
 pub mod compile_file;
 pub mod engine_constants;
+#[cfg(feature = "build-cli")]
 pub mod tokenize_file;
+#[cfg(feature = "build-cli")]
 pub mod view_module;

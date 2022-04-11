@@ -1,4 +1,6 @@
+#[cfg(feature = "build-cli")]
 use clap::ValueHint;
+#[cfg(feature = "build-cli")]
 use clap::{Arg, Command};
 
 use ellie_core::{defs, error, warning};
@@ -696,6 +698,7 @@ pub fn arrow(line: usize, range: usize) -> String {
     s
 }
 
+#[cfg(feature = "build-cli")]
 pub fn generate_elliec_options() -> Command<'static> {
     Command::new("EllieCompiler")
         .arg_required_else_help(true)
