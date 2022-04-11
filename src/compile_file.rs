@@ -1,9 +1,8 @@
+use ellie_core::defs::Version;
 use std::fs;
 use std::path::Path;
 use std::path::PathBuf;
 use std::sync::Mutex;
-
-use ellie_core::defs::Version;
 
 use crate::cli_outputs;
 use crate::cli_utils;
@@ -21,6 +20,7 @@ pub struct CompilerSettings {
     pub version: Version,
     pub output_type: cli_utils::OutputTypes,
     pub show_debug_lines: bool,
+    pub exclude_stdlib: bool,
     pub warnings: bool,
 }
 
@@ -152,10 +152,16 @@ pub fn compile(
                         compiler_settings.version,
                     );
 
+                    if !compiler_settings.exclude_stdlib {
+                        let ellie_std: parser::Module = serde_json::from_str(
+                            ellie_core::builded_libraries::ELLIE_STANDARD_LIBRARY,
+                        )
+                        .unwrap();
+                        parser.import_module(ellie_std);
+                    }
+
                     for (module, _) in modules.iter() {
-                        if module.name == "ellie" {
-                            parser.import_module(module.clone());
-                        } else if used_modules.lock().unwrap().contains(&(&module.name)) {
+                        if used_modules.lock().unwrap().contains(&(&module.name)) {
                             parser.import_module(module.clone());
                         }
                     }
@@ -177,72 +183,74 @@ pub fn compile(
                             });
                             println!("{}", serde_json::to_string(&output).unwrap());
                         } else {
-                            cli_utils::print_warnings(&parser.informations.warnings, |path| {
-                                let path_starter = path.split("/").next().unwrap();
-                                let virtual_path_identifier =
-                                    match path_starter.split("<ellie_module_").last() {
-                                        Some(e) => e.split(">").next().unwrap(),
-                                        None => "",
-                                    };
-                                if path_starter == starter_name {
-                                    let real_path = path
-                                        .replace(
-                                            &starter_name,
-                                            Path::new(target_path)
-                                                .absolutize()
-                                                .unwrap()
-                                                .parent()
-                                                .unwrap()
-                                                .to_str()
-                                                .unwrap(),
-                                        )
-                                        .clone();
-                                    match cli_utils::read_file(real_path) {
-                                        Ok(e) => e,
-                                        Err(err) => {
-                                            panic!(
+                            cli_utils::print_warnings(
+                                &parser.informations.warnings,
+                                |path| {
+                                    let path_starter = path.split("/").next().unwrap();
+                                    let virtual_path_identifier =
+                                        match path_starter.split("<ellie_module_").last() {
+                                            Some(e) => e.split(">").next().unwrap(),
+                                            None => "",
+                                        };
+                                    if path_starter == starter_name {
+                                        let real_path = path
+                                            .replace(
+                                                &starter_name,
+                                                Path::new(target_path)
+                                                    .absolutize()
+                                                    .unwrap()
+                                                    .parent()
+                                                    .unwrap()
+                                                    .to_str()
+                                                    .unwrap(),
+                                            )
+                                            .clone();
+                                        match cli_utils::read_file(real_path) {
+                                            Ok(e) => e,
+                                            Err(err) => {
+                                                panic!(
                                                 "Failed to ouput error. Cannot read file '{}' {}[{}]{}",
                                                 path,
                                                 cli_utils::Colors::Red,
                                                 err,
                                                 cli_utils::Colors::Reset
                                             );
+                                            }
                                         }
-                                    }
-                                } else if let Some((_, module_path)) = modules
-                                    .iter()
-                                    .find(|(module, _)| module.name == virtual_path_identifier)
-                                {
-                                    let real_path =
-                                        path.replace(&path_starter, module_path).clone();
-                                    match cli_utils::read_file(real_path) {
-                                        Ok(e) => e,
-                                        Err(err) => {
-                                            panic!(
+                                    } else if let Some((_, module_path)) = modules
+                                        .iter()
+                                        .find(|(module, _)| module.name == virtual_path_identifier)
+                                    {
+                                        let real_path =
+                                            path.replace(&path_starter, module_path).clone();
+                                        match cli_utils::read_file(real_path) {
+                                            Ok(e) => e,
+                                            Err(err) => {
+                                                panic!(
                                                 "Failed to ouput error. Cannot read file '{}' {}[{}]{}",
                                                 path,
                                                 cli_utils::Colors::Red,
                                                 err,
                                                 cli_utils::Colors::Reset
                                             );
+                                            }
                                         }
+                                    } else {
+                                        panic!(
+                                            "Failed to ouput error. Cannot identify module '{}'",
+                                            path,
+                                        );
                                     }
-                                } else {
-                                    panic!(
-                                        "Failed to ouput error. Cannot identify module '{}'",
-                                        path,
-                                    );
-                                }
-                            }, |path| {
-                                let path_starter = path.split("/").next().unwrap();
-                                let virtual_path_identifier =
-                                    match path_starter.split("<ellie_module_").last() {
-                                        Some(e) => e.split(">").next().unwrap(),
-                                        None => "",
-                                    };
-                                if path_starter == starter_name {
-                                    path
-                                        .replace(
+                                },
+                                |path| {
+                                    let path_starter = path.split("/").next().unwrap();
+                                    let virtual_path_identifier =
+                                        match path_starter.split("<ellie_module_").last() {
+                                            Some(e) => e.split(">").next().unwrap(),
+                                            None => "",
+                                        };
+                                    if path_starter == starter_name {
+                                        path.replace(
                                             &starter_name,
                                             Path::new(target_path)
                                                 .absolutize()
@@ -253,19 +261,19 @@ pub fn compile(
                                                 .unwrap(),
                                         )
                                         .clone()
-                                } else if let Some((_, module_path)) = modules
-                                    .iter()
-                                    .find(|(module, _)| module.name == virtual_path_identifier)
-                                {
-                                    path.replace(&path_starter, module_path).clone()
-                                        
-                                } else {
-                                    panic!(
-                                        "Failed to ouput error. Cannot identify module '{}'",
-                                        path,
-                                    );
-                                }
-                            });
+                                    } else if let Some((_, module_path)) = modules
+                                        .iter()
+                                        .find(|(module, _)| module.name == virtual_path_identifier)
+                                    {
+                                        path.replace(&path_starter, module_path).clone()
+                                    } else {
+                                        panic!(
+                                            "Failed to ouput error. Cannot identify module '{}'",
+                                            path,
+                                        );
+                                    }
+                                },
+                            );
                         }
                     }
 
@@ -346,18 +354,17 @@ pub fn compile(
                                             None => "",
                                         };
                                     if path_starter == starter_name {
-                                        path
-                                            .replace(
-                                                &starter_name,
-                                                Path::new(target_path)
-                                                    .absolutize()
-                                                    .unwrap()
-                                                    .parent()
-                                                    .unwrap()
-                                                    .to_str()
-                                                    .unwrap(),
-                                            )
-                                            .clone()
+                                        path.replace(
+                                            &starter_name,
+                                            Path::new(target_path)
+                                                .absolutize()
+                                                .unwrap()
+                                                .parent()
+                                                .unwrap()
+                                                .to_str()
+                                                .unwrap(),
+                                        )
+                                        .clone()
                                     } else if let Some((_, module_path)) = modules
                                         .iter()
                                         .find(|(module, _)| module.name == virtual_path_identifier)
@@ -369,7 +376,7 @@ pub fn compile(
                                             path,
                                         );
                                     }
-                                }
+                                },
                             );
                         }
 
@@ -411,7 +418,7 @@ pub fn compile(
                             } else {
                                 println!("\n{}[!]{}: Compiling {}failed{} with {}{} errors{} and {}{} warnings{}.",
                                     cli_utils::Colors::Red,
-                                    cli_utils::Colors::Reset,    
+                                    cli_utils::Colors::Reset,
                                     cli_utils::Colors::Red,
                                     cli_utils::Colors::Reset,
                                     cli_utils::Colors::Red,
@@ -520,14 +527,23 @@ pub fn compile(
                                     cli_utils::Colors::Red,
                                     cli_utils::Colors::Reset,
                                 );
-                            },
+                            }
                             cli_utils::OutputTypes::ByteCode => {
                                 println!(
-                                    "{}[!]{}: ByteCode output is not yet implemented.",
+                                    "{}[!]{}: ByteCode fixed to 64 bit architecture",
                                     cli_utils::Colors::Red,
                                     cli_utils::Colors::Reset,
                                 );
-                            },
+                                ellie_bytecode::assembler::Assembler::new(
+                                    workspace,
+                                    ellie_bytecode::assembler::PlatformAttributes {
+                                        architecture:
+                                            ellie_bytecode::assembler::PlatformArchitecture::B64, //64 Bit Limit
+                                        memory_size: 512000, //512kb memory limit
+                                    },
+                                )
+                                .assemble();
+                            }
                             cli_utils::OutputTypes::Json => {
                                 let json = serde_json::to_string(&workspace).unwrap();
                                 if let Err(write_error) = fs::write(&output_path, json) {
@@ -572,19 +588,23 @@ pub fn compile(
                                     }
                                 }
                             }
+                            cli_utils::OutputTypes::Nop => (),
                         }
                     }
-                    println!(
-                        "{}[?]{}: Ellie v{}",
-                        cli_utils::Colors::Green,
-                        cli_utils::Colors::Reset,
-                        crate::engine_constants::ELLIE_VERSION
-                    );
-                    println!(
-                        "{}[!]{}: Ellie is on development and may not be stable.",
-                        cli_utils::Colors::Red,
-                        cli_utils::Colors::Reset,
-                    );
+
+                    if !compiler_settings.json_log {
+                        println!(
+                            "{}[?]{}: Ellie v{}",
+                            cli_utils::Colors::Green,
+                            cli_utils::Colors::Reset,
+                            crate::engine_constants::ELLIE_VERSION
+                        );
+                        println!(
+                            "{}[!]{}: Ellie is on development and may not be stable.",
+                            cli_utils::Colors::Red,
+                            cli_utils::Colors::Reset,
+                        );
+                    }
                 }
                 Err(pager_errors) => {
                     if compiler_settings.json_log {
@@ -633,8 +653,9 @@ pub fn compile(
                                         .unwrap()
                                         .to_str()
                                         .unwrap(),
-                                ).to_string()
-                            }
+                                )
+                                .to_string()
+                            },
                         );
                     }
                 }

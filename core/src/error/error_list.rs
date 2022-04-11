@@ -106,10 +106,10 @@ lazy_static! {
         message: "The value '$val' has infinite size".to_owned(),
         ..Default::default()
     };
-    pub static ref UNUSED_ERROR_S18: error::Error = error::Error {
+    pub static ref ERROR_S18: error::Error = error::Error {
         code: 0x17,
         title: "TypeError".to_owned(),
-        message: "Types cannot have number properties".to_owned(),
+        message: "Cannot assign a value to constant variable".to_owned(),
         ..Default::default()
     };
     pub static ref ERROR_S19: error::Error = error::Error {

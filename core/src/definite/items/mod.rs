@@ -63,7 +63,10 @@ impl Collecting {
             Collecting::Setter(e) => e.pos,
             Collecting::Generic(e) => e.pos,
             Collecting::GetterCall(e) => e.pos,
-            Collecting::SetterCall(e) => e.pos,
+            Collecting::SetterCall(e) => defs::Cursor {
+                range_start: e.target_pos.range_start,
+                range_end: e.value_pos.range_end,
+            },
             Collecting::Enum(e) => e.pos,
             Collecting::NativeFunction(e) => e.pos,
             Collecting::None => todo!(),

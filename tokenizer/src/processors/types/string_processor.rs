@@ -26,7 +26,7 @@ impl crate::processors::Processor for string_type::StringTypeCollector {
         } else {
             if letter_char == '"' && last_char != '\\' {
                 self.complete = true;
-                self.data.pos.range_end = cursor.clone().skip_char(1);
+                self.data.pos.range_end = cursor;
             } else {
                 if last_char == '\\' && !is_escape(letter_char) {
                     errors.push(error::error_list::ERROR_S1.clone().build(

@@ -23,10 +23,10 @@ impl crate::processors::Processor for function::FunctionCollector {
                             value: letter_char.to_string(),
                         }],
                         alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                        defs::Cursor::build_with_skip_char(cursor),
+                        defs::Cursor::build_from_cursor(cursor),
                     ));
                 }
-                self.data.name_pos.range_end = cursor.clone().skip_char(1);
+                self.data.name_pos.range_end = cursor;
                 self.data.name += &letter_char.to_string();
             } else if letter_char == '(' && self.data.name != "" {
                 self.name_collected = true;
@@ -37,7 +37,7 @@ impl crate::processors::Processor for function::FunctionCollector {
                         value: letter_char.to_string(),
                     }],
                     alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                    defs::Cursor::build_with_skip_char(cursor),
+                    defs::Cursor::build_from_cursor(cursor),
                 ));
             }
         } else if !self.parameters_collected {
@@ -94,7 +94,7 @@ impl crate::processors::Processor for function::FunctionCollector {
                             value: letter_char.to_string(),
                         }],
                         alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                        defs::Cursor::build_with_skip_char(cursor),
+                        defs::Cursor::build_from_cursor(cursor),
                     ));
                 }
             } else {
@@ -150,12 +150,13 @@ impl crate::processors::Processor for function::FunctionCollector {
                         value: letter_char.to_string(),
                     }],
                     alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                    defs::Cursor::build_with_skip_char(cursor),
+                    defs::Cursor::build_from_cursor(cursor),
                 ));
             }
         } else if !self.return_collected {
             if self.data.return_type.complete && letter_char == '{' {
                 self.return_collected = true;
+                self.data.body_pos.range_start = cursor;
             } else if self.data.return_type.complete && letter_char == ';' {
                 self.data.hash = ellie_core::utils::generate_hash_u64();
                 self.data.defining = true;
@@ -165,7 +166,9 @@ impl crate::processors::Processor for function::FunctionCollector {
                 if self.data.return_pos.range_start.is_zero() && letter_char != ' ' {
                     self.data.return_pos.range_start = cursor;
                 }
-                self.data.return_pos.range_end = cursor;
+                if letter_char != ' ' {
+                    self.data.return_pos.range_end = cursor;
+                }
                 hang = self
                     .data
                     .return_type
@@ -173,11 +176,24 @@ impl crate::processors::Processor for function::FunctionCollector {
             }
         } else if letter_char == '}' && self.brace_count == 0 {
             self.complete = true;
+            self.data.body_pos.range_end = cursor;
             self.data.pos.range_end = cursor.clone().skip_char(1);
             self.data.hash = ellie_core::utils::generate_hash_u64();
             self.iterator.finalize();
             errors.extend(self.iterator.errors.clone());
             self.data.body = self.iterator.collected.clone();
+            let contains_ret = self.data.body.iter().any(|x| match x {
+                super::Processors::Ret(_) => true,
+                _ => false,
+            });
+
+            if !self.data.no_return && !contains_ret {
+                errors.push(error::error_list::ERROR_S2.clone().build(
+                    vec![],
+                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                    self.data.body_pos,
+                ));
+            }
         } else {
             if letter_char == '{' {
                 self.brace_count += 1;

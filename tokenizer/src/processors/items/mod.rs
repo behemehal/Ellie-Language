@@ -1,3 +1,5 @@
+use core::panic;
+
 use ellie_core::{
     definite::{items::Collecting, Converter},
     defs, error,
@@ -87,7 +89,10 @@ impl Processors {
         match self {
             Processors::Variable(e) => e.data.pos,
             Processors::GetterCall(e) => e.pos,
-            Processors::SetterCall(e) => e.pos,
+            Processors::SetterCall(e) => defs::Cursor {
+                range_start: e.target_pos.range_start,
+                range_end: e.value_pos.range_end,
+            },
             Processors::Function(e) => e.data.pos,
             Processors::FileKey(e) => e.pos,
             Processors::Import(e) => e.pos,
@@ -96,10 +101,10 @@ impl Processors {
             Processors::Constructor(e) => e.pos,
             Processors::Ret(e) => e.pos,
             Processors::Class(e) => e.pos,
-            Processors::SelfItem(_) => panic!("Unexpected behaviour"),
-            Processors::GenericItem(_) => panic!("Unexpected behaviour"),
+            Processors::SelfItem(_) => ellie_core::defs::Cursor::default(),
+            Processors::GenericItem(_) => ellie_core::defs::Cursor::default(),
             Processors::FunctionParameter(e) => e.pos,
-            Processors::ConstructorParameter(_) => panic!("Unexpected behaviour"),
+            Processors::ConstructorParameter(_) => ellie_core::defs::Cursor::default(),
         }
     }
 
@@ -218,7 +223,7 @@ impl super::Processor for ItemProcessor {
                             target: *e.data.first,
                             operator: e.data.operator.as_assignment_type().unwrap().clone(),
                             cache: *e.itered_cache,
-                            pos: x.pos,
+                            target_pos: x.pos,
                             ..Default::default()
                         })
                     }
@@ -246,7 +251,7 @@ impl super::Processor for ItemProcessor {
             self.current = Processors::Variable(variable::VariableCollector {
                 data: variable::Variable {
                     public: self.used_modifier == Modifier::Pub,
-                    constant: letter_char == 'c',
+                    constant: keyword == "c",
                     pos: self.current.get_pos(),
                     ..Default::default()
                 },
@@ -282,27 +287,18 @@ impl super::Processor for ItemProcessor {
             });
         } else if not_initialized && self.used_modifier == Modifier::None && letter_char == '@' {
             self.current = Processors::FileKey(file_key::FileKey {
-                pos: defs::Cursor {
-                    range_start: cursor,
-                    ..Default::default()
-                },
+                pos: self.current.get_pos(),
                 ..Default::default()
             });
         } else if self.used_modifier == Modifier::None && keyword == "ret" && letter_char == ' ' {
             self.current = Processors::Ret(ret::Ret {
                 keyword_pos: self.current.get_pos(),
-                pos: defs::Cursor {
-                    range_start: cursor.clone(),
-                    ..Default::default()
-                },
+                pos: self.current.get_pos(),
                 ..Default::default()
             });
         } else if self.used_modifier == Modifier::None && keyword == "co" && letter_char == '(' {
             self.current = Processors::Constructor(constructor::Constructor {
-                pos: defs::Cursor {
-                    range_start: self.current.get_pos().range_start,
-                    ..Default::default()
-                },
+                pos: self.current.get_pos(),
                 ..Default::default()
             });
         } else if self.used_modifier == Modifier::None && keyword == "for" && letter_char == ' ' {

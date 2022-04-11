@@ -10,13 +10,16 @@ impl crate::processors::Processor for Ret {
         letter_char: char,
     ) -> bool {
         let mut hang = false;
-        if self.value.is_complete() && letter_char == ';' {
+        if (self.value.is_complete() || !self.not_empty) && letter_char == ';' {
             self.complete = true;
-            self.value_position.range_end = cursor.clone().skip_char(1);
-            self.pos.range_end = cursor.clone().skip_char(1);
+            self.pos.range_end = cursor;
         } else {
             if letter_char != ' ' && self.value_position.range_start.is_zero() {
-                self.value_position.range_start = cursor.clone().skip_char(1);
+                self.value_position.range_start = cursor;
+                self.value_position.range_end = cursor;
+            }
+            if letter_char != ' ' && !self.not_empty {
+                self.not_empty = true;
             }
             hang = self.value.iterate(errors, cursor, last_char, letter_char);
         }

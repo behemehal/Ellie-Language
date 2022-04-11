@@ -1,3 +1,4 @@
+use crate::definite::definers::DefinerCollecting;
 use crate::definite::{definers, types};
 use crate::defs;
 use alloc::boxed::Box;
@@ -21,6 +22,7 @@ pub struct ClassCall {
     pub target: Box<types::Types>,
     pub keyword_pos: defs::Cursor,
     pub target_pos: defs::Cursor,
+    pub resolved_generics: Vec<DefinerCollecting>,
     pub generic_parameters: Vec<ClassCallGenericParameter>,
     pub params: Vec<ClassCallParameter>,
     pub pos: defs::Cursor,

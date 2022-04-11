@@ -61,7 +61,7 @@ fn iterate_deep_type(
 
             #[derive(Debug, Clone)]
             struct Attribute {
-                rtype: AttributeType,
+                _rtype: AttributeType,
                 name: String,
                 value: definers::DefinerCollecting,
             }
@@ -133,6 +133,7 @@ fn iterate_deep_type(
                                                                         pos: ellie_core::defs::Cursor::default(),
                                                                     },
                                                                 )),
+                                                                resolved_generics: vec![],
                                                                 generic_parameters: vec![],
                                                                 keyword_pos: ellie_core::defs::Cursor::default(),
                                                                 pos: ellie_core::defs::Cursor::default(),
@@ -262,6 +263,9 @@ fn iterate_deep_type(
                                                                         pos: ellie_core::defs::Cursor::default(),
                                                                     },
                                                                 )),
+                                                                resolved_generics: parent_generic.generics.iter().map(|generic| {
+                                                                    generic.value.clone()
+                                                                }).collect::<Vec<_>>(),
                                                                 generic_parameters: parent_generic.generics.iter().map(|generic| {
                                                                     ellie_core::definite::types::class_call::ClassCallGenericParameter {
                                                                         value: generic.value.clone(),
@@ -328,22 +332,25 @@ fn iterate_deep_type(
 
                         if hash_deep_search.found {
                             match hash_deep_search.found_item {
-                                        crate::deep_search_extensions::ProcessedDeepSearchItems::Class(class_page) => {
-                                            match parser.find_processed_page(class_page.inner_page_id).cloned() {
-                                                Some(class_inner_page) => {
-                                                    let attributes = class_inner_page.items.iter().filter_map(|item| {
+                                ProcessedDeepSearchItems::Class(class_page) => {
+                                    match parser
+                                        .find_processed_page(class_page.inner_page_id)
+                                        .cloned()
+                                    {
+                                        Some(class_inner_page) => {
+                                            let attributes = class_inner_page.items.iter().filter_map(|item| {
                                                         match item.clone() {
                                                             Collecting::Variable(e) => {
                                                                 let resolved_type = if e.has_type { e.rtype } else { resolve_type(e.value, class_inner_page.hash, parser, &mut errors) };
                                                                 Some(Attribute {
-                                                                    rtype: AttributeType::Property,
+                                                                    _rtype: AttributeType::Property,
                                                                     name: e.name.clone(),
                                                                     value: resolved_type
                                                                 })
                                                             },
                                                             Collecting::Function(e) => {
                                                                 Some(Attribute {
-                                                                    rtype: AttributeType::Method,
+                                                                    _rtype: AttributeType::Method,
                                                                     name: e.name.clone(),
                                                                     value: definers::DefinerCollecting::Function(
                                                                         ellie_core::definite::definers::FunctionType {
@@ -357,7 +364,7 @@ fn iterate_deep_type(
                                                             },
                                                             Collecting::NativeFunction(e) => {
                                                                 Some(Attribute {
-                                                                    rtype: AttributeType::Method,
+                                                                    _rtype: AttributeType::Method,
                                                                     name: e.name.clone(),
                                                                     value: definers::DefinerCollecting::Function(
                                                                         ellie_core::definite::definers::FunctionType {
@@ -372,18 +379,19 @@ fn iterate_deep_type(
                                                             _ => None,
                                                         }
                                                     }).collect::<Vec<_>>();
-                                                    Ok(attributes)
-                                                },
-                                                None => {
-                                                    unreachable!()
-                                                }
-                                            }
-                                        },
-                                        crate::deep_search_extensions::ProcessedDeepSearchItems::Variable(_) => todo!(),
-                                        crate::deep_search_extensions::ProcessedDeepSearchItems::Function(_) => todo!(),
-                                        crate::deep_search_extensions::ProcessedDeepSearchItems::ImportReference(_) => todo!(),
-                                        crate::deep_search_extensions::ProcessedDeepSearchItems::None => todo!(),
+                                            Ok(attributes)
+                                        }
+                                        None => {
+                                            unreachable!()
+                                        }
                                     }
+                                }
+                                ProcessedDeepSearchItems::Variable(_) => todo!(),
+                                ProcessedDeepSearchItems::Function(_) => todo!(),
+                                ProcessedDeepSearchItems::ImportReference(_) => todo!(),
+                                ProcessedDeepSearchItems::GenericItem(_) => todo!(),
+                                ProcessedDeepSearchItems::None => todo!(),
+                            }
                         } else {
                             errors.push(error::error_list::ERROR_S6.clone().build_with_path(
                                 vec![error::ErrorBuildField {
@@ -746,6 +754,7 @@ fn iterate_deep_type(
                                                                         pos: defs::Cursor::default(),
                                                                     },
                                                                 )),
+                                                                resolved_generics: vec![],
                                                                 generic_parameters: vec![],
                                                                 keyword_pos: defs::Cursor::default(),
                                                                 pos: defs::Cursor::default(),
@@ -879,6 +888,9 @@ fn iterate_deep_type(
                                                                         pos: defs::Cursor::default(),
                                                                     },
                                                                 )),
+                                                                resolved_generics: parent_generic.generics.iter().map(|generic| {
+                                                                    generic.value.clone()
+                                                                }).collect::<Vec<_>>(),
                                                                 generic_parameters: parent_generic.generics.iter().map(|generic| {
                                                                     ellie_core::definite::types::class_call::ClassCallGenericParameter {
                                                                         value: generic.value.clone(),
@@ -989,6 +1001,7 @@ fn iterate_deep_type(
                                         params: vec![],
                                         keyword_pos: ellie_core::defs::Cursor::default(),
                                         target_pos: ellie_core::defs::Cursor::default(),
+                                        resolved_generics: vec![],
                                         generic_parameters: vec![],
                                         pos: ellie_core::defs::Cursor::default(),
                                     },
@@ -1061,6 +1074,7 @@ fn iterate_deep_type(
                         */
                     }
                     ProcessedDeepSearchItems::ImportReference(_) => todo!(),
+                    ProcessedDeepSearchItems::GenericItem(_) => todo!(),
                     ProcessedDeepSearchItems::None => todo!(),
                 }
             } else {
@@ -1338,14 +1352,14 @@ pub fn resolve_deep_type(
     iterate_deep_type(parser, page_id, rtype, errors)
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, EnumAsInner)]
 pub enum ProcessedDeepSearchItems {
     Class(ellie_core::definite::items::class::Class),
     Variable(ellie_core::definite::items::variable::Variable),
     Function(ellie_core::definite::items::function::Function),
     ImportReference(ellie_core::definite::items::import::Import),
     //SelfItem(ellie_core::definite::items::::SelfItem),
-    //GenericItem(ellie_core::definite::items::generic::Generic),
+    GenericItem(ellie_core::definite::items::generic::Generic),
     //FunctionParameter(ellie_core::definite::items::function::FunctionParameter),
     //ConstructorParameter(ellie_tokenizer::syntax::items::constructor_parameter::ConstructorParameter),
     //MixUp(Vec<(String, String)>),
@@ -1459,6 +1473,17 @@ pub fn deep_search_hash(
                                     found = true;
                                     found_page = page.clone();
                                     found_type = ProcessedDeepSearchItems::Class(e);
+                                }
+                            }
+                            Collecting::Generic(e) => {
+                                if e.hash == target_hash
+                                    && (level == 0
+                                        || matches!(inner_page, Some(ref parent_page_hash) if parent_page_hash == &page.hash))
+                                {
+                                    found_pos = Some(e.pos);
+                                    found = true;
+                                    found_page = page.clone();
+                                    found_type = ProcessedDeepSearchItems::GenericItem(e);
                                 }
                             }
                             _ => (),
@@ -1683,6 +1708,12 @@ pub fn find_type(
                 );
             }
             ProcessedDeepSearchItems::ImportReference(_) => {
+                panic!(
+                    "Unexpected internal crash, parser should have prevented this, {:?}",
+                    result
+                );
+            }
+            ProcessedDeepSearchItems::GenericItem(_) => {
                 panic!(
                     "Unexpected internal crash, parser should have prevented this, {:?}",
                     result

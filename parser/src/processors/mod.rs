@@ -4,8 +4,11 @@ pub mod constructor;
 pub mod definer_processor;
 pub mod file_key;
 pub mod function;
+pub mod generic_item;
+pub mod getter;
 pub mod import;
 pub mod ret;
+pub mod setter;
 pub mod type_processor;
 pub mod variable;
 

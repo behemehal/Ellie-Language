@@ -1,4 +1,4 @@
-use crate::deep_search_extensions::{self, find_type, resolve_deep_type, resolve_type};
+use crate::deep_search_extensions::{self, deep_search_hash, resolve_deep_type, resolve_type};
 use crate::processors::Processor;
 use alloc::borrow::ToOwned;
 use alloc::format;
@@ -224,9 +224,7 @@ impl Parser {
         self.pages[0].hash
     }
 
-    pub fn convert_to_definite() {
-
-    }
+    pub fn convert_to_definite() {}
 
     pub fn import_module(&mut self, module: Module) {
         self.modules.push(module.clone());
@@ -310,6 +308,13 @@ impl Parser {
             rtype.clone(),
             &mut errors,
         );
+
+        //Ignre everything since defining is dynamic
+        if matches!(defining.clone(), ellie_core::definite::definers::DefinerCollecting::Generic(e) if e.rtype == "dyn")
+        {
+            return Ok((true, "dyn".to_string(), "dyn".to_string()));
+        }
+
         match c {
             deep_search_extensions::DeepTypeResult::Integer(_) => {
                 if let ellie_core::definite::definers::DefinerCollecting::Generic(_) = defining {
@@ -496,13 +501,11 @@ impl Parser {
                     resolve_deep_type(self, target_page, *e.target.clone(), &mut errors);
 
                 match resolved_target {
-                    deep_search_extensions::DeepTypeResult::Function(e) => {
-                        Ok((
-                            defining.same_as(e.return_type.clone()),
-                            defining.to_string(),
-                            e.return_type.to_string(),
-                        ))
-                    }
+                    deep_search_extensions::DeepTypeResult::Function(e) => Ok((
+                        defining.same_as(e.return_type.clone()),
+                        defining.to_string(),
+                        e.return_type.to_string(),
+                    )),
                     _ => {
                         unreachable!()
                     }
@@ -673,7 +676,6 @@ impl Parser {
                     }
                 }
             }
-            _ => unreachable!("C: {:#?}", c),
         }
     }
 
@@ -1117,6 +1119,10 @@ impl Parser {
         for item in unprocessed_page.items.clone() {
             if unprocessed_page.unreachable {
                 if !item.is_virtual() {
+                    if unprocessed_page.unreachable_range.range_start.is_zero() {
+                        unprocessed_page.unreachable_range.range_start =
+                            defs::CursorPosition(item.get_pos().range_start.0, 0);
+                    }
                     unprocessed_page.unreachable_range.range_end = item.get_pos().range_end;
                 }
             } else {
@@ -1130,9 +1136,12 @@ impl Parser {
                         Processors::ForLoop(_) => todo!(),
                         Processors::Condition(_) => todo!(),
                         Processors::Class(e) => e.process(self, unprocessed_page.hash),
-                        Processors::Ret(e) => e.process(self, unprocessed_page.hash),
+                        Processors::Ret(e) => {
+                            unprocessed_page.unreachable = true;
+                            e.process(self, unprocessed_page.hash)
+                        }
                         Processors::SelfItem(_) => true,
-                        Processors::GenericItem(_) => true,
+                        Processors::GenericItem(e) => e.process(self, unprocessed_page.hash),
                         Processors::FunctionParameter(_) => true,
                         Processors::ConstructorParameter(_) => true,
                         unexpected_element => {
@@ -1163,7 +1172,7 @@ impl Parser {
                         Processors::Class(e) => e.process(self, unprocessed_page.hash),
                         Processors::Ret(e) => e.process(self, unprocessed_page.hash),
                         Processors::SelfItem(_) => true,
-                        Processors::GenericItem(_) => true,
+                        Processors::GenericItem(e) => e.process(self, unprocessed_page.hash),
                         Processors::FunctionParameter(_) => true,
                         Processors::ConstructorParameter(_) => true,
                         unexpected_element => {
@@ -1185,8 +1194,8 @@ impl Parser {
                     },
                     ellie_tokenizer::tokenizer::PageType::RawBody => match item {
                         Processors::Variable(e) => e.process(self, unprocessed_page.hash),
-                        Processors::GetterCall(_) => todo!(),
-                        Processors::SetterCall(_) => todo!(),
+                        Processors::GetterCall(e) => e.process(self, unprocessed_page.hash),
+                        Processors::SetterCall(e) => e.process(self, unprocessed_page.hash),
                         Processors::Function(e) => e.process(self, unprocessed_page.hash),
                         Processors::FileKey(e) => e.process(self, unprocessed_page.hash),
                         Processors::Import(e) => {
@@ -1202,7 +1211,7 @@ impl Parser {
                         Processors::Class(e) => e.process(self, unprocessed_page.hash),
 
                         Processors::SelfItem(_) => true,
-                        Processors::GenericItem(_) => true,
+                        Processors::GenericItem(e) => e.process(self, unprocessed_page.hash),
                         Processors::FunctionParameter(_) => true,
                         Processors::ConstructorParameter(_) => true,
                         unexpected_element => {
@@ -1228,7 +1237,7 @@ impl Parser {
                         Processors::FileKey(e) => e.process(self, unprocessed_page.hash),
                         Processors::Constructor(e) => e.process(self, unprocessed_page.hash),
                         Processors::SelfItem(_) => true,
-                        Processors::GenericItem(_) => true,
+                        Processors::GenericItem(e) => e.process(self, unprocessed_page.hash),
                         Processors::FunctionParameter(_) => true,
                         Processors::ConstructorParameter(_) => true,
                         unexpected_element => {
@@ -1274,7 +1283,7 @@ impl Parser {
                             false
                         }
                         Processors::SelfItem(_) => true,
-                        Processors::GenericItem(_) => true,
+                        Processors::GenericItem(e) => e.process(self, unprocessed_page.hash),
                         Processors::FunctionParameter(_) => true,
                         Processors::ConstructorParameter(_) => true,
                         unexpected_element => {
@@ -1303,19 +1312,15 @@ impl Parser {
 
         #[cfg(feature = "standard_rules")]
         {
-            match self.find_page(hash) {
-                Some(e) => {
-                    let q = e.clone();
-                    if q.unreachable && !q.unreachable_range.range_end.is_zero() {
-                        self.informations
-                            .push(&warning::warning_list::WARNING_S4.clone().build(
-                                vec![],
-                                q.path,
-                                q.unreachable_range,
-                            ));
-                    }
-                }
-                _ => (),
+            if unprocessed_page.unreachable
+                && !unprocessed_page.unreachable_range.range_end.is_zero()
+            {
+                self.informations
+                    .push(&warning::warning_list::WARNING_S4.clone().build(
+                        vec![],
+                        unprocessed_page.path,
+                        unprocessed_page.unreachable_range,
+                    ));
             }
         }
     }

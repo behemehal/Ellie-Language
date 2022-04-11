@@ -2,7 +2,6 @@ use alloc::boxed::Box;
 use alloc::string::ToString;
 use alloc::vec::Vec;
 use alloc::{borrow::ToOwned, vec};
-use ellie_core::definite::Converter;
 use ellie_core::{definite::definers, definite::definers::DefinerCollecting, error};
 use ellie_tokenizer::syntax::items::definers::DefinerTypes;
 
@@ -667,7 +666,7 @@ pub fn process(
                     crate::parser::DeepSearchItems::GenericItem(generic) => {
                         found = DefinerCollecting::Generic(definers::GenericType {
                             rtype: generic.generic_name.clone(),
-                            hash: 0,
+                            hash: generic.hash,
                             pos: generic.pos,
                         });
                     }
@@ -706,7 +705,7 @@ pub fn process(
 
             if deep_search_result.found {
                 match deep_search_result.found_item {
-                    crate::parser::DeepSearchItems::Class(cloak_class) => {
+                    crate::parser::DeepSearchItems::Class(_) => {
                         /*
                         found = DefinerCollecting::Generic(definers::GenericType {
                             hash: cloak_class.hash,

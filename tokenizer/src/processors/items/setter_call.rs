@@ -12,11 +12,11 @@ impl crate::processors::Processor for SetterCall {
         if self.cache.is_complete() && letter_char == ';' {
             self.complete = true;
             self.value = self.cache.current.clone();
-            self.pos.range_end = cursor.clone().skip_char(1);
         } else {
             if self.cache.current.is_not_initialized() {
-                self.pos.range_start = cursor;
+                self.value_pos.range_start = cursor;
             }
+            self.value_pos.range_end = cursor;
             hang = self.cache.iterate(errors, cursor, last_char, letter_char);
         }
         hang
