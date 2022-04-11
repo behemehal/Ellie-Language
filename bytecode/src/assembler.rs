@@ -1,9 +1,9 @@
-use crate::instructions::{self, Instruction, AddressingModes};
-use alloc::vec::Vec;
+use crate::{instructions::{self, AddressingModes, Instruction}, utils};
+use alloc::{string::String, vec::Vec};
 use ellie_parser::parser::Module;
 
 pub struct StackMemory {
-    memory: Vec<u8>
+    memory: Vec<u8>,
 }
 
 pub struct Assembler {
@@ -15,9 +15,24 @@ pub struct Assembler {
 }
 
 #[derive(Clone, Debug)]
+pub enum DebugHeaderType {
+    Variable,
+    Class,
+    Parameter,
+}
+
+#[derive(Clone, Debug)]
+pub struct DebugHeader {
+    pub id: usize,
+    pub rtype: DebugHeaderType,
+    pub name: String,
+    pub cursor: ellie_core::defs::Cursor,
+}
+
+#[derive(Clone, Debug)]
 pub struct InstructionPage {
     pub instructions: Vec<instructions::Instructions>,
-    pub debug_headers: Vec<(u64, u64)>,
+    pub debug_headers: Vec<DebugHeader>,
 }
 
 impl InstructionPage {
@@ -77,9 +92,17 @@ impl Assembler {
 
             for item in &processed_page.items {
                 match item {
-                    ellie_core::definite::items::Collecting::Variable(_) => {
-                        page.assign_instruction(instructions::Instructions::LDA(Instruction::absolute(0)));
-                        //panic!("{:#?}", variable)
+                    ellie_core::definite::items::Collecting::Variable(variable) => {
+                        page.debug_headers.push(DebugHeader {
+                            id: page.instructions.len(),
+                            rtype: DebugHeaderType::Variable,
+                            name: variable.name.clone(),
+                            cursor: variable.pos,
+                        });
+                        
+                        //page.assign_instruction(instructions::Instructions::LDA(
+                        //    Instruction::absolute(utils::convert_to_raw_type(variable.value).join("").),
+                        //));
                     }
                     ellie_core::definite::items::Collecting::Function(_) => {
                         std::println!("[Assembler,Ignore,Element] Function")

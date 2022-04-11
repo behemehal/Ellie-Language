@@ -1,10 +1,8 @@
+use ellie_core::defs::Version;
 use std::fs;
 use std::path::Path;
 use std::path::PathBuf;
 use std::sync::Mutex;
-
-use ellie_bytecode::assembler::PlatformArchitecture;
-use ellie_core::defs::Version;
 
 use crate::cli_outputs;
 use crate::cli_utils;
@@ -154,10 +152,13 @@ pub fn compile(
                         compiler_settings.version,
                     );
 
-                    let ellie_std: parser::Module =
-                        serde_json::from_str(ellie_core::builded_libraries::ELLIE_STANDARD_LIBRARY)
-                            .unwrap();
-                    parser.import_module(ellie_std);
+                    if !compiler_settings.exclude_stdlib {
+                        let ellie_std: parser::Module = serde_json::from_str(
+                            ellie_core::builded_libraries::ELLIE_STANDARD_LIBRARY,
+                        )
+                        .unwrap();
+                        parser.import_module(ellie_std);
+                    }
 
                     for (module, _) in modules.iter() {
                         if used_modules.lock().unwrap().contains(&(&module.name)) {
