@@ -68,6 +68,7 @@ pub enum OutputTypes {
     DependencyAnalysis,
     Json,
     ByteCode,
+    ByteCodeAsm,
     Nop,
 }
 
@@ -573,7 +574,7 @@ pub fn render_code_block(
                         Colors::Yellow
                     },
                     arrow(
-                        (item_pos.range_start.1) as usize,
+                        (item_pos.range_start.1 + 1) as usize,
                         (item_pos.range_end.1 + 1) - item_pos.range_start.1
                     ),
                     Colors::Reset,
@@ -599,7 +600,7 @@ pub fn render_code_block(
                         Colors::Yellow
                     },
                     arrow(
-                        (item_pos.range_start.1) as usize,
+                        (item_pos.range_start.1 + 1) as usize,
                         (item_pos.range_end.1 + 1) - item_pos.range_start.1
                     ),
                     Colors::Reset,
@@ -735,6 +736,14 @@ pub fn generate_elliec_options() -> Command<'static> {
             Command::new("compile")
                 .about("Compile file")
                 .arg(
+                    Arg::new("targetArchitecture")
+                        .help("Targeted architecture for bytecode")
+                        .short('c')
+                        .long("--arch")
+                        .default_values(&["64", "32", "16", "8"])
+                        .default_value("64"),
+                )
+                .arg(
                     Arg::new("allowPanics")
                         .help("Allow panics")
                         .short('a')
@@ -753,9 +762,15 @@ pub fn generate_elliec_options() -> Command<'static> {
                         .long("-json-log"),
                 )
                 .arg(
+                    Arg::new("isLib")
+                        .help("Compile as lib")
+                        .short('l')
+                        .long("-compile-lib"),
+                )
+                .arg(
                     Arg::new("disableWarnings")
                         .help("Disable warnings")
-                        .short('d')
+                        .short('w')
                         .long("-disable-warnings"),
                 )
                 .arg(
@@ -784,7 +799,7 @@ pub fn generate_elliec_options() -> Command<'static> {
                 .arg(
                     Arg::new("description")
                         .help("Description of module")
-                        .short('c')
+                        .short('d')
                         .long("--module-description")
                         .default_value("A ellie module")
                         .takes_value(true),

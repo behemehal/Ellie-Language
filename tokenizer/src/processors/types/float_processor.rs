@@ -26,45 +26,16 @@ impl crate::processors::Processor for float_type::FloatTypeCollector {
             if letter_char.to_string().parse::<i8>().is_ok() {
                 self.point += &letter_char.to_string();
                 self.data.raw += &letter_char.to_string();
-                let f32_parse = self.data.raw.parse::<f32>();
-                if f32_parse.is_ok() && self.data.raw.len() < 9 {
-                    if f32_parse.clone().unwrap().is_infinite() {
-                        errors.push(error::error_list::ERROR_S17.clone().build(
-                            vec![error::ErrorBuildField {
-                                key: "val".to_owned(),
-                                value: (self.point.clone() + &letter_char.to_string()),
-                            }],
-                            "0x35".to_owned(),
-                            defs::Cursor::build_with_skip_char(cursor),
-                        ));
-                    } else {
-                        self.data.value = float_type::FloatSize::F32(f32_parse.unwrap());
-                        self.data.rtype = float_type::FloatTypes::F32;
-                        self.complete = true;
-                    }
-                } else if let Ok(flt) = self.data.raw.parse::<f64>() {
-                    if flt.is_infinite() {
-                        errors.push(error::error_list::ERROR_S17.clone().build(
-                            vec![error::ErrorBuildField {
-                                key: "val".to_owned(),
-                                value: (self.point.clone() + &letter_char.to_string()),
-                            }],
-                            "0x50".to_owned(),
-                            defs::Cursor::build_with_skip_char(cursor),
-                        ));
-                    } else {
-                        self.data.value = float_type::FloatSize::F64(flt);
-                        self.data.rtype = float_type::FloatTypes::F64;
-                        self.complete = true;
-                    }
+                if let Ok(nm) = self.data.raw.parse::<f32>() {
+                    self.data.value = nm;
                 } else {
-                    errors.push(error::error_list::ERROR_S17.clone().build(
+                    errors.push(error::error_list::ERROR_S16.clone().build(
                         vec![error::ErrorBuildField {
                             key: "val".to_owned(),
                             value: self.data.raw.clone(),
                         }],
-                        "0x64".to_owned(),
-                        defs::Cursor::build_with_skip_char(cursor),
+                        alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                        defs::Cursor::build_from_cursor(cursor),
                     ));
                 }
                 self.data.pos.range_end = cursor.clone().skip_char(1);

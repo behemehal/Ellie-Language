@@ -92,7 +92,7 @@ pub fn process(
                                                 },
                                                 error::ErrorBuildField {
                                                     key: "token2".to_string(),
-                                                    value: 1.to_string(),
+                                                    value: "1".to_string(),
                                                 },
                                             ],
                                             alloc::format!(
@@ -126,12 +126,16 @@ pub fn process(
                                         }
                                         _ => {
                                             let resolved_deep_size =
-                                                crate::deep_search_extensions::resolve_type(
+                                                match crate::deep_search_extensions::resolve_type(
                                                     *array_type.size,
                                                     page_id,
                                                     parser,
                                                     &mut errors,
-                                                );
+                                                    Some(array_type.size_pos),
+                                                ) {
+                                                    Some(e) => e,
+                                                    None => return Err(errors),
+                                                };
 
                                             if matches!(resolved_deep_size.clone(), DefinerCollecting::Generic(x) if x.rtype == "int")
                                             {

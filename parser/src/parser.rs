@@ -1,4 +1,4 @@
-use crate::deep_search_extensions::{self, deep_search_hash, resolve_deep_type, resolve_type};
+use crate::deep_search_extensions::{self, resolve_deep_type, resolve_type};
 use crate::processors::Processor;
 use alloc::borrow::ToOwned;
 use alloc::format;
@@ -78,10 +78,6 @@ pub struct Module {
 }
 
 pub struct ParserSettings {
-    pub max_int_size: Option<(
-        ellie_tokenizer::syntax::types::integer_type::IntegerTypes,
-        String,
-    )>,
     pub dynamics: (bool, String),
     pub nullables: (bool, String),
     pub integers: (bool, String),
@@ -100,7 +96,6 @@ pub struct ParserSettings {
 impl Default for ParserSettings {
     fn default() -> Self {
         ParserSettings {
-            max_int_size: None,
             dynamics: (true, String::new()),
             nullables: (true, String::new()),
             integers: (true, String::new()),
@@ -124,17 +119,6 @@ impl ParserSettings {
         type_: ellie_tokenizer::processors::types::Processors,
     ) -> (bool, String) {
         match type_ {
-            ellie_tokenizer::processors::types::Processors::Integer(e) => {
-                if self.integers.0 {
-                    if let Some(limit) = self.max_int_size.clone() {
-                        (e.data.rtype.is_greater(limit.0), limit.1)
-                    } else {
-                        (true, String::new())
-                    }
-                } else {
-                    self.integers.clone()
-                }
-            }
             ellie_tokenizer::processors::types::Processors::Float(_) => self.floats.clone(),
             ellie_tokenizer::processors::types::Processors::Char(_) => self.chars.clone(),
             ellie_tokenizer::processors::types::Processors::String(_) => self.strings.clone(),
@@ -291,7 +275,9 @@ impl Parser {
             ellie_core::definite::types::Types::AsKeyword(e) => self.resolve_type_name(*e.target),
             ellie_core::definite::types::Types::Bool(_) => "bool".to_string(),
             ellie_core::definite::types::Types::Dynamic => "dyn".to_string(),
-            ellie_core::definite::types::Types::Function(_) => todo!(),
+            ellie_core::definite::types::Types::Function(_) => "function".to_string(),
+            ellie_core::definite::types::Types::Byte(_) => "byte".to_string(),
+            ellie_core::definite::types::Types::Double(_) => "double".to_string(),
         }
     }
 
@@ -302,7 +288,7 @@ impl Parser {
         target_page: u64,
     ) -> Result<(bool, String, String), Vec<error::Error>> {
         let mut errors: Vec<error::Error> = Vec::new();
-        let c = crate::deep_search_extensions::resolve_deep_type(
+        let found_type = crate::deep_search_extensions::resolve_deep_type(
             self,
             target_page,
             rtype.clone(),
@@ -315,7 +301,7 @@ impl Parser {
             return Ok((true, "dyn".to_string(), "dyn".to_string()));
         }
 
-        match c {
+        match found_type {
             deep_search_extensions::DeepTypeResult::Integer(_) => {
                 if let ellie_core::definite::definers::DefinerCollecting::Generic(_) = defining {
                     if defining.to_string() == "int" {
@@ -339,6 +325,29 @@ impl Parser {
                     }
                 }
             }
+            deep_search_extensions::DeepTypeResult::Byte(_) => {
+                if let ellie_core::definite::definers::DefinerCollecting::Generic(_) = defining {
+                    if defining.to_string() == "byte" {
+                        if errors.is_empty() {
+                            Ok((true, defining.to_string(), "byte".to_owned()))
+                        } else {
+                            Err(errors)
+                        }
+                    } else {
+                        if errors.is_empty() {
+                            Ok((false, defining.to_string(), "byte".to_owned()))
+                        } else {
+                            Err(errors)
+                        }
+                    }
+                } else {
+                    if errors.is_empty() {
+                        Ok((false, defining.to_string(), "byte".to_owned()))
+                    } else {
+                        Err(errors)
+                    }
+                }
+            }
             deep_search_extensions::DeepTypeResult::Float(_) => {
                 if let ellie_core::definite::definers::DefinerCollecting::Generic(_) = defining {
                     if defining.to_string() == "float" {
@@ -357,6 +366,29 @@ impl Parser {
                 } else {
                     if errors.is_empty() {
                         Ok((false, defining.to_string(), "float".to_owned()))
+                    } else {
+                        Err(errors)
+                    }
+                }
+            }
+            deep_search_extensions::DeepTypeResult::Double(_) => {
+                if let ellie_core::definite::definers::DefinerCollecting::Generic(_) = defining {
+                    if defining.to_string() == "double" {
+                        if errors.is_empty() {
+                            Ok((true, defining.to_string(), "double".to_owned()))
+                        } else {
+                            Err(errors)
+                        }
+                    } else {
+                        if errors.is_empty() {
+                            Ok((false, defining.to_string(), "double".to_owned()))
+                        } else {
+                            Err(errors)
+                        }
+                    }
+                } else {
+                    if errors.is_empty() {
+                        Ok((false, defining.to_string(), "double".to_owned()))
                     } else {
                         Err(errors)
                     }
@@ -435,8 +467,18 @@ impl Parser {
             deep_search_extensions::DeepTypeResult::Operator(_) => todo!(),
             deep_search_extensions::DeepTypeResult::Cloak(_) => todo!(),
             deep_search_extensions::DeepTypeResult::Array(_) => {
-                let value_gen =
-                    deep_search_extensions::resolve_type(rtype, target_page, self, &mut errors);
+                let value_gen = match deep_search_extensions::resolve_type(
+                    rtype,
+                    target_page,
+                    self,
+                    &mut errors,
+                    None,
+                ) {
+                    Some(e) => e,
+                    None => {
+                        return Err(errors);
+                    }
+                };
 
                 if value_gen.same_as(defining.clone()) {
                     if errors.is_empty() {
@@ -480,12 +522,16 @@ impl Parser {
             }
             deep_search_extensions::DeepTypeResult::Vector(_) => todo!(),
             deep_search_extensions::DeepTypeResult::ClassCall(class_call) => {
-                let class_call_type = resolve_type(
+                let class_call_type = match resolve_type(
                     ellie_core::definite::types::Types::ClassCall(class_call.clone()),
                     target_page,
                     self,
                     &mut errors,
-                );
+                    Some(class_call.pos),
+                ) {
+                    Some(e) => e,
+                    None => return Err(errors),
+                };
                 if errors.is_empty() {
                     if class_call_type.same_as(defining.clone()) {
                         Ok((true, defining.to_string(), class_call_type.to_string()))
@@ -557,9 +603,17 @@ impl Parser {
                     }
                 }
             }
-            deep_search_extensions::DeepTypeResult::BraceReference(_) => {
-                let value_gen =
-                    deep_search_extensions::resolve_type(rtype, target_page, self, &mut errors);
+            deep_search_extensions::DeepTypeResult::BraceReference(e) => {
+                let value_gen = match deep_search_extensions::resolve_type(
+                    rtype,
+                    target_page,
+                    self,
+                    &mut errors,
+                    Some(e.pos),
+                ) {
+                    Some(e) => e,
+                    None => return Err(errors),
+                };
 
                 if value_gen.same_as(defining.clone()) {
                     if errors.is_empty() {
@@ -1329,9 +1383,41 @@ impl Parser {
         &mut self,
         module_name: String,
         module_description: String,
+        is_lib: bool,
         ellie_version: defs::Version,
     ) -> Module {
         self.process_page(self.initial_page);
+
+        if !is_lib {
+            let main_function =
+                self.deep_search(self.initial_page, "main".to_string(), None, vec![], 0);
+            if main_function.found {
+                match main_function.found_item {
+                    DeepSearchItems::Function(_) => (),
+                    _ => {
+                        let path = self.find_page(self.initial_page).unwrap().path.clone();
+                        self.informations.push(
+                            &error::error_list::ERROR_S33.clone().build_with_path(
+                                vec![],
+                                alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                                path,
+                                defs::Cursor::default(),
+                            ),
+                        );
+                    }
+                }
+            } else {
+                let path = self.find_page(self.initial_page).unwrap().path.clone();
+                self.informations
+                    .push(&error::error_list::ERROR_S33.clone().build_with_path(
+                        vec![],
+                        alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                        path,
+                        defs::Cursor::default(),
+                    ));
+            }
+        }
+
         Module {
             name: module_name,
             description: module_description,

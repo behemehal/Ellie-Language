@@ -1,8 +1,11 @@
 use ellie_core::defs::Version;
+use ellie_core::module_path;
 use std::fs;
+use std::fs::File;
 use std::path::Path;
 use std::path::PathBuf;
 use std::sync::Mutex;
+use std::time::Instant;
 
 use crate::cli_outputs;
 use crate::cli_utils;
@@ -16,12 +19,14 @@ pub struct CompilerSettings {
     pub json_log: bool,
     pub name: String,
     pub file_name: String,
+    pub is_lib: bool,
     pub description: String,
     pub version: Version,
     pub output_type: cli_utils::OutputTypes,
     pub show_debug_lines: bool,
     pub exclude_stdlib: bool,
     pub warnings: bool,
+    pub byte_code_architecture: ellie_bytecode::assembler::PlatformArchitecture,
 }
 
 pub fn get_output_path(
@@ -47,7 +52,9 @@ pub fn get_output_path(
                 + "/"
                 + file_name
                 + match output_type {
-                    cli_utils::OutputTypes::Bin => ".bin",
+                    cli_utils::OutputTypes::Bin => ".eib",
+                    cli_utils::OutputTypes::ByteCode => ".eic",
+                    cli_utils::OutputTypes::ByteCodeAsm => ".eia",
                     _ => ".json",
                 }),
         )
@@ -60,7 +67,7 @@ pub fn get_output_path(
 pub fn compile(
     target_path: &Path,
     output_path: &Path,
-    modules: Vec<(parser::Module, String)>,
+    modules: Vec<(parser::Module, Option<String>)>,
     compiler_settings: CompilerSettings,
 ) {
     let starter_name = format!("<ellie_module_{}>", compiler_settings.name);
@@ -144,6 +151,7 @@ pub fn compile(
                 first_page_hash.clone(),
             );
 
+            let tokenize_start = Instant::now();
             match pager.run() {
                 Ok(_) => {
                     let mut parser = parser::Parser::new(
@@ -153,11 +161,12 @@ pub fn compile(
                     );
 
                     if !compiler_settings.exclude_stdlib {
-                        let ellie_std: parser::Module = serde_json::from_str(
-                            ellie_core::builded_libraries::ELLIE_STANDARD_LIBRARY,
-                        )
-                        .unwrap();
-                        parser.import_module(ellie_std);
+
+                        //let ellie_std: parser::Module = serde_json::from_str(
+                        //    ellie_core::builded_libraries::ELLIE_STANDARD_LIBRARY,
+                        //)
+                        //.unwrap();
+                        //parser.import_module(ellie_std);
                     }
 
                     for (module, _) in modules.iter() {
@@ -166,13 +175,19 @@ pub fn compile(
                         }
                     }
 
+                    let tokenize_end =
+                        (tokenize_start.elapsed().as_nanos() as f64 / 1000000_f64) as f64;
+                    let compile_start = Instant::now();
                     let workspace = parser.parse(
                         compiler_settings.name,
                         compiler_settings.description,
+                        compiler_settings.is_lib,
                         ellie_core::defs::Version::build_from_string(
                             crate::engine_constants::ELLIE_VERSION.to_owned(),
                         ),
                     );
+                    let compile_end =
+                        (compile_start.elapsed().as_nanos() as f64 / 1000000_f64) as f64;
 
                     if !parser.informations.has_no_warnings() && compiler_settings.warnings {
                         if compiler_settings.json_log {
@@ -221,8 +236,9 @@ pub fn compile(
                                         .iter()
                                         .find(|(module, _)| module.name == virtual_path_identifier)
                                     {
+                                        let module_path = module_path.clone().unwrap();
                                         let real_path =
-                                            path.replace(&path_starter, module_path).clone();
+                                            path.replace(&path_starter, &module_path).clone();
                                         match cli_utils::read_file(real_path) {
                                             Ok(e) => e,
                                             Err(err) => {
@@ -265,7 +281,8 @@ pub fn compile(
                                         .iter()
                                         .find(|(module, _)| module.name == virtual_path_identifier)
                                     {
-                                        path.replace(&path_starter, module_path).clone()
+                                        let module_path = module_path.clone().unwrap();
+                                        path.replace(&path_starter, &module_path).clone()
                                     } else {
                                         panic!(
                                             "Failed to ouput error. Cannot identify module '{}'",
@@ -324,8 +341,9 @@ pub fn compile(
                                         .iter()
                                         .find(|(module, _)| module.name == virtual_path_identifier)
                                     {
+                                        let module_path = module_path.clone().unwrap();
                                         let real_path =
-                                            path.replace(&path_starter, module_path).clone();
+                                            path.replace(&path_starter, &module_path).clone();
                                         match cli_utils::read_file(real_path) {
                                             Ok(e) => e,
                                             Err(err) => {
@@ -369,7 +387,8 @@ pub fn compile(
                                         .iter()
                                         .find(|(module, _)| module.name == virtual_path_identifier)
                                     {
-                                        path.replace(&path_starter, module_path).clone()
+                                        let module_path = module_path.clone().unwrap();
+                                        path.replace(&path_starter, &module_path).clone()
                                     } else {
                                         panic!(
                                             "Failed to ouput error. Cannot identify module '{}'",
@@ -528,21 +547,75 @@ pub fn compile(
                                     cli_utils::Colors::Reset,
                                 );
                             }
-                            cli_utils::OutputTypes::ByteCode => {
-                                println!(
-                                    "{}[!]{}: ByteCode fixed to 64 bit architecture",
-                                    cli_utils::Colors::Red,
-                                    cli_utils::Colors::Reset,
-                                );
-                                ellie_bytecode::assembler::Assembler::new(
+                            cli_utils::OutputTypes::ByteCodeAsm => {
+                                if !compiler_settings.json_log {
+                                    println!(
+                                        "{}[?]{}: ByteCode compiling to {} bit architecture",
+                                        cli_utils::Colors::Green,
+                                        cli_utils::Colors::Reset,
+                                        match compiler_settings.byte_code_architecture {
+                                            ellie_bytecode::assembler::PlatformArchitecture::B8 => "8",
+                                            ellie_bytecode::assembler::PlatformArchitecture::B16 => "16",
+                                            ellie_bytecode::assembler::PlatformArchitecture::B32 => "32",
+                                            ellie_bytecode::assembler::PlatformArchitecture::B64 => "64",
+                                        }
+                                    );
+                                }
+                                let mut assembler = ellie_bytecode::assembler::Assembler::new(
                                     workspace,
                                     ellie_bytecode::assembler::PlatformAttributes {
                                         architecture:
                                             ellie_bytecode::assembler::PlatformArchitecture::B64, //64 Bit Limit
                                         memory_size: 512000, //512kb memory limit
                                     },
-                                )
-                                .assemble();
+                                );
+                                let assembler_result = assembler.assemble();
+                                match File::create(output_path) {
+                                    Ok(file) => {
+                                        assembler_result.render(file);
+                                        if compiler_settings.json_log {
+                                            let mut output =
+                                                cli_outputs::WRITE_BYTE_CODE_SUCCEDED.clone();
+                                            output.extra.push(cli_outputs::CliOuputExtraData {
+                                                key: 0,
+                                                value: output_path
+                                                    .absolutize()
+                                                    .unwrap()
+                                                    .to_str()
+                                                    .unwrap()
+                                                    .to_owned(),
+                                            });
+                                            println!("{}", serde_json::to_string(&output).unwrap())
+                                        } else {
+                                            println!(
+                                                "{}[!]{}: ByteCode output written to {}{}{}",
+                                                cli_utils::Colors::Green,
+                                                cli_utils::Colors::Reset,
+                                                cli_utils::Colors::Yellow,
+                                                output_path.absolutize().unwrap().to_str().unwrap(),
+                                                cli_utils::Colors::Reset,
+                                            );
+                                        }
+                                    }
+                                    Err(write_error) => {
+                                        if compiler_settings.json_log {
+                                            let mut output = cli_outputs::WRITE_FILE_ERROR.clone();
+                                            output.extra.push(cli_outputs::CliOuputExtraData {
+                                                key: "path".to_string(),
+                                                value: format!("{:?}", write_error),
+                                            });
+
+                                            println!("{}", serde_json::to_string(&output).unwrap())
+                                        } else {
+                                            println!(
+                                                "\nFailed to write output. [{}{:?}{}]",
+                                                cli_utils::Colors::Red,
+                                                write_error,
+                                                cli_utils::Colors::Reset,
+                                            );
+                                        }
+                                    }
+                                }
                             }
                             cli_utils::OutputTypes::Json => {
                                 let json = serde_json::to_string(&workspace).unwrap();
@@ -589,6 +662,76 @@ pub fn compile(
                                 }
                             }
                             cli_utils::OutputTypes::Nop => (),
+                            cli_utils::OutputTypes::ByteCode => {
+                                if !compiler_settings.json_log {
+                                    println!(
+                                        "{}[?]{}: ByteCode compiling to {} bit architecture",
+                                        cli_utils::Colors::Green,
+                                        cli_utils::Colors::Reset,
+                                        match compiler_settings.byte_code_architecture {
+                                            ellie_bytecode::assembler::PlatformArchitecture::B8 => "8",
+                                            ellie_bytecode::assembler::PlatformArchitecture::B16 => "16",
+                                            ellie_bytecode::assembler::PlatformArchitecture::B32 => "32",
+                                            ellie_bytecode::assembler::PlatformArchitecture::B64 => "64",
+                                        }
+                                    );
+                                }
+                                let mut assembler = ellie_bytecode::assembler::Assembler::new(
+                                    workspace,
+                                    ellie_bytecode::assembler::PlatformAttributes {
+                                        architecture:
+                                            ellie_bytecode::assembler::PlatformArchitecture::B64, //64 Bit Limit
+                                        memory_size: 512000, //512kb memory limit
+                                    },
+                                );
+                                let assembler_result = assembler.assemble();
+                                match File::create(output_path) {
+                                    Ok(mut file) => {
+                                        assembler_result.render_binary(&mut file, None);
+                                        if compiler_settings.json_log {
+                                            let mut output =
+                                                cli_outputs::WRITE_BYTE_CODE_SUCCEDED.clone();
+                                            output.extra.push(cli_outputs::CliOuputExtraData {
+                                                key: 0,
+                                                value: output_path
+                                                    .absolutize()
+                                                    .unwrap()
+                                                    .to_str()
+                                                    .unwrap()
+                                                    .to_owned(),
+                                            });
+                                            println!("{}", serde_json::to_string(&output).unwrap())
+                                        } else {
+                                            println!(
+                                                "{}[!]{}: ByteCode output written to {}{}{}",
+                                                cli_utils::Colors::Green,
+                                                cli_utils::Colors::Reset,
+                                                cli_utils::Colors::Yellow,
+                                                output_path.absolutize().unwrap().to_str().unwrap(),
+                                                cli_utils::Colors::Reset,
+                                            );
+                                        }
+                                    }
+                                    Err(write_error) => {
+                                        if compiler_settings.json_log {
+                                            let mut output = cli_outputs::WRITE_FILE_ERROR.clone();
+                                            output.extra.push(cli_outputs::CliOuputExtraData {
+                                                key: "path".to_string(),
+                                                value: format!("{:?}", write_error),
+                                            });
+
+                                            println!("{}", serde_json::to_string(&output).unwrap())
+                                        } else {
+                                            println!(
+                                                "\nFailed to write output. [{}{:?}{}]",
+                                                cli_utils::Colors::Red,
+                                                write_error,
+                                                cli_utils::Colors::Reset,
+                                            );
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
 
@@ -598,6 +741,20 @@ pub fn compile(
                             cli_utils::Colors::Green,
                             cli_utils::Colors::Reset,
                             crate::engine_constants::ELLIE_VERSION
+                        );
+                        println!(
+                            "{}[?]{}: Tokenizing took {}{}{}ms, Parsing took {}{}{}ms. Total time: {}{}{}ms",
+                            cli_utils::Colors::Yellow,
+                            cli_utils::Colors::Reset,
+                            cli_utils::Colors::Yellow,
+                            tokenize_end,
+                            cli_utils::Colors::Reset,
+                            cli_utils::Colors::Yellow,
+                            compile_end,
+                            cli_utils::Colors::Reset,
+                            cli_utils::Colors::Yellow,
+                            compile_end + tokenize_end,
+                            cli_utils::Colors::Reset,
                         );
                         println!(
                             "{}[!]{}: Ellie is on development and may not be stable.",

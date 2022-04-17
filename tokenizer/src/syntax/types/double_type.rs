@@ -4,15 +4,15 @@ use ellie_core::{definite, defs};
 use serde::{Deserialize, Serialize};
 
 #[derive(PartialEq, Default, Debug, Clone, Serialize, Deserialize)]
-pub struct FloatType {
-    pub value: f32,
+pub struct DoubleType {
+    pub value: f64,
     pub raw: String,
     pub pos: defs::Cursor,
 }
 
 #[derive(PartialEq, Default, Debug, Clone, Serialize, Deserialize)]
-pub struct FloatTypeCollector {
-    pub data: FloatType,
+pub struct DoubleTypeCollector {
+    pub data: DoubleType,
     pub base: String,
     pub point: String,
     pub base_p: IntegerTypeCollector,
@@ -21,22 +21,22 @@ pub struct FloatTypeCollector {
     pub no_base: bool,
 }
 
-impl definite::Converter<FloatTypeCollector, definite::types::float::FloatType>
-    for FloatTypeCollector
+impl definite::Converter<DoubleTypeCollector, definite::types::double::DoubleType>
+    for DoubleTypeCollector
 {
-    fn to_definite(self) -> definite::types::float::FloatType {
-        definite::types::float::FloatType {
+    fn to_definite(self) -> definite::types::double::DoubleType {
+        definite::types::double::DoubleType {
             value: self.data.value,
             pos: self.data.pos,
         }
     }
 
-    fn from_definite(self, from: definite::types::float::FloatType) -> Self {
+    fn from_definite(self, from: definite::types::double::DoubleType) -> Self {
         let raw = from.value.to_string();
         let partitions = raw.split(".").collect::<Vec<_>>();
 
-        FloatTypeCollector {
-            data: FloatType {
+        DoubleTypeCollector {
+            data: DoubleType {
                 value: from.value,
                 raw: raw.clone(),
                 pos: from.pos,

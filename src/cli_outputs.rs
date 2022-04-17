@@ -135,4 +135,10 @@ lazy_static! {
         message: "This module is legacy but used anyway".to_string(),
         extra: Vec::new(),
     };
+    pub static ref WRITE_BYTE_CODE_SUCCEDED: CliOuput<i8, String> = CliOuput {
+        code: 16,
+        rtype: CliOuputType::Info,
+        message: "Output write succeded as byte code".to_string(),
+        extra: Vec::new(),
+    };
 }

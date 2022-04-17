@@ -111,7 +111,7 @@ pub fn parse(target_path: &Path, json_log: bool) {
                     );
                 } else {
                     println!(
-                        "{}Error{}: {}Failed to decode module [{}]].{}",
+                        "{}Error{} 0x1: {}Failed to decode module [{}]].{}",
                         cli_utils::Colors::Red,
                         cli_utils::Colors::Reset,
                         cli_utils::Colors::Cyan,

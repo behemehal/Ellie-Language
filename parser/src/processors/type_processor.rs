@@ -166,18 +166,26 @@ pub fn process(
                 return Err(errors);
             }
 
-            let first_value = resolve_type(
+            let first_value = match resolve_type(
                 operator.data.first.to_definite(),
                 page_id,
                 parser,
                 &mut errors,
-            );
-            let second_value = resolve_type(
+                Some(operator.data.first_pos),
+            ) {
+                Some(e) => e,
+                None => return Err(errors),
+            };
+            let second_value = match resolve_type(
                 operator.data.second.to_definite(),
                 page_id,
                 parser,
                 &mut errors,
-            );
+                Some(operator.data.second_pos),
+            ) {
+                Some(e) => e,
+                None => return Err(errors),
+            };
 
             match operator.data.operator {
                 ellie_tokenizer::syntax::types::operator_type::Operators::ComparisonType(_) => {
@@ -235,8 +243,7 @@ pub fn process(
                 ellie_tokenizer::syntax::types::operator_type::Operators::ArithmeticType(_) => {
                     if first_value.same_as(second_value.clone()) {
                         Ok(types::Types::Integer(types::integer::IntegerType {
-                            value: types::integer::IntegerSize::I8(0),
-                            rtype: types::integer::IntegerTypes::I8,
+                            value: 0,
                             pos: ellie_core::defs::Cursor::default(),
                         }))
                     } else {
@@ -300,20 +307,14 @@ pub fn process(
                                 if generic.rtype == "int" {
                                     Some(types::Types::Integer(
                                         ellie_core::definite::types::integer::IntegerType {
-                                            value: ellie_core::definite::types::integer::IntegerSize::I8(0),
-                                            rtype: ellie_core::definite::types::integer::IntegerTypes::I8,
+                                            value: 0,
                                             pos: ellie_core::defs::Cursor::default(),
                                         },
                                     ))
                                 } else if generic.rtype == "float" {
                                     Some(types::Types::Float(
                                         ellie_core::definite::types::float::FloatType {
-                                            value:
-                                                ellie_core::definite::types::float::FloatSize::F32(
-                                                    0.0,
-                                                ),
-                                            rtype:
-                                                ellie_core::definite::types::float::FloatTypes::F32,
+                                            value: 0.0,
                                             pos: ellie_core::defs::Cursor::default(),
                                         },
                                     ))
@@ -567,7 +568,10 @@ pub fn process(
                                                     let attributes = class_inner_page.items.iter().filter_map(|item| {
                                                         match item.clone() {
                                                             Collecting::Variable(e) => {
-                                                                let resolved_type = if e.has_type { e.rtype } else { resolve_type(e.value, class_inner_page.hash, parser, &mut errors) };
+                                                                let resolved_type = if e.has_type { e.rtype } else { match resolve_type(e.value, class_inner_page.hash, parser, &mut errors, Some(e.value_pos)) {
+                                                                    Some(e) => e,
+                                                                    None => return None,
+                                                                } };
                                                                 Some(Attribute {
                                                                     _rtype: AttributeType::Property,
                                                                     name: e.name.clone(),
@@ -676,8 +680,16 @@ pub fn process(
                         }
                     }
 
-                    let reference_type =
-                        resolve_type(found_reference.clone(), page_id, parser, &mut errors);
+                    let reference_type = match resolve_type(
+                        found_reference.clone(),
+                        page_id,
+                        parser,
+                        &mut errors,
+                        Some(reference.data.reference_pos),
+                    ) {
+                        Some(e) => e,
+                        None => return Err(errors),
+                    };
                     //#[derive(Debug, EnumAsInner)]
                     //enum LastEntry {
                     //    Type(types::Types),
@@ -779,7 +791,18 @@ pub fn process(
                 Ok(index) => {
                     //if matches!(index, types::Types::Integer(x) if matches!()) {}
 
-                    let index_type = resolve_type(index.clone(), page_id, parser, &mut errors);
+                    let index_type = match resolve_type(
+                        index.clone(),
+                        page_id,
+                        parser,
+                        &mut errors,
+                        Some(brace_reference.data.brace_pos),
+                    ) {
+                        Some(e) => e,
+                        None => {
+                            return Err(errors);
+                        }
+                    };
                     let reference = process(
                         *brace_reference.data.reference,
                         parser,
@@ -788,8 +811,13 @@ pub fn process(
                     );
                     match reference {
                         Ok(found_reference) => {
-                            let reference_type =
-                                resolve_type(found_reference.clone(), page_id, parser, &mut errors);
+                            let reference_type = resolve_type(
+                                found_reference.clone(),
+                                page_id,
+                                parser,
+                                &mut errors,
+                                Some(brace_reference.data.reference_pos),
+                            );
                             // TODO Ellie should let developers implement indexable properties in classes
                             //Example
                             // class A {
@@ -810,71 +838,75 @@ pub fn process(
                             // v a = new A();
                             // a[0] = 1;
                             match reference_type.clone() {
-                                ellie_core::definite::definers::DefinerCollecting::ParentGeneric(reference_generic) => {
-                                    if reference_generic.rtype == "array" {
-                                        match index_type.clone() {
-                                            ellie_core::definite::definers::DefinerCollecting::Generic(index_generic_type) => {
-                                                if index_generic_type.rtype == "int" {
-                                                    Ok(types::Types::BraceReference(types::brace_reference::BraceReferenceType {
-                                                        reference: Box::new(found_reference),
-                                                        reference_pos: brace_reference.data.reference_pos,
-                                                        brace_pos: brace_reference.data.brace_pos,
-                                                        value: Box::new(index),
-                                                        pos: brace_reference.data.pos,
-                                                    }))
-                                                } else {
-                                                    errors.push(error::error_list::ERROR_S49.clone().build_with_path(
-                                                        vec![error::ErrorBuildField {
-                                                            key: "target".to_string(),
-                                                            value: reference_type.to_string(),
-                                                        },error::ErrorBuildField {
-                                                            key: "token".to_string(),
-                                                            value: index_type.to_string(),
-                                                        }],
-                                                        alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                                                        parser.find_page(page_id).unwrap().path.clone(),
-                                                        brace_reference.data.brace_pos
-                                                    ));
-                                                    Err(errors)
-
+                                Some(reference_type) => {
+                                    match reference_type.clone() {
+                                        ellie_core::definite::definers::DefinerCollecting::ParentGeneric(reference_generic) => {
+                                            if reference_generic.rtype == "array" {
+                                                match index_type.clone() {
+                                                    ellie_core::definite::definers::DefinerCollecting::Generic(index_generic_type) => {
+                                                        if index_generic_type.rtype == "int" {
+                                                            Ok(types::Types::BraceReference(types::brace_reference::BraceReferenceType {
+                                                                reference: Box::new(found_reference),
+                                                                reference_pos: brace_reference.data.reference_pos,
+                                                                brace_pos: brace_reference.data.brace_pos,
+                                                                value: Box::new(index),
+                                                                pos: brace_reference.data.pos,
+                                                            }))
+                                                        } else {
+                                                            errors.push(error::error_list::ERROR_S49.clone().build_with_path(
+                                                                vec![error::ErrorBuildField {
+                                                                    key: "target".to_string(),
+                                                                    value: reference_type.to_string(),
+                                                                },error::ErrorBuildField {
+                                                                    key: "token".to_string(),
+                                                                    value: index_type.to_string(),
+                                                                }],
+                                                                alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                                                                parser.find_page(page_id).unwrap().path.clone(),
+                                                                brace_reference.data.brace_pos
+                                                            ));
+                                                            Err(errors)
+                                                        }
+                                                    },
+                                                    _ => {
+                                                        errors.push(error::error_list::ERROR_S49.clone().build_with_path(
+                                                            vec![error::ErrorBuildField {
+                                                                key: "target".to_string(),
+                                                                value: reference_type.to_string(),
+                                                            },error::ErrorBuildField {
+                                                                key: "token".to_string(),
+                                                                value: index_type.to_string(),
+                                                            }],
+                                                            alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                                                            parser.find_page(page_id).unwrap().path.clone(),
+                                                            brace_reference.data.brace_pos
+                                                        ));
+                                                        Err(errors)
+                                                    }
                                                 }
-                                            },
-                                            _ => {
-                                                errors.push(error::error_list::ERROR_S49.clone().build_with_path(
-                                                    vec![error::ErrorBuildField {
-                                                        key: "target".to_string(),
-                                                        value: reference_type.to_string(),
-                                                    },error::ErrorBuildField {
-                                                        key: "token".to_string(),
-                                                        value: index_type.to_string(),
-                                                    }],
-                                                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                                                    parser.find_page(page_id).unwrap().path.clone(),
-                                                    brace_reference.data.brace_pos
-                                                ));
-                                                Err(errors)
+                                            } else if reference_generic.rtype == "cloak" {
+                                                todo!("cloak index queries type not yet implemented")
+                                            } else if reference_generic.rtype == "collective" {
+                                                todo!("collective index queries type not yet implemented")
+                                            } else {
+                                                todo!("custom index queries type not yet implemented")
                                             }
+                                        },
+                                        _ => {
+                                            errors.push(error::error_list::ERROR_S48.clone().build_with_path(
+                                                vec![error::ErrorBuildField {
+                                                    key: "token".to_string(),
+                                                    value: reference_type.to_string(),
+                                                }],
+                                                alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                                                parser.find_page(page_id).unwrap().path.clone(),
+                                                brace_reference.data.reference_pos
+                                            ));
+                                            Err(errors)
                                         }
-                                    } else if reference_generic.rtype == "cloak" {
-                                        todo!("cloak index queries type not yet implemented")
-                                    } else if reference_generic.rtype == "collective" {
-                                        todo!("collective index queries type not yet implemented")
-                                    } else {
-                                        todo!("custom index queries type not yet implemented")
                                     }
                                 },
-                                _ => {
-                                    errors.push(error::error_list::ERROR_S48.clone().build_with_path(
-                                        vec![error::ErrorBuildField {
-                                            key: "token".to_string(),
-                                            value: reference_type.to_string(),
-                                        }],
-                                        alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                                        parser.find_page(page_id).unwrap().path.clone(),
-                                        brace_reference.data.reference_pos
-                                    ));
-                                    Err(errors)
-                                }
+                                None => return Err(errors)
                             }
                         }
                         Err(e) => Err(e),
@@ -890,40 +922,48 @@ pub fn process(
                 page_id,
                 parser,
                 &mut errors,
+                Some(function_call.data.target_pos),
             );
             //let target_resolution = resolve_deep_type(parser, page_id, function_call.data.target.clone().to_definite(), &mut errors);
             //panic!("Target resolution: {:#?} - {:#?}", target_resolution, function_call.data.target.to_definite());
 
             match index.clone() {
-                DefinerCollecting::Function(function) => {
-                    Ok(ellie_core::definite::types::Types::FunctionCall(
-                        ellie_core::definite::types::function_call::FunctionCall {
-                            target: Box::new(function_call.data.target.to_definite()),
-                            target_pos: ellie_core::defs::Cursor::default(),
-                            returning: *function.returning,
-                            params: function.params.iter().map(|_| {
-                                ellie_core::definite::types::function_call::FunctionCallParameter {
-                                    value: types::Types::Dynamic,
-                                    pos: ellie_core::defs::Cursor::default()
-                                }
-                            }).collect::<Vec<_>>(),
-                            pos: ellie_core::defs::Cursor::default(),
-                            generic_parameters: vec![],
+                Some(index) => {
+                    match index {
+                        DefinerCollecting::Function(function) => {
+                            Ok(ellie_core::definite::types::Types::FunctionCall(
+                                ellie_core::definite::types::function_call::FunctionCall {
+                                    target: Box::new(function_call.data.target.to_definite()),
+                                    target_pos: ellie_core::defs::Cursor::default(),
+                                    returning: *function.returning,
+                                    params: function.params.iter().map(|_| {
+                                        ellie_core::definite::types::function_call::FunctionCallParameter {
+                                            value: types::Types::Dynamic,
+                                            pos: ellie_core::defs::Cursor::default()
+                                        }
+                                    }).collect::<Vec<_>>(),
+                                    pos: ellie_core::defs::Cursor::default(),
+                                    generic_parameters: vec![],
+                                },
+                            ))
                         },
-                    ))
+                        _ => {
+                            errors.push(error::error_list::ERROR_S25.clone().build_with_path(
+                                vec![error::ErrorBuildField {
+                                    key: "token".to_string(),
+                                    value: index.to_string(),
+                                }],
+                                alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                                parser.find_page(page_id).unwrap().path.clone(),
+                                function_call.data.target_pos,
+                            ));
+                            Err(errors)
+                        }
+                    }
                 },
-                _ => {
-                    errors.push(error::error_list::ERROR_S25.clone().build_with_path(
-                        vec![error::ErrorBuildField {
-                            key: "token".to_string(),
-                            value: index.to_string(),
-                        }],
-                        alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                        parser.find_page(page_id).unwrap().path.clone(),
-                        function_call.data.target_pos,
-                    ));
+                None => {
                     Err(errors)
-                }
+                },
             }
 
             /*
@@ -968,6 +1008,18 @@ pub fn process(
 
             match (*class_call.data.target).clone() {
                 Processors::Integer(_) => {
+                    errors.push(error::error_list::ERROR_S11.clone().build_with_path(
+                        vec![error::ErrorBuildField {
+                            key: "token".to_string(),
+                            value: "int".to_string(),
+                        }],
+                        alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                        parser.find_page(page_id).unwrap().path.clone(),
+                        class_call.data.keyword_pos,
+                    ));
+                    Err(errors)
+                }
+                Processors::Byte(_) => {
                     errors.push(error::error_list::ERROR_S11.clone().build_with_path(
                         vec![error::ErrorBuildField {
                             key: "token".to_string(),
@@ -1251,11 +1303,11 @@ pub fn process(
                                                                 }
                                                             } else {
                                                                 let mut errors = Vec::new();
-                                                                let resolved = resolve_type(variable.value, belonging_class.inner_page_id, parser, &mut errors);
+                                                                let resolved = resolve_type(variable.value, belonging_class.inner_page_id, parser, &mut errors, Some(variable.value_pos));
                                                                 if !errors.is_empty() {
                                                                     panic!("Parser should have prevented this{:?}", errors);
                                                                 }
-                                                                Some(resolved)
+                                                                resolved
                                                             }
                                                     },
                                                         crate::deep_search_extensions::ProcessedDeepSearchItems::Function(_) => todo!(),

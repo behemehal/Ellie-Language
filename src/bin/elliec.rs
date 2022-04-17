@@ -67,7 +67,7 @@ fn main() {
                     } else {
                         "?:?".to_string()
                     };
-                    println!("\n{}{}https://github.com/behemehal/Ellie-Language/issues/new?labels=bug,Internal%20Error&title=Ellie%20Internal%20Error-{}&body=%23%20Ellie%20Internal%20Error%0AGenerated%20by%20elliec%20located%20at%20{}%0AEllieStd%20Version:{}%0AEllieVersion:{}%0A{}", cli_utils::TextStyles::Underline,cli_utils::Colors::Green,line_and_col, line_and_col, ellie_engine::engine_constants::ELLIE_STD_VERSION,ellie_engine::engine_constants::ELLIE_VERSION, cli_utils::Colors::Reset);
+                    println!("\n{}{}https://github.com/behemehal/Ellie-Language/issues/new?labels=bug,Internal%20Error&title=Ellie%20Internal%20Error-{}&body=%23%20Ellie%20Internal%20Error%0AGenerated%20by%20elliec%20located%20at%20{}%0AEllieVersion:{}%0A{}", cli_utils::TextStyles::Underline,cli_utils::Colors::Green,line_and_col, line_and_col, ellie_engine::engine_constants::ELLIE_VERSION, cli_utils::Colors::Reset);
                     println!(
                         "\n{}-----------------{}\n\n",
                         cli_utils::Colors::Blue,
@@ -185,7 +185,7 @@ fn main() {
                     } else {
                         "?:?".to_string()
                     };
-                    println!("\n{}{}https://github.com/behemehal/Ellie-Language/issues/new?labels=bug,Internal%20Error&title=Ellie%20Internal%20Error-{}&body=%23%20Ellie%20Internal%20Error%0AGenerated%20by%20elliec%20located%20at%20{}%0AEllieStd%20Version:{}%0AEllieVersion:{}%0A{}", cli_utils::TextStyles::Underline,cli_utils::Colors::Green,line_and_col, line_and_col, ellie_engine::engine_constants::ELLIE_STD_VERSION,ellie_engine::engine_constants::ELLIE_VERSION, cli_utils::Colors::Reset);
+                    println!("\n{}{}https://github.com/behemehal/Ellie-Language/issues/new?labels=bug,Internal%20Error&title=Ellie%20Internal%20Error-{}&body=%23%20Ellie%20Internal%20Error%0AGenerated%20by%20elliec%20located%20at%20{}%0AEllieVersion:{}%0A{}", cli_utils::TextStyles::Underline,cli_utils::Colors::Green,line_and_col, line_and_col, ellie_engine::engine_constants::ELLIE_VERSION, cli_utils::Colors::Reset);
                     println!(
                         "\n{}-----------------{}\n\n",
                         cli_utils::Colors::Blue,
@@ -210,6 +210,7 @@ fn main() {
                 "bin" => cli_utils::OutputTypes::Bin,
                 "json" => cli_utils::OutputTypes::Json,
                 "byteCode" => cli_utils::OutputTypes::ByteCode,
+                "byteCodeAsm" => cli_utils::OutputTypes::ByteCodeAsm,
                 "depA" => cli_utils::OutputTypes::DependencyAnalysis,
                 "nop" => cli_utils::OutputTypes::Nop,
                 _ => {
@@ -268,57 +269,62 @@ fn main() {
                 //Iter through all modules
                 for module in modules {
                     let path = module.trim().split("=").collect::<Vec<_>>();
-                    if path.len() == 2 {
-                        let module_path = Path::new(path[0].trim());
-                        let code_path = Path::new(path[1].trim());
 
+                    let module_path = Path::new(path[0].trim());
+                    let code_path = if path.len() > 1 {
+                        Some(path[1].trim().to_string())
+                    } else {
+                        None
+                    };
+
+                    //If module path is file
+                    if module_path.is_file() {
                         //If module path is file
-                        if module_path.is_file() {
-                            //If module path is file
-                            match cli_utils::read_file_bin(module_path) {
-                                Ok(file_content) => {
-                                    match bincode::deserialize::<ellie_parser::parser::Module>(
-                                        file_content.as_slice(),
-                                    ) {
-                                        Ok(module) => {
-                                            if code_path.is_dir() {
-                                                let current_ellie_version =
+                        match cli_utils::read_file_bin(module_path) {
+                            Ok(file_content) => {
+                                match bincode::deserialize::<ellie_parser::parser::Module>(
+                                    file_content.as_slice(),
+                                ) {
+                                    Ok(module) => {
+                                        if code_path.is_none()
+                                            || Path::new(&code_path.clone().unwrap()).is_dir()
+                                        {
+                                            let current_ellie_version =
                                                 ellie_core::defs::Version::build_from_string(
                                                     ellie_engine::engine_constants::ELLIE_VERSION
                                                         .to_owned(),
                                                 );
-                                                if current_ellie_version != module.ellie_version {
-                                                    if matches.is_present("jsonLog") {
-                                                        let mut cli_module_output =
-                                                            crate::cli_outputs::LEGACY_MODULE
-                                                                .clone();
-                                                        cli_module_output.extra.push(
-                                                            cli_outputs::CliOuputExtraData {
-                                                                key: 0,
-                                                                value: module.ellie_version.clone(),
-                                                            },
-                                                        )
-                                                    } else {
-                                                        println!(
+                                            if current_ellie_version != module.ellie_version {
+                                                if matches.is_present("jsonLog") {
+                                                    let mut cli_module_output =
+                                                        crate::cli_outputs::LEGACY_MODULE.clone();
+                                                    cli_module_output.extra.push(
+                                                        cli_outputs::CliOuputExtraData {
+                                                            key: 0,
+                                                            value: module.ellie_version.clone(),
+                                                        },
+                                                    )
+                                                } else {
+                                                    println!(
                                                     "\n{}Info{}: This module is legacy, used ellie_version: {}{}.{}.{}{} current ellie_version: {}{}.{}.{}{}",
-                                                    cli_utils::Colors::Cyan,
-                                                    cli_utils::Colors::Reset,
-                                                    cli_utils::Colors::Yellow,
-                                                    module.ellie_version.major,
-                                                    module.ellie_version.minor,
-                                                    module.ellie_version.bug,
-                                                    cli_utils::Colors::Reset,
-                                                    cli_utils::Colors::Yellow,
-                                                    current_ellie_version.major,
-                                                    current_ellie_version.minor,
-                                                    current_ellie_version.bug,
-                                                    cli_utils::Colors::Reset,
-                                                );
-                                                    }
+                                                        cli_utils::Colors::Cyan,
+                                                        cli_utils::Colors::Reset,
+                                                        cli_utils::Colors::Yellow,
+                                                        module.ellie_version.major,
+                                                        module.ellie_version.minor,
+                                                        module.ellie_version.bug,
+                                                        cli_utils::Colors::Reset,
+                                                        cli_utils::Colors::Yellow,
+                                                        current_ellie_version.major,
+                                                        current_ellie_version.minor,
+                                                        current_ellie_version.bug,
+                                                        cli_utils::Colors::Reset,
+                                                    );
                                                 }
-                                                parsed_modules.push((module, path[1].to_string()));
-                                            } else {
-                                                println!(
+                                            }
+                                            parsed_modules.push((module, code_path));
+                                        } else {
+                                            println!(
                                                     "{}Error:{} Module code path '{}{}{}' does not exist",
                                                     cli_utils::Colors::Red,
                                                     cli_utils::Colors::Reset,
@@ -326,29 +332,24 @@ fn main() {
                                                     path[1],
                                                     cli_utils::Colors::Reset,
                                                 );
-                                                std::process::exit(1);
-                                            }
+                                            std::process::exit(1);
                                         }
-                                        Err(e) => {
-                                            if matches.is_present("jsonLog") {
-                                                let mut cli_module_output =
-                                                    cli_outputs::READ_BINARY_MODULE_ERROR.clone();
-                                                cli_module_output.extra.push(
-                                                    cli_outputs::CliOuputExtraData {
-                                                        key: 0,
-                                                        value: 0,
-                                                    },
-                                                );
-                                                println!(
-                                                    "{}",
-                                                    serde_json::to_string_pretty(
-                                                        &cli_module_output
-                                                    )
+                                    }
+                                    Err(e) => {
+                                        if matches.is_present("jsonLog") {
+                                            let mut cli_module_output =
+                                                cli_outputs::READ_BINARY_MODULE_ERROR.clone();
+                                            cli_module_output.extra.push(
+                                                cli_outputs::CliOuputExtraData { key: 0, value: 0 },
+                                            );
+                                            println!(
+                                                "{}",
+                                                serde_json::to_string_pretty(&cli_module_output)
                                                     .unwrap()
-                                                );
-                                            } else {
-                                                println!(
-                                                "{}Error{}: Failed to decode module '{}{}{}' [{}{}{}]].",
+                                            );
+                                        } else {
+                                            println!(
+                                                "{}Error{} 0x2: Failed to decode module '{}{}{}' [{}{}{}]].",
                                                 cli_utils::Colors::Red,
                                                 cli_utils::Colors::Reset,
                                                 cli_utils::Colors::Yellow,
@@ -358,41 +359,33 @@ fn main() {
                                                 e,
                                                 cli_utils::Colors::Reset,
                                             );
-                                            }
-                                            std::process::exit(1);
                                         }
+                                        std::process::exit(1);
                                     }
                                 }
-                                Err(e) => {
-                                    println!(
-                                        "{}Error:{} Cannot read module file '{}{}{}' {}[{}]{}",
-                                        cli_utils::Colors::Red,
-                                        cli_utils::Colors::Reset,
-                                        cli_utils::Colors::Yellow,
-                                        module,
-                                        cli_utils::Colors::Reset,
-                                        cli_utils::Colors::Red,
-                                        e,
-                                        cli_utils::Colors::Reset,
-                                    );
-                                    std::process::exit(1);
-                                }
-                            };
-                        } else {
-                            println!(
-                                "{}Error:{} Module '{}{}{}' does not exist",
-                                cli_utils::Colors::Red,
-                                cli_utils::Colors::Reset,
-                                cli_utils::Colors::Yellow,
-                                path[0].trim(),
-                                cli_utils::Colors::Reset,
-                            );
-                            std::process::exit(1);
-                        }
+                            }
+                            Err(e) => {
+                                println!(
+                                    "{}Error:{} Cannot read module file '{}{}{}' {}[{}]{}",
+                                    cli_utils::Colors::Red,
+                                    cli_utils::Colors::Reset,
+                                    cli_utils::Colors::Yellow,
+                                    module,
+                                    cli_utils::Colors::Reset,
+                                    cli_utils::Colors::Red,
+                                    e,
+                                    cli_utils::Colors::Reset,
+                                );
+                                std::process::exit(1);
+                            }
+                        };
                     } else {
                         println!(
-                            "{}Error:{} Modules without paths are not yet supported. Usage: --import-module ./binaryFile.bin=./ModuleFilesDirectory",
+                            "{}Error:{} Module '{}{}{}' does not exist",
                             cli_utils::Colors::Red,
+                            cli_utils::Colors::Reset,
+                            cli_utils::Colors::Yellow,
+                            path[0].trim(),
                             cli_utils::Colors::Reset,
                         );
                         std::process::exit(1);
@@ -446,6 +439,7 @@ fn main() {
                 json_log: matches.is_present("jsonLog"),
                 description: matches.value_of("description").unwrap().to_string(),
                 name: project_name,
+                is_lib: matches.is_present("isLib"),
                 version,
                 output_type,
                 exclude_stdlib: matches.is_present("excludeStd"),
@@ -457,6 +451,30 @@ fn main() {
                     .to_string(),
                 show_debug_lines: matches.is_present("showDebugLines"),
                 warnings: !matches.is_present("disableWarnings"),
+                byte_code_architecture: match matches.value_of("targetArchitecture") {
+                    Some(e) => {
+                        if e == "64" {
+                            ellie_bytecode::assembler::PlatformArchitecture::B64
+                        } else if e == "32" {
+                            ellie_bytecode::assembler::PlatformArchitecture::B32
+                        } else if e == "16" {
+                            ellie_bytecode::assembler::PlatformArchitecture::B16
+                        } else if e == "8" {
+                            ellie_bytecode::assembler::PlatformArchitecture::B8
+                        } else {
+                            println!(
+                                "{}Error:{} Unknown architecture '{}{}{}'",
+                                cli_utils::Colors::Red,
+                                cli_utils::Colors::Reset,
+                                cli_utils::Colors::Yellow,
+                                e,
+                                cli_utils::Colors::Reset,
+                            );
+                            std::process::exit(1);
+                        }
+                    }
+                    None => unreachable!(),
+                },
             };
 
             ellie_engine::compile_file::compile(
@@ -491,6 +509,11 @@ fn main() {
                     });
 
                     output.extra.push(cli_outputs::CliOuputExtraData {
+                        key: "bytecode_version".to_string(),
+                        value: ellie_engine::engine_constants::ELLIE_BYTECODE_VERSION.to_owned(),
+                    });
+
+                    output.extra.push(cli_outputs::CliOuputExtraData {
                         key: "runtime_version".to_string(),
                         value: ellie_engine::engine_constants::ELLIE_RUNTIME_VERSION.to_owned(),
                     });
@@ -499,22 +522,17 @@ fn main() {
                         key: "core_version".to_string(),
                         value: ellie_engine::engine_constants::ELLIE_CORE_VERSION.to_owned(),
                     });
-
-                    output.extra.push(cli_outputs::CliOuputExtraData {
-                        key: "std_version".to_string(),
-                        value: ellie_engine::engine_constants::ELLIE_STD_VERSION.to_owned(),
-                    });
                     println!("{}", serde_json::to_string(&output).unwrap());
                 } else {
                     println!(
-                        "Ellie v{} - Code: {}\n\nTokenizer Version: v{}\nParser Version: v{}\nRuntime Version: v{}\nCore version: v{}\nEllie Standard Types Version: v{}\n",
+                        "Ellie v{} - Code: {}\n\nBytecode Version: v{}\nTokenizer Version: v{}\nParser Version: v{}\nRuntime Version: v{}\nCore version: v{}\n",
                         ellie_engine::engine_constants::ELLIE_VERSION,
                         ellie_engine::engine_constants::ELLIE_VERSION_NAME,
+                        ellie_engine::engine_constants::ELLIE_BYTECODE_VERSION,
                         ellie_engine::engine_constants::ELLIE_TOKENIZER_VERSION,
                         ellie_engine::engine_constants::ELLIE_PARSER_VERSION,
                         ellie_engine::engine_constants::ELLIE_RUNTIME_VERSION,
                         ellie_engine::engine_constants::ELLIE_CORE_VERSION,
-                        ellie_engine::engine_constants::ELLIE_STD_VERSION,
                     );
                 }
             } else {

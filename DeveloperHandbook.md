@@ -56,7 +56,7 @@ It will generate a file called `file.eic` which contains the parser output.
 
 Bytecode is the default output of the compiler. It is a raw vm code which can be executed by the vm. To access bytecode you can use following command:
 ```
-elliec compile ./file.json --output-type=bytecode
+elliec compile ./file.json --output-type=byteCode
 ```
 It will generate a file called `file.eib` which contains the bytecode.
 

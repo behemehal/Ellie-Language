@@ -19,8 +19,19 @@ impl super::Processor for SetterCall {
                     match super::type_processor::process(self.value, parser, page_id, None) {
                         Ok(processed_value_type) => {
                             let mut errors = Vec::new();
-                            let target_type =
-                                resolve_type(target.clone(), page_id, parser, &mut errors);
+                            let target_type = match resolve_type(
+                                target.clone(),
+                                page_id,
+                                parser,
+                                &mut errors,
+                                Some(self.target_pos),
+                            ) {
+                                Some(e) => e,
+                                None => {
+                                    parser.informations.extend(&errors);
+                                    return false;
+                                }
+                            };
 
                             if !errors.is_empty() {
                                 parser.informations.extend(&errors);
@@ -96,13 +107,19 @@ impl super::Processor for SetterCall {
                     match super::type_processor::process(self.value, parser, page_id, None) {
                         Ok(processed_value_type) => {
                             let mut errors = Vec::new();
-                            let mut target_type =
-                                resolve_type(target.clone(), page_id, parser, &mut errors);
-
-                            if !errors.is_empty() {
-                                parser.informations.extend(&errors);
-                                return true;
-                            }
+                            let mut target_type = match resolve_type(
+                                target.clone(),
+                                page_id,
+                                parser,
+                                &mut errors,
+                                Some(self.target_pos),
+                            ) {
+                                Some(e) => e,
+                                None => {
+                                    parser.informations.extend(&errors);
+                                    return true;
+                                }
+                            };
 
                             if matches!(target_type.clone(), ellie_core::definite::definers::DefinerCollecting::ParentGeneric(e) if e.rtype == "nullAble")
                             {
@@ -205,7 +222,19 @@ impl super::Processor for SetterCall {
                                     let target_type = if variable.has_type {
                                         variable.rtype
                                     } else {
-                                        resolve_type(variable.value, page_id, parser, &mut errors)
+                                        match resolve_type(
+                                            variable.value,
+                                            page_id,
+                                            parser,
+                                            &mut errors,
+                                            Some(variable.value_pos),
+                                        ) {
+                                            Some(e) => e,
+                                            None => {
+                                                parser.informations.extend(&errors);
+                                                return false;
+                                            }
+                                        }
                                     };
 
                                     match super::type_processor::process(

@@ -2,9 +2,11 @@ pub mod array;
 pub mod as_keyword;
 pub mod bool;
 pub mod brace_reference;
+pub mod byte;
 pub mod class_call;
 pub mod cloak;
 pub mod collective;
+pub mod double;
 pub mod ellie_char;
 pub mod float;
 pub mod function;
@@ -22,8 +24,10 @@ use serde::{Deserialize, Serialize};
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub enum Types {
+    Byte(byte::ByteType),
     Integer(integer::IntegerType),
     Float(float::FloatType),
+    Double(double::DoubleType),
     Bool(bool::BoolType),
     String(string::StringType),
     Char(ellie_char::CharType),

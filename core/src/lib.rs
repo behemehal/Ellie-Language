@@ -13,8 +13,6 @@ extern crate std;
 
 #[macro_use]
 extern crate lazy_static;
-#[rustfmt::skip]
-pub mod builded_libraries;
 pub mod com;
 #[doc(hidden)]
 pub mod definite;

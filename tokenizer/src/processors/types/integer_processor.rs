@@ -10,7 +10,6 @@ impl crate::processors::Processor for integer_type::IntegerTypeCollector {
         letter_char: char,
     ) -> bool {
         let is_num = letter_char.to_string().parse::<i8>().is_ok();
-
         if is_num {
             if self.raw == "" {
                 self.data.pos.range_start = cursor;
@@ -25,24 +24,8 @@ impl crate::processors::Processor for integer_type::IntegerTypeCollector {
                 ));
             }
             self.raw += &letter_char.to_string();
-            if let Ok(nm) = self.raw.parse::<i8>() {
-                self.data.value = integer_type::IntegerSize::I8(nm);
-                self.data.rtype = integer_type::IntegerTypes::I8;
-            } else if let Ok(nm) = self.raw.parse::<i16>() {
-                self.data.value = integer_type::IntegerSize::I16(nm);
-                self.data.rtype = integer_type::IntegerTypes::I16;
-            } else if let Ok(nm) = self.raw.parse::<i32>() {
-                self.data.value = integer_type::IntegerSize::I32(nm);
-                self.data.rtype = integer_type::IntegerTypes::I32;
-            } else if let Ok(nm) = self.raw.parse::<i64>() {
-                self.data.value = integer_type::IntegerSize::I64(nm);
-                self.data.rtype = integer_type::IntegerTypes::I64;
-            } else if let Ok(nm) = self.raw.parse::<i128>() {
-                self.data.value = integer_type::IntegerSize::I128(nm);
-                self.data.rtype = integer_type::IntegerTypes::I128;
-            } else if let Ok(nm) = self.raw.parse::<isize>() {
-                self.data.value = integer_type::IntegerSize::Isize(nm);
-                self.data.rtype = integer_type::IntegerTypes::Isize;
+            if let Ok(nm) = self.raw.parse::<isize>() {
+                self.data.value = nm;
             } else {
                 errors.push(error::error_list::ERROR_S16.clone().build(
                     vec![error::ErrorBuildField {

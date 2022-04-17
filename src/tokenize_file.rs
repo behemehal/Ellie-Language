@@ -7,6 +7,7 @@ use std::fs;
 use std::hash::{Hash, Hasher};
 use std::path::Path;
 use std::path::PathBuf;
+use std::time::Instant;
 
 pub struct TokenizerSettings {
     pub json_log: bool,
@@ -128,8 +129,11 @@ pub fn tokenize(target_path: &Path, output_path: &Path, tokenizer_settings: Toke
                 first_page_hash.clone(),
             );
 
+            let tokenize_start = Instant::now();
             match pager.run() {
                 Ok(_) => {
+                    let tokenize_end =
+                        (tokenize_start.elapsed().as_nanos() as f64 / 1000000_f64) as f64;
                     let json = serde_json::to_string(&pager.pages).unwrap();
 
                     let output_path =
@@ -177,17 +181,27 @@ pub fn tokenize(target_path: &Path, output_path: &Path, tokenizer_settings: Toke
                         }
                     }
 
-                    println!(
-                        "{}[?]{}: Ellie v{}",
-                        cli_utils::Colors::Green,
-                        cli_utils::Colors::Reset,
-                        crate::engine_constants::ELLIE_VERSION
-                    );
-                    println!(
-                        "{}[!]{}: Ellie is on development and may not be stable.",
-                        cli_utils::Colors::Red,
-                        cli_utils::Colors::Reset,
-                    );
+                    if !tokenizer_settings.json_log {
+                        println!(
+                            "{}[?]{}: Ellie v{}",
+                            cli_utils::Colors::Green,
+                            cli_utils::Colors::Reset,
+                            crate::engine_constants::ELLIE_VERSION
+                        );
+                        println!(
+                            "{}[?]{}: Tokenizing took {}{}{}ms",
+                            cli_utils::Colors::Yellow,
+                            cli_utils::Colors::Reset,
+                            cli_utils::Colors::Yellow,
+                            tokenize_end,
+                            cli_utils::Colors::Reset,
+                        );
+                        println!(
+                            "{}[!]{}: Ellie is on development and may not be stable.",
+                            cli_utils::Colors::Red,
+                            cli_utils::Colors::Reset,
+                        );
+                    }
                 }
                 Err(pager_errors) => {
                     if tokenizer_settings.json_log {

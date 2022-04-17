@@ -1,6 +1,7 @@
 pub mod array_processor;
 pub mod as_processor;
 pub mod brace_reference_processor;
+pub mod byte_processor;
 pub mod char_processor;
 pub mod class_call_processor;
 pub mod cloak_processor;
@@ -26,6 +27,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Serialize, Deserialize, EnumAsInner)]
 pub enum Processors {
     Integer(integer_type::IntegerTypeCollector),
+    Byte(byte_type::ByteType),
     Float(float_type::FloatTypeCollector),
     Char(char_type::CharType),
     String(string_type::StringTypeCollector),
@@ -47,6 +49,7 @@ impl Processors {
     pub fn to_definite(&self) -> ellie_core::definite::types::Types {
         match self.clone() {
             Processors::Integer(e) => ellie_core::definite::types::Types::Integer(e.to_definite()),
+            Processors::Byte(e) => ellie_core::definite::types::Types::Byte(e.to_definite()),
             Processors::Float(e) => ellie_core::definite::types::Types::Float(e.to_definite()),
             Processors::Char(e) => ellie_core::definite::types::Types::Char(e.to_definite()),
             Processors::String(e) => ellie_core::definite::types::Types::String(e.to_definite()),
@@ -90,6 +93,9 @@ impl Processors {
             definite::types::Types::Integer(e) => {
                 Processors::Integer(integer_type::IntegerTypeCollector::default().from_definite(e))
             }
+            definite::types::Types::Byte(e) => {
+                Processors::Byte(byte_type::ByteType::default().from_definite(e))
+            }
             definite::types::Types::Float(e) => {
                 Processors::Float(float_type::FloatTypeCollector::default().from_definite(e))
             }
@@ -130,6 +136,7 @@ impl Processors {
     pub fn is_static(&self) -> bool {
         match self {
             Processors::Integer(_) => true,
+            Processors::Byte(_) => true,
             Processors::Float(_) => true,
             Processors::Char(_) => true,
             Processors::String(_) => true,
@@ -161,6 +168,7 @@ impl Processors {
     pub fn is_complete(&self) -> bool {
         match self.clone() {
             Processors::Integer(e) => e.complete,
+            Processors::Byte(e) => e.complete,
             Processors::Char(e) => e.complete,
             Processors::String(e) => e.complete,
             Processors::Variable(e) => e.complete,
@@ -182,6 +190,7 @@ impl Processors {
     pub fn is_not_initialized(&self) -> bool {
         match self.clone() {
             Processors::Integer(_) => false,
+            Processors::Byte(_) => false,
             Processors::Float(_) => false,
             Processors::Char(_) => false,
             Processors::String(_) => false,
@@ -203,6 +212,7 @@ impl Processors {
     pub fn get_pos(&self) -> defs::Cursor {
         match self.clone() {
             Processors::Integer(e) => e.data.pos,
+            Processors::Byte(e) => e.pos,
             Processors::Float(e) => e.data.pos,
             Processors::Char(e) => e.pos,
             Processors::String(e) => e.data.pos,
@@ -342,6 +352,16 @@ impl super::Processor for TypeProcessor {
                 },
                 ..Default::default()
             });
+        } else if letter_char == 'x'
+            && matches!(&self.current, Processors::Integer(x) if x.raw == "0")
+        {
+            self.current = Processors::Byte(byte_type::ByteType {
+                value: 0,
+                pos: self.current.get_pos(),
+                complete: false,
+            });
+            // Skip to next iteration
+            return true;
         } else if letter_char == '.'
             && (not_initalized || matches!(&self.current, Processors::Integer(_)))
         {
@@ -487,6 +507,7 @@ impl super::Processor for TypeProcessor {
 
         match &mut self.current {
             Processors::Integer(e) => e.iterate(errors, cursor, last_char, letter_char),
+            Processors::Byte(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::Char(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::String(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::Variable(e) => e.iterate(errors, cursor, last_char, letter_char),

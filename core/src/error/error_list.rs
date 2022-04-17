@@ -199,8 +199,8 @@ lazy_static! {
     };
     pub static ref ERROR_S33: error::Error = error::Error {
         code: 0x32,
-        title: "ImportError".to_owned(),
-        message: "Cannot compile '$token'".to_owned(),
+        title: "RuntimeError".to_owned(),
+        message: "Main function required".to_owned(),
         ..Default::default()
     };
     pub static ref ERROR_S34: error::Error = error::Error {

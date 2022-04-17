@@ -1,19 +1,17 @@
+use std::io::{Read, Write};
+
 use crate::{
     instructions::{self, AddressingModes, Instruction},
     utils,
 };
-use alloc::{string::String, vec::Vec};
+use alloc::{format, string::String, vec::Vec};
 use ellie_parser::parser::Module;
-
-pub struct StackMemory {
-    memory: Vec<u8>,
-}
 
 pub struct Assembler {
     module: Module,
     processed: Vec<u64>,
     platform_attributes: PlatformAttributes,
-    used_heap_memory: usize,
+    used_stack_memory: usize,
     pages: Vec<InstructionPage>,
 }
 
@@ -34,6 +32,7 @@ pub struct DebugHeader {
 
 #[derive(Clone, Debug)]
 pub struct InstructionPage {
+    pub is_main: bool,
     pub instructions: Vec<instructions::Instructions>,
     pub debug_headers: Vec<DebugHeader>,
 }
@@ -44,6 +43,7 @@ impl InstructionPage {
     }
 }
 
+#[derive(Clone, Debug)]
 pub enum PlatformArchitecture {
     B8,
     B16,
@@ -51,6 +51,7 @@ pub enum PlatformArchitecture {
     B64,
 }
 
+#[derive(Clone, Debug)]
 pub struct PlatformAttributes {
     pub architecture: PlatformArchitecture,
     pub memory_size: usize,
@@ -58,6 +59,69 @@ pub struct PlatformAttributes {
 
 pub struct AssembleResult {
     pub pages: Vec<InstructionPage>,
+    pub platform_attributes: PlatformAttributes,
+}
+
+impl AssembleResult {
+    pub fn render_binary<T: Write>(&self, writer: &mut T, header: Option<&mut T>) {
+        writer
+            .write(&[match self.platform_attributes.architecture {
+                PlatformArchitecture::B8 => 8_u8,
+                PlatformArchitecture::B16 => 16_u8,
+                PlatformArchitecture::B32 => 32_u8,
+                PlatformArchitecture::B64 => 64_u8,
+            }])
+            .unwrap();
+        for page in &self.pages {
+            for (index, page) in self.pages.iter().enumerate() {
+                for instruction in &page.instructions {
+                    std::println!(
+                        "{:?} - {:?} - {}",
+                        instruction,
+                        instruction.op_code(),
+                        instruction
+                    );
+                    writer.write(&instruction.op_code()).unwrap();
+                }
+            }
+        }
+    }
+
+    pub fn render<T: Write>(&self, mut output: T) {
+        output
+            .write_all(
+                format!(
+                    ".arch {}\n",
+                    match self.platform_attributes.architecture {
+                        PlatformArchitecture::B8 => "8",
+                        PlatformArchitecture::B16 => "16",
+                        PlatformArchitecture::B32 => "32",
+                        PlatformArchitecture::B64 => "64",
+                    }
+                )
+                .as_bytes(),
+            )
+            .unwrap();
+        for (index, page) in self.pages.iter().enumerate() {
+            let mut page_output = String::new();
+            page_output += &alloc::format!("{:?}:", index.to_le());
+            page_output += &alloc::format!("\n\th:");
+            for header in &page.debug_headers {
+                page_output += &alloc::format!(
+                    "\n\t\t{}: {} - {} - {}",
+                    index,
+                    header.cursor.range_start,
+                    header.cursor.range_end,
+                    header.name
+                );
+            }
+            page_output += &alloc::format!("\n\ta:");
+            for instruction in &page.instructions {
+                page_output += &alloc::format!("\n\t\t{}", instruction);
+            }
+            output.write_all(page_output.as_bytes()).unwrap();
+        }
+    }
 }
 
 impl Assembler {
@@ -67,11 +131,11 @@ impl Assembler {
             platform_attributes,
             processed: Vec::new(),
             pages: Vec::new(),
-            used_heap_memory: 0,
+            used_stack_memory: 0,
         }
     }
 
-    fn assemble_dependency(&mut self, hash: &u64) {
+    fn assemble_dependency(&mut self, hash: &u64, is_main: bool) {
         if !self.processed.contains(hash) {
             self.processed.push(hash.clone());
             let processed_page = self
@@ -85,12 +149,13 @@ impl Assembler {
                 });
 
             let mut page = InstructionPage {
+                is_main,
                 instructions: Vec::new(),
                 debug_headers: Vec::new(),
             };
 
             for dependency in &processed_page.dependencies {
-                self.assemble_dependency(&dependency.hash);
+                self.assemble_dependency(&dependency.hash, false);
             }
 
             for item in &processed_page.items {
@@ -103,9 +168,15 @@ impl Assembler {
                             cursor: variable.pos,
                         });
 
-                        //page.assign_instruction(instructions::Instructions::LDA(
-                        //    Instruction::absolute(utils::convert_to_raw_type(variable.value).join("").),
-                        //));
+                        if utils::is_static_type(&variable.value) {
+                            page.assign_instruction(instructions::Instructions::LDA(
+                                Instruction::absolute(
+                                    utils::convert_to_raw_type(variable.value.clone()).data,
+                                ),
+                            ));
+                        } else {
+                            panic!("Unimplemented: {:?}", variable);
+                        }
                     }
                     ellie_core::definite::items::Collecting::Function(_) => {
                         std::println!("[Assembler,Ignore,Element] Function")
@@ -133,7 +204,9 @@ impl Assembler {
                     }
                     ellie_core::definite::items::Collecting::Getter(_) => todo!(),
                     ellie_core::definite::items::Collecting::Setter(_) => todo!(),
-                    ellie_core::definite::items::Collecting::Generic(_) => todo!(),
+                    ellie_core::definite::items::Collecting::Generic(_) => {
+                        std::println!("[Assembler,Ignore,Element] Generic")
+                    }
                     ellie_core::definite::items::Collecting::NativeClass => todo!(),
                     ellie_core::definite::items::Collecting::GetterCall(_) => todo!(),
                     ellie_core::definite::items::Collecting::SetterCall(_) => todo!(),
@@ -148,8 +221,11 @@ impl Assembler {
         }
     }
 
-    pub fn assemble(&mut self) {
-        self.assemble_dependency(&self.module.initial_page.clone());
-        panic!("{:#?}", self.pages);
+    pub fn assemble(&mut self) -> AssembleResult {
+        self.assemble_dependency(&self.module.initial_page.clone(), true);
+        AssembleResult {
+            pages: self.pages.clone(),
+            platform_attributes: self.platform_attributes.clone(),
+        }
     }
 }

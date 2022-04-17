@@ -68,6 +68,12 @@ impl Default for TokenizerOptions {
 #[derive(PartialEq, Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct CursorPosition(pub usize, pub usize);
 
+impl core::fmt::Display for CursorPosition {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}:{}", self.0, self.1)
+    }
+}
+
 impl Default for CursorPosition {
     fn default() -> Self {
         CursorPosition(0, 0)
