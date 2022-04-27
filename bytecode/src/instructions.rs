@@ -1,8 +1,10 @@
-use alloc::vec;
-use alloc::vec::Vec;
+use alloc::{vec::Vec, vec, string::String};
 
 #[derive(Clone, Debug)]
 pub struct Immediate;
+
+#[derive(Clone, Debug)]
+pub struct Implict;
 
 #[derive(Clone, Debug)]
 pub struct Absolute(usize);
@@ -27,8 +29,9 @@ pub struct Reference;
 
 #[derive(Clone, Debug)]
 pub enum AddressingModes {
-    Immediate,
-    Absolute(isize),
+    Implicit,
+    Immediate(isize),
+    Absolute(usize),
     IndirectA,
     IndirectB,
     IndirectC,
@@ -37,18 +40,6 @@ pub enum AddressingModes {
 }
 
 impl AddressingModes {
-    pub fn mode(&self) -> u8 {
-        match self {
-            AddressingModes::Immediate => 0,
-            AddressingModes::Absolute(_) => 1,
-            AddressingModes::IndirectA => 2,
-            AddressingModes::IndirectB => 3,
-            AddressingModes::IndirectC => 4,
-            AddressingModes::IndirectX => 5,
-            AddressingModes::IndirectY => 6,
-        }
-    }
-
     pub fn arg(&self) -> Vec<u8> {
         match self {
             AddressingModes::Absolute(x) => x.to_le_bytes().to_vec(),
@@ -61,6 +52,7 @@ impl core::fmt::Display for AddressingModes {
     fn fmt(&self, f: &mut core::fmt::Formatter) -> Result<(), core::fmt::Error> {
         match self {
             AddressingModes::Absolute(value) => write!(f, "{}", value),
+            AddressingModes::Immediate(value) => write!(f, "{}", value),
             _ => write!(f, ""),
         }
     }
@@ -72,13 +64,19 @@ pub struct Instruction {
 }
 
 impl Instruction {
-    pub fn immediate() -> Instruction {
+    pub fn implict() -> Instruction {
         Instruction {
-            addressing_mode: AddressingModes::Immediate,
+            addressing_mode: AddressingModes::Implicit,
         }
     }
 
-    pub fn absolute(val: isize) -> Instruction {
+    pub fn immediate(val: isize) -> Instruction {
+        Instruction {
+            addressing_mode: AddressingModes::Immediate(val),
+        }
+    }
+
+    pub fn absolute(val: usize) -> Instruction {
         Instruction {
             addressing_mode: AddressingModes::Absolute(val),
         }
@@ -122,6 +120,11 @@ pub enum Instructions {
     LDC(Instruction),
     LDX(Instruction),
     LDY(Instruction),
+    MCA(Instruction),
+    MCB(Instruction),
+    MCC(Instruction),
+    MCX(Instruction),
+    MCY(Instruction),
     STA(Instruction),
     STB(Instruction),
     STC(Instruction),
@@ -145,176 +148,7 @@ pub enum Instructions {
 
 impl Instructions {
     pub fn op_code(&self) -> Vec<u8> {
-        match self {
-            Instructions::LDA(instruction) => {
-                let base = 0x01_u8;
-                let mode = instruction.addressing_mode.mode();
-                let mut op_code = vec![base + mode];
-                op_code.extend(instruction.addressing_mode.arg());
-                op_code
-            }
-            Instructions::LDB(instruction) => {
-                let base = 0x07_u8;
-                let mode = instruction.addressing_mode.mode();
-                let mut op_code = vec![base + mode];
-                op_code.extend(instruction.addressing_mode.arg());
-                op_code
-            }
-            Instructions::LDC(instruction) => {
-                let base = 0x0D_u8;
-                let mode = instruction.addressing_mode.mode();
-                let mut op_code = vec![base + mode];
-                op_code.extend(instruction.addressing_mode.arg());
-                op_code
-            }
-            Instructions::LDX(instruction) => {
-                let base = 0x13_u8;
-                let mode = instruction.addressing_mode.mode();
-                let mut op_code = vec![base + mode];
-                op_code.extend(instruction.addressing_mode.arg());
-                op_code
-            }
-            Instructions::LDY(instruction) => {
-                let base = 0x19_u8;
-                let mode = instruction.addressing_mode.mode();
-                let mut op_code = vec![base + mode];
-                op_code.extend(instruction.addressing_mode.arg());
-                op_code
-            }
-            Instructions::STA(instruction) => {
-                let base = 0x1F_u8;
-                let mode = instruction.addressing_mode.mode();
-                let mut op_code = vec![base + mode];
-                op_code.extend(instruction.addressing_mode.arg());
-                op_code
-            }
-            Instructions::STB(instruction) => {
-                let base = 0x25_u8;
-                let mode = instruction.addressing_mode.mode();
-                let mut op_code = vec![base + mode];
-                op_code.extend(instruction.addressing_mode.arg());
-                op_code
-            }
-            Instructions::STC(instruction) => {
-                let base = 0x2B_u8;
-                let mode = instruction.addressing_mode.mode();
-                let mut op_code = vec![base + mode];
-                op_code.extend(instruction.addressing_mode.arg());
-                op_code
-            }
-            Instructions::STX(instruction) => {
-                let base = 0x31_u8;
-                let mode = instruction.addressing_mode.mode();
-                let mut op_code = vec![base + mode];
-                op_code.extend(instruction.addressing_mode.arg());
-                op_code
-            }
-            Instructions::STY(instruction) => {
-                let base = 0x37_u8;
-                let mode = instruction.addressing_mode.mode();
-                let mut op_code = vec![base + mode];
-                op_code.extend(instruction.addressing_mode.arg());
-                op_code
-            }
-            Instructions::EQ(instruction) => {
-                let base = 0x3D_u8;
-                let mode = instruction.addressing_mode.mode();
-                let mut op_code = vec![base + mode];
-                op_code.extend(instruction.addressing_mode.arg());
-                op_code
-            }
-            Instructions::NE(instruction) => {
-                let base = 0x45_u8;
-                let mode = instruction.addressing_mode.mode();
-                let mut op_code = vec![base + mode];
-                op_code.extend(instruction.addressing_mode.arg());
-                op_code
-            }
-            Instructions::GT(instruction) => {
-                let base = 0x4C_u8;
-                let mode = instruction.addressing_mode.mode();
-                let mut op_code = vec![base + mode];
-                op_code.extend(instruction.addressing_mode.arg());
-                op_code
-            }
-            Instructions::LT(instruction) => {
-                let base = 0x53_u8;
-                let mode = instruction.addressing_mode.mode();
-                let mut op_code = vec![base + mode];
-                op_code.extend(instruction.addressing_mode.arg());
-                op_code
-            }
-            Instructions::GQ(instruction) => {
-                let base = 0x5A_u8;
-                let mode = instruction.addressing_mode.mode();
-                let mut op_code = vec![base + mode];
-                op_code.extend(instruction.addressing_mode.arg());
-                op_code
-            }
-            Instructions::LQ(instruction) => {
-                let base = 0x61_u8;
-                let mode = instruction.addressing_mode.mode();
-                let mut op_code = vec![base + mode];
-                op_code.extend(instruction.addressing_mode.arg());
-                op_code
-            }
-            Instructions::AND(instruction) => {
-                let base = 0x68_u8;
-                let mode = instruction.addressing_mode.mode();
-                let mut op_code = vec![base + mode];
-                op_code.extend(instruction.addressing_mode.arg());
-                op_code
-            }
-            Instructions::OR(instruction) => {
-                let base = 0x6E_u8;
-                let mode = instruction.addressing_mode.mode();
-                let mut op_code = vec![base + mode];
-                op_code.extend(instruction.addressing_mode.arg());
-                op_code
-            }
-            Instructions::ADD(instruction) => {
-                let base = 0x75_u8;
-                let mode = instruction.addressing_mode.mode();
-                let mut op_code = vec![base + mode];
-                op_code.extend(instruction.addressing_mode.arg());
-                op_code
-            }
-            Instructions::SUB(instruction) => {
-                let base = 0x7C_u8;
-                let mode = instruction.addressing_mode.mode();
-                let mut op_code = vec![base + mode];
-                op_code.extend(instruction.addressing_mode.arg());
-                op_code
-            }
-            Instructions::MUL(instruction) => {
-                let base = 0x83_u8;
-                let mode = instruction.addressing_mode.mode();
-                let mut op_code = vec![base + mode];
-                op_code.extend(instruction.addressing_mode.arg());
-                op_code
-            }
-            Instructions::EXP(instruction) => {
-                let base = 0x8A_u8;
-                let mode = instruction.addressing_mode.mode();
-                let mut op_code = vec![base + mode];
-                op_code.extend(instruction.addressing_mode.arg());
-                op_code
-            }
-            Instructions::DIV(instruction) => {
-                let base = 0x91_u8;
-                let mode = instruction.addressing_mode.mode();
-                let mut op_code = vec![base + mode];
-                op_code.extend(instruction.addressing_mode.arg());
-                op_code
-            }
-            Instructions::MOD(instruction) => {
-                let base = 0x98_u8;
-                let mode = instruction.addressing_mode.mode();
-                let mut op_code = vec![base + mode];
-                op_code.extend(instruction.addressing_mode.arg());
-                op_code
-            }
-        }
+        todo!()
     }
 }
 
@@ -331,20 +165,50 @@ impl core::fmt::Display for Instructions {
             Instructions::STC(instruction) => write!(f, "STC {}", instruction.addressing_mode),
             Instructions::STX(instruction) => write!(f, "STX {}", instruction.addressing_mode),
             Instructions::STY(instruction) => write!(f, "STY {}", instruction.addressing_mode),
-            Instructions::EQ(instruction) => write!(f, "EQ {}", instruction.addressing_mode),
-            Instructions::NE(instruction) => write!(f, "NE {}", instruction.addressing_mode),
-            Instructions::GT(instruction) => write!(f, "GT {}", instruction.addressing_mode),
-            Instructions::LT(instruction) => write!(f, "LT {}", instruction.addressing_mode),
-            Instructions::GQ(instruction) => write!(f, "GQ {}", instruction.addressing_mode),
-            Instructions::LQ(instruction) => write!(f, "LQ {}", instruction.addressing_mode),
-            Instructions::AND(instruction) => write!(f, "AND {}", instruction.addressing_mode),
-            Instructions::OR(instruction) => write!(f, "OR {}", instruction.addressing_mode),
-            Instructions::ADD(instruction) => write!(f, "ADD {}", instruction.addressing_mode),
-            Instructions::SUB(instruction) => write!(f, "SUB {}", instruction.addressing_mode),
-            Instructions::MUL(instruction) => write!(f, "MUL {}", instruction.addressing_mode),
-            Instructions::EXP(instruction) => write!(f, "EXP {}", instruction.addressing_mode),
-            Instructions::DIV(instruction) => write!(f, "DIV {}", instruction.addressing_mode),
-            Instructions::MOD(instruction) => write!(f, "MOD {}", instruction.addressing_mode),
+            Instructions::EQ(_) => write!(f, "EQ"),
+            Instructions::NE(_) => write!(f, "NE"),
+            Instructions::GT(_) => write!(f, "GT"),
+            Instructions::LT(_) => write!(f, "LT"),
+            Instructions::GQ(_) => write!(f, "GQ"),
+            Instructions::LQ(_) => write!(f, "LQ"),
+            Instructions::AND(_) => write!(f, "AND"),
+            Instructions::OR(_) => write!(f, "OR"),
+            Instructions::ADD(_) => write!(f, "ADD"),
+            Instructions::SUB(_) => write!(f, "SUB"),
+            Instructions::MUL(_) => write!(f, "MUL"),
+            Instructions::EXP(_) => write!(f, "EXP"),
+            Instructions::DIV(_) => write!(f, "DIV"),
+            Instructions::MOD(_) => write!(f, "MOD"),
+            Instructions::MCA(_) => write!(f, "MCA"),
+            Instructions::MCB(_) => write!(f, "MCB"),
+            Instructions::MCC(_) => write!(f, "MCC"),
+            Instructions::MCX(_) => write!(f, "MCX"),
+            Instructions::MCY(_) => write!(f, "MCY"),
         }
     }
+}
+
+pub enum Registers {
+    A,
+    B,
+    C,
+    X,
+    Y,
+}
+
+pub enum AddressingModesStruct {
+    Implicit,
+    Immediate,
+    Absolute,
+    IndirectA,
+    IndirectB,
+    IndirectC,
+    IndirectX,
+    IndirectY,
+}
+
+pub struct InstructionStruct {
+    pub op_code: String,
+    pub rtype: String,
+    pub mode : AddressingModesStruct,
 }

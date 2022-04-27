@@ -1,5 +1,9 @@
+use alloc::vec;
 use alloc::vec::Vec;
-use ellie_core::definite::types::Types;
+
+use ellie_core::definite::types::{operator, Types};
+
+use crate::instructions::{self, Instruction, Instructions};
 
 pub struct RawType {
     pub size: usize,

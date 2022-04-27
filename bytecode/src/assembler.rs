@@ -1,10 +1,14 @@
-use std::io::{Read, Write};
+use std::{
+    io::{Read, Write},
+    panic,
+};
 
 use crate::{
-    instructions::{self, AddressingModes, Instruction},
+    instructions::{self, AddressingModes, Instruction, Instructions},
     utils,
 };
-use alloc::{format, string::String, vec::Vec};
+use alloc::{format, string::String, vec, vec::Vec};
+use ellie_core::definite::types::{operator, Types};
 use ellie_parser::parser::Module;
 
 pub struct Assembler {
@@ -31,15 +35,30 @@ pub struct DebugHeader {
 }
 
 #[derive(Clone, Debug)]
+pub struct LocalHeader {
+    pub name: String,
+    pub cursor: usize,
+}
+
+#[derive(Clone, Debug)]
 pub struct InstructionPage {
     pub is_main: bool,
     pub instructions: Vec<instructions::Instructions>,
+    pub locals: Vec<LocalHeader>,
     pub debug_headers: Vec<DebugHeader>,
 }
 
 impl InstructionPage {
     pub fn assign_instruction(&mut self, instruction: instructions::Instructions) {
         self.instructions.push(instruction)
+    }
+
+    pub fn extend_instructions(&mut self, instruction: Vec<instructions::Instructions>) {
+        self.instructions.extend(instruction)
+    }
+
+    pub fn find_local(&self, name: &str) -> Option<&LocalHeader> {
+        self.locals.iter().find(|local| local.name == name)
     }
 }
 
@@ -73,16 +92,14 @@ impl AssembleResult {
             }])
             .unwrap();
         for page in &self.pages {
-            for (index, page) in self.pages.iter().enumerate() {
-                for instruction in &page.instructions {
-                    std::println!(
-                        "{:?} - {:?} - {}",
-                        instruction,
-                        instruction.op_code(),
-                        instruction
-                    );
-                    writer.write(&instruction.op_code()).unwrap();
-                }
+            for instruction in &page.instructions {
+                std::println!(
+                    "{:?} - {:?} - {}",
+                    instruction,
+                    instruction.op_code(),
+                    instruction
+                );
+                writer.write(&instruction.op_code()).unwrap();
             }
         }
     }
@@ -106,7 +123,7 @@ impl AssembleResult {
             let mut page_output = String::new();
             page_output += &alloc::format!("{:?}:", index.to_le());
             page_output += &alloc::format!("\n\th:");
-            for header in &page.debug_headers {
+            for (index, header) in page.debug_headers.iter().enumerate() {
                 page_output += &alloc::format!(
                     "\n\t\t{}: {} - {} - {}",
                     index,
@@ -115,11 +132,17 @@ impl AssembleResult {
                     header.name
                 );
             }
+            page_output += &alloc::format!("\n\tl:");
+            for (index, header) in page.locals.iter().enumerate() {
+                page_output +=
+                    &alloc::format!("\n\t\t{}: {} - {}", index, header.name, header.cursor);
+            }
             page_output += &alloc::format!("\n\ta:");
             for instruction in &page.instructions {
                 page_output += &alloc::format!("\n\t\t{}", instruction);
             }
             output.write_all(page_output.as_bytes()).unwrap();
+            output.write_all("\n".as_bytes()).unwrap();
         }
     }
 }
@@ -132,6 +155,157 @@ impl Assembler {
             processed: Vec::new(),
             pages: Vec::new(),
             used_stack_memory: 0,
+        }
+    }
+
+    pub fn resolve_type(
+        &self,
+        types: &Types,
+        target_register: instructions::Registers,
+        target_page: &u64,
+    ) -> Vec<Instructions> {
+        match types {
+            Types::Collective(_) => todo!(),
+            Types::Reference(_) => todo!(),
+            Types::BraceReference(_) => todo!(),
+            Types::Operator(operator) => match &operator.operator {
+                operator::Operators::ComparisonType(_) => {
+                    todo!()
+                }
+                operator::Operators::LogicalType(_) => todo!(),
+                operator::Operators::ArithmeticType(e) => {
+                    let mut instructions = Vec::new();
+                    instructions.extend( self.resolve_type(
+                        &operator.first,
+                        instructions::Registers::B,
+                        target_page,
+                    ));
+
+                    instructions.extend( self.resolve_type(
+                        &operator.second,
+                        instructions::Registers::C,
+                        target_page,
+                    ));
+
+
+
+                    instructions.push(match e {
+                        operator::ArithmeticOperators::Addition => {
+                            instructions::Instructions::ADD(Instruction::implict())
+                        }
+                        operator::ArithmeticOperators::Subtraction => {
+                            instructions::Instructions::SUB(Instruction::implict())
+                        }
+                        operator::ArithmeticOperators::Multiplication => {
+                            instructions::Instructions::MUL(Instruction::implict())
+                        }
+                        operator::ArithmeticOperators::Exponentiation => {
+                            instructions::Instructions::EXP(Instruction::implict())
+                        }
+                        operator::ArithmeticOperators::Division => {
+                            instructions::Instructions::DIV(Instruction::implict())
+                        }
+                        operator::ArithmeticOperators::Modulus => {
+                            instructions::Instructions::MOD(Instruction::implict())
+                        }
+                        operator::ArithmeticOperators::Null => unreachable!("Wrong operator"),
+                    });
+                    match target_register {
+                        instructions::Registers::A => {
+                            instructions
+                                .push(instructions::Instructions::MCA(Instruction::implict()));
+                        }
+                        instructions::Registers::B => {
+                            instructions
+                                .push(instructions::Instructions::MCB(Instruction::implict()));
+                        }
+                        instructions::Registers::C => (),
+                        instructions::Registers::X => {
+                            instructions
+                                .push(instructions::Instructions::MCX(Instruction::implict()));
+                        }
+                        instructions::Registers::Y => {
+                            instructions
+                                .push(instructions::Instructions::MCY(Instruction::implict()));
+                        }
+                    }
+                    instructions
+                }
+                operator::Operators::AssignmentType(_) => todo!(),
+                operator::Operators::Null => todo!(),
+            },
+            Types::Cloak(_) => todo!(),
+            Types::Array(_) => todo!(),
+            Types::Vector(_) => todo!(),
+            Types::Function(_) => todo!(),
+            Types::ClassCall(_) => todo!(),
+            Types::FunctionCall(_) => todo!(),
+            Types::Void => todo!(),
+            Types::NullResolver(_) => todo!(),
+            Types::Negative(_) => todo!(),
+            Types::VariableType(e) => {
+                let pos = self
+                    .pages
+                    .last()
+                    .unwrap()
+                    .find_local(&e.value)
+                    .unwrap_or_else(|| panic!("Could not find local {}", e.value))
+                    .cursor;
+
+                vec![match target_register {
+                    instructions::Registers::A => {
+                        instructions::Instructions::LDA(Instruction::absolute(pos))
+                    }
+                    instructions::Registers::B => {
+                        instructions::Instructions::LDB(Instruction::absolute(pos))
+                    }
+                    instructions::Registers::C => {
+                        instructions::Instructions::LDC(Instruction::absolute(pos))
+                    }
+                    instructions::Registers::X => {
+                        instructions::Instructions::LDX(Instruction::absolute(pos))
+                    }
+                    instructions::Registers::Y => {
+                        instructions::Instructions::LDY(Instruction::absolute(pos))
+                    }
+                }]
+            }
+            Types::AsKeyword(_) => todo!(),
+            Types::Byte(_) => todo!(),
+            Types::Integer(int) => match target_register {
+                instructions::Registers::A => {
+                    vec![instructions::Instructions::LDA(Instruction::immediate(
+                        int.value.to_le(),
+                    ))]
+                }
+                instructions::Registers::B => {
+                    vec![instructions::Instructions::LDB(Instruction::immediate(
+                        int.value.to_le(),
+                    ))]
+                }
+                instructions::Registers::C => {
+                    vec![instructions::Instructions::LDC(Instruction::immediate(
+                        int.value.to_le(),
+                    ))]
+                }
+                instructions::Registers::X => {
+                    vec![instructions::Instructions::LDX(Instruction::immediate(
+                        int.value.to_le(),
+                    ))]
+                }
+                instructions::Registers::Y => {
+                    vec![instructions::Instructions::LDY(Instruction::immediate(
+                        int.value.to_le(),
+                    ))]
+                }
+            },
+            Types::Float(_) => todo!(),
+            Types::Double(_) => todo!(),
+            Types::Bool(_) => todo!(),
+            Types::String(_) => todo!(),
+            Types::Char(_) => todo!(),
+            Types::Null => todo!(),
+            Types::Dynamic => todo!(),
         }
     }
 
@@ -148,38 +322,44 @@ impl Assembler {
                     panic!("Unexpected assembler error, cannot find page {:?}", hash);
                 });
 
-            let mut page = InstructionPage {
+            self.pages.push(InstructionPage {
                 is_main,
                 instructions: Vec::new(),
                 debug_headers: Vec::new(),
-            };
-
-            for dependency in &processed_page.dependencies {
-                self.assemble_dependency(&dependency.hash, false);
-            }
+                locals: Vec::new(),
+            });
 
             for item in &processed_page.items {
                 match item {
                     ellie_core::definite::items::Collecting::Variable(variable) => {
+                        let resolved_instructions =
+                            self.resolve_type(&variable.value, instructions::Registers::A, hash);
+
+                        let mut page = self.pages.iter_mut().last().unwrap();
+
                         page.debug_headers.push(DebugHeader {
                             id: page.instructions.len(),
                             rtype: DebugHeaderType::Variable,
                             name: variable.name.clone(),
                             cursor: variable.pos,
                         });
+                        std::println!("Variable: {} = {:?}", variable.name, variable.value);
 
-                        if utils::is_static_type(&variable.value) {
-                            page.assign_instruction(instructions::Instructions::LDA(
-                                Instruction::absolute(
-                                    utils::convert_to_raw_type(variable.value.clone()).data,
-                                ),
-                            ));
-                        } else {
-                            panic!("Unimplemented: {:?}", variable);
-                        }
+                        page.extend_instructions(resolved_instructions);
+                        page.assign_instruction(instructions::Instructions::STA(
+                            Instruction::implict(),
+                        ));
+                        page.locals.push(LocalHeader {
+                            name: variable.name.clone(),
+                            cursor: page.instructions.len(),
+                        })
                     }
-                    ellie_core::definite::items::Collecting::Function(_) => {
-                        std::println!("[Assembler,Ignore,Element] Function")
+                    ellie_core::definite::items::Collecting::Function(e) => {
+                        for dependency in &processed_page.dependencies {
+                            self.assemble_dependency(&dependency.hash, false);
+                        }
+                        self.assemble_dependency(&e.inner_page_id, false);
+                        return;
                     }
                     ellie_core::definite::items::Collecting::ForLoop(_) => {
                         std::println!("[Assembler,Ignore,Element] ForLoop")
@@ -217,7 +397,9 @@ impl Assembler {
                     ellie_core::definite::items::Collecting::None => todo!(),
                 }
             }
-            self.pages.push(page);
+            for dependency in &processed_page.dependencies {
+                self.assemble_dependency(&dependency.hash, false);
+            }
         }
     }
 

@@ -575,7 +575,63 @@ fn iterate_deep_type(
                 )
             }
         }
-        Types::Operator(_) => todo!(),
+        Types::Operator(e) => {
+            let first = match resolve_deep_type(parser, page_id, *e.first, errors) {
+                DeepTypeResult::Integer(e) => Types::Integer(e),
+                DeepTypeResult::Byte(e) => Types::Byte(e),
+                DeepTypeResult::Float(e) => Types::Float(e),
+                DeepTypeResult::Double(e) => Types::Double(e),
+                DeepTypeResult::Bool(e) => Types::Bool(e),
+                DeepTypeResult::String(e) => Types::String(e),
+                DeepTypeResult::Char(e) => Types::Char(e),
+                DeepTypeResult::Collective(e) => Types::Collective(e),
+                DeepTypeResult::Operator(e) => Types::Operator(e),
+                DeepTypeResult::Cloak(e) => Types::Cloak(e),
+                DeepTypeResult::Array(e) => Types::Array(e),
+                DeepTypeResult::Vector(e) => Types::Vector(e),
+                DeepTypeResult::ClassCall(e) => Types::ClassCall(e),
+                DeepTypeResult::Function(e) => Types::Function(e),
+                DeepTypeResult::FunctionCall(e) => Types::FunctionCall(e),
+                DeepTypeResult::BraceReference(e) => Types::BraceReference(e),
+                DeepTypeResult::Void => Types::Void,
+                DeepTypeResult::Null => Types::Null,
+                DeepTypeResult::Dynamic => Types::Dynamic,
+                DeepTypeResult::NotFound => unreachable!(),
+            };
+
+            let second = match resolve_deep_type(parser, page_id, *e.second, errors) {
+                DeepTypeResult::Integer(e) => Types::Integer(e),
+                DeepTypeResult::Byte(e) => Types::Byte(e),
+                DeepTypeResult::Float(e) => Types::Float(e),
+                DeepTypeResult::Double(e) => Types::Double(e),
+                DeepTypeResult::Bool(e) => Types::Bool(e),
+                DeepTypeResult::String(e) => Types::String(e),
+                DeepTypeResult::Char(e) => Types::Char(e),
+                DeepTypeResult::Collective(e) => Types::Collective(e),
+                DeepTypeResult::Operator(e) => Types::Operator(e),
+                DeepTypeResult::Cloak(e) => Types::Cloak(e),
+                DeepTypeResult::Array(e) => Types::Array(e),
+                DeepTypeResult::Vector(e) => Types::Vector(e),
+                DeepTypeResult::ClassCall(e) => Types::ClassCall(e),
+                DeepTypeResult::Function(e) => Types::Function(e),
+                DeepTypeResult::FunctionCall(e) => Types::FunctionCall(e),
+                DeepTypeResult::BraceReference(e) => Types::BraceReference(e),
+                DeepTypeResult::Void => Types::Void,
+                DeepTypeResult::Null => Types::Null,
+                DeepTypeResult::Dynamic => Types::Dynamic,
+                DeepTypeResult::NotFound => unreachable!(),
+            };
+
+            DeepTypeResult::Operator(ellie_core::definite::types::operator::OperatorType {
+                cloaked: e.cloaked,
+                first_pos: e.first_pos,
+                operator: e.operator,
+                second_pos: e.second_pos,
+                pos: e.pos,
+                second: Box::new(second),
+                first: Box::new(first),
+            })
+        }
         Types::Cloak(cloak) => {
             if cloak.collective.len() == 1 {
                 iterate_deep_type(
@@ -1938,7 +1994,35 @@ pub fn resolve_type(
             }
         }
         DeepTypeResult::Collective(_) => todo!(),
-        DeepTypeResult::Operator(_) => todo!(),
+        DeepTypeResult::Operator(operator) => {
+            let value_type = match operator.operator {
+                ellie_core::definite::types::operator::Operators::ComparisonType(_) => {
+                    find_type("bool".to_string(), target_page, parser)
+                }
+                ellie_core::definite::types::operator::Operators::LogicalType(_) => {
+                    find_type("bool".to_string(), target_page, parser)
+                }
+                ellie_core::definite::types::operator::Operators::ArithmeticType(_) => {
+                    let rtype = match *operator.first {
+                        Types::Byte(_) => "byte",
+                        Types::Integer(_) => "int",
+                        Types::Float(_) => "float",
+                        Types::Double(_) => "double",
+                        _ => unreachable!(),
+                    }
+                    .to_string();
+                    find_type(rtype, target_page, parser)
+                }
+                ellie_core::definite::types::operator::Operators::AssignmentType(_) => {
+                    todo!()
+                }
+                ellie_core::definite::types::operator::Operators::Null => {
+                    unreachable!()
+                }
+            };
+
+            Some(definers::DefinerCollecting::Generic(value_type.unwrap()))
+        }
         DeepTypeResult::Cloak(_) => todo!(),
         DeepTypeResult::Array(array_type) => {
             #[derive(PartialEq, EnumAsInner, Clone)]

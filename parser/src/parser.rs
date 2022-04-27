@@ -464,7 +464,34 @@ impl Parser {
                 }
             }
             deep_search_extensions::DeepTypeResult::Collective(_) => todo!(),
-            deep_search_extensions::DeepTypeResult::Operator(_) => todo!(),
+            deep_search_extensions::DeepTypeResult::Operator(e) => {
+                let value_gen = match deep_search_extensions::resolve_type(
+                    rtype,
+                    target_page,
+                    self,
+                    &mut errors,
+                    None,
+                ) {
+                    Some(e) => e,
+                    None => {
+                        return Err(errors);
+                    }
+                };
+
+                if value_gen.same_as(defining.clone()) {
+                    if errors.is_empty() {
+                        Ok((true, defining.to_string(), value_gen.to_string()))
+                    } else {
+                        Err(errors)
+                    }
+                } else {
+                    if errors.is_empty() {
+                        Ok((false, defining.to_string(), value_gen.to_string()))
+                    } else {
+                        Err(errors)
+                    }
+                }
+            }
             deep_search_extensions::DeepTypeResult::Cloak(_) => todo!(),
             deep_search_extensions::DeepTypeResult::Array(_) => {
                 let value_gen = match deep_search_extensions::resolve_type(

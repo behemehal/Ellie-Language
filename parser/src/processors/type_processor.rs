@@ -9,7 +9,7 @@ use ellie_core::{
     definite::{items::Collecting, types, Converter},
     error,
 };
-use ellie_tokenizer::processors::types::Processors;
+use ellie_tokenizer::{processors::types::Processors, syntax::types::operator_type};
 
 use crate::deep_search_extensions::{deep_search, deep_search_hash, find_type, resolve_type};
 
@@ -187,93 +187,15 @@ pub fn process(
                 None => return Err(errors),
             };
 
-            match operator.data.operator {
-                ellie_tokenizer::syntax::types::operator_type::Operators::ComparisonType(_) => {
-                    if first_value.same_as(second_value.clone()) {
-                        Ok(types::Types::Bool(types::bool::BoolType { value: true }))
-                    } else {
-                        errors.push(error::error_list::ERROR_S52.clone().build_with_path(
-                            vec![
-                                error::ErrorBuildField {
-                                    key: "opType".to_owned(),
-                                    value: operator.data.operator.to_string(),
-                                },
-                                error::ErrorBuildField {
-                                    key: "target".to_owned(),
-                                    value: first_value.to_string(),
-                                },
-                                error::ErrorBuildField {
-                                    key: "value".to_owned(),
-                                    value: second_value.to_string(),
-                                },
-                            ],
-                            alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                            parser.find_page(page_id).unwrap().path.clone(),
-                            from.get_pos(),
-                        ));
-                        Err(errors)
-                    }
-                }
-                ellie_tokenizer::syntax::types::operator_type::Operators::LogicalType(_) => {
-                    if first_value.same_as(second_value.clone()) {
-                        Ok(types::Types::Bool(types::bool::BoolType { value: true }))
-                    } else {
-                        errors.push(error::error_list::ERROR_S52.clone().build_with_path(
-                            vec![
-                                error::ErrorBuildField {
-                                    key: "opType".to_owned(),
-                                    value: operator.data.operator.to_string(),
-                                },
-                                error::ErrorBuildField {
-                                    key: "target".to_owned(),
-                                    value: first_value.to_string(),
-                                },
-                                error::ErrorBuildField {
-                                    key: "value".to_owned(),
-                                    value: second_value.to_string(),
-                                },
-                            ],
-                            alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                            parser.find_page(page_id).unwrap().path.clone(),
-                            from.get_pos(),
-                        ));
-                        Err(errors)
-                    }
-                }
-                ellie_tokenizer::syntax::types::operator_type::Operators::ArithmeticType(_) => {
-                    if first_value.same_as(second_value.clone()) {
-                        Ok(types::Types::Integer(types::integer::IntegerType {
-                            value: 0,
-                            pos: ellie_core::defs::Cursor::default(),
-                        }))
-                    } else {
-                        errors.push(error::error_list::ERROR_S52.clone().build_with_path(
-                            vec![
-                                error::ErrorBuildField {
-                                    key: "opType".to_owned(),
-                                    value: operator.data.operator.to_string(),
-                                },
-                                error::ErrorBuildField {
-                                    key: "target".to_owned(),
-                                    value: first_value.to_string(),
-                                },
-                                error::ErrorBuildField {
-                                    key: "value".to_owned(),
-                                    value: second_value.to_string(),
-                                },
-                            ],
-                            alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                            parser.find_page(page_id).unwrap().path.clone(),
-                            from.get_pos(),
-                        ));
-                        Err(errors)
-                    }
-                }
-                ellie_tokenizer::syntax::types::operator_type::Operators::AssignmentType(_) => {
-                    todo!()
-                }
-                ellie_tokenizer::syntax::types::operator_type::Operators::Null => unreachable!(),
-            }
+            Ok(types::Types::Operator(types::operator::OperatorType {
+                cloaked: false,
+                first: Box::new(processed_first_value.unwrap()),
+                first_pos: operator.data.first_pos,
+                second_pos: operator.data.second_pos,
+                second: Box::new(processed_second_value.unwrap()),
+                operator: operator.data.operator.to_definite(),
+                pos: operator.data.pos,
+            }))
         }
         Processors::Reference(reference) => {
             let processed_reference = process(

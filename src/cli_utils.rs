@@ -574,8 +574,8 @@ pub fn render_code_block(
                         Colors::Yellow
                     },
                     arrow(
-                        (item_pos.range_start.1 + 1) as usize,
-                        (item_pos.range_end.1 + 1) - item_pos.range_start.1
+                        (item_pos.range_start.1) as usize,
+                        (item_pos.range_end.1) - item_pos.range_start.1
                     ),
                     Colors::Reset,
                 );
@@ -600,8 +600,8 @@ pub fn render_code_block(
                         Colors::Yellow
                     },
                     arrow(
-                        (item_pos.range_start.1 + 1) as usize,
-                        (item_pos.range_end.1 + 1) - item_pos.range_start.1
+                        (item_pos.range_start.1) as usize,
+                        (item_pos.range_end.1) - item_pos.range_start.1
                     ),
                     Colors::Reset,
                 );

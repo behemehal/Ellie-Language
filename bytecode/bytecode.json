@@ -1,0 +1,305 @@
+{
+    "version": "1.0.0",
+    "instructions": {
+        "0x00": {
+            "type": "LDA",
+            "mode": "immediate"
+        },
+        "0x01": {
+            "type": "LDA",
+            "mode": "absolute"
+        },
+        "0x02": {
+            "type": "LDA",
+            "mode": "indirectb"
+        },
+        "0x03": {
+            "type": "LDA",
+            "mode": "indirectc"
+        },
+        "0x04": {
+            "type": "LDA",
+            "mode": "indirectx"
+        },
+        "0x05": {
+            "type": "LDA",
+            "mode": "indirecty"
+        },
+        "0x06": {
+            "type": "LDB",
+            "mode": "immediate"
+        },
+        "0x07": {
+            "type": "LDB",
+            "mode": "absolute"
+        },
+        "0x08": {
+            "type": "LDB",
+            "mode": "indirecta"
+        },
+        "0x09": {
+            "type": "LDB",
+            "mode": "indirectc"
+        },
+        "0x0A": {
+            "type": "LDB",
+            "mode": "indirectx"
+        },
+        "0x0B": {
+            "type": "LDB",
+            "mode": "indirecty"
+        },
+        "0x0C": {
+            "type": "LDC",
+            "mode": "immediate"
+        },
+        "0x0D": {
+            "type": "LDC",
+            "mode": "absolute"
+        },
+        "0x0E": {
+            "type": "LDC",
+            "mode": "indirecta"
+        },
+        "0x0F": {
+            "type": "LDC",
+            "mode": "indirectb"
+        },
+        "0x10": {
+            "type": "LDC",
+            "mode": "indirectx"
+        },
+        "0x11": {
+            "type": "LDC",
+            "mode": "indirecty"
+        },
+        "0x12": {
+            "type": "LDX",
+            "mode": "immediate"
+        },
+        "0x13": {
+            "type": "LDX",
+            "mode": "absolute"
+        },
+        "0x14": {
+            "type": "LDX",
+            "mode": "indirecta"
+        },
+        "0x15": {
+            "type": "LDX",
+            "mode": "indirectb"
+        },
+        "0x16": {
+            "type": "LDX",
+            "mode": "indirectc"
+        },
+        "0x17": {
+            "type": "LDX",
+            "mode": "indirecty"
+        },
+        "0x18": {
+            "type": "LDY",
+            "mode": "immediate"
+        },
+        "0x19": {
+            "type": "LDY",
+            "mode": "absolute"
+        },
+        "0x1A": {
+            "type": "LDY",
+            "mode": "indirecta"
+        },
+        "0x1B": {
+            "type": "LDY",
+            "mode": "indirectb"
+        },
+        "0x1C": {
+            "type": "LDY",
+            "mode": "indirectc"
+        },
+        "0x1D": {
+            "type": "LDY",
+            "mode": "indirectx"
+        },
+        "0x1E": {
+            "type": "STA",
+            "mode": "absolute"
+        },
+        "0x20": {
+            "type": "STA",
+            "mode": "indirectb"
+        },
+        "0x21": {
+            "type": "STA",
+            "mode": "indirectc"
+        },
+        "0x22": {
+            "type": "STA",
+            "mode": "indirectx"
+        },
+        "0x23": {
+            "type": "STA",
+            "mode": "indirecty"
+        },
+        "0x24": {
+            "type": "STB",
+            "mode": "absolute"
+        },
+        "0x25": {
+            "type": "STB",
+            "mode": "indirecta"
+        },
+        "0x26": {
+            "type": "STB",
+            "mode": "indirectc"
+        },
+        "0x27": {
+            "type": "STB",
+            "mode": "indirectx"
+        },
+        "0x28": {
+            "type": "STB",
+            "mode": "indirecty"
+        },
+        "0x29": {
+            "type": "STC",
+            "mode": "absolute"
+        },
+        "0x2A": {
+            "type": "STC",
+            "mode": "indirecta"
+        },
+        "0x2B": {
+            "type": "STC",
+            "mode": "indirectb"
+        },
+        "0x2C": {
+            "type": "STC",
+            "mode": "indirectx"
+        },
+        "0x2D": {
+            "type": "STC",
+            "mode": "indirecty"
+        },
+        "0x2E": {
+            "type": "STX",
+            "mode": "absolute"
+        },
+        "0x2F": {
+            "type": "STX",
+            "mode": "indirecta"
+        },
+        "0x30": {
+            "type": "STX",
+            "mode": "indirectb"
+        },
+        "0x31": {
+            "type": "STX",
+            "mode": "indirectc"
+        },
+        "0x32": {
+            "type": "STX",
+            "mode": "indirecty"
+        },
+        "0x33": {
+            "type": "STY",
+            "mode": "absolute"
+        },
+        "0x34": {
+            "type": "STY",
+            "mode": "indirecta"
+        },
+        "0x35": {
+            "type": "STY",
+            "mode": "indirectb"
+        },
+        "0x36": {
+            "type": "STY",
+            "mode": "indirectc"
+        },
+        "0x37": {
+            "type": "STY",
+            "mode": "indirectx"
+        },
+        "0x38": {
+            "type": "EQ",
+            "mode": "implicit"
+        },
+        "0x39": {
+            "type": "NE",
+            "mode": "implicit"
+        },
+        "0x3A": {
+            "type": "GT",
+            "mode": "implicit"
+        },
+        "0x3B": {
+            "type": "LT",
+            "mode": "implicit"
+        },
+        "0x3C": {
+            "type": "GQ",
+            "mode": "implicit"
+        },
+        "0x3D": {
+            "type": "LQ",
+            "mode": "implicit"
+        },
+        "0x3E": {
+            "type": "AND",
+            "mode": "implicit"
+        },
+        "0x3F": {
+            "type": "OR",
+            "mode": "implicit"
+        },
+        "0x40": {
+            "type": "SUB",
+            "mode": "implicit"
+        },
+        "0x41": {
+            "type": "SUB",
+            "mode": "implicit"
+        },
+        "0x42": {
+            "type": "MUL",
+            "mode": "implicit"
+        },
+        "0x43": {
+            "type": "EXP",
+            "mode": "implicit"
+        },
+        "0x44": {
+            "type": "DIV",
+            "mode": "implicit"
+        },
+        "0x45": {
+            "type": "MOD",
+            "mode": "implicit"
+        },
+        "0x46": {
+            "type": "INC",
+            "mode": "implicit"
+        },
+        "0x47": {
+            "type": "DEC",
+            "mode": "implicit"
+        },
+        "0x48": {
+            "type": "JMP",
+            "mode": "implicit"
+        },
+        "0x49": {
+            "type": "JMP",
+            "mode": "absolute"
+        },
+        "0x4A": {
+            "type": "CALL",
+            "mode": "absolute"
+        },
+        "0x4B": {
+            "type": "RET",
+            "mode": "absolute"
+        }
+    }
+}

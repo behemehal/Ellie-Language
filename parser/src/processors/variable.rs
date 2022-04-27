@@ -46,7 +46,7 @@ impl super::Processor for VariableCollector {
             return false;
         } else {
             let resolved_type = if !self.data.has_value {
-                Ok(Types::Void)
+                Ok(Types::Null)
             } else {
                 super::type_processor::process(
                     self.data.value,
