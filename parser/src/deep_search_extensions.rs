@@ -2004,13 +2004,19 @@ pub fn resolve_type(
                 }
                 ellie_core::definite::types::operator::Operators::ArithmeticType(_) => {
                     let rtype = match *operator.first {
-                        Types::Byte(_) => "byte",
-                        Types::Integer(_) => "int",
-                        Types::Float(_) => "float",
-                        Types::Double(_) => "double",
-                        _ => unreachable!(),
-                    }
-                    .to_string();
+                        Types::Byte(_) => "byte".to_string(),
+                        Types::Integer(_) => "int".to_string(),
+                        Types::Float(_) => "float".to_string(),
+                        Types::Double(_) => "double".to_string(),
+                        Types::Operator(_) => {
+                            let res =
+                                resolve_type(*operator.first, target_page, parser, errors, pos)
+                                    .unwrap()
+                                    .to_string();
+                            res
+                        }
+                        _ => unreachable!("Unhandled type: {:?}", operator.first),
+                    };
                     find_type(rtype, target_page, parser)
                 }
                 ellie_core::definite::types::operator::Operators::AssignmentType(_) => {

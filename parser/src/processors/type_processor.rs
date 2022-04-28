@@ -9,7 +9,7 @@ use ellie_core::{
     definite::{items::Collecting, types, Converter},
     error,
 };
-use ellie_tokenizer::{processors::types::Processors, syntax::types::operator_type};
+use ellie_tokenizer::processors::types::Processors;
 
 use crate::deep_search_extensions::{deep_search, deep_search_hash, find_type, resolve_type};
 
@@ -166,7 +166,7 @@ pub fn process(
                 return Err(errors);
             }
 
-            let first_value = match resolve_type(
+            let _first_value = match resolve_type(
                 operator.data.first.to_definite(),
                 page_id,
                 parser,
@@ -176,7 +176,7 @@ pub fn process(
                 Some(e) => e,
                 None => return Err(errors),
             };
-            let second_value = match resolve_type(
+            let _second_value = match resolve_type(
                 operator.data.second.to_definite(),
                 page_id,
                 parser,
@@ -219,6 +219,7 @@ pub fn process(
                         value: DefinerCollecting,
                     }
 
+                    #[allow(dead_code)]
                     fn generate_type_from_defining(
                         rtype: ellie_core::definite::definers::DefinerCollecting,
                         page_id: u64,

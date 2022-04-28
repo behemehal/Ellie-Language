@@ -1,6 +1,4 @@
-use core::panic;
-
-use crate::deep_search_extensions::{deep_search_hash, resolve_deep_type, resolve_type};
+use crate::deep_search_extensions::{deep_search_hash, resolve_type};
 use alloc::{borrow::ToOwned, vec, vec::Vec};
 use ellie_core::error;
 use ellie_tokenizer::syntax::{
@@ -15,7 +13,7 @@ impl super::Processor for SetterCall {
             .clone();
         match super::type_processor::process(self.target, parser, page_id, None) {
             Ok(target) => match target.clone() {
-                ellie_core::definite::types::Types::Reference(e) => {
+                ellie_core::definite::types::Types::Reference(_) => {
                     match super::type_processor::process(self.value, parser, page_id, None) {
                         Ok(processed_value_type) => {
                             let mut errors = Vec::new();
@@ -47,8 +45,8 @@ impl super::Processor for SetterCall {
                             match comperable {
                                 Ok((compare, defined, given)) => {
                                     if !compare {
-                                        let mut err =
-                                            error::error_list::ERROR_S3.clone().build_with_path(
+                                        parser.informations.push(
+                                            &error::error_list::ERROR_S3.clone().build_with_path(
                                                 vec![
                                                     error::ErrorBuildField {
                                                         key: "token1".to_owned(),
@@ -67,9 +65,8 @@ impl super::Processor for SetterCall {
                                                 ),
                                                 current_page.path.clone(),
                                                 self.value_pos,
-                                            );
-
-                                        parser.informations.push(&err);
+                                            ),
+                                        );
                                         return false;
                                     } else {
                                         let page = parser.find_processed_page(page_id).unwrap();

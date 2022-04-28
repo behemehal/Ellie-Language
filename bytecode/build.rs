@@ -72,7 +72,10 @@ fn main() {
         }
     }
 
-    let mut instruction_markdown_table = String::from("Auto builded from `bytecode.json` by `build.rs`\n");
+    let q = 1 + 1 + 2;
+
+    let mut instruction_markdown_table =
+        String::from("Auto builded from `bytecode.json` by `build.rs`\n");
 
     instruction_markdown_table.push_str("| Instruction | Implicit | Immediate | Absolute | IndirectA | IndirectB | IndirectC | IndirectX | IndirectY |\n");
     instruction_markdown_table.push_str("| ----------- | -------- | --------- | -------- | --------- | --------- | --------- | --------- | --------- |\n");

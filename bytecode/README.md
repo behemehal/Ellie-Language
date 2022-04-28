@@ -22,7 +22,7 @@ Ellie bytecode is phase 3 of compiling process.
 | indirectc | Instructions that takes C register as parameter |
 | indirectx | Instructions that takes X register as parameter |
 | indirecty | Instructions that takes Y register as parameter |
-| reference | Instructions that takes reference  as parameter |
+| reference? | Instructions that takes reference  as parameter |
 
 
 ### Registers
@@ -44,11 +44,6 @@ Ellie bytecode is phase 3 of compiling process.
 * LDC #VALUE
 * LDX #VALUE
 * LDY #VALUE
-* MCA
-* MCB
-* MCC
-* MCX
-* MCY 
 
 ### Store
 * STA $ADDRESS

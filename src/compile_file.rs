@@ -1,5 +1,4 @@
 use ellie_core::defs::Version;
-use ellie_core::module_path;
 use std::fs;
 use std::fs::File;
 use std::path::Path;

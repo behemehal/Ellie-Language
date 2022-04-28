@@ -1,9 +1,4 @@
-use alloc::vec;
-use alloc::vec::Vec;
-
-use ellie_core::definite::types::{operator, Types};
-
-use crate::instructions::{self, Instruction, Instructions};
+use ellie_core::definite::types::Types;
 
 pub struct RawType {
     pub size: usize,
@@ -32,7 +27,7 @@ pub fn convert_to_raw_type(types: Types) -> RawType {
         },
         Types::Float(_) => todo!(),
         Types::Bool(_) => todo!(),
-        Types::String(e) => RawType {
+        Types::String(_) => RawType {
             size: std::mem::size_of::<isize>(),
             data: 1_isize.to_le(),
         },
