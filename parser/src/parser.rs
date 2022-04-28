@@ -464,7 +464,7 @@ impl Parser {
                 }
             }
             deep_search_extensions::DeepTypeResult::Collective(_) => todo!(),
-            deep_search_extensions::DeepTypeResult::Operator(e) => {
+            deep_search_extensions::DeepTypeResult::Operator(_) => {
                 let value_gen = match deep_search_extensions::resolve_type(
                     rtype,
                     target_page,

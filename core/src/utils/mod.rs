@@ -179,6 +179,8 @@ pub fn is_operators_chainable(target: Operators, current: Operators) -> bool {
         Operators::LogicalType(_) => true,
         Operators::ArithmeticType(_) => match current {
             Operators::LogicalType(_) => true,
+            Operators::ArithmeticType(_) => true,
+            Operators::ComparisonType(_) => true,
             _ => false,
         },
         Operators::AssignmentType(_) => match current {
