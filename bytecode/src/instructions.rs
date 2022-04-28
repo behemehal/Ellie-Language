@@ -196,6 +196,7 @@ pub enum Registers {
     Y,
 }
 
+#[derive(Clone, Debug, PartialEq)]
 pub enum AddressingModesStruct {
     Implicit,
     Immediate,
@@ -207,8 +208,9 @@ pub enum AddressingModesStruct {
     IndirectY,
 }
 
+#[derive(Clone, Debug)]
 pub struct InstructionStruct {
     pub op_code: String,
     pub rtype: String,
-    pub mode : AddressingModesStruct,
+    pub modes : Vec<AddressingModesStruct>,
 }
