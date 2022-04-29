@@ -6,6 +6,7 @@ extern crate alloc;
 mod instructions;
 
 fn main() {
+    let revision = 1;
     //Read bytecode.json
     let bytecode_json = std::fs::read_to_string(
         env!("CARGO_MANIFEST_DIR").to_owned() + &"/bytecode.json".to_owned(),
@@ -71,8 +72,6 @@ fn main() {
             });
         }
     }
-
-    let q = 1 + 1 + 2;
 
     let mut instruction_markdown_table =
         String::from("Auto builded from `bytecode.json` by `build.rs`\n");
@@ -143,11 +142,34 @@ fn main() {
         instruction_markdown_table.push_str(&format!("{}\n", modes_string));
     }
 
-    //Create file
-    let mut file = std::fs::File::create(
+    //Create file for markdown
+    let mut md_file = std::fs::File::create(
         env!("CARGO_MANIFEST_DIR").to_owned() + &"/instructions.md".to_owned(),
     )
     .unwrap();
-    file.write_all(instruction_markdown_table.as_bytes())
+    md_file
+        .write_all(instruction_markdown_table.as_bytes())
         .unwrap();
+
+    let mut map_file = std::fs::File::create(
+        env!("CARGO_MANIFEST_DIR").to_owned() + &"/instruction_table.rs".to_owned(),
+    )
+    .unwrap();
+    let mut map_content = format!("use crate::instructions::{{InstructionStruct, AddressingModesStruct}};\npub static Revision : i8 = {};\n\nstatic Instructions: phf::Map<&'static str, Keyword> = phf_map! {{\n", revision);
+
+    for instruction in instructions_vec {
+        map_content.push_str(&format!(
+            "\t\"{}\" => Keyword {{\n\t\top_code: \"{}\",\n\t\trtype: \"{}\",\n\t\tmodes: vec![\n",
+            instruction.op_code, instruction.op_code, instruction.rtype
+        ));
+
+        for mode in instruction.modes {
+            map_content.push_str(&format!("\t\t\t{:?},\n", mode));
+        }
+
+        map_content.push_str("\t\t]\n\t},\n");
+    }
+    map_content.push_str("};\n");
+
+    map_file.write_all(map_content.as_bytes()).unwrap();
 }
