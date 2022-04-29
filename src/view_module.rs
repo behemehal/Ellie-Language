@@ -74,7 +74,7 @@ pub fn parse(target_path: &Path, json_log: bool) {
                         serde_json::to_string_pretty(&cli_module_output).unwrap()
                     );
                 } else {
-                    let mut output = format!("ModuleName        = {}\nModuleDescription = {}\nModuleVersion     = {}.{}.{}\nEllieVersion      = {}.{}.{}", module.name, module.description, module.version.major, module.version.minor, module.version.bug, module.ellie_version.major, module.ellie_version.minor, module.ellie_version.bug);
+                    let mut output = format!("ModuleName        = {}{}\nModuleDescription = {}\nModuleVersion     = {}.{}.{}\nEllieVersion      = {}.{}.{}", module.name, if module.is_library {" (Library)"} else {""}, module.description, module.version.major, module.version.minor, module.version.bug, module.ellie_version.major, module.ellie_version.minor, module.ellie_version.bug);
                     if module.modules.len() > 0 {
                         output.push_str("\nInnerModules      =\n");
                     }
