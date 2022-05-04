@@ -58,16 +58,16 @@ fn main() {
     #[cfg(feature = "build-cli")]
     {
         let mut bash =
-            File::create(env::var("OUT_DIR").unwrap().to_owned() + "/elliec_completion_bash")
+            File::create(env!("CARGO_MANIFEST_DIR").to_string() + "/target/elliec_completion_bash")
                 .unwrap();
         let mut fish =
-            File::create(env::var("OUT_DIR").unwrap().to_owned() + "/elliec_completion_fish")
+            File::create(env!("CARGO_MANIFEST_DIR").to_string() + "/target/elliec_completion_fish")
                 .unwrap();
         let mut zsh =
-            File::create(env::var("OUT_DIR").unwrap().to_owned() + "/elliec_completion_zsh")
+            File::create(env!("CARGO_MANIFEST_DIR").to_string() + "/target/elliec_completion_zsh")
                 .unwrap();
         let mut powershell =
-            File::create(env::var("OUT_DIR").unwrap().to_owned() + "/elliec_completion_powershell")
+            File::create(env!("CARGO_MANIFEST_DIR").to_string() + "/target/elliec_completion_powershell")
                 .unwrap();
 
         let cmd = cli_utils::generate_elliec_options();
@@ -86,14 +86,14 @@ fn main() {
         );
 
         generate(
-            clap_complete::shells::Fish,
+            clap_complete::shells::Zsh,
             &mut cmd.clone(),
             cmd.get_name().to_string(),
             &mut zsh,
         );
 
         generate(
-            clap_complete::shells::Fish,
+            clap_complete::shells::PowerShell,
             &mut cmd.clone(),
             cmd.get_name().to_string(),
             &mut powershell,

@@ -448,6 +448,7 @@ pub fn compile(
                                 );
                             }
                         }
+                        std::process::exit(1)
                     } else {
                         if parser.informations.warnings.len() == 0 {
                             if compiler_settings.json_log {

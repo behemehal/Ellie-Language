@@ -11,7 +11,9 @@ fn main() {
     let bytecode_json = std::fs::read_to_string(
         env!("CARGO_MANIFEST_DIR").to_owned() + &"/bytecode.json".to_owned(),
     )
-    .unwrap();
+    .unwrap_or_else(|x| {
+        panic!("{}/bytecode.json", env!("CARGO_MANIFEST_DIR"));
+    });
     //Parse json
     let bytecode_json: Value = serde_json::from_str(&bytecode_json).unwrap();
 
