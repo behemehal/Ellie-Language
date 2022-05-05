@@ -1,4 +1,4 @@
-pub static ELLIE_VERSION: &'static str = &"0.5.3";
+pub static ELLIE_VERSION: &'static str = &"0.5.4";
 pub static ELLIE_VERSION_NAME: &'static str = &"BeautifulTropicalFish";
 pub static ELLIE_TOKENIZER_VERSION: &'static str = &"0.2.1";
 pub static ELLIE_PARSER_VERSION: &'static str = &"0.3.0";
