@@ -87,7 +87,7 @@ lazy_static! {
         message: "Failed to resolve path".to_string(),
         extra: Vec::new(),
     };
-    pub static ref READ_BINARY_MODULE_ERROR: CliOuput<i8, i8> = CliOuput {
+    pub static ref READ_BINARY_MODULE_ERROR: CliOuput<String, String> = CliOuput {
         code: 8,
         rtype: CliOuputType::Error,
         message: "Failed to read binary module".to_string(),

@@ -5,7 +5,6 @@ use std::path::Path;
 struct EllieError {}
 
 fn main() {
-    println!("\x1B]0;{}\x07", "Ellie Compiler");
     let app = cli_utils::generate_elliec_options();
 
     let matches = app.get_matches();
@@ -340,7 +339,13 @@ fn main() {
                                             let mut cli_module_output =
                                                 cli_outputs::READ_BINARY_MODULE_ERROR.clone();
                                             cli_module_output.extra.push(
-                                                cli_outputs::CliOuputExtraData { key: 0, value: 0 },
+                                                cli_outputs::CliOuputExtraData {
+                                                    key: "file".to_string(),
+                                                    value: module_path
+                                                        .to_str()
+                                                        .unwrap()
+                                                        .to_string(),
+                                                },
                                             );
                                             println!(
                                                 "{}",
