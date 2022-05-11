@@ -287,39 +287,49 @@ impl super::Processor for function::FunctionCollector {
                     } else {
                         let defined = parser.resolve_definer_name(return_type.clone());
                         let mut errors = Vec::new();
-                        match crate::deep_search_extensions::resolve_type(ret.value.clone(), inner_page_id, parser, &mut errors, Some(ret.pos)) {
+                        match crate::deep_search_extensions::resolve_type(
+                            ret.value.clone(),
+                            inner_page_id,
+                            parser,
+                            &mut errors,
+                            Some(ret.pos),
+                        ) {
                             Some(defined_return) => {
                                 let given = parser.resolve_definer_name(defined_return);
                                 if defined != given {
-                                    let mut err = error::error_list::ERROR_S3.clone().build_with_path(
-                                        vec![
-                                            error::ErrorBuildField {
-                                                key: "token1".to_owned(),
-                                                value: defined,
-                                            },
-                                            error::ErrorBuildField {
-                                                key: "token2".to_owned(),
-                                                value: given,
-                                            },
-                                        ],
-                                        alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                                        parser.find_page(page_id).unwrap().path.clone(),
-                                        ret.pos,
-                                    );
+                                    let mut err =
+                                        error::error_list::ERROR_S3.clone().build_with_path(
+                                            vec![
+                                                error::ErrorBuildField {
+                                                    key: "token1".to_owned(),
+                                                    value: defined,
+                                                },
+                                                error::ErrorBuildField {
+                                                    key: "token2".to_owned(),
+                                                    value: given,
+                                                },
+                                            ],
+                                            alloc::format!(
+                                                "{}:{}:{}",
+                                                file!().to_owned(),
+                                                line!(),
+                                                column!()
+                                            ),
+                                            parser.find_page(page_id).unwrap().path.clone(),
+                                            ret.pos,
+                                        );
                                     err.reference_block = Some((self.data.return_pos, page.path));
                                     err.reference_message = "Defined here".to_owned();
                                     err.semi_assist = true;
                                     parser.informations.push(&err);
                                     return false;
                                 }
-                            },
+                            }
                             None => {
                                 parser.informations.extend(&errors);
                                 return false;
-                            },
+                            }
                         };
-                        
-                        
                     }
                 }
 

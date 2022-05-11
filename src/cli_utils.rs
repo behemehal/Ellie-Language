@@ -489,11 +489,11 @@ pub fn render_code_block(
         format!(
             "{}:{}{} > {}{}:{}",
             item_pos.range_start.0 + 1,
-            item_pos.range_start.1,
+            item_pos.range_start.1 + 1,
             Colors::Red,
             Colors::Cyan,
             item_pos.range_end.0 + 1,
-            item_pos.range_end.1
+            item_pos.range_end.1 + 1
         ),
         Colors::Reset,
     );
@@ -555,9 +555,7 @@ pub fn render_code_block(
                     generate_blank((line_space - (i + 1).to_string().len()) + 1),
                     i + 1,
                     Colors::Reset,
-                    get_line(code.clone(), i)
-                        .replace("\n", "")
-                        .replace("\r", ""),
+                    get_line(code.clone(), i), //CHECK OUT \r \n replace
                     Colors::Green,
                     ref_message,
                     Colors::Reset,
@@ -574,8 +572,8 @@ pub fn render_code_block(
                         Colors::Yellow
                     },
                     arrow(
-                        (item_pos.range_start.1) as usize,
-                        (item_pos.range_end.1) - item_pos.range_start.1
+                        (item_pos.range_start.1 + 1) as usize,
+                        ((item_pos.range_end.1) - item_pos.range_start.1) + 1
                     ),
                     Colors::Reset,
                 );
@@ -586,7 +584,7 @@ pub fn render_code_block(
                     generate_blank((line_space - (i + 1).to_string().len()) + 1),
                     i + 1,
                     Colors::Reset,
-                    get_line(code.clone(), i)
+                    get_line(code.clone(), i).replace("\t", "    "), //WTF? THIS IS THE ONLY SOLUTION
                 );
 
                 println!(
@@ -600,8 +598,8 @@ pub fn render_code_block(
                         Colors::Yellow
                     },
                     arrow(
-                        (item_pos.range_start.1) as usize,
-                        (item_pos.range_end.1) - item_pos.range_start.1
+                        (item_pos.range_start.1 + 1) as usize,
+                        ((item_pos.range_end.1) - item_pos.range_start.1) + 1
                     ),
                     Colors::Reset,
                 );

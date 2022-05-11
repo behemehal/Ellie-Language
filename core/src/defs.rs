@@ -152,6 +152,26 @@ impl Cursor {
             range_end: range_start,
         }
     }
+
+    /// Gets [`Cursor`] range end and skip one char
+    /// ## Arguments
+    /// * `n` - Number of chars to skip
+    /// ## Returns
+    /// [`Cursor`] with new range end
+    pub fn range_end_skip_char(&self, n: usize) -> Self {
+        self.range_end.clone().skip_char(n);
+        self.clone()
+    }
+
+    /// Gets [`Cursor`] range start and skip one char
+    /// ## Arguments
+    /// * `n` - Number of chars to skip
+    /// ## Returns
+    /// [`Cursor`] with new range start and end
+    pub fn range_start_skip_char(&self, n: usize) -> Self {
+        self.range_start.clone().skip_char(n);
+        self.clone()
+    }
 }
 
 impl Default for Cursor {

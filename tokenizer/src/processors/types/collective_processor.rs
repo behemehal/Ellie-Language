@@ -20,7 +20,7 @@ impl crate::processors::Processor for collective_type::CollectiveTypeCollector {
                         value: letter_char.to_string(),
                     }],
                     alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                    defs::Cursor::build_with_skip_char(cursor),
+                    defs::Cursor::build_from_cursor(cursor),
                 ));
             }
         } else if self.itered_cache.is_complete()
@@ -49,7 +49,7 @@ impl crate::processors::Processor for collective_type::CollectiveTypeCollector {
                 if param_len == 0 {
                     self.data.entries.push(collective_type::CollectiveEntry {
                         key: self.itered_cache.current.clone(),
-                        key_pos: defs::Cursor::build_with_skip_char(cursor),
+                        key_pos: defs::Cursor::build_from_cursor(cursor),
                         ..Default::default()
                     });
                 } else {
@@ -59,7 +59,7 @@ impl crate::processors::Processor for collective_type::CollectiveTypeCollector {
                 }
             } else {
                 self.data.entries[param_len - 1].value = self.itered_cache.current.clone();
-                self.data.entries[param_len - 1].value_pos.range_end = cursor.clone().skip_char(1);
+                self.data.entries[param_len - 1].value_pos.range_end = cursor;
             }
         } else if letter_char != ' ' {
             errors.push(error::error_list::ERROR_S1.clone().build(
@@ -68,7 +68,7 @@ impl crate::processors::Processor for collective_type::CollectiveTypeCollector {
                     value: letter_char.to_string(),
                 }],
                 alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                defs::Cursor::build_with_skip_char(cursor),
+                defs::Cursor::build_from_cursor(cursor),
             ));
         }
         hang

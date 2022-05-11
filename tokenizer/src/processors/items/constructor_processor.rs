@@ -27,7 +27,7 @@ impl crate::processors::Processor for constructor::Constructor {
                 } else {
                     if self.parameters[parameter_len - 1].name == "" {
                         self.comma = false;
-                        self.parameters[parameter_len - 1].pos.range_start = cursor.clone();
+                        self.parameters[parameter_len - 1].pos.range_start = cursor;
                     } else if last_char == ' ' {
                         errors.push(error::error_list::ERROR_S1.clone().build(
                             vec![error::ErrorBuildField {
@@ -35,7 +35,7 @@ impl crate::processors::Processor for constructor::Constructor {
                                 value: letter_char.to_string(),
                             }],
                             alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                            defs::Cursor::build_with_skip_char(cursor),
+                            defs::Cursor::build_from_cursor(cursor),
                         ));
                     }
                     self.parameters[parameter_len - 1].pos.range_end = cursor;
@@ -54,7 +54,7 @@ impl crate::processors::Processor for constructor::Constructor {
             if letter_char == '{' {
                 self.continuum_collected = true;
             } else if letter_char == ';' {
-                self.pos.range_end = cursor.clone().skip_char(1);
+                self.pos.range_end = cursor;
                 self.continuum_collected = true;
                 self.complete = true;
             } else if letter_char != ' ' {
@@ -64,12 +64,12 @@ impl crate::processors::Processor for constructor::Constructor {
                         value: letter_char.to_string(),
                     }],
                     alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                    defs::Cursor::build_with_skip_char(cursor),
+                    defs::Cursor::build_from_cursor(cursor),
                 ));
             }
         } else if letter_char == '}' && self.brace_count == 0 {
             self.complete = true;
-            self.pos.range_end = cursor.clone().skip_char(1);
+            self.pos.range_end = cursor;
             self.iterator.finalize();
             errors.extend(self.iterator.errors.clone());
             self.inside_code = self.iterator.collected.clone();

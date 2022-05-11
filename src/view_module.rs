@@ -104,7 +104,10 @@ pub fn parse(target_path: &Path, json_log: bool) {
                     let mut cli_module_output = cli_outputs::READ_BINARY_MODULE_ERROR.clone();
                     cli_module_output
                         .extra
-                        .push(cli_outputs::CliOuputExtraData { key: "file".to_string(), value: ".".to_string() });
+                        .push(cli_outputs::CliOuputExtraData {
+                            key: "file".to_string(),
+                            value: ".".to_string(),
+                        });
                     println!(
                         "{}",
                         serde_json::to_string_pretty(&cli_module_output).unwrap()
@@ -127,7 +130,10 @@ pub fn parse(target_path: &Path, json_log: bool) {
                 let mut cli_module_output = cli_outputs::READ_BINARY_MODULE_ERROR.clone();
                 cli_module_output
                     .extra
-                    .push(cli_outputs::CliOuputExtraData { key: "file".to_string(), value: ".".to_string() });
+                    .push(cli_outputs::CliOuputExtraData {
+                        key: "file".to_string(),
+                        value: ".".to_string(),
+                    });
                 println!(
                     "{}",
                     serde_json::to_string_pretty(&cli_module_output).unwrap()

@@ -23,7 +23,7 @@ impl crate::processors::Processor for class::Class {
                             value: letter_char.to_string(),
                         }],
                         alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                        defs::Cursor::build_with_skip_char(cursor),
+                        defs::Cursor::build_from_cursor(cursor),
                     ));
                 }
                 self.name_pos.range_end = cursor;
@@ -41,7 +41,7 @@ impl crate::processors::Processor for class::Class {
                         value: letter_char.to_string(),
                     }],
                     alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                    defs::Cursor::build_with_skip_char(cursor),
+                    defs::Cursor::build_from_cursor(cursor),
                 ));
             }
         } else if !self.generics_collected {
@@ -66,7 +66,7 @@ impl crate::processors::Processor for class::Class {
                                 value: letter_char.to_string(),
                             }],
                             alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                            defs::Cursor::build_with_skip_char(cursor),
+                            defs::Cursor::build_from_cursor(cursor),
                         ));
                     }
                     self.generic_definings[generic_len - 1].pos.range_end = cursor;
@@ -90,7 +90,7 @@ impl crate::processors::Processor for class::Class {
                         value: letter_char.to_string(),
                     }],
                     alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                    defs::Cursor::build_with_skip_char(cursor),
+                    defs::Cursor::build_from_cursor(cursor),
                 ));
             }
         } else if !self.continuum_collected {
@@ -103,7 +103,7 @@ impl crate::processors::Processor for class::Class {
                         value: letter_char.to_string(),
                     }],
                     alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                    defs::Cursor::build_with_skip_char(cursor),
+                    defs::Cursor::build_from_cursor(cursor),
                 ));
             }
         } else if letter_char == '}' && self.brace_count == 0 {

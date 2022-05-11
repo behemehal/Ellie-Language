@@ -269,9 +269,9 @@ impl super::Processor for ItemProcessor {
             })
         } else if keyword == "enum" && letter_char == ' ' {
             panic!("enum not implemented");
-        } else if keyword == "set" && letter_char == ' ' {
+        } else if (keyword == "s" || keyword == "set") && letter_char == ' ' {
             panic!("setter not implemented");
-        } else if keyword == "get" && letter_char == ' ' {
+        } else if (keyword == "g" || keyword == "get") && letter_char == ' ' {
             panic!("getter not implemented");
         } else if keyword == "import" && letter_char == ' ' {
             self.current = Processors::Import(import::Import {

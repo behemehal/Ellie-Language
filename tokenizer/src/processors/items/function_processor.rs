@@ -177,7 +177,7 @@ impl crate::processors::Processor for function::FunctionCollector {
         } else if letter_char == '}' && self.brace_count == 0 {
             self.complete = true;
             self.data.body_pos.range_end = cursor;
-            self.data.pos.range_end = cursor.clone().skip_char(1);
+            self.data.pos.range_end = cursor;
             self.data.hash = ellie_core::utils::generate_hash_u64();
             self.iterator.finalize();
             errors.extend(self.iterator.errors.clone());
@@ -188,11 +188,16 @@ impl crate::processors::Processor for function::FunctionCollector {
             });
 
             if !self.data.no_return && !contains_ret {
-                errors.push(error::error_list::ERROR_S2.clone().build(
+                let mut error = error::error_list::ERROR_S2.clone().build(
                     vec![],
                     alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                     self.data.body_pos,
-                ));
+                );
+
+                error.reference_message = "Defined here".to_string();
+                error.reference_block = Some((self.data.return_pos, "<fill>".to_string()));
+
+                errors.push(error);
             }
         } else {
             if letter_char == '{' {

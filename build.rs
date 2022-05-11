@@ -66,9 +66,10 @@ fn main() {
         let mut zsh =
             File::create(env!("CARGO_MANIFEST_DIR").to_string() + "/target/elliec_completion_zsh")
                 .unwrap();
-        let mut powershell =
-            File::create(env!("CARGO_MANIFEST_DIR").to_string() + "/target/elliec_completion_powershell")
-                .unwrap();
+        let mut powershell = File::create(
+            env!("CARGO_MANIFEST_DIR").to_string() + "/target/elliec_completion_powershell",
+        )
+        .unwrap();
 
         let cmd = cli_utils::generate_elliec_options();
         generate(

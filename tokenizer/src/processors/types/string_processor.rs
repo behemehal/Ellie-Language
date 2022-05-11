@@ -20,7 +20,7 @@ impl crate::processors::Processor for string_type::StringTypeCollector {
                         value: letter_char.to_string(),
                     }],
                     "0x38".to_owned(),
-                    defs::Cursor::build_with_skip_char(cursor),
+                    defs::Cursor::build_from_cursor(cursor),
                 ));
             }
         } else {
@@ -35,7 +35,7 @@ impl crate::processors::Processor for string_type::StringTypeCollector {
                             value: letter_char.to_string(),
                         }],
                         "0x38".to_owned(),
-                        defs::Cursor::build_with_skip_char(cursor),
+                        defs::Cursor::build_from_cursor(cursor),
                     ));
                 } else {
                     self.data.value += &letter_char.to_string();

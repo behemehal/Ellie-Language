@@ -118,7 +118,7 @@ impl crate::processors::Processor for DefinerCollector {
                     }
                 } else {
                     if collective_type.child_cache.complete && letter_char == '}' {
-                        collective_type.pos.range_end = cursor.clone().skip_char(1);
+                        collective_type.pos.range_end = cursor;
                         self.complete = true;
                         collective_type.value =
                             Box::new(collective_type.child_cache.definer_type.clone());
@@ -146,7 +146,7 @@ impl crate::processors::Processor for DefinerCollector {
                             value: letter_char.to_string(),
                         }],
                         "0x00257".to_owned(),
-                        defs::Cursor::build_with_skip_char(cursor),
+                        defs::Cursor::build_from_cursor(cursor),
                     ));
                 }
             }
@@ -158,7 +158,7 @@ impl crate::processors::Processor for DefinerCollector {
                             value: letter_char.to_string(),
                         }],
                         "0x276".to_owned(),
-                        defs::Cursor::build_with_skip_char(cursor),
+                        defs::Cursor::build_from_cursor(cursor),
                     ));
                 }
                 hang = nullable_type
@@ -211,10 +211,10 @@ impl crate::processors::Processor for DefinerCollector {
                                 value: letter_char.to_string(),
                             }],
                             "0x022".to_owned(),
-                            defs::Cursor::build_with_skip_char(cursor),
+                            defs::Cursor::build_from_cursor(cursor),
                         ));
                     } else {
-                        if generic_type.rtype.is_empty() {
+                        if generic_type.pos.range_start.is_zero() {
                             generic_type.pos.range_start = cursor;
                             self.complete = true;
                         }
@@ -224,28 +224,28 @@ impl crate::processors::Processor for DefinerCollector {
                 } else {
                     if letter_char == '?' && generic_type.rtype.is_empty() {
                         self.definer_type = DefinerTypes::Nullable(NullableType {
-                            pos: defs::Cursor::build_with_skip_char(cursor),
+                            pos: defs::Cursor::build_from_cursor(cursor),
                             rtype: Box::new(self.definer_type.clone()),
                             ..Default::default()
                         });
                     } else if letter_char == '{' && generic_type.rtype.is_empty() {
                         self.definer_type = DefinerTypes::Collective(CollectiveType {
-                            pos: defs::Cursor::build_with_skip_char(cursor.clone()),
+                            pos: defs::Cursor::build_from_cursor(cursor.clone()),
                             ..Default::default()
                         });
                     } else if letter_char == '@' && generic_type.rtype.is_empty() {
                         self.definer_type = DefinerTypes::Function(FunctionType {
-                            pos: defs::Cursor::build_with_skip_char(cursor.clone()),
+                            pos: defs::Cursor::build_from_cursor(cursor.clone()),
                             ..Default::default()
                         });
                     } else if letter_char == '(' && generic_type.rtype.is_empty() {
                         self.definer_type = DefinerTypes::Cloak(CloakType {
-                            pos: defs::Cursor::build_with_skip_char(cursor.clone()),
+                            pos: defs::Cursor::build_from_cursor(cursor.clone()),
                             ..Default::default()
                         });
                     } else if letter_char == '[' && generic_type.rtype.is_empty() {
                         self.definer_type = DefinerTypes::Array(ArrayType {
-                            pos: defs::Cursor::build_with_skip_char(cursor.clone()),
+                            pos: defs::Cursor::build_from_cursor(cursor.clone()),
                             ..Default::default()
                         });
                     } else if letter_char == '<' && !generic_type.rtype.is_empty() {
@@ -264,7 +264,7 @@ impl crate::processors::Processor for DefinerCollector {
                                 value: letter_char.to_string(),
                             }],
                             "0x00360".to_owned(),
-                            defs::Cursor::build_with_skip_char(cursor),
+                            defs::Cursor::build_from_cursor(cursor),
                         ));
                     }
                 }
@@ -313,7 +313,7 @@ impl crate::processors::Processor for DefinerCollector {
                                     rtype: "void".to_owned(),
                                     ..Default::default()
                                 }));
-                            function_type.pos.range_end = cursor.clone().skip_char(1);
+                            function_type.pos.range_end = cursor;
 
                             self.complete = true;
                         } else {
@@ -336,7 +336,7 @@ impl crate::processors::Processor for DefinerCollector {
                                     value: letter_char.to_string(),
                                 }],
                                 "0x00267".to_owned(),
-                                defs::Cursor::build_with_skip_char(cursor),
+                                defs::Cursor::build_from_cursor(cursor),
                             ));
                         }
                     }
@@ -353,7 +353,7 @@ impl crate::processors::Processor for DefinerCollector {
                                     value: letter_char.to_string(),
                                 }],
                                 "0x00267".to_owned(),
-                                defs::Cursor::build_with_skip_char(cursor),
+                                defs::Cursor::build_from_cursor(cursor),
                             ));
                         }
                     } else {
@@ -366,7 +366,7 @@ impl crate::processors::Processor for DefinerCollector {
                         function_type.returning =
                             Box::new(function_type.child_cache.definer_type.clone());
                         self.complete = function_type.child_cache.complete;
-                        function_type.pos.range_end = cursor.clone().skip_char(1);
+                        function_type.pos.range_end = cursor;
                     }
                 }
             }

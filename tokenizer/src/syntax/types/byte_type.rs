@@ -1,5 +1,3 @@
-use super::integer_type::IntegerTypeCollector;
-use alloc::string::String;
 use ellie_core::{definite, defs};
 use serde::{Deserialize, Serialize};
 
