@@ -74,17 +74,25 @@ impl super::Processor for function::FunctionCollector {
                             vec![],
                             alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                             parser.find_page(page_id).unwrap().path.clone(),
-                            parameter.pos,
+                            ellie_core::defs::Cursor {
+                                range_start: parameter.name_pos.range_start,
+                                range_end: parameter.rtype_pos.range_end,
+                            },
                         );
-                        err.reference_block =
-                            Some((self.data.parameters[other_index].pos, page.path.clone()));
+                        err.reference_block = Some((
+                            ellie_core::defs::Cursor {
+                                range_start: self.data.parameters[other_index].name_pos.range_start,
+                                range_end: self.data.parameters[other_index].rtype_pos.range_end,
+                            },
+                            page.path.clone(),
+                        ));
                         err.reference_message = "Prime is here".to_owned();
                         err.semi_assist = true;
                         parser.informations.push(&err);
                     }
 
                     let (duplicate, found) =
-                        parser.is_duplicate(page_id, parameter.name.clone(), 0, parameter.pos);
+                        parser.is_duplicate(page_id, parameter.name.clone(), 0, parameter.name_pos);
 
                     if duplicate {
                         if let Some((page, cursor_pos)) = found {
@@ -95,7 +103,7 @@ impl super::Processor for function::FunctionCollector {
                                 }],
                                 alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                                 parser.find_page(page_id).unwrap().path.clone(),
-                                parameter.pos,
+                                parameter.name_pos,
                             );
                             err.reference_block = Some((cursor_pos, page.path));
                             err.reference_message = "Prime is here".to_owned();
@@ -115,7 +123,7 @@ impl super::Processor for function::FunctionCollector {
                                         column!()
                                     ),
                                     page.path.clone(),
-                                    parameter.pos,
+                                    parameter.name_pos,
                                 ),
                             )
                         }
@@ -154,7 +162,7 @@ impl super::Processor for function::FunctionCollector {
                                                     },
                                                 ],
                                                 page.path.clone(),
-                                                parameter.pos,
+                                                parameter.name_pos,
                                             ),
                                         )
                                     }
@@ -165,7 +173,8 @@ impl super::Processor for function::FunctionCollector {
                                         name: parameter.name.clone(),
                                         reference: false,
                                         rtype: e.clone(),
-                                        pos: parameter.pos,
+                                        name_pos: parameter.name_pos,
+                                        rtype_pos: parameter.rtype_pos,
                                     },
                                 ));
                                 parameters.push(
@@ -174,6 +183,8 @@ impl super::Processor for function::FunctionCollector {
                                         pos: parameter.pos,
                                         rtype: e,
                                         multi_capture: parameter.multi_capture,
+                                        name_pos: parameter.name_pos,
+                                        rtype_pos: parameter.rtype_pos,
                                     },
                                 );
                             }

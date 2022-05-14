@@ -296,7 +296,8 @@ fn iterate_deep_type(
                                     ellie_core::definite::types::function::FunctionParameter {
                                         name: "anonymous".to_string(),
                                         rtype: Some(parameter.clone()),
-                                        pos: defs::Cursor::default(),
+                                        rtype_pos: defs::Cursor::default(),
+                                        name_pos: defs::Cursor::default(),
                                     }
                                 })
                                 .collect::<Vec<_>>(),
@@ -1126,7 +1127,8 @@ fn iterate_deep_type(
                                     |x| ellie_core::definite::types::function::FunctionParameter {
                                         name: x.name.clone(),
                                         rtype: Some(x.rtype.clone()),
-                                        pos: x.pos,
+                                        rtype_pos: x.rtype_pos.clone(),
+                                        name_pos: x.name_pos.clone(),
                                     },
                                 )
                                 .collect::<Vec<_>>(),
@@ -1222,7 +1224,8 @@ fn iterate_deep_type(
                                                 ellie_core::definite::types::function::FunctionParameter {
                                                     name: "anonymous".to_owned(),
                                                     rtype: Some(x.clone()),
-                                                    pos: defs::Cursor::default(),
+                                                    rtype_pos: defs::Cursor::default(),
+                                                    name_pos: defs::Cursor::default(),
                                                 }
                                             }).collect::<Vec<_>>(),
                                             has_parameter_definings: true,

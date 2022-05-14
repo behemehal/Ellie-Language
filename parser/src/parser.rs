@@ -1104,7 +1104,7 @@ impl Parser {
                                     }
                                     Processors::FunctionParameter(e) => {
                                         if e.name == name && level == 0 {
-                                            found_pos = Some(e.pos);
+                                            found_pos = Some(e.name_pos);
                                             found = true;
                                             found_page = page.clone();
                                             found_type = DeepSearchItems::FunctionParameter(e);

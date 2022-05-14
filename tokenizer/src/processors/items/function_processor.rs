@@ -49,7 +49,7 @@ impl crate::processors::Processor for function::FunctionCollector {
                     if param_len == 0 {
                         self.data.parameters.push(function::FunctionParameter {
                             name: letter_char.to_string(),
-                            pos: defs::Cursor {
+                            name_pos: defs::Cursor {
                                 range_start: cursor,
                                 ..Default::default()
                             },
@@ -57,9 +57,9 @@ impl crate::processors::Processor for function::FunctionCollector {
                         })
                     } else {
                         if self.data.parameters[param_len - 1].name == "" {
-                            self.data.parameters[param_len - 1].pos.range_start = cursor;
+                            self.data.parameters[param_len - 1].name_pos.range_start = cursor;
                         }
-                        self.data.parameters[param_len - 1].pos.range_end = cursor;
+                        self.data.parameters[param_len - 1].name_pos.range_end = cursor;
                         self.data.parameters[param_len - 1].name += &letter_char.to_string();
                     }
                 } else if letter_char == '*'
@@ -68,21 +68,21 @@ impl crate::processors::Processor for function::FunctionCollector {
                     if param_len == 0 {
                         self.data.parameters.push(function::FunctionParameter {
                             multi_capture: true,
-                            pos: defs::Cursor {
+                            name_pos: defs::Cursor {
                                 range_start: cursor,
                                 ..Default::default()
                             },
                             ..Default::default()
                         })
                     } else {
-                        self.data.parameters[param_len - 1].pos.range_start = cursor;
+                        self.data.parameters[param_len - 1].name_pos.range_start = cursor;
                         self.data.parameters[param_len - 1].multi_capture = true;
                     }
                 } else if letter_char == ':'
                     && self.data.parameters.len() != 0
                     && self.data.parameters[param_len - 1].name != ""
                 {
-                    self.data.parameters[param_len - 1].pos.range_end = cursor;
+                    self.data.parameters[param_len - 1].name_pos.range_end = cursor;
                     self.key_collected = true;
                 } else if letter_char == ')' && self.data.parameters.len() == 0 {
                     self.key_collected = true;
@@ -98,6 +98,9 @@ impl crate::processors::Processor for function::FunctionCollector {
                     ));
                 }
             } else {
+                if self.data.parameters[param_len - 1].rtype_pos.is_zero() {
+                    self.data.parameters[param_len - 1].rtype_pos.range_start = cursor;
+                }
                 if self.data.parameters[param_len - 1].rtype.complete && letter_char == ',' {
                     self.key_collected = false;
                     self.data
@@ -107,6 +110,7 @@ impl crate::processors::Processor for function::FunctionCollector {
                     self.key_collected = true;
                     self.parameters_collected = true;
                 } else {
+                    self.data.parameters[param_len - 1].rtype_pos.range_end = cursor;
                     hang = self.data.parameters[param_len - 1].rtype.iterate(
                         errors,
                         cursor,

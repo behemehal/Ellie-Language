@@ -6,7 +6,8 @@ use serde::{Deserialize, Serialize};
 pub struct FunctionParameter {
     pub name: String,
     pub rtype: definers::DefinerCollector,
-    pub pos: defs::Cursor,
+    pub name_pos: defs::Cursor,
+    pub rtype_pos: defs::Cursor,
     pub multi_capture: bool,
 }
 
@@ -54,7 +55,8 @@ impl Converter<FunctionCollector, ellie_core::definite::items::function::Functio
                     |x| ellie_core::definite::items::function::FunctionParameter {
                         name: x.name,
                         rtype: x.rtype.definer_type.to_definite(),
-                        pos: x.pos,
+                        rtype_pos: x.rtype_pos,
+                        name_pos: x.name_pos,
                         multi_capture: x.multi_capture,
                     },
                 )
@@ -90,7 +92,8 @@ impl Converter<FunctionCollector, ellie_core::definite::items::function::Functio
                             definer_type: definers::DefinerTypes::default().from_definite(x.rtype),
                             complete: true,
                         },
-                        pos: x.pos,
+                        name_pos: x.name_pos,
+                        rtype_pos: x.rtype_pos,
                         multi_capture: x.multi_capture,
                     })
                     .collect(),

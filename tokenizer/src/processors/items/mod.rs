@@ -103,7 +103,10 @@ impl Processors {
             Processors::Class(e) => e.pos,
             Processors::SelfItem(_) => ellie_core::defs::Cursor::default(),
             Processors::GenericItem(_) => ellie_core::defs::Cursor::default(),
-            Processors::FunctionParameter(e) => e.pos,
+            Processors::FunctionParameter(e) => ellie_core::defs::Cursor {
+                range_start: e.name_pos.range_start,
+                range_end: e.rtype_pos.range_end,
+            },
             Processors::ConstructorParameter(_) => ellie_core::defs::Cursor::default(),
         }
     }

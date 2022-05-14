@@ -7,5 +7,6 @@ pub struct FunctionParameter {
     pub name: String,
     pub reference: bool,
     pub rtype: ellie_core::definite::definers::DefinerCollecting,
-    pub pos: defs::Cursor,
+    pub name_pos: defs::Cursor,
+    pub rtype_pos: defs::Cursor,
 }
