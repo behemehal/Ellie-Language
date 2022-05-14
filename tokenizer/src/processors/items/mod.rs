@@ -290,12 +290,49 @@ impl super::Processor for ItemProcessor {
                 pos: self.current.get_pos(),
                 ..Default::default()
             });
-        } else if self.used_modifier == Modifier::None && keyword == "ret" && letter_char == ' ' {
-            self.current = Processors::Ret(ret::Ret {
-                keyword_pos: self.current.get_pos(),
-                pos: self.current.get_pos(),
-                ..Default::default()
-            });
+        } else if self.used_modifier == Modifier::None
+            && keyword == "ret"
+            && (letter_char == ' ' || letter_char == ';')
+        {
+            if letter_char == ';' {
+                self.current = Processors::Ret(ret::Ret {
+                    keyword_pos: self.current.get_pos(),
+                    value: TypeProcessor {
+                        current: crate::processors::types::Processors::ClassCall(
+                            crate::syntax::types::class_call_type::ClassCallCollector {
+                                data: crate::syntax::types::class_call_type::ClassCall {
+                                    target: Box::new(crate::processors::types::Processors::Variable(
+                                        crate::syntax::types::variable_type::VariableTypeCollector {
+                                            data: crate::syntax::types::variable_type::VariableType {
+                                                pos: self.current.get_pos(),
+                                                value: "void".to_string(),
+                                            },
+                                            complete: true,
+                                        },
+                                    )),
+                                    target_pos: defs::Cursor::default(),
+                                    keyword_pos: defs::Cursor::default(),
+                                    generic_parameters: Vec::new(),
+                                    resolved_generics: Vec::new(),
+                                    parameters: Vec::new(),
+                                    pos: defs::Cursor::default(),
+                                },
+                                ..Default::default()
+                            }
+                        ),
+                        ignore: false,
+                    },
+                    value_position: self.current.get_pos(),
+                    pos: self.current.get_pos(),
+
+                    ..Default::default()
+                });
+            } else {
+                self.current = Processors::Ret(ret::Ret {
+                    keyword_pos: self.current.get_pos(),
+                    pos: self.current.get_pos(),
+                    ..Default::default()
+                });
         } else if self.used_modifier == Modifier::None && keyword == "co" && letter_char == '(' {
             self.current = Processors::Constructor(constructor::Constructor {
                 pos: self.current.get_pos(),
