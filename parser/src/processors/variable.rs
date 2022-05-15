@@ -53,6 +53,7 @@ impl super::Processor for VariableCollector {
                     parser,
                     page_id,
                     Some(self.data.hash.clone()),
+                    false,
                 )
             };
 

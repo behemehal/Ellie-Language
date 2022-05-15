@@ -26,7 +26,7 @@ impl crate::processors::Processor for reference_type::ReferenceTypeCollector {
                         value: letter_char.to_string(),
                     }],
                     alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                    defs::Cursor::build_with_skip_char(cursor),
+                    defs::Cursor::build_from_cursor(cursor),
                 ));
             } else {
                 self.data.chain[chain_len - 1].pos.range_end = cursor;
@@ -41,7 +41,7 @@ impl crate::processors::Processor for reference_type::ReferenceTypeCollector {
                     value: letter_char.to_string(),
                 }],
                 alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                defs::Cursor::build_with_skip_char(cursor),
+                defs::Cursor::build_from_cursor(cursor),
             ));
         }
         false

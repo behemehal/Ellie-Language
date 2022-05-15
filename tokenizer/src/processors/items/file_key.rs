@@ -20,7 +20,7 @@ impl crate::processors::Processor for FileKey {
                         value: letter_char.to_string(),
                     }],
                     alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                    defs::Cursor::build_with_skip_char(cursor),
+                    defs::Cursor::build_from_cursor(cursor),
                 ));
             }
         } else if !self.name_collected {
@@ -36,7 +36,7 @@ impl crate::processors::Processor for FileKey {
                             value: letter_char.to_string(),
                         }],
                         alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                        defs::Cursor::build_with_skip_char(cursor),
+                        defs::Cursor::build_from_cursor(cursor),
                     ));
                 }
                 self.key_name_location.range_end = cursor;
@@ -51,13 +51,13 @@ impl crate::processors::Processor for FileKey {
                         value: letter_char.to_string(),
                     }],
                     alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                    defs::Cursor::build_with_skip_char(cursor),
+                    defs::Cursor::build_from_cursor(cursor),
                 ));
             }
         } else {
             if self.value_cache.is_complete() && letter_char == ';' {
                 self.complete = true;
-                self.pos.range_end = cursor.clone().skip_char(1);
+                self.pos.range_end = cursor;
                 self.value_location.range_end = cursor;
                 self.value = self.value_cache.current.clone();
             } else {

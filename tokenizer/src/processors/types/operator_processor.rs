@@ -107,7 +107,7 @@ impl crate::processors::Processor for operator_type::OperatorTypeCollector {
                                         line!(),
                                         column!()
                                     ),
-                                    defs::Cursor { range_start: e.data.first_pos.range_start, range_end: self.data.second_pos.range_end },
+                                    defs::Cursor { range_start: e.data.first_pos.range_start, range_end: self.data.second_pos.range_end.clone().skip_char(1) },
                                 ));
                                 hang = true;
                             } else {
@@ -122,7 +122,10 @@ impl crate::processors::Processor for operator_type::OperatorTypeCollector {
                                         line!(),
                                         column!()
                                     ),
-                                    e.data.pos,
+                                    defs::Cursor {
+                                        range_start: e.data.pos.range_start,
+                                        range_end: e.data.pos.range_end.clone().skip_char(1),
+                                    },
                                 ));
                             }
                         }

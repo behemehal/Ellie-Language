@@ -1,4 +1,5 @@
-use alloc::{vec::Vec, vec, string::String};
+#![allow(dead_code)]
+use alloc::{string::String, vec, vec::Vec};
 
 #[derive(Clone, Debug)]
 pub struct Immediate;
@@ -51,8 +52,13 @@ impl AddressingModes {
 impl core::fmt::Display for AddressingModes {
     fn fmt(&self, f: &mut core::fmt::Formatter) -> Result<(), core::fmt::Error> {
         match self {
-            AddressingModes::Absolute(value) => write!(f, "{}", value),
-            AddressingModes::Immediate(value) => write!(f, "{}", value),
+            AddressingModes::Absolute(value) => write!(f, "${}", value),
+            AddressingModes::Immediate(value) => write!(f, "#{}", value),
+            AddressingModes::IndirectA => write!(f, "@A"),
+            AddressingModes::IndirectB => write!(f, "@B"),
+            AddressingModes::IndirectC => write!(f, "@C"),
+            AddressingModes::IndirectX => write!(f, "@X"),
+            AddressingModes::IndirectY => write!(f, "@Y"),
             _ => write!(f, ""),
         }
     }
@@ -120,11 +126,6 @@ pub enum Instructions {
     LDC(Instruction),
     LDX(Instruction),
     LDY(Instruction),
-    MCA(Instruction),
-    MCB(Instruction),
-    MCC(Instruction),
-    MCX(Instruction),
-    MCY(Instruction),
     STA(Instruction),
     STB(Instruction),
     STC(Instruction),
@@ -179,11 +180,6 @@ impl core::fmt::Display for Instructions {
             Instructions::EXP(_) => write!(f, "EXP"),
             Instructions::DIV(_) => write!(f, "DIV"),
             Instructions::MOD(_) => write!(f, "MOD"),
-            Instructions::MCA(_) => write!(f, "MCA"),
-            Instructions::MCB(_) => write!(f, "MCB"),
-            Instructions::MCC(_) => write!(f, "MCC"),
-            Instructions::MCX(_) => write!(f, "MCX"),
-            Instructions::MCY(_) => write!(f, "MCY"),
         }
     }
 }
@@ -196,6 +192,7 @@ pub enum Registers {
     Y,
 }
 
+#[derive(Clone, Debug, PartialEq)]
 pub enum AddressingModesStruct {
     Implicit,
     Immediate,
@@ -207,8 +204,9 @@ pub enum AddressingModesStruct {
     IndirectY,
 }
 
+#[derive(Clone, Debug)]
 pub struct InstructionStruct {
     pub op_code: String,
     pub rtype: String,
-    pub mode : AddressingModesStruct,
+    pub modes: Vec<AddressingModesStruct>,
 }

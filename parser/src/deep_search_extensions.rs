@@ -18,6 +18,250 @@ use crate::parser::{Parser, ProcessedPage};
     This folder contains parser extensions for deep search.
 */
 
+pub fn generate_type_from_defining(
+    rtype: ellie_core::definite::definers::DefinerCollecting,
+    page_id: u64,
+    parser: &mut crate::parser::Parser,
+) -> Option<Types> {
+    match rtype {
+        definers::DefinerCollecting::Generic(generic) => {
+            if generic.rtype == "int" {
+                Some(Types::Integer(
+                    ellie_core::definite::types::integer::IntegerType {
+                        value: 0,
+                        pos: defs::Cursor::default(),
+                    },
+                ))
+            } else if generic.rtype == "float" {
+                Some(Types::Float(
+                    ellie_core::definite::types::float::FloatType {
+                        value: 0.0,
+                        pos: defs::Cursor::default(),
+                    },
+                ))
+            } else if generic.rtype == "string" {
+                Some(Types::String(
+                    ellie_core::definite::types::string::StringType {
+                        value: "".to_owned(),
+                        pos: defs::Cursor::default(),
+                    },
+                ))
+            } else if generic.rtype == "bool" {
+                Some(Types::Bool(ellie_core::definite::types::bool::BoolType {
+                    value: true,
+                }))
+            } else if generic.rtype == "dyn" {
+                Some(Types::Dynamic)
+            } else if generic.rtype == "void" {
+                Some(Types::Void)
+            } else if generic.rtype == "char" {
+                Some(Types::Char(
+                    ellie_core::definite::types::ellie_char::CharType { value: '\0' },
+                ))
+            } else if generic.rtype == "null" {
+                Some(Types::Null)
+            } else {
+                let hash_deep_search = crate::deep_search_extensions::deep_search_hash(
+                    parser,
+                    page_id,
+                    generic.hash,
+                    vec![],
+                    0,
+                );
+                if hash_deep_search.found {
+                    match hash_deep_search.found_item {
+                        crate::deep_search_extensions::ProcessedDeepSearchItems::Class(
+                            matched_class,
+                        ) => {
+                            if matched_class.generic_definings.is_empty() {
+                                Some(Types::ClassCall(
+                                    ellie_core::definite::types::class_call::ClassCall {
+                                        target: Box::new(Types::VariableType(
+                                            ellie_core::definite::types::variable::VariableType {
+                                                value: matched_class.name.clone(),
+                                                reference: matched_class.hash,
+                                                pos: defs::Cursor::default(),
+                                            },
+                                        )),
+                                        resolved_generics: vec![],
+                                        generic_parameters: vec![],
+                                        keyword_pos: defs::Cursor::default(),
+                                        pos: defs::Cursor::default(),
+                                        target_pos: defs::Cursor::default(),
+                                        params: vec![],
+                                    },
+                                ))
+                            } else {
+                                unimplemented!()
+                            }
+                        }
+                        _ => unreachable!(),
+                    }
+                } else {
+                    unreachable!()
+                }
+            }
+        }
+        definers::DefinerCollecting::ParentGeneric(parent_generic) => {
+            if parent_generic.rtype == "array" {
+                match generate_type_from_defining(
+                    parent_generic.generics[0].value.clone(),
+                    page_id,
+                    parser,
+                ) {
+                    Some(t) => Some(Types::Array(
+                        ellie_core::definite::types::array::ArrayType {
+                            collective: vec![ellie_core::definite::types::array::ArrayEntry {
+                                value: t,
+                                location: defs::Cursor::default(),
+                            }],
+                            pos: defs::Cursor::default(),
+                        },
+                    )),
+                    None => None,
+                }
+            } else if parent_generic.rtype == "cloak" {
+                let mut cloak_entries = vec![];
+                let mut unresolved_element_available = false;
+                for generic in parent_generic.generics {
+                    match generate_type_from_defining(generic.value, page_id, parser) {
+                        Some(t) => {
+                            cloak_entries.push(ellie_core::definite::types::cloak::CloakEntry {
+                                value: t,
+                                location: defs::Cursor::default(),
+                            })
+                        }
+                        None => {
+                            unresolved_element_available = true;
+                            break;
+                        }
+                    }
+                }
+                if unresolved_element_available {
+                    None
+                } else {
+                    Some(Types::Cloak(
+                        ellie_core::definite::types::cloak::CloakType {
+                            collective: cloak_entries,
+                            pos: defs::Cursor::default(),
+                        },
+                    ))
+                }
+            } else if parent_generic.rtype == "collective" {
+                match generate_type_from_defining(
+                    parent_generic.generics[0].value.clone(),
+                    page_id,
+                    parser,
+                ) {
+                    Some(k) => match generate_type_from_defining(
+                        parent_generic.generics[1].value.clone(),
+                        page_id,
+                        parser,
+                    ) {
+                        Some(t) => Some(Types::Collective(
+                            ellie_core::definite::types::collective::CollectiveType {
+                                entries: vec![
+                                    ellie_core::definite::types::collective::CollectiveEntry {
+                                        key: k,
+                                        value: t,
+                                        key_pos: defs::Cursor::default(),
+                                        value_pos: defs::Cursor::default(),
+                                    },
+                                ],
+                                pos: defs::Cursor::default(),
+                            },
+                        )),
+                        None => None,
+                    },
+                    None => None,
+                }
+            } else if parent_generic.rtype == "vector" {
+                match generate_type_from_defining(
+                    parent_generic.generics[0].value.clone(),
+                    page_id,
+                    parser,
+                ) {
+                    Some(t) => Some(Types::Vector(
+                        ellie_core::definite::types::vector::VectorType {
+                            collective: vec![ellie_core::definite::types::vector::VectorEntry {
+                                value: t,
+                                location: defs::Cursor::default(),
+                            }],
+                            pos: defs::Cursor::default(),
+                        },
+                    )),
+                    None => None,
+                }
+            } else {
+                let hash_deep_search = crate::deep_search_extensions::deep_search_hash(
+                    parser,
+                    page_id,
+                    parent_generic.hash,
+                    vec![],
+                    0,
+                );
+                if hash_deep_search.found {
+                    match hash_deep_search.found_item {
+                                crate::deep_search_extensions::ProcessedDeepSearchItems::Class(matched_class) => {
+                                        Some(
+                                            Types::ClassCall(
+                                                ellie_core::definite::types::class_call::ClassCall {
+                                                    target: Box::new(Types::VariableType(
+                                                        ellie_core::definite::types::variable::VariableType {
+                                                            value: matched_class.name.clone(),
+                                                            reference: matched_class.hash,
+                                                            pos: defs::Cursor::default(),
+                                                        },
+                                                    )),
+                                                    resolved_generics: parent_generic.generics.iter().map(|generic| {
+                                                        generic.value.clone()
+                                                    }).collect::<Vec<_>>(),
+                                                    generic_parameters: parent_generic.generics.iter().map(|generic| {
+                                                        ellie_core::definite::types::class_call::ClassCallGenericParameter {
+                                                            value: generic.value.clone(),
+                                                            pos: defs::Cursor::default(),
+                                                        }
+                                                    }).collect::<Vec<_>>(),
+                                                    keyword_pos: defs::Cursor::default(),
+                                                    pos: defs::Cursor::default(),
+                                                    target_pos: defs::Cursor::default(),
+                                                    params: vec![],
+                                                }
+                                            )
+                                        )
+                                }
+                                _ => unreachable!(),
+                            }
+                } else {
+                    unreachable!()
+                }
+            }
+        }
+        definers::DefinerCollecting::Function(function) => Some(Types::Function(
+            ellie_core::definite::types::function::Function {
+                parameters: function
+                    .params
+                    .iter()
+                    .map(
+                        |parameter| ellie_core::definite::types::function::FunctionParameter {
+                            name: "anonymous".to_string(),
+                            rtype: Some(parameter.clone()),
+                            rtype_pos: defs::Cursor::default(),
+                            name_pos: defs::Cursor::default(),
+                        },
+                    )
+                    .collect::<Vec<_>>(),
+                return_type: *function.returning,
+                has_parameter_definings: false,
+                arrow_function: false,
+                inside_code: vec![],
+                return_pos: defs::Cursor::default(),
+            },
+        )),
+        _ => unreachable!(),
+    }
+}
+
 #[derive(Debug)]
 pub enum DeepTypeResult {
     Integer(ellie_core::definite::types::integer::IntegerType),
@@ -66,249 +310,6 @@ fn iterate_deep_type(
                 _rtype: AttributeType,
                 name: String,
                 value: definers::DefinerCollecting,
-            }
-
-            fn generate_type_from_defining(
-                rtype: ellie_core::definite::definers::DefinerCollecting,
-                page_id: u64,
-                parser: &mut crate::parser::Parser,
-            ) -> Option<Types> {
-                match rtype {
-                    definers::DefinerCollecting::Generic(generic) => {
-                        if generic.rtype == "int" {
-                            Some(Types::Integer(
-                                ellie_core::definite::types::integer::IntegerType {
-                                    value: 0,
-                                    pos: defs::Cursor::default(),
-                                },
-                            ))
-                        } else if generic.rtype == "float" {
-                            Some(Types::Float(
-                                ellie_core::definite::types::float::FloatType {
-                                    value: 0.0,
-                                    pos: defs::Cursor::default(),
-                                },
-                            ))
-                        } else if generic.rtype == "string" {
-                            Some(Types::String(
-                                ellie_core::definite::types::string::StringType {
-                                    value: "".to_owned(),
-                                    pos: defs::Cursor::default(),
-                                },
-                            ))
-                        } else if generic.rtype == "bool" {
-                            Some(Types::Bool(ellie_core::definite::types::bool::BoolType {
-                                value: true,
-                            }))
-                        } else if generic.rtype == "dyn" {
-                            Some(Types::Dynamic)
-                        } else if generic.rtype == "void" {
-                            Some(Types::Void)
-                        } else if generic.rtype == "char" {
-                            Some(Types::Char(
-                                ellie_core::definite::types::ellie_char::CharType { value: '\0' },
-                            ))
-                        } else if generic.rtype == "null" {
-                            Some(Types::Null)
-                        } else {
-                            let hash_deep_search = crate::deep_search_extensions::deep_search_hash(
-                                parser,
-                                page_id,
-                                generic.hash,
-                                vec![],
-                                0,
-                            );
-                            if hash_deep_search.found {
-                                match hash_deep_search.found_item {
-                                            crate::deep_search_extensions::ProcessedDeepSearchItems::Class(matched_class) => {
-
-                                                if matched_class.generic_definings.is_empty() {
-                                                    Some(
-                                                        Types::ClassCall(
-                                                            ellie_core::definite::types::class_call::ClassCall {
-                                                                target: Box::new(Types::VariableType(
-                                                                    ellie_core::definite::types::variable::VariableType {
-                                                                        value: matched_class.name.clone(),
-                                                                        reference: matched_class.hash,
-                                                                        pos: defs::Cursor::default(),
-                                                                    },
-                                                                )),
-                                                                resolved_generics: vec![],
-                                                                generic_parameters: vec![],
-                                                                keyword_pos: defs::Cursor::default(),
-                                                                pos: defs::Cursor::default(),
-                                                                target_pos: defs::Cursor::default(),
-                                                                params: vec![],
-                                                            }
-                                                        )
-                                                    )
-                                                } else {
-                                                    unimplemented!()
-                                                }
-                                            }
-                                            _ => unreachable!(),
-                                        }
-                            } else {
-                                unreachable!()
-                            }
-                        }
-                    }
-                    definers::DefinerCollecting::ParentGeneric(parent_generic) => {
-                        if parent_generic.rtype == "array" {
-                            match generate_type_from_defining(
-                                parent_generic.generics[0].value.clone(),
-                                page_id,
-                                parser,
-                            ) {
-                                Some(t) => Some(Types::Array(
-                                    ellie_core::definite::types::array::ArrayType {
-                                        collective: vec![
-                                            ellie_core::definite::types::array::ArrayEntry {
-                                                value: t,
-                                                location: defs::Cursor::default(),
-                                            },
-                                        ],
-                                        pos: defs::Cursor::default(),
-                                    },
-                                )),
-                                None => None,
-                            }
-                        } else if parent_generic.rtype == "cloak" {
-                            let mut cloak_entries = vec![];
-                            let mut unresolved_element_available = false;
-                            for generic in parent_generic.generics {
-                                match generate_type_from_defining(generic.value, page_id, parser) {
-                                    Some(t) => cloak_entries.push(
-                                        ellie_core::definite::types::cloak::CloakEntry {
-                                            value: t,
-                                            location: defs::Cursor::default(),
-                                        },
-                                    ),
-                                    None => {
-                                        unresolved_element_available = true;
-                                        break;
-                                    }
-                                }
-                            }
-                            if unresolved_element_available {
-                                None
-                            } else {
-                                Some(Types::Cloak(
-                                    ellie_core::definite::types::cloak::CloakType {
-                                        collective: cloak_entries,
-                                        pos: defs::Cursor::default(),
-                                    },
-                                ))
-                            }
-                        } else if parent_generic.rtype == "collective" {
-                            match generate_type_from_defining(parent_generic.generics[0].value.clone(),  page_id,
-                                    parser,) {
-                                        Some(k) =>
-                                        match generate_type_from_defining(parent_generic.generics[1].value.clone(), page_id,
-                                        parser,) {
-                                            Some(t) => Some(Types::Collective(
-                                            ellie_core::definite::types::collective::CollectiveType {
-                                                entries: vec![
-                                                    ellie_core::definite::types::collective::CollectiveEntry {
-                                                        key: k,
-                                                        value: t,
-                                                        key_pos: defs::Cursor::default(),
-                                                        value_pos: defs::Cursor::default(),
-                                                    },
-                                                ],
-                                                pos: defs::Cursor::default(),
-                                            },
-                                        )),
-                                            None => None,
-                                        },
-                                        None => None,
-                                    }
-                        } else if parent_generic.rtype == "vector" {
-                            match generate_type_from_defining(
-                                parent_generic.generics[0].value.clone(),
-                                page_id,
-                                parser,
-                            ) {
-                                Some(t) => Some(Types::Vector(
-                                    ellie_core::definite::types::vector::VectorType {
-                                        collective: vec![
-                                            ellie_core::definite::types::vector::VectorEntry {
-                                                value: t,
-                                                location: defs::Cursor::default(),
-                                            },
-                                        ],
-                                        pos: defs::Cursor::default(),
-                                    },
-                                )),
-                                None => None,
-                            }
-                        } else {
-                            let hash_deep_search = crate::deep_search_extensions::deep_search_hash(
-                                parser,
-                                page_id,
-                                parent_generic.hash,
-                                vec![],
-                                0,
-                            );
-                            if hash_deep_search.found {
-                                match hash_deep_search.found_item {
-                                            crate::deep_search_extensions::ProcessedDeepSearchItems::Class(matched_class) => {
-                                                    Some(
-                                                        Types::ClassCall(
-                                                            ellie_core::definite::types::class_call::ClassCall {
-                                                                target: Box::new(Types::VariableType(
-                                                                    ellie_core::definite::types::variable::VariableType {
-                                                                        value: matched_class.name.clone(),
-                                                                        reference: matched_class.hash,
-                                                                        pos: defs::Cursor::default(),
-                                                                    },
-                                                                )),
-                                                                resolved_generics: parent_generic.generics.iter().map(|generic| {
-                                                                    generic.value.clone()
-                                                                }).collect::<Vec<_>>(),
-                                                                generic_parameters: parent_generic.generics.iter().map(|generic| {
-                                                                    ellie_core::definite::types::class_call::ClassCallGenericParameter {
-                                                                        value: generic.value.clone(),
-                                                                        pos: defs::Cursor::default(),
-                                                                    }
-                                                                }).collect::<Vec<_>>(),
-                                                                keyword_pos: defs::Cursor::default(),
-                                                                pos: defs::Cursor::default(),
-                                                                target_pos: defs::Cursor::default(),
-                                                                params: vec![],
-                                                            }
-                                                        )
-                                                    )
-                                            }
-                                            _ => unreachable!(),
-                                        }
-                            } else {
-                                unreachable!()
-                            }
-                        }
-                    }
-                    definers::DefinerCollecting::Function(function) => Some(Types::Function(
-                        ellie_core::definite::types::function::Function {
-                            parameters: function
-                                .params
-                                .iter()
-                                .map(|parameter| {
-                                    ellie_core::definite::types::function::FunctionParameter {
-                                        name: "anonymous".to_string(),
-                                        rtype: Some(parameter.clone()),
-                                        pos: defs::Cursor::default(),
-                                    }
-                                })
-                                .collect::<Vec<_>>(),
-                            return_type: *function.returning,
-                            has_parameter_definings: false,
-                            arrow_function: false,
-                            inside_code: vec![],
-                            return_pos: defs::Cursor::default(),
-                        },
-                    )),
-                    _ => unreachable!(),
-                }
             }
 
             fn resolve_chain(
@@ -393,6 +394,8 @@ fn iterate_deep_type(
                                 }
                                 ProcessedDeepSearchItems::Variable(_) => todo!(),
                                 ProcessedDeepSearchItems::Function(_) => todo!(),
+                                ProcessedDeepSearchItems::Getter(_) => todo!(),
+                                ProcessedDeepSearchItems::Setter(_) => todo!(),
                                 ProcessedDeepSearchItems::ImportReference(_) => todo!(),
                                 ProcessedDeepSearchItems::GenericItem(_) => todo!(),
                                 ProcessedDeepSearchItems::None => todo!(),
@@ -644,6 +647,7 @@ fn iterate_deep_type(
                 DeepTypeResult::Cloak(cloak)
             }
         }
+        Types::SetterCall(inner_type) => unreachable!(),
         Types::Array(array) => {
             let mut collective = vec![];
             for i in array.collective {
@@ -784,229 +788,6 @@ fn iterate_deep_type(
             };
             match from_type {
                 definers::DefinerCollecting::ParentGeneric(e) => {
-                    fn generate_type_from_defining(
-                        rtype: definers::DefinerCollecting,
-                        page_id: u64,
-                        parser: &mut Parser,
-                    ) -> Option<Types> {
-                        match rtype {
-                            definers::DefinerCollecting::Generic(generic) => {
-                                if generic.rtype == "int" {
-                                    Some(Types::Integer(
-                                        ellie_core::definite::types::integer::IntegerType {
-                                            value: 0,
-                                            pos: defs::Cursor::default(),
-                                        },
-                                    ))
-                                } else if generic.rtype == "float" {
-                                    Some(Types::Float(
-                                        ellie_core::definite::types::float::FloatType {
-                                            value: 0.0,
-                                            pos: defs::Cursor::default(),
-                                        },
-                                    ))
-                                } else if generic.rtype == "string" {
-                                    Some(Types::String(
-                                        ellie_core::definite::types::string::StringType {
-                                            value: "".to_owned(),
-                                            pos: defs::Cursor::default(),
-                                        },
-                                    ))
-                                } else if generic.rtype == "bool" {
-                                    Some(Types::Bool(ellie_core::definite::types::bool::BoolType {
-                                        value: true,
-                                    }))
-                                } else if generic.rtype == "dyn" {
-                                    Some(Types::Dynamic)
-                                } else if generic.rtype == "void" {
-                                    Some(Types::Void)
-                                } else if generic.rtype == "char" {
-                                    Some(Types::Char(
-                                        ellie_core::definite::types::ellie_char::CharType {
-                                            value: '\0',
-                                        },
-                                    ))
-                                } else if generic.rtype == "null" {
-                                    Some(Types::Null)
-                                } else {
-                                    let hash_deep_search =
-                                        deep_search_hash(parser, page_id, generic.hash, vec![], 0);
-                                    if hash_deep_search.found {
-                                        match hash_deep_search.found_item {
-                                            ProcessedDeepSearchItems::Class(matched_class) => {
-                                                if matched_class.generic_definings.is_empty() {
-                                                    Some(
-                                                        Types::ClassCall(
-                                                            ellie_core::definite::types::class_call::ClassCall {
-                                                                target: Box::new(Types::VariableType(
-                                                                    ellie_core::definite::types::variable::VariableType {
-                                                                        value: matched_class.name.clone(),
-                                                                        reference: matched_class.hash,
-                                                                        pos: defs::Cursor::default(),
-                                                                    },
-                                                                )),
-                                                                resolved_generics: vec![],
-                                                                generic_parameters: vec![],
-                                                                keyword_pos: defs::Cursor::default(),
-                                                                pos: defs::Cursor::default(),
-                                                                target_pos: defs::Cursor::default(),
-                                                                params: vec![],
-                                                            }
-                                                        )
-                                                    )
-                                                } else {
-                                                    unimplemented!()
-                                                }
-                                            }
-                                            _ => unreachable!(),
-                                        }
-                                    } else {
-                                        unreachable!()
-                                    }
-                                }
-                            }
-                            definers::DefinerCollecting::ParentGeneric(parent_generic) => {
-                                if parent_generic.rtype == "array" {
-                                    match generate_type_from_defining(
-                                        parent_generic.generics[0].value.clone(),
-                                        page_id,
-                                        parser,
-                                    ) {
-                                        Some(t) => Some(Types::Array(
-                                            ellie_core::definite::types::array::ArrayType {
-                                                collective: vec![
-                                                    ellie_core::definite::types::array::ArrayEntry {
-                                                        value: t,
-                                                        location: defs::Cursor::default(),
-                                                    },
-                                                ],
-                                                pos: defs::Cursor::default(),
-                                            },
-                                        )),
-                                        None => None,
-                                    }
-                                } else if parent_generic.rtype == "cloak" {
-                                    let mut cloak_entries = vec![];
-                                    let mut unresolved_element_available = false;
-                                    for generic in parent_generic.generics {
-                                        match generate_type_from_defining(
-                                            generic.value,
-                                            page_id,
-                                            parser,
-                                        ) {
-                                            Some(t) => cloak_entries.push(
-                                                ellie_core::definite::types::cloak::CloakEntry {
-                                                    value: t,
-                                                    location: defs::Cursor::default(),
-                                                },
-                                            ),
-                                            None => {
-                                                unresolved_element_available = true;
-                                                break;
-                                            }
-                                        }
-                                    }
-                                    if unresolved_element_available {
-                                        None
-                                    } else {
-                                        Some(Types::Cloak(
-                                            ellie_core::definite::types::cloak::CloakType {
-                                                collective: cloak_entries,
-                                                pos: defs::Cursor::default(),
-                                            },
-                                        ))
-                                    }
-                                } else if parent_generic.rtype == "collective" {
-                                    match generate_type_from_defining(parent_generic.generics[0].value.clone(),  page_id,
-                                    parser,) {
-                                        Some(k) =>
-                                        match generate_type_from_defining(parent_generic.generics[1].value.clone(), page_id,
-                                        parser,) {
-                                            Some(t) => Some(Types::Collective(
-                                            ellie_core::definite::types::collective::CollectiveType {
-                                                entries: vec![
-                                                    ellie_core::definite::types::collective::CollectiveEntry {
-                                                        key: k,
-                                                        value: t,
-                                                        key_pos: defs::Cursor::default(),
-                                                        value_pos: defs::Cursor::default(),
-                                                    },
-                                                ],
-                                                pos: defs::Cursor::default(),
-                                            },
-                                        )),
-                                            None => None,
-                                        },
-                                        None => None,
-                                    }
-                                } else if parent_generic.rtype == "vector" {
-                                    match generate_type_from_defining(
-                                        parent_generic.generics[0].value.clone(),
-                                        page_id,
-                                        parser,
-                                    ) {
-                                        Some(t) => Some(Types::Vector(
-                                            ellie_core::definite::types::vector::VectorType {
-                                                collective: vec![
-                                                    ellie_core::definite::types::vector::VectorEntry {
-                                                        value: t,
-                                                        location: defs::Cursor::default(),
-                                                    },
-                                                ],
-                                                pos: defs::Cursor::default(),
-                                            },
-                                        )),
-                                        None => None,
-                                    }
-                                } else {
-                                    let hash_deep_search = deep_search_hash(
-                                        parser,
-                                        page_id,
-                                        parent_generic.hash,
-                                        vec![],
-                                        0,
-                                    );
-                                    if hash_deep_search.found {
-                                        match hash_deep_search.found_item {
-                                            ProcessedDeepSearchItems::Class(matched_class) => {
-                                                    Some(
-                                                        Types::ClassCall(
-                                                            ellie_core::definite::types::class_call::ClassCall {
-                                                                target: Box::new(Types::VariableType(
-                                                                    ellie_core::definite::types::variable::VariableType {
-                                                                        value: matched_class.name.clone(),
-                                                                        reference: matched_class.hash,
-                                                                        pos: defs::Cursor::default(),
-                                                                    },
-                                                                )),
-                                                                resolved_generics: parent_generic.generics.iter().map(|generic| {
-                                                                    generic.value.clone()
-                                                                }).collect::<Vec<_>>(),
-                                                                generic_parameters: parent_generic.generics.iter().map(|generic| {
-                                                                    ellie_core::definite::types::class_call::ClassCallGenericParameter {
-                                                                        value: generic.value.clone(),
-                                                                        pos: defs::Cursor::default(),
-                                                                    }
-                                                                }).collect::<Vec<_>>(),
-                                                                keyword_pos: defs::Cursor::default(),
-                                                                pos: defs::Cursor::default(),
-                                                                target_pos: defs::Cursor::default(),
-                                                                params: vec![],
-                                                            }
-                                                        )
-                                                    )
-                                            }
-                                            _ => unreachable!(),
-                                        }
-                                    } else {
-                                        unreachable!()
-                                    }
-                                }
-                            }
-                            _ => unreachable!(),
-                        }
-                    }
-
                     if e.rtype == "nullAble" {
                         let resolved_type = generate_type_from_defining(
                             e.generics[0].value.clone(),
@@ -1117,6 +898,60 @@ fn iterate_deep_type(
                     ProcessedDeepSearchItems::Variable(e) => {
                         iterate_deep_type(parser, page_id, e.value, errors)
                     }
+                    ProcessedDeepSearchItems::Getter(e) => {
+                        match generate_type_from_defining(e.return_type, page_id, parser) {
+                            Some(e) => match e {
+                                Types::Byte(e) => DeepTypeResult::Byte(e),
+                                Types::Integer(e) => DeepTypeResult::Integer(e),
+                                Types::Float(e) => DeepTypeResult::Float(e),
+                                Types::Double(e) => DeepTypeResult::Double(e),
+                                Types::Bool(e) => DeepTypeResult::Bool(e),
+                                Types::String(e) => DeepTypeResult::String(e),
+                                Types::Char(e) => DeepTypeResult::Char(e),
+                                Types::Collective(e) => DeepTypeResult::Collective(e),
+                                Types::BraceReference(e) => DeepTypeResult::BraceReference(e),
+                                Types::Operator(e) => DeepTypeResult::Operator(e),
+                                Types::Cloak(e) => DeepTypeResult::Cloak(e),
+                                Types::Array(e) => DeepTypeResult::Array(e),
+                                Types::Vector(e) => DeepTypeResult::Vector(e),
+                                Types::Function(e) => DeepTypeResult::Function(e),
+                                Types::ClassCall(e) => DeepTypeResult::ClassCall(e),
+                                Types::FunctionCall(e) => DeepTypeResult::FunctionCall(e),
+                                Types::Void => DeepTypeResult::Void,
+                                Types::Null => DeepTypeResult::Null,
+                                Types::Dynamic => DeepTypeResult::Dynamic,
+                                _ => DeepTypeResult::NotFound,
+                            },
+                            None => DeepTypeResult::NotFound,
+                        }
+                    }
+                    ProcessedDeepSearchItems::Setter(e) => {
+                        match generate_type_from_defining(e.rtype, page_id, parser) {
+                            Some(e) => match e {
+                                Types::Byte(e) => DeepTypeResult::Byte(e),
+                                Types::Integer(e) => DeepTypeResult::Integer(e),
+                                Types::Float(e) => DeepTypeResult::Float(e),
+                                Types::Double(e) => DeepTypeResult::Double(e),
+                                Types::Bool(e) => DeepTypeResult::Bool(e),
+                                Types::String(e) => DeepTypeResult::String(e),
+                                Types::Char(e) => DeepTypeResult::Char(e),
+                                Types::Collective(e) => DeepTypeResult::Collective(e),
+                                Types::BraceReference(e) => DeepTypeResult::BraceReference(e),
+                                Types::Operator(e) => DeepTypeResult::Operator(e),
+                                Types::Cloak(e) => DeepTypeResult::Cloak(e),
+                                Types::Array(e) => DeepTypeResult::Array(e),
+                                Types::Vector(e) => DeepTypeResult::Vector(e),
+                                Types::Function(e) => DeepTypeResult::Function(e),
+                                Types::ClassCall(e) => DeepTypeResult::ClassCall(e),
+                                Types::FunctionCall(e) => DeepTypeResult::FunctionCall(e),
+                                Types::Void => DeepTypeResult::Void,
+                                Types::Null => DeepTypeResult::Null,
+                                Types::Dynamic => DeepTypeResult::Dynamic,
+                                _ => DeepTypeResult::NotFound,
+                            },
+                            None => DeepTypeResult::NotFound,
+                        }
+                    }
                     ProcessedDeepSearchItems::Function(e) => {
                         DeepTypeResult::Function(ellie_core::definite::types::function::Function {
                             parameters: e
@@ -1126,7 +961,8 @@ fn iterate_deep_type(
                                     |x| ellie_core::definite::types::function::FunctionParameter {
                                         name: x.name.clone(),
                                         rtype: Some(x.rtype.clone()),
-                                        pos: x.pos,
+                                        rtype_pos: x.rtype_pos.clone(),
+                                        name_pos: x.name_pos.clone(),
                                     },
                                 )
                                 .collect::<Vec<_>>(),
@@ -1136,33 +972,6 @@ fn iterate_deep_type(
                             return_pos: defs::Cursor::default(),
                             arrow_function: false,
                         })
-                        /*
-                                DeepTypeResult::Function(
-                                ellie_core::definite::types::function_call::FunctionCall {
-                                    target: Box::new(Types::Function(
-                                        ellie_core::definite::types::function::Function {
-                                            parameters: e.parameters.iter().map(|x| {
-                                                ellie_core::definite::types::function::FunctionParameter {
-                                                    name: x.name.clone(),
-                                                    rtype: Some(x.rtype.clone()),
-                                                    pos: x.pos,
-                                                }
-                                            }).collect::<Vec<_>>(),
-                                            has_parameter_definings: true,
-                                            return_type: e.return_type,
-                                            inside_code: vec![],
-                                            return_pos: defs::Cursor::default(),
-                                            arrow_function: false,
-                                        },
-                                    )),
-                                    target_pos: defs::Cursor::default(),
-                                    returning: e.return_type,
-                                    generic_parameters: vec![],
-                                    params: vec![],
-                                    pos: defs::Cursor::default(),
-                                },
-                            )
-                        */
                     }
                     ProcessedDeepSearchItems::ImportReference(_) => todo!(),
                     ProcessedDeepSearchItems::GenericItem(_) => todo!(),
@@ -1222,7 +1031,8 @@ fn iterate_deep_type(
                                                 ellie_core::definite::types::function::FunctionParameter {
                                                     name: "anonymous".to_owned(),
                                                     rtype: Some(x.clone()),
-                                                    pos: defs::Cursor::default(),
+                                                    rtype_pos: defs::Cursor::default(),
+                                                    name_pos: defs::Cursor::default(),
                                                 }
                                             }).collect::<Vec<_>>(),
                                             has_parameter_definings: true,
@@ -1455,6 +1265,8 @@ pub enum ProcessedDeepSearchItems {
     Class(ellie_core::definite::items::class::Class),
     Variable(ellie_core::definite::items::variable::Variable),
     Function(ellie_core::definite::items::function::Function),
+    Getter(ellie_core::definite::items::getter::Getter),
+    Setter(ellie_core::definite::items::setter::Setter),
     ImportReference(ellie_core::definite::items::import::Import),
     //SelfItem(ellie_core::definite::items::::SelfItem),
     GenericItem(ellie_core::definite::items::generic::Generic),
@@ -1715,6 +1527,30 @@ pub fn deep_search(
                                     found_type = ProcessedDeepSearchItems::Function(e);
                                 }
                             }
+                            Collecting::Getter(e) => {
+                                if e.name == name
+                                    && (e.public || level == 0)
+                                    && (ignore_hash.is_none()
+                                        || matches!(ignore_hash, Some(ref t) if &e.hash != t))
+                                {
+                                    found_pos = Some(e.pos);
+                                    found = true;
+                                    found_page = page.clone();
+                                    found_type = ProcessedDeepSearchItems::Getter(e);
+                                }
+                            }
+                            Collecting::Setter(e) => {
+                                if e.name == name
+                                    && (e.public || level == 0)
+                                    && (ignore_hash.is_none()
+                                        || matches!(ignore_hash, Some(ref t) if &e.hash != t))
+                                {
+                                    found_pos = Some(e.pos);
+                                    found = true;
+                                    found_page = page.clone();
+                                    found_type = ProcessedDeepSearchItems::Setter(e);
+                                }
+                            }
                             Collecting::Import(e) => {
                                 if e.reference != ""
                                     && e.reference == name
@@ -1794,25 +1630,37 @@ pub fn find_type(
                 hash: e.hash,
             }),
             ProcessedDeepSearchItems::Variable(_) => {
-                panic!(
+                unreachable!(
                     "Unexpected internal crash, parser should have prevented this, {:?}",
                     result
                 );
             }
             ProcessedDeepSearchItems::Function(_) => {
-                panic!(
+                unreachable!(
+                    "Unexpected internal crash, parser should have prevented this, {:?}",
+                    result
+                );
+            }
+            ProcessedDeepSearchItems::Setter(_) => {
+                unreachable!(
+                    "Unexpected internal crash, parser should have prevented this, {:?}",
+                    result
+                );
+            }
+            ProcessedDeepSearchItems::Getter(_) => {
+                unreachable!(
                     "Unexpected internal crash, parser should have prevented this, {:?}",
                     result
                 );
             }
             ProcessedDeepSearchItems::ImportReference(_) => {
-                panic!(
+                unreachable!(
                     "Unexpected internal crash, parser should have prevented this, {:?}",
                     result
                 );
             }
             ProcessedDeepSearchItems::GenericItem(_) => {
-                panic!(
+                unreachable!(
                     "Unexpected internal crash, parser should have prevented this, {:?}",
                     result
                 );
@@ -2004,13 +1852,19 @@ pub fn resolve_type(
                 }
                 ellie_core::definite::types::operator::Operators::ArithmeticType(_) => {
                     let rtype = match *operator.first {
-                        Types::Byte(_) => "byte",
-                        Types::Integer(_) => "int",
-                        Types::Float(_) => "float",
-                        Types::Double(_) => "double",
-                        _ => unreachable!(),
-                    }
-                    .to_string();
+                        Types::Byte(_) => "byte".to_string(),
+                        Types::Integer(_) => "int".to_string(),
+                        Types::Float(_) => "float".to_string(),
+                        Types::Double(_) => "double".to_string(),
+                        Types::Operator(_) => {
+                            let res =
+                                resolve_type(*operator.first, target_page, parser, errors, pos)
+                                    .unwrap()
+                                    .to_string();
+                            res
+                        }
+                        _ => unreachable!("Unhandled type: {:?}", operator.first),
+                    };
                     find_type(rtype, target_page, parser)
                 }
                 ellie_core::definite::types::operator::Operators::AssignmentType(_) => {
@@ -2229,7 +2083,7 @@ pub fn resolve_type(
                 }
             }
         }
-        DeepTypeResult::NotFound => unreachable!(),
+        DeepTypeResult::NotFound => unreachable!("{:?}", target_type),
         DeepTypeResult::BraceReference(e) => {
             let nullable_type = find_type("nullAble".to_string(), target_page, parser);
             match nullable_type {

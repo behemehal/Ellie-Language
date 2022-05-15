@@ -263,7 +263,7 @@ impl super::Processor for TypeProcessor {
         if letter_char == '{' && not_initalized {
             self.current = Processors::Collective(collective_type::CollectiveTypeCollector {
                 data: collective_type::CollectiveType {
-                    pos: defs::Cursor::build_with_skip_char(cursor.clone()),
+                    pos: defs::Cursor::build_from_cursor(cursor.clone()),
                     ..Default::default()
                 },
                 ..Default::default()
@@ -273,7 +273,7 @@ impl super::Processor for TypeProcessor {
         {
             self.current = Processors::ClassCall(class_call_type::ClassCallCollector {
                 data: class_call_type::ClassCall {
-                    pos: defs::Cursor::build_with_skip_char(cursor.clone()),
+                    pos: defs::Cursor::build_from_cursor(cursor.clone()),
                     target_pos: self.current.get_pos(),
                     ..Default::default()
                 },
@@ -283,7 +283,7 @@ impl super::Processor for TypeProcessor {
             if not_initalized {
                 self.current = Processors::Array(array_type::ArrayTypeCollector {
                     data: array_type::ArrayType {
-                        pos: defs::Cursor::build_with_skip_char(cursor.clone()),
+                        pos: defs::Cursor::build_from_cursor(cursor.clone()),
                         ..Default::default()
                     },
                     ..Default::default()
@@ -304,7 +304,7 @@ impl super::Processor for TypeProcessor {
             if not_initalized {
                 self.current = Processors::Cloak(cloak_type::CloakTypeCollector {
                     data: cloak_type::CloakType {
-                        pos: defs::Cursor::build_with_skip_char(cursor.clone()),
+                        pos: defs::Cursor::build_from_cursor(cursor.clone()),
                         ..Default::default()
                     },
                     ..Default::default()
@@ -323,7 +323,7 @@ impl super::Processor for TypeProcessor {
             }
         } else if letter_char == '\'' && not_initalized {
             self.current = Processors::Char(char_type::CharType {
-                pos: defs::Cursor::build_with_skip_char(cursor.clone()),
+                pos: defs::Cursor::build_from_cursor(cursor.clone()),
                 ..Default::default()
             });
         } else if letter_char == '!'
@@ -331,7 +331,7 @@ impl super::Processor for TypeProcessor {
         {
             if not_initalized {
                 self.current = Processors::Negative(negative_type::Negative {
-                    pos: defs::Cursor::build_with_skip_char(cursor.clone()),
+                    pos: defs::Cursor::build_from_cursor(cursor.clone()),
                     ..Default::default()
                 });
             } else if self.current.as_operator().is_none() && last_char != ' ' {
@@ -347,7 +347,7 @@ impl super::Processor for TypeProcessor {
         } else if letter_char == '"' && not_initalized {
             self.current = Processors::String(string_type::StringTypeCollector {
                 data: string_type::StringType {
-                    pos: defs::Cursor::build_with_skip_char(cursor.clone()),
+                    pos: defs::Cursor::build_from_cursor(cursor.clone()),
                     ..Default::default()
                 },
                 ..Default::default()
@@ -382,7 +382,7 @@ impl super::Processor for TypeProcessor {
                     } else {
                         "0.".to_string()
                     },
-                    pos: defs::Cursor::build_with_skip_char(cursor.clone()),
+                    pos: defs::Cursor::build_from_cursor(cursor.clone()),
                     ..Default::default()
                 },
                 ..Default::default()
@@ -392,7 +392,7 @@ impl super::Processor for TypeProcessor {
         {
             self.current = Processors::Integer(integer_type::IntegerTypeCollector {
                 data: integer_type::IntegerType {
-                    pos: defs::Cursor::build_with_skip_char(cursor.clone()),
+                    pos: defs::Cursor::build_from_cursor(cursor.clone()),
                     ..Default::default()
                 },
                 ..Default::default()
@@ -417,7 +417,7 @@ impl super::Processor for TypeProcessor {
                             },
                             ..Default::default()
                         }],
-                        pos: defs::Cursor::build_with_skip_char(cursor.clone()),
+                        pos: defs::Cursor::build_from_cursor(cursor.clone()),
                         ..Default::default()
                     },
                     on_dot: false,
@@ -441,7 +441,7 @@ impl super::Processor for TypeProcessor {
                     data: reference_type::ReferenceType {
                         reference: Box::new(self.current.clone()),
                         reference_pos: self.current.get_pos(),
-                        pos: defs::Cursor::build_with_skip_char(cursor.clone()),
+                        pos: defs::Cursor::build_from_cursor(cursor.clone()),
                         ..Default::default()
                     },
                     on_dot: false,

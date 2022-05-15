@@ -74,17 +74,25 @@ impl super::Processor for function::FunctionCollector {
                             vec![],
                             alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                             parser.find_page(page_id).unwrap().path.clone(),
-                            parameter.pos,
+                            ellie_core::defs::Cursor {
+                                range_start: parameter.name_pos.range_start,
+                                range_end: parameter.rtype_pos.range_end,
+                            },
                         );
-                        err.reference_block =
-                            Some((self.data.parameters[other_index].pos, page.path.clone()));
+                        err.reference_block = Some((
+                            ellie_core::defs::Cursor {
+                                range_start: self.data.parameters[other_index].name_pos.range_start,
+                                range_end: self.data.parameters[other_index].rtype_pos.range_end,
+                            },
+                            page.path.clone(),
+                        ));
                         err.reference_message = "Prime is here".to_owned();
                         err.semi_assist = true;
                         parser.informations.push(&err);
                     }
 
                     let (duplicate, found) =
-                        parser.is_duplicate(page_id, parameter.name.clone(), 0, parameter.pos);
+                        parser.is_duplicate(page_id, parameter.name.clone(), 0, parameter.name_pos);
 
                     if duplicate {
                         if let Some((page, cursor_pos)) = found {
@@ -95,7 +103,7 @@ impl super::Processor for function::FunctionCollector {
                                 }],
                                 alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                                 parser.find_page(page_id).unwrap().path.clone(),
-                                parameter.pos,
+                                parameter.name_pos,
                             );
                             err.reference_block = Some((cursor_pos, page.path));
                             err.reference_message = "Prime is here".to_owned();
@@ -115,7 +123,7 @@ impl super::Processor for function::FunctionCollector {
                                         column!()
                                     ),
                                     page.path.clone(),
-                                    parameter.pos,
+                                    parameter.name_pos,
                                 ),
                             )
                         }
@@ -154,7 +162,7 @@ impl super::Processor for function::FunctionCollector {
                                                     },
                                                 ],
                                                 page.path.clone(),
-                                                parameter.pos,
+                                                parameter.name_pos,
                                             ),
                                         )
                                     }
@@ -165,15 +173,17 @@ impl super::Processor for function::FunctionCollector {
                                         name: parameter.name.clone(),
                                         reference: false,
                                         rtype: e.clone(),
-                                        pos: parameter.pos,
+                                        name_pos: parameter.name_pos,
+                                        rtype_pos: parameter.rtype_pos,
                                     },
                                 ));
                                 parameters.push(
                                     ellie_core::definite::items::function::FunctionParameter {
                                         name: parameter.name.clone(),
-                                        pos: parameter.pos,
                                         rtype: e,
                                         multi_capture: parameter.multi_capture,
+                                        name_pos: parameter.name_pos,
+                                        rtype_pos: parameter.rtype_pos,
                                     },
                                 );
                             }
@@ -249,8 +259,28 @@ impl super::Processor for function::FunctionCollector {
                     ..Default::default()
                 };
                 parser.pages.push(inner);
-                parser.process_page(inner_page_id);
 
+                let processed_page = parser.find_processed_page(page_id).unwrap();
+
+                processed_page
+                    .items
+                    .push(ellie_core::definite::items::Collecting::Function(
+                        ellie_core::definite::items::function::Function {
+                            name: self.data.name.clone(),
+                            pos: self.data.pos,
+                            parameters: parameters,
+                            hash: self.data.hash.clone(),
+                            return_type: return_type.clone(),
+                            public: self.data.public,
+                            name_pos: self.data.name_pos,
+                            body_pos: self.data.body_pos,
+                            parameters_pos: self.data.parameters_pos,
+                            return_pos: self.data.return_pos,
+                            no_return: self.data.no_return,
+                            inner_page_id,
+                        },
+                    ));
+                parser.process_page(inner_page_id);
                 let found_ret = parser
                     .find_processed_page(inner_page_id)
                     .unwrap()
@@ -284,54 +314,50 @@ impl super::Processor for function::FunctionCollector {
                         err.semi_assist = true;
                         parser.informations.push(&err);
                         return false;
-                    } else {
-                        let defined = parser.resolve_definer_name(return_type.clone());
-                        let given = parser.resolve_type_name(ret.value);
-                        if defined != given {
-                            let mut err = error::error_list::ERROR_S3.clone().build_with_path(
-                                vec![
-                                    error::ErrorBuildField {
-                                        key: "token1".to_owned(),
-                                        value: defined,
-                                    },
-                                    error::ErrorBuildField {
-                                        key: "token2".to_owned(),
-                                        value: given,
-                                    },
-                                ],
-                                alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                                parser.find_page(page_id).unwrap().path.clone(),
-                                ret.pos,
-                            );
-                            err.reference_block = Some((self.data.return_pos, page.path));
-                            err.reference_message = "Defined here".to_owned();
-                            err.semi_assist = true;
-                            parser.informations.push(&err);
-                            return false;
+                    } else if parser.informations.has_no_errors() {
+                        match parser.compare_defining_with_type(
+                            return_type,
+                            ret.value,
+                            inner_page_id,
+                        ) {
+                            Ok((same, defined, rtype)) => {
+                                if !same {
+                                    let mut err =
+                                        error::error_list::ERROR_S3.clone().build_with_path(
+                                            vec![
+                                                error::ErrorBuildField {
+                                                    key: "token1".to_owned(),
+                                                    value: defined,
+                                                },
+                                                error::ErrorBuildField {
+                                                    key: "token2".to_owned(),
+                                                    value: rtype,
+                                                },
+                                            ],
+                                            alloc::format!(
+                                                "{}:{}:{}",
+                                                file!().to_owned(),
+                                                line!(),
+                                                column!()
+                                            ),
+                                            parser.find_page(page_id).unwrap().path.clone(),
+                                            ret.pos,
+                                        );
+                                    err.reference_block = Some((self.data.return_pos, page.path));
+                                    err.reference_message = "Defined here".to_owned();
+                                    err.semi_assist = true;
+                                    parser.informations.push(&err);
+                                    return false;
+                                }
+                            }
+                            Err(e) => {
+                                parser.informations.extend(&e);
+                                return false;
+                            }
                         }
                     }
                 }
 
-                let processed_page = parser.find_processed_page(page_id).unwrap();
-
-                processed_page
-                    .items
-                    .push(ellie_core::definite::items::Collecting::Function(
-                        ellie_core::definite::items::function::Function {
-                            name: self.data.name.clone(),
-                            pos: self.data.pos,
-                            parameters: parameters,
-                            hash: self.data.hash.clone(),
-                            return_type: return_type,
-                            public: self.data.public,
-                            name_pos: self.data.name_pos,
-                            body_pos: self.data.body_pos,
-                            parameters_pos: self.data.parameters_pos,
-                            return_pos: self.data.return_pos,
-                            no_return: self.data.no_return,
-                            inner_page_id,
-                        },
-                    ));
                 true
             }
         }

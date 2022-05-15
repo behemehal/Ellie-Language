@@ -3,7 +3,7 @@ use ellie_tokenizer::syntax::items::ret::Ret;
 
 impl super::Processor for Ret {
     fn process(self, parser: &mut super::Parser, page_id: u64) -> bool {
-        match super::type_processor::process(self.value.current, parser, page_id, None) {
+        match super::type_processor::process(self.value.current, parser, page_id, None, false) {
             Ok(value) => {
                 let unprocessed_page = parser.find_page(page_id).unwrap();
                 unprocessed_page.unreachable = true;

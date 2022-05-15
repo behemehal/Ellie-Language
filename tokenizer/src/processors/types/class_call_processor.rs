@@ -78,7 +78,7 @@ impl crate::processors::Processor for class_call_type::ClassCallCollector {
                         value: letter_char.to_string(),
                     }],
                     alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                    defs::Cursor::build_with_skip_char(cursor),
+                    defs::Cursor::build_from_cursor(cursor),
                 ));
             }
         } else if !self.complete {
@@ -103,7 +103,7 @@ impl crate::processors::Processor for class_call_type::ClassCallCollector {
                         .parameters
                         .push(class_call_type::ClassCallParameter {
                             value: self.itered_cache.current.clone(),
-                            pos: defs::Cursor::build_with_skip_char(cursor),
+                            pos: defs::Cursor::build_from_cursor(cursor),
                         });
                 } else {
                     if self.data.parameters[param_len - 1]
@@ -125,7 +125,7 @@ impl crate::processors::Processor for class_call_type::ClassCallCollector {
                     value: letter_char.to_string(),
                 }],
                 alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                defs::Cursor::build_with_skip_char(cursor),
+                defs::Cursor::build_from_cursor(cursor),
             ));
         }
         hang

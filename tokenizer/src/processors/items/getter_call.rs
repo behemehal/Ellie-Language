@@ -13,12 +13,12 @@ impl crate::processors::Processor for GetterCall {
             self.complete = true;
             self.data = self.cache.current.clone();
         } else {
-            if self.cache.current.is_not_initialized() {
+            if self.cache.current.is_not_initialized() && letter_char != ' ' {
                 self.pos.range_start = cursor;
             }
             hang = self.cache.iterate(errors, cursor, last_char, letter_char);
         }
-        self.pos.range_end = cursor.clone().skip_char(1);
+        self.pos.range_end = cursor;
         hang
     }
 }

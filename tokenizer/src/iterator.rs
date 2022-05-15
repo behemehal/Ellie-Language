@@ -1,3 +1,5 @@
+#![allow(unused_assignments)]
+
 use crate::processors::{
     items::{self},
     Processor,
@@ -69,12 +71,12 @@ impl Iterator {
                         value: letter_char.to_string(),
                     }],
                     alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                    defs::Cursor::build_with_skip_char(self.pos),
+                    defs::Cursor::build_from_cursor(self.pos),
                 ));
             }
         }
 
-        if (letter_char != '\n' && letter_char != '\r' || in_str_or_char)
+        if (letter_char != '\n' && letter_char != '\r' && letter_char != '\t' || in_str_or_char)
             && !self.line_comment
             && !self.multi_comment
         {
@@ -96,12 +98,15 @@ impl Iterator {
             }
         }
 
+        let mut dont_inc_column = false;
+
         if letter_char == '\n' && !in_str_or_char {
             if self.line_comment {
                 self.line_comment = false;
             }
             self.pos.0 += 1;
             self.pos.1 = 0;
+            dont_inc_column = true;
             if !self.active.is_complete() {
                 if let items::Processors::GetterCall(e) = self.active.current.clone() {
                     if !e.cache.current.is_not_initialized() {
@@ -114,8 +119,16 @@ impl Iterator {
                     }
                 }
             }
+        } else if letter_char == '\t' && !in_str_or_char {
+            self.pos.1 += 4;
+            dont_inc_column = true;
         }
-        self.pos.1 += 1;
+
+        if !dont_inc_column {
+            self.pos.1 += 1;
+        } else {
+            dont_inc_column = false;
+        }
 
         if self.multi_comment {
             if letter_char == '/' && last_char == '*' {

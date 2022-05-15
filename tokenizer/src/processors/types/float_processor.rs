@@ -19,7 +19,7 @@ impl crate::processors::Processor for float_type::FloatTypeCollector {
                         value: letter_char.to_string(),
                     }],
                     "0x34".to_owned(),
-                    defs::Cursor::build_with_skip_char(cursor),
+                    defs::Cursor::build_from_cursor(cursor),
                 ));
             }
         } else {
@@ -38,7 +38,7 @@ impl crate::processors::Processor for float_type::FloatTypeCollector {
                         defs::Cursor::build_from_cursor(cursor),
                     ));
                 }
-                self.data.pos.range_end = cursor.clone().skip_char(1);
+                self.data.pos.range_end = cursor;
             } else {
                 errors.push(error::error_list::ERROR_S1.clone().build(
                     vec![error::ErrorBuildField {
@@ -46,7 +46,7 @@ impl crate::processors::Processor for float_type::FloatTypeCollector {
                         value: letter_char.to_string(),
                     }],
                     alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                    defs::Cursor::build_with_skip_char(cursor),
+                    defs::Cursor::build_from_cursor(cursor),
                 ));
             }
         }

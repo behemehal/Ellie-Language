@@ -13,7 +13,7 @@ impl crate::processors::Processor for Import {
             if letter_char == ':' && self.path != "" {
                 self.path_filled = true;
             } else if letter_char == ';' && self.path != "" {
-                self.pos.range_end = cursor.clone().skip_char(1);
+                self.pos.range_end = cursor;
                 self.complete = true;
             } else {
                 if self.path == "" {
@@ -36,7 +36,7 @@ impl crate::processors::Processor for Import {
                                     value: letter_char.to_string(),
                                 }],
                                 alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                                defs::Cursor::build_with_skip_char(cursor),
+                                defs::Cursor::build_from_cursor(cursor),
                             ));
                         }
                         self.path_pos.range_end = cursor;
@@ -50,7 +50,7 @@ impl crate::processors::Processor for Import {
                                 value: letter_char.to_string(),
                             }],
                             alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                            defs::Cursor::build_with_skip_char(cursor),
+                            defs::Cursor::build_from_cursor(cursor),
                         ));
                     } else if self.path != "" || (self.path == "" && letter_char != ' ') {
                         self.path_pos.range_end = cursor;
@@ -71,13 +71,13 @@ impl crate::processors::Processor for Import {
                             value: letter_char.to_string(),
                         }],
                         alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                        defs::Cursor::build_with_skip_char(cursor),
+                        defs::Cursor::build_from_cursor(cursor),
                     ));
                 }
                 self.reference_pos.range_end = cursor;
                 self.reference += &letter_char.to_string();
             } else if letter_char == ';' && self.path != "" {
-                self.pos.range_end = cursor.clone().skip_char(1);
+                self.pos.range_end = cursor;
                 self.complete = true;
             }
         }

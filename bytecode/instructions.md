@@ -1,77 +1,31 @@
-OpCode | Instruction | Mode Y
---- | --- | --- |
-0x00 | LDA | Immediate
-0x01 | LDA | Absolute
-0x02 | LDA | IndirectB
-0x03 | LDA | IndirectC
-0x04 | LDA | IndirectX
-0x05 | LDA | IndirectY
-0x06 | LDB | Immediate
-0x07 | LDB | Absolute
-0x08 | LDB | IndirectA
-0x09 | LDB | IndirectC
-0x0A | LDB | IndirectX
-0x0B | LDB | IndirectY
-0x0C | LDC | Immediate
-0x0D | LDC | Absolute
-0x0E | LDC | IndirectA
-0x0F | LDC | IndirectB
-0x10 | LDC | IndirectX
-0x11 | LDC | IndirectY
-0x12 | LDX | Immediate
-0x13 | LDX | Absolute
-0x14 | LDX | IndirectA
-0x15 | LDX | IndirectB
-0x16 | LDX | IndirectC
-0x17 | LDX | IndirectY
-0x18 | LDY | Immediate
-0x19 | LDY | Absolute
-0x1A | LDY | IndirectA
-0x1B | LDY | IndirectB
-0x1C | LDY | IndirectC
-0x1D | LDY | IndirectX
-0x1E | STA | Absolute
-0x20 | STA | IndirectB
-0x21 | STA | IndirectC
-0x22 | STA | IndirectX
-0x23 | STA | IndirectY
-0x24 | STB | Absolute
-0x25 | STB | IndirectA
-0x26 | STB | IndirectC
-0x27 | STB | IndirectX
-0x28 | STB | IndirectY
-0x29 | STC | Absolute
-0x2A | STC | IndirectA
-0x2B | STC | IndirectB
-0x2C | STC | IndirectX
-0x2D | STC | IndirectY
-0x2E | STX | Absolute
-0x2F | STX | IndirectA
-0x30 | STX | IndirectB
-0x31 | STX | IndirectC
-0x32 | STX | IndirectY
-0x33 | STY | Absolute
-0x34 | STY | IndirectA
-0x35 | STY | IndirectB
-0x36 | STY | IndirectC
-0x37 | STY | IndirectX
-0x38 | EQ | Implicit
-0x39 | NE | Implicit
-0x3A | GT | Implicit
-0x3B | LT | Implicit
-0x3C | GQ | Implicit
-0x3D | LQ | Implicit
-0x3E | AND | Implicit
-0x3F | OR | Implicit
-0x40 | SUB | Implicit
-0x41 | SUB | Implicit
-0x42 | MUL | Implicit
-0x43 | EXP | Implicit
-0x44 | DIV | Implicit
-0x45 | MOD | Implicit
-0x46 | INC | Implicit
-0x47 | DEC | Implicit
-0x48 | JMP | Implicit
-0x49 | JMP | Absolute
-0x4A | CALL | Absolute
-0x4B | RET | Absolute
+Auto builded from `bytecode.json` by `build.rs`
+| Instruction | Implicit | Immediate | Absolute | IndirectA | IndirectB | IndirectC | IndirectX | IndirectY |
+| ----------- | -------- | --------- | -------- | --------- | --------- | --------- | --------- | --------- |
+| LDA         |    -    |    0x00    |   0x01   |     -     |   0x02    |   0x03    |   0x04    |   0x05    |
+| LDB         |    -    |    0x06    |   0x07   |   0x08    |     -     |   0x09    |   0x0A    |   0x0B    |
+| LDC         |    -    |    0x0C    |   0x0D   |   0x0E    |   0x0F    |     -     |   0x10    |   0x11    |
+| LDX         |    -    |    0x12    |   0x13   |   0x14    |   0x15    |   0x16    |     -     |   0x17    |
+| LDY         |    -    |    0x18    |   0x19   |   0x1A    |   0x1B    |   0x1C    |   0x1D    |     -     |
+| STA         |    -    |     -      |   0x1E   |     -     |   0x20    |   0x21    |   0x22    |   0x23    |
+| STB         |    -    |     -      |   0x24   |   0x25    |     -     |   0x26    |   0x27    |   0x28    |
+| STC         |    -    |     -      |   0x29   |   0x2A    |   0x2B    |     -     |   0x2C    |   0x2D    |
+| STX         |    -    |     -      |   0x2E   |   0x2F    |   0x30    |   0x31    |     -     |   0x32    |
+| STY         |    -    |     -      |   0x33   |   0x34    |   0x35    |   0x36    |   0x37    |     -     |
+| EQ          |  0x38   |     -      |    -     |     -     |     -     |     -     |     -     |     -     |
+| NE          |  0x39   |     -      |    -     |     -     |     -     |     -     |     -     |     -     |
+| GT          |  0x3A   |     -      |    -     |     -     |     -     |     -     |     -     |     -     |
+| LT          |  0x3B   |     -      |    -     |     -     |     -     |     -     |     -     |     -     |
+| GQ          |  0x3C   |     -      |    -     |     -     |     -     |     -     |     -     |     -     |
+| LQ          |  0x3D   |     -      |    -     |     -     |     -     |     -     |     -     |     -     |
+| AND         |  0x3E   |     -      |    -     |     -     |     -     |     -     |     -     |     -     |
+| OR          |  0x3F   |     -      |    -     |     -     |     -     |     -     |     -     |     -     |
+| SUB         |  0x40   |     -      |    -     |     -     |     -     |     -     |     -     |     -     |
+| MUL         |  0x42   |     -      |    -     |     -     |     -     |     -     |     -     |     -     |
+| EXP         |  0x43   |     -      |    -     |     -     |     -     |     -     |     -     |     -     |
+| DIV         |  0x44   |     -      |    -     |     -     |     -     |     -     |     -     |     -     |
+| MOD         |  0x45   |     -      |    -     |     -     |     -     |     -     |     -     |     -     |
+| INC         |  0x46   |     -      |    -     |     -     |     -     |     -     |     -     |     -     |
+| DEC         |  0x47   |     -      |    -     |     -     |     -     |     -     |     -     |     -     |
+| JMP         |  0x48   |     -      |   0x49   |     -     |     -     |     -     |     -     |     -     |
+| CALL        |    -    |     -      |   0x4A   |     -     |     -     |     -     |     -     |     -     |
+| RET         |    -    |     -      |   0x4B   |     -     |     -     |     -     |     -     |     -     |

@@ -1,21 +1,13 @@
-use std::{
-    io::{Read, Write},
-    panic,
-};
-
-use crate::{
-    instructions::{self, AddressingModes, Instruction, Instructions},
-    utils,
-};
+use crate::instructions::{self, Instruction, Instructions};
 use alloc::{format, string::String, vec, vec::Vec};
 use ellie_core::definite::types::{operator, Types};
 use ellie_parser::parser::Module;
+use std::{io::Write, panic};
 
 pub struct Assembler {
     module: Module,
     processed: Vec<u64>,
     platform_attributes: PlatformAttributes,
-    used_stack_memory: usize,
     pages: Vec<InstructionPage>,
 }
 
@@ -82,7 +74,7 @@ pub struct AssembleResult {
 }
 
 impl AssembleResult {
-    pub fn render_binary<T: Write>(&self, writer: &mut T, header: Option<&mut T>) {
+    pub fn render_binary<T: Write>(&self, writer: &mut T, _header: Option<&mut T>) {
         writer
             .write(&[match self.platform_attributes.architecture {
                 PlatformArchitecture::B8 => 8_u8,
@@ -154,7 +146,6 @@ impl Assembler {
             platform_attributes,
             processed: Vec::new(),
             pages: Vec::new(),
-            used_stack_memory: 0,
         }
     }
 
@@ -175,19 +166,17 @@ impl Assembler {
                 operator::Operators::LogicalType(_) => todo!(),
                 operator::Operators::ArithmeticType(e) => {
                     let mut instructions = Vec::new();
-                    instructions.extend( self.resolve_type(
+                    instructions.extend(self.resolve_type(
                         &operator.first,
                         instructions::Registers::B,
                         target_page,
                     ));
 
-                    instructions.extend( self.resolve_type(
+                    instructions.extend(self.resolve_type(
                         &operator.second,
                         instructions::Registers::C,
                         target_page,
                     ));
-
-
 
                     instructions.push(match e {
                         operator::ArithmeticOperators::Addition => {
@@ -211,22 +200,22 @@ impl Assembler {
                         operator::ArithmeticOperators::Null => unreachable!("Wrong operator"),
                     });
                     match target_register {
-                        instructions::Registers::A => {
-                            instructions
-                                .push(instructions::Instructions::MCA(Instruction::implict()));
-                        }
+                        instructions::Registers::A => (),
                         instructions::Registers::B => {
                             instructions
-                                .push(instructions::Instructions::MCB(Instruction::implict()));
+                                .push(instructions::Instructions::LDB(Instruction::indirect_a()));
                         }
-                        instructions::Registers::C => (),
+                        instructions::Registers::C => {
+                            instructions
+                                .push(instructions::Instructions::LDC(Instruction::indirect_a()));
+                        }
                         instructions::Registers::X => {
                             instructions
-                                .push(instructions::Instructions::MCX(Instruction::implict()));
+                                .push(instructions::Instructions::LDX(Instruction::indirect_a()));
                         }
                         instructions::Registers::Y => {
                             instructions
-                                .push(instructions::Instructions::MCY(Instruction::implict()));
+                                .push(instructions::Instructions::LDY(Instruction::indirect_a()));
                         }
                     }
                     instructions
@@ -306,6 +295,7 @@ impl Assembler {
             Types::Char(_) => todo!(),
             Types::Null => todo!(),
             Types::Dynamic => todo!(),
+            Types::SetterCall(_) => todo!(),
         }
     }
 
@@ -335,7 +325,7 @@ impl Assembler {
                         let resolved_instructions =
                             self.resolve_type(&variable.value, instructions::Registers::A, hash);
 
-                        let mut page = self.pages.iter_mut().last().unwrap();
+                        let page = self.pages.iter_mut().last().unwrap();
 
                         page.debug_headers.push(DebugHeader {
                             id: page.instructions.len(),

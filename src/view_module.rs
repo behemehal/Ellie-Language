@@ -74,7 +74,7 @@ pub fn parse(target_path: &Path, json_log: bool) {
                         serde_json::to_string_pretty(&cli_module_output).unwrap()
                     );
                 } else {
-                    let mut output = format!("ModuleName        = {}\nModuleDescription = {}\nModuleVersion     = {}.{}.{}\nEllieVersion      = {}.{}.{}", module.name, module.description, module.version.major, module.version.minor, module.version.bug, module.ellie_version.major, module.ellie_version.minor, module.ellie_version.bug);
+                    let mut output = format!("ModuleName        = {}{}\nModuleDescription = {}\nModuleVersion     = {}.{}.{}\nEllieVersion      = {}.{}.{}", module.name, if module.is_library {" (Library)"} else {""}, module.description, module.version.major, module.version.minor, module.version.bug, module.ellie_version.major, module.ellie_version.minor, module.ellie_version.bug);
                     if module.modules.len() > 0 {
                         output.push_str("\nInnerModules      =\n");
                     }
@@ -104,7 +104,10 @@ pub fn parse(target_path: &Path, json_log: bool) {
                     let mut cli_module_output = cli_outputs::READ_BINARY_MODULE_ERROR.clone();
                     cli_module_output
                         .extra
-                        .push(cli_outputs::CliOuputExtraData { key: 0, value: 0 });
+                        .push(cli_outputs::CliOuputExtraData {
+                            key: "file".to_string(),
+                            value: ".".to_string(),
+                        });
                     println!(
                         "{}",
                         serde_json::to_string_pretty(&cli_module_output).unwrap()
@@ -127,7 +130,10 @@ pub fn parse(target_path: &Path, json_log: bool) {
                 let mut cli_module_output = cli_outputs::READ_BINARY_MODULE_ERROR.clone();
                 cli_module_output
                     .extra
-                    .push(cli_outputs::CliOuputExtraData { key: 1, value: 1 });
+                    .push(cli_outputs::CliOuputExtraData {
+                        key: "file".to_string(),
+                        value: ".".to_string(),
+                    });
                 println!(
                     "{}",
                     serde_json::to_string_pretty(&cli_module_output).unwrap()

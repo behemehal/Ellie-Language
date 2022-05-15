@@ -7,7 +7,7 @@
     {
       "type": "lldb",
       "request": "launch",
-      "name": "Debug executable file",
+      "name": "Debug compiler",
       "cargo": {
         "args": ["build", "--bin=elliec", "--package=ellie_engine"],
         "filter": {
@@ -19,15 +19,13 @@
         "compile",
         "${workspaceFolder}/test_dir/test.ei",
         "--allow-panics",
-        "-i ${workspaceFolder}/test_dir/ellie.bin=${workspaceFolder}/lib/",
-        "--"
       ],
       "cwd": "${workspaceFolder}"
     },
     {
       "type": "lldb",
       "request": "launch",
-      "name": "Debug executable (no std) file",
+      "name": "Debug compiler with (ellieStd)",
       "cargo": {
         "args": ["build", "--bin=elliec", "--package=ellie_engine"],
         "filter": {
@@ -37,7 +35,7 @@
       },
       "args": [
         "compile",
-        "${workspaceFolder}/test_dir/test.ei",
+        "${workspaceFolder}/Ellie-Standard-Library/lib/lib.ei",
         "--allow-panics",
         "--"
       ],

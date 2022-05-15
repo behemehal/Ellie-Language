@@ -1,6 +1,4 @@
-use alloc::{borrow::ToOwned, vec};
-use ellie_core::error;
-use ellie_tokenizer::{syntax::items::generic_item::GenericItem, tokenizer::PageType};
+use ellie_tokenizer::syntax::items::generic_item::GenericItem;
 
 impl super::Processor for GenericItem {
     fn process(self, parser: &mut crate::parser::Parser, page_id: u64) -> bool {

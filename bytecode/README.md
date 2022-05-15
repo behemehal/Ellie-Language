@@ -22,7 +22,7 @@ Ellie bytecode is phase 3 of compiling process.
 | indirectc | Instructions that takes C register as parameter |
 | indirectx | Instructions that takes X register as parameter |
 | indirecty | Instructions that takes Y register as parameter |
-| reference | Instructions that takes reference  as parameter |
+| reference? | Instructions that takes reference  as parameter |
 
 
 ### Registers
@@ -44,11 +44,6 @@ Ellie bytecode is phase 3 of compiling process.
 * LDC #VALUE
 * LDX #VALUE
 * LDY #VALUE
-* MCA
-* MCB
-* MCC
-* MCX
-* MCY 
 
 ### Store
 * STA $ADDRESS
@@ -111,45 +106,4 @@ Debug Headers:
 6: 3
 ```
 
---
-
-| Instructions | Implicit  | Immediate | absolute | indirecta | indirectb | indirectc | indirectx | indirecty |
-| ------------ | --------- | --------- | -------- | --------- | --------- | --------- | --------- | --------- |
-| LDA          | --        | --        | --       | --        | --        | --        | --        | --        |
-| LDB          | --        | --        | --       | --        | --        | --        | --        | --        |
-| LDC          | --        | --        | --       | --        | --        | --        | --        | --        |
-| LDX          | --        | --        | --       | --        | --        | --        | --        | --        |
-| LDY          | --        | --        | --       | --        | --        | --        | --        | --        |
-| !MCA         | --        | --        | --       | --        | --        | --        | --        | --        |
-| !MCB         | --        | --        | --       | --        | --        | --        | --        | --        |
-| !MCC         | --        | --        | --       | --        | --        | --        | --        | --        |
-| !MCX         | --        | --        | --       | --        | --        | --        | --        | --        |
-| !MCY         | --        | --        | --       | --        | --        | --        | --        | --        |
-| STA          | --        | --        | --       | --        | --        | --        | --        | --        |
-| STB          | --        | --        | --       | --        | --        | --        | --        | --        |
-| STC          | --        | --        | --       | --        | --        | --        | --        | --        |
-| STX          | --        | --        | --       | --        | --        | --        | --        | --        |
-| STY          | --        | --        | --       | --        | --        | --        | --        | --        |
-| EQ           | --        | --        | --       | --        | --        | --        | --        | --        |
-| NE           | --        | --        | --       | --        | --        | --        | --        | --        |
-| GT           | --        | --        | --       | --        | --        | --        | --        | --        |
-| LT           | --        | --        | --       | --        | --        | --        | --        | --        |
-| GQ           | --        | --        | --       | --        | --        | --        | --        | --        |
-| LQ           | --        | --        | --       | --        | --        | --        | --        | --        |
-| AND          | --        | --        | --       | --        | --        | --        | --        | --        |
-| OR           | --        | --        | --       | --        | --        | --        | --        | --        |
-| ADD          | --        | --        | --       | --        | --        | --        | --        | --        |
-| SUB          | --        | --        | --       | --        | --        | --        | --        | --        |
-| MUL          | --        | --        | --       | --        | --        | --        | --        | --        |
-| EXP          | --        | --        | --       | --        | --        | --        | --        | --        |
-| DIV          | --        | --        | --       | --        | --        | --        | --        | --        |
-| MOD          | --        | --        | --       | --        | --        | --        | --        | --        |
-| INC          | --        | --        | --       | --        | --        | --        | --        | --        |
-| DEC          | --        | --        | --       | --        | --        | --        | --        | --        |
-| CALL         | --        | --        | --       | --        | --        | --        | --        | --        |
-| RET          | --        | --        | --       | --        | --        | --        | --        | --        |
-| JMP          | --        | --        | --       | --        | --        | --        | --        | --        |
-
-(I): Illegal instruction
-(P): Pointer
-* Illegal Instructions could be used in the future to implement other instructions 
+### [Instruction Table](./instructions.md)

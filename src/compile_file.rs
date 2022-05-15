@@ -1,5 +1,4 @@
 use ellie_core::defs::Version;
-use ellie_core::module_path;
 use std::fs;
 use std::fs::File;
 use std::path::Path;
@@ -449,6 +448,7 @@ pub fn compile(
                                 );
                             }
                         }
+                        std::process::exit(1)
                     } else {
                         if parser.informations.warnings.len() == 0 {
                             if compiler_settings.json_log {

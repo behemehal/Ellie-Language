@@ -24,3 +24,6 @@ pub mod engine_constants;
 pub mod tokenize_file;
 #[cfg(feature = "build-cli")]
 pub mod view_module;
+
+#[cfg(feature = "build-cli")]
+pub mod color_code;

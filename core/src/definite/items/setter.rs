@@ -7,11 +7,15 @@ use serde::{Deserialize, Serialize};
 
 pub struct Setter {
     pub name: String,
-    pub name_pos: defs::Cursor,
     pub pos: defs::Cursor,
     pub public: bool,
+    pub name_pos: defs::Cursor,
     pub rtype_pos: defs::Cursor,
-    pub bracket_start_pos: defs::Cursor,
-    pub bracket_end_pos: defs::Cursor,
+    pub param_name_pos: defs::Cursor,
+    pub body_pos: defs::Cursor,
+    pub inner_page_id: u64,
+    pub hash: u64,
+    pub param_name: String,
+    pub parameters_pos: defs::Cursor,
     pub rtype: definers::DefinerCollecting,
 }

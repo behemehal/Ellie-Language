@@ -8,7 +8,8 @@ use serde::{Deserialize, Serialize};
 pub struct FunctionParameter {
     pub name: String,
     pub rtype: Option<definers::DefinerCollecting>,
-    pub pos: defs::Cursor,
+    pub name_pos: defs::Cursor,
+    pub rtype_pos: defs::Cursor,
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]

@@ -20,7 +20,7 @@ impl crate::processors::Processor for char_type::CharType {
                         value: letter_char.to_string(),
                     }],
                     "0x35".to_owned(),
-                    defs::Cursor::build_with_skip_char(cursor),
+                    defs::Cursor::build_from_cursor(cursor),
                 ));
             }
         } else {
@@ -37,7 +37,7 @@ impl crate::processors::Processor for char_type::CharType {
                         value: letter_char.to_string(),
                     }],
                     "0x52".to_owned(),
-                    defs::Cursor::build_with_skip_char(cursor),
+                    defs::Cursor::build_from_cursor(cursor),
                 ));
             }
         }
