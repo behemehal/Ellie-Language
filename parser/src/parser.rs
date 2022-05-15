@@ -211,8 +211,6 @@ impl Parser {
         self.pages[0].hash
     }
 
-    pub fn convert_to_definite() {}
-
     pub fn import_module(&mut self, module: Module) {
         self.modules.push(module.clone());
         let unprocessed_pages = module

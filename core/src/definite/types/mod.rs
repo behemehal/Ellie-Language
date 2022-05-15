@@ -20,8 +20,8 @@ pub mod string;
 pub mod variable;
 pub mod vector;
 
-use serde::{Deserialize, Serialize};
 use super::definers;
+use serde::{Deserialize, Serialize};
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub enum Types {

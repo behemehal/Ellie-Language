@@ -152,7 +152,7 @@ pub fn draw_error(line: String, pos: defs::CursorPosition) -> String {
     draw
 }
 
-fn generate_blank(size: usize) -> String {
+pub fn generate_blank(size: usize) -> String {
     let mut blank: String = String::new();
     for _ in 0..size + 1 {
         blank += &" ".to_owned();
@@ -243,7 +243,7 @@ where
 {
     for warning in warnings {
         println!(
-            "\n{}Warning[{}]{}: {}{}{}\n",
+            "\n{}Warning[{}]{}╞ {}{}{}\n",
             Colors::Yellow,
             warning.title,
             Colors::Reset,
@@ -280,7 +280,7 @@ where
             false,
         );
         println!(
-            "{}{}[?]{}: Check online standard rules repo for more info {}{}{}",
+            "{}{}[?]{}╞ Check online standard rules repo for more info {}{}{}",
             generate_blank(line_space - 1),
             Colors::Magenta,
             Colors::Reset,
@@ -295,7 +295,7 @@ where
         if warning.full_assist || warning.semi_assist {
             if cfg!(feature = "ellie_assist") {
                 println!(
-                    "{}{}[{}]{}: {} assistment available type '{}ellie{} {}--show-me-something{} {}{}{}' for request assist",
+                    "{}{}[{}]{}╞ {} assistment available type '{}ellie{} {}--show-me-something{} {}{}{}' for request assist",
                     generate_blank(line_space - 1),
                     Colors::Yellow,
                     if warning.semi_assist {
@@ -319,7 +319,7 @@ where
                 );
             } else {
                 println!(
-                    "{}{}[x]{}: {} assistment available but {}ellie_assist{} feature is not enabled",
+                    "{}{}[x]{}╞ {} assistment available but {}ellie_assist{} feature is not enabled",
                     generate_blank(line_space - 1),
                     Colors::Yellow,
                     Colors::Reset,
@@ -387,7 +387,7 @@ pub fn print_errors<E, F>(
             true,
         );
         println!(
-            "  {}[?]{}{}: Check online error repo for more info {}{}{}",
+            "  {}[?]{}{}╞ Check online error repo for more info {}{}{}",
             Colors::Magenta,
             Colors::Reset,
             if line_space < 3 {
@@ -406,7 +406,7 @@ pub fn print_errors<E, F>(
         if error.full_assist || error.semi_assist {
             if cfg!(feature = "ellie_assist") {
                 println!(
-                    "{}{}[{}]{}: {} assistment available type '{}ellie{} {}--show-me-something{} {}{}{}' for request assist",
+                    "{}{}[{}]{}╞ {} assistment available type '{}ellie{} {}--show-me-something{} {}{}{}' for request assist",
                     generate_blank(line_space - 1),
                     Colors::Yellow,
                     if error.semi_assist {
@@ -430,7 +430,7 @@ pub fn print_errors<E, F>(
                 );
             } else {
                 println!(
-                    "{}{}[x]{}: {} assistment available but {}ellie_assist{} feature is not enabled",
+                    "{}{}[x]{}╞ {} assistment available but {}ellie_assist{} feature is not enabled",
                     generate_blank(line_space - 1),
                     Colors::Yellow,
                     Colors::Reset,
@@ -468,7 +468,7 @@ pub fn render_code_block(
 ) {
     let multi_line = item_pos.range_start.0 != item_pos.range_end.0 || item_pos.range_start.1 == 0;
     println!(
-        "  {}[{}]{}{}: {}{}:{}{}{}",
+        "  {}[{}]{}{}╞ {}{}:{}{}{}",
         if reference {
             Colors::Green
         } else if is_error {
@@ -512,7 +512,7 @@ pub fn render_code_block(
 
     if multi_line {
         println!(
-            "  {}[!]{}{}: (Beta) Mutli line rendering",
+            "  {}[!]{}{}╞ (Beta) Mutli line rendering",
             if reference {
                 Colors::Green
             } else if is_error {
@@ -531,7 +531,7 @@ pub fn render_code_block(
 
     if !reference {
         println!(
-            "{}{}{}  | {}",
+            "{}{}{}  │ {}",
             Colors::Yellow,
             generate_blank(line_space),
             Colors::Reset,
@@ -546,7 +546,7 @@ pub fn render_code_block(
         {
             if reference {
                 println!(
-                    "{}{}{}{} | {} {} {}{}",
+                    "{}{}{}{} │ {} {} {}{}",
                     if i >= item_pos.range_start.0 && i <= item_pos.range_end.0 {
                         Colors::Green
                     } else {
@@ -562,7 +562,7 @@ pub fn render_code_block(
                 );
 
                 println!(
-                    "{} | {}{}{}",
+                    "{} │ {}{}{}",
                     generate_blank(line_space + 1),
                     if reference {
                         Colors::Green
@@ -579,7 +579,7 @@ pub fn render_code_block(
                 );
             } else {
                 println!(
-                    "{}{}{}{} | {}",
+                    "{}{}{}{} │ {}",
                     Colors::Yellow,
                     generate_blank((line_space - (i + 1).to_string().len()) + 1),
                     i + 1,
@@ -588,7 +588,7 @@ pub fn render_code_block(
                 );
 
                 println!(
-                    "{} | {}{}{}",
+                    "{} │ {}{}{}",
                     generate_blank(line_space + 1),
                     if reference {
                         Colors::Green
@@ -606,7 +606,7 @@ pub fn render_code_block(
             }
         } else {
             println!(
-                "{}{}{}{} | {}{}{}",
+                "{}{}{}{} │ {}{}{}",
                 if i >= item_pos.range_start.0 && i <= item_pos.range_end.0 {
                     if reference {
                         Colors::Green
@@ -639,7 +639,7 @@ pub fn render_code_block(
                 && item_pos.range_end.0 != item_pos.range_start.0
             {
                 println!(
-                    "{} | {}{}{}",
+                    "{} │ {}{}{}",
                     generate_blank(line_space + 1),
                     if reference {
                         Colors::Green
@@ -664,7 +664,7 @@ pub fn render_code_block(
         );
     } else {
         println!(
-            "{}{}{}  | {}",
+            "{}{}{}  │ {}",
             Colors::Yellow,
             generate_blank(line_space),
             Colors::Reset,
@@ -721,6 +721,29 @@ pub fn generate_elliec_options() -> Command<'static> {
                         .help("Show debugging lines")
                         .short('s')
                         .long("--show-debug-lines"),
+                )
+                .arg(
+                    Arg::new("target")
+                        .help("Target file to compile")
+                        .takes_value(true)
+                        .required(true)
+                        .value_hint(ValueHint::FilePath),
+                ),
+        )
+        .subcommand(
+            Command::new("color")
+                .about("Colorize code")
+                .arg(
+                    Arg::new("showDebugLines")
+                        .help("Show debugging lines")
+                        .short('s')
+                        .long("--show-debug-lines"),
+                )
+                .arg(
+                    Arg::new("allowPanics")
+                        .help("Allow panics")
+                        .short('a')
+                        .long("--allow-panics"),
                 )
                 .arg(
                     Arg::new("target")
