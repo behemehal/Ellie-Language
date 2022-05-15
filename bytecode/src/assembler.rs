@@ -295,6 +295,7 @@ impl Assembler {
             Types::Char(_) => todo!(),
             Types::Null => todo!(),
             Types::Dynamic => todo!(),
+            Types::SetterCall(_) => todo!(),
         }
     }
 

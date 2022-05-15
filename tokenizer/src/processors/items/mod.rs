@@ -8,6 +8,8 @@ use enum_as_inner::EnumAsInner;
 use serde::{Deserialize, Serialize};
 
 use crate::syntax::items::*;
+
+use super::types::TypeProcessor;
 mod class_processor;
 mod condition_processor;
 mod constructor_processor;
@@ -16,9 +18,11 @@ mod file_key;
 mod for_loop_processor;
 mod function_processor;
 mod getter_call;
+mod getter_processor;
 mod import_processor;
 mod ret_processor;
 mod setter_call;
+mod setter_processor;
 mod variable_processor;
 
 #[derive(Debug, Clone, Serialize, Deserialize, EnumAsInner)]
@@ -34,7 +38,8 @@ pub enum Processors {
     Constructor(constructor::Constructor),
     Class(class::Class),
     Ret(ret::Ret),
-
+    Getter(getter::Getter),
+    Setter(setter::Setter),
     SelfItem(self_item::SelfItem),          //VirtualValues
     GenericItem(generic_item::GenericItem), //VirtualValues
     FunctionParameter(function_parameter::FunctionParameter), //VirtualValues
@@ -49,6 +54,8 @@ impl Processors {
             Processors::SetterCall(e) => e.complete,
             Processors::FileKey(e) => e.complete,
             Processors::Function(e) => e.complete,
+            Processors::Getter(e) => e.complete,
+            Processors::Setter(e) => e.complete,
             Processors::Import(e) => e.complete,
             Processors::ForLoop(e) => e.complete,
             Processors::Condition(e) => {
@@ -94,6 +101,8 @@ impl Processors {
                 range_end: e.value_pos.range_end,
             },
             Processors::Function(e) => e.data.pos,
+            Processors::Getter(e) => e.pos,
+            Processors::Setter(e) => e.pos,
             Processors::FileKey(e) => e.pos,
             Processors::Import(e) => e.pos,
             Processors::ForLoop(e) => e.pos,
@@ -118,13 +127,14 @@ impl Processors {
             Processors::SetterCall(e) => Collecting::SetterCall(e.to_definite()),
             Processors::FileKey(e) => Collecting::FileKey(e.to_definite()),
             Processors::Function(e) => Collecting::Function(e.to_definite()),
+            Processors::Getter(e) => Collecting::Getter(e.to_definite()),
+            Processors::Setter(e) => Collecting::Setter(e.to_definite()),
             Processors::Import(e) => Collecting::Import(e.to_definite()),
             Processors::ForLoop(e) => Collecting::ForLoop(e.to_definite()),
             Processors::Condition(e) => Collecting::Condition(e.to_definite()),
             Processors::Constructor(e) => Collecting::Constructor(e.to_definite()),
             Processors::Class(e) => Collecting::Class(e.to_definite()),
             Processors::Ret(e) => Collecting::Ret(e.to_definite()),
-
             Processors::SelfItem(_) => panic!("Unexpected behaviour"),
             Processors::GenericItem(_) => panic!("Unexpected behaviour"),
             Processors::FunctionParameter(_) => panic!("Unexpected behaviour"),
@@ -273,9 +283,17 @@ impl super::Processor for ItemProcessor {
         } else if keyword == "enum" && letter_char == ' ' {
             panic!("enum not implemented");
         } else if (keyword == "s" || keyword == "set") && letter_char == ' ' {
-            panic!("setter not implemented");
+            self.current = Processors::Setter(setter::Setter {
+                public: self.used_modifier == Modifier::Pub,
+                pos: self.current.get_pos(),
+                ..Default::default()
+            })
         } else if (keyword == "g" || keyword == "get") && letter_char == ' ' {
-            panic!("getter not implemented");
+            self.current = Processors::Getter(getter::Getter {
+                public: self.used_modifier == Modifier::Pub,
+                pos: self.current.get_pos(),
+                ..Default::default()
+            })
         } else if keyword == "import" && letter_char == ' ' {
             self.current = Processors::Import(import::Import {
                 public: self.used_modifier == Modifier::Pub,
@@ -336,6 +354,7 @@ impl super::Processor for ItemProcessor {
                     pos: self.current.get_pos(),
                     ..Default::default()
                 });
+            }
         } else if self.used_modifier == Modifier::None && keyword == "co" && letter_char == '(' {
             self.current = Processors::Constructor(constructor::Constructor {
                 pos: self.current.get_pos(),
@@ -371,16 +390,18 @@ impl super::Processor for ItemProcessor {
             Processors::SetterCall(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::FileKey(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::Function(e) => e.iterate(errors, cursor, last_char, letter_char),
+            Processors::Getter(e) => e.iterate(errors, cursor, last_char, letter_char),
+            Processors::Setter(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::Import(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::ForLoop(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::Condition(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::Constructor(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::Ret(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::Class(e) => e.iterate(errors, cursor, last_char, letter_char),
-            Processors::SelfItem(_) => panic!("Unexpected behaviour"),
-            Processors::GenericItem(_) => panic!("Unexpected behaviour"),
-            Processors::FunctionParameter(_) => panic!("Unexpected behaviour"),
-            Processors::ConstructorParameter(_) => panic!("Unexpected behaviour"),
+            Processors::SelfItem(_) => unreachable!("Unexpected behaviour"),
+            Processors::GenericItem(_) => unreachable!("Unexpected behaviour"),
+            Processors::FunctionParameter(_) => unreachable!("Unexpected behaviour"),
+            Processors::ConstructorParameter(_) => unreachable!("Unexpected behaviour"),
         }
     }
 }

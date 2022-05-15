@@ -5,9 +5,11 @@ pub mod definers;
 pub mod file_key;
 pub mod for_loop;
 pub mod function;
+pub mod getter;
 pub mod getter_call;
 pub mod import;
 pub mod ret;
+pub mod setter;
 pub mod setter_call;
 pub mod variable;
 

@@ -73,7 +73,7 @@ lazy_static! {
     pub static ref ERROR_S12: error::Error = error::Error {
         code: 0x11,
         title: "SyntaxError".to_owned(),
-        message: "Expected operator found value instead, '$token'".to_owned(),
+        message: "Setters must have 1 parameter".to_owned(),
         ..Default::default()
     };
     pub static ref ERROR_S13: error::Error = error::Error {
@@ -82,10 +82,10 @@ lazy_static! {
         message: "Expected operator found '$token'".to_owned(),
         ..Default::default()
     };
-    pub static ref UNUSED_ERROR_S14: error::Error = error::Error {
+    pub static ref ERROR_S14: error::Error = error::Error {
         code: 0x13,
         title: "TypeError".to_owned(),
-        message: "Cannot leave char empty".to_owned(),
+        message: "Setters cannot return data".to_owned(),
         ..Default::default()
     };
     pub static ref ERROR_S15: error::Error = error::Error {

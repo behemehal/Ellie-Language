@@ -54,5 +54,6 @@ pub fn convert_to_raw_type(types: Types) -> RawType {
         Types::Dynamic => todo!(),
         Types::Byte(_) => todo!(),
         Types::Double(_) => todo!(),
+        Types::SetterCall(_) => todo!(),
     }
 }

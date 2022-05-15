@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use alloc::{string::String, vec, vec::Vec};
 
 #[derive(Clone, Debug)]

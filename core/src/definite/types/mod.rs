@@ -21,6 +21,7 @@ pub mod variable;
 pub mod vector;
 
 use serde::{Deserialize, Serialize};
+use super::definers;
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub enum Types {
@@ -41,6 +42,7 @@ pub enum Types {
     Function(function::Function),
     ClassCall(class_call::ClassCall),
     FunctionCall(function_call::FunctionCall),
+    SetterCall(definers::DefinerCollecting),
     Void,
     NullResolver(null_resolver::NullResolver),
     Negative(negative::Negative),

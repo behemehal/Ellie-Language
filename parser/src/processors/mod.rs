@@ -6,9 +6,11 @@ pub mod file_key;
 pub mod function;
 pub mod generic_item;
 pub mod getter;
+pub mod getter_call;
 pub mod import;
 pub mod ret;
 pub mod setter;
+pub mod setter_call;
 pub mod type_processor;
 pub mod variable;
 

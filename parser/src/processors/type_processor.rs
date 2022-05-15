@@ -5,6 +5,7 @@ use alloc::vec::Vec;
 use alloc::{borrow::ToOwned, string::String};
 use core::panic;
 use ellie_core::definite::definers::DefinerCollecting;
+use ellie_core::definite::types::Types;
 use ellie_core::{
     definite::{items::Collecting, types, Converter},
     error,
@@ -18,11 +19,10 @@ pub fn process(
     parser: &mut super::Parser,
     page_id: u64,
     ignore_hash: Option<u64>,
+    include_setter: bool,
 ) -> Result<types::Types, Vec<error::Error>> {
     let mut errors = Vec::new();
-
     let (type_allowed, err_str) = parser.parser_settings.is_type_allowed(from.clone());
-
     if !type_allowed {
         let path = parser.find_page(page_id).unwrap().path.clone();
         parser
@@ -67,6 +67,40 @@ pub fn process(
                             reference: e.hash,
                             pos: from.get_pos(),
                         }))
+                    }
+                    crate::parser::DeepSearchItems::Getter(e) => {
+                        match crate::deep_search_extensions::generate_type_from_defining(
+                            e.return_type.definer_type.to_definite(),
+                            page_id,
+                            parser,
+                        ) {
+                            Some(e) => Ok(e),
+                            None => Err(errors),
+                        }
+                    }
+                    crate::parser::DeepSearchItems::Setter(e) => {
+                        if include_setter {
+                            Ok(Types::SetterCall(
+                                e.parameters
+                                    .first()
+                                    .unwrap()
+                                    .rtype
+                                    .definer_type
+                                    .clone()
+                                    .to_definite(),
+                            ))
+                        } else {
+                            errors.push(error::error_list::ERROR_S23.clone().build_with_path(
+                                vec![error::ErrorBuildField {
+                                    key: "token".to_owned(),
+                                    value: e.name,
+                                }],
+                                alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                                parser.find_page(page_id).unwrap().path.clone(),
+                                variable.data.pos,
+                            ));
+                            Err(errors)
+                        }
                     }
                     crate::parser::DeepSearchItems::Function(_) => {
                         let rtype = find_type("function".to_owned(), page_id, parser);
@@ -129,7 +163,7 @@ pub fn process(
         Processors::Array(array_type) => {
             let mut collective = vec![];
             for i in array_type.data.collective {
-                let response = process(i.value, parser, page_id, ignore_hash);
+                let response = process(i.value, parser, page_id, ignore_hash, false);
                 if response.is_err() {
                     errors.append(&mut response.unwrap_err());
                 } else {
@@ -150,11 +184,21 @@ pub fn process(
             }
         }
         Processors::Operator(operator) => {
-            let processed_first_value =
-                process(*operator.data.first.clone(), parser, page_id, ignore_hash);
+            let processed_first_value = process(
+                *operator.data.first.clone(),
+                parser,
+                page_id,
+                ignore_hash,
+                false,
+            );
 
-            let processed_second_value =
-                process(*operator.data.second.clone(), parser, page_id, ignore_hash);
+            let processed_second_value = process(
+                *operator.data.second.clone(),
+                parser,
+                page_id,
+                ignore_hash,
+                false,
+            );
 
             if processed_first_value.is_err() || processed_second_value.is_err() {
                 if processed_first_value.is_err() {
@@ -203,6 +247,7 @@ pub fn process(
                 parser,
                 page_id,
                 ignore_hash,
+                false,
             );
             match processed_reference {
                 Ok(found_reference) => {
@@ -541,6 +586,8 @@ pub fn process(
                                         },
                                         crate::deep_search_extensions::ProcessedDeepSearchItems::Variable(_) => todo!(),
                                         crate::deep_search_extensions::ProcessedDeepSearchItems::Function(_) => todo!(),
+                                        crate::deep_search_extensions::ProcessedDeepSearchItems::Getter(_) => todo!(),
+                                        crate::deep_search_extensions::ProcessedDeepSearchItems::Setter(_) => todo!(),
                                         crate::deep_search_extensions::ProcessedDeepSearchItems::ImportReference(_) => todo!(),
                                         crate::deep_search_extensions::ProcessedDeepSearchItems::GenericItem(_) => todo!(),
                                         crate::deep_search_extensions::ProcessedDeepSearchItems::None => todo!(),
@@ -709,7 +756,13 @@ pub fn process(
             }
         }
         Processors::BraceReference(brace_reference) => {
-            let index = process(*brace_reference.data.value, parser, page_id, ignore_hash);
+            let index = process(
+                *brace_reference.data.value,
+                parser,
+                page_id,
+                ignore_hash,
+                false,
+            );
             match index {
                 Ok(index) => {
                     //if matches!(index, types::Types::Integer(x) if matches!()) {}
@@ -731,6 +784,7 @@ pub fn process(
                         parser,
                         page_id,
                         ignore_hash,
+                        false,
                     );
                     match reference {
                         Ok(found_reference) => {
@@ -1258,6 +1312,7 @@ pub fn process(
                                                         parser,
                                                         page_id,
                                                         ignore_hash,
+                                                        false,
                                                     ) {
                                                         Ok(resolved_type) => {
                                                             let comperable = parser
@@ -1475,6 +1530,7 @@ pub fn process(
                 parser,
                 page_id,
                 ignore_hash.clone(),
+                false,
             ) {
                 Ok(resolved_types) => {
                     match crate::processors::definer_processor::process(
@@ -1505,7 +1561,13 @@ pub fn process(
             }
         }
         Processors::NullResolver(null_resolver) => {
-            match process(*null_resolver.target, parser, page_id, ignore_hash.clone()) {
+            match process(
+                *null_resolver.target,
+                parser,
+                page_id,
+                ignore_hash.clone(),
+                false,
+            ) {
                 Ok(resolved_types) => Ok(types::Types::NullResolver(
                     types::null_resolver::NullResolver {
                         target: Box::new(resolved_types),
