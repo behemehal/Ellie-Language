@@ -180,7 +180,6 @@ impl super::Processor for function::FunctionCollector {
                                 parameters.push(
                                     ellie_core::definite::items::function::FunctionParameter {
                                         name: parameter.name.clone(),
-                                        pos: parameter.pos,
                                         rtype: e,
                                         multi_capture: parameter.multi_capture,
                                         name_pos: parameter.name_pos,
@@ -260,8 +259,28 @@ impl super::Processor for function::FunctionCollector {
                     ..Default::default()
                 };
                 parser.pages.push(inner);
-                parser.process_page(inner_page_id);
 
+                let processed_page = parser.find_processed_page(page_id).unwrap();
+
+                processed_page
+                    .items
+                    .push(ellie_core::definite::items::Collecting::Function(
+                        ellie_core::definite::items::function::Function {
+                            name: self.data.name.clone(),
+                            pos: self.data.pos,
+                            parameters: parameters,
+                            hash: self.data.hash.clone(),
+                            return_type: return_type.clone(),
+                            public: self.data.public,
+                            name_pos: self.data.name_pos,
+                            body_pos: self.data.body_pos,
+                            parameters_pos: self.data.parameters_pos,
+                            return_pos: self.data.return_pos,
+                            no_return: self.data.no_return,
+                            inner_page_id,
+                        },
+                    ));
+                parser.process_page(inner_page_id);
                 let found_ret = parser
                     .find_processed_page(inner_page_id)
                     .unwrap()
@@ -295,19 +314,14 @@ impl super::Processor for function::FunctionCollector {
                         err.semi_assist = true;
                         parser.informations.push(&err);
                         return false;
-                    } else {
-                        let defined = parser.resolve_definer_name(return_type.clone());
-                        let mut errors = Vec::new();
-                        match crate::deep_search_extensions::resolve_type(
-                            ret.value.clone(),
+                    } else if parser.informations.has_no_errors() {
+                        match parser.compare_defining_with_type(
+                            return_type,
+                            ret.value,
                             inner_page_id,
-                            parser,
-                            &mut errors,
-                            Some(ret.pos),
                         ) {
-                            Some(defined_return) => {
-                                let given = parser.resolve_definer_name(defined_return);
-                                if defined != given {
+                            Ok((same, defined, rtype)) => {
+                                if !same {
                                     let mut err =
                                         error::error_list::ERROR_S3.clone().build_with_path(
                                             vec![
@@ -317,7 +331,7 @@ impl super::Processor for function::FunctionCollector {
                                                 },
                                                 error::ErrorBuildField {
                                                     key: "token2".to_owned(),
-                                                    value: given,
+                                                    value: rtype,
                                                 },
                                             ],
                                             alloc::format!(
@@ -336,34 +350,14 @@ impl super::Processor for function::FunctionCollector {
                                     return false;
                                 }
                             }
-                            None => {
-                                parser.informations.extend(&errors);
+                            Err(e) => {
+                                parser.informations.extend(&e);
                                 return false;
                             }
-                        };
+                        }
                     }
                 }
 
-                let processed_page = parser.find_processed_page(page_id).unwrap();
-
-                processed_page
-                    .items
-                    .push(ellie_core::definite::items::Collecting::Function(
-                        ellie_core::definite::items::function::Function {
-                            name: self.data.name.clone(),
-                            pos: self.data.pos,
-                            parameters: parameters,
-                            hash: self.data.hash.clone(),
-                            return_type: return_type,
-                            public: self.data.public,
-                            name_pos: self.data.name_pos,
-                            body_pos: self.data.body_pos,
-                            parameters_pos: self.data.parameters_pos,
-                            return_pos: self.data.return_pos,
-                            no_return: self.data.no_return,
-                            inner_page_id,
-                        },
-                    ));
                 true
             }
         }

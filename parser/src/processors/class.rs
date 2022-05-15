@@ -165,7 +165,6 @@ impl super::Processor for Class {
                 module: false,
             };
             parser.pages.push(inner);
-            parser.process_page(inner_page_id);
             let processed = ellie_core::definite::items::Collecting::Class(
                 ellie_core::definite::items::class::Class {
                     name: self.name,
@@ -190,6 +189,7 @@ impl super::Processor for Class {
                 .unwrap()
                 .items
                 .push(processed);
+            parser.process_page(inner_page_id);
         }
         true
     }
