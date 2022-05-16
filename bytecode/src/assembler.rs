@@ -377,7 +377,6 @@ impl Assembler {
                     ellie_core::definite::items::Collecting::Generic(_) => {
                         std::println!("[Assembler,Ignore,Element] Generic")
                     }
-                    ellie_core::definite::items::Collecting::NativeClass => todo!(),
                     ellie_core::definite::items::Collecting::GetterCall(_) => todo!(),
                     ellie_core::definite::items::Collecting::SetterCall(_) => todo!(),
                     ellie_core::definite::items::Collecting::Enum(_) => todo!(),

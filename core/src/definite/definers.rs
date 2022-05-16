@@ -160,10 +160,40 @@ impl DefinerCollecting {
                     false
                 }
             }
-            DefinerCollecting::Cloak(_) => todo!(),
-            DefinerCollecting::Collective(_) => todo!(),
-            DefinerCollecting::Nullable(_) => todo!(),
-            DefinerCollecting::Dynamic => todo!(),
+            DefinerCollecting::Cloak(cloak) => {
+                if let DefinerCollecting::Cloak(other_cloak) = other {
+                    cloak.rtype.len() == other_cloak.rtype.len()
+                        && cloak
+                            .rtype
+                            .iter()
+                            .zip(other_cloak.rtype.iter())
+                            .all(|(a, b)| a.same_as(b.clone()))
+                } else {
+                    false
+                }
+            }
+            DefinerCollecting::Collective(e) => {
+                //Check if the key and value are the same
+                if let DefinerCollecting::Collective(other_e) = other {
+                    e.key.same_as(*other_e.key.clone()) && e.value.same_as(*other_e.value.clone())
+                } else {
+                    false
+                }
+            }
+            DefinerCollecting::Nullable(e) => {
+                if let DefinerCollecting::Nullable(other_e) = other {
+                    e.value.same_as(*other_e.value.clone())
+                } else {
+                    false
+                }
+            }
+            DefinerCollecting::Dynamic => {
+                if let DefinerCollecting::Dynamic = other {
+                    true
+                } else {
+                    false
+                }
+            }
         }
     }
 }

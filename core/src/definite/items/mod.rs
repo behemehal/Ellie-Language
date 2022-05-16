@@ -33,7 +33,6 @@ pub enum Collecting {
     Getter(getter::Getter),
     Setter(setter::Setter),
     Generic(generic::Generic),
-    NativeClass,
     GetterCall(getter_call::GetterCall),
     SetterCall(setter_call::SetterCall),
     Enum(enum_type::EnumType),
@@ -69,8 +68,7 @@ impl Collecting {
             },
             Collecting::Enum(e) => e.pos,
             Collecting::NativeFunction(e) => e.pos,
-            Collecting::None => todo!(),
-            Collecting::NativeClass => todo!(),
+            Collecting::None => unreachable!(),
         }
     }
 
@@ -87,7 +85,6 @@ impl Collecting {
             Collecting::FileKey(_) => false,
             Collecting::Getter(e) => e.public,
             Collecting::Setter(e) => e.public,
-            Collecting::NativeClass => true,
             Collecting::GetterCall(_) => false,
             Collecting::SetterCall(_) => false,
             Collecting::Enum(e) => e.public,

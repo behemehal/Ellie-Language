@@ -21,7 +21,11 @@ impl definite::Converter<NullResolver, definite::types::null_resolver::NullResol
         }
     }
 
-    fn from_definite(self, _from: definite::types::null_resolver::NullResolver) -> NullResolver {
-        todo!()
+    fn from_definite(self, from: definite::types::null_resolver::NullResolver) -> NullResolver {
+        NullResolver {
+            target: Box::new(types::Processors::default().from_definite(*from.target)),
+            target_pos: from.target_pos,
+            pos: from.pos,
+        }
     }
 }

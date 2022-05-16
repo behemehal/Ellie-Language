@@ -293,28 +293,7 @@ impl super::Processor for function::FunctionCollector {
                     });
 
                 if let Some(ret) = found_ret {
-                    if self.data.no_return {
-                        let mut err = error::error_list::ERROR_S3.clone().build_with_path(
-                            vec![
-                                error::ErrorBuildField {
-                                    key: "token1".to_owned(),
-                                    value: "void".to_owned(),
-                                },
-                                error::ErrorBuildField {
-                                    key: "token2".to_owned(),
-                                    value: parser.resolve_type_name(ret.value),
-                                },
-                            ],
-                            alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                            parser.find_page(page_id).unwrap().path.clone(),
-                            ret.pos,
-                        );
-                        err.reference_block = Some((self.data.name_pos, page.path));
-                        err.reference_message = "Function does not accept any ret".to_owned();
-                        err.semi_assist = true;
-                        parser.informations.push(&err);
-                        return false;
-                    } else if parser.informations.has_no_errors() {
+                    if parser.informations.has_no_errors() {
                         match parser.compare_defining_with_type(
                             return_type,
                             ret.value,

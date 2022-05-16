@@ -37,12 +37,6 @@ impl super::Processor for Constructor {
         let page = parser.find_page(page_id).unwrap().clone();
         let mut items = self.inside_code;
 
-        //let return_element = items.into_iter().find_map(|item| {
-        //    match item {
-        //        ellie_tokenizer::processors::items::Processors::Ret(_) => todo!(),
-        //    }
-        //})
-
         for (index, parameter) in self.parameters.clone().iter().enumerate() {
             let deep_search = parser.deep_search(page_id, parameter.name.clone(), None, vec![], 0);
 

@@ -165,10 +165,8 @@ impl Processors {
             Collecting::FileKey(e) => {
                 Processors::FileKey(file_key::FileKey::default().from_definite(e))
             }
-            Collecting::Getter(_) => todo!(),
-            Collecting::Setter(_) => todo!(),
-            Collecting::Generic(_) => todo!(),
-            Collecting::NativeClass => todo!(),
+            Collecting::Getter(e) => Processors::Getter(getter::Getter::default().from_definite(e)),
+            Collecting::Setter(e) => Processors::Setter(setter::Setter::default().from_definite(e)),
             Collecting::GetterCall(e) => {
                 Processors::GetterCall(getter_call::GetterCall::default().from_definite(e))
             }
@@ -176,8 +174,43 @@ impl Processors {
                 Processors::SetterCall(setter_call::SetterCall::default().from_definite(e))
             }
             Collecting::Enum(_) => todo!(),
-            Collecting::NativeFunction(_) => todo!(),
-            Collecting::None => todo!(),
+            Collecting::NativeFunction(e) => Processors::Function(function::FunctionCollector {
+                data: function::Function {
+                    name: e.name,
+                    name_pos: e.name_pos,
+                    public: e.public,
+                    defining: true,
+                    parameters: e
+                        .parameters
+                        .into_iter()
+                        .map(|x| function::FunctionParameter {
+                            name: x.name,
+                            rtype: definers::DefinerCollector {
+                                definer_type: definers::DefinerTypes::default()
+                                    .from_definite(x.rtype),
+                                complete: true,
+                            },
+                            name_pos: x.name_pos,
+                            rtype_pos: x.rtype_pos,
+                            multi_capture: x.multi_capture,
+                        })
+                        .collect(),
+                    parameters_pos: e.parameters_pos,
+                    return_type: definers::DefinerCollector {
+                        definer_type: definers::DefinerTypes::default()
+                            .from_definite(e.return_type),
+                        complete: true,
+                    },
+                    no_return: e.no_return,
+                    return_pos: e.return_pos,
+                    body_pos: defs::Cursor::default(),
+                    body: vec![],
+                    pos: defs::Cursor::default(),
+                    hash: e.hash,
+                },
+                ..Default::default()
+            }),
+            _ => unreachable!(),
         }
     }
 }
