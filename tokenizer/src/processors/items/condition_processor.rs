@@ -32,6 +32,7 @@ impl crate::processors::Processor for condition::Condition {
                     } else if letter_char == '}' && chain.brace_count != 0 {
                         chain.brace_count -= 1;
                     }
+                    chain.iterator.pos = cursor;
                     chain.iterator.iterate(last_char, letter_char);
                 }
             }
@@ -98,6 +99,7 @@ impl crate::processors::Processor for condition::Condition {
                     } else if letter_char == '}' && chain.brace_count != 0 {
                         chain.brace_count -= 1;
                     }
+                    chain.iterator.pos = cursor;
                     chain.iterator.iterate(last_char, letter_char);
                 }
             }
@@ -111,6 +113,7 @@ impl crate::processors::Processor for condition::Condition {
                     } else if letter_char == '}' && chain.brace_count != 0 {
                         chain.brace_count -= 1;
                     }
+                    chain.iterator.pos = cursor;
                     hang = chain.iterator.iterate(last_char, letter_char);
                 }
             }
