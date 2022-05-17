@@ -79,7 +79,7 @@ lazy_static! {
     pub static ref ERROR_S13: error::Error = error::Error {
         code: 0x12,
         title: "SyntaxError".to_owned(),
-        message: "Expected operator found '$token'".to_owned(),
+        message: "'$token' and '$token1' has incompatible type returns".to_owned(),
         ..Default::default()
     };
     pub static ref ERROR_S14: error::Error = error::Error {

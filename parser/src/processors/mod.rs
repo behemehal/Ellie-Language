@@ -13,6 +13,7 @@ pub mod setter;
 pub mod setter_call;
 pub mod type_processor;
 pub mod variable;
+pub mod condition;
 
 pub trait Processor {
     /// Parser element processor

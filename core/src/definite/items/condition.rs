@@ -1,4 +1,4 @@
-use crate::alloc::boxed::Box;
+use crate::{alloc::boxed::Box, definite::definers::DefinerCollecting};
 use crate::alloc::vec::Vec;
 use crate::definite::types;
 use crate::defs;
@@ -22,5 +22,6 @@ pub struct ConditionChain {
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct Condition {
     pub chains: Vec<ConditionChain>,
+    pub returns: Option<DefinerCollecting>,
     pub pos: defs::Cursor,
 }

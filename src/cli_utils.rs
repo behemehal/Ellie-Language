@@ -243,7 +243,7 @@ where
 {
     for warning in warnings {
         println!(
-            "\n{}Warning[{}]{}╞ {}{}{}\n",
+            "\n{}Warning[{}]{}: {}{}{}\n",
             Colors::Yellow,
             warning.title,
             Colors::Reset,
@@ -466,7 +466,7 @@ pub fn render_code_block(
     reference: bool,
     is_error: bool,
 ) {
-    let multi_line = item_pos.range_start.0 != item_pos.range_end.0 || item_pos.range_start.1 == 0;
+    let multi_line = item_pos.range_start.0 != item_pos.range_end.0;
     println!(
         "  {}[{}]{}{}╞ {}{}:{}{}{}",
         if reference {
@@ -555,7 +555,7 @@ pub fn render_code_block(
                     generate_blank((line_space - (i + 1).to_string().len()) + 1),
                     i + 1,
                     Colors::Reset,
-                    get_line(code.clone(), i), //CHECK OUT \r \n replace
+                    get_line(code.clone(), i).replace("\t", "    "), //:/
                     Colors::Green,
                     ref_message,
                     Colors::Reset,

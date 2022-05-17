@@ -1257,7 +1257,7 @@ impl Parser {
                         Processors::Function(e) => e.process(self, unprocessed_page.hash),
                         Processors::FileKey(e) => e.process(self, unprocessed_page.hash),
                         Processors::ForLoop(_) => todo!(),
-                        Processors::Condition(_) => todo!(),
+                        Processors::Condition(e) => e.process(self, unprocessed_page.hash),
                         Processors::Getter(e) => e.process(self, unprocessed_page.hash),
                         Processors::Setter(e) => e.process(self, unprocessed_page.hash),
                         Processors::Class(e) => e.process(self, unprocessed_page.hash),
@@ -1293,7 +1293,7 @@ impl Parser {
                         Processors::Function(e) => e.process(self, unprocessed_page.hash),
                         Processors::FileKey(e) => e.process(self, unprocessed_page.hash),
                         Processors::ForLoop(_) => todo!(),
-                        Processors::Condition(_) => todo!(),
+                        Processors::Condition(e) => e.process(self, unprocessed_page.hash),
                         Processors::Class(e) => e.process(self, unprocessed_page.hash),
                         Processors::Getter(e) => e.process(self, unprocessed_page.hash),
                         Processors::Setter(e) => e.process(self, unprocessed_page.hash),
@@ -1334,9 +1334,8 @@ impl Parser {
                             true
                         }
                         Processors::ForLoop(_) => todo!(),
-                        Processors::Condition(_) => todo!(),
+                        Processors::Condition(e) => e.process(self, unprocessed_page.hash),
                         Processors::Class(e) => e.process(self, unprocessed_page.hash),
-
                         Processors::Getter(e) => e.process(self, unprocessed_page.hash),
                         Processors::Setter(e) => e.process(self, unprocessed_page.hash),
 
@@ -1396,7 +1395,7 @@ impl Parser {
                         Processors::Function(e) => e.process(self, unprocessed_page.hash),
                         Processors::FileKey(e) => e.process(self, unprocessed_page.hash),
                         Processors::ForLoop(_) => todo!(),
-                        Processors::Condition(_) => todo!(),
+                        Processors::Condition(e) => e.process(self, unprocessed_page.hash),
                         Processors::Class(e) => e.process(self, unprocessed_page.hash),
                         Processors::Getter(e) => e.process(self, unprocessed_page.hash),
                         Processors::Setter(e) => e.process(self, unprocessed_page.hash),

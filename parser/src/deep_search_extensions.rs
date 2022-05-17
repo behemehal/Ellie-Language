@@ -721,7 +721,7 @@ fn iterate_deep_type(
                 DeepTypeResult::Cloak(cloak)
             }
         }
-        Types::SetterCall(inner_type) => unreachable!(),
+        Types::SetterCall(_) => unreachable!(),
         Types::Array(array) => {
             let mut collective = vec![];
             for i in array.collective {
