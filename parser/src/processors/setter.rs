@@ -1,9 +1,6 @@
-use alloc::{borrow::ToOwned, vec, vec::Vec};
-use ellie_core::{definite::Converter, error, warning};
-use ellie_tokenizer::{
-    syntax::items::{function, setter},
-    tokenizer::PageType,
-};
+use alloc::{borrow::ToOwned, vec};
+use ellie_core::{error, warning};
+use ellie_tokenizer::{syntax::items::setter, tokenizer::PageType};
 
 impl super::Processor for setter::Setter {
     fn process(self, parser: &mut crate::parser::Parser, page_id: u64) -> bool {

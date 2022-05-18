@@ -164,7 +164,7 @@ lazy_static! {
     pub static ref ERROR_S27: error::Error = error::Error {
         code: 0x26,
         title: "TypeError".to_owned(),
-        message: "Cannot apply data to generic type".to_owned(),
+        message: "Un-Assignable type".to_owned(),
         ..Default::default()
     };
     pub static ref ERROR_S28: error::Error = error::Error {

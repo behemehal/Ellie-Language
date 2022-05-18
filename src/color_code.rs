@@ -1,4 +1,5 @@
 #![allow(dead_code)]
+#![allow(unused)]
 use crate::cli_outputs;
 use crate::cli_utils;
 use crate::cli_utils::generate_blank;
@@ -326,6 +327,8 @@ pub fn color_code(target_path: &Path, output_path: &Path, colorizer_settings: Co
                             Processors::GenericItem(_) => todo!(),
                             Processors::FunctionParameter(_) => todo!(),
                             Processors::ConstructorParameter(_) => todo!(),
+                            Processors::Brk(_) => todo!(),
+                            Processors::Go(_) => todo!(),
                         }
                         lines
                     }

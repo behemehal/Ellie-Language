@@ -1,5 +1,5 @@
 use alloc::{borrow::ToOwned, vec, vec::Vec};
-use ellie_core::{definite::Converter, error, warning};
+use ellie_core::{error, warning};
 use ellie_tokenizer::{syntax::items::function, tokenizer::PageType};
 
 impl super::Processor for function::FunctionCollector {
@@ -47,10 +47,22 @@ impl super::Processor for function::FunctionCollector {
             let mut items = self.data.body.clone();
 
             let inner_page_id: u64 = ellie_core::utils::generate_hash_u64();
-            let mut return_type = self.data.return_type.definer_type.clone().to_definite();
+            let mut return_type = match super::definer_processor::process(
+                self.data.return_type.definer_type.clone(),
+                parser,
+                page_id,
+                None,
+            ) {
+                Ok(e) => e,
+                Err(e) => {
+                    parser.informations.extend(&e);
+                    return false;
+                }
+            };
+
             if !self.data.no_return {
                 match super::definer_processor::process(
-                    self.data.return_type.definer_type,
+                    self.data.return_type.definer_type.clone(),
                     parser,
                     page_id,
                     None,

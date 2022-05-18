@@ -46,6 +46,8 @@ impl Informations {
                     .unwrap()
                     .clone(),
             );
+        } else {
+            panic!("Unknown item type");
         }
     }
 
@@ -60,6 +62,8 @@ impl Informations {
         } else if item.is::<crate::error::Error>() {
             self.errors
                 .push(item.downcast_ref::<crate::error::Error>().unwrap().clone());
+        } else {
+            panic!("Unknown item type");
         }
     }
 }

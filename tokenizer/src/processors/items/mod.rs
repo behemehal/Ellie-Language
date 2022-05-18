@@ -25,6 +25,9 @@ mod setter_call;
 mod setter_processor;
 mod variable_processor;
 
+mod brk_processor;
+mod go_processor;
+
 #[derive(Debug, Clone, Serialize, Deserialize, EnumAsInner)]
 pub enum Processors {
     Variable(variable::VariableCollector),
@@ -38,6 +41,8 @@ pub enum Processors {
     Constructor(constructor::Constructor),
     Class(class::Class),
     Ret(ret::Ret),
+    Brk(brk::Brk),
+    Go(go::Go),
     Getter(getter::Getter),
     Setter(setter::Setter),
     SelfItem(self_item::SelfItem),          //VirtualValues
@@ -68,6 +73,8 @@ impl Processors {
             Processors::GenericItem(_) => panic!("Unexpected behaviour"),
             Processors::FunctionParameter(_) => panic!("Unexpected behaviour"),
             Processors::ConstructorParameter(_) => panic!("Unexpected behaviour"),
+            Processors::Brk(e) => e.complete,
+            Processors::Go(e) => e.complete,
         }
     }
 
@@ -117,6 +124,8 @@ impl Processors {
                 range_end: e.rtype_pos.range_end,
             },
             Processors::ConstructorParameter(_) => ellie_core::defs::Cursor::default(),
+            Processors::Brk(e) => e.pos,
+            Processors::Go(e) => e.pos,
         }
     }
 
@@ -139,6 +148,8 @@ impl Processors {
             Processors::GenericItem(_) => panic!("Unexpected behaviour"),
             Processors::FunctionParameter(_) => panic!("Unexpected behaviour"),
             Processors::ConstructorParameter(_) => panic!("Unexpected behaviour"),
+            Processors::Brk(e) => Collecting::Brk(e.to_definite()),
+            Processors::Go(e) => Collecting::Go(e.to_definite()),
         }
     }
 
@@ -345,6 +356,22 @@ impl super::Processor for ItemProcessor {
                 ..Default::default()
             });
         } else if self.used_modifier == Modifier::None
+            && keyword == "brk"
+            && (letter_char == ' ' || letter_char == ';')
+        {
+            self.current = Processors::Brk(brk::Brk {
+                pos: self.current.get_pos(),
+                complete: false,
+            });
+        } else if self.used_modifier == Modifier::None
+            && keyword == "go"
+            && (letter_char == ' ' || letter_char == ';')
+        {
+            self.current = Processors::Go(go::Go {
+                pos: self.current.get_pos(),
+                complete: false,
+            });
+        } else if self.used_modifier == Modifier::None
             && keyword == "ret"
             && (letter_char == ' ' || letter_char == ';')
         {
@@ -435,6 +462,8 @@ impl super::Processor for ItemProcessor {
             Processors::GenericItem(_) => unreachable!("Unexpected behaviour"),
             Processors::FunctionParameter(_) => unreachable!("Unexpected behaviour"),
             Processors::ConstructorParameter(_) => unreachable!("Unexpected behaviour"),
+            Processors::Brk(e) => e.iterate(errors, cursor, last_char, letter_char),
+            Processors::Go(e) => e.iterate(errors, cursor, last_char, letter_char),
         }
     }
 }

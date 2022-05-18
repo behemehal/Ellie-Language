@@ -1256,7 +1256,7 @@ impl Parser {
                         Processors::SetterCall(e) => e.process(self, unprocessed_page.hash),
                         Processors::Function(e) => e.process(self, unprocessed_page.hash),
                         Processors::FileKey(e) => e.process(self, unprocessed_page.hash),
-                        Processors::ForLoop(_) => todo!(),
+                        Processors::ForLoop(e) => e.process(self, unprocessed_page.hash),
                         Processors::Condition(e) => e.process(self, unprocessed_page.hash),
                         Processors::Getter(e) => e.process(self, unprocessed_page.hash),
                         Processors::Setter(e) => e.process(self, unprocessed_page.hash),
@@ -1292,7 +1292,7 @@ impl Parser {
                         Processors::SetterCall(e) => e.process(self, unprocessed_page.hash),
                         Processors::Function(e) => e.process(self, unprocessed_page.hash),
                         Processors::FileKey(e) => e.process(self, unprocessed_page.hash),
-                        Processors::ForLoop(_) => todo!(),
+                        Processors::ForLoop(e) => e.process(self, unprocessed_page.hash),
                         Processors::Condition(e) => e.process(self, unprocessed_page.hash),
                         Processors::Class(e) => e.process(self, unprocessed_page.hash),
                         Processors::Getter(e) => e.process(self, unprocessed_page.hash),
@@ -1333,7 +1333,7 @@ impl Parser {
                             }
                             true
                         }
-                        Processors::ForLoop(_) => todo!(),
+                        Processors::ForLoop(e) => e.process(self, unprocessed_page.hash),
                         Processors::Condition(e) => e.process(self, unprocessed_page.hash),
                         Processors::Class(e) => e.process(self, unprocessed_page.hash),
                         Processors::Getter(e) => e.process(self, unprocessed_page.hash),
@@ -1394,7 +1394,7 @@ impl Parser {
                         Processors::SetterCall(e) => e.process(self, unprocessed_page.hash),
                         Processors::Function(e) => e.process(self, unprocessed_page.hash),
                         Processors::FileKey(e) => e.process(self, unprocessed_page.hash),
-                        Processors::ForLoop(_) => todo!(),
+                        Processors::ForLoop(e) => e.process(self, unprocessed_page.hash),
                         Processors::Condition(e) => e.process(self, unprocessed_page.hash),
                         Processors::Class(e) => e.process(self, unprocessed_page.hash),
                         Processors::Getter(e) => e.process(self, unprocessed_page.hash),
@@ -1416,6 +1416,44 @@ impl Parser {
                             false
                         }
                         Processors::SelfItem(_) => true,
+                        Processors::GenericItem(e) => e.process(self, unprocessed_page.hash),
+                        Processors::FunctionParameter(_) => true,
+                        Processors::ConstructorParameter(_) => true,
+                        unexpected_element => {
+                            self.informations.push(
+                                &error::error_list::ERROR_S22.clone().build_with_path(
+                                    vec![],
+                                    alloc::format!(
+                                        "{}:{}:{}",
+                                        file!().to_owned(),
+                                        line!(),
+                                        column!()
+                                    ),
+                                    unprocessed_page.path.clone(),
+                                    unexpected_element.get_pos(),
+                                ),
+                            );
+                            false
+                        }
+                    },
+                    ellie_tokenizer::tokenizer::PageType::ForBody => match item {
+                        Processors::Variable(e) => e.process(self, unprocessed_page.hash),
+                        Processors::GetterCall(e) => e.process(self, unprocessed_page.hash),
+                        Processors::SetterCall(e) => e.process(self, unprocessed_page.hash),
+                        Processors::Function(e) => e.process(self, unprocessed_page.hash),
+                        Processors::FileKey(e) => e.process(self, unprocessed_page.hash),
+                        Processors::ForLoop(e) => e.process(self, unprocessed_page.hash),
+                        Processors::Condition(e) => e.process(self, unprocessed_page.hash),
+                        Processors::Getter(e) => e.process(self, unprocessed_page.hash),
+                        Processors::Setter(e) => e.process(self, unprocessed_page.hash),
+                        Processors::Class(e) => e.process(self, unprocessed_page.hash),
+                        Processors::Ret(e) => {
+                            unprocessed_page.unreachable = true;
+                            e.process(self, unprocessed_page.hash)
+                        }
+                        Processors::SelfItem(_) => true,
+                        Processors::Brk(e) => e.process(self, unprocessed_page.hash),
+                        Processors::Go(e) => e.process(self, unprocessed_page.hash),
                         Processors::GenericItem(e) => e.process(self, unprocessed_page.hash),
                         Processors::FunctionParameter(_) => true,
                         Processors::ConstructorParameter(_) => true,

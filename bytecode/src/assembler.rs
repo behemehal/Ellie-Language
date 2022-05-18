@@ -384,6 +384,8 @@ impl Assembler {
                         std::println!("[Assembler,Ignore,Element] NativeFunction")
                     }
                     ellie_core::definite::items::Collecting::None => todo!(),
+                    ellie_core::definite::items::Collecting::Brk(_) => todo!(),
+                    ellie_core::definite::items::Collecting::Go(_) => todo!(),
                 }
             }
             for dependency in &processed_page.dependencies {
