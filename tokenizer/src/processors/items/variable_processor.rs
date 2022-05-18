@@ -35,6 +35,13 @@ impl crate::processors::Processor for VariableCollector {
                 self.data.has_value = true;
                 self.name_collected = true;
                 self.type_collected = true;
+            } else if letter_char == ';' {
+                errors.push(error::error_list::ERROR_S8.clone().build(
+                    vec![],
+                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                    defs::Cursor::build_from_cursor(cursor),
+                ));
+                self.complete = true;
             } else if letter_char != ' ' {
                 errors.push(error::error_list::ERROR_S1.clone().build(
                     vec![error::ErrorBuildField {
