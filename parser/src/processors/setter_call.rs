@@ -394,7 +394,6 @@ impl super::Processor for SetterCall {
                     }
                 }
                 _ => {
-                    panic!("{:?}", target);
                     parser.informations.push(
                         &ellie_core::error::error_list::ERROR_S43
                             .clone()

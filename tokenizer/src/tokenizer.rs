@@ -29,6 +29,7 @@ pub enum PageType {
     FunctionBody,
     ConstructorBody,
     RawBody,
+    ForBody,
     ClassBody,
     ValueConditionBody,
 }

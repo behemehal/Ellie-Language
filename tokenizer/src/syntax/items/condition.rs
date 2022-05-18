@@ -38,29 +38,7 @@ pub struct Condition {
 
 impl Converter<Condition, ellie_core::definite::items::condition::Condition> for Condition {
     fn to_definite(self) -> ellie_core::definite::items::condition::Condition {
-        ellie_core::definite::items::condition::Condition {
-            chains: self
-                .chains
-                .into_iter()
-                .map(|x| ellie_core::definite::items::condition::ConditionChain {
-                    rtype: match x.rtype {
-                        ConditionType::If => {
-                            ellie_core::definite::items::condition::ConditionType::If
-                        }
-                        ConditionType::ElseIf => {
-                            ellie_core::definite::items::condition::ConditionType::ElseIf
-                        }
-                        ConditionType::Else => {
-                            ellie_core::definite::items::condition::ConditionType::Else
-                        }
-                    },
-                    condition: Box::new(x.condition.current.to_definite()),
-                    keyword_pos: x.keyword_pos,
-                    inner_page_id: 0,
-                })
-                .collect(),
-            pos: self.pos,
-        }
+        unreachable!();
     }
 
     fn from_definite(self, from: ellie_core::definite::items::condition::Condition) -> Condition {

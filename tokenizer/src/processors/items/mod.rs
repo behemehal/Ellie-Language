@@ -25,6 +25,9 @@ mod setter_call;
 mod setter_processor;
 mod variable_processor;
 
+mod brk_processor;
+mod go_processor;
+
 #[derive(Debug, Clone, Serialize, Deserialize, EnumAsInner)]
 pub enum Processors {
     Variable(variable::VariableCollector),
@@ -38,6 +41,8 @@ pub enum Processors {
     Constructor(constructor::Constructor),
     Class(class::Class),
     Ret(ret::Ret),
+    Brk(brk::Brk),
+    Go(go::Go),
     Getter(getter::Getter),
     Setter(setter::Setter),
     SelfItem(self_item::SelfItem),          //VirtualValues
@@ -68,6 +73,8 @@ impl Processors {
             Processors::GenericItem(_) => panic!("Unexpected behaviour"),
             Processors::FunctionParameter(_) => panic!("Unexpected behaviour"),
             Processors::ConstructorParameter(_) => panic!("Unexpected behaviour"),
+            Processors::Brk(e) => e.complete,
+            Processors::Go(e) => e.complete,
         }
     }
 
@@ -117,6 +124,8 @@ impl Processors {
                 range_end: e.rtype_pos.range_end,
             },
             Processors::ConstructorParameter(_) => ellie_core::defs::Cursor::default(),
+            Processors::Brk(e) => e.pos,
+            Processors::Go(e) => e.pos,
         }
     }
 
@@ -139,6 +148,8 @@ impl Processors {
             Processors::GenericItem(_) => panic!("Unexpected behaviour"),
             Processors::FunctionParameter(_) => panic!("Unexpected behaviour"),
             Processors::ConstructorParameter(_) => panic!("Unexpected behaviour"),
+            Processors::Brk(e) => Collecting::Brk(e.to_definite()),
+            Processors::Go(e) => Collecting::Go(e.to_definite()),
         }
     }
 
@@ -165,10 +176,8 @@ impl Processors {
             Collecting::FileKey(e) => {
                 Processors::FileKey(file_key::FileKey::default().from_definite(e))
             }
-            Collecting::Getter(_) => todo!(),
-            Collecting::Setter(_) => todo!(),
-            Collecting::Generic(_) => todo!(),
-            Collecting::NativeClass => todo!(),
+            Collecting::Getter(e) => Processors::Getter(getter::Getter::default().from_definite(e)),
+            Collecting::Setter(e) => Processors::Setter(setter::Setter::default().from_definite(e)),
             Collecting::GetterCall(e) => {
                 Processors::GetterCall(getter_call::GetterCall::default().from_definite(e))
             }
@@ -176,8 +185,43 @@ impl Processors {
                 Processors::SetterCall(setter_call::SetterCall::default().from_definite(e))
             }
             Collecting::Enum(_) => todo!(),
-            Collecting::NativeFunction(_) => todo!(),
-            Collecting::None => todo!(),
+            Collecting::NativeFunction(e) => Processors::Function(function::FunctionCollector {
+                data: function::Function {
+                    name: e.name,
+                    name_pos: e.name_pos,
+                    public: e.public,
+                    defining: true,
+                    parameters: e
+                        .parameters
+                        .into_iter()
+                        .map(|x| function::FunctionParameter {
+                            name: x.name,
+                            rtype: definers::DefinerCollector {
+                                definer_type: definers::DefinerTypes::default()
+                                    .from_definite(x.rtype),
+                                complete: true,
+                            },
+                            name_pos: x.name_pos,
+                            rtype_pos: x.rtype_pos,
+                            multi_capture: x.multi_capture,
+                        })
+                        .collect(),
+                    parameters_pos: e.parameters_pos,
+                    return_type: definers::DefinerCollector {
+                        definer_type: definers::DefinerTypes::default()
+                            .from_definite(e.return_type),
+                        complete: true,
+                    },
+                    no_return: e.no_return,
+                    return_pos: e.return_pos,
+                    body_pos: defs::Cursor::default(),
+                    body: vec![],
+                    pos: defs::Cursor::default(),
+                    hash: e.hash,
+                },
+                ..Default::default()
+            }),
+            _ => unreachable!(),
         }
     }
 }
@@ -312,6 +356,22 @@ impl super::Processor for ItemProcessor {
                 ..Default::default()
             });
         } else if self.used_modifier == Modifier::None
+            && keyword == "brk"
+            && (letter_char == ' ' || letter_char == ';')
+        {
+            self.current = Processors::Brk(brk::Brk {
+                pos: self.current.get_pos(),
+                complete: false,
+            });
+        } else if self.used_modifier == Modifier::None
+            && keyword == "go"
+            && (letter_char == ' ' || letter_char == ';')
+        {
+            self.current = Processors::Go(go::Go {
+                pos: self.current.get_pos(),
+                complete: false,
+            });
+        } else if self.used_modifier == Modifier::None
             && keyword == "ret"
             && (letter_char == ' ' || letter_char == ';')
         {
@@ -402,6 +462,8 @@ impl super::Processor for ItemProcessor {
             Processors::GenericItem(_) => unreachable!("Unexpected behaviour"),
             Processors::FunctionParameter(_) => unreachable!("Unexpected behaviour"),
             Processors::ConstructorParameter(_) => unreachable!("Unexpected behaviour"),
+            Processors::Brk(e) => e.iterate(errors, cursor, last_char, letter_char),
+            Processors::Go(e) => e.iterate(errors, cursor, last_char, letter_char),
         }
     }
 }

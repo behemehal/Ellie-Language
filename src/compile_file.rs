@@ -814,6 +814,16 @@ pub fn compile(
                                 .to_string()
                             },
                         );
+                        println!(
+                            "\n{}[!]{}: Compiling {}failed{} with {}{} errors{}",
+                            cli_utils::Colors::Red,
+                            cli_utils::Colors::Reset,
+                            cli_utils::Colors::Red,
+                            cli_utils::Colors::Reset,
+                            cli_utils::Colors::Red,
+                            pager_errors.len(),
+                            cli_utils::Colors::Reset,
+                        );
                     }
                 }
             }

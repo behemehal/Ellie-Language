@@ -9,6 +9,10 @@ pub mod getter;
 pub mod getter_call;
 pub mod import;
 pub mod ret;
+
+pub mod brk;
+pub mod go;
+
 pub mod setter;
 pub mod setter_call;
 pub mod variable;

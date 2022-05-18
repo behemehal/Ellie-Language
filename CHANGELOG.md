@@ -13,3 +13,10 @@
   - [TECHNICAL] Save function's parameter name and type cursor positions separately [5ab7849dd09407baea6a39a47803a3c6e953314b](https://github.com/behemehal/Ellie-Language/commit/5ab7849dd09407baea6a39a47803a3c6e953314b)
   - Fix the situation that ret cant be void. [97e877e5d08ca800e1c3c0394e09a158276a2d50](https://github.com/behemehal/Ellie-Language/commit/97e877e5d08ca800e1c3c0394e09a158276a2d50)
   - [Major] Fix cursor issues with cli. [3ea4d25726beae6fcecb00c477358cc6989055a3](https://github.com/behemehal/Ellie-Language/commit/3ea4d25726beae6fcecb00c477358cc6989055a3)
+
+# v0.6.0
+
+- Parser v0.4.0
+
+  - Implement conditions [0253d6898ed0a1447392652b422cec2759358413](https://github.com/behemehal/Ellie-Language/commit/0253d6898ed0a1447392652b422cec2759358413)
+  - Implement for loop [bfdb7d90e5a5cec14d42164634c546b78a804493](https://github.com/behemehal/Ellie-Language/commit/bfdb7d90e5a5cec14d42164634c546b78a804493)

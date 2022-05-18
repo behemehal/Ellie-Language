@@ -1,12 +1,16 @@
 use crate::parser::Parser;
+pub mod brk;
 pub mod class;
+pub mod condition;
 pub mod constructor;
 pub mod definer_processor;
 pub mod file_key;
+pub mod for_loop;
 pub mod function;
 pub mod generic_item;
 pub mod getter;
 pub mod getter_call;
+pub mod go;
 pub mod import;
 pub mod ret;
 pub mod setter;

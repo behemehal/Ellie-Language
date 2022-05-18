@@ -1,17 +1,22 @@
 use crate::{processors::items::Processors, processors::types};
-use ellie_core::{definite::Converter, defs};
+use ellie_core::{
+    definite::Converter,
+    defs::{self, Cursor},
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct ForLoop {
     pub condition_filled: bool,
     pub variable: types::TypeProcessor,
+    pub variable_pos: Cursor,
     pub target_iterator: types::TypeProcessor,
     pub variable_filled: bool,
     pub parameter: defs::Cursor,
     pub body_pos: defs::Cursor,
     pub body: Vec<Processors>,
     pub iterator: Box<crate::iterator::Iterator>,
+    pub iterator_pos: Cursor,
     pub brace_count: usize,
     pub pos: defs::Cursor,
     pub complete: bool,
@@ -22,10 +27,12 @@ impl Converter<ForLoop, ellie_core::definite::items::for_loop::ForLoop> for ForL
         ellie_core::definite::items::for_loop::ForLoop {
             variable: self.variable.current.to_definite(),
             iterator: self.target_iterator.current.to_definite(),
-            parameter: self.parameter,
+            variable_pos: self.variable_pos,
+            iterator_pos: self.iterator_pos,
             body_pos: self.body_pos,
-            body: self.body.into_iter().map(|x| x.to_definite()).collect(),
             pos: self.pos,
+            parameter: self.parameter,
+            inner_page_id: 0,
         }
     }
 
@@ -41,11 +48,6 @@ impl Converter<ForLoop, ellie_core::definite::items::for_loop::ForLoop> for ForL
             },
             parameter: from.parameter,
             body_pos: from.body_pos,
-            body: from
-                .body
-                .into_iter()
-                .map(|x| Processors::default().from_definite(x))
-                .collect(),
             pos: from.pos,
             ..Default::default()
         }

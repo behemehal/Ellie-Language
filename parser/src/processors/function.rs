@@ -1,5 +1,5 @@
 use alloc::{borrow::ToOwned, vec, vec::Vec};
-use ellie_core::{definite::Converter, error, warning};
+use ellie_core::{error, warning};
 use ellie_tokenizer::{syntax::items::function, tokenizer::PageType};
 
 impl super::Processor for function::FunctionCollector {
@@ -47,10 +47,22 @@ impl super::Processor for function::FunctionCollector {
             let mut items = self.data.body.clone();
 
             let inner_page_id: u64 = ellie_core::utils::generate_hash_u64();
-            let mut return_type = self.data.return_type.definer_type.clone().to_definite();
+            let mut return_type = match super::definer_processor::process(
+                self.data.return_type.definer_type.clone(),
+                parser,
+                page_id,
+                None,
+            ) {
+                Ok(e) => e,
+                Err(e) => {
+                    parser.informations.extend(&e);
+                    return false;
+                }
+            };
+
             if !self.data.no_return {
                 match super::definer_processor::process(
-                    self.data.return_type.definer_type,
+                    self.data.return_type.definer_type.clone(),
                     parser,
                     page_id,
                     None,
@@ -293,28 +305,7 @@ impl super::Processor for function::FunctionCollector {
                     });
 
                 if let Some(ret) = found_ret {
-                    if self.data.no_return {
-                        let mut err = error::error_list::ERROR_S3.clone().build_with_path(
-                            vec![
-                                error::ErrorBuildField {
-                                    key: "token1".to_owned(),
-                                    value: "void".to_owned(),
-                                },
-                                error::ErrorBuildField {
-                                    key: "token2".to_owned(),
-                                    value: parser.resolve_type_name(ret.value),
-                                },
-                            ],
-                            alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                            parser.find_page(page_id).unwrap().path.clone(),
-                            ret.pos,
-                        );
-                        err.reference_block = Some((self.data.name_pos, page.path));
-                        err.reference_message = "Function does not accept any ret".to_owned();
-                        err.semi_assist = true;
-                        parser.informations.push(&err);
-                        return false;
-                    } else if parser.informations.has_no_errors() {
+                    if parser.informations.has_no_errors() {
                         match parser.compare_defining_with_type(
                             return_type,
                             ret.value,

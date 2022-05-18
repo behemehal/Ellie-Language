@@ -131,15 +131,6 @@ pub enum Operators {
 }
 
 impl Operators {
-    pub fn has_priority(&self) -> bool {
-        match *self {
-            Operators::ComparisonType(_) => todo!(),
-            Operators::LogicalType(_) => todo!(),
-            Operators::ArithmeticType(_) => todo!(),
-            Operators::AssignmentType(_) => todo!(),
-            Operators::Null => todo!(),
-        }
-    }
 
     pub fn name_of_group(&self) -> &'static str {
         match *self {

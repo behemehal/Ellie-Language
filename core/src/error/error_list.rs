@@ -79,7 +79,7 @@ lazy_static! {
     pub static ref ERROR_S13: error::Error = error::Error {
         code: 0x12,
         title: "SyntaxError".to_owned(),
-        message: "Expected operator found '$token'".to_owned(),
+        message: "'$token' and '$token1' has incompatible type returns".to_owned(),
         ..Default::default()
     };
     pub static ref ERROR_S14: error::Error = error::Error {
@@ -164,7 +164,7 @@ lazy_static! {
     pub static ref ERROR_S27: error::Error = error::Error {
         code: 0x26,
         title: "TypeError".to_owned(),
-        message: "Cannot apply data to generic type".to_owned(),
+        message: "Un-Assignable type".to_owned(),
         ..Default::default()
     };
     pub static ref ERROR_S28: error::Error = error::Error {

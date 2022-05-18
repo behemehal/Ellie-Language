@@ -19,6 +19,9 @@ pub mod variable;
 pub mod native_function;
 pub mod ret;
 
+pub mod brk;
+pub mod go;
+
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub enum Collecting {
     Variable(variable::Variable),
@@ -27,13 +30,14 @@ pub enum Collecting {
     Condition(condition::Condition),
     Class(class::Class),
     Ret(ret::Ret),
+    Brk(brk::Brk),
+    Go(go::Go),
     Constructor(constructor::Constructor),
     Import(import::Import),
     FileKey(file_key::FileKey),
     Getter(getter::Getter),
     Setter(setter::Setter),
     Generic(generic::Generic),
-    NativeClass,
     GetterCall(getter_call::GetterCall),
     SetterCall(setter_call::SetterCall),
     Enum(enum_type::EnumType),
@@ -69,8 +73,9 @@ impl Collecting {
             },
             Collecting::Enum(e) => e.pos,
             Collecting::NativeFunction(e) => e.pos,
-            Collecting::None => todo!(),
-            Collecting::NativeClass => todo!(),
+            Collecting::None => unreachable!(),
+            Collecting::Brk(e) => e.pos,
+            Collecting::Go(e) => e.pos,
         }
     }
 
@@ -87,13 +92,14 @@ impl Collecting {
             Collecting::FileKey(_) => false,
             Collecting::Getter(e) => e.public,
             Collecting::Setter(e) => e.public,
-            Collecting::NativeClass => true,
             Collecting::GetterCall(_) => false,
             Collecting::SetterCall(_) => false,
             Collecting::Enum(e) => e.public,
             Collecting::NativeFunction(e) => e.public,
             Collecting::None => false,
             Collecting::Generic(_) => false,
+            Collecting::Brk(_) => false,
+            Collecting::Go(_) => false,
         }
     }
 }

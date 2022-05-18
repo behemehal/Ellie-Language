@@ -251,38 +251,6 @@ impl Parser {
         self.processed_pages.extend(module.pages);
     }
 
-    pub fn resolve_type_name(&self, rtype: ellie_core::definite::types::Types) -> String {
-        match rtype {
-            ellie_core::definite::types::Types::Integer(_) => "int".to_string(),
-            ellie_core::definite::types::Types::Float(_) => "flaot".to_string(),
-            ellie_core::definite::types::Types::String(_) => "string".to_string(),
-            ellie_core::definite::types::Types::Char(_) => "char".to_string(),
-            ellie_core::definite::types::Types::Collective(_) => "collective".to_string(),
-            ellie_core::definite::types::Types::Reference(_) => todo!(),
-            ellie_core::definite::types::Types::BraceReference(_) => todo!(),
-            ellie_core::definite::types::Types::Operator(_) => todo!(),
-            ellie_core::definite::types::Types::Cloak(_) => "cloak".to_string(),
-            ellie_core::definite::types::Types::Array(_) => "array".to_string(),
-            ellie_core::definite::types::Types::Vector(_) => "vector".to_string(),
-            ellie_core::definite::types::Types::ClassCall(c) => self.resolve_type_name(*c.target),
-            ellie_core::definite::types::Types::FunctionCall(_) => todo!(),
-            ellie_core::definite::types::Types::Void => "void".to_string(),
-            ellie_core::definite::types::Types::NullResolver(e) => {
-                self.resolve_type_name(*e.target)
-            }
-            ellie_core::definite::types::Types::Negative(e) => self.resolve_type_name(*e.value),
-            ellie_core::definite::types::Types::VariableType(e) => e.value,
-            ellie_core::definite::types::Types::Null => "null".to_string(),
-            ellie_core::definite::types::Types::AsKeyword(e) => self.resolve_type_name(*e.target),
-            ellie_core::definite::types::Types::Bool(_) => "bool".to_string(),
-            ellie_core::definite::types::Types::Dynamic => "dyn".to_string(),
-            ellie_core::definite::types::Types::Function(_) => "function".to_string(),
-            ellie_core::definite::types::Types::Byte(_) => "byte".to_string(),
-            ellie_core::definite::types::Types::Double(_) => "double".to_string(),
-            ellie_core::definite::types::Types::SetterCall(_) => todo!(),
-        }
-    }
-
     pub fn compare_defining_with_type(
         &mut self,
         defining: ellie_core::definite::definers::DefinerCollecting,
@@ -1284,12 +1252,12 @@ impl Parser {
                 let terminated = match unprocessed_page.page_type {
                     ellie_tokenizer::tokenizer::PageType::FunctionBody => match item {
                         Processors::Variable(e) => e.process(self, unprocessed_page.hash),
-                        Processors::GetterCall(_) => todo!(),
-                        Processors::SetterCall(_) => todo!(),
+                        Processors::GetterCall(e) => e.process(self, unprocessed_page.hash),
+                        Processors::SetterCall(e) => e.process(self, unprocessed_page.hash),
                         Processors::Function(e) => e.process(self, unprocessed_page.hash),
                         Processors::FileKey(e) => e.process(self, unprocessed_page.hash),
-                        Processors::ForLoop(_) => todo!(),
-                        Processors::Condition(_) => todo!(),
+                        Processors::ForLoop(e) => e.process(self, unprocessed_page.hash),
+                        Processors::Condition(e) => e.process(self, unprocessed_page.hash),
                         Processors::Getter(e) => e.process(self, unprocessed_page.hash),
                         Processors::Setter(e) => e.process(self, unprocessed_page.hash),
                         Processors::Class(e) => e.process(self, unprocessed_page.hash),
@@ -1320,12 +1288,12 @@ impl Parser {
                     },
                     ellie_tokenizer::tokenizer::PageType::ConstructorBody => match item {
                         Processors::Variable(e) => e.process(self, unprocessed_page.hash),
-                        Processors::GetterCall(_) => todo!(),
-                        Processors::SetterCall(_) => todo!(),
+                        Processors::GetterCall(e) => e.process(self, unprocessed_page.hash),
+                        Processors::SetterCall(e) => e.process(self, unprocessed_page.hash),
                         Processors::Function(e) => e.process(self, unprocessed_page.hash),
                         Processors::FileKey(e) => e.process(self, unprocessed_page.hash),
-                        Processors::ForLoop(_) => todo!(),
-                        Processors::Condition(_) => todo!(),
+                        Processors::ForLoop(e) => e.process(self, unprocessed_page.hash),
+                        Processors::Condition(e) => e.process(self, unprocessed_page.hash),
                         Processors::Class(e) => e.process(self, unprocessed_page.hash),
                         Processors::Getter(e) => e.process(self, unprocessed_page.hash),
                         Processors::Setter(e) => e.process(self, unprocessed_page.hash),
@@ -1365,10 +1333,9 @@ impl Parser {
                             }
                             true
                         }
-                        Processors::ForLoop(_) => todo!(),
-                        Processors::Condition(_) => todo!(),
+                        Processors::ForLoop(e) => e.process(self, unprocessed_page.hash),
+                        Processors::Condition(e) => e.process(self, unprocessed_page.hash),
                         Processors::Class(e) => e.process(self, unprocessed_page.hash),
-
                         Processors::Getter(e) => e.process(self, unprocessed_page.hash),
                         Processors::Setter(e) => e.process(self, unprocessed_page.hash),
 
@@ -1423,12 +1390,12 @@ impl Parser {
                     },
                     ellie_tokenizer::tokenizer::PageType::ValueConditionBody => match item {
                         Processors::Variable(e) => e.process(self, unprocessed_page.hash),
-                        Processors::GetterCall(_) => todo!(),
-                        Processors::SetterCall(_) => todo!(),
+                        Processors::GetterCall(e) => e.process(self, unprocessed_page.hash),
+                        Processors::SetterCall(e) => e.process(self, unprocessed_page.hash),
                         Processors::Function(e) => e.process(self, unprocessed_page.hash),
                         Processors::FileKey(e) => e.process(self, unprocessed_page.hash),
-                        Processors::ForLoop(_) => todo!(),
-                        Processors::Condition(_) => todo!(),
+                        Processors::ForLoop(e) => e.process(self, unprocessed_page.hash),
+                        Processors::Condition(e) => e.process(self, unprocessed_page.hash),
                         Processors::Class(e) => e.process(self, unprocessed_page.hash),
                         Processors::Getter(e) => e.process(self, unprocessed_page.hash),
                         Processors::Setter(e) => e.process(self, unprocessed_page.hash),
@@ -1449,6 +1416,44 @@ impl Parser {
                             false
                         }
                         Processors::SelfItem(_) => true,
+                        Processors::GenericItem(e) => e.process(self, unprocessed_page.hash),
+                        Processors::FunctionParameter(_) => true,
+                        Processors::ConstructorParameter(_) => true,
+                        unexpected_element => {
+                            self.informations.push(
+                                &error::error_list::ERROR_S22.clone().build_with_path(
+                                    vec![],
+                                    alloc::format!(
+                                        "{}:{}:{}",
+                                        file!().to_owned(),
+                                        line!(),
+                                        column!()
+                                    ),
+                                    unprocessed_page.path.clone(),
+                                    unexpected_element.get_pos(),
+                                ),
+                            );
+                            false
+                        }
+                    },
+                    ellie_tokenizer::tokenizer::PageType::ForBody => match item {
+                        Processors::Variable(e) => e.process(self, unprocessed_page.hash),
+                        Processors::GetterCall(e) => e.process(self, unprocessed_page.hash),
+                        Processors::SetterCall(e) => e.process(self, unprocessed_page.hash),
+                        Processors::Function(e) => e.process(self, unprocessed_page.hash),
+                        Processors::FileKey(e) => e.process(self, unprocessed_page.hash),
+                        Processors::ForLoop(e) => e.process(self, unprocessed_page.hash),
+                        Processors::Condition(e) => e.process(self, unprocessed_page.hash),
+                        Processors::Getter(e) => e.process(self, unprocessed_page.hash),
+                        Processors::Setter(e) => e.process(self, unprocessed_page.hash),
+                        Processors::Class(e) => e.process(self, unprocessed_page.hash),
+                        Processors::Ret(e) => {
+                            unprocessed_page.unreachable = true;
+                            e.process(self, unprocessed_page.hash)
+                        }
+                        Processors::SelfItem(_) => true,
+                        Processors::Brk(e) => e.process(self, unprocessed_page.hash),
+                        Processors::Go(e) => e.process(self, unprocessed_page.hash),
                         Processors::GenericItem(e) => e.process(self, unprocessed_page.hash),
                         Processors::FunctionParameter(_) => true,
                         Processors::ConstructorParameter(_) => true,
