@@ -391,7 +391,7 @@ fn iterate_deep_type(
                                         }
                                     }
                                 }
-                                _ => unreachable!()
+                                _ => unreachable!(),
                             }
                         } else {
                             errors.push(error::error_list::ERROR_S6.clone().build_with_path(
@@ -476,7 +476,7 @@ fn iterate_deep_type(
                                         }
                                     }
                                 }
-                                _ => unreachable!()
+                                _ => unreachable!(),
                             }
                         } else {
                             errors.push(error::error_list::ERROR_S6.clone().build_with_path(

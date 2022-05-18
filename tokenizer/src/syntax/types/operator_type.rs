@@ -131,7 +131,6 @@ pub enum Operators {
 }
 
 impl Operators {
-
     pub fn name_of_group(&self) -> &'static str {
         match *self {
             Operators::ComparisonType(_) => "Comparison operator",
