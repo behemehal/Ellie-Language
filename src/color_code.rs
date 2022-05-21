@@ -333,7 +333,7 @@ pub fn color_code(target_path: &Path, output_path: &Path, colorizer_settings: Co
                         lines
                     }
 
-                    for page in pager.pages {
+                    for page in pager.pages.iter() {
                         let file_path = &page.path.replace(
                             &starter_name,
                             Path::new(target_path)

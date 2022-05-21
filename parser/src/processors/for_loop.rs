@@ -4,8 +4,15 @@ use ellie_core::{definite::definers::DefinerCollecting, error};
 use ellie_tokenizer::{syntax::items::for_loop::ForLoop, tokenizer::PageType};
 
 impl super::Processor for ForLoop {
-    fn process(self, parser: &mut crate::parser::Parser, page_id: u64) -> bool {
-        let path = parser.find_page(page_id).unwrap().path.clone();
+    fn process(
+        &self,
+        parser: &mut super::Parser,
+        page_idx: usize,
+        processed_page_idx: usize,
+        page_hash: u64,
+    ) -> bool {
+        let page = parser.pages.nth(page_idx).unwrap().clone();
+        let path = page.path.clone();
         if self.variable.current.as_variable().is_none() {
             parser
                 .informations
@@ -28,7 +35,7 @@ impl super::Processor for ForLoop {
             .clone();
 
         let (duplicate, found) =
-            parser.is_duplicate(page_id, variable_name.clone(), 0, self.variable_pos);
+            parser.is_duplicate(page_hash, variable_name.clone(), 0, self.variable_pos);
 
         if duplicate {
             if let Some((page, cursor_pos)) = found {
@@ -38,7 +45,7 @@ impl super::Processor for ForLoop {
                         value: variable_name,
                     }],
                     alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                    parser.find_page(page_id).unwrap().path.clone(),
+                    path,
                     self.variable_pos,
                 );
                 err.reference_block = Some((cursor_pos, page.path));
@@ -46,7 +53,6 @@ impl super::Processor for ForLoop {
                 err.semi_assist = true;
                 parser.informations.push(&err);
             } else {
-                let page_path = parser.find_page(page_id).unwrap().path.clone();
                 parser
                     .informations
                     .push(&error::error_list::ERROR_S24.clone().build_with_path(
@@ -55,14 +61,19 @@ impl super::Processor for ForLoop {
                             value: variable_name.clone(),
                         }],
                         alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                        page_path,
+                        path,
                         self.variable_pos,
                     ))
             }
             return false;
         } else {
-            let iterator = match process(self.target_iterator.current, parser, page_id, None, false)
-            {
+            let iterator = match process(
+                self.target_iterator.current.clone(),
+                parser,
+                page_hash,
+                None,
+                false,
+            ) {
                 Ok(rtype) => rtype,
                 Err(e) => {
                     parser.informations.extend(&e);
@@ -74,7 +85,7 @@ impl super::Processor for ForLoop {
 
             let target_iterator = match crate::deep_search_extensions::resolve_type(
                 iterator.clone(),
-                page_id,
+                page_hash,
                 parser,
                 &mut errors,
                 Some(self.iterator_pos),
@@ -121,7 +132,6 @@ impl super::Processor for ForLoop {
             }
 
             let inner_page_id: u64 = ellie_core::utils::generate_hash_u64();
-            let page = parser.find_page(page_id).unwrap().clone();
             let mut dependencies = vec![ellie_tokenizer::tokenizer::Dependency {
                 hash: page.hash.clone(),
                 processed: false,
@@ -130,7 +140,7 @@ impl super::Processor for ForLoop {
                 public: false,
             }];
 
-            let mut items = self.body;
+            let mut items = self.body.clone();
 
             items.push(ellie_tokenizer::processors::items::Processors::Variable(
                 ellie_tokenizer::syntax::items::variable::VariableCollector {
@@ -167,8 +177,8 @@ impl super::Processor for ForLoop {
                 dependencies,
                 ..Default::default()
             };
-            parser.pages.push(inner);
-            let processed_page = parser.find_processed_page(page_id).unwrap();
+            parser.pages.push_page(inner);
+            let processed_page = parser.processed_pages.nth_mut(processed_page_idx).unwrap();
             processed_page
                 .items
                 .push(ellie_core::definite::items::Collecting::ForLoop(

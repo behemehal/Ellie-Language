@@ -25,5 +25,11 @@ pub trait Processor {
     /// * `page_id` - [`u64`]
     /// ## Returns
     /// [`bool`] - `true` if parsing should continue
-    fn process(self, parser: &mut Parser, page_id: u64) -> bool;
+    fn process(
+        &self,
+        parser: &mut Parser,
+        page_idx: usize,
+        processed_page_idx: usize,
+        page_hash: u64,
+    ) -> bool;
 }

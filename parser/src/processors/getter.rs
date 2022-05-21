@@ -3,20 +3,23 @@ use ellie_core::{definite::Converter, error, warning};
 use ellie_tokenizer::{syntax::items::getter, tokenizer::PageType};
 
 impl super::Processor for getter::Getter {
-    fn process(self, parser: &mut crate::parser::Parser, page_id: u64) -> bool {
+    fn process(
+        &self,
+        parser: &mut super::Parser,
+        page_idx: usize,
+        processed_page_idx: usize,
+        page_hash: u64,
+    ) -> bool {
         let (duplicate, found) =
-            parser.is_duplicate(page_id, self.name.clone(), self.hash.clone(), self.pos);
-        let page = parser.find_page(page_id).unwrap().clone();
+            parser.is_duplicate(page_hash, self.name.clone(), self.hash.clone(), self.pos);
+        let path = parser.pages.nth(page_idx).unwrap().path.clone();
 
         if duplicate {
             if let Some((page, cursor_pos)) = found {
                 let mut err = error::error_list::ERROR_S24.clone().build_with_path(
-                    vec![error::ErrorBuildField {
-                        key: "token".to_owned(),
-                        value: self.name,
-                    }],
+                    vec![error::ErrorBuildField::new("token", &self.name)],
                     alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                    parser.find_page(page_id).unwrap().path.clone(),
+                    path.clone(),
                     self.name_pos,
                 );
                 err.reference_block = Some((cursor_pos, page.path));
@@ -27,12 +30,9 @@ impl super::Processor for getter::Getter {
                 parser
                     .informations
                     .push(&error::error_list::ERROR_S24.clone().build_with_path(
-                        vec![error::ErrorBuildField {
-                            key: "token".to_owned(),
-                            value: self.name,
-                        }],
+                        vec![error::ErrorBuildField::new("token", &self.name)],
                         alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                        page.path.clone(),
+                        path.clone(),
                         self.name_pos,
                     ))
             }
@@ -47,7 +47,7 @@ impl super::Processor for getter::Getter {
                 let (is_correct, fixed) =
                     (ellie_standard_rules::rules::FUNCTION_NAMING_ISSUE.worker)(self.name.clone());
                 if !is_correct
-                    && !parser.page_has_file_key_with(page_id, "allow", "FunctionNameRule")
+                    && !parser.page_has_file_key_with(page_hash, "allow", "FunctionNameRule")
                 {
                     parser
                         .informations
@@ -62,34 +62,36 @@ impl super::Processor for getter::Getter {
                                     value: fixed,
                                 },
                             ],
-                            page.path.clone(),
+                            path.clone(),
                             self.name_pos,
                         ))
                 }
             }
+            let inner = {
+                let page = parser.pages.nth(page_idx).unwrap();
+                let mut dependencies = vec![ellie_tokenizer::tokenizer::Dependency {
+                    hash: page.hash.clone(),
+                    processed: false,
+                    module: None,
+                    deep_link: None,
+                    public: false,
+                }];
+                dependencies.extend(page.dependencies.clone());
 
-            let mut dependencies = vec![ellie_tokenizer::tokenizer::Dependency {
-                hash: page.hash.clone(),
-                processed: false,
-                module: None,
-                deep_link: None,
-                public: false,
-            }];
-            dependencies.extend(page.dependencies);
-
-            let inner = ellie_tokenizer::tokenizer::Page {
-                hash: inner_page_id,
-                inner: Some(page.hash),
-                path: page.path.clone(),
-                page_type: PageType::FunctionBody,
-                items,
-                dependents: vec![],
-                dependencies,
-                ..Default::default()
+                ellie_tokenizer::tokenizer::Page {
+                    hash: inner_page_id,
+                    inner: Some(page.hash),
+                    path: path.clone(),
+                    page_type: PageType::FunctionBody,
+                    items,
+                    dependents: vec![],
+                    dependencies,
+                    ..Default::default()
+                }
             };
-            parser.pages.push(inner);
+            parser.pages.push_page(inner);
 
-            let processed_page = parser.find_processed_page(page_id).unwrap();
+            let processed_page = parser.processed_pages.nth_mut(processed_page_idx).unwrap();
 
             processed_page
                 .items
@@ -140,10 +142,10 @@ impl super::Processor for getter::Getter {
                                         line!(),
                                         column!()
                                     ),
-                                    parser.find_page(page_id).unwrap().path.clone(),
+                                    path.clone(),
                                     ret.pos,
                                 );
-                                err.reference_block = Some((self.return_pos, page.path));
+                                err.reference_block = Some((self.return_pos, path.clone()));
                                 err.reference_message = "Defined here".to_owned();
                                 err.semi_assist = true;
                                 parser.informations.push(&err);

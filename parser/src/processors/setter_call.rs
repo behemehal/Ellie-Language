@@ -6,23 +6,36 @@ use ellie_tokenizer::syntax::{
 };
 
 impl super::Processor for SetterCall {
-    fn process(self, parser: &mut super::Parser, page_id: u64) -> bool {
+    fn process(
+        &self,
+        parser: &mut super::Parser,
+        page_idx: usize,
+        processed_page_idx: usize,
+        page_hash: u64,
+    ) -> bool {
         let current_page = parser
-            .find_page(page_id)
+            .pages
+            .nth(page_idx)
             .unwrap_or_else(|| panic!("Failed to find page"))
             .clone();
 
         //let mut errors = Vec::new();
 
-        match super::type_processor::process(self.target, parser, page_id, None, true) {
+        match super::type_processor::process(self.target.clone(), parser, page_hash, None, true) {
             Ok(target) => match target.clone() {
                 ellie_core::definite::types::Types::Reference(_) => {
-                    match super::type_processor::process(self.value, parser, page_id, None, false) {
+                    match super::type_processor::process(
+                        self.value.clone(),
+                        parser,
+                        page_hash,
+                        None,
+                        false,
+                    ) {
                         Ok(processed_value_type) => {
                             let mut errors = Vec::new();
                             let target_type = match resolve_type(
                                 target.clone(),
-                                page_id,
+                                page_hash,
                                 parser,
                                 &mut errors,
                                 Some(self.target_pos),
@@ -42,7 +55,7 @@ impl super::Processor for SetterCall {
                             let comperable = parser.compare_defining_with_type(
                                 target_type,
                                 processed_value_type.clone(),
-                                page_id,
+                                page_hash,
                             );
 
                             match comperable {
@@ -72,7 +85,10 @@ impl super::Processor for SetterCall {
                                         );
                                         return false;
                                     } else {
-                                        let page = parser.find_processed_page(page_id).unwrap();
+                                        let page = parser
+                                            .processed_pages
+                                            .nth_mut(processed_page_idx)
+                                            .unwrap();
                                         page.items.push(ellie_core::definite::items::Collecting::SetterCall(
                                             ellie_core::definite::items::setter_call::SetterCall {
                                                 target,
@@ -104,12 +120,18 @@ impl super::Processor for SetterCall {
                     };
                 }
                 ellie_core::definite::types::Types::BraceReference(_) => {
-                    match super::type_processor::process(self.value, parser, page_id, None, false) {
+                    match super::type_processor::process(
+                        self.value.clone(),
+                        parser,
+                        page_hash,
+                        None,
+                        false,
+                    ) {
                         Ok(processed_value_type) => {
                             let mut errors = Vec::new();
                             let mut target_type = match resolve_type(
                                 target.clone(),
-                                page_id,
+                                page_hash,
                                 parser,
                                 &mut errors,
                                 Some(self.target_pos),
@@ -131,7 +153,7 @@ impl super::Processor for SetterCall {
                             let comperable = parser.compare_defining_with_type(
                                 target_type,
                                 processed_value_type.clone(),
-                                page_id,
+                                page_hash,
                             );
 
                             match comperable {
@@ -162,7 +184,10 @@ impl super::Processor for SetterCall {
                                         parser.informations.push(&err);
                                         return false;
                                     } else {
-                                        let page = parser.find_processed_page(page_id).unwrap();
+                                        let page = parser
+                                            .processed_pages
+                                            .nth_mut(processed_page_idx)
+                                            .unwrap();
                                         page.items.push(ellie_core::definite::items::Collecting::SetterCall(
                                             ellie_core::definite::items::setter_call::SetterCall {
                                                 target,
@@ -194,8 +219,13 @@ impl super::Processor for SetterCall {
                     };
                 }
                 ellie_core::definite::types::Types::VariableType(variable_reference) => {
-                    let deep_type =
-                        deep_search_hash(parser, page_id, variable_reference.reference, vec![], 0);
+                    let deep_type = deep_search_hash(
+                        parser,
+                        page_hash,
+                        variable_reference.reference,
+                        vec![],
+                        0,
+                    );
                     if deep_type.found {
                         match deep_type.found_item {
                             crate::deep_search_extensions::ProcessedDeepSearchItems::Variable(
@@ -224,7 +254,7 @@ impl super::Processor for SetterCall {
                                     } else {
                                         match resolve_type(
                                             variable.value,
-                                            page_id,
+                                            page_hash,
                                             parser,
                                             &mut errors,
                                             Some(variable.value_pos),
@@ -238,13 +268,17 @@ impl super::Processor for SetterCall {
                                     };
 
                                     match super::type_processor::process(
-                                        self.value, parser, page_id, None, false,
+                                        self.value.clone(),
+                                        parser,
+                                        page_hash,
+                                        None,
+                                        false,
                                     ) {
                                         Ok(processed_value_type) => {
                                             let comperable = parser.compare_defining_with_type(
                                                 target_type,
                                                 processed_value_type.clone(),
-                                                page_id,
+                                                page_hash,
                                             );
                                             match comperable {
                                                 Ok((compare, defined, given)) => {
@@ -286,7 +320,8 @@ impl super::Processor for SetterCall {
                                                         return false;
                                                     } else {
                                                         let page = parser
-                                                            .find_processed_page(page_id)
+                                                            .processed_pages
+                                                            .nth_mut(processed_page_idx)
                                                             .unwrap();
                                                         page.items.push(ellie_core::definite::items::Collecting::SetterCall(
                                                             ellie_core::definite::items::setter_call::SetterCall {
@@ -328,12 +363,18 @@ impl super::Processor for SetterCall {
                     }
                 }
                 ellie_core::definite::types::Types::SetterCall(setter_type) => {
-                    match super::type_processor::process(self.value, parser, page_id, None, false) {
+                    match super::type_processor::process(
+                        self.value.clone(),
+                        parser,
+                        page_hash,
+                        None,
+                        false,
+                    ) {
                         Ok(processed_value_type) => {
                             let comperable = parser.compare_defining_with_type(
                                 setter_type,
                                 processed_value_type.clone(),
-                                page_id,
+                                page_hash,
                             );
                             match comperable {
                                 Ok((compare, defined, given)) => {
@@ -362,7 +403,10 @@ impl super::Processor for SetterCall {
                                         );
                                         return false;
                                     } else {
-                                        let page = parser.find_processed_page(page_id).unwrap();
+                                        let page = parser
+                                            .processed_pages
+                                            .nth_mut(processed_page_idx)
+                                            .unwrap();
                                         page.items.push(ellie_core::definite::items::Collecting::SetterCall(
                                             ellie_core::definite::items::setter_call::SetterCall {
                                                 target,

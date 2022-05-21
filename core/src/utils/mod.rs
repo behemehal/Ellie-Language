@@ -1,6 +1,9 @@
+use core::ops::{Index, IndexMut};
+
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 use rand;
+use serde::{Deserialize, Serialize};
 
 use crate::definite::types::operator::Operators;
 
@@ -235,5 +238,112 @@ pub fn resolve_operator(operator: &str) -> Option<FoundExtended> {
         Some(FoundExtended::ArithmeticOperator)
     } else {
         None
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PageExport<T> {
+    pub pages: Vec<T>,
+    pub page_hashs: (Vec<usize>, Vec<u64>),
+}
+
+impl<T> Index<usize> for PageExport<T> {
+    type Output = T;
+    fn index<'a>(&'a self, i: usize) -> &'a Self::Output {
+        &self.pages[i]
+    }
+}
+
+impl<T> IndexMut<usize> for PageExport<T> {
+    fn index_mut<'a>(&'a mut self, i: usize) -> &'a mut Self::Output {
+        &mut self.pages[i]
+    }
+}
+
+pub trait ExportPage {
+    fn get_hash(&self) -> u64;
+}
+
+impl<T> PageExport<T>
+where
+    T: ExportPage + core::fmt::Debug,
+{
+    pub fn new() -> PageExport<T> {
+        PageExport {
+            pages: Vec::new(),
+            page_hashs: (Vec::new(), Vec::new()),
+        }
+    }
+
+    pub fn into_iter(self) -> impl Iterator<Item = T> {
+        self.pages.into_iter()
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = &T> {
+        self.pages.iter()
+    }
+
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut T> {
+        self.pages.iter_mut()
+    }
+
+    /// Push page with binary search in mind
+    pub fn push_page(&mut self, page: T) {
+        //self.page_hashs.0.push(self.pages.len());
+        //self.page_hashs.1.push(page.get_hash());
+        //match self.page_hashs.1.binary_search(&page.get_hash()) {
+        //    Ok(e) => {
+        //        panic!("Page hash already exists at index: {}", e);
+        //    } // element already in vector @ `pos`
+        //    Err(pos) => self.page_hashs.1.insert(pos, page.get_hash()),
+        //}
+        self.pages.push(page);
+    }
+
+    /// Extend pages
+    pub fn extend_pages(&mut self, pages: Vec<T>) {
+        for page in pages {
+            self.push_page(page);
+        }
+    }
+
+    pub fn nth_mut(&mut self, n: usize) -> Option<&mut T> {
+        self.pages.get_mut(n)
+    }
+
+    pub fn nth(&self, n: usize) -> Option<&T> {
+        self.pages.get(n)
+    }
+
+    /// Find page
+    /// ## Arguments
+    /// * `hash` - page hash
+    /// ## Returns
+    /// Option<&mut [`Page`]> //Page
+    pub fn find_page(&mut self, hash: u64) -> Option<&mut T> {
+        self.pages.iter_mut().find(|page| page.get_hash() == hash)
+        //match self.page_hashs.1.iter().position(|x| x == &hash) {
+        //    Some(index_pos) => {
+        //        let page_index = self.page_hashs.0[index_pos];
+        //        self.pages.iter_mut().nth(page_index)
+        //    }
+        //    None => None,
+        //}
+    }
+
+    /// Find page
+    /// ## Arguments
+    /// * `hash` - page hash
+    /// ## Returns
+    /// Option<(&mut [`Page`], usize)> //Page and index
+    pub fn find_page_and_idx(&mut self, hash: u64) -> Option<(&mut T, usize)> {
+        let pos = self
+            .pages
+            .iter_mut()
+            .position(|page| page.get_hash() == hash);
+        match pos {
+            Some(index_pos) => Some((self.pages.iter_mut().nth(index_pos).unwrap(), index_pos)),
+            None => None,
+        }
     }
 }

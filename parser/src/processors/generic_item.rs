@@ -1,16 +1,25 @@
 use ellie_tokenizer::syntax::items::generic_item::GenericItem;
 
 impl super::Processor for GenericItem {
-    fn process(self, parser: &mut crate::parser::Parser, page_id: u64) -> bool {
-        parser.find_processed_page(page_id).unwrap().items.push(
-            ellie_core::definite::items::Collecting::Generic(
+    fn process(
+        &self,
+        parser: &mut super::Parser,
+        _page_idx: usize,
+        processed_page_idx: usize,
+        _page_hash: u64,
+    ) -> bool {
+        parser
+            .processed_pages
+            .nth_mut(processed_page_idx)
+            .unwrap()
+            .items
+            .push(ellie_core::definite::items::Collecting::Generic(
                 ellie_core::definite::items::generic::Generic {
-                    name: self.generic_name,
+                    name: self.generic_name.clone(),
                     pos: self.pos,
                     hash: self.hash,
                 },
-            ),
-        );
+            ));
         true
     }
 }

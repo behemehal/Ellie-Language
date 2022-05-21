@@ -11,13 +11,20 @@ use ellie_tokenizer::{
 };
 
 impl super::Processor for Condition {
-    fn process(self, parser: &mut super::Parser, page_id: u64) -> bool {
+    fn process(
+        &self,
+        parser: &mut super::Parser,
+        page_idx: usize,
+        processed_page_idx: usize,
+        page_hash: u64,
+    ) -> bool {
         let mut common_return: Option<(
             Cursor,
             Option<(DefinerCollecting, Cursor)>,
             ellie_tokenizer::syntax::items::condition::ConditionType,
         )> = None;
 
+        let path = parser.pages.nth(page_idx).unwrap().path.clone();
         //(processed_page_id, conditionType)
         let mut chains: Vec<(u64, Types)> = Vec::new();
 
@@ -31,7 +38,7 @@ impl super::Processor for Condition {
                 match crate::processors::type_processor::process(
                     chain.condition.clone().current.clone(),
                     parser,
-                    page_id,
+                    page_hash,
                     None,
                     false,
                 ) {
@@ -39,7 +46,7 @@ impl super::Processor for Condition {
                         condition_type = condition.clone();
                         let condition_type = resolve_type(
                             condition,
-                            page_id,
+                            page_hash,
                             parser,
                             &mut errors,
                             Some(condition_pos),
@@ -52,7 +59,6 @@ impl super::Processor for Condition {
 
                         //If condition type is not boolean, we can't continue
                         if condition_type.to_string() != "bool" {
-                            let path = parser.find_page(page_id).unwrap().path.to_owned();
                             parser.informations.push(
                                 &error::error_list::ERROR_S3.clone().build_with_path(
                                     vec![
@@ -71,7 +77,7 @@ impl super::Processor for Condition {
                                         line!(),
                                         column!()
                                     ),
-                                    path,
+                                    path.clone(),
                                     condition_pos,
                                 ),
                             );
@@ -84,7 +90,7 @@ impl super::Processor for Condition {
                 }
             }
 
-            let page = parser.find_page(page_id).unwrap().clone();
+            let page = parser.pages.nth_mut(page_idx).unwrap().clone();
             let inner_page_id: u64 = ellie_core::utils::generate_hash_u64();
             let mut dependencies = vec![ellie_tokenizer::tokenizer::Dependency {
                 hash: page.hash.clone(),
@@ -105,7 +111,7 @@ impl super::Processor for Condition {
                 dependencies,
                 ..Default::default()
             };
-            parser.pages.push(inner);
+            parser.pages.push_page(inner);
             chains.push((inner_page_id, condition_type));
 
             parser.process_page(inner_page_id);
@@ -127,8 +133,6 @@ impl super::Processor for Condition {
                             match e.1 {
                                 Some(previous_type) => {
                                     if previous_type.0 != ret_type {
-                                        let path =
-                                            parser.find_page(page_id).unwrap().path.to_owned();
                                         let mut error =
                                             error::error_list::ERROR_S13.clone().build_with_path(
                                                 vec![
@@ -161,14 +165,14 @@ impl super::Processor for Condition {
                                                 e.0,
                                             );
 
-                                        error.reference_block = Some((previous_type.1, path));
+                                        error.reference_block =
+                                            Some((previous_type.1, path.clone()));
                                         error.reference_message = "Type mismatch".to_string();
 
                                         parser.informations.push(&error);
                                     }
                                 }
                                 None => {
-                                    let path = parser.find_page(page_id).unwrap().path.to_owned();
                                     let mut error =
                                         error::error_list::ERROR_S13.clone().build_with_path(
                                             vec![
@@ -200,7 +204,7 @@ impl super::Processor for Condition {
                                             path.clone(),
                                             e.0,
                                         );
-                                    error.reference_block = Some((ret.pos, path));
+                                    error.reference_block = Some((ret.pos, path.clone()));
                                     error.reference_message = "Type mismatch".to_string();
                                     parser.informations.push(&error);
                                 }
@@ -230,7 +234,6 @@ impl super::Processor for Condition {
                     Some(e) => {
                         match e.1 {
                             Some(f) => {
-                                let path = parser.find_page(page_id).unwrap().path.to_owned();
                                 let mut error =
                                     error::error_list::ERROR_S13.clone().build_with_path(
                                         vec![
@@ -262,7 +265,7 @@ impl super::Processor for Condition {
                                         path.clone(),
                                         e.0,
                                     );
-                                error.reference_block = Some((f.1, path));
+                                error.reference_block = Some((f.1, path.clone()));
                                 error.reference_message = "Type mismatch".to_string();
                                 parser.informations.push(&error);
                             }
@@ -278,7 +281,7 @@ impl super::Processor for Condition {
             }
         }
 
-        let processed_page = parser.find_processed_page(page_id).unwrap();
+        let processed_page = parser.processed_pages.nth_mut(processed_page_idx).unwrap();
 
         processed_page
             .items

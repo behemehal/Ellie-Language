@@ -11,9 +11,7 @@ pub struct Go {
 
 impl Converter<Go, ellie_core::definite::items::go::Go> for Go {
     fn to_definite(self) -> ellie_core::definite::items::go::Go {
-        ellie_core::definite::items::go::Go {
-            pos: self.pos,
-        }
+        ellie_core::definite::items::go::Go { pos: self.pos }
     }
 
     fn from_definite(self, from: ellie_core::definite::items::go::Go) -> Go {

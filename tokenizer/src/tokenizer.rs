@@ -1,5 +1,8 @@
 use crate::processors::items;
-use ellie_core::{defs, error};
+use ellie_core::{
+    defs, error,
+    utils::{ExportPage, PageExport},
+};
 use serde::{Deserialize, Serialize};
 
 /// TokenizerOptions
@@ -67,6 +70,12 @@ pub struct Page {
     pub items: Vec<items::Processors>,
     pub dependents: Vec<u64>,
     pub dependencies: Vec<Dependency>,
+}
+
+impl ExportPage for Page {
+    fn get_hash(&self) -> u64 {
+        self.hash
+    }
 }
 
 impl Page {
@@ -192,7 +201,7 @@ pub struct Module {
 pub struct Pager<E> {
     pub main: String,
     pub main_path: String,
-    pub pages: Vec<Page>,
+    pub pages: PageExport<Page>,
     pub modules: Vec<Module>,
     pub current_page: u64,
     pub import_resolver: E,
@@ -230,7 +239,7 @@ where
     /// };
     /// ```
     pub fn find_page(&mut self, hash: u64) -> Option<&mut Page> {
-        self.pages.iter_mut().find(|page| page.hash == hash)
+        self.pages.find_page(hash)
     }
 
     /// Find module by hash
@@ -277,19 +286,22 @@ where
         Pager {
             main: main,
             main_path: path.clone(),
-            pages: vec![Page {
-                hash: initial_hash,
-                inner: None,
-                path: path + &main_file_name,
-                processed: false,
-                module: false,
-                items: vec![],
-                dependents: vec![],
-                dependencies: vec![],
-                page_type: PageType::RawBody,
-                unreachable: false,
-                unreachable_range: defs::Cursor::default(),
-            }],
+            pages: PageExport {
+                pages: vec![Page {
+                    hash: initial_hash,
+                    inner: None,
+                    path: path + &main_file_name,
+                    processed: false,
+                    module: false,
+                    items: vec![],
+                    dependents: vec![],
+                    dependencies: vec![],
+                    page_type: PageType::RawBody,
+                    unreachable: false,
+                    unreachable_range: defs::Cursor::default(),
+                }],
+                page_hashs: (vec![0], vec![initial_hash]),
+            },
             current_page: initial_hash,
             import_resolver,
             modules: vec![],
@@ -396,7 +408,7 @@ where
                                     data.extend(public_dependencies);
                                 }
                                 None => {
-                                    self.pages.push(Page {
+                                    self.pages.push_page(Page {
                                         inner: None,
                                         hash: resolved.hash,
                                         path: resolved.path,
@@ -478,24 +490,14 @@ where
     ///     }    
     /// }
     /// ```
-    pub fn run(&mut self) -> Result<Vec<RawPage>, Vec<ellie_core::error::Error>> {
+    pub fn run(&mut self) -> Result<(), Vec<ellie_core::error::Error>> {
         match self.resolve_page(self.current_page, self.main.clone()) {
             Ok(e) => {
                 self.find_page(self.current_page)
                     .unwrap()
                     .dependencies
                     .extend(e);
-                Ok(self
-                    .pages
-                    .clone()
-                    .into_iter()
-                    .map(|x| RawPage {
-                        hash: x.hash,
-                        path: x.path,
-                        dependents: x.dependents,
-                        dependencies: x.dependencies,
-                    })
-                    .collect::<Vec<_>>())
+                Ok(())
             }
             Err(e) => Err(e),
         }
