@@ -3,20 +3,23 @@ use ellie_core::{error, warning};
 use ellie_tokenizer::{syntax::items::setter, tokenizer::PageType};
 
 impl super::Processor for setter::Setter {
-    fn process(self, parser: &mut crate::parser::Parser, page_id: u64) -> bool {
+    fn process(
+        &self,
+        parser: &mut super::Parser,
+        page_idx: usize,
+        processed_page_idx: usize,
+        page_hash: u64,
+    ) -> bool {
         let (duplicate, found) =
-            parser.is_duplicate(page_id, self.name.clone(), self.hash.clone(), self.pos);
-        let page = parser.find_page(page_id).unwrap().clone();
+            parser.is_duplicate(page_hash, self.name.clone(), self.hash.clone(), self.pos);
+        let path = parser.pages.nth(page_idx).unwrap().path.clone();
 
         if duplicate {
             if let Some((page, cursor_pos)) = found {
                 let mut err = error::error_list::ERROR_S24.clone().build_with_path(
-                    vec![error::ErrorBuildField {
-                        key: "token".to_owned(),
-                        value: self.name,
-                    }],
+                    vec![error::ErrorBuildField::new("token", &self.name)],
                     alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                    parser.find_page(page_id).unwrap().path.clone(),
+                    path,
                     self.name_pos,
                 );
                 err.reference_block = Some((cursor_pos, page.path));
@@ -27,12 +30,9 @@ impl super::Processor for setter::Setter {
                 parser
                     .informations
                     .push(&error::error_list::ERROR_S24.clone().build_with_path(
-                        vec![error::ErrorBuildField {
-                            key: "token".to_owned(),
-                            value: self.name,
-                        }],
+                        vec![error::ErrorBuildField::new("token", &self.name)],
                         alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                        page.path.clone(),
+                        path.clone(),
                         self.name_pos,
                     ))
             }
@@ -48,7 +48,7 @@ impl super::Processor for setter::Setter {
             let parameter = self.parameters.first().unwrap().clone();
 
             let (duplicate, found) =
-                parser.is_duplicate(page_id, parameter.name.clone(), 0, parameter.name_pos);
+                parser.is_duplicate(page_hash, parameter.name.clone(), 0, parameter.name_pos);
 
             if duplicate {
                 if let Some((page, cursor_pos)) = found {
@@ -58,7 +58,7 @@ impl super::Processor for setter::Setter {
                             value: parameter.name.clone(),
                         }],
                         alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                        parser.find_page(page_id).unwrap().path.clone(),
+                        path,
                         parameter.name_pos,
                     );
                     err.reference_block = Some((cursor_pos, page.path));
@@ -75,7 +75,7 @@ impl super::Processor for setter::Setter {
                                 value: parameter.name.clone(),
                             }],
                             alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                            page.path.clone(),
+                            path.clone(),
                             parameter.name_pos,
                         ))
                 }
@@ -83,7 +83,7 @@ impl super::Processor for setter::Setter {
                 match super::definer_processor::process(
                     parameter.rtype.definer_type.clone(),
                     parser,
-                    page_id,
+                    page_hash,
                     None,
                 ) {
                     Ok(e) => {
@@ -95,7 +95,7 @@ impl super::Processor for setter::Setter {
                                 );
                             if !is_correct
                                 && !parser.page_has_file_key_with(
-                                    page_id,
+                                    page_hash,
                                     "allow",
                                     "FunctionParameterNameRule",
                                 )
@@ -112,7 +112,7 @@ impl super::Processor for setter::Setter {
                                                 value: fixed,
                                             },
                                         ],
-                                        page.path.clone(),
+                                        path.clone(),
                                         parameter.name_pos,
                                     ),
                                 )
@@ -149,7 +149,7 @@ impl super::Processor for setter::Setter {
                 let (is_correct, fixed) =
                     (ellie_standard_rules::rules::FUNCTION_NAMING_ISSUE.worker)(self.name.clone());
                 if !is_correct
-                    && !parser.page_has_file_key_with(page_id, "allow", "FunctionNameRule")
+                    && !parser.page_has_file_key_with(page_hash, "allow", "FunctionNameRule")
                 {
                     parser
                         .informations
@@ -164,20 +164,22 @@ impl super::Processor for setter::Setter {
                                     value: fixed,
                                 },
                             ],
-                            page.path.clone(),
+                            path.clone(),
                             self.name_pos,
                         ))
                 }
             }
 
+            let page = parser.pages.nth_mut(page_idx).unwrap();
+
             let mut dependencies = vec![ellie_tokenizer::tokenizer::Dependency {
-                hash: page.hash.clone(),
+                hash: page_hash,
                 processed: false,
                 module: None,
                 deep_link: None,
                 public: false,
             }];
-            dependencies.extend(page.dependencies);
+            dependencies.extend(page.dependencies.clone());
 
             let inner = ellie_tokenizer::tokenizer::Page {
                 hash: inner_page_id,
@@ -189,8 +191,8 @@ impl super::Processor for setter::Setter {
                 dependencies,
                 ..Default::default()
             };
-            parser.pages.push(inner);
-            let processed_page = parser.find_processed_page(page_id).unwrap();
+            parser.pages.push_page(inner);
+            let processed_page = parser.processed_pages.nth_mut(processed_page_idx).unwrap();
 
             if setter_parameter.is_none() {
                 panic!("{:?}", parser.informations);

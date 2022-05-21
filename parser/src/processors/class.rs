@@ -3,18 +3,22 @@ use ellie_core::{defs, error, warning};
 use ellie_tokenizer::{syntax::items::class::Class, tokenizer::PageType};
 
 impl super::Processor for Class {
-    fn process(self, parser: &mut super::Parser, page_id: u64) -> bool {
+    fn process(
+        &self,
+        parser: &mut super::Parser,
+        page_idx: usize,
+        _processed_page_idx: usize,
+        page_hash: u64,
+    ) -> bool {
         let (duplicate, found) =
-            parser.is_duplicate(page_id, self.name.clone(), self.hash.clone(), self.pos);
+            parser.is_duplicate(page_hash, self.name.clone(), self.hash.clone(), self.pos);
+        let path = parser.pages.nth(page_idx).unwrap().path.clone();
         if duplicate {
             if let Some((page, cursor_pos)) = found {
                 let mut err = error::error_list::ERROR_S24.clone().build_with_path(
-                    vec![error::ErrorBuildField {
-                        key: "token".to_owned(),
-                        value: self.name,
-                    }],
+                    vec![error::ErrorBuildField::new("token", &self.name)],
                     alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                    parser.find_page(page_id).unwrap().path.clone(),
+                    path.clone(),
                     self.name_pos,
                 );
                 err.reference_block = Some((cursor_pos, page.path));
@@ -22,14 +26,10 @@ impl super::Processor for Class {
                 err.semi_assist = true;
                 parser.informations.push(&err);
             } else {
-                let path = parser.find_page(page_id).unwrap().path.clone();
                 parser
                     .informations
                     .push(&error::error_list::ERROR_S24.clone().build_with_path(
-                        vec![error::ErrorBuildField {
-                            key: "token".to_owned(),
-                            value: self.name,
-                        }],
+                        vec![error::ErrorBuildField::new("token", &self.name)],
                         alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                         path,
                         self.name_pos,
@@ -41,9 +41,9 @@ impl super::Processor for Class {
             {
                 let (is_correct, fixed) =
                     (ellie_standard_rules::rules::CLASS_NAMING_ISSUE.worker)(self.name.clone());
-                if !is_correct && !parser.page_has_file_key_with(page_id, "allow", "ClassNameRule")
+                if !is_correct
+                    && !parser.page_has_file_key_with(page_hash, "allow", "ClassNameRule")
                 {
-                    let path = parser.find_page(page_id).unwrap().path.clone();
                     parser
                         .informations
                         .push(&warning::warning_list::WARNING_S1.clone().build(
@@ -57,13 +57,13 @@ impl super::Processor for Class {
                                     value: fixed,
                                 },
                             ],
-                            path,
+                            path.clone(),
                             self.name_pos,
                         ))
                 }
             }
 
-            let page = parser.find_page(page_id).unwrap().clone();
+            let page = parser.pages.nth_mut(page_idx).unwrap().clone();
 
             let constructors = self.body.iter().filter_map(|item| match item {
                 ellie_tokenizer::processors::items::Processors::Constructor(e) => Some(e),
@@ -89,7 +89,7 @@ impl super::Processor for Class {
                     let mut err = error::error_list::ERROR_S30.clone().build_with_path(
                         vec![],
                         alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                        parser.find_page(page_id).unwrap().path.clone(),
+                        path.clone(),
                         constructor.unwrap().pos,
                     );
                     err.reference_block = Some((prime.pos, page.path.clone()));
@@ -109,7 +109,7 @@ impl super::Processor for Class {
                         let mut err = error::error_list::ERROR_S10.clone().build_with_path(
                             vec![],
                             alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                            parser.find_page(page_id).unwrap().path.clone(),
+                            path.clone(),
                             generic.pos,
                         );
                         err.reference_block =
@@ -123,7 +123,7 @@ impl super::Processor for Class {
 
             let inner_page_id: u64 = ellie_core::utils::generate_hash_u64();
 
-            let mut items = self.body;
+            let mut items = self.body.clone();
 
             for generic in self.generic_definings.clone() {
                 items.push(ellie_tokenizer::processors::items::Processors::GenericItem(
@@ -137,7 +137,7 @@ impl super::Processor for Class {
 
             items.push(ellie_tokenizer::processors::items::Processors::SelfItem(
                 ellie_tokenizer::syntax::items::self_item::SelfItem {
-                    class_page: page_id,
+                    class_page: page_hash,
                     class_hash: self.hash.clone(),
                 },
             ));
@@ -164,10 +164,10 @@ impl super::Processor for Class {
                 processed: false,
                 module: false,
             };
-            parser.pages.push(inner);
+            parser.pages.push_page(inner);
             let processed = ellie_core::definite::items::Collecting::Class(
                 ellie_core::definite::items::class::Class {
-                    name: self.name,
+                    name: self.name.clone(),
                     public: self.public,
                     inner_page_id,
                     name_pos: self.name_pos,
@@ -185,7 +185,7 @@ impl super::Processor for Class {
                 },
             );
             parser
-                .find_processed_page(page_id)
+                .find_processed_page(page_hash)
                 .unwrap()
                 .items
                 .push(processed);

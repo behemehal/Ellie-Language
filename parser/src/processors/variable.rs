@@ -6,9 +6,16 @@ use ellie_core::{
 use ellie_tokenizer::syntax::items::variable::VariableCollector;
 
 impl super::Processor for VariableCollector {
-    fn process(self, parser: &mut super::Parser, page_id: u64) -> bool {
+    fn process(
+        &self,
+        parser: &mut super::Parser,
+        page_idx: usize,
+        processed_page_idx: usize,
+        page_hash: u64,
+    ) -> bool {
+        let path = parser.pages.nth(page_idx).unwrap().path.clone();
         let (duplicate, found) = parser.is_duplicate(
-            page_id,
+            page_hash,
             self.data.name.clone(),
             self.data.hash.clone(),
             self.data.pos,
@@ -17,12 +24,9 @@ impl super::Processor for VariableCollector {
         if duplicate {
             if let Some((page, cursor_pos)) = found {
                 let mut err = error::error_list::ERROR_S24.clone().build_with_path(
-                    vec![error::ErrorBuildField {
-                        key: "token".to_owned(),
-                        value: self.data.name,
-                    }],
+                    vec![error::ErrorBuildField::new("token", &self.data.name)],
                     alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                    parser.find_page(page_id).unwrap().path.clone(),
+                    parser.pages.nth(page_idx).unwrap().path.clone(),
                     self.data.name_pos,
                 );
                 err.reference_block = Some((cursor_pos, page.path));
@@ -30,16 +34,12 @@ impl super::Processor for VariableCollector {
                 err.semi_assist = true;
                 parser.informations.push(&err);
             } else {
-                let page_path = parser.find_page(page_id).unwrap().path.clone();
                 parser
                     .informations
                     .push(&error::error_list::ERROR_S24.clone().build_with_path(
-                        vec![error::ErrorBuildField {
-                            key: "token".to_owned(),
-                            value: self.data.name,
-                        }],
+                        vec![error::ErrorBuildField::new("token", &self.data.name)],
                         alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                        page_path,
+                        path.clone(),
                         self.data.name_pos,
                     ))
             }
@@ -49,9 +49,9 @@ impl super::Processor for VariableCollector {
                 Ok(Types::Null)
             } else {
                 super::type_processor::process(
-                    self.data.value,
+                    self.data.value.clone(),
                     parser,
-                    page_id,
+                    page_hash,
                     Some(self.data.hash.clone()),
                     false,
                 )
@@ -61,9 +61,9 @@ impl super::Processor for VariableCollector {
                 Ok(DefinerCollecting::Dynamic)
             } else {
                 super::definer_processor::process(
-                    self.data.rtype.definer_type,
+                    self.data.rtype.definer_type.clone(),
                     parser,
-                    page_id,
+                    page_hash,
                     Some(self.data.hash.clone()),
                 )
             };
@@ -82,9 +82,8 @@ impl super::Processor for VariableCollector {
                         self.data.name.clone()
                     );
                     if !is_correct
-                        && !parser.page_has_file_key_with(page_id, "allow", "VariableNameRule")
+                        && !parser.page_has_file_key_with(page_hash, "allow", "VariableNameRule")
                     {
-                        let page_path = parser.find_page(page_id).unwrap().path.clone();
                         parser
                             .informations
                             .push(&warning::warning_list::WARNING_S2.clone().build(
@@ -98,7 +97,7 @@ impl super::Processor for VariableCollector {
                                         value: fixed,
                                     },
                                 ],
-                                page_path,
+                                path.clone(),
                                 self.data.name_pos,
                             ))
                     }
@@ -106,7 +105,7 @@ impl super::Processor for VariableCollector {
 
                 let processed = ellie_core::definite::items::Collecting::Variable(
                     ellie_core::definite::items::variable::Variable {
-                        name: self.data.name,
+                        name: self.data.name.clone(),
                         constant: self.data.constant,
                         public: self.data.public,
                         value: resolved_type.clone().unwrap(),
@@ -129,11 +128,10 @@ impl super::Processor for VariableCollector {
                     let comperable = parser.compare_defining_with_type(
                         resolved_defining.unwrap(),
                         resolved_type.unwrap(),
-                        page_id,
+                        page_hash,
                     );
 
-                    let current_page = parser.find_processed_page(page_id).unwrap();
-
+                    let current_page = parser.processed_pages.nth_mut(processed_page_idx).unwrap();
                     match comperable {
                         Ok((compare, defined, given)) => {
                             if !compare {
@@ -175,7 +173,8 @@ impl super::Processor for VariableCollector {
                     }
                 } else {
                     parser
-                        .find_processed_page(page_id)
+                        .processed_pages
+                        .nth_mut(processed_page_idx)
                         .unwrap()
                         .items
                         .push(processed);

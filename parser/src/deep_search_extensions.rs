@@ -12,7 +12,7 @@ use ellie_core::{
 use ellie_tokenizer::tokenizer::Dependency;
 use enum_as_inner::EnumAsInner;
 
-use crate::parser::{Parser, ProcessedPage};
+use crate::parser::{FoundPage, Parser};
 
 /*
     This folder contains parser extensions for deep search.
@@ -1589,7 +1589,7 @@ pub struct ProcessedDeepSearchResult {
     pub found: bool,
     pub found_item: ProcessedDeepSearchItems,
     pub found_pos: Option<defs::Cursor>,
-    pub found_page: ProcessedPage,
+    pub found_page: FoundPage,
 }
 
 pub fn deep_search_hash(
@@ -1603,7 +1603,7 @@ pub fn deep_search_hash(
     let mut found = false;
     let mut found_type = ProcessedDeepSearchItems::None;
     let mut found_pos = None;
-    let mut found_page = ProcessedPage::default();
+    let mut found_page = FoundPage::default();
     let has_mixup = false;
     let mut inner_page = None;
     let mut searched: Vec<u64> = searched;
@@ -1655,7 +1655,7 @@ pub fn deep_search_hash(
                                 if e.hash == target_hash && (e.public || level == 0) {
                                     found_pos = Some(e.pos);
                                     found = true;
-                                    found_page = page.clone();
+                                    found_page = FoundPage::fill_from_processed(&page);
                                     found_type = ProcessedDeepSearchItems::Variable(e);
                                 }
                             }
@@ -1663,7 +1663,7 @@ pub fn deep_search_hash(
                                 if e.hash == target_hash && (e.public || level == 0) {
                                     found_pos = Some(e.pos);
                                     found = true;
-                                    found_page = page.clone();
+                                    found_page = FoundPage::fill_from_processed(&page);
                                     found_type = ProcessedDeepSearchItems::Function(e);
                                 }
                             }
@@ -1676,7 +1676,7 @@ pub fn deep_search_hash(
                                 {
                                     found_pos = Some(e.pos);
                                     found = true;
-                                    found_page = page.clone();
+                                    found_page = FoundPage::fill_from_processed(&page);
                                     found_type = ProcessedDeepSearchItems::ImportReference(e);
                                 }
                             }
@@ -1688,7 +1688,7 @@ pub fn deep_search_hash(
                                 {
                                     found_pos = Some(e.pos);
                                     found = true;
-                                    found_page = page.clone();
+                                    found_page = FoundPage::fill_from_processed(&page);
                                     found_type = ProcessedDeepSearchItems::Class(e);
                                 }
                             }
@@ -1699,7 +1699,7 @@ pub fn deep_search_hash(
                                 {
                                     found_pos = Some(e.pos);
                                     found = true;
-                                    found_page = page.clone();
+                                    found_page = FoundPage::fill_from_processed(&page);
                                     found_type = ProcessedDeepSearchItems::GenericItem(e);
                                 }
                             }
@@ -1759,7 +1759,7 @@ pub fn deep_search(
     let mut found = false;
     let mut found_type = ProcessedDeepSearchItems::None;
     let mut found_pos = None;
-    let mut found_page = ProcessedPage::default();
+    let mut found_page = FoundPage::default();
     let has_mixup = false;
     let mut inner_page = None;
     let mut searched: Vec<u64> = searched;
@@ -1809,7 +1809,7 @@ pub fn deep_search(
                     self_dependencies.extend(internal_deps);
 
                     for item in page.items.iter() {
-                        match item.clone() {
+                        match item {
                             Collecting::Variable(e) => {
                                 if e.name == name
                                     && (e.public || level == 0)
@@ -1818,8 +1818,8 @@ pub fn deep_search(
                                 {
                                     found_pos = Some(e.pos);
                                     found = true;
-                                    found_page = page.clone();
-                                    found_type = ProcessedDeepSearchItems::Variable(e);
+                                    found_page = FoundPage::fill_from_processed(&page);
+                                    found_type = ProcessedDeepSearchItems::Variable(e.clone());
                                 }
                             }
                             Collecting::Function(e) => {
@@ -1830,8 +1830,8 @@ pub fn deep_search(
                                 {
                                     found_pos = Some(e.pos);
                                     found = true;
-                                    found_page = page.clone();
-                                    found_type = ProcessedDeepSearchItems::Function(e);
+                                    found_page = FoundPage::fill_from_processed(&page);
+                                    found_type = ProcessedDeepSearchItems::Function(e.clone());
                                 }
                             }
                             Collecting::Getter(e) => {
@@ -1842,8 +1842,8 @@ pub fn deep_search(
                                 {
                                     found_pos = Some(e.pos);
                                     found = true;
-                                    found_page = page.clone();
-                                    found_type = ProcessedDeepSearchItems::Getter(e);
+                                    found_page = FoundPage::fill_from_processed(&page);
+                                    found_type = ProcessedDeepSearchItems::Getter(e.clone());
                                 }
                             }
                             Collecting::Setter(e) => {
@@ -1854,8 +1854,8 @@ pub fn deep_search(
                                 {
                                     found_pos = Some(e.pos);
                                     found = true;
-                                    found_page = page.clone();
-                                    found_type = ProcessedDeepSearchItems::Setter(e);
+                                    found_page = FoundPage::fill_from_processed(&page);
+                                    found_type = ProcessedDeepSearchItems::Setter(e.clone());
                                 }
                             }
                             Collecting::Import(e) => {
@@ -1869,8 +1869,9 @@ pub fn deep_search(
                                 {
                                     found_pos = Some(e.pos);
                                     found = true;
-                                    found_page = page.clone();
-                                    found_type = ProcessedDeepSearchItems::ImportReference(e);
+                                    found_page = FoundPage::fill_from_processed(&page);
+                                    found_type =
+                                        ProcessedDeepSearchItems::ImportReference(e.clone());
                                 }
                             }
                             Collecting::Class(e) => {
@@ -1883,8 +1884,8 @@ pub fn deep_search(
                                 {
                                     found_pos = Some(e.pos);
                                     found = true;
-                                    found_page = page.clone();
-                                    found_type = ProcessedDeepSearchItems::Class(e);
+                                    found_page = FoundPage::fill_from_processed(&page);
+                                    found_type = ProcessedDeepSearchItems::Class(e.clone());
                                 }
                             }
                             _ => (),

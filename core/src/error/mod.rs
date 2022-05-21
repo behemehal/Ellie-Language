@@ -43,6 +43,15 @@ pub struct ErrorBuildField {
     pub value: String,
 }
 
+impl ErrorBuildField {
+    pub fn new(key: &str, value: &String) -> Self {
+        Self {
+            key: key.to_string(),
+            value: value.to_string(),
+        }
+    }
+}
+
 ///`BuildedError` is a struct for modular error messages
 /// ## Fields
 /// * `builded` - Error message

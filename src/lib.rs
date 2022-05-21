@@ -15,15 +15,9 @@ extern crate ellie_tokenizer;
 #[macro_use]
 extern crate lazy_static;
 pub mod cli_outputs;
-#[cfg(feature = "build-cli")]
 pub mod cli_utils;
-#[cfg(feature = "build-cli")]
+pub mod color_code;
 pub mod compile_file;
 pub mod engine_constants;
-#[cfg(feature = "build-cli")]
 pub mod tokenize_file;
-#[cfg(feature = "build-cli")]
 pub mod view_module;
-
-#[cfg(feature = "build-cli")]
-pub mod color_code;

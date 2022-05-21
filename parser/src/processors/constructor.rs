@@ -3,11 +3,19 @@ use ellie_core::error;
 use ellie_tokenizer::{syntax::items::constructor::Constructor, tokenizer::PageType};
 
 impl super::Processor for Constructor {
-    fn process(self, parser: &mut crate::parser::Parser, page_id: u64) -> bool {
+    fn process(
+        &self,
+        parser: &mut super::Parser,
+        page_idx: usize,
+        processed_page_idx: usize,
+        page_hash: u64,
+    ) -> bool {
         let class_body_page = parser
-            .find_page(page_id)
+            .pages
+            .nth(page_idx)
             .unwrap_or_else(|| panic!("Failed to find page"))
             .clone();
+        let path = class_body_page.path.clone();
 
         //Class body should have a self which will reference us page of class and class hash
         let self_element = class_body_page
@@ -34,11 +42,11 @@ impl super::Processor for Constructor {
                 _ => None,
             })
             .unwrap_or_else(|| panic!("Failed to find class"));
-        let page = parser.find_page(page_id).unwrap().clone();
-        let mut items = self.inside_code;
+        let mut items = self.inside_code.clone();
 
         for (index, parameter) in self.parameters.clone().iter().enumerate() {
-            let deep_search = parser.deep_search(page_id, parameter.name.clone(), None, vec![], 0);
+            let deep_search =
+                parser.deep_search(page_hash, parameter.name.clone(), None, vec![], 0);
 
             if let Some(other_index) = self
                 .parameters
@@ -49,11 +57,10 @@ impl super::Processor for Constructor {
                     let mut err = error::error_list::ERROR_S10.clone().build_with_path(
                         vec![],
                         alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                        parser.find_page(page_id).unwrap().path.clone(),
+                        path.clone(),
                         parameter.pos,
                     );
-                    err.reference_block =
-                        Some((self.parameters[other_index].pos, page.path.clone()));
+                    err.reference_block = Some((self.parameters[other_index].pos, path.clone()));
                     err.reference_message = "Prime is here".to_owned();
                     err.semi_assist = true;
                     parser.informations.push(&err);
@@ -95,7 +102,7 @@ impl super::Processor for Constructor {
                         value: parameter.name.clone(),
                     }],
                     alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                    parser.find_page(page_id).unwrap().path.clone(),
+                    path.clone(),
                     parameter.pos,
                 );
                 err.reference_block = Some((class_element.pos, class_page.path.clone()));
@@ -107,13 +114,13 @@ impl super::Processor for Constructor {
         let inner_page_id: u64 = ellie_core::utils::generate_hash_u64();
         let inner = ellie_tokenizer::tokenizer::Page {
             hash: inner_page_id,
-            inner: Some(page.hash),
-            path: page.path.clone(),
+            inner: Some(class_body_page.hash),
+            path: class_body_page.path.clone(),
             items,
             page_type: PageType::ConstructorBody,
             dependents: vec![],
             dependencies: vec![ellie_tokenizer::tokenizer::Dependency {
-                hash: page.hash.clone(),
+                hash: class_body_page.hash.clone(),
                 processed: false,
                 module: None,
                 deep_link: None,
@@ -121,13 +128,14 @@ impl super::Processor for Constructor {
             }],
             ..Default::default()
         };
-        parser.pages.push(inner);
+        parser.pages.push_page(inner);
         parser.process_page(inner_page_id);
 
         let processed = ellie_core::definite::items::Collecting::Constructor(
             ellie_core::definite::items::constructor::Constructor {
                 parameters: self
                     .parameters
+                    .clone()
                     .into_iter()
                     .map(
                         |x| ellie_core::definite::items::constructor::ConstructorParameter {
@@ -143,7 +151,8 @@ impl super::Processor for Constructor {
             },
         );
         parser
-            .find_processed_page(page_id)
+            .processed_pages
+            .nth_mut(processed_page_idx)
             .unwrap()
             .items
             .push(processed);
