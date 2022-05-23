@@ -88,9 +88,11 @@ impl crate::processors::Processor for getter::Getter {
                 self.brace_count -= 1;
             }
             self.iterator.pos = cursor;
+            if cursor.0 != self.iterator.comment_pos.range_start.0 && self.iterator.line_comment {
+                self.iterator.line_comment = false;
+            }
             hang = self.iterator.iterate(last_char, letter_char);
         }
-
         hang
     }
 }
