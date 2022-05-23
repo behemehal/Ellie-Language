@@ -254,7 +254,7 @@ lazy_static! {
     pub static ref ERROR_S42: error::Error = error::Error {
         code: 0x41,
         title: "SyntaxError".to_owned(),
-        message: "'$token' is not found in '$token1' attributes".to_owned(),
+        message: "Getter '$token' is not found in '$token1' properties".to_owned(),
         ..Default::default()
     };
     pub static ref ERROR_S43: error::Error = error::Error {

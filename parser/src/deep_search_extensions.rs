@@ -381,6 +381,20 @@ fn iterate_deep_type(
                                                                     )
                                                                 })
                                                             }
+                                                            Collecting::Getter(e) => {
+                                                                Some(Attribute {
+                                                                    _rtype: AttributeType::Method,
+                                                                    name: e.name.clone(),
+                                                                    value: e.return_type
+                                                                })
+                                                            }
+                                                            Collecting::Setter(e) => {
+                                                                Some(Attribute {
+                                                                    _rtype: AttributeType::Method,
+                                                                    name: e.name.clone(),
+                                                                    value: e.rtype
+                                                                })
+                                                            }
                                                             _ => None,
                                                         }
                                                     }).collect::<Vec<_>>();
@@ -580,12 +594,21 @@ fn iterate_deep_type(
                 }
             }
 
-            resolve_deep_type(
-                parser,
-                page_id,
-                resolved_types.as_type().unwrap().clone(),
-                errors,
-            )
+            if errors.is_empty() {
+                resolve_deep_type(
+                    parser,
+                    page_id,
+                    resolved_types
+                        .as_type()
+                        .unwrap_or_else(|| panic!("resolve_deep_type: {:?}", resolved_types))
+                        .clone(),
+                    errors,
+                )
+            } else {
+                panic!("resolve_deep_type: {:?}", errors);
+
+                DeepTypeResult::NotFound
+            }
         }
         Types::BraceReference(e) => {
             let resolved_reference =
@@ -1641,18 +1664,25 @@ pub fn deep_search_hash(
             searched.push(target_page);
             match parser.find_processed_page(dep.hash) {
                 Some(page) => {
-                    let page = page.clone();
                     let internal_deps = page
                         .dependencies
                         .iter()
-                        .filter_map(|x| if x.public { Some(x.clone()) } else { None })
+                        .filter_map(|x| {
+                            if x.public || x.deep_link.is_some() {
+                                Some(x.clone())
+                            } else {
+                                None
+                            }
+                        })
                         .collect::<Vec<Dependency>>();
                     self_dependencies.extend(internal_deps);
 
                     for item in &page.items {
                         match item.clone() {
                             Collecting::Variable(e) => {
-                                if e.hash == target_hash && (e.public || level == 0) {
+                                if e.hash == target_hash
+                                    && (e.public || level == 0 || dep.deep_link.is_some())
+                                {
                                     found_pos = Some(e.pos);
                                     found = true;
                                     found_page = FoundPage::fill_from_processed(&page);
@@ -1660,7 +1690,9 @@ pub fn deep_search_hash(
                                 }
                             }
                             Collecting::Function(e) => {
-                                if e.hash == target_hash && (e.public || level == 0) {
+                                if e.hash == target_hash
+                                    && (e.public || level == 0 || dep.deep_link.is_some())
+                                {
                                     found_pos = Some(e.pos);
                                     found = true;
                                     found_page = FoundPage::fill_from_processed(&page);
@@ -1672,6 +1704,7 @@ pub fn deep_search_hash(
                                     && e.hash == target_hash
                                     && (e.public
                                         || level == 0
+                                        || dep.deep_link.is_some()
                                         || matches!(inner_page, Some(ref parent_page_hash) if parent_page_hash == &page.hash))
                                 {
                                     found_pos = Some(e.pos);
@@ -1684,6 +1717,7 @@ pub fn deep_search_hash(
                                 if e.hash == target_hash
                                     && (e.public
                                         || level == 0
+                                        || dep.deep_link.is_some()
                                         || matches!(inner_page, Some(ref parent_page_hash) if parent_page_hash == &page.hash))
                                 {
                                     found_pos = Some(e.pos);
@@ -1695,6 +1729,7 @@ pub fn deep_search_hash(
                             Collecting::Generic(e) => {
                                 if e.hash == target_hash
                                     && (level == 0
+                                        || dep.deep_link.is_some()
                                         || matches!(inner_page, Some(ref parent_page_hash) if parent_page_hash == &page.hash))
                                 {
                                     found_pos = Some(e.pos);
@@ -1800,11 +1835,16 @@ pub fn deep_search(
             searched.push(target_page);
             match parser.find_processed_page(dep.hash) {
                 Some(page) => {
-                    let page = page.clone();
                     let internal_deps = page
                         .dependencies
                         .iter()
-                        .filter_map(|x| if x.public { Some(x.clone()) } else { None })
+                        .filter_map(|x| {
+                            if x.public || x.deep_link.is_some() {
+                                Some(x.clone())
+                            } else {
+                                None
+                            }
+                        })
                         .collect::<Vec<Dependency>>();
                     self_dependencies.extend(internal_deps);
 
@@ -1812,7 +1852,7 @@ pub fn deep_search(
                         match item {
                             Collecting::Variable(e) => {
                                 if e.name == name
-                                    && (e.public || level == 0)
+                                    && (e.public || level == 0 || dep.deep_link.is_some())
                                     && (ignore_hash.is_none()
                                         || matches!(ignore_hash, Some(ref t) if &e.hash != t))
                                 {
@@ -1824,7 +1864,7 @@ pub fn deep_search(
                             }
                             Collecting::Function(e) => {
                                 if e.name == name
-                                    && (e.public || level == 0)
+                                    && (e.public || level == 0 || dep.deep_link.is_some())
                                     && (ignore_hash.is_none()
                                         || matches!(ignore_hash, Some(ref t) if &e.hash != t))
                                 {
@@ -1836,7 +1876,7 @@ pub fn deep_search(
                             }
                             Collecting::Getter(e) => {
                                 if e.name == name
-                                    && (e.public || level == 0)
+                                    && (e.public || level == 0 || dep.deep_link.is_some())
                                     && (ignore_hash.is_none()
                                         || matches!(ignore_hash, Some(ref t) if &e.hash != t))
                                 {
@@ -1848,7 +1888,7 @@ pub fn deep_search(
                             }
                             Collecting::Setter(e) => {
                                 if e.name == name
-                                    && (e.public || level == 0)
+                                    && (e.public || level == 0 || dep.deep_link.is_some())
                                     && (ignore_hash.is_none()
                                         || matches!(ignore_hash, Some(ref t) if &e.hash != t))
                                 {
@@ -1863,6 +1903,7 @@ pub fn deep_search(
                                     && e.reference == name
                                     && (e.public
                                         || level == 0
+                                        || dep.deep_link.is_some()
                                         || matches!(inner_page, Some(ref parent_page_hash) if parent_page_hash == &page.hash))
                                     && (ignore_hash.is_none()
                                         || matches!(ignore_hash, Some(ref t) if &e.hash != t))
@@ -1878,6 +1919,7 @@ pub fn deep_search(
                                 if e.name == name
                                     && (e.public
                                         || level == 0
+                                        || dep.deep_link.is_some()
                                         || matches!(inner_page, Some(ref parent_page_hash) if parent_page_hash == &page.hash))
                                     && (ignore_hash.is_none()
                                         || matches!(ignore_hash, Some(ref t) if &e.hash != t))

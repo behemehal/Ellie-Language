@@ -591,8 +591,77 @@ impl Parser {
                         defining.to_string(),
                         e.return_type.to_string(),
                     )),
+                    deep_search_extensions::DeepTypeResult::FunctionCall(e) => Ok((
+                        defining.same_as(e.returning.clone()),
+                        defining.to_string(),
+                        e.returning.to_string(),
+                    )),
                     _ => {
-                        unreachable!()
+                        let rtype = match resolved_target {
+                            deep_search_extensions::DeepTypeResult::Integer(e) => {
+                                ellie_core::definite::types::Types::Integer(e)
+                            }
+                            deep_search_extensions::DeepTypeResult::Byte(e) => {
+                                ellie_core::definite::types::Types::Byte(e)
+                            }
+                            deep_search_extensions::DeepTypeResult::Float(e) => {
+                                ellie_core::definite::types::Types::Float(e)
+                            }
+                            deep_search_extensions::DeepTypeResult::Double(e) => {
+                                ellie_core::definite::types::Types::Double(e)
+                            }
+                            deep_search_extensions::DeepTypeResult::Bool(e) => {
+                                ellie_core::definite::types::Types::Bool(e)
+                            }
+                            deep_search_extensions::DeepTypeResult::String(e) => {
+                                ellie_core::definite::types::Types::String(e)
+                            }
+                            deep_search_extensions::DeepTypeResult::Char(e) => {
+                                ellie_core::definite::types::Types::Char(e)
+                            }
+                            deep_search_extensions::DeepTypeResult::Collective(e) => {
+                                ellie_core::definite::types::Types::Collective(e)
+                            }
+                            deep_search_extensions::DeepTypeResult::Operator(e) => {
+                                ellie_core::definite::types::Types::Operator(e)
+                            }
+                            deep_search_extensions::DeepTypeResult::Cloak(e) => {
+                                ellie_core::definite::types::Types::Cloak(e)
+                            }
+                            deep_search_extensions::DeepTypeResult::Array(e) => {
+                                ellie_core::definite::types::Types::Array(e)
+                            }
+                            deep_search_extensions::DeepTypeResult::Vector(e) => {
+                                ellie_core::definite::types::Types::Vector(e)
+                            }
+                            deep_search_extensions::DeepTypeResult::ClassCall(e) => {
+                                ellie_core::definite::types::Types::ClassCall(e)
+                            }
+                            deep_search_extensions::DeepTypeResult::BraceReference(e) => {
+                                ellie_core::definite::types::Types::BraceReference(e)
+                            }
+                            deep_search_extensions::DeepTypeResult::Void => {
+                                ellie_core::definite::types::Types::Void
+                            }
+                            deep_search_extensions::DeepTypeResult::Null => {
+                                ellie_core::definite::types::Types::Null
+                            }
+                            deep_search_extensions::DeepTypeResult::Dynamic => {
+                                ellie_core::definite::types::Types::Dynamic
+                            }
+                            _ => unreachable!(),
+                        };
+                        let resolved_type =
+                            resolve_type(rtype, target_page, self, &mut errors, Some(e.target_pos));
+                        if errors.is_empty() {
+                            Ok((
+                                false,
+                                defining.to_string(),
+                                resolved_type.unwrap().to_string(),
+                            ))
+                        } else {
+                            Err(errors)
+                        }
                     }
                 }
             }
@@ -828,7 +897,7 @@ impl Parser {
     ) -> (bool, Option<(FoundPage, defs::Cursor)>) {
         let deep_search = self.deep_search(
             page_id,
-            name,
+            name.clone(),
             if hash == 0 { None } else { Some(hash) },
             vec![],
             0,
@@ -842,7 +911,7 @@ impl Parser {
                 DeepSearchItems::SelfItem(_) => (true, None),
                 DeepSearchItems::GenericItem(e) => (true, Some((deep_search.found_page, e.pos))),
                 e => (
-                    pos.is_bigger(e.get_pos()),
+                    pos.range_start.is_bigger(&e.get_pos().range_start),
                     Some((deep_search.found_page, e.get_pos())),
                 ),
             }
@@ -897,7 +966,7 @@ impl Parser {
                                 match item.clone() {
                                     Collecting::Variable(e) => {
                                         if e.name == name
-                                            && (e.public || level == 0)
+                                            && (e.public || level == 0 || dep.deep_link.is_some())
                                             && (ignore_hash.is_none()
                                                 || matches!(ignore_hash, Some(ref t) if &e.hash != t))
                                         {
@@ -909,7 +978,7 @@ impl Parser {
                                     }
                                     Collecting::Getter(e) => {
                                         if e.name == name
-                                            && (e.public || level == 0)
+                                            && (e.public || level == 0 || dep.deep_link.is_some())
                                             && (ignore_hash.is_none()
                                                 || matches!(ignore_hash, Some(ref t) if &e.hash != t))
                                         {
@@ -921,7 +990,7 @@ impl Parser {
                                     }
                                     Collecting::Setter(e) => {
                                         if e.name == name
-                                            && (e.public || level == 0)
+                                            && (e.public || level == 0 || dep.deep_link.is_some())
                                             && (ignore_hash.is_none()
                                                 || matches!(ignore_hash, Some(ref t) if &e.hash != t))
                                         {
@@ -933,7 +1002,7 @@ impl Parser {
                                     }
                                     Collecting::Function(e) => {
                                         if e.name == name
-                                            && (e.public || level == 0)
+                                            && (e.public || level == 0 || dep.deep_link.is_some())
                                             && (ignore_hash.is_none()
                                                 || matches!(ignore_hash, Some(ref t) if &e.hash != t))
                                         {
@@ -948,6 +1017,7 @@ impl Parser {
                                             && e.reference == name
                                             && (e.public
                                                 || level == 0
+                                                || dep.deep_link.is_some()
                                                 || matches!(inner_page, Some(ref parent_page_hash) if parent_page_hash == &page.hash))
                                             && (ignore_hash.is_none()
                                                 || matches!(ignore_hash, Some(ref t) if &e.hash != t))
@@ -962,6 +1032,7 @@ impl Parser {
                                         if e.name == name
                                             && (e.public
                                                 || level == 0
+                                                || dep.deep_link.is_some()
                                                 || matches!(inner_page, Some(ref parent_page_hash) if parent_page_hash == &page.hash))
                                             && (ignore_hash.is_none()
                                                 || matches!(ignore_hash, Some(ref t) if &e.hash != t))
@@ -990,12 +1061,11 @@ impl Parser {
                         .clone();
                     match self.find_processed_page(dep.hash) {
                         Some(page) => {
-                            let page = page.clone();
                             for item in page.items.iter() {
                                 match item.clone() {
                                     Collecting::Variable(e) => {
                                         if e.name == name
-                                            && (e.public || level == 0)
+                                            && (e.public || level == 0 || dep.deep_link.is_some())
                                             && (ignore_hash.is_none()
                                                 || matches!(ignore_hash, Some(ref t) if &e.hash != t))
                                         {
@@ -1007,7 +1077,7 @@ impl Parser {
                                     }
                                     Collecting::Function(e) => {
                                         if e.name == name
-                                            && (e.public || level == 0)
+                                            && (e.public || level == 0 || dep.deep_link.is_some())
                                             && (ignore_hash.is_none()
                                                 || matches!(ignore_hash, Some(ref t) if &e.hash != t))
                                         {
@@ -1019,7 +1089,7 @@ impl Parser {
                                     }
                                     Collecting::Getter(e) => {
                                         if e.name == name
-                                            && (e.public || level == 0)
+                                            && (e.public || level == 0 || dep.deep_link.is_some())
                                             && (ignore_hash.is_none()
                                                 || matches!(ignore_hash, Some(ref t) if &e.hash != t))
                                         {
@@ -1031,7 +1101,7 @@ impl Parser {
                                     }
                                     Collecting::Setter(e) => {
                                         if e.name == name
-                                            && (e.public || level == 0)
+                                            && (e.public || level == 0 || dep.deep_link.is_some())
                                             && (ignore_hash.is_none()
                                                 || matches!(ignore_hash, Some(ref t) if &e.hash != t))
                                         {
@@ -1046,6 +1116,7 @@ impl Parser {
                                             && e.reference == name
                                             && (e.public
                                                 || level == 0
+                                                || dep.deep_link.is_some()
                                                 || matches!(inner_page, Some(ref parent_page_hash) if parent_page_hash == &page.hash))
                                             && (ignore_hash.is_none()
                                                 || matches!(ignore_hash, Some(ref t) if &e.hash != t))
@@ -1060,6 +1131,7 @@ impl Parser {
                                         if e.name == name
                                             && (e.public
                                                 || level == 0
+                                                || dep.deep_link.is_some()
                                                 || matches!(inner_page, Some(ref parent_page_hash) if parent_page_hash == &page.hash))
                                             && (ignore_hash.is_none()
                                                 || matches!(ignore_hash, Some(ref t) if &e.hash != t))
@@ -1088,7 +1160,9 @@ impl Parser {
                                 match item {
                                     Processors::Variable(e) => {
                                         if e.data.name == name
-                                            && (e.data.public || level == 0)
+                                            && (e.data.public
+                                                || level == 0
+                                                || dep.deep_link.is_some())
                                             && (ignore_hash.is_none()
                                                 || matches!(ignore_hash, Some(ref t) if &e.data.hash != t))
                                         {
@@ -1100,7 +1174,9 @@ impl Parser {
                                     }
                                     Processors::Function(e) => {
                                         if e.data.name == name
-                                            && (e.data.public || level == 0)
+                                            && (e.data.public
+                                                || level == 0
+                                                || dep.deep_link.is_some())
                                             && (ignore_hash.is_none()
                                                 || matches!(ignore_hash, Some(ref t) if &e.data.hash != t))
                                         {
@@ -1112,7 +1188,7 @@ impl Parser {
                                     }
                                     Processors::Getter(e) => {
                                         if e.name == name
-                                            && (e.public || level == 0)
+                                            && (e.public || level == 0 || dep.deep_link.is_some())
                                             && (ignore_hash.is_none()
                                                 || matches!(ignore_hash, Some(ref t) if &e.hash != t))
                                         {
@@ -1124,7 +1200,7 @@ impl Parser {
                                     }
                                     Processors::Setter(e) => {
                                         if e.name == name
-                                            && (e.public || level == 0)
+                                            && (e.public || level == 0 || dep.deep_link.is_some())
                                             && (ignore_hash.is_none()
                                                 || matches!(ignore_hash, Some(ref t) if &e.hash != t))
                                         {
@@ -1139,6 +1215,7 @@ impl Parser {
                                             && e.reference == name
                                             && (e.public
                                                 || level == 0
+                                                || dep.deep_link.is_some()
                                                 || matches!(inner_page, Some(ref parent_page_hash) if parent_page_hash == &page.hash))
                                             && (ignore_hash.is_none()
                                                 || matches!(ignore_hash, Some(ref t) if &e.hash != t))
@@ -1154,6 +1231,7 @@ impl Parser {
                                         if e.name == name
                                             && (e.public
                                                 || level == 0
+                                                || dep.deep_link.is_some()
                                                 || matches!(inner_page, Some(ref parent_page_hash) if parent_page_hash == &page.hash))
                                             && (ignore_hash.is_none()
                                                 || matches!(ignore_hash, Some(ref t) if &e.hash != t))
@@ -1167,6 +1245,7 @@ impl Parser {
                                     Processors::GenericItem(e) => {
                                         if e.generic_name == name
                                             && (level == 0
+                                                || dep.deep_link.is_some()
                                                 || matches!(inner_page, Some(ref parent_page_hash) if parent_page_hash == &page.hash))
                                         {
                                             found_pos = Some(e.pos);
@@ -1178,6 +1257,7 @@ impl Parser {
                                     Processors::SelfItem(e) => {
                                         if "self" == name
                                             && (level == 0
+                                                || dep.deep_link.is_some()
                                                 || matches!(inner_page, Some(ref parent_page_hash) if parent_page_hash == &page.hash))
                                         {
                                             found = true;
@@ -1186,7 +1266,7 @@ impl Parser {
                                         }
                                     }
                                     Processors::FunctionParameter(e) => {
-                                        if e.name == name && level == 0 {
+                                        if e.name == name && level == 0 || dep.deep_link.is_some() {
                                             found_pos = Some(e.name_pos);
                                             found = true;
                                             found_page = FoundPage::fill(page);
@@ -1195,7 +1275,7 @@ impl Parser {
                                         }
                                     }
                                     Processors::ConstructorParameter(e) => {
-                                        if e.name == name && level == 0 {
+                                        if e.name == name && level == 0 || dep.deep_link.is_some() {
                                             found_pos = Some(e.pos);
                                             found = true;
                                             found_page = FoundPage::fill(&page);

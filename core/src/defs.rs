@@ -81,6 +81,10 @@ impl Default for CursorPosition {
 }
 
 impl CursorPosition {
+    pub fn is_bigger(&self, other: &CursorPosition) -> bool {
+        self.0 > other.0 || (self.0 == other.0 && self.1 > other.1)
+    }
+
     pub fn skip_char(&mut self, n: usize) -> CursorPosition {
         let mut clone = self.clone();
         clone.1 += n;
