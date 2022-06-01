@@ -1,14 +1,21 @@
 use crate::instructions::{self, Instruction, Instructions};
 use alloc::{format, string::String, vec, vec::Vec};
-use ellie_core::definite::types::{operator, Types};
+use ellie_core::{
+    definite::{
+        items::{function, function_parameter},
+        types::{operator, reference, Types},
+    },
+    defs::Cursor,
+    utils::{ExportPage, PageExport},
+};
 use ellie_parser::parser::Module;
-use std::{io::Write, panic};
+use std::{io::Write, panic, print, println};
 
 pub struct Assembler {
     module: Module,
     processed: Vec<u64>,
     platform_attributes: PlatformAttributes,
-    pages: Vec<InstructionPage>,
+    pages: PageExport<InstructionPage>,
 }
 
 #[derive(Clone, Debug)]
@@ -30,14 +37,22 @@ pub struct DebugHeader {
 pub struct LocalHeader {
     pub name: String,
     pub cursor: usize,
+    pub reference: Option<usize>,
 }
 
 #[derive(Clone, Debug)]
 pub struct InstructionPage {
     pub is_main: bool,
+    pub hash: usize,
     pub instructions: Vec<instructions::Instructions>,
     pub locals: Vec<LocalHeader>,
     pub debug_headers: Vec<DebugHeader>,
+}
+
+impl ExportPage for InstructionPage {
+    fn get_hash(&self) -> u64 {
+        self.hash as u64
+    }
 }
 
 impl InstructionPage {
@@ -49,8 +64,8 @@ impl InstructionPage {
         self.instructions.extend(instruction)
     }
 
-    pub fn find_local(&self, name: &str) -> Option<&LocalHeader> {
-        self.locals.iter().find(|local| local.name == name)
+    pub fn find_local(&self, name: &String) -> Option<&LocalHeader> {
+        self.locals.iter().find(|_local| &_local.name == name)
     }
 }
 
@@ -113,7 +128,7 @@ impl AssembleResult {
             .unwrap();
         for (index, page) in self.pages.iter().enumerate() {
             let mut page_output = String::new();
-            page_output += &alloc::format!("{:?}:", index.to_le());
+            page_output += &alloc::format!("{:?}- {:?}:", index.to_le(), page.hash);
             page_output += &alloc::format!("\n\th:");
             for (index, header) in page.debug_headers.iter().enumerate() {
                 page_output += &alloc::format!(
@@ -126,8 +141,16 @@ impl AssembleResult {
             }
             page_output += &alloc::format!("\n\tl:");
             for (index, header) in page.locals.iter().enumerate() {
-                page_output +=
-                    &alloc::format!("\n\t\t{}: {} - {}", index, header.name, header.cursor);
+                page_output += &alloc::format!(
+                    "\n\t\t{}: {} - {}{}",
+                    index,
+                    header.name,
+                    header.cursor,
+                    match header.reference {
+                        Some(e) => format!("~{}", e),
+                        None => String::new(),
+                    }
+                );
             }
             page_output += &alloc::format!("\n\ta:");
             for instruction in &page.instructions {
@@ -145,12 +168,12 @@ impl Assembler {
             module,
             platform_attributes,
             processed: Vec::new(),
-            pages: Vec::new(),
+            pages: PageExport::new(),
         }
     }
 
     pub fn resolve_type(
-        &self,
+        &mut self,
         types: &Types,
         target_register: instructions::Registers,
         target_page: &u64,
@@ -227,37 +250,108 @@ impl Assembler {
             Types::Array(_) => todo!(),
             Types::Vector(_) => todo!(),
             Types::Function(_) => todo!(),
-            Types::ClassCall(_) => todo!(),
-            Types::FunctionCall(_) => todo!(),
+            Types::ClassCall(_) => {
+                vec![]
+            }
+            Types::FunctionCall(e) => {
+                let mut instructions = Vec::new();
+                instructions.extend(self.resolve_type(
+                    &e.target,
+                    instructions::Registers::B,
+                    target_page,
+                ));
+                instructions
+            }
             Types::Void => todo!(),
             Types::NullResolver(_) => todo!(),
             Types::Negative(_) => todo!(),
             Types::VariableType(e) => {
-                let pos = self
-                    .pages
-                    .last()
-                    .unwrap()
-                    .find_local(&e.value)
-                    .unwrap_or_else(|| panic!("Could not find local {}", e.value))
-                    .cursor;
+                let locals = self.pages.find_page(*target_page).unwrap().clone();
+                let pos = locals.find_local(&e.value).unwrap_or_else(|| {
+                    panic!("?? {:#?}, \n\n {:#?}", locals.locals, e);
+                });
 
-                vec![match target_register {
+                let mut instructions = Vec::new();
+
+                match target_register {
                     instructions::Registers::A => {
-                        instructions::Instructions::LDA(Instruction::absolute(pos))
+                        match pos.reference {
+                            Some(target_page) => {
+                                instructions.push(instructions::Instructions::AOL(
+                                    Instruction::absolute(target_page),
+                                ));
+                                instructions.push(instructions::Instructions::LDA(
+                                    Instruction::absolute(pos.cursor),
+                                ))
+                            }
+                            None => instructions.push(instructions::Instructions::LDA(
+                                Instruction::absolute(pos.cursor),
+                            )),
+                        }
                     }
                     instructions::Registers::B => {
-                        instructions::Instructions::LDB(Instruction::absolute(pos))
+                        match pos.reference {
+                            Some(target_page) => {
+                                instructions.push(instructions::Instructions::AOL(
+                                    Instruction::absolute(target_page),
+                                ));
+                                instructions.push(instructions::Instructions::LDB(
+                                    Instruction::absolute(pos.cursor),
+                                ))
+                            }
+                            None => instructions.push(instructions::Instructions::LDB(
+                                Instruction::absolute(pos.cursor),
+                            )),
+                        }
                     }
                     instructions::Registers::C => {
-                        instructions::Instructions::LDC(Instruction::absolute(pos))
+                        match pos.reference {
+                            Some(target_page) => {
+                                instructions.push(instructions::Instructions::AOL(
+                                    Instruction::absolute(target_page),
+                                ));
+                                instructions.push(instructions::Instructions::LDC(
+                                    Instruction::absolute(pos.cursor),
+                                ))
+                            }
+                            None => instructions.push(instructions::Instructions::LDC(
+                                Instruction::absolute(pos.cursor),
+                            )),
+                        }
                     }
                     instructions::Registers::X => {
-                        instructions::Instructions::LDX(Instruction::absolute(pos))
+                        match pos.reference {
+                            Some(target_page) => {
+                                instructions.push(instructions::Instructions::AOL(
+                                    Instruction::absolute(target_page),
+                                ));
+                                instructions.push(instructions::Instructions::LDX(
+                                    Instruction::absolute(pos.cursor),
+                                ))
+                            }
+                            None => instructions.push(instructions::Instructions::LDX(
+                                Instruction::absolute(pos.cursor),
+                            )),
+                        }
                     }
                     instructions::Registers::Y => {
-                        instructions::Instructions::LDY(Instruction::absolute(pos))
+                        match pos.reference {
+                            Some(target_page) => {
+                                instructions.push(instructions::Instructions::AOL(
+                                    Instruction::absolute(target_page),
+                                ));
+                                instructions.push(instructions::Instructions::LDY(
+                                    Instruction::absolute(pos.cursor),
+                                ))
+                            }
+                            None => instructions.push(instructions::Instructions::LDY(
+                                Instruction::absolute(pos.cursor),
+                            )),
+                        }
                     }
-                }]
+                };
+
+                instructions
             }
             Types::AsKeyword(_) => todo!(),
             Types::Byte(_) => todo!(),
@@ -293,13 +387,13 @@ impl Assembler {
             Types::Bool(_) => todo!(),
             Types::String(_) => todo!(),
             Types::Char(_) => todo!(),
-            Types::Null => todo!(),
+            Types::Null => vec![],
             Types::Dynamic => todo!(),
             Types::SetterCall(_) => todo!(),
         }
     }
 
-    fn assemble_dependency(&mut self, hash: &u64, is_main: bool) {
+    fn assemble_dependency(&mut self, hash: &u64, is_main: bool, locals: Option<Vec<LocalHeader>>) {
         if !self.processed.contains(hash) {
             self.processed.push(hash.clone());
             let processed_page = self
@@ -312,11 +406,26 @@ impl Assembler {
                     panic!("Unexpected assembler error, cannot find page {:?}", hash);
                 });
 
-            self.pages.push(InstructionPage {
+            for dependency in &processed_page.dependencies {
+                self.assemble_dependency(&dependency.hash, false, None);
+            }
+
+            match locals.clone() {
+                Some(e) => {
+                    println!("\nPage created with locals {:?} = {:?}\n", e, hash);
+                }
+                None => (),
+            }
+
+            self.pages.push_page(InstructionPage {
                 is_main,
+                hash: processed_page.hash as usize,
                 instructions: Vec::new(),
                 debug_headers: Vec::new(),
-                locals: Vec::new(),
+                locals: match locals {
+                    Some(e) => e,
+                    None => Vec::new(),
+                },
             });
 
             for item in &processed_page.items {
@@ -324,32 +433,53 @@ impl Assembler {
                     ellie_core::definite::items::Collecting::Variable(variable) => {
                         let resolved_instructions =
                             self.resolve_type(&variable.value, instructions::Registers::A, hash);
+                        let current_page = self.pages.find_page(*hash).unwrap();
 
-                        let page = self.pages.iter_mut().last().unwrap();
-
-                        page.debug_headers.push(DebugHeader {
-                            id: page.instructions.len(),
+                        current_page.debug_headers.push(DebugHeader {
+                            id: current_page.instructions.len(),
                             rtype: DebugHeaderType::Variable,
                             name: variable.name.clone(),
                             cursor: variable.pos,
                         });
-                        std::println!("Variable: {} = {:?}", variable.name, variable.value);
 
-                        page.extend_instructions(resolved_instructions);
-                        page.assign_instruction(instructions::Instructions::STA(
+                        current_page.extend_instructions(resolved_instructions);
+                        current_page.assign_instruction(instructions::Instructions::STA(
                             Instruction::implict(),
                         ));
-                        page.locals.push(LocalHeader {
+                        current_page.locals.push(LocalHeader {
                             name: variable.name.clone(),
-                            cursor: page.instructions.len(),
+                            cursor: current_page.instructions.len(),
+                            reference: None,
                         })
                     }
-                    ellie_core::definite::items::Collecting::Function(e) => {
+                    ellie_core::definite::items::Collecting::Function(function) => {
                         for dependency in &processed_page.dependencies {
-                            self.assemble_dependency(&dependency.hash, false);
+                            self.assemble_dependency(&dependency.hash, false, None);
                         }
-                        self.assemble_dependency(&e.inner_page_id, false);
-                        return;
+                        let current_page = self.pages.find_page(*hash).unwrap();
+
+                        current_page.locals.push(LocalHeader {
+                            name: function.name.clone(),
+                            cursor: current_page.instructions.len(),
+                            reference: Some(function.inner_page_id as usize),
+                        });
+                        println!("Register inner page_id : {}", function.inner_page_id);
+                        let current_locals = current_page.locals.clone();
+                        self.assemble_dependency(
+                            &function.inner_page_id,
+                            false,
+                            Some(
+                                current_locals
+                                    .clone()
+                                    .iter()
+                                    .map(|x| LocalHeader {
+                                        name: x.name.clone(),
+                                        cursor: x.cursor,
+                                        reference: Some(*hash as usize),
+                                    })
+                                    .collect::<Vec<_>>(),
+                            ),
+                        );
                     }
                     ellie_core::definite::items::Collecting::ForLoop(_) => {
                         std::println!("[Assembler,Ignore,Element] ForLoop")
@@ -357,8 +487,32 @@ impl Assembler {
                     ellie_core::definite::items::Collecting::Condition(_) => {
                         std::println!("[Assembler,Ignore,Element] Condition")
                     }
-                    ellie_core::definite::items::Collecting::Class(_) => {
-                        std::println!("[Assembler,Ignore,Element] Class")
+                    ellie_core::definite::items::Collecting::Class(class) => {
+                        for dependency in &processed_page.dependencies {
+                            self.assemble_dependency(&dependency.hash, false, None);
+                        }
+                        let current_page = self.pages.find_page(*hash).unwrap();
+                        current_page.locals.push(LocalHeader {
+                            name: class.name.clone(),
+                            cursor: current_page.instructions.len(),
+                            reference: Some(class.inner_page_id as usize),
+                        });
+                        let current_locals = current_page.locals.clone();
+                        self.assemble_dependency(
+                            &class.inner_page_id,
+                            false,
+                            Some(
+                                current_locals
+                                    .clone()
+                                    .iter()
+                                    .map(|x| LocalHeader {
+                                        name: x.name.clone(),
+                                        cursor: x.cursor,
+                                        reference: Some(*hash as usize),
+                                    })
+                                    .collect::<Vec<_>>(),
+                            ),
+                        );
                     }
                     ellie_core::definite::items::Collecting::Ret(_) => {
                         std::println!("[Assembler,Ignore,Element] Ret")
@@ -377,7 +531,57 @@ impl Assembler {
                     ellie_core::definite::items::Collecting::Generic(_) => {
                         std::println!("[Assembler,Ignore,Element] Generic")
                     }
-                    ellie_core::definite::items::Collecting::GetterCall(_) => todo!(),
+                    ellie_core::definite::items::Collecting::GetterCall(getter) => {
+                        match &getter.data {
+                            Types::Collective(_) => todo!(),
+                            Types::Reference(_) => todo!(),
+                            Types::BraceReference(_) => todo!(),
+                            Types::Operator(_) => todo!(),
+                            Types::Cloak(_) => todo!(),
+                            Types::Array(_) => todo!(),
+                            Types::Vector(_) => todo!(),
+                            Types::Function(_) => todo!(),
+                            Types::ClassCall(_) => todo!(),
+                            Types::FunctionCall(function_call) => {
+                                let current_page = self.pages.find_page(*hash).unwrap();
+                                let target_local = match *function_call.target.clone() {
+                                    Types::VariableType(e) => e.value,
+                                    _ => unreachable!(),
+                                };
+                                let target = current_page.find_local(&target_local);
+
+                                //instructions.extend(resolved_instructions);
+                                current_page.instructions.extend(vec![
+                                    instructions::Instructions::CALL(Instruction::absolute(
+                                        target.unwrap().reference.unwrap(),
+                                    )),
+                                ]);
+                            }
+                            Types::SetterCall(_) => todo!(),
+                            Types::NullResolver(_) => todo!(),
+                            Types::Negative(_) => todo!(),
+                            Types::VariableType(_) => todo!(),
+                            Types::AsKeyword(_) => todo!(),
+                            Types::Null => todo!(),
+                            Types::Dynamic => todo!(),
+                            _ => {
+                                let resolved_instructions = self.resolve_type(
+                                    &getter.data,
+                                    instructions::Registers::A,
+                                    hash,
+                                );
+                                todo!("GetterCall: {:?}", resolved_instructions);
+                            }
+                            Types::Byte(_) => todo!(),
+                            Types::Integer(_) => todo!(),
+                            Types::Float(_) => todo!(),
+                            Types::Double(_) => todo!(),
+                            Types::Bool(_) => todo!(),
+                            Types::String(_) => todo!(),
+                            Types::Char(_) => todo!(),
+                            Types::Void => todo!(),
+                        }
+                    }
                     ellie_core::definite::items::Collecting::SetterCall(_) => todo!(),
                     ellie_core::definite::items::Collecting::Enum(_) => todo!(),
                     ellie_core::definite::items::Collecting::NativeFunction(_) => {
@@ -386,18 +590,45 @@ impl Assembler {
                     ellie_core::definite::items::Collecting::None => todo!(),
                     ellie_core::definite::items::Collecting::Brk(_) => todo!(),
                     ellie_core::definite::items::Collecting::Go(_) => todo!(),
+                    ellie_core::definite::items::Collecting::FuctionParameter(
+                        function_parameter,
+                    ) => {
+                        let current_page = self.pages.find_page(*hash).unwrap();
+                        current_page.debug_headers.push(DebugHeader {
+                            id: current_page.instructions.len(),
+                            rtype: DebugHeaderType::Variable,
+                            name: function_parameter.name.clone(),
+                            cursor: Cursor {
+                                range_start: function_parameter.name_pos.range_start,
+                                range_end: function_parameter.rtype_pos.range_end,
+                            },
+                        });
+
+                        current_page.assign_instruction(instructions::Instructions::STA(
+                            Instruction::implict(),
+                        ));
+
+                        current_page.locals.push(LocalHeader {
+                            name: function_parameter.name.clone(),
+                            cursor: current_page.instructions.len(),
+                            reference: None,
+                        });
+                    }
+                    ellie_core::definite::items::Collecting::ConstructorParameter(_) => {
+                        std::println!("[Assembler,Ignore,Element] ConstructorParameter")
+                    }
+                    ellie_core::definite::items::Collecting::SelfItem(_) => {
+                        std::println!("[Assembler,Ignore,Element] SelfItem")
+                    }
                 }
-            }
-            for dependency in &processed_page.dependencies {
-                self.assemble_dependency(&dependency.hash, false);
             }
         }
     }
 
     pub fn assemble(&mut self) -> AssembleResult {
-        self.assemble_dependency(&self.module.initial_page.clone(), true);
+        self.assemble_dependency(&self.module.initial_page.clone(), true, None);
         AssembleResult {
-            pages: self.pages.clone(),
+            pages: self.pages.clone().pages,
             platform_attributes: self.platform_attributes.clone(),
         }
     }

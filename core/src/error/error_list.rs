@@ -23,7 +23,7 @@ lazy_static! {
     pub static ref ERROR_S4: error::Error = error::Error {
         code: 0x03,
         title: "ReferenceError".to_owned(),
-        message: "Targeted variable '$token' not found in scope".to_owned(),
+        message: "Setter '$token' is not found in the scope".to_owned(),
         ..Default::default()
     };
     pub static ref ERROR_S5: error::Error = error::Error {

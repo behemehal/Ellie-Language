@@ -3,6 +3,7 @@
 # v0.5.5
 
 - Parser v0.3.1
+
   - Fix unresolved return type [05a1697137d8f1eed30b833cc86149646c6b344b](https://github.com/behemehal/Ellie-Language/commit/05a1697137d8f1eed30b833cc86149646c6b344b)
   - Implement getter & setter [48ff89ad3e159f175bf7f4435caf4e47605719bc](https://github.com/behemehal/Ellie-Language/commit/48ff89ad3e159f175bf7f4435caf4e47605719bc)
   - Fix faulty compiling sequence [931c9ffa930a19c42ad5186554ffafe18bdf2425](https://github.com/behemehal/Ellie-Language/commit/931c9ffa930a19c42ad5186554ffafe18bdf2425)
@@ -23,8 +24,17 @@
 # v0.6.2
 
 - Parser v0.4.2
+
   - Fix performance issues [c003952cef5df0c111cd33fcf395e92f1d0528d6](https://github.com/behemehal/Ellie-Language/commit/c003952cef5df0c111cd33fcf395e92f1d0528d6)
 
 - Tokenizer v0.3.2
   - Fix performance issues [c003952cef5df0c111cd33fcf395e92f1d0528d6](https://github.com/behemehal/Ellie-Language/commit/c003952cef5df0c111cd33fcf395e92f1d0528d6)
 
+# v0.6.3
+
+- Parser v0.4.3
+
+  - Implement getter setter property resolver [4053165a6dc1a41e2c54cd1cb53eb12449b14e78](https://github.com/behemehal/Ellie-Language/commit/4053165a6dc1a41e2c54cd1cb53eb12449b14e78)
+
+- Tokenizer v0.3.3
+  - Fix comment bug [2723381f7f0f32e549c56a4e29a14ac3667c44a0](https://github.com/behemehal/Ellie-Language/commit/2723381f7f0f32e549c56a4e29a14ac3667c44a0)

@@ -18,3 +18,8 @@ pub mod instructions;
 
 /// Utils
 pub mod utils;
+
+#[macro_use]
+extern crate lazy_static;
+
+pub mod test;

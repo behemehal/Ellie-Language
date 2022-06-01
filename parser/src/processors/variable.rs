@@ -54,6 +54,7 @@ impl super::Processor for VariableCollector {
                     page_hash,
                     Some(self.data.hash.clone()),
                     false,
+                    false,
                 )
             };
 

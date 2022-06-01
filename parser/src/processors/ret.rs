@@ -15,6 +15,7 @@ impl super::Processor for Ret {
             page_hash,
             None,
             false,
+            false,
         ) {
             Ok(value) => {
                 let unprocessed_page = parser.pages.nth_mut(page_idx).unwrap();

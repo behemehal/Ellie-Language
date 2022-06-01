@@ -41,6 +41,7 @@ impl super::Processor for Condition {
                     page_hash,
                     None,
                     false,
+                    false,
                 ) {
                     Ok(condition) => {
                         condition_type = condition.clone();
@@ -55,7 +56,13 @@ impl super::Processor for Condition {
                             parser.informations.extend(&errors);
                             return false;
                         }
-                        let condition_type = condition_type.unwrap();
+
+                        let condition_type = match condition_type {
+                            Some(e) => e,
+                            None => {
+                                return false;
+                            },
+                        };
 
                         //If condition type is not boolean, we can't continue
                         if condition_type.to_string() != "bool" {

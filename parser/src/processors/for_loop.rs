@@ -73,6 +73,7 @@ impl super::Processor for ForLoop {
                 page_hash,
                 None,
                 false,
+                false,
             ) {
                 Ok(rtype) => rtype,
                 Err(e) => {

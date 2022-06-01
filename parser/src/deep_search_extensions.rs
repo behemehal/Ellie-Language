@@ -904,6 +904,7 @@ fn iterate_deep_type(
                                 Types::Vector(e) => DeepTypeResult::Vector(e),
                                 Types::Dynamic => DeepTypeResult::Dynamic,
                                 Types::ClassCall(e) => DeepTypeResult::ClassCall(e),
+                                Types::Function(e) => DeepTypeResult::Function(e),
                                 _ => unreachable!(),
                             },
                             None => {
@@ -2193,13 +2194,15 @@ pub fn resolve_type(
         }
         DeepTypeResult::Collective(_) => todo!(),
         DeepTypeResult::Operator(operator) => {
-            let value_type = match operator.operator {
-                ellie_core::definite::types::operator::Operators::ComparisonType(_) => {
-                    find_type("bool".to_string(), target_page, parser)
-                }
-                ellie_core::definite::types::operator::Operators::LogicalType(_) => {
-                    find_type("bool".to_string(), target_page, parser)
-                }
+            let value_type = match operator.operator.clone() {
+                ellie_core::definite::types::operator::Operators::ComparisonType(_) => (
+                    find_type("bool".to_string(), target_page, parser),
+                    "bool".to_string(),
+                ),
+                ellie_core::definite::types::operator::Operators::LogicalType(_) => (
+                    find_type("bool".to_string(), target_page, parser),
+                    "bool".to_string(),
+                ),
                 ellie_core::definite::types::operator::Operators::ArithmeticType(_) => {
                     let rtype = match *operator.first {
                         Types::Byte(_) => "byte".to_string(),
@@ -2207,25 +2210,69 @@ pub fn resolve_type(
                         Types::Float(_) => "float".to_string(),
                         Types::Double(_) => "double".to_string(),
                         Types::Operator(_) => {
-                            let res =
-                                resolve_type(*operator.first, target_page, parser, errors, pos)
-                                    .unwrap()
-                                    .to_string();
+                            let res = resolve_type(
+                                *operator.first.clone(),
+                                target_page,
+                                parser,
+                                errors,
+                                pos,
+                            )
+                            .unwrap()
+                            .to_string();
                             res
                         }
                         _ => unreachable!("Unhandled type: {:?}", operator.first),
                     };
-                    find_type(rtype, target_page, parser)
+                    (find_type(rtype.clone(), target_page, parser), rtype)
                 }
-                ellie_core::definite::types::operator::Operators::AssignmentType(_) => {
-                    todo!()
+                ellie_core::definite::types::operator::Operators::AssignmentType(e) => {
+                    let res =
+                        resolve_type(*operator.first.clone(), target_page, parser, errors, pos)
+                            .unwrap()
+                            .to_string();
+                    errors.push(error::error_list::ERROR_S3.clone().build_with_path(
+                        vec![
+                            error::ErrorBuildField {
+                                key: "token1".to_owned(),
+                                value: "bool".to_string(),
+                            },
+                            error::ErrorBuildField {
+                                key: "token1".to_owned(),
+                                value: res,
+                            },
+                        ],
+                        alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                        parser.find_page(target_page).unwrap().path.clone(),
+                        match pos {
+                            Some(e) => e,
+                            None => defs::Cursor::default(),
+                        },
+                    ));
+                    return None;
                 }
                 ellie_core::definite::types::operator::Operators::Null => {
                     unreachable!()
                 }
             };
 
-            Some(definers::DefinerCollecting::Generic(value_type.unwrap()))
+            match value_type.0 {
+                Some(value_type) => Some(definers::DefinerCollecting::Generic(value_type)),
+                None => {
+                    errors.push(error::error_list::ERROR_S38.clone().build_with_path(
+                        vec![error::ErrorBuildField {
+                            key: "token".to_owned(),
+                            value: value_type.1,
+                        }],
+                        alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                        parser.find_page(target_page).unwrap().path.clone(),
+                        match pos {
+                            Some(e) => e,
+                            None => defs::Cursor::default(),
+                        },
+                    ));
+                    None
+                }
+            }
         }
         DeepTypeResult::Cloak(_) => todo!(),
         DeepTypeResult::Array(array_type) => {
@@ -2282,7 +2329,21 @@ pub fn resolve_type(
                         },
                     ))
                 }
-                None => panic!("Unhandled behaviour"),
+                None => {
+                    errors.push(error::error_list::ERROR_S38.clone().build_with_path(
+                        vec![error::ErrorBuildField {
+                            key: "token".to_owned(),
+                            value: "array".to_string(),
+                        }],
+                        alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                        parser.find_page(target_page).unwrap().path.clone(),
+                        match pos {
+                            Some(e) => e,
+                            None => unreachable!(),
+                        },
+                    ));
+                    None
+                }
             }
         }
         DeepTypeResult::Vector(_) => todo!(),
@@ -2382,12 +2443,15 @@ pub fn resolve_type(
 
             _ => unreachable!(),
         },
-        DeepTypeResult::FunctionCall(_) => {
+        DeepTypeResult::FunctionCall(e) => {
+            Some(e.returning)
+            /*
             let dyn_type = find_type("function".to_string(), target_page, parser);
             match dyn_type {
                 Some(dynamic_type) => Some(definers::DefinerCollecting::Generic(dynamic_type)),
                 None => panic!("Unhandled behaviour"),
             }
+            */
         }
         DeepTypeResult::Void => {
             let void_type = find_type("void".to_string(), target_page, parser);

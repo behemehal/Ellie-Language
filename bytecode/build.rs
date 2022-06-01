@@ -1,4 +1,3 @@
-use serde_json::Value;
 use std::io::Write;
 extern crate alloc;
 
@@ -7,81 +6,56 @@ mod instructions;
 
 fn main() {
     let revision = 1;
-    //Read bytecode.json
-    let bytecode_json = std::fs::read_to_string(
-        env!("CARGO_MANIFEST_DIR").to_owned() + &"/bytecode.json".to_owned(),
+    let instructions_csv = std::fs::read_to_string(
+        env!("CARGO_MANIFEST_DIR").to_owned() + &"/instructions.csv".to_owned(),
     )
     .unwrap_or_else(|_| {
-        panic!("{}/bytecode.json", env!("CARGO_MANIFEST_DIR"));
+        panic!("{}/instructions.csv", env!("CARGO_MANIFEST_DIR"));
     });
-    //Parse json
-    let bytecode_json: Value = serde_json::from_str(&bytecode_json).unwrap();
 
-    let instructions = bytecode_json["instructions"].as_object().unwrap();
-    let instruction_values = bytecode_json["instructions"]
-        .as_object()
-        .unwrap()
-        .iter()
-        .map(|x| {
-            (
-                x.0,
-                x.1["mode"].as_str().unwrap().to_owned(),
-                x.1["type"].as_str().unwrap().to_owned(),
-            )
+    //Parse csv
+    let instruction_entries: Vec<(String, String, u8)> = instructions_csv
+        .split("\n")
+        .map(|line| {
+            let mut parts = line.split(",");
+            let rtype = parts.next().unwrap().to_owned();
+            let mode = parts.next().unwrap().to_owned();
+            let op_code = parts.next().unwrap().parse::<u8>().unwrap();
+            (rtype, mode, op_code)
         })
-        .collect::<Vec<_>>();
+        .collect();
 
-    let mut instructions_vec: Vec<instructions::InstructionStruct> = Vec::new();
-    for (key, value) in instructions {
-        //If given instruction already exists, add mode to it
-        if instructions_vec
-            .iter()
-            .any(|x| x.rtype == *value["type"].as_str().unwrap())
-        {
-            let instruction = instructions_vec
-                .iter_mut()
-                .find(|x| x.rtype == *value["type"].as_str().unwrap())
-                .unwrap();
-            instruction
-                .modes
-                .push(match value["mode"].as_str().unwrap() {
-                    "implicit" => crate::instructions::AddressingModesStruct::Implicit,
-                    "immediate" => crate::instructions::AddressingModesStruct::Immediate,
-                    "absolute" => crate::instructions::AddressingModesStruct::Absolute,
-                    "indirecta" => crate::instructions::AddressingModesStruct::IndirectA,
-                    "indirectb" => crate::instructions::AddressingModesStruct::IndirectB,
-                    "indirectc" => crate::instructions::AddressingModesStruct::IndirectC,
-                    "indirectx" => crate::instructions::AddressingModesStruct::IndirectX,
-                    "indirecty" => crate::instructions::AddressingModesStruct::IndirectY,
-                    _ => panic!("Unknown addressing mode"),
-                });
-        } else {
-            //Else create new instruction
-            instructions_vec.push(instructions::InstructionStruct {
-                op_code: key.to_string(),
-                rtype: value["type"].as_str().unwrap().to_string(),
-                modes: vec![match value["mode"].as_str().unwrap() {
-                    "implicit" => crate::instructions::AddressingModesStruct::Implicit,
-                    "immediate" => crate::instructions::AddressingModesStruct::Immediate,
-                    "absolute" => crate::instructions::AddressingModesStruct::Absolute,
-                    "indirecta" => crate::instructions::AddressingModesStruct::IndirectA,
-                    "indirectb" => crate::instructions::AddressingModesStruct::IndirectB,
-                    "indirectc" => crate::instructions::AddressingModesStruct::IndirectC,
-                    "indirectx" => crate::instructions::AddressingModesStruct::IndirectX,
-                    "indirecty" => crate::instructions::AddressingModesStruct::IndirectY,
-                    _ => panic!("Unknown addressing mode"),
-                }],
+    //Build instruction table
+    let mut instructions: Vec<instructions::InstructionStruct> = Vec::new();
+
+    for entry in &instruction_entries {
+        if instructions.iter().find(|x| x.rtype == entry.0).is_none() {
+            instructions.push(instructions::InstructionStruct {
+                op_code: entry.2,
+                rtype: &entry.0,
+                modes: vec![instructions::AddressingModesStruct::from_str(
+                    &entry.1, entry.2,
+                )],
             });
+        } else {
+            instructions
+                .iter_mut()
+                .find(|x| x.rtype == entry.0)
+                .unwrap()
+                .modes
+                .push(instructions::AddressingModesStruct::from_str(
+                    &entry.1, entry.2,
+                ));
         }
     }
 
     let mut instruction_markdown_table =
-        String::from("Auto builded from `bytecode.json` by `build.rs`\n");
+        String::from("Auto builded from `instructions.csv` by `build.rs` dont modify while language server is running\n");
 
-    instruction_markdown_table.push_str("| Instruction | Implicit | Immediate | Absolute | IndirectA | IndirectB | IndirectC | IndirectX | IndirectY |\n");
-    instruction_markdown_table.push_str("| ----------- | -------- | --------- | -------- | --------- | --------- | --------- | --------- | --------- |\n");
+    instruction_markdown_table.push_str("| Instruction | Implicit | Immediate | Absolute | Absolute Index | Absolute Property | IndirectA | IndirectB | IndirectC | IndirectX | IndirectY |\n");
+    instruction_markdown_table.push_str("| ----------- | -------- | --------- | -------- | -------------- | ----------------- | --------- | --------- | --------- | --------- | --------- |\n");
 
-    for instruction in instructions_vec.clone() {
+    for instruction in instructions.clone() {
         let mut modes_string = String::new();
 
         modes_string.push_str(&format!(
@@ -91,50 +65,72 @@ fn main() {
             width = 5 - instruction.rtype.len()
         ));
 
-        for m in 0..8 {
+        for m in 0..10 {
             let op_code = match m {
-                0 => instruction_values
+                0 => instruction
+                    .modes
                     .iter()
-                    .find(|x| x.2 == instruction.rtype && x.1 == "implicit"),
-                1 => instruction_values
+                    .find(|x| *x == &instructions::AddressingModesStruct::Implicit(0)),
+                1 => instruction
+                    .modes
                     .iter()
-                    .find(|x| x.2 == instruction.rtype && x.1 == "immediate"),
-                2 => instruction_values
+                    .find(|x| *x == &instructions::AddressingModesStruct::Immediate(0)),
+                2 => instruction
+                    .modes
                     .iter()
-                    .find(|x| x.2 == instruction.rtype && x.1 == "absolute"),
-                3 => instruction_values
+                    .find(|x| *x == &instructions::AddressingModesStruct::Absolute(0)),
+                3 => instruction
+                    .modes
                     .iter()
-                    .find(|x| x.2 == instruction.rtype && x.1 == "indirecta"),
-                4 => instruction_values
+                    .find(|x| *x == &instructions::AddressingModesStruct::AbsoluteIndex(0)),
+                4 => instruction
+                    .modes
                     .iter()
-                    .find(|x| x.2 == instruction.rtype && x.1 == "indirectb"),
-                5 => instruction_values
+                    .find(|x| *x == &instructions::AddressingModesStruct::AbsoluteProperty(0)),
+                5 => instruction
+                    .modes
                     .iter()
-                    .find(|x| x.2 == instruction.rtype && x.1 == "indirectc"),
-                6 => instruction_values
+                    .find(|x| *x == &instructions::AddressingModesStruct::IndirectA(0)),
+                6 => instruction
+                    .modes
                     .iter()
-                    .find(|x| x.2 == instruction.rtype && x.1 == "indirectx"),
-                7 => instruction_values
+                    .find(|x| *x == &instructions::AddressingModesStruct::IndirectB(0)),
+                7 => instruction
+                    .modes
                     .iter()
-                    .find(|x| x.2 == instruction.rtype && x.1 == "indirecty"),
+                    .find(|x| *x == &instructions::AddressingModesStruct::IndirectC(0)),
+                8 => instruction
+                    .modes
+                    .iter()
+                    .find(|x| *x == &instructions::AddressingModesStruct::IndirectX(0)),
+                9 => instruction
+                    .modes
+                    .iter()
+                    .find(|x| *x == &instructions::AddressingModesStruct::IndirectY(0)),
                 _ => unreachable!(),
             };
 
             let blank = match m {
-                0 => 7,
-                1 => 10,
+                0 => 8,
+                1 => 9,
                 2 => 8,
-                3 => 9,
-                4 => 9,
+                3 => 14,
+                4 => 17,
                 5 => 9,
                 6 => 9,
                 7 => 9,
+                8 => 9,
+                9 => 9,
                 _ => unreachable!(),
             };
 
             match op_code {
-                Some((op_code, _, _)) => {
-                    modes_string.push_str(&format!(" {}{:^blank$} |", "", op_code));
+                Some(op_code) => {
+                    modes_string.push_str(&format!(
+                        " {}{:^blank$} |",
+                        "",
+                        format!("0x{:02x}", op_code.val())
+                    ));
                 }
                 None => {
                     modes_string.push_str(&format!(" {:^blank$} |", "-"));
@@ -154,24 +150,17 @@ fn main() {
         .unwrap();
 
     let mut map_file = std::fs::File::create(
-        env!("CARGO_MANIFEST_DIR").to_owned() + &"/instruction_table.rs".to_owned(),
+        env!("CARGO_MANIFEST_DIR").to_owned() + &"/src/instruction_table.rs".to_owned(),
     )
     .unwrap();
-    let mut map_content = format!("use crate::instructions::{{InstructionStruct, AddressingModesStruct}};\npub static Revision : i8 = {};\n\nstatic Instructions: phf::Map<&'static str, Keyword> = phf_map! {{\n", revision);
+    let mut map_content = format!("//Auto builded from `instructions.csv` by `build.rs` dont modify while language server is running\nuse alloc::vec;\nuse lazy_static;\nuse crate::instructions::{{InstructionStruct, AddressingModesStruct}};\npub static Revision : i8 = {};\n\n pub struct Instruction {{\n\trtype: &'static str,\n\tcode: i8,\n\tmode: &'static str,\n}}\n\nlazy_static! {{\n\tlet instructions: [Instruction, {}] = [\n", revision, instruction_entries.len());
 
-    for instruction in instructions_vec {
+    for entry in instruction_entries {
         map_content.push_str(&format!(
-            "\t\"{}\" => Keyword {{\n\t\top_code: \"{}\",\n\t\trtype: \"{}\",\n\t\tmodes: vec![\n",
-            instruction.op_code, instruction.op_code, instruction.rtype
+            "\t\tInstruction {{\n\t\t\trtype: \"{}\",\n\t\t\tcode: {},\n\t\t\tmode: \"{}\",\n\t\t}},\n",
+            entry.0, entry.2, entry.1
         ));
-
-        for mode in instruction.modes {
-            map_content.push_str(&format!("\t\t\t{:?},\n", mode));
-        }
-
-        map_content.push_str("\t\t]\n\t},\n");
     }
-    map_content.push_str("};\n");
-
+    map_content.push_str("\t];\n}\n");
     map_file.write_all(map_content.as_bytes()).unwrap();
 }

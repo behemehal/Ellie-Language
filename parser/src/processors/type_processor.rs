@@ -20,6 +20,7 @@ pub fn process(
     page_id: u64,
     ignore_hash: Option<u64>,
     include_setter: bool,
+    exclude_getter: bool,
 ) -> Result<types::Types, Vec<error::Error>> {
     let mut errors = Vec::new();
     let (type_allowed, err_str) = parser.parser_settings.is_type_allowed(from.clone());
@@ -69,13 +70,26 @@ pub fn process(
                         }))
                     }
                     crate::parser::DeepSearchItems::Getter(e) => {
-                        match crate::deep_search_extensions::generate_type_from_defining(
-                            e.return_type.definer_type.to_definite(),
-                            page_id,
-                            parser,
-                        ) {
-                            Some(e) => Ok(e),
-                            None => Err(errors),
+                        if exclude_getter {
+                            errors.push(error::error_list::ERROR_S4.clone().build_with_path(
+                                vec![error::ErrorBuildField {
+                                    key: "token".to_owned(),
+                                    value: e.name,
+                                }],
+                                alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                                parser.find_page(page_id).unwrap().path.clone(),
+                                variable.data.pos,
+                            ));
+                            Err(errors)
+                        } else {
+                            match crate::deep_search_extensions::generate_type_from_defining(
+                                e.return_type.definer_type.to_definite(),
+                                page_id,
+                                parser,
+                            ) {
+                                Some(e) => Ok(e),
+                                None => Err(errors),
+                            }
                         }
                     }
                     crate::parser::DeepSearchItems::Setter(e) => {
@@ -109,25 +123,16 @@ pub fn process(
                             page_id,
                             ignore_hash,
                         ) {
-                            Ok(resolved_definer) => {
+                            Ok(_) => {
                                 match find_type("function".to_owned(), page_id, parser) {
-                                    Some(e) => {
-                                        Ok(types::Types::FunctionCall(types::function_call::FunctionCall {
-                                            pos: from.get_pos(),
-                                            target: Box::new(
-                                                ellie_core::definite::types::Types::VariableType(
-                                                    ellie_core::definite::types::variable::VariableType {
-                                                        value: "function".to_owned(),
-                                                        reference: e.hash,
-                                                        pos: ellie_core::defs::Cursor::default(),
-                                                    },
-                                                ),
-                                            ),
-                                            params: vec![],
-                                            target_pos: ellie_core::defs::Cursor::default(),
-                                            generic_parameters: vec![],
-                                            returning: resolved_definer,
-                                        }))
+                                    Some(_) => {
+                                        Ok(ellie_core::definite::types::Types::VariableType(
+                                            ellie_core::definite::types::variable::VariableType {
+                                                value: function.name,
+                                                reference: function.hash,
+                                                pos: ellie_core::defs::Cursor::default(),
+                                            },
+                                        ))
 
                                         /*
                                             Ok(types::Types::ClassCall(types::class_call::ClassCall {
@@ -214,7 +219,7 @@ pub fn process(
         Processors::Array(array_type) => {
             let mut collective = vec![];
             for i in array_type.data.collective {
-                let response = process(i.value, parser, page_id, ignore_hash, false);
+                let response = process(i.value, parser, page_id, ignore_hash, false, false);
                 if response.is_err() {
                     errors.append(&mut response.unwrap_err());
                 } else {
@@ -241,6 +246,7 @@ pub fn process(
                 page_id,
                 ignore_hash,
                 false,
+                false,
             );
 
             let processed_second_value = process(
@@ -248,6 +254,7 @@ pub fn process(
                 parser,
                 page_id,
                 ignore_hash,
+                false,
                 false,
             );
 
@@ -299,6 +306,7 @@ pub fn process(
                 page_id,
                 ignore_hash,
                 false,
+                exclude_getter,
             );
             match processed_reference {
                 Ok(found_reference) => {
@@ -856,6 +864,7 @@ pub fn process(
                 page_id,
                 ignore_hash,
                 false,
+                exclude_getter,
             );
             match index {
                 Ok(index) => {
@@ -879,6 +888,7 @@ pub fn process(
                         page_id,
                         ignore_hash,
                         false,
+                        exclude_getter,
                     );
                     match reference {
                         Ok(found_reference) => {
@@ -1004,6 +1014,7 @@ pub fn process(
                 page_id,
                 ignore_hash,
                 false,
+                false,
             );
             match target {
                 Ok(_) => {
@@ -1027,6 +1038,7 @@ pub fn process(
                                             parser,
                                             page_id,
                                             ignore_hash,
+                                            false,
                                             false,
                                         ) {
                                             Ok(resolved) => {
@@ -1124,7 +1136,7 @@ pub fn process(
                                         parser,
                                         page_id,
                                         None,
-                                        false,
+                                        false,false
                                     ) {
                                         Ok(resolved) => {
                                             Ok(ellie_core::definite::types::Types::FunctionCall(
@@ -1142,11 +1154,11 @@ pub fn process(
                                                     generic_parameters: vec![],
                                                 },
                                             ))
-                                        },
+                                        }
                                         Err(e) => {
                                             errors.extend(e);
                                             Err(errors)
-                                        },
+                                        }
                                     }
                                 } else {
                                     Err(errors)
@@ -1589,6 +1601,7 @@ pub fn process(
                                                         page_id,
                                                         ignore_hash,
                                                         false,
+                                                        false,
                                                     ) {
                                                         Ok(resolved_type) => {
                                                             let comperable = parser
@@ -1807,6 +1820,7 @@ pub fn process(
                 page_id,
                 ignore_hash.clone(),
                 false,
+                false,
             ) {
                 Ok(resolved_types) => {
                     match crate::processors::definer_processor::process(
@@ -1842,6 +1856,7 @@ pub fn process(
                 parser,
                 page_id,
                 ignore_hash.clone(),
+                false,
                 false,
             ) {
                 Ok(resolved_types) => Ok(types::Types::NullResolver(

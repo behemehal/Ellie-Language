@@ -476,13 +476,13 @@ impl Parser {
                 }
             }
             deep_search_extensions::DeepTypeResult::Collective(_) => todo!(),
-            deep_search_extensions::DeepTypeResult::Operator(_) => {
+            deep_search_extensions::DeepTypeResult::Operator(e) => {
                 let value_gen = match deep_search_extensions::resolve_type(
                     rtype,
                     target_page,
                     self,
                     &mut errors,
-                    None,
+                    Some(e.pos),
                 ) {
                     Some(e) => e,
                     None => {
@@ -505,13 +505,13 @@ impl Parser {
                 }
             }
             deep_search_extensions::DeepTypeResult::Cloak(_) => todo!(),
-            deep_search_extensions::DeepTypeResult::Array(_) => {
+            deep_search_extensions::DeepTypeResult::Array(e) => {
                 let value_gen = match deep_search_extensions::resolve_type(
                     rtype,
                     target_page,
                     self,
                     &mut errors,
-                    None,
+                    Some(e.pos),
                 ) {
                     Some(e) => e,
                     None => {
@@ -1448,15 +1448,39 @@ impl Parser {
                                 unprocessed_page.hash,
                             )
                         }
-                        Processors::SelfItem(_) => true,
+                        Processors::SelfItem(e) => {
+                            self.processed_pages
+                                .nth_mut(processed_page_idx)
+                                .unwrap()
+                                .items
+                                .push(Collecting::SelfItem(
+                                    ellie_core::definite::items::self_item::SelfItem {
+                                        class_page: e.class_page,
+                                        class_hash: e.class_hash,
+                                    },
+                                ));
+                            true
+                        }
                         Processors::GenericItem(e) => e.process(
                             self,
                             unprocessed_page_idx,
                             processed_page_idx,
                             unprocessed_page.hash,
                         ),
-                        Processors::FunctionParameter(_) => true,
-                        Processors::ConstructorParameter(_) => true,
+                        Processors::FunctionParameter(e) => {
+                            self.processed_pages.nth_mut(processed_page_idx).unwrap().items.push(
+                            Collecting::FuctionParameter(
+                                ellie_core::definite::items::function_parameter::FunctionParameter { name: e.name.clone(), rtype: e.rtype.clone(), name_pos: e.name_pos, rtype_pos: e.rtype_pos }
+                            ));
+                            true
+                        }
+                        Processors::ConstructorParameter(e) => {
+                            self.processed_pages.nth_mut(processed_page_idx).unwrap().items.push(
+                            Collecting::ConstructorParameter(
+                                ellie_core::definite::items::constructor_parameter::ConstructorParameter { name: e.name.clone(), pos: e.pos }
+                            ));
+                            true
+                        }
                         unexpected_element => {
                             self.informations.push(
                                 &error::error_list::ERROR_S22.clone().build_with_path(
@@ -1541,15 +1565,35 @@ impl Parser {
                             processed_page_idx,
                             unprocessed_page.hash,
                         ),
-                        Processors::SelfItem(_) => true,
+                        Processors::SelfItem(e) => {
+                            self.processed_pages
+                                .nth_mut(processed_page_idx)
+                                .unwrap()
+                                .items
+                                .push(Collecting::SelfItem(
+                                    ellie_core::definite::items::self_item::SelfItem {
+                                        class_page: e.class_page,
+                                        class_hash: e.class_hash,
+                                    },
+                                ));
+                            true
+                        }
                         Processors::GenericItem(e) => e.process(
                             self,
                             unprocessed_page_idx,
                             processed_page_idx,
                             unprocessed_page.hash,
                         ),
-                        Processors::FunctionParameter(_) => true,
-                        Processors::ConstructorParameter(_) => true,
+                        Processors::FunctionParameter(_) => {
+                            unreachable!("Unexpected element in body")
+                        }
+                        Processors::ConstructorParameter(e) => {
+                            self.processed_pages.nth_mut(processed_page_idx).unwrap().items.push(
+                            Collecting::ConstructorParameter(
+                                ellie_core::definite::items::constructor_parameter::ConstructorParameter { name: e.name.clone(), pos: e.pos }
+                            ));
+                            true
+                        }
                         unexpected_element => {
                             self.informations.push(
                                 &error::error_list::ERROR_S22.clone().build_with_path(
@@ -1642,15 +1686,39 @@ impl Parser {
                             unprocessed_page.hash,
                         ),
 
-                        Processors::SelfItem(_) => true,
+                        Processors::SelfItem(e) => {
+                            self.processed_pages
+                                .nth_mut(processed_page_idx)
+                                .unwrap()
+                                .items
+                                .push(Collecting::SelfItem(
+                                    ellie_core::definite::items::self_item::SelfItem {
+                                        class_page: e.class_page,
+                                        class_hash: e.class_hash,
+                                    },
+                                ));
+                            true
+                        }
                         Processors::GenericItem(e) => e.process(
                             self,
                             unprocessed_page_idx,
                             processed_page_idx,
                             unprocessed_page.hash,
                         ),
-                        Processors::FunctionParameter(_) => true,
-                        Processors::ConstructorParameter(_) => true,
+                        Processors::FunctionParameter(e) => {
+                            self.processed_pages.nth_mut(processed_page_idx).unwrap().items.push(
+                                Collecting::FuctionParameter(
+                                    ellie_core::definite::items::function_parameter::FunctionParameter { name: e.name.clone(), rtype: e.rtype.clone(), name_pos: e.name_pos, rtype_pos: e.rtype_pos }
+                                ));
+                            true
+                        }
+                        Processors::ConstructorParameter(e) => {
+                            self.processed_pages.nth_mut(processed_page_idx).unwrap().items.push(
+                                Collecting::ConstructorParameter(
+                                    ellie_core::definite::items::constructor_parameter::ConstructorParameter { name: e.name.clone(), pos: e.pos }
+                                ));
+                            true
+                        }
                         unexpected_element => {
                             self.informations.push(
                                 &error::error_list::ERROR_S22.clone().build_with_path(
@@ -1693,7 +1761,6 @@ impl Parser {
                             processed_page_idx,
                             unprocessed_page.hash,
                         ),
-                        Processors::SelfItem(_) => true,
                         Processors::GenericItem(e) => e.process(
                             self,
                             unprocessed_page_idx,
@@ -1712,8 +1779,9 @@ impl Parser {
                             processed_page_idx,
                             unprocessed_page.hash,
                         ),
-                        Processors::FunctionParameter(_) => true,
-                        Processors::ConstructorParameter(_) => true,
+                        Processors::SelfItem(_) => true,
+                        Processors::FunctionParameter(e) => true,
+                        Processors::ConstructorParameter(e) => true,
                         unexpected_element => {
                             self.informations.push(
                                 &error::error_list::ERROR_S22.clone().build_with_path(
@@ -1808,7 +1876,19 @@ impl Parser {
                             );
                             false
                         }
-                        Processors::SelfItem(_) => true,
+                        Processors::SelfItem(e) => {
+                            self.processed_pages
+                                .nth_mut(processed_page_idx)
+                                .unwrap()
+                                .items
+                                .push(Collecting::SelfItem(
+                                    ellie_core::definite::items::self_item::SelfItem {
+                                        class_page: e.class_page,
+                                        class_hash: e.class_hash,
+                                    },
+                                ));
+                            true
+                        }
                         Processors::GenericItem(e) => e.process(
                             self,
                             unprocessed_page_idx,
@@ -1816,7 +1896,13 @@ impl Parser {
                             unprocessed_page.hash,
                         ),
                         Processors::FunctionParameter(_) => true,
-                        Processors::ConstructorParameter(_) => true,
+                        Processors::ConstructorParameter(e) => {
+                            self.processed_pages.nth_mut(processed_page_idx).unwrap().items.push(
+                            Collecting::ConstructorParameter(
+                                ellie_core::definite::items::constructor_parameter::ConstructorParameter { name: e.name.clone(), pos: e.pos }
+                            ));
+                            true
+                        }
                         unexpected_element => {
                             self.informations.push(
                                 &error::error_list::ERROR_S22.clone().build_with_path(
@@ -1907,7 +1993,19 @@ impl Parser {
                                 unprocessed_page.hash,
                             )
                         }
-                        Processors::SelfItem(_) => true,
+                        Processors::SelfItem(e) => {
+                            self.processed_pages
+                                .nth_mut(processed_page_idx)
+                                .unwrap()
+                                .items
+                                .push(Collecting::SelfItem(
+                                    ellie_core::definite::items::self_item::SelfItem {
+                                        class_page: e.class_page,
+                                        class_hash: e.class_hash,
+                                    },
+                                ));
+                            true
+                        }
                         Processors::Brk(e) => {
                             self.pages
                                 .nth_mut(unprocessed_page_idx)
@@ -1938,8 +2036,20 @@ impl Parser {
                             processed_page_idx,
                             unprocessed_page.hash,
                         ),
-                        Processors::FunctionParameter(_) => true,
-                        Processors::ConstructorParameter(_) => true,
+                        Processors::FunctionParameter(e) => {
+                            self.processed_pages.nth_mut(processed_page_idx).unwrap().items.push(
+                                Collecting::FuctionParameter(
+                                    ellie_core::definite::items::function_parameter::FunctionParameter { name: e.name.clone(), rtype: e.rtype.clone(), name_pos: e.name_pos, rtype_pos: e.rtype_pos }
+                                ));
+                            true
+                        }
+                        Processors::ConstructorParameter(e) => {
+                            self.processed_pages.nth_mut(processed_page_idx).unwrap().items.push(
+                            Collecting::ConstructorParameter(
+                                ellie_core::definite::items::constructor_parameter::ConstructorParameter { name: e.name.clone(), pos: e.pos }
+                            ));
+                            true
+                        }
                         unexpected_element => {
                             self.informations.push(
                                 &error::error_list::ERROR_S22.clone().build_with_path(
