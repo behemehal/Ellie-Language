@@ -333,4 +333,11 @@ lazy_static! {
         message: "$opType is not chainable".to_owned(),
         ..Default::default()
     };
+
+    pub static ref ERROR_S54: error::Error = error::Error {
+        code: 0x53,
+        title: "SyntaxError".to_owned(),
+        message: "Char can only take one character".to_owned(),
+        ..Default::default()
+    };
 }

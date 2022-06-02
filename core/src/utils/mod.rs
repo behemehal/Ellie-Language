@@ -24,10 +24,8 @@ pub fn is_escape(value: char) -> bool {
         || value == 'n'
         || value == 'r'
         || value == 't'
-        || value == 'b'
-        || value == 'f'
-        || value == 'v'
         || value == '0'
+        || value == '\\'
 }
 
 pub fn is_reserved(value: &str, allow_core_naming: bool) -> bool {

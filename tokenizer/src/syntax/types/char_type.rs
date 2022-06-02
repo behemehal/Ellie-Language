@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 #[derive(PartialEq, Default, Debug, Clone, Serialize, Deserialize)]
 pub struct CharType {
     pub value: char,
+    pub is_escaped: bool,
     pub complete: bool,
     pub pos: defs::Cursor,
     pub comma_started: bool,
