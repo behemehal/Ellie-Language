@@ -103,7 +103,7 @@ impl super::Processor for Condition {
                 hash: page.hash.clone(),
                 processed: false,
                 module: None,
-                deep_link: None,
+                deep_link: Some(page.hash.clone()),
                 public: false,
             }];
             dependencies.extend(page.dependencies);
