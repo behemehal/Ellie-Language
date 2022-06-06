@@ -280,7 +280,7 @@ impl super::Processor for ItemProcessor {
                             target: *e.data.first,
                             operator: e.data.operator.as_assignment_type().unwrap().clone(),
                             cache: *e.itered_cache,
-                            target_pos: x.pos,
+                            target_pos: e.data.first_pos,
                             ..Default::default()
                         })
                     }
