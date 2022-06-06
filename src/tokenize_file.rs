@@ -186,7 +186,7 @@ pub fn tokenize(target_path: &Path, output_path: &Path, tokenizer_settings: Toke
                             "{}[?]{}: Ellie v{}",
                             cli_utils::Colors::Green,
                             cli_utils::Colors::Reset,
-                            crate::engine_constants::ELLIE_VERSION
+                            crate::engine_constants::ELLIE_ENGINE_VERSION
                         );
                         println!(
                             "{}[?]{}: Tokenizing took {}{}{}ms",

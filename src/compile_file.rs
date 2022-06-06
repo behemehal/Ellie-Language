@@ -182,7 +182,7 @@ pub fn compile(
                         compiler_settings.description,
                         compiler_settings.is_lib,
                         ellie_core::defs::Version::build_from_string(
-                            crate::engine_constants::ELLIE_VERSION.to_owned(),
+                            crate::engine_constants::ELLIE_ENGINE_VERSION.to_owned(),
                         ),
                     );
                     let compile_end =
@@ -554,7 +554,6 @@ pub fn compile(
                                         cli_utils::Colors::Green,
                                         cli_utils::Colors::Reset,
                                         match compiler_settings.byte_code_architecture {
-                                            ellie_bytecode::assembler::PlatformArchitecture::B8 => "8",
                                             ellie_bytecode::assembler::PlatformArchitecture::B16 => "16",
                                             ellie_bytecode::assembler::PlatformArchitecture::B32 => "32",
                                             ellie_bytecode::assembler::PlatformArchitecture::B64 => "64",
@@ -669,7 +668,6 @@ pub fn compile(
                                         cli_utils::Colors::Green,
                                         cli_utils::Colors::Reset,
                                         match compiler_settings.byte_code_architecture {
-                                            ellie_bytecode::assembler::PlatformArchitecture::B8 => "8",
                                             ellie_bytecode::assembler::PlatformArchitecture::B16 => "16",
                                             ellie_bytecode::assembler::PlatformArchitecture::B32 => "32",
                                             ellie_bytecode::assembler::PlatformArchitecture::B64 => "64",
@@ -740,7 +738,7 @@ pub fn compile(
                             "{}[?]{}: Ellie v{}",
                             cli_utils::Colors::Green,
                             cli_utils::Colors::Reset,
-                            crate::engine_constants::ELLIE_VERSION
+                            crate::engine_constants::ELLIE_ENGINE_VERSION
                         );
                         println!(
                             "{}[?]{}: Tokenizing took {}{}{}ms, Parsing took {}{}{}ms. Total time: {}{}{}ms",

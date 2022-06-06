@@ -25,7 +25,7 @@
     {
       "type": "lldb",
       "request": "launch",
-      "name": "Debug compiler with (ellieStd)",
+      "name": "Debug tokenizer",
       "cargo": {
         "args": ["build", "--bin=elliec", "--package=ellie_engine"],
         "filter": {
@@ -34,8 +34,8 @@
         }
       },
       "args": [
-        "compile",
-        "${workspaceFolder}/Ellie-Standard-Library/lib/lib.ei",
+        "tokenize",
+        "${workspaceFolder}/test_dir/test.ei",
         "--allow-panics",
         "--"
       ],

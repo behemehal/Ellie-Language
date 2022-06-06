@@ -386,7 +386,7 @@ pub fn color_code(target_path: &Path, output_path: &Path, colorizer_settings: Co
                         "\n{}[?]{}: Ellie v{}",
                         cli_utils::Colors::Green,
                         cli_utils::Colors::Reset,
-                        crate::engine_constants::ELLIE_VERSION
+                        crate::engine_constants::ELLIE_ENGINE_VERSION
                     );
                     println!(
                         "{}[?]{}: Tokenizing took {}{}{}ms",
