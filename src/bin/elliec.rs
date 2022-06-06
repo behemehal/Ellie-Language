@@ -1,12 +1,11 @@
-use ellie_engine::{cli_outputs, cli_utils};
+use ellie_engine::{cli_outputs, cli_utils, cli_options};
 use std::path::Path;
 
 #[derive(Debug, Clone)]
 struct EllieError {}
 
 fn main() {
-    let app = cli_utils::generate_elliec_options();
-
+    let app = cli_options::generate_elliec_options();
     let matches = app.get_matches();
 
     match matches.subcommand() {
@@ -66,7 +65,7 @@ fn main() {
                     } else {
                         "?:?".to_string()
                     };
-                    println!("\n{}{}https://github.com/behemehal/Ellie-Language/issues/new?labels=bug,Internal%20Error&title=Ellie%20Internal%20Error-{}&body=%23%20Ellie%20Internal%20Error%0AGenerated%20by%20elliec%20located%20at%20{}%0AEllieVersion:{}%0A{}", cli_utils::TextStyles::Underline,cli_utils::Colors::Green,line_and_col, line_and_col, ellie_engine::engine_constants::ELLIE_VERSION, cli_utils::Colors::Reset);
+                    println!("\n{}{}https://github.com/behemehal/Ellie-Language/issues/new?labels=compiler,bug,Internal%20Error&title=Ellie%20Internal%20Error-{}&body=%23%20Ellie%20Internal%20Error%0AGenerated%20by%20elliec%20located%20at%20{}%0AEllieVersion:{}%0A{}", cli_utils::TextStyles::Underline,cli_utils::Colors::Green,line_and_col, line_and_col, ellie_engine::engine_constants::ELLIE_ENGINE_VERSION, cli_utils::Colors::Reset);
                     println!(
                         "\n{}-----------------{}\n\n",
                         cli_utils::Colors::Blue,
@@ -185,7 +184,7 @@ fn main() {
                     } else {
                         "?:?".to_string()
                     };
-                    println!("\n{}{}https://github.com/behemehal/Ellie-Language/issues/new?labels=bug,Internal%20Error&title=Ellie%20Internal%20Error-{}&body=%23%20Ellie%20Internal%20Error%0AGenerated%20by%20elliec%20located%20at%20{}%0AEllieVersion:{}%0A{}", cli_utils::TextStyles::Underline,cli_utils::Colors::Green,line_and_col, line_and_col, ellie_engine::engine_constants::ELLIE_VERSION, cli_utils::Colors::Reset);
+                    println!("\n{}{}https://github.com/behemehal/Ellie-Language/issues/new?labels=bug,Internal%20Error&title=Ellie%20Internal%20Error-{}&body=%23%20Ellie%20Internal%20Error%0AGenerated%20by%20elliec%20located%20at%20{}%0AEllieVersion:{}%0A{}", cli_utils::TextStyles::Underline,cli_utils::Colors::Green,line_and_col, line_and_col, ellie_engine::engine_constants::ELLIE_ENGINE_VERSION, cli_utils::Colors::Reset);
                     println!(
                         "\n{}-----------------{}\n\n",
                         cli_utils::Colors::Blue,
@@ -302,7 +301,7 @@ fn main() {
                     } else {
                         "?:?".to_string()
                     };
-                    println!("\n{}{}https://github.com/behemehal/Ellie-Language/issues/new?labels=bug,Internal%20Error&title=Ellie%20Internal%20Error-{}&body=%23%20Ellie%20Internal%20Error%0AGenerated%20by%20elliec%20located%20at%20{}%0AEllieVersion:{}%0A{}", cli_utils::TextStyles::Underline,cli_utils::Colors::Green,line_and_col, line_and_col, ellie_engine::engine_constants::ELLIE_VERSION, cli_utils::Colors::Reset);
+                    println!("\n{}{}https://github.com/behemehal/Ellie-Language/issues/new?labels=bug,Internal%20Error&title=Ellie%20Internal%20Error-{}&body=%23%20Ellie%20Internal%20Error%0AGenerated%20by%20elliec%20located%20at%20{}%0AEllieVersion:{}%0A{}", cli_utils::TextStyles::Underline,cli_utils::Colors::Green,line_and_col, line_and_col, ellie_engine::engine_constants::ELLIE_ENGINE_VERSION, cli_utils::Colors::Reset);
                     println!(
                         "\n{}-----------------{}\n\n",
                         cli_utils::Colors::Blue,
@@ -343,7 +342,16 @@ fn main() {
             let target_path = {
                 let path = Path::new(matches.value_of("target").unwrap().clone());
                 if path.exists() {
-                    matches.value_of("target").unwrap().to_string()
+                    if path.is_file() {
+                        matches.value_of("target").unwrap().to_string()
+                    } else {
+                        println!(
+                            "{}Error:{} Given path is not a file",
+                            cli_utils::Colors::Red,
+                            cli_utils::Colors::Reset
+                        );
+                        std::process::exit(1);
+                    }
                 } else {
                     println!(
                         "{}Error:{} Target path does not exist",
@@ -408,7 +416,7 @@ fn main() {
                                         {
                                             let current_ellie_version =
                                                 ellie_core::defs::Version::build_from_string(
-                                                    ellie_engine::engine_constants::ELLIE_VERSION
+                                                    ellie_engine::engine_constants::ELLIE_ENGINE_VERSION
                                                         .to_owned(),
                                                 );
                                             if current_ellie_version != module.ellie_version {
@@ -582,8 +590,6 @@ fn main() {
                             ellie_bytecode::assembler::PlatformArchitecture::B32
                         } else if e == "16" {
                             ellie_bytecode::assembler::PlatformArchitecture::B16
-                        } else if e == "8" {
-                            ellie_bytecode::assembler::PlatformArchitecture::B8
                         } else {
                             println!(
                                 "{}Error:{} Unknown architecture '{}{}{}'",
@@ -613,12 +619,12 @@ fn main() {
                     let mut output = cli_outputs::VERSION_DETAILED.clone();
                     output.extra.push(cli_outputs::CliOuputExtraData {
                         key: "version".to_string(),
-                        value: ellie_engine::engine_constants::ELLIE_VERSION.to_owned(),
+                        value: ellie_engine::engine_constants::ELLIE_ENGINE_VERSION.to_owned(),
                     });
 
                     output.extra.push(cli_outputs::CliOuputExtraData {
                         key: "code".to_string(),
-                        value: ellie_engine::engine_constants::ELLIE_VERSION_NAME.to_owned(),
+                        value: ellie_engine::engine_constants::ELLIE_ENGINE_VERSION_NAME.to_owned(),
                     });
 
                     output.extra.push(cli_outputs::CliOuputExtraData {
@@ -637,24 +643,18 @@ fn main() {
                     });
 
                     output.extra.push(cli_outputs::CliOuputExtraData {
-                        key: "runtime_version".to_string(),
-                        value: ellie_engine::engine_constants::ELLIE_RUNTIME_VERSION.to_owned(),
-                    });
-
-                    output.extra.push(cli_outputs::CliOuputExtraData {
                         key: "core_version".to_string(),
                         value: ellie_engine::engine_constants::ELLIE_CORE_VERSION.to_owned(),
                     });
                     println!("{}", serde_json::to_string(&output).unwrap());
                 } else {
                     println!(
-                        "Ellie v{} - Code: {}\n\nBytecode Version: v{}\nTokenizer Version: v{}\nParser Version: v{}\nRuntime Version: v{}\nCore version: v{}\n",
-                        ellie_engine::engine_constants::ELLIE_VERSION,
-                        ellie_engine::engine_constants::ELLIE_VERSION_NAME,
+                        "Ellie v{} - Code: {}\n\nBytecode Version: v{}\nTokenizer Version: v{}\nParser Version: v{}\nCore version: v{}\n",
+                        ellie_engine::engine_constants::ELLIE_ENGINE_VERSION,
+                        ellie_engine::engine_constants::ELLIE_ENGINE_VERSION_NAME,
                         ellie_engine::engine_constants::ELLIE_BYTECODE_VERSION,
                         ellie_engine::engine_constants::ELLIE_TOKENIZER_VERSION,
                         ellie_engine::engine_constants::ELLIE_PARSER_VERSION,
-                        ellie_engine::engine_constants::ELLIE_RUNTIME_VERSION,
                         ellie_engine::engine_constants::ELLIE_CORE_VERSION,
                     );
                 }
@@ -663,19 +663,19 @@ fn main() {
                     let mut output = cli_outputs::VERSION.clone();
                     output.extra.push(cli_outputs::CliOuputExtraData {
                         key: "version".to_string(),
-                        value: ellie_engine::engine_constants::ELLIE_VERSION.to_owned(),
+                        value: ellie_engine::engine_constants::ELLIE_ENGINE_VERSION.to_owned(),
                     });
 
                     output.extra.push(cli_outputs::CliOuputExtraData {
                         key: "code".to_string(),
-                        value: ellie_engine::engine_constants::ELLIE_VERSION_NAME.to_owned(),
+                        value: ellie_engine::engine_constants::ELLIE_ENGINE_VERSION_NAME.to_owned(),
                     });
                     println!("{}", serde_json::to_string(&output).unwrap());
                 } else {
                     println!(
                         "Ellie v{} - Code: {}",
-                        ellie_engine::engine_constants::ELLIE_VERSION,
-                        ellie_engine::engine_constants::ELLIE_VERSION_NAME
+                        ellie_engine::engine_constants::ELLIE_ENGINE_VERSION,
+                        ellie_engine::engine_constants::ELLIE_ENGINE_VERSION_NAME
                     );
                 }
             }
