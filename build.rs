@@ -264,8 +264,7 @@ fn main() {
     fs::write(
         env!("CARGO_MANIFEST_DIR").to_owned() + &"/src/engine_constants.rs",
         format!(
-            r#"
-pub static ELLIE_ENGINE_VERSION : &'static str = &{ellie_engine_version};
+            r#"pub static ELLIE_ENGINE_VERSION : &'static str = &{ellie_engine_version};
 pub static ELLIE_ENGINE_VERSION_NAME : &'static str = &{ellie_engine_version_name};
 pub static ELLIE_CORE_VERSION : &'static str = &{ellie_core_version};
 pub static ELLIE_TOKENIZER_VERSION : &'static str = &{ellie_tokenizer_version};
