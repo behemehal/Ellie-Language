@@ -1,7 +1,13 @@
 #![allow(dead_code)]
-use core::fmt::Display;
 
-use alloc::{vec, vec::Vec};
+use std::{print, println};
+
+use alloc::{
+    boxed::Box,
+    string::{String, ToString},
+    vec,
+    vec::Vec,
+};
 
 #[derive(Clone, Debug)]
 pub struct Immediate;
@@ -31,9 +37,58 @@ pub struct IndirectY;
 pub struct Reference;
 
 #[derive(Clone, Debug)]
+pub enum Types {
+    Integer,
+    Float,
+    Double,
+    Byte,
+    Bool,
+    String,
+    Char,
+    Array(Box<Types>),
+    Vector,
+    Void,
+}
+
+impl Types {
+    pub fn display(&self) -> String {
+        match &self {
+            Types::Integer => "int".to_string(),
+            Types::Float => "float".to_string(),
+            Types::Double => "double".to_string(),
+            Types::Byte => "byte".to_string(),
+            Types::Bool => "bool".to_string(),
+            Types::String => "string".to_string(),
+            Types::Char => "char".to_string(),
+            Types::Array(e) => alloc::format!("array<{}>", e.display()),
+            Types::Vector => "vector".to_string(),
+            Types::Void => "void".to_string(),
+        }
+    }
+
+    //(Size of tree, types)
+    pub fn code(&self) -> (usize, &[u8]) {
+        match self {
+            Types::Integer => (1, &[1, 0]),
+            Types::Float => (1, &[2, 0]),
+            Types::Double => (1, &[3, 0]),
+            Types::Byte => (1, &[4, 0]),
+            Types::Bool => (1, &[5, 0]),
+            Types::String => (1, &[6, 0]),
+            Types::Char => (1, &[7, 0]),
+            Types::Void => (1, &[8, 0]),
+            Types::Array(_) => {
+                unimplemented!();
+            }
+            Types::Vector => todo!(),
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
 pub enum AddressingModes {
     Implicit,
-    Immediate(isize),
+    Immediate(Types, isize),
     Absolute(usize),
     AbsoluteIndex(usize, usize),
     AbsoluteProperty(usize, usize),
@@ -46,8 +101,32 @@ pub enum AddressingModes {
 }
 
 impl AddressingModes {
+    pub fn to_string(&self) -> String {
+        match self {
+            AddressingModes::Implicit => "implicit",
+            AddressingModes::Immediate(_, _) => "immediate",
+            AddressingModes::Absolute(_) => "absolute",
+            AddressingModes::AbsoluteIndex(_, _) => "absolute_index",
+            AddressingModes::AbsoluteProperty(_, _) => "absolute_property",
+            AddressingModes::IndirectA => "indirect_a",
+            AddressingModes::IndirectB => "indirect_b",
+            AddressingModes::IndirectC => "indirect_c",
+            AddressingModes::IndirectX => "indirect_x",
+            AddressingModes::IndirectY => "indirect_y",
+        }
+        .to_string()
+    }
+
     pub fn arg(&self) -> Vec<u8> {
         match self {
+            AddressingModes::Immediate(rtype, x) => {
+                let mut v = vec![];
+                let code = rtype.code();
+                v.extend(code.0.to_le_bytes().to_vec());
+                v.extend(code.1.to_vec());
+                v.extend(x.to_le_bytes().to_vec());
+                v
+            }
             AddressingModes::Absolute(x) => x.to_le_bytes().to_vec(),
             AddressingModes::AbsoluteIndex(arr, index) => {
                 let mut v = vec![];
@@ -71,7 +150,9 @@ impl core::fmt::Display for AddressingModes {
         match self {
             AddressingModes::Absolute(value) => write!(f, "${}", value),
             //AddressingModes::AbsoluteRef(page, value) => write!(f, "${}~{}", value, page),
-            AddressingModes::Immediate(value) => write!(f, "#{}", value),
+            AddressingModes::Immediate(rtype, value) => {
+                write!(f, "#({}){}", rtype.display(), value)
+            }
             AddressingModes::IndirectA => write!(f, "@A"),
             AddressingModes::IndirectB => write!(f, "@B"),
             AddressingModes::IndirectC => write!(f, "@C"),
@@ -98,9 +179,9 @@ impl Instruction {
         }
     }
 
-    pub fn immediate(val: isize) -> Instruction {
+    pub fn immediate(rtype: Types, val: isize) -> Instruction {
         Instruction {
-            addressing_mode: AddressingModes::Immediate(val),
+            addressing_mode: AddressingModes::Immediate(rtype, val),
         }
     }
 
@@ -173,9 +254,11 @@ pub enum Instructions {
     EXP(Instruction),
     DIV(Instruction),
     MOD(Instruction),
+    JMP(Instruction),
     CALL(Instruction),
+    RET(Instruction),
     AOL(Instruction),
-    PUSH(Instruction),
+    PUSHA(Instruction),
     LEN(Instruction),
     A2I(Instruction),
     A2F(Instruction),
@@ -184,6 +267,9 @@ pub enum Instructions {
     A2S(Instruction),
     A2C(Instruction),
     A2O(Instruction),
+    JMPA(Instruction),
+    POPS(Instruction),
+    ACP(Instruction),
 }
 
 impl Instructions {
@@ -191,42 +277,453 @@ impl Instructions {
         //let entries = crate::instruction_table::Instructions.entries();
 
         match self {
-            Instructions::LDA(_) => todo!(),
-            Instructions::LDB(_) => todo!(),
-            Instructions::LDC(_) => todo!(),
-            Instructions::LDX(_) => todo!(),
-            Instructions::LDY(_) => todo!(),
-            Instructions::STA(_) => todo!(),
-            Instructions::STB(_) => todo!(),
-            Instructions::STC(_) => todo!(),
-            Instructions::STX(_) => todo!(),
-            Instructions::STY(_) => todo!(),
-            Instructions::EQ(_) => todo!(),
-            Instructions::NE(_) => todo!(),
-            Instructions::GT(_) => todo!(),
-            Instructions::LT(_) => todo!(),
-            Instructions::GQ(_) => todo!(),
-            Instructions::LQ(_) => todo!(),
-            Instructions::AND(_) => todo!(),
-            Instructions::OR(_) => todo!(),
-            Instructions::ADD(_) => todo!(),
-            Instructions::SUB(_) => todo!(),
-            Instructions::MUL(_) => todo!(),
-            Instructions::EXP(_) => todo!(),
-            Instructions::DIV(_) => todo!(),
-            Instructions::MOD(_) => todo!(),
-            Instructions::CALL(_) => todo!(),
-            Instructions::AOL(_) => todo!(),
-            Instructions::PUSH(_) => todo!(),
-            Instructions::LEN(_) => todo!(),
-            Instructions::A2I(_) => todo!(),
-            Instructions::A2F(_) => todo!(),
-            Instructions::A2D(_) => todo!(),
-            Instructions::A2B(_) => todo!(),
-            Instructions::A2S(_) => todo!(),
-            Instructions::A2C(_) => todo!(),
-            Instructions::A2O(_) => todo!(),
+            Instructions::LDA(e) => {
+                let instruction = crate::instruction_table::INSTRUCTIONS
+                    .clone()
+                    .drain()
+                    .find(|(k, _)| *k == "lda_".to_string() + &e.addressing_mode.to_string())
+                    .unwrap();
+                let mut op_code: Vec<u8> = vec![instruction.1.code];
+                op_code.extend(e.addressing_mode.arg());
+                op_code
+            }
+            Instructions::LDB(e) => {
+                let instruction = crate::instruction_table::INSTRUCTIONS
+                    .clone()
+                    .drain()
+                    .find(|(k, _)| *k == "ldb_".to_string() + &e.addressing_mode.to_string())
+                    .unwrap();
+                let mut op_code: Vec<u8> = vec![instruction.1.code];
+                op_code.extend(e.addressing_mode.arg());
+                op_code
+            }
+            Instructions::LDC(e) => {
+                let instruction = crate::instruction_table::INSTRUCTIONS
+                    .clone()
+                    .drain()
+                    .find(|(k, _)| *k == "ldc_".to_string() + &e.addressing_mode.to_string())
+                    .unwrap();
+                let mut op_code: Vec<u8> = vec![instruction.1.code];
+                op_code.extend(e.addressing_mode.arg());
+                op_code
+            }
+            Instructions::LDX(e) => {
+                let instruction = crate::instruction_table::INSTRUCTIONS
+                    .clone()
+                    .drain()
+                    .find(|(k, _)| *k == "ldx_".to_string() + &e.addressing_mode.to_string())
+                    .unwrap();
+                let mut op_code: Vec<u8> = vec![instruction.1.code];
+                op_code.extend(e.addressing_mode.arg());
+                op_code
+            }
+            Instructions::LDY(e) => {
+                let instruction = crate::instruction_table::INSTRUCTIONS
+                    .clone()
+                    .drain()
+                    .find(|(k, _)| *k == "ldy_".to_string() + &e.addressing_mode.to_string())
+                    .unwrap();
+                let mut op_code: Vec<u8> = vec![instruction.1.code];
+                op_code.extend(e.addressing_mode.arg());
+                op_code
+            }
+            Instructions::STA(e) => {
+                let instruction = crate::instruction_table::INSTRUCTIONS
+                    .clone()
+                    .drain()
+                    .find(|(k, _)| *k == "sta_".to_string() + &e.addressing_mode.to_string())
+                    .unwrap_or_else(|| panic!("sta_{}", &e.addressing_mode.to_string()));
+                let mut op_code: Vec<u8> = vec![instruction.1.code];
+                op_code.extend(e.addressing_mode.arg());
+                op_code
+            }
+            Instructions::STB(e) => {
+                let instruction = crate::instruction_table::INSTRUCTIONS
+                    .clone()
+                    .drain()
+                    .find(|(k, _)| *k == "stb_".to_string() + &e.addressing_mode.to_string())
+                    .unwrap();
+                let mut op_code: Vec<u8> = vec![instruction.1.code];
+                op_code.extend(e.addressing_mode.arg());
+                op_code
+            }
+            Instructions::STC(e) => {
+                let instruction = crate::instruction_table::INSTRUCTIONS
+                    .clone()
+                    .drain()
+                    .find(|(k, _)| *k == "stc_".to_string() + &e.addressing_mode.to_string())
+                    .unwrap();
+                let mut op_code: Vec<u8> = vec![instruction.1.code];
+                op_code.extend(e.addressing_mode.arg());
+                op_code
+            }
+            Instructions::STX(e) => {
+                let instruction = crate::instruction_table::INSTRUCTIONS
+                    .clone()
+                    .drain()
+                    .find(|(k, _)| *k == "stx_".to_string() + &e.addressing_mode.to_string())
+                    .unwrap();
+                let mut op_code: Vec<u8> = vec![instruction.1.code];
+                op_code.extend(e.addressing_mode.arg());
+                op_code
+            }
+            Instructions::STY(e) => {
+                let instruction = crate::instruction_table::INSTRUCTIONS
+                    .clone()
+                    .drain()
+                    .find(|(k, _)| *k == "sty_".to_string() + &e.addressing_mode.to_string())
+                    .unwrap();
+                let mut op_code: Vec<u8> = vec![instruction.1.code];
+                op_code.extend(e.addressing_mode.arg());
+                op_code
+            }
+            Instructions::EQ(e) => {
+                let instruction = crate::instruction_table::INSTRUCTIONS
+                    .clone()
+                    .drain()
+                    .find(|(k, _)| *k == "eq_".to_string() + &e.addressing_mode.to_string())
+                    .unwrap();
+                let mut op_code: Vec<u8> = vec![instruction.1.code];
+                op_code.extend(e.addressing_mode.arg());
+                op_code
+            }
+            Instructions::NE(e) => {
+                let instruction = crate::instruction_table::INSTRUCTIONS
+                    .clone()
+                    .drain()
+                    .find(|(k, _)| *k == "ne_".to_string() + &e.addressing_mode.to_string())
+                    .unwrap();
+                let mut op_code: Vec<u8> = vec![instruction.1.code];
+                op_code.extend(e.addressing_mode.arg());
+                op_code
+            }
+            Instructions::GT(e) => {
+                let instruction = crate::instruction_table::INSTRUCTIONS
+                    .clone()
+                    .drain()
+                    .find(|(k, _)| *k == "gt_".to_string() + &e.addressing_mode.to_string())
+                    .unwrap();
+                let mut op_code: Vec<u8> = vec![instruction.1.code];
+                op_code.extend(e.addressing_mode.arg());
+                op_code
+            }
+            Instructions::LT(e) => {
+                let instruction = crate::instruction_table::INSTRUCTIONS
+                    .clone()
+                    .drain()
+                    .find(|(k, _)| *k == "lt_".to_string() + &e.addressing_mode.to_string())
+                    .unwrap();
+                let mut op_code: Vec<u8> = vec![instruction.1.code];
+                op_code.extend(e.addressing_mode.arg());
+                op_code
+            }
+            Instructions::GQ(e) => {
+                let instruction = crate::instruction_table::INSTRUCTIONS
+                    .clone()
+                    .drain()
+                    .find(|(k, _)| *k == "gq_".to_string() + &e.addressing_mode.to_string())
+                    .unwrap();
+                let mut op_code: Vec<u8> = vec![instruction.1.code];
+                op_code.extend(e.addressing_mode.arg());
+                op_code
+            }
+            Instructions::LQ(e) => {
+                let instruction = crate::instruction_table::INSTRUCTIONS
+                    .clone()
+                    .drain()
+                    .find(|(k, _)| *k == "lq_".to_string() + &e.addressing_mode.to_string())
+                    .unwrap();
+                let mut op_code: Vec<u8> = vec![instruction.1.code];
+                op_code.extend(e.addressing_mode.arg());
+                op_code
+            }
+            Instructions::AND(e) => {
+                let instruction = crate::instruction_table::INSTRUCTIONS
+                    .clone()
+                    .drain()
+                    .find(|(k, _)| *k == "and_".to_string() + &e.addressing_mode.to_string())
+                    .unwrap();
+                let mut op_code: Vec<u8> = vec![instruction.1.code];
+                op_code.extend(e.addressing_mode.arg());
+                op_code
+            }
+            Instructions::OR(e) => {
+                let instruction = crate::instruction_table::INSTRUCTIONS
+                    .clone()
+                    .drain()
+                    .find(|(k, _)| *k == "or_".to_string() + &e.addressing_mode.to_string())
+                    .unwrap();
+                let mut op_code: Vec<u8> = vec![instruction.1.code];
+                op_code.extend(e.addressing_mode.arg());
+                op_code
+            }
+            Instructions::ADD(e) => {
+                let instruction = crate::instruction_table::INSTRUCTIONS
+                    .clone()
+                    .drain()
+                    .find(|(k, _)| *k == "add_".to_string() + &e.addressing_mode.to_string())
+                    .unwrap();
+                let mut op_code: Vec<u8> = vec![instruction.1.code];
+                op_code.extend(e.addressing_mode.arg());
+                op_code
+            }
+            Instructions::SUB(e) => {
+                let instruction = crate::instruction_table::INSTRUCTIONS
+                    .clone()
+                    .drain()
+                    .find(|(k, _)| *k == "sub_".to_string() + &e.addressing_mode.to_string())
+                    .unwrap();
+                let mut op_code: Vec<u8> = vec![instruction.1.code];
+                op_code.extend(e.addressing_mode.arg());
+                op_code
+            }
+            Instructions::MUL(e) => {
+                let instruction = crate::instruction_table::INSTRUCTIONS
+                    .clone()
+                    .drain()
+                    .find(|(k, _)| *k == "mul_".to_string() + &e.addressing_mode.to_string())
+                    .unwrap();
+                let mut op_code: Vec<u8> = vec![instruction.1.code];
+                op_code.extend(e.addressing_mode.arg());
+                op_code
+            }
+            Instructions::EXP(e) => {
+                let instruction = crate::instruction_table::INSTRUCTIONS
+                    .clone()
+                    .drain()
+                    .find(|(k, _)| *k == "exp_".to_string() + &e.addressing_mode.to_string())
+                    .unwrap();
+                let mut op_code: Vec<u8> = vec![instruction.1.code];
+                op_code.extend(e.addressing_mode.arg());
+                op_code
+            }
+            Instructions::DIV(e) => {
+                let instruction = crate::instruction_table::INSTRUCTIONS
+                    .clone()
+                    .drain()
+                    .find(|(k, _)| *k == "div_".to_string() + &e.addressing_mode.to_string())
+                    .unwrap();
+                let mut op_code: Vec<u8> = vec![instruction.1.code];
+                op_code.extend(e.addressing_mode.arg());
+                op_code
+            }
+            Instructions::MOD(e) => {
+                let instruction = crate::instruction_table::INSTRUCTIONS
+                    .clone()
+                    .drain()
+                    .find(|(k, _)| *k == "mod_".to_string() + &e.addressing_mode.to_string())
+                    .unwrap();
+                let mut op_code: Vec<u8> = vec![instruction.1.code];
+                op_code.extend(e.addressing_mode.arg());
+                op_code
+            }
+            Instructions::CALL(e) => {
+                let instruction = crate::instruction_table::INSTRUCTIONS
+                    .clone()
+                    .drain()
+                    .find(|(k, _)| *k == "call_".to_string() + &e.addressing_mode.to_string())
+                    .unwrap();
+                let mut op_code: Vec<u8> = vec![instruction.1.code];
+                op_code.extend(e.addressing_mode.arg());
+                op_code
+            }
+            Instructions::AOL(e) => {
+                let instruction = crate::instruction_table::INSTRUCTIONS
+                    .clone()
+                    .drain()
+                    .find(|(k, _)| *k == "aol_".to_string() + &e.addressing_mode.to_string())
+                    .unwrap();
+                let mut op_code: Vec<u8> = vec![instruction.1.code];
+                op_code.extend(e.addressing_mode.arg());
+                op_code
+            }
+            Instructions::PUSHA(e) => {
+                let instruction = crate::instruction_table::INSTRUCTIONS
+                    .clone()
+                    .drain()
+                    .find(|(k, _)| *k == "push_".to_string() + &e.addressing_mode.to_string())
+                    .unwrap();
+                let mut op_code: Vec<u8> = vec![instruction.1.code];
+                op_code.extend(e.addressing_mode.arg());
+                op_code
+            }
+            Instructions::LEN(e) => {
+                let instruction = crate::instruction_table::INSTRUCTIONS
+                    .clone()
+                    .drain()
+                    .find(|(k, _)| *k == "len_".to_string() + &e.addressing_mode.to_string())
+                    .unwrap();
+                let mut op_code: Vec<u8> = vec![instruction.1.code];
+                op_code.extend(e.addressing_mode.arg());
+                op_code
+            }
+            Instructions::A2I(e) => {
+                let instruction = crate::instruction_table::INSTRUCTIONS
+                    .clone()
+                    .drain()
+                    .find(|(k, _)| *k == "a2i_".to_string() + &e.addressing_mode.to_string())
+                    .unwrap();
+                let mut op_code: Vec<u8> = vec![instruction.1.code];
+                op_code.extend(e.addressing_mode.arg());
+                op_code
+            }
+            Instructions::A2F(e) => {
+                let instruction = crate::instruction_table::INSTRUCTIONS
+                    .clone()
+                    .drain()
+                    .find(|(k, _)| *k == "a2f_".to_string() + &e.addressing_mode.to_string())
+                    .unwrap();
+                let mut op_code: Vec<u8> = vec![instruction.1.code];
+                op_code.extend(e.addressing_mode.arg());
+                op_code
+            }
+            Instructions::A2D(e) => {
+                let instruction = crate::instruction_table::INSTRUCTIONS
+                    .clone()
+                    .drain()
+                    .find(|(k, _)| *k == "a2d_".to_string() + &e.addressing_mode.to_string())
+                    .unwrap();
+                let mut op_code: Vec<u8> = vec![instruction.1.code];
+                op_code.extend(e.addressing_mode.arg());
+                op_code
+            }
+            Instructions::A2B(e) => {
+                let instruction = crate::instruction_table::INSTRUCTIONS
+                    .clone()
+                    .drain()
+                    .find(|(k, _)| *k == "a2b_".to_string() + &e.addressing_mode.to_string())
+                    .unwrap();
+                let mut op_code: Vec<u8> = vec![instruction.1.code];
+                op_code.extend(e.addressing_mode.arg());
+                op_code
+            }
+            Instructions::A2S(e) => {
+                let instruction = crate::instruction_table::INSTRUCTIONS
+                    .clone()
+                    .drain()
+                    .find(|(k, _)| *k == "a2s_".to_string() + &e.addressing_mode.to_string())
+                    .unwrap();
+                let mut op_code: Vec<u8> = vec![instruction.1.code];
+                op_code.extend(e.addressing_mode.arg());
+                op_code
+            }
+            Instructions::A2C(e) => {
+                let instruction = crate::instruction_table::INSTRUCTIONS
+                    .clone()
+                    .drain()
+                    .find(|(k, _)| *k == "a2c_".to_string() + &e.addressing_mode.to_string())
+                    .unwrap();
+                let mut op_code: Vec<u8> = vec![instruction.1.code];
+                op_code.extend(e.addressing_mode.arg());
+                op_code
+            }
+            Instructions::A2O(e) => {
+                let instruction = crate::instruction_table::INSTRUCTIONS
+                    .clone()
+                    .drain()
+                    .find(|(k, _)| *k == "a2o_".to_string() + &e.addressing_mode.to_string())
+                    .unwrap();
+                let mut op_code: Vec<u8> = vec![instruction.1.code];
+                op_code.extend(e.addressing_mode.arg());
+                op_code
+            }
+            Instructions::JMP(e) => {
+                let instruction = crate::instruction_table::INSTRUCTIONS
+                    .clone()
+                    .drain()
+                    .find(|(k, _)| *k == "jmp_".to_string() + &e.addressing_mode.to_string())
+                    .unwrap();
+                let mut op_code: Vec<u8> = vec![instruction.1.code];
+                op_code.extend(e.addressing_mode.arg());
+                op_code
+            }
+            Instructions::JMPA(e) => {
+                let instruction = crate::instruction_table::INSTRUCTIONS
+                    .clone()
+                    .drain()
+                    .find(|(k, _)| *k == "jmpa_".to_string() + &e.addressing_mode.to_string())
+                    .unwrap();
+                let mut op_code: Vec<u8> = vec![instruction.1.code];
+                op_code.extend(e.addressing_mode.arg());
+                op_code
+            }
+            Instructions::POPS(e) => {
+                let instruction = crate::instruction_table::INSTRUCTIONS
+                    .clone()
+                    .drain()
+                    .find(|(k, _)| *k == "pops_".to_string() + &e.addressing_mode.to_string())
+                    .unwrap();
+                let mut op_code: Vec<u8> = vec![instruction.1.code];
+                op_code.extend(e.addressing_mode.arg());
+                op_code
+            }
+            Instructions::RET(e) => {
+                let instruction = crate::instruction_table::INSTRUCTIONS
+                    .clone()
+                    .drain()
+                    .find(|(k, _)| *k == "ret_".to_string() + &e.addressing_mode.to_string())
+                    .unwrap();
+                let mut op_code: Vec<u8> = vec![instruction.1.code];
+                op_code.extend(e.addressing_mode.arg());
+                op_code
+            }
+            Instructions::ACP(e) => {
+                let instruction = crate::instruction_table::INSTRUCTIONS
+                    .clone()
+                    .drain()
+                    .find(|(k, _)| *k == "acp_".to_string() + &e.addressing_mode.to_string())
+                    .unwrap();
+                let mut op_code: Vec<u8> = vec![instruction.1.code];
+                op_code.extend(e.addressing_mode.arg());
+                op_code
+            }
         }
+    }
+
+    pub fn get_addressing_mode(&self) -> String {
+        match &self {
+            Instructions::LDA(e) => e.addressing_mode.clone(),
+            Instructions::LDB(e) => e.addressing_mode.clone(),
+            Instructions::LDC(e) => e.addressing_mode.clone(),
+            Instructions::LDX(e) => e.addressing_mode.clone(),
+            Instructions::LDY(e) => e.addressing_mode.clone(),
+            Instructions::STA(e) => e.addressing_mode.clone(),
+            Instructions::STB(e) => e.addressing_mode.clone(),
+            Instructions::STC(e) => e.addressing_mode.clone(),
+            Instructions::STX(e) => e.addressing_mode.clone(),
+            Instructions::STY(e) => e.addressing_mode.clone(),
+            Instructions::EQ(e) => e.addressing_mode.clone(),
+            Instructions::NE(e) => e.addressing_mode.clone(),
+            Instructions::GT(e) => e.addressing_mode.clone(),
+            Instructions::LT(e) => e.addressing_mode.clone(),
+            Instructions::GQ(e) => e.addressing_mode.clone(),
+            Instructions::LQ(e) => e.addressing_mode.clone(),
+            Instructions::AND(e) => e.addressing_mode.clone(),
+            Instructions::OR(e) => e.addressing_mode.clone(),
+            Instructions::ADD(e) => e.addressing_mode.clone(),
+            Instructions::SUB(e) => e.addressing_mode.clone(),
+            Instructions::MUL(e) => e.addressing_mode.clone(),
+            Instructions::EXP(e) => e.addressing_mode.clone(),
+            Instructions::DIV(e) => e.addressing_mode.clone(),
+            Instructions::MOD(e) => e.addressing_mode.clone(),
+            Instructions::JMP(e) => e.addressing_mode.clone(),
+            Instructions::CALL(e) => e.addressing_mode.clone(),
+            Instructions::RET(e) => e.addressing_mode.clone(),
+            Instructions::AOL(e) => e.addressing_mode.clone(),
+            Instructions::PUSHA(e) => e.addressing_mode.clone(),
+            Instructions::LEN(e) => e.addressing_mode.clone(),
+            Instructions::A2I(e) => e.addressing_mode.clone(),
+            Instructions::A2F(e) => e.addressing_mode.clone(),
+            Instructions::A2D(e) => e.addressing_mode.clone(),
+            Instructions::A2B(e) => e.addressing_mode.clone(),
+            Instructions::A2S(e) => e.addressing_mode.clone(),
+            Instructions::A2C(e) => e.addressing_mode.clone(),
+            Instructions::A2O(e) => e.addressing_mode.clone(),
+            Instructions::JMPA(e) => e.addressing_mode.clone(),
+            Instructions::POPS(e) => e.addressing_mode.clone(),
+            Instructions::ACP(e) => e.addressing_mode.clone(),
+        }
+        .to_string()
     }
 }
 
@@ -259,7 +756,7 @@ impl core::fmt::Display for Instructions {
             Instructions::MOD(_) => write!(f, "MOD"),
             Instructions::CALL(instruction) => write!(f, "CALL {}", instruction.addressing_mode),
             Instructions::AOL(instruction) => write!(f, "AOL {}", instruction.addressing_mode),
-            Instructions::PUSH(instruction) => write!(f, "PUSH {}", instruction.addressing_mode),
+            Instructions::PUSHA(instruction) => write!(f, "PUSH {}", instruction.addressing_mode),
             Instructions::LEN(instruction) => write!(f, "LEN {}", instruction.addressing_mode),
             Instructions::A2I(instruction) => write!(f, "A2I {}", instruction.addressing_mode),
             Instructions::A2F(instruction) => write!(f, "A2F {}", instruction.addressing_mode),
@@ -268,6 +765,11 @@ impl core::fmt::Display for Instructions {
             Instructions::A2S(instruction) => write!(f, "A2S {}", instruction.addressing_mode),
             Instructions::A2C(instruction) => write!(f, "A2C {}", instruction.addressing_mode),
             Instructions::A2O(instruction) => write!(f, "A2O {}", instruction.addressing_mode),
+            Instructions::JMP(instruction) => write!(f, "JMP {}", instruction.addressing_mode),
+            Instructions::JMPA(instruction) => write!(f, "JMPA {}", instruction.addressing_mode),
+            Instructions::POPS(instruction) => write!(f, "POPS {}", instruction.addressing_mode),
+            Instructions::RET(instruction) => write!(f, "RET {}", instruction.addressing_mode),
+            Instructions::ACP(instruction) => write!(f, "ACP {}", instruction.addressing_mode),
         }
     }
 }
@@ -302,11 +804,11 @@ impl PartialEq for AddressingModesStruct {
             (Self::Absolute(l0), Self::Absolute(r0)) => true,
             (Self::AbsoluteIndex(l0), Self::AbsoluteIndex(r0)) => true,
             (Self::AbsoluteProperty(l0), Self::AbsoluteProperty(r0)) => true,
-            (Self::IndirectA(l0), Self::IndirectA(r0)) => true,
-            (Self::IndirectB(l0), Self::IndirectB(r0)) => true,
-            (Self::IndirectC(l0), Self::IndirectC(r0)) => true,
-            (Self::IndirectX(l0), Self::IndirectX(r0)) => true,
-            (Self::IndirectY(l0), Self::IndirectY(r0)) => true,
+            (Self::IndirectA(_), Self::IndirectA(_)) => true,
+            (Self::IndirectB(_), Self::IndirectB(_)) => true,
+            (Self::IndirectC(_), Self::IndirectC(_)) => true,
+            (Self::IndirectX(_), Self::IndirectX(_)) => true,
+            (Self::IndirectY(_), Self::IndirectY(_)) => true,
             _ => false,
         }
     }
@@ -315,7 +817,7 @@ impl PartialEq for AddressingModesStruct {
 impl AddressingModesStruct {
     pub fn from_str<'a>(mode: &'a str, op_code: u8) -> AddressingModesStruct {
         match mode {
-            "implict" => AddressingModesStruct::Implicit(op_code),
+            "implicit" => AddressingModesStruct::Implicit(op_code),
             "immediate" => AddressingModesStruct::Immediate(op_code),
             "absolute" => AddressingModesStruct::Absolute(op_code),
             "absolute_index" => AddressingModesStruct::AbsoluteIndex(op_code),
@@ -340,7 +842,7 @@ impl AddressingModesStruct {
             AddressingModesStruct::IndirectB(value) => value,
             AddressingModesStruct::IndirectC(value) => value,
             AddressingModesStruct::IndirectX(value) => value,
-            AddressingModesStruct::IndirectY(value) => value
+            AddressingModesStruct::IndirectY(value) => value,
         }
     }
 }

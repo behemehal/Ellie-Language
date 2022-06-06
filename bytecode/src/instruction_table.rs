@@ -1,476 +1,508 @@
-//Auto builded from `instructions.csv` by `build.rs` dont modify while language server is running
-use alloc::vec;
+//Auto builded from `instructions.csv` by `build.rs`
+use std::collections::HashMap;
 use lazy_static;
-use crate::instructions::{InstructionStruct, AddressingModesStruct};
 pub static Revision : i8 = 1;
 
- pub struct Instruction {
-	rtype: &'static str,
-	code: i8,
-	mode: &'static str,
+#[derive(Clone)]
+pub struct Instruction {
+	pub rtype: &'static str,
+	pub code: u8,
+	pub mode: &'static str,
 }
 
 lazy_static! {
-	let instructions: [Instruction, 92] = [
-		Instruction {
+	pub static ref INSTRUCTIONS : HashMap<&'static str, Instruction> = {
+		let mut i = HashMap::new();
+		i.insert("lda_immediate",Instruction {
 			rtype: "lda",
 			code: 1,
 			mode: "immediate",
-		},
-		Instruction {
+		});
+		i.insert("lda_absolute",Instruction {
 			rtype: "lda",
 			code: 2,
 			mode: "absolute",
-		},
-		Instruction {
+		});
+		i.insert("lda_indirect_b",Instruction {
 			rtype: "lda",
 			code: 3,
 			mode: "indirect_b",
-		},
-		Instruction {
+		});
+		i.insert("lda_indirect_c",Instruction {
 			rtype: "lda",
 			code: 4,
 			mode: "indirect_c",
-		},
-		Instruction {
+		});
+		i.insert("lda_indirect_x",Instruction {
 			rtype: "lda",
 			code: 5,
 			mode: "indirect_x",
-		},
-		Instruction {
+		});
+		i.insert("lda_indirect_y",Instruction {
 			rtype: "lda",
 			code: 6,
 			mode: "indirect_y",
-		},
-		Instruction {
+		});
+		i.insert("lda_absolute_index",Instruction {
 			rtype: "lda",
 			code: 7,
 			mode: "absolute_index",
-		},
-		Instruction {
+		});
+		i.insert("lda_absolute_property",Instruction {
 			rtype: "lda",
 			code: 8,
 			mode: "absolute_property",
-		},
-		Instruction {
+		});
+		i.insert("ldb_immediate",Instruction {
 			rtype: "ldb",
 			code: 9,
 			mode: "immediate",
-		},
-		Instruction {
+		});
+		i.insert("ldb_absolute",Instruction {
 			rtype: "ldb",
 			code: 10,
 			mode: "absolute",
-		},
-		Instruction {
+		});
+		i.insert("ldb_indirect_a",Instruction {
 			rtype: "ldb",
 			code: 11,
 			mode: "indirect_a",
-		},
-		Instruction {
+		});
+		i.insert("ldb_indirect_c",Instruction {
 			rtype: "ldb",
 			code: 12,
 			mode: "indirect_c",
-		},
-		Instruction {
+		});
+		i.insert("ldb_indirect_x",Instruction {
 			rtype: "ldb",
 			code: 13,
 			mode: "indirect_x",
-		},
-		Instruction {
+		});
+		i.insert("ldb_indirect_y",Instruction {
 			rtype: "ldb",
 			code: 14,
 			mode: "indirect_y",
-		},
-		Instruction {
+		});
+		i.insert("ldb_absolute_index",Instruction {
 			rtype: "ldb",
 			code: 15,
 			mode: "absolute_index",
-		},
-		Instruction {
+		});
+		i.insert("ldb_absolute_property",Instruction {
 			rtype: "ldb",
 			code: 16,
 			mode: "absolute_property",
-		},
-		Instruction {
+		});
+		i.insert("ldc_immediate",Instruction {
 			rtype: "ldc",
 			code: 17,
 			mode: "immediate",
-		},
-		Instruction {
+		});
+		i.insert("ldc_absolute",Instruction {
 			rtype: "ldc",
 			code: 18,
 			mode: "absolute",
-		},
-		Instruction {
+		});
+		i.insert("ldc_indirect_a",Instruction {
 			rtype: "ldc",
 			code: 19,
 			mode: "indirect_a",
-		},
-		Instruction {
+		});
+		i.insert("ldc_indirect_b",Instruction {
 			rtype: "ldc",
 			code: 20,
 			mode: "indirect_b",
-		},
-		Instruction {
+		});
+		i.insert("ldc_indirect_x",Instruction {
 			rtype: "ldc",
 			code: 21,
 			mode: "indirect_x",
-		},
-		Instruction {
+		});
+		i.insert("ldc_indirect_y",Instruction {
 			rtype: "ldc",
 			code: 22,
 			mode: "indirect_y",
-		},
-		Instruction {
+		});
+		i.insert("ldc_absolute_index",Instruction {
 			rtype: "ldc",
 			code: 23,
 			mode: "absolute_index",
-		},
-		Instruction {
+		});
+		i.insert("ldc_absolute_property",Instruction {
 			rtype: "ldc",
 			code: 24,
 			mode: "absolute_property",
-		},
-		Instruction {
+		});
+		i.insert("ldx_immediate",Instruction {
 			rtype: "ldx",
 			code: 25,
 			mode: "immediate",
-		},
-		Instruction {
+		});
+		i.insert("ldx_absolute",Instruction {
 			rtype: "ldx",
 			code: 26,
 			mode: "absolute",
-		},
-		Instruction {
+		});
+		i.insert("ldx_indirect_a",Instruction {
 			rtype: "ldx",
 			code: 27,
 			mode: "indirect_a",
-		},
-		Instruction {
+		});
+		i.insert("ldx_indirect_b",Instruction {
 			rtype: "ldx",
 			code: 28,
 			mode: "indirect_b",
-		},
-		Instruction {
+		});
+		i.insert("ldx_indirect_c",Instruction {
 			rtype: "ldx",
 			code: 29,
 			mode: "indirect_c",
-		},
-		Instruction {
+		});
+		i.insert("ldx_indirect_y",Instruction {
 			rtype: "ldx",
 			code: 30,
 			mode: "indirect_y",
-		},
-		Instruction {
+		});
+		i.insert("ldx_absolute_index",Instruction {
 			rtype: "ldx",
 			code: 31,
 			mode: "absolute_index",
-		},
-		Instruction {
+		});
+		i.insert("ldx_absolute_property",Instruction {
 			rtype: "ldx",
 			code: 32,
 			mode: "absolute_property",
-		},
-		Instruction {
+		});
+		i.insert("ldy_immediate",Instruction {
 			rtype: "ldy",
 			code: 33,
 			mode: "immediate",
-		},
-		Instruction {
+		});
+		i.insert("ldy_absolute",Instruction {
 			rtype: "ldy",
 			code: 34,
 			mode: "absolute",
-		},
-		Instruction {
+		});
+		i.insert("ldy_indirect_a",Instruction {
 			rtype: "ldy",
 			code: 35,
 			mode: "indirect_a",
-		},
-		Instruction {
+		});
+		i.insert("ldy_indirect_b",Instruction {
 			rtype: "ldy",
 			code: 36,
 			mode: "indirect_b",
-		},
-		Instruction {
+		});
+		i.insert("ldy_indirect_c",Instruction {
 			rtype: "ldy",
 			code: 38,
 			mode: "indirect_c",
-		},
-		Instruction {
+		});
+		i.insert("ldy_indirect_x",Instruction {
 			rtype: "ldy",
 			code: 37,
 			mode: "indirect_x",
-		},
-		Instruction {
+		});
+		i.insert("ldy_absolute_index",Instruction {
 			rtype: "ldy",
 			code: 39,
 			mode: "absolute_index",
-		},
-		Instruction {
+		});
+		i.insert("ldy_absolute_property",Instruction {
 			rtype: "ldy",
 			code: 40,
 			mode: "absolute_property",
-		},
-		Instruction {
+		});
+		i.insert("sta_implicit",Instruction {
 			rtype: "sta",
 			code: 41,
-			mode: "implict",
-		},
-		Instruction {
-			rtype: "stb",
+			mode: "implicit",
+		});
+		i.insert("sta_absolute",Instruction {
+			rtype: "sta",
 			code: 42,
-			mode: "implict",
-		},
-		Instruction {
-			rtype: "stc",
+			mode: "absolute",
+		});
+		i.insert("stb_implicit",Instruction {
+			rtype: "stb",
 			code: 43,
-			mode: "implict",
-		},
-		Instruction {
-			rtype: "stx",
+			mode: "implicit",
+		});
+		i.insert("stb_absolute",Instruction {
+			rtype: "stb",
 			code: 44,
-			mode: "implict",
-		},
-		Instruction {
-			rtype: "sty",
+			mode: "absolute",
+		});
+		i.insert("stc_implicit",Instruction {
+			rtype: "stc",
 			code: 45,
-			mode: "implict",
-		},
-		Instruction {
-			rtype: "eq",
+			mode: "implicit",
+		});
+		i.insert("stc_absolute",Instruction {
+			rtype: "stc",
 			code: 46,
-			mode: "implict",
-		},
-		Instruction {
-			rtype: "ne",
+			mode: "absolute",
+		});
+		i.insert("stx_implicit",Instruction {
+			rtype: "stx",
 			code: 47,
-			mode: "implict",
-		},
-		Instruction {
-			rtype: "gt",
+			mode: "implicit",
+		});
+		i.insert("stx_absolute",Instruction {
+			rtype: "stx",
 			code: 48,
-			mode: "implict",
-		},
-		Instruction {
-			rtype: "lt",
+			mode: "absolute",
+		});
+		i.insert("sty_implicit",Instruction {
+			rtype: "sty",
 			code: 49,
-			mode: "implict",
-		},
-		Instruction {
-			rtype: "gq",
+			mode: "implicit",
+		});
+		i.insert("sty_absolute",Instruction {
+			rtype: "sty",
 			code: 50,
-			mode: "implict",
-		},
-		Instruction {
-			rtype: "lq",
+			mode: "absolute",
+		});
+		i.insert("eq_implicit",Instruction {
+			rtype: "eq",
 			code: 51,
-			mode: "implict",
-		},
-		Instruction {
-			rtype: "and",
+			mode: "implicit",
+		});
+		i.insert("ne_implicit",Instruction {
+			rtype: "ne",
 			code: 52,
-			mode: "implict",
-		},
-		Instruction {
-			rtype: "or",
+			mode: "implicit",
+		});
+		i.insert("gt_implicit",Instruction {
+			rtype: "gt",
 			code: 53,
-			mode: "implict",
-		},
-		Instruction {
-			rtype: "add",
+			mode: "implicit",
+		});
+		i.insert("lt_implicit",Instruction {
+			rtype: "lt",
 			code: 54,
-			mode: "implict",
-		},
-		Instruction {
-			rtype: "sub",
+			mode: "implicit",
+		});
+		i.insert("gq_implicit",Instruction {
+			rtype: "gq",
 			code: 55,
-			mode: "implict",
-		},
-		Instruction {
-			rtype: "mul",
+			mode: "implicit",
+		});
+		i.insert("lq_implicit",Instruction {
+			rtype: "lq",
 			code: 56,
-			mode: "implict",
-		},
-		Instruction {
-			rtype: "exp",
+			mode: "implicit",
+		});
+		i.insert("and_implicit",Instruction {
+			rtype: "and",
 			code: 57,
-			mode: "implict",
-		},
-		Instruction {
-			rtype: "div",
+			mode: "implicit",
+		});
+		i.insert("or_implicit",Instruction {
+			rtype: "or",
 			code: 58,
-			mode: "implict",
-		},
-		Instruction {
-			rtype: "mod",
+			mode: "implicit",
+		});
+		i.insert("add_implicit",Instruction {
+			rtype: "add",
 			code: 59,
-			mode: "implict",
-		},
-		Instruction {
-			rtype: "inc",
+			mode: "implicit",
+		});
+		i.insert("sub_implicit",Instruction {
+			rtype: "sub",
 			code: 60,
-			mode: "implict",
-		},
-		Instruction {
-			rtype: "dec",
+			mode: "implicit",
+		});
+		i.insert("mul_implicit",Instruction {
+			rtype: "mul",
 			code: 61,
-			mode: "implict",
-		},
-		Instruction {
-			rtype: "jmp",
+			mode: "implicit",
+		});
+		i.insert("exp_implicit",Instruction {
+			rtype: "exp",
 			code: 62,
-			mode: "absolute",
-		},
-		Instruction {
-			rtype: "call",
+			mode: "implicit",
+		});
+		i.insert("div_implicit",Instruction {
+			rtype: "div",
 			code: 63,
-			mode: "absolute",
-		},
-		Instruction {
-			rtype: "ret",
+			mode: "implicit",
+		});
+		i.insert("mod_implicit",Instruction {
+			rtype: "mod",
 			code: 64,
-			mode: "implict",
-		},
-		Instruction {
-			rtype: "ret",
+			mode: "implicit",
+		});
+		i.insert("inc_implicit",Instruction {
+			rtype: "inc",
 			code: 65,
-			mode: "immediate",
-		},
-		Instruction {
-			rtype: "ret",
+			mode: "implicit",
+		});
+		i.insert("dec_implicit",Instruction {
+			rtype: "dec",
 			code: 66,
-			mode: "absolute",
-		},
-		Instruction {
-			rtype: "ret",
+			mode: "implicit",
+		});
+		i.insert("jmp_absolute",Instruction {
+			rtype: "jmp",
 			code: 67,
-			mode: "indirect_a",
-		},
-		Instruction {
-			rtype: "ret",
+			mode: "absolute",
+		});
+		i.insert("call_absolute",Instruction {
+			rtype: "call",
 			code: 68,
-			mode: "indirect_b",
-		},
-		Instruction {
+			mode: "absolute",
+		});
+		i.insert("ret_implicit",Instruction {
 			rtype: "ret",
 			code: 69,
-			mode: "indirect_c",
-		},
-		Instruction {
+			mode: "implicit",
+		});
+		i.insert("ret_immediate",Instruction {
 			rtype: "ret",
 			code: 70,
-			mode: "indirect_x",
-		},
-		Instruction {
+			mode: "immediate",
+		});
+		i.insert("ret_absolute",Instruction {
 			rtype: "ret",
 			code: 71,
-			mode: "indirect_y",
-		},
-		Instruction {
+			mode: "absolute",
+		});
+		i.insert("ret_indirect_a",Instruction {
 			rtype: "ret",
 			code: 72,
-			mode: "absolute_index",
-		},
-		Instruction {
+			mode: "indirect_a",
+		});
+		i.insert("ret_indirect_b",Instruction {
 			rtype: "ret",
 			code: 73,
-			mode: "absolute_property",
-		},
-		Instruction {
-			rtype: "aol",
-			code: 74,
-			mode: "absolute",
-		},
-		Instruction {
-			rtype: "pusha",
-			code: 75,
-			mode: "absolute",
-		},
-		Instruction {
-			rtype: "pusha",
-			code: 76,
-			mode: "indirect_a",
-		},
-		Instruction {
-			rtype: "pusha",
-			code: 77,
 			mode: "indirect_b",
-		},
-		Instruction {
-			rtype: "pusha",
-			code: 78,
+		});
+		i.insert("ret_indirect_c",Instruction {
+			rtype: "ret",
+			code: 74,
 			mode: "indirect_c",
-		},
-		Instruction {
-			rtype: "pusha",
-			code: 79,
+		});
+		i.insert("ret_indirect_x",Instruction {
+			rtype: "ret",
+			code: 75,
 			mode: "indirect_x",
-		},
-		Instruction {
+		});
+		i.insert("ret_indirect_y",Instruction {
+			rtype: "ret",
+			code: 76,
+			mode: "indirect_y",
+		});
+		i.insert("ret_absolute_index",Instruction {
+			rtype: "ret",
+			code: 77,
+			mode: "absolute_index",
+		});
+		i.insert("ret_absolute_property",Instruction {
+			rtype: "ret",
+			code: 78,
+			mode: "absolute_property",
+		});
+		i.insert("aol_absolute",Instruction {
+			rtype: "aol",
+			code: 79,
+			mode: "absolute",
+		});
+		i.insert("pusha_absolute",Instruction {
 			rtype: "pusha",
 			code: 80,
-			mode: "indirect_y",
-		},
-		Instruction {
+			mode: "absolute",
+		});
+		i.insert("pusha_indirect_a",Instruction {
 			rtype: "pusha",
 			code: 81,
-			mode: "absolute_index",
-		},
-		Instruction {
+			mode: "indirect_a",
+		});
+		i.insert("pusha_indirect_b",Instruction {
 			rtype: "pusha",
 			code: 82,
-			mode: "absolute_property",
-		},
-		Instruction {
-			rtype: "len",
+			mode: "indirect_b",
+		});
+		i.insert("pusha_indirect_c",Instruction {
+			rtype: "pusha",
 			code: 83,
-			mode: "implict",
-		},
-		Instruction {
-			rtype: "a2i",
+			mode: "indirect_c",
+		});
+		i.insert("pusha_indirect_x",Instruction {
+			rtype: "pusha",
 			code: 84,
-			mode: "implict",
-		},
-		Instruction {
-			rtype: "a2f",
+			mode: "indirect_x",
+		});
+		i.insert("pusha_indirect_y",Instruction {
+			rtype: "pusha",
 			code: 85,
-			mode: "implict",
-		},
-		Instruction {
-			rtype: "a2d",
+			mode: "indirect_y",
+		});
+		i.insert("pusha_absolute_index",Instruction {
+			rtype: "pusha",
 			code: 86,
-			mode: "implict",
-		},
-		Instruction {
-			rtype: "a2b",
+			mode: "absolute_index",
+		});
+		i.insert("pusha_absolute_property",Instruction {
+			rtype: "pusha",
 			code: 87,
-			mode: "implict",
-		},
-		Instruction {
-			rtype: "a2s",
+			mode: "absolute_property",
+		});
+		i.insert("len_implicit",Instruction {
+			rtype: "len",
 			code: 88,
-			mode: "implict",
-		},
-		Instruction {
-			rtype: "a2c",
+			mode: "implicit",
+		});
+		i.insert("a2i_implicit",Instruction {
+			rtype: "a2i",
 			code: 89,
-			mode: "implict",
-		},
-		Instruction {
-			rtype: "a2o",
+			mode: "implicit",
+		});
+		i.insert("a2f_implicit",Instruction {
+			rtype: "a2f",
 			code: 90,
-			mode: "implict",
-		},
-		Instruction {
-			rtype: "jmpa",
+			mode: "implicit",
+		});
+		i.insert("a2d_implicit",Instruction {
+			rtype: "a2d",
 			code: 91,
-			mode: "absolute",
-		},
-		Instruction {
-			rtype: "pops",
+			mode: "implicit",
+		});
+		i.insert("a2b_implicit",Instruction {
+			rtype: "a2b",
 			code: 92,
-			mode: "implict",
-		},
-	];
+			mode: "implicit",
+		});
+		i.insert("a2s_implicit",Instruction {
+			rtype: "a2s",
+			code: 93,
+			mode: "implicit",
+		});
+		i.insert("a2c_implicit",Instruction {
+			rtype: "a2c",
+			code: 94,
+			mode: "implicit",
+		});
+		i.insert("a2o_implicit",Instruction {
+			rtype: "a2o",
+			code: 95,
+			mode: "implicit",
+		});
+		i.insert("jmpa_absolute",Instruction {
+			rtype: "jmpa",
+			code: 96,
+			mode: "absolute",
+		});
+		i.insert("pops_implicit",Instruction {
+			rtype: "pops",
+			code: 97,
+			mode: "implicit",
+		});
+		i.insert("acp_absolute",Instruction {
+			rtype: "acp",
+			code: 98,
+			mode: "absolute",
+		});
+		i
+	};
 }
