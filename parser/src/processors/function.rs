@@ -44,7 +44,7 @@ impl super::Processor for function::FunctionCollector {
         } else {
             let mut parameters: Vec<ellie_core::definite::items::function::FunctionParameter> =
                 Vec::new();
-            let mut items = self.data.body.clone();
+            let mut items = Vec::new();
 
             let inner_page_id: u64 = ellie_core::utils::generate_hash_u64();
             let mut return_type = match super::definer_processor::process(
@@ -263,6 +263,7 @@ impl super::Processor for function::FunctionCollector {
                     public: false,
                 }];
                 dependencies.extend(page.dependencies);
+                items.extend(self.data.body.clone());
 
                 let inner = ellie_tokenizer::tokenizer::Page {
                     hash: inner_page_id,

@@ -141,7 +141,7 @@ impl super::Processor for ForLoop {
                 public: false,
             }];
 
-            let mut items = self.body.clone();
+            let mut items = Vec::new();
 
             items.push(ellie_tokenizer::processors::items::Processors::Variable(
                 ellie_tokenizer::syntax::items::variable::VariableCollector {
@@ -168,6 +168,7 @@ impl super::Processor for ForLoop {
             ));
 
             dependencies.extend(page.dependencies);
+            items.extend(self.body.clone());
             let inner = ellie_tokenizer::tokenizer::Page {
                 hash: inner_page_id,
                 inner: Some(page.hash),

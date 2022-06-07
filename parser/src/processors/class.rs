@@ -123,7 +123,7 @@ impl super::Processor for Class {
 
             let inner_page_id: u64 = ellie_core::utils::generate_hash_u64();
 
-            let mut items = self.body.clone();
+            let mut items = Vec::new();
 
             for generic in self.generic_definings.clone() {
                 items.push(ellie_tokenizer::processors::items::Processors::GenericItem(
@@ -150,6 +150,7 @@ impl super::Processor for Class {
                 public: false,
             }];
             dependencies.extend(page.dependencies);
+            items.extend(self.body.clone());
 
             let inner = ellie_tokenizer::tokenizer::Page {
                 hash: inner_page_id,

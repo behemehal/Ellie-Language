@@ -503,6 +503,11 @@ lazy_static! {
 			code: 98,
 			mode: "absolute",
 		});
+		i.insert("brk_implicit",Instruction {
+			rtype: "brk",
+			code: 90,
+			mode: "implicit",
+		});
 		i
 	};
 }

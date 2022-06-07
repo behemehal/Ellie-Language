@@ -270,6 +270,7 @@ pub enum Instructions {
     JMPA(Instruction),
     POPS(Instruction),
     ACP(Instruction),
+    BRK(Instruction),
 }
 
 impl Instructions {
@@ -677,6 +678,16 @@ impl Instructions {
                 op_code.extend(e.addressing_mode.arg());
                 op_code
             }
+            Instructions::BRK(e) => {
+                let instruction = crate::instruction_table::INSTRUCTIONS
+                    .clone()
+                    .drain()
+                    .find(|(k, _)| *k == "brk_".to_string() + &e.addressing_mode.to_string())
+                    .unwrap();
+                let mut op_code: Vec<u8> = vec![instruction.1.code];
+                op_code.extend(e.addressing_mode.arg());
+                op_code
+            }
         }
     }
 
@@ -722,6 +733,7 @@ impl Instructions {
             Instructions::JMPA(e) => e.addressing_mode.clone(),
             Instructions::POPS(e) => e.addressing_mode.clone(),
             Instructions::ACP(e) => e.addressing_mode.clone(),
+            Instructions::BRK(e) => e.addressing_mode.clone(),
         }
         .to_string()
     }
@@ -770,6 +782,7 @@ impl core::fmt::Display for Instructions {
             Instructions::POPS(instruction) => write!(f, "POPS {}", instruction.addressing_mode),
             Instructions::RET(instruction) => write!(f, "RET {}", instruction.addressing_mode),
             Instructions::ACP(instruction) => write!(f, "ACP {}", instruction.addressing_mode),
+            Instructions::BRK(_) => write!(f, "BRK"),
         }
     }
 }

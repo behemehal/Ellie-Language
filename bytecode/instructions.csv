@@ -96,3 +96,4 @@ a2o,implicit,95
 jmpa,absolute,96
 pops,implicit,97
 acp,absolute,98
+brk,implicit,99

@@ -3,7 +3,7 @@ use std::cell::RefCell;
 use crate::{
     heap::Heap,
     program::{Program, ReadInstruction},
-    thread::Thread,
+    thread::{Stack, Thread},
     utils::{self},
 };
 
@@ -55,6 +55,12 @@ impl<'a> VM<'a> {
         );
         {
             let mut thread = Thread::new(0, &self.stack, &mut self.heap);
+            thread.stack.push(Stack {
+                id: 0,
+                name: "<ellie_main>".to_string(),
+                caller: None,
+                pos: program.main,
+            });
             let main_thread = thread.run();
         }
 

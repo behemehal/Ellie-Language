@@ -13,6 +13,7 @@ pub struct ReadInstruction {
 
 #[derive(Debug)]
 pub struct Program {
+    pub(crate) main: usize,
     pub(crate) arch: u8,
     pub(crate) instructions: Vec<ReadInstruction>,
 }
@@ -24,9 +25,28 @@ impl Program {
             None => return Err(0),
         };
 
+        let size = arch / 8;
+
         println!("[Program]: Target arch {}", arch);
 
+        let main_exists = match reader.read_u8() {
+            Some(byte) => byte,
+            None => return Err(0),
+        };
+
+        if main_exists == 0 {
+            return Err(3);
+        }
+
+        let main = match reader.read_usize(size) {
+            Some(byte) => byte,
+            None => return Err(0),
+        };
+        println!("[Program]: Program starts at {}", main);
+
+
         let mut program = Program {
+            main,
             arch,
             instructions: Vec::new(),
         };

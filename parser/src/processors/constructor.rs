@@ -1,4 +1,4 @@
-use alloc::{borrow::ToOwned, vec};
+use alloc::{borrow::ToOwned, vec, vec::Vec};
 use ellie_core::error;
 use ellie_tokenizer::{syntax::items::constructor::Constructor, tokenizer::PageType};
 
@@ -42,7 +42,7 @@ impl super::Processor for Constructor {
                 _ => None,
             })
             .unwrap_or_else(|| panic!("Failed to find class"));
-        let mut items = self.inside_code.clone();
+        let mut items = Vec::new();
 
         for (index, parameter) in self.parameters.clone().iter().enumerate() {
             let deep_search =
@@ -110,7 +110,7 @@ impl super::Processor for Constructor {
                 parser.informations.push(&err);
             }
         }
-
+        items.extend(self.inside_code.clone());
         let inner_page_id: u64 = ellie_core::utils::generate_hash_u64();
         let inner = ellie_tokenizer::tokenizer::Page {
             hash: inner_page_id,

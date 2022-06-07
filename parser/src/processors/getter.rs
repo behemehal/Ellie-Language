@@ -1,4 +1,4 @@
-use alloc::{borrow::ToOwned, vec};
+use alloc::{borrow::ToOwned, vec, vec::Vec};
 use ellie_core::{definite::Converter, error, warning};
 use ellie_tokenizer::{syntax::items::getter, tokenizer::PageType};
 
@@ -38,7 +38,7 @@ impl super::Processor for getter::Getter {
             }
             true
         } else {
-            let items = self.body.clone();
+            let mut items = Vec::new();
             let inner_page_id: u64 = ellie_core::utils::generate_hash_u64();
             let return_type = self.return_type.definer_type.clone().to_definite();
 
@@ -77,6 +77,7 @@ impl super::Processor for getter::Getter {
                     public: false,
                 }];
                 dependencies.extend(page.dependencies.clone());
+                items.extend(self.body.clone());
 
                 ellie_tokenizer::tokenizer::Page {
                     hash: inner_page_id,

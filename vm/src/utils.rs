@@ -4,6 +4,12 @@ pub trait Reader {
     fn read(&mut self) -> Option<u8>;
 }
 
+pub enum ExitCode {
+    Success,
+    OutOfInstructions,
+    StackOverflow,
+}
+
 #[derive(Clone, Debug)]
 pub enum Types {
     Integer,

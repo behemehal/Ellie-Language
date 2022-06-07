@@ -964,6 +964,17 @@ impl Parser {
                         Some(page) => {
                             for item in page.items.iter() {
                                 match item.clone() {
+                                    Collecting::FuctionParameter(e) => {
+                                        if e.name == name {
+                                            found_pos = Some(defs::Cursor {
+                                                range_start: e.name_pos.range_start,
+                                                range_end: e.rtype_pos.range_end,
+                                            });
+                                            found = true;
+                                            found_page = FoundPage::fill(&unprocessed_page);
+                                            found_type = DeepSearchItems::FunctionParameter(ellie_tokenizer::syntax::items::function_parameter::FunctionParameter::default().from_definite(e));
+                                        }
+                                    }
                                     Collecting::Variable(e) => {
                                         if e.name == name
                                             && (e.public || level == 0 || dep.deep_link.is_some())

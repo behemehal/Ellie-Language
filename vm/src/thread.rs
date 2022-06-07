@@ -1,7 +1,9 @@
+use std::sync::Mutex;
+
 use crate::{
     heap,
     program::ReadInstruction,
-    utils::{self, Instructions, Types},
+    utils::{self, ExitCode, Instructions, Types},
 };
 
 pub struct Registers {
@@ -12,21 +14,67 @@ pub struct Registers {
     pub Y: (Types, isize),
 }
 
+pub struct Stack {
+    pub id: usize,
+    pub name: String,
+    pub caller: Option<usize>,
+    pub pos: usize,
+}
+
+pub struct StackController {
+    pub stack: Vec<Stack>,
+}
+
+impl StackController {
+    pub fn new() -> StackController {
+        StackController { stack: Vec::new() }
+    }
+
+    pub fn len(&self) -> usize {
+        self.stack.len()
+    }
+
+    pub fn first(&self) -> Option<&Stack> {
+        self.stack.first()
+    }
+
+    pub fn last(&self) -> Option<&Stack> {
+        self.stack.last()
+    }
+
+    pub fn last_mut(&mut self) -> Option<&mut Stack> {
+        self.stack.last_mut()
+    }
+
+    pub fn push(&mut self, stack: Stack) -> Result<(), u8> {
+        if self.stack.len() > 0 && self.stack.last().unwrap().name == stack.name {
+            Err(1)
+        } else {
+            self.stack.push(stack);
+            Ok(())
+        }
+    }
+
+    pub fn pop(&mut self) -> Stack {
+        self.stack.pop().unwrap()
+    }
+}
+
 pub struct Thread<'a> {
     pub id: u32,
-    pub stack: &'a Vec<ReadInstruction>,
+    pub program: &'a Vec<ReadInstruction>,
     pub heap: &'a mut heap::Heap,
     pub registers: Registers,
-    pub stack_pointer: usize,
+    pub stack: StackController,
 }
 
 impl<'a> Thread<'a> {
-    pub fn new(id: u32, stack: &'a Vec<ReadInstruction>, heap: &'a mut heap::Heap) -> Self {
+    pub fn new(id: u32, program: &'a Vec<ReadInstruction>, heap: &'a mut heap::Heap) -> Self {
         Thread {
             id,
-            stack,
+            program,
             heap,
-            stack_pointer: 0,
+            stack: StackController::new(),
             registers: Registers {
                 A: (Types::Void, 0),
                 B: (Types::Void, 0),
@@ -37,7 +85,7 @@ impl<'a> Thread<'a> {
         }
     }
 
-    pub fn run(&mut self) -> u8 {
+    pub fn run(&mut self) -> ExitCode {
         println!(
             "{}[VM]{}: Running thread {}'{}'{}",
             utils::Colors::Yellow,
@@ -46,14 +94,49 @@ impl<'a> Thread<'a> {
             self.id,
             utils::Colors::Reset,
         );
+        println!(
+            "{}[VM]{}: Thread start at {}: {}",
+            utils::Colors::Yellow,
+            utils::Colors::Reset,
+            self.stack.last().unwrap().name,
+            self.stack.last().unwrap().pos
+        );
 
-        let mut exit_code = 0;
+        let mut exit_code = ExitCode::Success;
+        let last_stack = self.stack.last_mut().unwrap();
+
         loop {
-            if self.stack_pointer == self.stack.len() {
-                exit_code = 0;
+            if self.stack.len() == 0 {
+                println!(
+                    "{}[VM]{}: Thread {}'{}'{} finished",
+                    utils::Colors::Yellow,
+                    utils::Colors::Reset,
+                    utils::Colors::Cyan,
+                    self.id,
+                    utils::Colors::Reset
+                );
                 break;
             }
-            let current_instruction = &self.stack[self.stack_pointer];
+
+            //Borrow self.stack with mutex
+
+            let mut drop_current_stack = false;
+            let current_stack = self.stack.last_mut().unwrap();
+
+            if current_stack.pos >= self.program.len() {
+                exit_code = ExitCode::OutOfInstructions;
+                println!(
+                    "{}[VM]{}: Thread {}'{}'{} halted: Out of instructions",
+                    utils::Colors::Yellow,
+                    utils::Colors::Reset,
+                    utils::Colors::Cyan,
+                    self.id,
+                    utils::Colors::Reset
+                );
+                break;
+            }
+
+            let current_instruction = &self.program[current_stack.pos];
             println!(
                 "{}[VM]{}: Executing instruction {:?}",
                 utils::Colors::Yellow,
@@ -183,7 +266,7 @@ impl<'a> Thread<'a> {
                 },
                 Instructions::STA(_) => match &current_instruction.addressing_value {
                     utils::AddressingValues::Implicit => {
-                        self.heap.set(&self.stack_pointer, self.registers.A.clone());
+                        self.heap.set(&current_stack.pos, self.registers.A.clone());
                     }
                     utils::AddressingValues::Absolute(e) => {
                         self.heap.set(&e, self.registers.A.clone());
@@ -194,7 +277,7 @@ impl<'a> Thread<'a> {
                 },
                 Instructions::STB(_) => match &current_instruction.addressing_value {
                     utils::AddressingValues::Implicit => {
-                        self.heap.set(&self.stack_pointer, self.registers.B.clone());
+                        self.heap.set(&current_stack.pos, self.registers.B.clone());
                     }
                     utils::AddressingValues::Absolute(e) => {
                         self.heap.set(&e, self.registers.B.clone());
@@ -205,7 +288,7 @@ impl<'a> Thread<'a> {
                 },
                 Instructions::STC(_) => match &current_instruction.addressing_value {
                     utils::AddressingValues::Implicit => {
-                        self.heap.set(&self.stack_pointer, self.registers.C.clone());
+                        self.heap.set(&current_stack.pos, self.registers.C.clone());
                     }
                     utils::AddressingValues::Absolute(e) => {
                         self.heap.set(&e, self.registers.C.clone());
@@ -216,7 +299,7 @@ impl<'a> Thread<'a> {
                 },
                 Instructions::STX(_) => match &current_instruction.addressing_value {
                     utils::AddressingValues::Implicit => {
-                        self.heap.set(&self.stack_pointer, self.registers.X.clone());
+                        self.heap.set(&current_stack.pos, self.registers.X.clone());
                     }
                     utils::AddressingValues::Absolute(e) => {
                         self.heap.set(&e, self.registers.X.clone());
@@ -227,7 +310,7 @@ impl<'a> Thread<'a> {
                 },
                 Instructions::STY(_) => match &current_instruction.addressing_value {
                     utils::AddressingValues::Implicit => {
-                        self.heap.set(&self.stack_pointer, self.registers.Y.clone());
+                        self.heap.set(&current_stack.pos, self.registers.Y.clone());
                     }
                     utils::AddressingValues::Absolute(e) => {
                         self.heap.set(&e, self.registers.Y.clone());
@@ -362,8 +445,50 @@ impl<'a> Thread<'a> {
                     _ => panic!("Illegal addressing value"),
                 },
                 Instructions::JMP(_) => todo!(),
-                Instructions::CALL(_) => todo!(),
-                Instructions::RET(_) => todo!(),
+                Instructions::CALL(e) => {
+                    match &current_instruction.addressing_value {
+                        utils::AddressingValues::Absolute(stack_pos) => {
+                            println!(
+                                "{}[VM]{} Push stack: {}",
+                                utils::Colors::Yellow,
+                                utils::Colors::Reset,
+                                stack_pos
+                            );
+                            current_stack.pos += 1;
+                            let current_stack_id = current_stack.id.clone();
+                            match self.stack.push(Stack {
+                                id: *stack_pos,
+                                name: format!("fn<{}>", stack_pos),
+                                caller: Some(current_stack_id),
+                                pos: *stack_pos,
+                            }) {
+                                Ok(_) => (),
+                                Err(_) => {
+                                    exit_code = ExitCode::StackOverflow;
+                                    break;
+                                }
+                            };
+                            continue;
+                        }
+                        _ => panic!("Illegal addressing value"),
+                    }
+
+                    panic!("CALL : {:?}", current_instruction);
+                }
+                Instructions::RET(_) => match &current_instruction.addressing_value {
+                    utils::AddressingValues::Implicit => {
+                        drop_current_stack = true;
+                    }
+                    utils::AddressingValues::Immediate(_, _) => todo!(),
+                    utils::AddressingValues::Absolute(_) => todo!(),
+                    utils::AddressingValues::AbsoluteIndex(_, _) => todo!(),
+                    utils::AddressingValues::AbsoluteProperty(_, _) => todo!(),
+                    utils::AddressingValues::IndirectA => todo!(),
+                    utils::AddressingValues::IndirectB => todo!(),
+                    utils::AddressingValues::IndirectC => todo!(),
+                    utils::AddressingValues::IndirectX => todo!(),
+                    utils::AddressingValues::IndirectY => todo!(),
+                },
                 Instructions::AOL(_) => todo!(),
                 Instructions::PUSHA(_) => todo!(),
                 Instructions::LEN(_) => todo!(),
@@ -378,17 +503,50 @@ impl<'a> Thread<'a> {
                 Instructions::POPS(_) => todo!(),
                 Instructions::ACP(_) => todo!(),
             }
-            self.stack_pointer += 1;
+            if drop_current_stack {
+                println!(
+                    "{}[VM]{}: Dropping stack '{}'",
+                    utils::Colors::Yellow,
+                    utils::Colors::Reset,
+                    current_stack.name
+                );
+                self.stack.pop();
+            } else {
+                current_stack.pos += 1;
+            }
         }
-        println!(
-            "{}[VM]{}: Thread {}'{}'{} finished with exit code {}",
-            utils::Colors::Yellow,
-            utils::Colors::Reset,
-            utils::Colors::Cyan,
-            self.id,
-            utils::Colors::Reset,
-            exit_code,
-        );
+        match exit_code {
+            ExitCode::Success => {
+                println!(
+                    "{}[VM]{}: Thread {}'{}'{} exited gracefully",
+                    utils::Colors::Yellow,
+                    utils::Colors::Reset,
+                    utils::Colors::Cyan,
+                    self.id,
+                    utils::Colors::Reset,
+                )
+            }
+            ExitCode::OutOfInstructions => {
+                println!(
+                    "{}[VM]{}: Thread {}'{}'{} exited because of out of instructions",
+                    utils::Colors::Yellow,
+                    utils::Colors::Reset,
+                    utils::Colors::Cyan,
+                    self.id,
+                    utils::Colors::Reset,
+                )
+            }
+            ExitCode::StackOverflow => {
+                println!(
+                    "{}[VM]{}: Thread {}'{}'{} exited because of stack overflow",
+                    utils::Colors::Yellow,
+                    utils::Colors::Reset,
+                    utils::Colors::Cyan,
+                    self.id,
+                    utils::Colors::Reset,
+                )
+            }
+        }
         exit_code
     }
 }

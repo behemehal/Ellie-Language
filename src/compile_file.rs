@@ -571,7 +571,7 @@ pub fn compile(
                                 let assembler_result = assembler.assemble();
                                 match File::create(output_path) {
                                     Ok(file) => {
-                                        assembler_result.render(file);
+                                        assembler_result.alternate_render(file);
                                         if compiler_settings.json_log {
                                             let mut output =
                                                 cli_outputs::WRITE_BYTE_CODE_SUCCEDED.clone();

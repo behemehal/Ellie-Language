@@ -239,6 +239,7 @@ pub fn generate_type_from_defining(
         }
         definers::DefinerCollecting::Function(function) => Some(Types::Function(
             ellie_core::definite::types::function::Function {
+                native: false,
                 parameters: function
                     .params
                     .iter()
@@ -996,6 +997,33 @@ fn iterate_deep_type(
                     ProcessedDeepSearchItems::Variable(e) => {
                         iterate_deep_type(parser, page_id, e.value, errors)
                     }
+                    ProcessedDeepSearchItems::FunctionParameter(e) => {
+                        match generate_type_from_defining(e.rtype, page_id, parser) {
+                            Some(e) => match e {
+                                Types::Byte(e) => DeepTypeResult::Byte(e),
+                                Types::Integer(e) => DeepTypeResult::Integer(e),
+                                Types::Float(e) => DeepTypeResult::Float(e),
+                                Types::Double(e) => DeepTypeResult::Double(e),
+                                Types::Bool(e) => DeepTypeResult::Bool(e),
+                                Types::String(e) => DeepTypeResult::String(e),
+                                Types::Char(e) => DeepTypeResult::Char(e),
+                                Types::Collective(e) => DeepTypeResult::Collective(e),
+                                Types::BraceReference(e) => DeepTypeResult::BraceReference(e),
+                                Types::Operator(e) => DeepTypeResult::Operator(e),
+                                Types::Cloak(e) => DeepTypeResult::Cloak(e),
+                                Types::Array(e) => DeepTypeResult::Array(e),
+                                Types::Vector(e) => DeepTypeResult::Vector(e),
+                                Types::Function(e) => DeepTypeResult::Function(e),
+                                Types::ClassCall(e) => DeepTypeResult::ClassCall(e),
+                                Types::FunctionCall(e) => DeepTypeResult::FunctionCall(e),
+                                Types::Void => DeepTypeResult::Void,
+                                Types::Null => DeepTypeResult::Null,
+                                Types::Dynamic => DeepTypeResult::Dynamic,
+                                _ => unreachable!(),
+                            },
+                            None => panic!("This should never happen"),
+                        }
+                    }
                     ProcessedDeepSearchItems::Getter(e) => {
                         match generate_type_from_defining(e.return_type, page_id, parser) {
                             Some(e) => match e {
@@ -1052,6 +1080,29 @@ fn iterate_deep_type(
                     }
                     ProcessedDeepSearchItems::Function(e) => {
                         DeepTypeResult::Function(ellie_core::definite::types::function::Function {
+                            native: false,
+                            parameters: e
+                                .parameters
+                                .iter()
+                                .map(
+                                    |x| ellie_core::definite::types::function::FunctionParameter {
+                                        name: x.name.clone(),
+                                        rtype: Some(x.rtype.clone()),
+                                        rtype_pos: x.rtype_pos.clone(),
+                                        name_pos: x.name_pos.clone(),
+                                    },
+                                )
+                                .collect::<Vec<_>>(),
+                            has_parameter_definings: true,
+                            return_type: e.return_type,
+                            inside_code: vec![],
+                            return_pos: defs::Cursor::default(),
+                            arrow_function: false,
+                        })
+                    }
+                    ProcessedDeepSearchItems::NativeFunction(e) => {
+                        DeepTypeResult::Function(ellie_core::definite::types::function::Function {
+                            native: true,
                             parameters: e
                                 .parameters
                                 .iter()
@@ -1138,6 +1189,7 @@ fn iterate_deep_type(
                                             inside_code: vec![],
                                             return_pos: defs::Cursor::default(),
                                             arrow_function: false,
+                                            native: false,
                                         }
                                     ))
                                 }
@@ -1279,6 +1331,7 @@ fn iterate_deep_type(
                                                 inside_code: vec![],
                                                 return_pos: defs::Cursor::default(),
                                                 arrow_function: false,
+                                                native: false,
                                             },
                                         ))
                                     } else {
@@ -1594,14 +1647,16 @@ pub fn resolve_deep_type(
 #[derive(Debug, Clone, EnumAsInner)]
 pub enum ProcessedDeepSearchItems {
     Class(ellie_core::definite::items::class::Class),
+
     Variable(ellie_core::definite::items::variable::Variable),
     Function(ellie_core::definite::items::function::Function),
+    NativeFunction(ellie_core::definite::items::native_function::NativeFunction),
     Getter(ellie_core::definite::items::getter::Getter),
     Setter(ellie_core::definite::items::setter::Setter),
     ImportReference(ellie_core::definite::items::import::Import),
     //SelfItem(ellie_core::definite::items::::SelfItem),
     GenericItem(ellie_core::definite::items::generic::Generic),
-    //FunctionParameter(ellie_core::definite::items::function::FunctionParameter),
+    FunctionParameter(ellie_core::definite::items::function_parameter::FunctionParameter),
     //ConstructorParameter(ellie_tokenizer::syntax::items::constructor_parameter::ConstructorParameter),
     //MixUp(Vec<(String, String)>),
     //BrokenPageGraph,
@@ -1863,6 +1918,18 @@ pub fn deep_search(
                                     found_type = ProcessedDeepSearchItems::Variable(e.clone());
                                 }
                             }
+                            Collecting::FuctionParameter(e) => {
+                                if e.name == name {
+                                    found_pos = Some(defs::Cursor {
+                                        range_start: e.name_pos.range_start,
+                                        range_end: e.rtype_pos.range_end,
+                                    });
+                                    found = true;
+                                    found_page = FoundPage::fill_from_processed(&page);
+                                    found_type =
+                                        ProcessedDeepSearchItems::FunctionParameter(e.clone());
+                                }
+                            }
                             Collecting::Function(e) => {
                                 if e.name == name
                                     && (e.public || level == 0 || dep.deep_link.is_some())
@@ -1873,6 +1940,19 @@ pub fn deep_search(
                                     found = true;
                                     found_page = FoundPage::fill_from_processed(&page);
                                     found_type = ProcessedDeepSearchItems::Function(e.clone());
+                                }
+                            }
+                            Collecting::NativeFunction(e) => {
+                                if e.name == name
+                                    && (e.public || level == 0 || dep.deep_link.is_some())
+                                    && (ignore_hash.is_none()
+                                        || matches!(ignore_hash, Some(ref t) if &e.hash != t))
+                                {
+                                    found_pos = Some(e.pos);
+                                    found = true;
+                                    found_page = FoundPage::fill_from_processed(&page);
+                                    found_type =
+                                        ProcessedDeepSearchItems::NativeFunction(e.clone());
                                 }
                             }
                             Collecting::Getter(e) => {
@@ -2017,6 +2097,16 @@ pub fn find_type(
                 );
             }
             ProcessedDeepSearchItems::None => None,
+            ProcessedDeepSearchItems::FunctionParameter(_) => {
+                unreachable!(
+                    "Unexpected internal crash, parser should have prevented this, {:?}",
+                    result
+                );
+            }
+            ProcessedDeepSearchItems::NativeFunction(_) => unreachable!(
+                "Unexpected internal crash, parser should have prevented this, {:?}",
+                result
+            ),
         }
     } else {
         None
@@ -2497,7 +2587,7 @@ pub fn resolve_type(
                 }
             }
         }
-        DeepTypeResult::NotFound => unreachable!("{:?}", target_type),
+        DeepTypeResult::NotFound => None,
         DeepTypeResult::BraceReference(e) => {
             let nullable_type = find_type("nullAble".to_string(), target_page, parser);
             match nullable_type {

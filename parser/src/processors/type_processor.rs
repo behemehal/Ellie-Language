@@ -682,7 +682,9 @@ pub fn process(
                                             }
                                         },
                                         crate::deep_search_extensions::ProcessedDeepSearchItems::Variable(_) => todo!(),
+                                        crate::deep_search_extensions::ProcessedDeepSearchItems::FunctionParameter(_) => todo!(),
                                         crate::deep_search_extensions::ProcessedDeepSearchItems::Function(_) => todo!(),
+                                        crate::deep_search_extensions::ProcessedDeepSearchItems::NativeFunction(_) => todo!(),
                                         crate::deep_search_extensions::ProcessedDeepSearchItems::Getter(_) => todo!(),
                                         crate::deep_search_extensions::ProcessedDeepSearchItems::Setter(_) => todo!(),
                                         crate::deep_search_extensions::ProcessedDeepSearchItems::ImportReference(_) => todo!(),

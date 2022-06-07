@@ -1,4 +1,4 @@
-use alloc::{borrow::ToOwned, vec};
+use alloc::{borrow::ToOwned, vec, vec::Vec};
 use ellie_core::{error, warning};
 use ellie_tokenizer::{syntax::items::setter, tokenizer::PageType};
 
@@ -41,7 +41,7 @@ impl super::Processor for setter::Setter {
             let mut setter_parameter: Option<
                 ellie_core::definite::items::function::FunctionParameter,
             > = None;
-            let mut items = self.body.clone();
+            let mut items = Vec::new();
 
             let inner_page_id: u64 = ellie_core::utils::generate_hash_u64();
 
@@ -180,6 +180,7 @@ impl super::Processor for setter::Setter {
                 public: false,
             }];
             dependencies.extend(page.dependencies.clone());
+            items.extend(self.body.clone());
 
             let inner = ellie_tokenizer::tokenizer::Page {
                 hash: inner_page_id,

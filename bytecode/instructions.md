@@ -44,3 +44,4 @@ Auto builded from `instructions.csv` by `build.rs`
 | jmpa        |    -     |     -     |   0x60   |       -        |         -         |     -     |     -     |     -     |     -     |     -     |
 | pops        |   0x61   |     -     |    -     |       -        |         -         |     -     |     -     |     -     |     -     |     -     |
 | acp         |    -     |     -     |   0x62   |       -        |         -         |     -     |     -     |     -     |     -     |     -     |
+| brk         |   0x63   |     -     |    -     |       -        |         -         |     -     |     -     |     -     |     -     |     -     |

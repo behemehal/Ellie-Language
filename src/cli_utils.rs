@@ -702,6 +702,7 @@ pub fn ReadErrorText(error: u8) -> &'static str {
         0 => "FailedToAccessResource[0]",
         1 => "BrokenFile<IllegalOpCode>[1]",
         2 => "BrokenFile<??>[2]",
+        3 => "NotExecutable[3]",
         _ => "UnknownErrorCode",
     }
 }
