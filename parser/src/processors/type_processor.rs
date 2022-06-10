@@ -289,15 +289,24 @@ pub fn process(
                 None => return Err(errors),
             };
 
-            Ok(types::Types::Operator(types::operator::OperatorType {
-                cloaked: false,
-                first: Box::new(processed_first_value.unwrap()),
-                first_pos: operator.data.first_pos,
-                second_pos: operator.data.second_pos,
-                second: Box::new(processed_second_value.unwrap()),
-                operator: operator.data.operator.to_definite(),
-                pos: operator.data.pos,
-            }))
+            match ellie_core::utils::operator_control(
+                operator.data.operator.clone().to_definite(),
+                _first_value,
+                _second_value,
+                parser.find_page(page_id).unwrap().path.clone(),
+                operator.data.pos,
+            ) {
+                Some(e) => Err(vec![e]),
+                None => Ok(types::Types::Operator(types::operator::OperatorType {
+                    cloaked: false,
+                    first: Box::new(processed_first_value.unwrap()),
+                    first_pos: operator.data.first_pos,
+                    second_pos: operator.data.second_pos,
+                    second: Box::new(processed_second_value.unwrap()),
+                    operator: operator.data.operator.to_definite(),
+                    pos: operator.data.pos,
+                })),
+            }
         }
         Processors::Reference(reference) => {
             let processed_reference = process(

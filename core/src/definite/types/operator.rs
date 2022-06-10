@@ -13,6 +13,18 @@ pub enum ArithmeticOperators {
     Null,
 }
 
+pub fn arithmetic_operator_to_string(operator: ArithmeticOperators) -> &'static str {
+    match operator {
+        ArithmeticOperators::Addition => "Addition",
+        ArithmeticOperators::Subtraction => "Subtraction",
+        ArithmeticOperators::Multiplication => "Multiplication",
+        ArithmeticOperators::Exponentiation => "Exponentiation",
+        ArithmeticOperators::Division => "Division",
+        ArithmeticOperators::Modulus => "Modulus",
+        ArithmeticOperators::Null => "",
+    }
+}
+
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub enum AssignmentOperators {
     Assignment,
@@ -23,6 +35,19 @@ pub enum AssignmentOperators {
     ModulusAssignment,
     ExponentiationAssignment,
     Null,
+}
+
+pub fn assignment_operator_to_string(operator: AssignmentOperators) -> &'static str {
+    match operator {
+        AssignmentOperators::Assignment => "Assignment",
+        AssignmentOperators::AdditionAssignment => "AdditionAssignment",
+        AssignmentOperators::SubtractionAssignment => "SubtractionAssignment",
+        AssignmentOperators::MultiplicationAssignment => "MultiplicationAssignment",
+        AssignmentOperators::DivisionAssignment => "DivisionAssignment",
+        AssignmentOperators::ModulusAssignment => "ModulusAssignment",
+        AssignmentOperators::ExponentiationAssignment => "ExponentiationAssignment",
+        AssignmentOperators::Null => "",
+    }
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
@@ -36,11 +61,31 @@ pub enum ComparisonOperators {
     Null,
 }
 
+pub fn comparison_operator_to_string(operator: ComparisonOperators) -> &'static str {
+    match operator {
+        ComparisonOperators::Equal => "Equal",
+        ComparisonOperators::NotEqual => "NotEqual",
+        ComparisonOperators::GreaterThan => "GreaterThan",
+        ComparisonOperators::LessThan => "LessThan",
+        ComparisonOperators::GreaterThanOrEqual => "GreaterThanOrEqual",
+        ComparisonOperators::LessThanOrEqual => "LessThanOrEqual",
+        ComparisonOperators::Null => "",
+    }
+}
+
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub enum LogicalOperators {
     And,
     Or,
     Null,
+}
+
+pub fn logical_operator_to_string(operator: LogicalOperators) -> &'static str {
+    match operator {
+        LogicalOperators::And => "And",
+        LogicalOperators::Or => "Or",
+        LogicalOperators::Null => "",
+    }
 }
 
 use alloc::boxed::Box;
