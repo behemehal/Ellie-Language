@@ -1,4 +1,4 @@
-use alloc::{borrow::ToOwned, string::ToString, vec};
+use alloc::{borrow::ToOwned, string::ToString, vec, vec::Vec};
 use ellie_core::{
     definite::{definers::DefinerCollecting, types::Types},
     error, warning,
@@ -45,6 +45,17 @@ impl super::Processor for VariableCollector {
             }
             return false;
         } else {
+            let resolved_defining = if !self.data.has_type {
+                Ok(DefinerCollecting::Dynamic)
+            } else {
+                super::definer_processor::process(
+                    self.data.rtype.definer_type.clone(),
+                    parser,
+                    page_hash,
+                    Some(self.data.hash.clone()),
+                )
+            };
+
             let resolved_type = if !self.data.has_value {
                 Ok(Types::Null)
             } else {
@@ -55,17 +66,7 @@ impl super::Processor for VariableCollector {
                     Some(self.data.hash.clone()),
                     false,
                     false,
-                )
-            };
-
-            let resolved_defining = if !self.data.has_type {
-                Ok(DefinerCollecting::Dynamic)
-            } else {
-                super::definer_processor::process(
-                    self.data.rtype.definer_type.clone(),
-                    parser,
-                    page_hash,
-                    Some(self.data.hash.clone()),
+                    true,
                 )
             };
 
@@ -128,7 +129,7 @@ impl super::Processor for VariableCollector {
 
                     let comperable = parser.compare_defining_with_type(
                         resolved_defining.unwrap(),
-                        resolved_type.unwrap(),
+                        resolved_type.unwrap().clone(),
                         page_hash,
                     );
 

@@ -251,6 +251,7 @@ impl super::Processor for function::FunctionCollector {
                             parameters_pos: self.data.parameters_pos,
                             return_pos: self.data.return_pos,
                             no_return: self.data.no_return,
+                            module_name: parser.module_info.name.clone(),
                         },
                     ));
                 true

@@ -1,5 +1,5 @@
 use crate::utils::{
-    build_immediate, AddressingModes, AddressingValues, Instructions, ProgramReader, Reader,
+    resolve_type, AddressingModes, AddressingValues, Instructions, ProgramReader, Reader,
 };
 
 #[derive(Debug)]
@@ -43,7 +43,6 @@ impl Program {
             None => return Err(0),
         };
         println!("[Program]: Program starts at {}", main);
-
 
         let mut program = Program {
             main,
@@ -100,7 +99,7 @@ impl Program {
                         AddressingModes::Immediate => {
                             let type_defination_size = reader.read_usize(size).unwrap();
                             let mut chains: Vec<[u8; 2]> = Vec::new();
-                            for _ in 0..type_defination_size {
+                            for i in 0..type_defination_size {
                                 let type_1 = match reader.read_u8() {
                                     Some(byte) => byte,
                                     None => return Err(1),
@@ -112,18 +111,28 @@ impl Program {
                                 chains.push([type_1, type_2]);
                             }
 
-                            for _ in 0..size {
-                                let read_byte = match reader.read_u8() {
-                                    Some(byte) => byte,
-                                    None => return Err(0),
-                                };
-                                args.push(read_byte);
-                            }
+                            let resolved_type =
+                                resolve_type(type_defination_size, chains.clone(), self.arch);
 
-                            let value = isize::from_le_bytes(args.clone().try_into().unwrap());
-                            //TODO make this safe remove .unwrap
-                            addressing_value =
-                                build_immediate(type_defination_size, chains, value).unwrap();
+                            println!("{:?}", resolved_type);
+                            panic!(
+                                "Type defination size {}, chains {:?}, args {:?}",
+                                type_defination_size, chains, args
+                            );
+
+                            addressing_value = match resolved_type {
+                                Ok((rtype, size)) => {
+                                    for _ in 0..size {
+                                        let read_byte = match reader.read_u8() {
+                                            Some(byte) => byte,
+                                            None => return Err(0),
+                                        };
+                                        args.push(read_byte);
+                                    }
+                                    AddressingValues::Immediate(rtype, args.clone())
+                                }
+                                Err(_) => todo!(),
+                            }
                         }
                         AddressingModes::Absolute => {
                             for _ in 0..size {
@@ -133,7 +142,9 @@ impl Program {
                                 };
                                 args.push(read_byte);
                             }
-                            addressing_value = AddressingValues::Absolute(usize::from_le_bytes(args.clone().try_into().unwrap()));
+                            addressing_value = AddressingValues::Absolute(usize::from_le_bytes(
+                                args.clone().try_into().unwrap(),
+                            ));
                         }
                         AddressingModes::AbsoluteIndex => todo!(),
                         AddressingModes::AbsoluteProperty => todo!(),

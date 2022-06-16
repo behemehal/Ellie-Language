@@ -152,14 +152,22 @@ impl ParserSettings {
     }
 }
 
-pub struct Parser {
+pub struct ModuleInfo {
+    pub name: String,
+    pub description: String,
+    pub is_lib: bool,
     pub version: ellie_core::defs::Version,
+    pub ellie_version: ellie_core::defs::Version,
+}
+
+pub struct Parser {
     pub pages: PageExport<Page>,
     pub processed_pages: PageExport<ProcessedPage>,
     pub modules: Vec<Module>,
     pub initial_page: u64,
     pub informations: information::Informations,
     pub parser_settings: ParserSettings,
+    pub module_info: ModuleInfo,
 }
 
 #[derive(Debug, Clone, Default)]
@@ -237,15 +245,25 @@ impl Parser {
         pages: PageExport<Page>,
         initial_hash: u64,
         version: ellie_core::defs::Version,
+        module_name: String,
+        module_description: String,
+        is_lib: bool,
+        ellie_version: defs::Version,
     ) -> Parser {
         Parser {
-            version,
             pages,
             processed_pages: PageExport::new(),
             modules: vec![],
             initial_page: initial_hash,
             informations: information::Informations::new(),
             parser_settings: ParserSettings::default(),
+            module_info: ModuleInfo {
+                name: module_name,
+                description: module_description,
+                is_lib,
+                version,
+                ellie_version,
+            },
         }
     }
 
@@ -532,32 +550,6 @@ impl Parser {
                         Err(errors)
                     }
                 }
-
-                /*
-                if let ellie_core::definite::definers::DefinerCollecting::ParentGeneric(
-                    parent_generic,
-                ) = defining.clone()
-                {
-                    if parent_generic.rtype == "array" {
-                        if let ellie_core::definite::definers::DefinerCollecting::ParentGeneric(
-                            value_generic,
-                        ) = value_gen.clone()
-                        {
-                            if value_generic.rtype == "array" {
-                                panic!("{:#?} == {:#?}", value_generic, parent_generic);
-                            } else {
-                                (false, defining.to_string(), value_gen.to_string())
-                            }
-                        } else {
-                            (false, defining.to_string(), value_gen.to_string())
-                        }
-                    } else {
-                        (false, defining.to_string(), "arrayE".to_owned())
-                    }
-                } else {
-                    (false, defining.to_string(), "arrayC".to_owned())
-                }
-                */
             }
             deep_search_extensions::DeepTypeResult::Vector(_) => todo!(),
             deep_search_extensions::DeepTypeResult::ClassCall(class_call) => {
@@ -2100,16 +2092,10 @@ impl Parser {
         }
     }
 
-    pub fn parse(
-        &mut self,
-        module_name: String,
-        module_description: String,
-        is_lib: bool,
-        ellie_version: defs::Version,
-    ) -> Module {
+    pub fn parse(&mut self) -> Module {
         self.process_page(self.initial_page);
 
-        if !is_lib {
+        if !self.module_info.is_lib {
             let main_function =
                 self.deep_search(self.initial_page, "main".to_string(), None, vec![], 0);
             if main_function.found {
@@ -2140,14 +2126,14 @@ impl Parser {
         }
 
         Module {
-            name: module_name,
-            description: module_description,
+            name: self.module_info.name.clone(),
+            description: self.module_info.description.clone(),
             initial_page: self.initial_page,
             hash: self.calculate_hash(),
-            is_library: is_lib,
+            is_library: self.module_info.is_lib,
             pages: self.processed_pages.clone(),
-            version: self.version.clone(),
-            ellie_version,
+            version: self.module_info.version.clone(),
+            ellie_version: self.module_info.ellie_version.clone(),
             modules: self
                 .modules
                 .iter()

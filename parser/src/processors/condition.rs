@@ -42,6 +42,7 @@ impl super::Processor for Condition {
                     None,
                     false,
                     false,
+                    false,
                 ) {
                     Ok(condition) => {
                         condition_type = condition.clone();
@@ -61,7 +62,7 @@ impl super::Processor for Condition {
                             Some(e) => e,
                             None => {
                                 return false;
-                            },
+                            }
                         };
 
                         //If condition type is not boolean, we can't continue

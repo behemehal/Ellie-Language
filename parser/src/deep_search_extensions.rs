@@ -2311,7 +2311,41 @@ pub fn resolve_type(
                             .to_string();
                             res
                         }
-                        _ => unreachable!("Unhandled type: {:?}", operator.first),
+                        Types::String(_) => "string".to_string(),
+                        _ => {
+                            let first = resolve_type(*operator.first, target_page, parser, errors, pos);
+                            let second = resolve_type(*operator.second, target_page, parser, errors, pos);
+
+                            if first.is_none() || second.is_none() {
+                                return None;
+                            } else {
+                                errors.push(error::error_list::ERROR_S52.clone().build_with_path(
+                                    vec![
+                                        error::ErrorBuildField {
+                                            key: "opType".to_owned(),
+                                            value: "ArithmeticType".to_string(),
+                                        },
+                                        error::ErrorBuildField {
+                                            key: "target".to_owned(),
+                                            value: first.unwrap().to_string(),
+                                        },
+                                        error::ErrorBuildField {
+                                            key: "value".to_owned(),
+                                            value: second.unwrap().to_string(),
+                                        },
+                                    ],
+                                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                                    parser.find_page(target_page).unwrap().path.clone(),
+                                    match pos {
+                                        Some(e) => e,
+                                        None => defs::Cursor::default(),
+                                    },
+                                ));
+                            }
+
+                            
+                            return None;
+                        }
                     };
                     (find_type(rtype.clone(), target_page, parser), rtype)
                 }

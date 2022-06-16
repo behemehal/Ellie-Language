@@ -21,6 +21,7 @@ pub fn process(
     ignore_hash: Option<u64>,
     include_setter: bool,
     exclude_getter: bool,
+    ignore_type: bool,
 ) -> Result<types::Types, Vec<error::Error>> {
     let mut errors = Vec::new();
     let (type_allowed, err_str) = parser.parser_settings.is_type_allowed(from.clone());
@@ -219,7 +220,15 @@ pub fn process(
         Processors::Array(array_type) => {
             let mut collective = vec![];
             for i in array_type.data.collective {
-                let response = process(i.value, parser, page_id, ignore_hash, false, false);
+                let response = process(
+                    i.value,
+                    parser,
+                    page_id,
+                    ignore_hash,
+                    false,
+                    false,
+                    ignore_type,
+                );
                 if response.is_err() {
                     errors.append(&mut response.unwrap_err());
                 } else {
@@ -231,6 +240,17 @@ pub fn process(
             }
 
             if errors.len() == 0 {
+                //TODO: Type helper
+                //if collective.len() == 0 && !ignore_type {
+                //    errors.push(error::error_list::ERROR_S55.clone().build_with_path(
+                //        vec![],
+                //        alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                //        parser.find_page(page_id).unwrap().path.clone(),
+                //        from.get_pos(),
+                //    ));
+                //    return Err(errors);
+                //}
+
                 Ok(types::Types::Array(types::array::ArrayType {
                     collective,
                     pos: from.get_pos(),
@@ -247,6 +267,7 @@ pub fn process(
                 ignore_hash,
                 false,
                 false,
+                false,
             );
 
             let processed_second_value = process(
@@ -254,6 +275,7 @@ pub fn process(
                 parser,
                 page_id,
                 ignore_hash,
+                false,
                 false,
                 false,
             );
@@ -316,6 +338,7 @@ pub fn process(
                 ignore_hash,
                 false,
                 exclude_getter,
+                false,
             );
             match processed_reference {
                 Ok(found_reference) => {
@@ -876,6 +899,7 @@ pub fn process(
                 ignore_hash,
                 false,
                 exclude_getter,
+                false,
             );
             match index {
                 Ok(index) => {
@@ -900,6 +924,7 @@ pub fn process(
                         ignore_hash,
                         false,
                         exclude_getter,
+                        false,
                     );
                     match reference {
                         Ok(found_reference) => {
@@ -1026,6 +1051,7 @@ pub fn process(
                 ignore_hash,
                 false,
                 false,
+                false,
             );
             match target {
                 Ok(_) => {
@@ -1049,6 +1075,7 @@ pub fn process(
                                             parser,
                                             page_id,
                                             ignore_hash,
+                                            false,
                                             false,
                                             false,
                                         ) {
@@ -1147,7 +1174,7 @@ pub fn process(
                                         parser,
                                         page_id,
                                         None,
-                                        false,false
+                                        false,false,false,
                                     ) {
                                         Ok(resolved) => {
                                             Ok(ellie_core::definite::types::Types::FunctionCall(
@@ -1613,6 +1640,7 @@ pub fn process(
                                                         ignore_hash,
                                                         false,
                                                         false,
+                                                        false,
                                                     ) {
                                                         Ok(resolved_type) => {
                                                             let comperable = parser
@@ -1832,6 +1860,7 @@ pub fn process(
                 ignore_hash.clone(),
                 false,
                 false,
+                false,
             ) {
                 Ok(resolved_types) => {
                     match crate::processors::definer_processor::process(
@@ -1867,6 +1896,7 @@ pub fn process(
                 parser,
                 page_id,
                 ignore_hash.clone(),
+                false,
                 false,
                 false,
             ) {

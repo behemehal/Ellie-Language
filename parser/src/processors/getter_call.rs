@@ -15,6 +15,7 @@ impl super::Processor for GetterCall {
             None,
             false,
             false,
+            false,
         ) {
             Ok(data) => {
                 let page = parser.processed_pages.nth_mut(processed_page_idx).unwrap();

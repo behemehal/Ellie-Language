@@ -36,18 +36,19 @@ pub struct IndirectY;
 #[derive(Clone, Debug)]
 pub struct Reference;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Types {
     Integer,
     Float,
     Double,
     Byte,
     Bool,
-    String,
+    String((usize, u8)),
     Char,
-    Array(Box<Types>),
+    Array((Box<Types>, usize)),
     Vector,
     Void,
+    Null,
 }
 
 impl Types {
@@ -58,29 +59,54 @@ impl Types {
             Types::Double => "double".to_string(),
             Types::Byte => "byte".to_string(),
             Types::Bool => "bool".to_string(),
-            Types::String => "string".to_string(),
+            Types::String(e) => alloc::format!("string[{}@{}]", e.0, e.1),
             Types::Char => "char".to_string(),
-            Types::Array(e) => alloc::format!("array<{}>", e.display()),
+            Types::Array(e) => alloc::format!("array<{}@{}>", e.0.display(), e.1),
             Types::Vector => "vector".to_string(),
             Types::Void => "void".to_string(),
+            Types::Null => "null".to_string(),
         }
     }
 
     //(Size of tree, types)
-    pub fn code(&self) -> (usize, &[u8]) {
+    // (1, [1, 4]) Integer with 4 bytes
+    // (1, [2, 4]) Float with 4 bytes
+    // (1, [3, 4]) Double with 4 bytes
+    // (1, [4, 1]) Byte with 1 byte
+    // (1, [5, 1]) Bool with 1 byte
+    // (3(Charachter len), [6, 1], [6, 1], [6, 1]) Char with 1 byte (UTF-8)
+    // (1, [7, 1]) UTF-8 string with 1 byte
+    // (1, [8, 1]) Void
+    // Table above is kinda lie for now, except string
+    pub fn code(&self) -> (usize, Vec<u8>) {
         match self {
-            Types::Integer => (1, &[1, 0]),
-            Types::Float => (1, &[2, 0]),
-            Types::Double => (1, &[3, 0]),
-            Types::Byte => (1, &[4, 0]),
-            Types::Bool => (1, &[5, 0]),
-            Types::String => (1, &[6, 0]),
-            Types::Char => (1, &[7, 0]),
-            Types::Void => (1, &[8, 0]),
-            Types::Array(_) => {
-                unimplemented!();
+            Types::Integer => (1, vec![1, 0]),
+            Types::Float => (1, vec![2, 0]),
+            Types::Double => (1, vec![3, 0]),
+            Types::Byte => (1, vec![4, 0]),
+            Types::Bool => (1, vec![5, 0]),
+            Types::String((x, char_size)) => {
+                let mut package = Vec::new();
+                for _ in 0..*x {
+                    package.extend([6, *char_size]);
+                }
+                (*x, package)
+            }
+            Types::Char => (1, vec![7, 0]),
+            Types::Void => (1, vec![8, 0]),
+            Types::Array((rtype, e)) => {
+                /*
+                println!("@@@ {:?} {:?} {:?}", rtype.code() ,rtype, e);
+                let mut package = Vec::new();
+                for _ in 0..*e {
+                    package.extend(rtype.code().1);
+                }
+                (2, package)
+                */
+                (*e, vec![9, 0])
             }
             Types::Vector => todo!(),
+            Types::Null => (1, vec![11, 0]),
         }
     }
 }
@@ -88,7 +114,7 @@ impl Types {
 #[derive(Clone, Debug)]
 pub enum AddressingModes {
     Implicit,
-    Immediate(Types, isize),
+    Immediate(Types, Vec<u8>),
     Absolute(usize),
     AbsoluteIndex(usize, usize),
     AbsoluteProperty(usize, usize),
@@ -124,7 +150,7 @@ impl AddressingModes {
                 let code = rtype.code();
                 v.extend(code.0.to_le_bytes().to_vec());
                 v.extend(code.1.to_vec());
-                v.extend(x.to_le_bytes().to_vec());
+                v.extend(x);
                 v
             }
             AddressingModes::Absolute(x) => x.to_le_bytes().to_vec(),
@@ -151,7 +177,7 @@ impl core::fmt::Display for AddressingModes {
             AddressingModes::Absolute(value) => write!(f, "${}", value),
             //AddressingModes::AbsoluteRef(page, value) => write!(f, "${}~{}", value, page),
             AddressingModes::Immediate(rtype, value) => {
-                write!(f, "#({}){}", rtype.display(), value)
+                write!(f, "#({}){:?}", rtype.display(), value)
             }
             AddressingModes::IndirectA => write!(f, "@A"),
             AddressingModes::IndirectB => write!(f, "@B"),
@@ -179,7 +205,7 @@ impl Instruction {
         }
     }
 
-    pub fn immediate(rtype: Types, val: isize) -> Instruction {
+    pub fn immediate(rtype: Types, val: Vec<u8>) -> Instruction {
         Instruction {
             addressing_mode: AddressingModes::Immediate(rtype, val),
         }
@@ -256,6 +282,7 @@ pub enum Instructions {
     MOD(Instruction),
     JMP(Instruction),
     CALL(Instruction),
+    CALLN(Instruction),
     RET(Instruction),
     AOL(Instruction),
     PUSHA(Instruction),
@@ -688,6 +715,16 @@ impl Instructions {
                 op_code.extend(e.addressing_mode.arg());
                 op_code
             }
+            Instructions::CALLN(e) => {
+                let instruction = crate::instruction_table::INSTRUCTIONS
+                    .clone()
+                    .drain()
+                    .find(|(k, _)| *k == "calln_".to_string() + &e.addressing_mode.to_string())
+                    .unwrap();
+                let mut op_code: Vec<u8> = vec![instruction.1.code];
+                op_code.extend(e.addressing_mode.arg());
+                op_code
+            }
         }
     }
 
@@ -719,6 +756,7 @@ impl Instructions {
             Instructions::MOD(e) => e.addressing_mode.clone(),
             Instructions::JMP(e) => e.addressing_mode.clone(),
             Instructions::CALL(e) => e.addressing_mode.clone(),
+            Instructions::CALLN(e) => e.addressing_mode.clone(),
             Instructions::RET(e) => e.addressing_mode.clone(),
             Instructions::AOL(e) => e.addressing_mode.clone(),
             Instructions::PUSHA(e) => e.addressing_mode.clone(),
@@ -767,6 +805,7 @@ impl core::fmt::Display for Instructions {
             Instructions::DIV(_) => write!(f, "DIV"),
             Instructions::MOD(_) => write!(f, "MOD"),
             Instructions::CALL(instruction) => write!(f, "CALL {}", instruction.addressing_mode),
+            Instructions::CALLN(instruction) => write!(f, "CALLN {}", instruction.addressing_mode),
             Instructions::AOL(instruction) => write!(f, "AOL {}", instruction.addressing_mode),
             Instructions::PUSHA(instruction) => write!(f, "PUSH {}", instruction.addressing_mode),
             Instructions::LEN(instruction) => write!(f, "LEN {}", instruction.addressing_mode),

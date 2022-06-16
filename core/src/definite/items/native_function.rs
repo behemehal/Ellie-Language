@@ -16,4 +16,5 @@ pub struct NativeFunction {
     pub pos: defs::Cursor,
     pub hash: u64,
     pub no_return: bool,
+    pub module_name: String,
 }

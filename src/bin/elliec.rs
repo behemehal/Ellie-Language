@@ -1,4 +1,4 @@
-use ellie_engine::{cli_outputs, cli_utils, cli_options};
+use ellie_engine::{cli_options, cli_outputs, cli_utils};
 use std::path::Path;
 
 #[derive(Debug, Clone)]
@@ -574,6 +574,7 @@ fn main() {
                 version,
                 output_type,
                 exclude_stdlib: matches.is_present("excludeStd"),
+                performance_info: matches.is_present("performanceInfo"),
                 file_name: Path::new(&target_path)
                     .file_name()
                     .unwrap()

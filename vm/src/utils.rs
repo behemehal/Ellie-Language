@@ -1,16 +1,36 @@
 use std::fmt::Display;
 
+use crate::thread::Stack;
+
 pub trait Reader {
     fn read(&mut self) -> Option<u8>;
 }
 
+pub enum ThreadPanicReason {
+    IntegerOverflow,
+    PlatformOverflow,
+    FloatOverflow,
+    DoubleOverflow,
+    UnmergebleTypes,
+}
+
+pub struct ThreadPanic {
+    pub reason: ThreadPanicReason,
+    pub stack_trace: Vec<Stack>,
+}
+
+pub enum ThreadExit {
+    Panic(ThreadPanic),
+    OutOfInstructions,
+    Complete,
+}
+
 pub enum ExitCode {
     Success,
-    OutOfInstructions,
     StackOverflow,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Types {
     Integer,
     Float,
@@ -38,7 +58,7 @@ impl Types {
             Types::Vector => String::from("Vector"),
             Types::Void => String::from("Void"),
         }
-    } 
+    }
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -63,7 +83,7 @@ pub struct Instruction {
 #[derive(Clone, Debug)]
 pub enum AddressingValues {
     Implicit,
-    Immediate(Types, isize),
+    Immediate(Types, Vec<u8>),
     Absolute(usize),
     AbsoluteIndex(usize, usize),
     AbsoluteProperty(usize, usize),
@@ -75,39 +95,46 @@ pub enum AddressingValues {
     IndirectY,
 }
 
-pub fn build_immediate(
-    code: usize,
+pub fn resolve_type(
+    tree_size: usize,
     chains: Vec<[u8; 2]>,
-    value: isize,
-) -> Result<AddressingValues, u8> {
-    fn resolve_type(first: u8, second: u8) -> Types {
+    arch: u8,
+) -> Result<(Types, usize), u8> {
+    fn resolve_type(first: u8, second: u8, arch: u8) -> (Types, usize) {
         match (first, second) {
-            (1, 0) => Types::Integer,
-            (2, 0) => Types::Float,
-            (3, 0) => Types::Double,
-            (4, 0) => Types::Byte,
-            (5, 0) => Types::Bool,
-            (6, 0) => Types::String,
-            (7, 0) => Types::Char,
-            (8, 0) => Types::Void,
-            (9, x) => Types::Array(Box::new(resolve_type(x, 0))),
-            _ => unreachable!(),
+            (1, 0) => (Types::Integer, (arch / 8) as usize),
+            (2, 0) => (Types::Float, (arch / 8) as usize),
+            (3, 0) => (Types::Double, (arch / 8) as usize),
+            (5, 0) => (Types::Bool, 1),
+            (7, 0) => (Types::Char, 1), // UTF-8
+            (4, 0) => (Types::Byte, 1),
+            (8, 0) => (Types::Void, 1),
+            (6, 1) => (Types::String, 1),
+            //(6, 2) => Types::String, //TODO UTF-16
+            //(6, 3) => Types::String, //TODO UTF-32
+            (9, x) => {
+                let inner_type = resolve_type(x, 0, arch);
+                (Types::Array(Box::new(inner_type.0)), inner_type.1)
+            }
+            _ => unreachable!("Invalid type defination: ({}, {})", first, second),
         }
     }
-    match code {
+
+    match tree_size {
+        0 => unreachable!(),
         1 => {
+            //INT, BYTE, BOOL, CHAR, VOID, DOUBLE, FLOAT
             let entry = chains[0];
-            Ok(AddressingValues::Immediate(
-                resolve_type(entry[0], entry[1]),
-                value,
-            ))
+            let resolved_type = resolve_type(entry[0], entry[1], arch);
+            Ok((resolved_type.0, resolved_type.1))
         }
-        c => {
+        x => {
             let mut childs = Vec::new();
-            for chain in chains {
-                childs.push(resolve_type(chain[0], chain[1]))
+            let type_of_array = resolve_type(chains[0][0], chains[0][1], arch);
+            for chain in &chains {
+                childs.push(resolve_type(chain[0], chain[1], arch))
             }
-            panic!("{:?}", childs);
+            Ok((type_of_array.0, chains.len()))
         }
     }
 }
@@ -142,6 +169,7 @@ pub enum Instructions {
     DEC(Instruction),
     JMP(Instruction),
     CALL(Instruction),
+    CALLN(Instruction),
     RET(Instruction),
     AOL(Instruction),
     PUSHA(Instruction),
@@ -489,6 +517,7 @@ impl Instructions {
             Instructions::DEC(e) => e.addressing_mode.clone(),
             Instructions::JMP(e) => e.addressing_mode.clone(),
             Instructions::CALL(e) => e.addressing_mode.clone(),
+            Instructions::CALLN(e) => e.addressing_mode.clone(),
             Instructions::RET(e) => e.addressing_mode.clone(),
             Instructions::AOL(e) => e.addressing_mode.clone(),
             Instructions::PUSHA(e) => e.addressing_mode.clone(),

@@ -12,7 +12,7 @@ use std::time::Instant;
 
 use crate::cli_outputs;
 use crate::cli_utils;
-use crate::cli_utils::ReadErrorText;
+use crate::cli_utils::read_error_text;
 use path_absolutize::Absolutize;
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
@@ -64,7 +64,7 @@ pub fn run(target_path: &Path, vm_settings: VmSettings) {
                 cli_utils::Colors::Red,
                 cli_utils::Colors::Reset,
                 cli_utils::Colors::Yellow,
-                ReadErrorText(e),
+                read_error_text(e),
                 cli_utils::Colors::Reset,
             );
             std::process::exit(1);

@@ -62,7 +62,7 @@ impl Display for Colors {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum OutputTypes {
     Bin,
     DependencyAnalysis,
@@ -697,7 +697,7 @@ pub fn arrow(line: usize, range: usize) -> String {
     s
 }
 
-pub fn ReadErrorText(error: u8) -> &'static str {
+pub fn read_error_text(error: u8) -> &'static str {
     match error {
         0 => "FailedToAccessResource[0]",
         1 => "BrokenFile<IllegalOpCode>[1]",

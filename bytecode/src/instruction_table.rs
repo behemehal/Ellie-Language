@@ -508,6 +508,11 @@ lazy_static! {
 			code: 90,
 			mode: "implicit",
 		});
+		i.insert("calln_absolute",Instruction {
+			rtype: "calln",
+			code: 90,
+			mode: "absolute",
+		});
 		i
 	};
 }

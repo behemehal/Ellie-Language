@@ -36,29 +36,6 @@ pub fn generate_elliec_options() -> Command<'static> {
                 ),
         )
         .subcommand(
-            Command::new("color")
-                .about("Colorize code")
-                .arg(
-                    Arg::new("showDebugLines")
-                        .help("Show debugging lines")
-                        .short('s')
-                        .long("--show-debug-lines"),
-                )
-                .arg(
-                    Arg::new("allowPanics")
-                        .help("Allow panics")
-                        .short('a')
-                        .long("--allow-panics"),
-                )
-                .arg(
-                    Arg::new("target")
-                        .help("Target file to compile")
-                        .takes_value(true)
-                        .required(true)
-                        .value_hint(ValueHint::FilePath),
-                ),
-        )
-        .subcommand(
             Command::new("compile")
                 .about("Compile file")
                 .arg(
@@ -68,6 +45,12 @@ pub fn generate_elliec_options() -> Command<'static> {
                         .long("--arch")
                         .default_values(&["64", "32", "16"])
                         .default_value("64"),
+                )
+                .arg(
+                    Arg::new("performanceInfo")
+                        .help("Output performance info")
+                        .short('q')
+                        .long("-performance-info"),
                 )
                 .arg(
                     Arg::new("allowPanics")

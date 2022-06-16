@@ -21,6 +21,7 @@ pub struct CompilerSettings {
     pub is_lib: bool,
     pub description: String,
     pub version: Version,
+    pub performance_info: bool,
     pub output_type: cli_utils::OutputTypes,
     pub show_debug_lines: bool,
     pub exclude_stdlib: bool,
@@ -157,15 +158,22 @@ pub fn compile(
                         pager.pages.clone(),
                         first_page_hash,
                         compiler_settings.version,
+                        compiler_settings.name,
+                        compiler_settings.description,
+                        compiler_settings.is_lib,
+                        ellie_core::defs::Version::build_from_string(
+                            crate::engine_constants::ELLIE_ENGINE_VERSION.to_owned(),
+                        ),
                     );
 
-                    if !compiler_settings.exclude_stdlib {
-
-                        //let ellie_std: parser::Module = serde_json::from_str(
-                        //    ellie_core::builded_libraries::ELLIE_STANDARD_LIBRARY,
-                        //)
-                        //.unwrap();
-                        //parser.import_module(ellie_std);
+                    if compiler_settings.exclude_stdlib {
+                        println!(
+                            "\n{}[!]{}: {}'exclude_stdlib'{} option is deprecated",
+                            cli_utils::Colors::Yellow,
+                            cli_utils::Colors::Reset,
+                            cli_utils::Colors::Cyan,
+                            cli_utils::Colors::Reset,
+                        );
                     }
 
                     for (module, _) in modules.iter() {
@@ -177,16 +185,10 @@ pub fn compile(
                     let tokenize_end =
                         (tokenize_start.elapsed().as_nanos() as f64 / 1000000_f64) as f64;
                     let compile_start = Instant::now();
-                    let workspace = parser.parse(
-                        compiler_settings.name,
-                        compiler_settings.description,
-                        compiler_settings.is_lib,
-                        ellie_core::defs::Version::build_from_string(
-                            crate::engine_constants::ELLIE_ENGINE_VERSION.to_owned(),
-                        ),
-                    );
+                    let workspace = parser.parse();
                     let compile_end =
                         (compile_start.elapsed().as_nanos() as f64 / 1000000_f64) as f64;
+                    let mut bytecode_end: f64 = 0.0;
 
                     if !parser.informations.has_no_warnings() && compiler_settings.warnings {
                         if compiler_settings.json_log {
@@ -560,6 +562,7 @@ pub fn compile(
                                         }
                                     );
                                 }
+                                let bytecode_start = Instant::now();
                                 let mut assembler = ellie_bytecode::assembler::Assembler::new(
                                     workspace,
                                     ellie_bytecode::assembler::PlatformAttributes {
@@ -569,6 +572,9 @@ pub fn compile(
                                     },
                                 );
                                 let assembler_result = assembler.assemble();
+                                bytecode_end = (bytecode_start.elapsed().as_nanos() as f64
+                                    / 1000000_f64)
+                                    as f64;
                                 match File::create(output_path) {
                                     Ok(file) => {
                                         assembler_result.alternate_render(file);
@@ -674,6 +680,8 @@ pub fn compile(
                                         }
                                     );
                                 }
+
+                                let bytecode_start = Instant::now();
                                 let mut assembler = ellie_bytecode::assembler::Assembler::new(
                                     workspace,
                                     ellie_bytecode::assembler::PlatformAttributes {
@@ -683,6 +691,9 @@ pub fn compile(
                                     },
                                 );
                                 let assembler_result = assembler.assemble();
+                                bytecode_end = (bytecode_start.elapsed().as_nanos() as f64
+                                    / 1000000_f64)
+                                    as f64;
                                 match File::create(output_path) {
                                     Ok(mut file) => {
                                         assembler_result.render_binary(&mut file, None);
@@ -740,20 +751,45 @@ pub fn compile(
                             cli_utils::Colors::Reset,
                             crate::engine_constants::ELLIE_ENGINE_VERSION
                         );
-                        println!(
-                            "{}[?]{}: Tokenizing took {}{}{}ms, Parsing took {}{}{}ms. Total time: {}{}{}ms",
-                            cli_utils::Colors::Yellow,
-                            cli_utils::Colors::Reset,
-                            cli_utils::Colors::Yellow,
-                            tokenize_end,
-                            cli_utils::Colors::Reset,
-                            cli_utils::Colors::Yellow,
-                            compile_end,
-                            cli_utils::Colors::Reset,
-                            cli_utils::Colors::Yellow,
-                            compile_end + tokenize_end,
-                            cli_utils::Colors::Reset,
-                        );
+
+                        if (compiler_settings.output_type == cli_utils::OutputTypes::ByteCode
+                            || compiler_settings.output_type == cli_utils::OutputTypes::ByteCodeAsm)
+                            && compiler_settings.performance_info
+                        {
+                            println!(
+                                "{}[?]{}: Tokenizing took {}{}{}ms, Parsing took {}{}{}ms, ByteCode compile took {}{}{}ms. Total time: {}{}{}ms",
+                                cli_utils::Colors::Yellow,
+                                cli_utils::Colors::Reset,
+                                cli_utils::Colors::Yellow,
+                                tokenize_end,
+                                cli_utils::Colors::Reset,
+                                cli_utils::Colors::Yellow,
+                                compile_end,
+                                cli_utils::Colors::Reset,
+                                cli_utils::Colors::Yellow,
+                                bytecode_end,
+                                cli_utils::Colors::Reset,
+                                cli_utils::Colors::Yellow,
+                                compile_end + tokenize_end + bytecode_end,
+                                cli_utils::Colors::Reset,
+                            );
+                        } else if compiler_settings.performance_info {
+                            println!(
+                                "{}[?]{}: Tokenizing took {}{}{}ms, Parsing took {}{}{}ms. Total time: {}{}{}ms",
+                                cli_utils::Colors::Yellow,
+                                cli_utils::Colors::Reset,
+                                cli_utils::Colors::Yellow,
+                                tokenize_end,
+                                cli_utils::Colors::Reset,
+                                cli_utils::Colors::Yellow,
+                                compile_end,
+                                cli_utils::Colors::Reset,
+                                cli_utils::Colors::Yellow,
+                                compile_end + tokenize_end,
+                                cli_utils::Colors::Reset,
+                            );
+                        }
+
                         println!(
                             "{}[!]{}: Ellie is on development and may not be stable.",
                             cli_utils::Colors::Red,
