@@ -7,13 +7,15 @@ impl super::Processor for Ret {
         parser: &mut super::Parser,
         page_idx: usize,
         processed_page_idx: usize,
-        page_hash: u64,
+        page_hash: usize,
     ) -> bool {
         match super::type_processor::process(
             self.value.current.clone(),
             parser,
             page_hash,
             None,
+            false,
+            false,
             false,
         ) {
             Ok(value) => {

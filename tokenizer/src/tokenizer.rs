@@ -1,5 +1,6 @@
 use crate::processors::items;
 use ellie_core::{
+    definite::items::file_key::FileKey,
     defs, error,
     utils::{ExportPage, PageExport},
 };
@@ -18,10 +19,10 @@ pub struct TokenizerOptions {
 ///Dependency is a link to another `ellie_tokenizer::Page` which helps us to resolve project hierarchy
 #[derive(PartialEq, Default, Debug, Clone, Serialize, Deserialize)]
 pub struct Dependency {
-    pub hash: u64,
+    pub hash: usize,
     pub processed: bool,
-    pub module: Option<u64>,
-    pub deep_link: Option<u64>,
+    pub module: Option<usize>,
+    pub deep_link: Option<usize>,
     pub public: bool,
 }
 
@@ -59,8 +60,8 @@ impl Default for PageType {
 ///
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct Page {
-    pub hash: u64,
-    pub inner: Option<u64>,
+    pub hash: usize,
+    pub inner: Option<usize>,
     pub processed: bool,
     pub module: bool,
     pub unreachable: bool,
@@ -68,12 +69,12 @@ pub struct Page {
     pub page_type: PageType,
     pub path: String,
     pub items: Vec<items::Processors>,
-    pub dependents: Vec<u64>,
+    pub dependents: Vec<usize>,
     pub dependencies: Vec<Dependency>,
 }
 
 impl ExportPage for Page {
-    fn get_hash(&self) -> u64 {
+    fn get_hash(&self) -> usize {
         self.hash
     }
 }
@@ -85,7 +86,7 @@ impl Page {
     /// ## Returns
     /// * `true` - If the page contains the dependency
     /// * `false` - If the page does not contain the dependency
-    pub fn contains_dependency(&self, hash: u64) -> bool {
+    pub fn contains_dependency(&self, hash: usize) -> bool {
         self.dependencies
             .iter()
             .position(|x| x.hash == hash)
@@ -118,7 +119,7 @@ impl Default for ImportType {
 pub struct ResolvedImport {
     pub found: bool,
     pub resolve_error: String,
-    pub hash: u64,
+    pub hash: usize,
     pub path: String,
     pub matched: ImportType,
 }
@@ -189,8 +190,8 @@ impl Tokenizer {
 /// * `name` - Name of the module
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Module {
-    pub hash: u64,
-    pub initial_page: u64,
+    pub hash: usize,
+    pub initial_page: usize,
     pub version: ellie_core::defs::Version,
     pub name: String,
 }
@@ -203,7 +204,7 @@ pub struct Pager<E> {
     pub main_path: String,
     pub pages: PageExport<Page>,
     pub modules: Vec<Module>,
-    pub current_page: u64,
+    pub current_page: usize,
     pub import_resolver: E,
 }
 
@@ -211,9 +212,9 @@ pub struct Pager<E> {
 /// This is a duplicate of [`Page`] but without code
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RawPage {
-    pub hash: u64,
+    pub hash: usize,
     pub path: String,
-    pub dependents: Vec<u64>,
+    pub dependents: Vec<usize>,
     pub dependencies: Vec<Dependency>,
 }
 
@@ -238,7 +239,7 @@ where
     ///   },
     /// };
     /// ```
-    pub fn find_page(&mut self, hash: u64) -> Option<&mut Page> {
+    pub fn find_page(&mut self, hash: usize) -> Option<&mut Page> {
         self.pages.find_page(hash)
     }
 
@@ -259,7 +260,7 @@ where
     ///  },
     /// };
     /// ```
-    pub fn find_module(&mut self, hash: u64) -> Option<&mut Module> {
+    pub fn find_module(&mut self, hash: usize) -> Option<&mut Module> {
         self.modules.iter_mut().find(|module| module.hash == hash)
     }
 
@@ -281,7 +282,7 @@ where
         main_file_name: String,
         path: String,
         import_resolver: E,
-        initial_hash: u64,
+        initial_hash: usize,
     ) -> Self {
         Pager {
             main: main,
@@ -334,7 +335,7 @@ where
     /// ```
     pub fn resolve_page(
         &mut self,
-        cr_page: u64,
+        cr_page: usize,
         code: String,
     ) -> Result<Vec<Dependency>, Vec<error::Error>> {
         let page = self.find_page(cr_page).unwrap().clone();

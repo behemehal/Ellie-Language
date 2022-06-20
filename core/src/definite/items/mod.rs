@@ -12,15 +12,18 @@ pub mod generic;
 pub mod getter;
 pub mod getter_call;
 pub mod import;
+pub mod native_function;
 pub mod setter;
 pub mod setter_call;
 pub mod variable;
 
-pub mod native_function;
-pub mod ret;
+pub mod constructor_parameter;
+pub mod function_parameter;
+pub mod self_item;
 
 pub mod brk;
 pub mod go;
+pub mod ret;
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub enum Collecting {
@@ -42,6 +45,11 @@ pub enum Collecting {
     SetterCall(setter_call::SetterCall),
     Enum(enum_type::EnumType),
     NativeFunction(native_function::NativeFunction),
+
+    FuctionParameter(function_parameter::FunctionParameter),
+    ConstructorParameter(constructor_parameter::ConstructorParameter),
+    SelfItem(self_item::SelfItem),
+
     None,
 }
 
@@ -71,11 +79,17 @@ impl Collecting {
                 range_start: e.target_pos.range_start,
                 range_end: e.value_pos.range_end,
             },
+            Collecting::ConstructorParameter(e) => e.pos,
+            Collecting::FuctionParameter(e) => defs::Cursor {
+                range_start: e.name_pos.range_start,
+                range_end: e.rtype_pos.range_end,
+            },
             Collecting::Enum(e) => e.pos,
             Collecting::NativeFunction(e) => e.pos,
             Collecting::None => unreachable!(),
             Collecting::Brk(e) => e.pos,
             Collecting::Go(e) => e.pos,
+            Collecting::SelfItem(e) => unreachable!(),
         }
     }
 
@@ -96,10 +110,13 @@ impl Collecting {
             Collecting::SetterCall(_) => false,
             Collecting::Enum(e) => e.public,
             Collecting::NativeFunction(e) => e.public,
+            Collecting::SelfItem(e) => true,
             Collecting::None => false,
             Collecting::Generic(_) => false,
             Collecting::Brk(_) => false,
             Collecting::Go(_) => false,
+            Collecting::FuctionParameter(_) => false,
+            Collecting::ConstructorParameter(_) => false,
         }
     }
 }

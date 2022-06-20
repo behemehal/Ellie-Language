@@ -10,6 +10,6 @@ pub struct ForLoop {
     pub variable_pos: defs::Cursor,
     pub iterator_pos: defs::Cursor,
     pub body_pos: defs::Cursor,
-    pub inner_page_id: u64,
+    pub inner_page_id: usize,
     pub pos: defs::Cursor,
 }

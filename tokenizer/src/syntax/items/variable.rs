@@ -17,7 +17,7 @@ pub struct Variable {
     pub name_pos: defs::Cursor,
     pub value_pos: defs::Cursor,
     pub type_pos: defs::Cursor,
-    pub hash: u64,
+    pub hash: usize,
     pub rtype: crate::syntax::items::definers::DefinerCollector,
 }
 
@@ -46,6 +46,7 @@ impl Converter<VariableCollector, ellie_core::definite::items::variable::Variabl
             value_pos: self.data.value_pos,
             type_pos: self.data.type_pos,
             rtype: self.data.rtype.definer_type.to_definite(),
+            file_keys: Vec::new(),
             hash: self.data.hash,
             has_type: self.data.has_type,
             has_value: self.data.has_value,

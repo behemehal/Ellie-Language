@@ -2,6 +2,7 @@ pub mod class;
 pub mod condition;
 pub mod constructor;
 pub mod definers;
+pub mod enum_type;
 pub mod file_key;
 pub mod for_loop;
 pub mod function;

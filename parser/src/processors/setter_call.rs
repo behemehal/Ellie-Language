@@ -11,7 +11,7 @@ impl super::Processor for SetterCall {
         parser: &mut super::Parser,
         page_idx: usize,
         processed_page_idx: usize,
-        page_hash: u64,
+        page_hash: usize,
     ) -> bool {
         let current_page = parser
             .pages
@@ -19,9 +19,15 @@ impl super::Processor for SetterCall {
             .unwrap_or_else(|| panic!("Failed to find page"))
             .clone();
 
-        //let mut errors = Vec::new();
-
-        match super::type_processor::process(self.target.clone(), parser, page_hash, None, true) {
+        match super::type_processor::process(
+            self.target.clone(),
+            parser,
+            page_hash,
+            None,
+            true,
+            true,
+            false,
+        ) {
             Ok(target) => match target.clone() {
                 ellie_core::definite::types::Types::Reference(_) => {
                     match super::type_processor::process(
@@ -29,6 +35,8 @@ impl super::Processor for SetterCall {
                         parser,
                         page_hash,
                         None,
+                        false,
+                        true,
                         false,
                     ) {
                         Ok(processed_value_type) => {
@@ -125,6 +133,8 @@ impl super::Processor for SetterCall {
                         parser,
                         page_hash,
                         None,
+                        false,
+                        false,
                         false,
                     ) {
                         Ok(processed_value_type) => {
@@ -273,6 +283,8 @@ impl super::Processor for SetterCall {
                                         page_hash,
                                         None,
                                         false,
+                                        false,
+                                        false,
                                     ) {
                                         Ok(processed_value_type) => {
                                             let comperable = parser.compare_defining_with_type(
@@ -368,6 +380,8 @@ impl super::Processor for SetterCall {
                         parser,
                         page_hash,
                         None,
+                        false,
+                        false,
                         false,
                     ) {
                         Ok(processed_value_type) => {

@@ -23,7 +23,7 @@ lazy_static! {
     pub static ref ERROR_S4: error::Error = error::Error {
         code: 0x03,
         title: "ReferenceError".to_owned(),
-        message: "Targeted variable '$token' not found in scope".to_owned(),
+        message: "Setter '$token' is not found in the scope".to_owned(),
         ..Default::default()
     };
     pub static ref ERROR_S5: error::Error = error::Error {
@@ -254,7 +254,7 @@ lazy_static! {
     pub static ref ERROR_S42: error::Error = error::Error {
         code: 0x41,
         title: "SyntaxError".to_owned(),
-        message: "'$token' is not found in '$token1' attributes".to_owned(),
+        message: "Getter '$token' is not found in '$token1' properties".to_owned(),
         ..Default::default()
     };
     pub static ref ERROR_S43: error::Error = error::Error {
@@ -317,6 +317,7 @@ lazy_static! {
         code: 0x50,
         title: "TypeError".to_owned(),
         message: "Cannot resolve non nullAble foreign type".to_owned(),
+        full_assist: true,
         ..Default::default()
     };
 
@@ -331,6 +332,37 @@ lazy_static! {
         code: 0x52,
         title: "SyntaxError".to_owned(),
         message: "$opType is not chainable".to_owned(),
+        ..Default::default()
+    };
+
+    pub static ref ERROR_S54: error::Error = error::Error {
+        code: 0x53,
+        title: "SyntaxError".to_owned(),
+        message: "Char can only take one character".to_owned(),
+        semi_assist: true,
+        ..Default::default()
+    };
+
+    pub static ref ERROR_S55: error::Error = error::Error {
+        code: 0x54,
+        title: "TypeError".to_owned(),
+        message: "Consider giving this a type".to_owned(),
+        ..Default::default()
+    };
+
+    pub static ref ERROR_S56: error::Error = error::Error {
+        code: 0x55,
+        title: "TypeError".to_owned(),
+        message: "Cannot assign file key to this element".to_owned(),
+        semi_assist: true,
+        ..Default::default()
+    };
+
+    pub static ref ERROR_S57: error::Error = error::Error {
+        code: 0x56,
+        title: "TypeError".to_owned(),
+        message: "Unassigned file keys".to_owned(),
+        semi_assist: true,
         ..Default::default()
     };
 }

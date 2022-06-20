@@ -141,7 +141,7 @@ impl crate::processors::Processor for setter::Setter {
             self.complete = true;
             self.body_pos.range_end = cursor;
             self.pos.range_end = cursor;
-            self.hash = ellie_core::utils::generate_hash_u64();
+            self.hash = ellie_core::utils::generate_hash_usize();
             self.iterator.finalize();
             errors.extend(self.iterator.errors.clone());
             self.body = self.iterator.collected.clone();
@@ -188,6 +188,9 @@ impl crate::processors::Processor for setter::Setter {
                 self.brace_count -= 1;
             }
             self.iterator.pos = cursor;
+            if cursor.0 != self.iterator.comment_pos.range_start.0 && self.iterator.line_comment {
+                self.iterator.line_comment = false;
+            }
             hang = self.iterator.iterate(last_char, letter_char);
         }
 

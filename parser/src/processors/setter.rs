@@ -1,4 +1,4 @@
-use alloc::{borrow::ToOwned, vec};
+use alloc::{borrow::ToOwned, vec, vec::Vec};
 use ellie_core::{error, warning};
 use ellie_tokenizer::{syntax::items::setter, tokenizer::PageType};
 
@@ -8,7 +8,7 @@ impl super::Processor for setter::Setter {
         parser: &mut super::Parser,
         page_idx: usize,
         processed_page_idx: usize,
-        page_hash: u64,
+        page_hash: usize,
     ) -> bool {
         let (duplicate, found) =
             parser.is_duplicate(page_hash, self.name.clone(), self.hash.clone(), self.pos);
@@ -41,9 +41,9 @@ impl super::Processor for setter::Setter {
             let mut setter_parameter: Option<
                 ellie_core::definite::items::function::FunctionParameter,
             > = None;
-            let mut items = self.body.clone();
+            let mut items = Vec::new();
 
-            let inner_page_id: u64 = ellie_core::utils::generate_hash_u64();
+            let inner_page_id: usize = ellie_core::utils::generate_hash_usize();
 
             let parameter = self.parameters.first().unwrap().clone();
 
@@ -94,7 +94,7 @@ impl super::Processor for setter::Setter {
                                     parameter.name.clone(),
                                 );
                             if !is_correct
-                                && !parser.page_has_file_key_with(
+                                && !parser.global_key_matches(
                                     page_hash,
                                     "allow",
                                     "FunctionParameterNameRule",
@@ -148,8 +148,7 @@ impl super::Processor for setter::Setter {
             {
                 let (is_correct, fixed) =
                     (ellie_standard_rules::rules::FUNCTION_NAMING_ISSUE.worker)(self.name.clone());
-                if !is_correct
-                    && !parser.page_has_file_key_with(page_hash, "allow", "FunctionNameRule")
+                if !is_correct && !parser.global_key_matches(page_hash, "allow", "FunctionNameRule")
                 {
                     parser
                         .informations
@@ -180,6 +179,7 @@ impl super::Processor for setter::Setter {
                 public: false,
             }];
             dependencies.extend(page.dependencies.clone());
+            items.extend(self.body.clone());
 
             let inner = ellie_tokenizer::tokenizer::Page {
                 hash: inner_page_id,
@@ -206,6 +206,7 @@ impl super::Processor for setter::Setter {
                         pos: self.pos,
                         rtype: setter_parameter.clone().unwrap().rtype.clone(),
                         param_name: setter_parameter.clone().unwrap().name.clone(),
+                        file_keys: processed_page.unassigned_file_keys.clone(),
                         hash: self.hash.clone(),
                         public: self.public,
                         name_pos: self.name_pos,
@@ -216,6 +217,8 @@ impl super::Processor for setter::Setter {
                         param_name_pos: setter_parameter.unwrap().name_pos,
                     },
                 ));
+            processed_page.unassigned_file_keys = vec![];
+
             parser.process_page(inner_page_id);
             true
         }

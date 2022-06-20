@@ -7,7 +7,7 @@ pub struct GetterCall {
     pub data: Processors,
     pub complete: bool,
     pub cache: TypeProcessor,
-    pub hash: u64,
+    pub hash: usize,
     pub pos: defs::Cursor,
 }
 

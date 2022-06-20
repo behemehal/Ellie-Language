@@ -1,11 +1,17 @@
 use core::ops::{Index, IndexMut};
 
+use alloc::borrow::ToOwned;
 use alloc::string::{String, ToString};
+use alloc::vec;
 use alloc::vec::Vec;
 use rand;
 use serde::{Deserialize, Serialize};
 
-use crate::definite::types::operator::Operators;
+use crate::definite::types::operator::{
+    assignment_operator_to_string, comparison_operator_to_string, logical_operator_to_string,
+};
+use crate::definite::{definers::DefinerCollecting, types::operator::Operators};
+use crate::{defs, error};
 
 /// Response of [`reliable_name_range`] function
 /// ## Fields
@@ -24,10 +30,8 @@ pub fn is_escape(value: char) -> bool {
         || value == 'n'
         || value == 'r'
         || value == 't'
-        || value == 'b'
-        || value == 'f'
-        || value == 'v'
         || value == '0'
+        || value == '\\'
 }
 
 pub fn is_reserved(value: &str, allow_core_naming: bool) -> bool {
@@ -64,8 +68,8 @@ pub fn is_reserved(value: &str, allow_core_naming: bool) -> bool {
         || (value == "rawMemoryData" && !allow_core_naming)
 }
 
-pub fn generate_hash_u64() -> u64 {
-    rand::random::<u64>()
+pub fn generate_hash_usize() -> usize {
+    rand::random::<usize>()
 }
 
 pub fn generate_hash() -> String {
@@ -173,6 +177,155 @@ pub enum FoundExtended {
     AssignmentOperator,
 }
 
+pub fn operator_control(
+    operator: Operators,
+    first: DefinerCollecting,
+    second: DefinerCollecting,
+    path: String,
+    pos: defs::Cursor,
+) -> Option<crate::error::Error> {
+    let first = first.clone().to_string();
+    let first = first.as_str();
+    let second = second.clone().to_string();
+    let second = second.as_str();
+
+    let operator = match operator {
+        Operators::ComparisonType(operator) => match operator {
+            crate::definite::types::operator::ComparisonOperators::Equal
+            | crate::definite::types::operator::ComparisonOperators::NotEqual => {
+                match (first, second) {
+                    ("bool", "bool")
+                    | ("string", "string")
+                    | ("int", "int")
+                    | ("float", "float")
+                    | ("float", "double")
+                    | ("double", "double")
+                    | ("double", "float") => None,
+                    _ => Some(comparison_operator_to_string(operator)),
+                }
+            }
+            crate::definite::types::operator::ComparisonOperators::GreaterThan
+            | crate::definite::types::operator::ComparisonOperators::LessThan
+            | crate::definite::types::operator::ComparisonOperators::GreaterThanOrEqual
+            | crate::definite::types::operator::ComparisonOperators::LessThanOrEqual => {
+                match (first, second) {
+                    ("int", "int")
+                    | ("float", "float")
+                    | ("float", "double")
+                    | ("double", "float")
+                    | ("double", "double") => None,
+                    _ => Some(comparison_operator_to_string(operator)),
+                }
+            }
+            crate::definite::types::operator::ComparisonOperators::Null => unreachable!(),
+        },
+        Operators::LogicalType(operator) => match operator {
+            crate::definite::types::operator::LogicalOperators::And
+            | crate::definite::types::operator::LogicalOperators::Or => match (first, second) {
+                ("bool", "bool") => None,
+                _ => Some(logical_operator_to_string(operator)),
+            },
+            crate::definite::types::operator::LogicalOperators::Null => unreachable!(),
+        },
+        Operators::ArithmeticType(operator) => match operator {
+            crate::definite::types::operator::ArithmeticOperators::Addition => {
+                match (first, second) {
+                    ("int", "int") | ("int", "double") | ("int", "byte") | ("int", "float") => None,
+                    ("float", "float") | ("float", "double") | ("float", "int") => None,
+                    ("double", "double") | ("double", "int") | ("double", "float") => None,
+                    ("byte", "byte") | ("byte", "int") => None,
+                    ("string", "string")
+                    | ("string", "int")
+                    | ("string", "float")
+                    | ("string", "double")
+                    | ("string", "byte") => None,
+                    _ => Some("Addition"),
+                }
+            }
+            crate::definite::types::operator::ArithmeticOperators::Subtraction
+            | crate::definite::types::operator::ArithmeticOperators::Multiplication
+            | crate::definite::types::operator::ArithmeticOperators::Exponentiation
+            | crate::definite::types::operator::ArithmeticOperators::Division
+            | crate::definite::types::operator::ArithmeticOperators::Modulus => {
+                match (first, second) {
+                    ("int", "int") | ("int", "byte") => None,
+                    ("float", "float") | ("float", "double") | ("float", "int") => None,
+                    ("double", "double") | ("double", "int") | ("double", "float") => None,
+                    ("byte", "byte") | ("byte", "int") => None,
+                    _ => Some("Assignment"),
+                }
+            }
+            crate::definite::types::operator::ArithmeticOperators::Null => unreachable!(),
+        },
+        Operators::AssignmentType(operator) => match operator {
+            crate::definite::types::operator::AssignmentOperators::Assignment => None,
+            crate::definite::types::operator::AssignmentOperators::AdditionAssignment => {
+                match (first, second) {
+                    ("int", "int")
+                    | ("float", "float")
+                    | ("float", "double")
+                    | ("float", "int")
+                    | ("float", "byte")
+                    | ("double", "double")
+                    | ("double", "float")
+                    | ("double", "int")
+                    | ("double", "byte")
+                    | ("byte", "byte")
+                    | ("byte", "int")
+                    | ("string", "string")
+                    | ("string", "int")
+                    | ("string", "float")
+                    | ("string", "double")
+                    | ("string", "byte") => None,
+                    _ => Some("AdditionAssignment"),
+                }
+            }
+            crate::definite::types::operator::AssignmentOperators::SubtractionAssignment
+            | crate::definite::types::operator::AssignmentOperators::MultiplicationAssignment
+            | crate::definite::types::operator::AssignmentOperators::DivisionAssignment
+            | crate::definite::types::operator::AssignmentOperators::ModulusAssignment
+            | crate::definite::types::operator::AssignmentOperators::ExponentiationAssignment => {
+                match (first, second) {
+                    ("int", "int")
+                    | ("float", "float")
+                    | ("float", "double")
+                    | ("float", "int") => None,
+                    ("double", "double")
+                    | ("double", "float")
+                    | ("double", "int")
+                    | ("byte", "byte")
+                    | ("byte", "int") => None,
+                    _ => Some(assignment_operator_to_string(operator)),
+                }
+            }
+            crate::definite::types::operator::AssignmentOperators::Null => unreachable!(),
+        },
+        Operators::Null => unreachable!(),
+    };
+    match operator {
+        Some(operator_string) => Some(error::error_list::ERROR_S52.clone().build_with_path(
+            vec![
+                error::ErrorBuildField {
+                    key: "opType".to_owned(),
+                    value: operator_string.to_string(),
+                },
+                error::ErrorBuildField {
+                    key: "target".to_owned(),
+                    value: first.to_owned(),
+                },
+                error::ErrorBuildField {
+                    key: "value".to_owned(),
+                    value: second.to_owned(),
+                },
+            ],
+            alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+            path,
+            pos,
+        )),
+        None => None,
+    }
+}
+
 pub fn is_operators_chainable(target: Operators, current: Operators) -> bool {
     match target {
         Operators::ComparisonType(_) => match current {
@@ -244,7 +397,7 @@ pub fn resolve_operator(operator: &str) -> Option<FoundExtended> {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PageExport<T> {
     pub pages: Vec<T>,
-    pub page_hashs: (Vec<usize>, Vec<u64>),
+    pub page_hashs: (Vec<usize>, Vec<usize>),
 }
 
 impl<T> Index<usize> for PageExport<T> {
@@ -261,7 +414,7 @@ impl<T> IndexMut<usize> for PageExport<T> {
 }
 
 pub trait ExportPage {
-    fn get_hash(&self) -> u64;
+    fn get_hash(&self) -> usize;
 }
 
 impl<T> PageExport<T>
@@ -320,7 +473,7 @@ where
     /// * `hash` - page hash
     /// ## Returns
     /// Option<&mut [`Page`]> //Page
-    pub fn find_page(&mut self, hash: u64) -> Option<&mut T> {
+    pub fn find_page(&mut self, hash: usize) -> Option<&mut T> {
         self.pages.iter_mut().find(|page| page.get_hash() == hash)
         //match self.page_hashs.1.iter().position(|x| x == &hash) {
         //    Some(index_pos) => {
@@ -336,7 +489,7 @@ where
     /// * `hash` - page hash
     /// ## Returns
     /// Option<(&mut [`Page`], usize)> //Page and index
-    pub fn find_page_and_idx(&mut self, hash: u64) -> Option<(&mut T, usize)> {
+    pub fn find_page_and_idx(&mut self, hash: usize) -> Option<(&mut T, usize)> {
         let pos = self
             .pages
             .iter_mut()

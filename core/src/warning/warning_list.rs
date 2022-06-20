@@ -43,4 +43,20 @@ lazy_static! {
         ..Default::default()
     };
 
+    pub static ref WARNING_S6: warning::Warning = warning::Warning {
+        code: 0x05,
+        title: "EnumNameRule".to_owned(),
+        message: "Enum names should be low camel case. Found '$current', expected '$correct'".to_owned(),
+        semi_assist: true,
+        ..Default::default()
+    };
+
+    pub static ref WARNING_S7: warning::Warning = warning::Warning {
+        code: 0x06,
+        title: "EnumItemNameRule".to_owned(),
+        message: "Enum item's names should be low camel case. Found '$current', expected '$correct'".to_owned(),
+        semi_assist: true,
+        ..Default::default()
+    };
+
 }

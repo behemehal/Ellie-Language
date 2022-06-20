@@ -1,11 +1,10 @@
 [package]
 name = "ellie_engine"
 version_code = "BeautifulTropicalFish"
-version = "0.6.2"
+version = "0.7.0"
 authors = ["Ahmetcan Aksu <ahmetcanaksu@behemehal.net>", "Behemehal <info@behemehal.net>"]
 edition = "2021"
 license-file = "LICENSE"
-default-run = "elliec"
 
 [dependencies]
 lazy_static = { version = "1.4.0", features = ["spin_no_std"] }
@@ -21,8 +20,8 @@ ellie_core = { path = "core", version = "*" }
 ellie_tokenizer = { path = "tokenizer", version = "*", default-features = false }
 ellie_parser = { path = "parser", version = "*", default-features = false }
 ellie_assist = { path = "EllieAssist", version = "*", optional = true }
-ellie_runtime = {path = "runtime", version = "*" }
 ellie_bytecode = { path = "bytecode", version = "*" }
+ellie_vm = { path = "vm", version = "*" }
 
 [features]
 default = ["standard_rules", "build-cli"]
@@ -46,10 +45,6 @@ path-absolutize = { version = "3.0.10" }
 toml = "0.5.8"
 regex = { version = "1.1.7" }
 bincode = { version = "1.0", optional = true }
-
-ellie_core = { path = "core", version = "*" }
-ellie_parser = {path = "parser", version = "*", default-features = false}
-ellie_tokenizer = {path = "tokenizer", version = "*", default-features = false}
 
 [profile.release]
 opt-level = 3

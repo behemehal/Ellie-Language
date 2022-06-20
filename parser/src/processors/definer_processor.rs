@@ -10,8 +10,8 @@ use crate::deep_search_extensions::DeepTypeResult;
 pub fn process(
     from: DefinerTypes,
     parser: &mut super::Parser,
-    page_id: u64,
-    ignore_hash: Option<u64>,
+    page_id: usize,
+    ignore_hash: Option<usize>,
 ) -> Result<DefinerCollecting, Vec<error::Error>> {
     let mut errors = vec![];
     let mut found = DefinerCollecting::Dynamic;

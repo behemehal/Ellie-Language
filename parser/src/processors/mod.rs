@@ -4,6 +4,7 @@ pub mod class;
 pub mod condition;
 pub mod constructor;
 pub mod definer_processor;
+pub mod enum_type;
 pub mod file_key;
 pub mod for_loop;
 pub mod function;
@@ -30,6 +31,6 @@ pub trait Processor {
         parser: &mut Parser,
         page_idx: usize,
         processed_page_idx: usize,
-        page_hash: u64,
+        page_hash: usize,
     ) -> bool;
 }

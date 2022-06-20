@@ -30,14 +30,14 @@ pub struct ParentGenericType {
     pub rtype: String,
     pub parent_pos: defs::Cursor,
     pub generics: Vec<GenericParameter>,
-    pub hash: u64,
+    pub hash: usize,
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct GenericType {
     pub rtype: String,
     pub pos: defs::Cursor,
-    pub hash: u64,
+    pub hash: usize,
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
@@ -116,6 +116,8 @@ impl DefinerCollecting {
             DefinerCollecting::Array(data) => {
                 if let DefinerCollecting::Array(other_data) = other {
                     other_data.size == data.size && other_data.rtype.same_as(*data.rtype.clone())
+                } else if DefinerCollecting::Dynamic == other {
+                    true
                 } else {
                     false
                 }
@@ -123,6 +125,8 @@ impl DefinerCollecting {
             DefinerCollecting::Vector(data) => {
                 if let DefinerCollecting::Vector(other_data) = other {
                     other_data.rtype.same_as(*data.rtype.clone())
+                } else if DefinerCollecting::Dynamic == other {
+                    true
                 } else {
                     false
                 }
@@ -130,6 +134,8 @@ impl DefinerCollecting {
             DefinerCollecting::Generic(generic) => {
                 if let DefinerCollecting::Generic(other_generic) = other {
                     other_generic.rtype == generic.rtype && other_generic.hash == generic.hash
+                } else if DefinerCollecting::Dynamic == other {
+                    true
                 } else {
                     false
                 }
@@ -144,6 +150,8 @@ impl DefinerCollecting {
                             .iter()
                             .zip(parent_generic.generics.iter())
                             .all(|(a, b)| a.value.same_as(b.value.clone()))
+                } else if DefinerCollecting::Dynamic == other {
+                    true
                 } else {
                     false
                 }
@@ -156,6 +164,8 @@ impl DefinerCollecting {
                             .zip(other_e.params.iter())
                             .all(|(a, b)| a.same_as(b.clone()))
                         && e.returning.same_as(*other_e.returning.clone())
+                } else if DefinerCollecting::Dynamic == other {
+                    true
                 } else {
                     false
                 }
@@ -168,6 +178,8 @@ impl DefinerCollecting {
                             .iter()
                             .zip(other_cloak.rtype.iter())
                             .all(|(a, b)| a.same_as(b.clone()))
+                } else if DefinerCollecting::Dynamic == other {
+                    true
                 } else {
                     false
                 }
@@ -183,6 +195,8 @@ impl DefinerCollecting {
             DefinerCollecting::Nullable(e) => {
                 if let DefinerCollecting::Nullable(other_e) = other {
                     e.value.same_as(*other_e.value.clone())
+                } else if DefinerCollecting::Dynamic == other {
+                    true
                 } else {
                     false
                 }

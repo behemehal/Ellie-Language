@@ -16,3 +16,4 @@ tree.json
 outputTree.txt
 test.ei_parsed.json
 .DS_Store
+_runtime

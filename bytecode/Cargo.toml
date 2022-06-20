@@ -10,10 +10,7 @@ license = "GPL-2.0"
 ellie_core = { path = "../core", version = "*" }
 ellie_parser = { path = "../parser", version = "*" }
 enum-as-inner = "0.3.3"
-phf = {version = "0.10.1", features = ["macros"]}
-
-[build-dependencies]
-serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
+lazy_static = "1.4.0"
 
 [features]
 default = ["std"]

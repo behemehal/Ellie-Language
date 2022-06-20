@@ -92,7 +92,7 @@ pub fn tokenize(target_path: &Path, output_path: &Path, tokenizer_settings: Toke
                                                     ellie_tokenizer::tokenizer::ImportType::Code(
                                                         data,
                                                     ),
-                                                hash: hasher.finish(),
+                                                hash: hasher.finish().try_into().unwrap(),
                                                 path,
                                                 ..Default::default()
                                             }
@@ -126,7 +126,7 @@ pub fn tokenize(target_path: &Path, output_path: &Path, tokenizer_settings: Toke
                         }
                     }
                 },
-                first_page_hash.clone(),
+                first_page_hash.clone().try_into().unwrap(),
             );
 
             let tokenize_start = Instant::now();
@@ -186,7 +186,7 @@ pub fn tokenize(target_path: &Path, output_path: &Path, tokenizer_settings: Toke
                             "{}[?]{}: Ellie v{}",
                             cli_utils::Colors::Green,
                             cli_utils::Colors::Reset,
-                            crate::engine_constants::ELLIE_VERSION
+                            crate::engine_constants::ELLIE_ENGINE_VERSION
                         );
                         println!(
                             "{}[?]{}: Tokenizing took {}{}{}ms",

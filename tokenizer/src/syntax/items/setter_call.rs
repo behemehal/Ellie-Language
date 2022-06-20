@@ -13,7 +13,7 @@ pub struct SetterCall {
     pub cache: TypeProcessor,
     pub target_pos: defs::Cursor,
     pub value_pos: defs::Cursor,
-    pub hash: u64,
+    pub hash: usize,
     pub complete: bool,
 }
 

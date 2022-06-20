@@ -6,9 +6,17 @@ impl super::Processor for GetterCall {
         parser: &mut super::Parser,
         _page_idx: usize,
         processed_page_idx: usize,
-        page_hash: u64,
+        page_hash: usize,
     ) -> bool {
-        match super::type_processor::process(self.data.clone(), parser, page_hash, None, false) {
+        match super::type_processor::process(
+            self.data.clone(),
+            parser,
+            page_hash,
+            None,
+            false,
+            false,
+            false,
+        ) {
             Ok(data) => {
                 let page = parser.processed_pages.nth_mut(processed_page_idx).unwrap();
                 page.items

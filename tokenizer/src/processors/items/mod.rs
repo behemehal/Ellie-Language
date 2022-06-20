@@ -14,6 +14,7 @@ mod class_processor;
 mod condition_processor;
 mod constructor_processor;
 mod definer_processor;
+mod enum_processor;
 mod file_key;
 mod for_loop_processor;
 mod function_processor;
@@ -43,6 +44,7 @@ pub enum Processors {
     Ret(ret::Ret),
     Brk(brk::Brk),
     Go(go::Go),
+    Enum(enum_type::EnumType),
     Getter(getter::Getter),
     Setter(setter::Setter),
     SelfItem(self_item::SelfItem),          //VirtualValues
@@ -63,6 +65,7 @@ impl Processors {
             Processors::Setter(e) => e.complete,
             Processors::Import(e) => e.complete,
             Processors::ForLoop(e) => e.complete,
+            Processors::Enum(e) => e.complete,
             Processors::Condition(e) => {
                 e.chains.len() != 0 && e.chains.clone()[e.chains.len() - 1].complete
             }
@@ -114,6 +117,7 @@ impl Processors {
             Processors::Import(e) => e.pos,
             Processors::ForLoop(e) => e.pos,
             Processors::Condition(e) => e.pos,
+            Processors::Enum(e) => e.pos,
             Processors::Constructor(e) => e.pos,
             Processors::Ret(e) => e.pos,
             Processors::Class(e) => e.pos,
@@ -137,6 +141,7 @@ impl Processors {
             Processors::FileKey(e) => Collecting::FileKey(e.to_definite()),
             Processors::Function(e) => Collecting::Function(e.to_definite()),
             Processors::Getter(e) => Collecting::Getter(e.to_definite()),
+            Processors::Enum(e) => Collecting::Enum(e.to_definite()),
             Processors::Setter(e) => Collecting::Setter(e.to_definite()),
             Processors::Import(e) => Collecting::Import(e.to_definite()),
             Processors::ForLoop(e) => Collecting::ForLoop(e.to_definite()),
@@ -280,7 +285,7 @@ impl super::Processor for ItemProcessor {
                             target: *e.data.first,
                             operator: e.data.operator.as_assignment_type().unwrap().clone(),
                             cache: *e.itered_cache,
-                            target_pos: x.pos,
+                            target_pos: e.data.first_pos,
                             ..Default::default()
                         })
                     }
@@ -325,7 +330,11 @@ impl super::Processor for ItemProcessor {
                 ..Default::default()
             })
         } else if keyword == "enum" && letter_char == ' ' {
-            panic!("enum not implemented");
+            self.current = Processors::Enum(enum_type::EnumType {
+                public: self.used_modifier == Modifier::Pub,
+                pos: self.current.get_pos(),
+                ..Default::default()
+            })
         } else if (keyword == "s" || keyword == "set") && letter_char == ' ' {
             self.current = Processors::Setter(setter::Setter {
                 public: self.used_modifier == Modifier::Pub,
@@ -453,6 +462,7 @@ impl super::Processor for ItemProcessor {
             Processors::Getter(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::Setter(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::Import(e) => e.iterate(errors, cursor, last_char, letter_char),
+            Processors::Enum(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::ForLoop(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::Condition(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::Constructor(e) => e.iterate(errors, cursor, last_char, letter_char),

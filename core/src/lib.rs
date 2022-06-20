@@ -22,5 +22,6 @@ pub mod information;
 pub mod module_path;
 #[doc(hidden)]
 pub mod native;
+pub mod raw_type;
 pub mod utils;
 pub mod warning;

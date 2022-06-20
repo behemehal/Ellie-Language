@@ -1,7 +1,9 @@
 use crate::definite::definers;
 use crate::defs;
-use alloc::string::String;
+use alloc::{string::String, vec::Vec};
 use serde::{Deserialize, Serialize};
+
+use super::file_key::FileKey;
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 
@@ -13,6 +15,7 @@ pub struct Getter {
     pub return_type: definers::DefinerCollecting,
     pub return_pos: defs::Cursor,
     pub body_pos: defs::Cursor,
-    pub inner_page_id: u64,
-    pub hash: u64,
+    pub file_keys: Vec<FileKey>,
+    pub inner_page_id: usize,
+    pub hash: usize,
 }

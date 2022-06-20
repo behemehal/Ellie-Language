@@ -1,4 +1,4 @@
-use alloc::{borrow::ToOwned, string::ToString, vec};
+use alloc::{borrow::ToOwned, string::ToString, vec, vec::Vec};
 use ellie_core::{
     definite::{definers::DefinerCollecting, types::Types},
     error, warning,
@@ -11,7 +11,7 @@ impl super::Processor for VariableCollector {
         parser: &mut super::Parser,
         page_idx: usize,
         processed_page_idx: usize,
-        page_hash: u64,
+        page_hash: usize,
     ) -> bool {
         let path = parser.pages.nth(page_idx).unwrap().path.clone();
         let (duplicate, found) = parser.is_duplicate(
@@ -45,6 +45,17 @@ impl super::Processor for VariableCollector {
             }
             return false;
         } else {
+            let resolved_defining = if !self.data.has_type {
+                Ok(DefinerCollecting::Dynamic)
+            } else {
+                super::definer_processor::process(
+                    self.data.rtype.definer_type.clone(),
+                    parser,
+                    page_hash,
+                    Some(self.data.hash.clone()),
+                )
+            };
+
             let resolved_type = if !self.data.has_value {
                 Ok(Types::Null)
             } else {
@@ -54,17 +65,8 @@ impl super::Processor for VariableCollector {
                     page_hash,
                     Some(self.data.hash.clone()),
                     false,
-                )
-            };
-
-            let resolved_defining = if !self.data.has_type {
-                Ok(DefinerCollecting::Dynamic)
-            } else {
-                super::definer_processor::process(
-                    self.data.rtype.definer_type.clone(),
-                    parser,
-                    page_hash,
-                    Some(self.data.hash.clone()),
+                    false,
+                    true,
                 )
             };
 
@@ -82,7 +84,7 @@ impl super::Processor for VariableCollector {
                         self.data.name.clone()
                     );
                     if !is_correct
-                        && !parser.page_has_file_key_with(page_hash, "allow", "VariableNameRule")
+                        && !parser.global_key_matches(page_hash, "allow", "VariableNameRule")
                     {
                         parser
                             .informations
@@ -111,6 +113,13 @@ impl super::Processor for VariableCollector {
                         value: resolved_type.clone().unwrap(),
                         pos: self.data.pos,
                         name_pos: self.data.name_pos,
+                        file_keys: parser
+                            .processed_pages
+                            .nth(processed_page_idx)
+                            .unwrap()
+                            .unassigned_file_keys
+                            .clone(),
+
                         value_pos: self.data.value_pos,
                         type_pos: self.data.type_pos,
                         rtype: resolved_defining.clone().unwrap(),
@@ -127,7 +136,7 @@ impl super::Processor for VariableCollector {
 
                     let comperable = parser.compare_defining_with_type(
                         resolved_defining.unwrap(),
-                        resolved_type.unwrap(),
+                        resolved_type.unwrap().clone(),
                         page_hash,
                     );
 
@@ -172,12 +181,10 @@ impl super::Processor for VariableCollector {
                         }
                     }
                 } else {
-                    parser
-                        .processed_pages
-                        .nth_mut(processed_page_idx)
-                        .unwrap()
-                        .items
-                        .push(processed);
+                    let processed_page =
+                        parser.processed_pages.nth_mut(processed_page_idx).unwrap();
+                    processed_page.unassigned_file_keys = Vec::new();
+                    processed_page.items.push(processed);
                     return true;
                 }
             }

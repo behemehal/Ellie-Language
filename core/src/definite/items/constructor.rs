@@ -12,7 +12,7 @@ pub struct ConstructorParameter {
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct Constructor {
     pub parameters: Vec<ConstructorParameter>,
-    pub inner_page_id: u64,
+    pub inner_page_id: usize,
     pub name_pos: defs::Cursor,
     pub parameters_pos: defs::Cursor,
     pub pos: defs::Cursor,

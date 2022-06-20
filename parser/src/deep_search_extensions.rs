@@ -20,7 +20,7 @@ use crate::parser::{FoundPage, Parser};
 
 pub fn generate_type_from_defining(
     rtype: ellie_core::definite::definers::DefinerCollecting,
-    page_id: u64,
+    page_id: usize,
     parser: &mut crate::parser::Parser,
 ) -> Option<Types> {
     match rtype {
@@ -239,6 +239,7 @@ pub fn generate_type_from_defining(
         }
         definers::DefinerCollecting::Function(function) => Some(Types::Function(
             ellie_core::definite::types::function::Function {
+                native: false,
                 parameters: function
                     .params
                     .iter()
@@ -288,7 +289,7 @@ pub enum DeepTypeResult {
 
 fn iterate_deep_type(
     parser: &mut Parser,
-    page_id: u64,
+    page_id: usize,
     rtype: Types,
     errors: &mut Vec<error::Error>,
 ) -> DeepTypeResult {
@@ -315,7 +316,7 @@ fn iterate_deep_type(
             fn resolve_chain(
                 reference_type: definers::DefinerCollecting,
                 reference_pos: defs::Cursor,
-                page_id: u64,
+                page_id: usize,
                 parser: &mut crate::parser::Parser,
             ) -> Result<Vec<Attribute>, Vec<error::Error>> {
                 let mut errors: Vec<error::Error> = Vec::new();
@@ -379,6 +380,20 @@ fn iterate_deep_type(
                                                                             returning: Box::new(e.return_type),
                                                                         }
                                                                     )
+                                                                })
+                                                            }
+                                                            Collecting::Getter(e) => {
+                                                                Some(Attribute {
+                                                                    _rtype: AttributeType::Method,
+                                                                    name: e.name.clone(),
+                                                                    value: e.return_type
+                                                                })
+                                                            }
+                                                            Collecting::Setter(e) => {
+                                                                Some(Attribute {
+                                                                    _rtype: AttributeType::Method,
+                                                                    name: e.name.clone(),
+                                                                    value: e.rtype
                                                                 })
                                                             }
                                                             _ => None,
@@ -580,12 +595,21 @@ fn iterate_deep_type(
                 }
             }
 
-            resolve_deep_type(
-                parser,
-                page_id,
-                resolved_types.as_type().unwrap().clone(),
-                errors,
-            )
+            if errors.is_empty() {
+                resolve_deep_type(
+                    parser,
+                    page_id,
+                    resolved_types
+                        .as_type()
+                        .unwrap_or_else(|| panic!("resolve_deep_type: {:?}", resolved_types))
+                        .clone(),
+                    errors,
+                )
+            } else {
+                panic!("resolve_deep_type: {:?}", errors);
+
+                DeepTypeResult::NotFound
+            }
         }
         Types::BraceReference(e) => {
             let resolved_reference =
@@ -881,6 +905,7 @@ fn iterate_deep_type(
                                 Types::Vector(e) => DeepTypeResult::Vector(e),
                                 Types::Dynamic => DeepTypeResult::Dynamic,
                                 Types::ClassCall(e) => DeepTypeResult::ClassCall(e),
+                                Types::Function(e) => DeepTypeResult::Function(e),
                                 _ => unreachable!(),
                             },
                             None => {
@@ -972,6 +997,33 @@ fn iterate_deep_type(
                     ProcessedDeepSearchItems::Variable(e) => {
                         iterate_deep_type(parser, page_id, e.value, errors)
                     }
+                    ProcessedDeepSearchItems::FunctionParameter(e) => {
+                        match generate_type_from_defining(e.rtype, page_id, parser) {
+                            Some(e) => match e {
+                                Types::Byte(e) => DeepTypeResult::Byte(e),
+                                Types::Integer(e) => DeepTypeResult::Integer(e),
+                                Types::Float(e) => DeepTypeResult::Float(e),
+                                Types::Double(e) => DeepTypeResult::Double(e),
+                                Types::Bool(e) => DeepTypeResult::Bool(e),
+                                Types::String(e) => DeepTypeResult::String(e),
+                                Types::Char(e) => DeepTypeResult::Char(e),
+                                Types::Collective(e) => DeepTypeResult::Collective(e),
+                                Types::BraceReference(e) => DeepTypeResult::BraceReference(e),
+                                Types::Operator(e) => DeepTypeResult::Operator(e),
+                                Types::Cloak(e) => DeepTypeResult::Cloak(e),
+                                Types::Array(e) => DeepTypeResult::Array(e),
+                                Types::Vector(e) => DeepTypeResult::Vector(e),
+                                Types::Function(e) => DeepTypeResult::Function(e),
+                                Types::ClassCall(e) => DeepTypeResult::ClassCall(e),
+                                Types::FunctionCall(e) => DeepTypeResult::FunctionCall(e),
+                                Types::Void => DeepTypeResult::Void,
+                                Types::Null => DeepTypeResult::Null,
+                                Types::Dynamic => DeepTypeResult::Dynamic,
+                                _ => unreachable!(),
+                            },
+                            None => panic!("This should never happen"),
+                        }
+                    }
                     ProcessedDeepSearchItems::Getter(e) => {
                         match generate_type_from_defining(e.return_type, page_id, parser) {
                             Some(e) => match e {
@@ -1028,6 +1080,29 @@ fn iterate_deep_type(
                     }
                     ProcessedDeepSearchItems::Function(e) => {
                         DeepTypeResult::Function(ellie_core::definite::types::function::Function {
+                            native: false,
+                            parameters: e
+                                .parameters
+                                .iter()
+                                .map(
+                                    |x| ellie_core::definite::types::function::FunctionParameter {
+                                        name: x.name.clone(),
+                                        rtype: Some(x.rtype.clone()),
+                                        rtype_pos: x.rtype_pos.clone(),
+                                        name_pos: x.name_pos.clone(),
+                                    },
+                                )
+                                .collect::<Vec<_>>(),
+                            has_parameter_definings: true,
+                            return_type: e.return_type,
+                            inside_code: vec![],
+                            return_pos: defs::Cursor::default(),
+                            arrow_function: false,
+                        })
+                    }
+                    ProcessedDeepSearchItems::NativeFunction(e) => {
+                        DeepTypeResult::Function(ellie_core::definite::types::function::Function {
+                            native: true,
                             parameters: e
                                 .parameters
                                 .iter()
@@ -1114,6 +1189,7 @@ fn iterate_deep_type(
                                             inside_code: vec![],
                                             return_pos: defs::Cursor::default(),
                                             arrow_function: false,
+                                            native: false,
                                         }
                                     ))
                                 }
@@ -1255,6 +1331,7 @@ fn iterate_deep_type(
                                                 inside_code: vec![],
                                                 return_pos: defs::Cursor::default(),
                                                 arrow_function: false,
+                                                native: false,
                                             },
                                         ))
                                     } else {
@@ -1327,7 +1404,7 @@ fn iterate_deep_type(
 
 pub fn resolve_absolute_definer(
     parser: &mut Parser,
-    page_id: u64,
+    page_id: usize,
     rtype: definers::DefinerCollecting,
 ) -> Result<definers::DefinerCollecting, Vec<error::Error>> {
     match rtype {
@@ -1560,7 +1637,7 @@ pub fn resolve_absolute_definer(
 
 pub fn resolve_deep_type(
     parser: &mut Parser,
-    page_id: u64,
+    page_id: usize,
     rtype: Types,
     errors: &mut Vec<error::Error>,
 ) -> DeepTypeResult {
@@ -1570,14 +1647,16 @@ pub fn resolve_deep_type(
 #[derive(Debug, Clone, EnumAsInner)]
 pub enum ProcessedDeepSearchItems {
     Class(ellie_core::definite::items::class::Class),
+
     Variable(ellie_core::definite::items::variable::Variable),
     Function(ellie_core::definite::items::function::Function),
+    NativeFunction(ellie_core::definite::items::native_function::NativeFunction),
     Getter(ellie_core::definite::items::getter::Getter),
     Setter(ellie_core::definite::items::setter::Setter),
     ImportReference(ellie_core::definite::items::import::Import),
     //SelfItem(ellie_core::definite::items::::SelfItem),
     GenericItem(ellie_core::definite::items::generic::Generic),
-    //FunctionParameter(ellie_core::definite::items::function::FunctionParameter),
+    FunctionParameter(ellie_core::definite::items::function_parameter::FunctionParameter),
     //ConstructorParameter(ellie_tokenizer::syntax::items::constructor_parameter::ConstructorParameter),
     //MixUp(Vec<(String, String)>),
     //BrokenPageGraph,
@@ -1594,10 +1673,10 @@ pub struct ProcessedDeepSearchResult {
 
 pub fn deep_search_hash(
     parser: &mut Parser,
-    target_page: u64,
-    target_hash: u64,
-    searched: Vec<u64>,
-    _level: u32,
+    target_page: usize,
+    target_hash: usize,
+    searched: Vec<usize>,
+    _level: usize,
 ) -> ProcessedDeepSearchResult {
     let mut level = _level;
     let mut found = false;
@@ -1606,7 +1685,7 @@ pub fn deep_search_hash(
     let mut found_page = FoundPage::default();
     let has_mixup = false;
     let mut inner_page = None;
-    let mut searched: Vec<u64> = searched;
+    let mut searched: Vec<usize> = searched;
     //let mixup_hashes: Vec<(String, String)> = Vec::new();
     let mut self_dependencies = vec![];
 
@@ -1641,18 +1720,25 @@ pub fn deep_search_hash(
             searched.push(target_page);
             match parser.find_processed_page(dep.hash) {
                 Some(page) => {
-                    let page = page.clone();
                     let internal_deps = page
                         .dependencies
                         .iter()
-                        .filter_map(|x| if x.public { Some(x.clone()) } else { None })
+                        .filter_map(|x| {
+                            if x.public || x.deep_link.is_some() {
+                                Some(x.clone())
+                            } else {
+                                None
+                            }
+                        })
                         .collect::<Vec<Dependency>>();
                     self_dependencies.extend(internal_deps);
 
                     for item in &page.items {
                         match item.clone() {
                             Collecting::Variable(e) => {
-                                if e.hash == target_hash && (e.public || level == 0) {
+                                if e.hash == target_hash
+                                    && (e.public || level == 0 || dep.deep_link.is_some())
+                                {
                                     found_pos = Some(e.pos);
                                     found = true;
                                     found_page = FoundPage::fill_from_processed(&page);
@@ -1660,7 +1746,9 @@ pub fn deep_search_hash(
                                 }
                             }
                             Collecting::Function(e) => {
-                                if e.hash == target_hash && (e.public || level == 0) {
+                                if e.hash == target_hash
+                                    && (e.public || level == 0 || dep.deep_link.is_some())
+                                {
                                     found_pos = Some(e.pos);
                                     found = true;
                                     found_page = FoundPage::fill_from_processed(&page);
@@ -1672,6 +1760,7 @@ pub fn deep_search_hash(
                                     && e.hash == target_hash
                                     && (e.public
                                         || level == 0
+                                        || dep.deep_link.is_some()
                                         || matches!(inner_page, Some(ref parent_page_hash) if parent_page_hash == &page.hash))
                                 {
                                     found_pos = Some(e.pos);
@@ -1684,6 +1773,7 @@ pub fn deep_search_hash(
                                 if e.hash == target_hash
                                     && (e.public
                                         || level == 0
+                                        || dep.deep_link.is_some()
                                         || matches!(inner_page, Some(ref parent_page_hash) if parent_page_hash == &page.hash))
                                 {
                                     found_pos = Some(e.pos);
@@ -1695,6 +1785,7 @@ pub fn deep_search_hash(
                             Collecting::Generic(e) => {
                                 if e.hash == target_hash
                                     && (level == 0
+                                        || dep.deep_link.is_some()
                                         || matches!(inner_page, Some(ref parent_page_hash) if parent_page_hash == &page.hash))
                                 {
                                     found_pos = Some(e.pos);
@@ -1749,11 +1840,11 @@ pub fn deep_search_hash(
 
 pub fn deep_search(
     parser: &mut Parser,
-    target_page: u64,
+    target_page: usize,
     name: String,
-    ignore_hash: Option<u64>,
-    searched: Vec<u64>,
-    _level: u32,
+    ignore_hash: Option<usize>,
+    searched: Vec<usize>,
+    _level: usize,
 ) -> ProcessedDeepSearchResult {
     let mut level = _level;
     let mut found = false;
@@ -1762,7 +1853,7 @@ pub fn deep_search(
     let mut found_page = FoundPage::default();
     let has_mixup = false;
     let mut inner_page = None;
-    let mut searched: Vec<u64> = searched;
+    let mut searched: Vec<usize> = searched;
     let mut self_dependencies = vec![Dependency {
         hash: target_page,
         ..Default::default()
@@ -1800,11 +1891,16 @@ pub fn deep_search(
             searched.push(target_page);
             match parser.find_processed_page(dep.hash) {
                 Some(page) => {
-                    let page = page.clone();
                     let internal_deps = page
                         .dependencies
                         .iter()
-                        .filter_map(|x| if x.public { Some(x.clone()) } else { None })
+                        .filter_map(|x| {
+                            if x.public || x.deep_link.is_some() {
+                                Some(x.clone())
+                            } else {
+                                None
+                            }
+                        })
                         .collect::<Vec<Dependency>>();
                     self_dependencies.extend(internal_deps);
 
@@ -1812,7 +1908,7 @@ pub fn deep_search(
                         match item {
                             Collecting::Variable(e) => {
                                 if e.name == name
-                                    && (e.public || level == 0)
+                                    && (e.public || level == 0 || dep.deep_link.is_some())
                                     && (ignore_hash.is_none()
                                         || matches!(ignore_hash, Some(ref t) if &e.hash != t))
                                 {
@@ -1822,9 +1918,21 @@ pub fn deep_search(
                                     found_type = ProcessedDeepSearchItems::Variable(e.clone());
                                 }
                             }
+                            Collecting::FuctionParameter(e) => {
+                                if e.name == name {
+                                    found_pos = Some(defs::Cursor {
+                                        range_start: e.name_pos.range_start,
+                                        range_end: e.rtype_pos.range_end,
+                                    });
+                                    found = true;
+                                    found_page = FoundPage::fill_from_processed(&page);
+                                    found_type =
+                                        ProcessedDeepSearchItems::FunctionParameter(e.clone());
+                                }
+                            }
                             Collecting::Function(e) => {
                                 if e.name == name
-                                    && (e.public || level == 0)
+                                    && (e.public || level == 0 || dep.deep_link.is_some())
                                     && (ignore_hash.is_none()
                                         || matches!(ignore_hash, Some(ref t) if &e.hash != t))
                                 {
@@ -1834,9 +1942,22 @@ pub fn deep_search(
                                     found_type = ProcessedDeepSearchItems::Function(e.clone());
                                 }
                             }
+                            Collecting::NativeFunction(e) => {
+                                if e.name == name
+                                    && (e.public || level == 0 || dep.deep_link.is_some())
+                                    && (ignore_hash.is_none()
+                                        || matches!(ignore_hash, Some(ref t) if &e.hash != t))
+                                {
+                                    found_pos = Some(e.pos);
+                                    found = true;
+                                    found_page = FoundPage::fill_from_processed(&page);
+                                    found_type =
+                                        ProcessedDeepSearchItems::NativeFunction(e.clone());
+                                }
+                            }
                             Collecting::Getter(e) => {
                                 if e.name == name
-                                    && (e.public || level == 0)
+                                    && (e.public || level == 0 || dep.deep_link.is_some())
                                     && (ignore_hash.is_none()
                                         || matches!(ignore_hash, Some(ref t) if &e.hash != t))
                                 {
@@ -1848,7 +1969,7 @@ pub fn deep_search(
                             }
                             Collecting::Setter(e) => {
                                 if e.name == name
-                                    && (e.public || level == 0)
+                                    && (e.public || level == 0 || dep.deep_link.is_some())
                                     && (ignore_hash.is_none()
                                         || matches!(ignore_hash, Some(ref t) if &e.hash != t))
                                 {
@@ -1863,6 +1984,7 @@ pub fn deep_search(
                                     && e.reference == name
                                     && (e.public
                                         || level == 0
+                                        || dep.deep_link.is_some()
                                         || matches!(inner_page, Some(ref parent_page_hash) if parent_page_hash == &page.hash))
                                     && (ignore_hash.is_none()
                                         || matches!(ignore_hash, Some(ref t) if &e.hash != t))
@@ -1878,6 +2000,7 @@ pub fn deep_search(
                                 if e.name == name
                                     && (e.public
                                         || level == 0
+                                        || dep.deep_link.is_some()
                                         || matches!(inner_page, Some(ref parent_page_hash) if parent_page_hash == &page.hash))
                                     && (ignore_hash.is_none()
                                         || matches!(ignore_hash, Some(ref t) if &e.hash != t))
@@ -1926,7 +2049,7 @@ pub fn deep_search(
 
 pub fn find_type(
     rtype: String,
-    target_page: u64,
+    target_page: usize,
     parser: &mut Parser,
 ) -> Option<definers::GenericType> {
     let result = deep_search(parser, target_page, rtype.clone(), None, vec![], 0);
@@ -1974,6 +2097,16 @@ pub fn find_type(
                 );
             }
             ProcessedDeepSearchItems::None => None,
+            ProcessedDeepSearchItems::FunctionParameter(_) => {
+                unreachable!(
+                    "Unexpected internal crash, parser should have prevented this, {:?}",
+                    result
+                );
+            }
+            ProcessedDeepSearchItems::NativeFunction(_) => unreachable!(
+                "Unexpected internal crash, parser should have prevented this, {:?}",
+                result
+            ),
         }
     } else {
         None
@@ -1982,7 +2115,7 @@ pub fn find_type(
 
 pub fn resolve_type(
     target_type: Types,
-    target_page: u64,
+    target_page: usize,
     parser: &mut Parser,
     errors: &mut Vec<error::Error>,
     pos: Option<defs::Cursor>,
@@ -2151,13 +2284,15 @@ pub fn resolve_type(
         }
         DeepTypeResult::Collective(_) => todo!(),
         DeepTypeResult::Operator(operator) => {
-            let value_type = match operator.operator {
-                ellie_core::definite::types::operator::Operators::ComparisonType(_) => {
-                    find_type("bool".to_string(), target_page, parser)
-                }
-                ellie_core::definite::types::operator::Operators::LogicalType(_) => {
-                    find_type("bool".to_string(), target_page, parser)
-                }
+            let value_type = match operator.operator.clone() {
+                ellie_core::definite::types::operator::Operators::ComparisonType(_) => (
+                    find_type("bool".to_string(), target_page, parser),
+                    "bool".to_string(),
+                ),
+                ellie_core::definite::types::operator::Operators::LogicalType(_) => (
+                    find_type("bool".to_string(), target_page, parser),
+                    "bool".to_string(),
+                ),
                 ellie_core::definite::types::operator::Operators::ArithmeticType(_) => {
                     let rtype = match *operator.first {
                         Types::Byte(_) => "byte".to_string(),
@@ -2165,25 +2300,109 @@ pub fn resolve_type(
                         Types::Float(_) => "float".to_string(),
                         Types::Double(_) => "double".to_string(),
                         Types::Operator(_) => {
-                            let res =
-                                resolve_type(*operator.first, target_page, parser, errors, pos)
-                                    .unwrap()
-                                    .to_string();
+                            let res = resolve_type(
+                                *operator.first.clone(),
+                                target_page,
+                                parser,
+                                errors,
+                                pos,
+                            )
+                            .unwrap()
+                            .to_string();
                             res
                         }
-                        _ => unreachable!("Unhandled type: {:?}", operator.first),
+                        Types::String(_) => "string".to_string(),
+                        _ => {
+                            let first =
+                                resolve_type(*operator.first, target_page, parser, errors, pos);
+                            let second =
+                                resolve_type(*operator.second, target_page, parser, errors, pos);
+
+                            if first.is_none() || second.is_none() {
+                                return None;
+                            } else {
+                                errors.push(error::error_list::ERROR_S52.clone().build_with_path(
+                                    vec![
+                                        error::ErrorBuildField {
+                                            key: "opType".to_owned(),
+                                            value: "ArithmeticType".to_string(),
+                                        },
+                                        error::ErrorBuildField {
+                                            key: "target".to_owned(),
+                                            value: first.unwrap().to_string(),
+                                        },
+                                        error::ErrorBuildField {
+                                            key: "value".to_owned(),
+                                            value: second.unwrap().to_string(),
+                                        },
+                                    ],
+                                    alloc::format!(
+                                        "{}:{}:{}",
+                                        file!().to_owned(),
+                                        line!(),
+                                        column!()
+                                    ),
+                                    parser.find_page(target_page).unwrap().path.clone(),
+                                    match pos {
+                                        Some(e) => e,
+                                        None => defs::Cursor::default(),
+                                    },
+                                ));
+                            }
+
+                            return None;
+                        }
                     };
-                    find_type(rtype, target_page, parser)
+                    (find_type(rtype.clone(), target_page, parser), rtype)
                 }
-                ellie_core::definite::types::operator::Operators::AssignmentType(_) => {
-                    todo!()
+                ellie_core::definite::types::operator::Operators::AssignmentType(e) => {
+                    let res =
+                        resolve_type(*operator.first.clone(), target_page, parser, errors, pos)
+                            .unwrap()
+                            .to_string();
+                    errors.push(error::error_list::ERROR_S3.clone().build_with_path(
+                        vec![
+                            error::ErrorBuildField {
+                                key: "token1".to_owned(),
+                                value: "bool".to_string(),
+                            },
+                            error::ErrorBuildField {
+                                key: "token1".to_owned(),
+                                value: res,
+                            },
+                        ],
+                        alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                        parser.find_page(target_page).unwrap().path.clone(),
+                        match pos {
+                            Some(e) => e,
+                            None => defs::Cursor::default(),
+                        },
+                    ));
+                    return None;
                 }
                 ellie_core::definite::types::operator::Operators::Null => {
                     unreachable!()
                 }
             };
 
-            Some(definers::DefinerCollecting::Generic(value_type.unwrap()))
+            match value_type.0 {
+                Some(value_type) => Some(definers::DefinerCollecting::Generic(value_type)),
+                None => {
+                    errors.push(error::error_list::ERROR_S38.clone().build_with_path(
+                        vec![error::ErrorBuildField {
+                            key: "token".to_owned(),
+                            value: value_type.1,
+                        }],
+                        alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                        parser.find_page(target_page).unwrap().path.clone(),
+                        match pos {
+                            Some(e) => e,
+                            None => defs::Cursor::default(),
+                        },
+                    ));
+                    None
+                }
+            }
         }
         DeepTypeResult::Cloak(_) => todo!(),
         DeepTypeResult::Array(array_type) => {
@@ -2240,7 +2459,21 @@ pub fn resolve_type(
                         },
                     ))
                 }
-                None => panic!("Unhandled behaviour"),
+                None => {
+                    errors.push(error::error_list::ERROR_S38.clone().build_with_path(
+                        vec![error::ErrorBuildField {
+                            key: "token".to_owned(),
+                            value: "array".to_string(),
+                        }],
+                        alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                        parser.find_page(target_page).unwrap().path.clone(),
+                        match pos {
+                            Some(e) => e,
+                            None => unreachable!(),
+                        },
+                    ));
+                    None
+                }
             }
         }
         DeepTypeResult::Vector(_) => todo!(),
@@ -2340,12 +2573,15 @@ pub fn resolve_type(
 
             _ => unreachable!(),
         },
-        DeepTypeResult::FunctionCall(_) => {
+        DeepTypeResult::FunctionCall(e) => {
+            Some(e.returning)
+            /*
             let dyn_type = find_type("function".to_string(), target_page, parser);
             match dyn_type {
                 Some(dynamic_type) => Some(definers::DefinerCollecting::Generic(dynamic_type)),
                 None => panic!("Unhandled behaviour"),
             }
+            */
         }
         DeepTypeResult::Void => {
             let void_type = find_type("void".to_string(), target_page, parser);
@@ -2391,7 +2627,7 @@ pub fn resolve_type(
                 }
             }
         }
-        DeepTypeResult::NotFound => unreachable!("{:?}", target_type),
+        DeepTypeResult::NotFound => None,
         DeepTypeResult::BraceReference(e) => {
             let nullable_type = find_type("nullAble".to_string(), target_page, parser);
             match nullable_type {

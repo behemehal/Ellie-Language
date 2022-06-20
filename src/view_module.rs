@@ -10,7 +10,7 @@ pub fn parse(target_path: &Path, json_log: bool) {
         Ok(file_content) => match bincode::deserialize::<parser::Module>(file_content.as_slice()) {
             Ok(module) => {
                 let current_ellie_version = ellie_core::defs::Version::build_from_string(
-                    engine_constants::ELLIE_VERSION.to_owned(),
+                    engine_constants::ELLIE_ENGINE_VERSION.to_owned(),
                 );
                 if current_ellie_version != module.ellie_version {
                     if json_log {

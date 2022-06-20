@@ -5,6 +5,7 @@ use alloc::format;
 use alloc::string::ToString;
 use alloc::vec::Vec;
 use alloc::{string::String, vec};
+use ellie_core::definite::items::file_key::FileKey;
 use ellie_core::definite::{items::Collecting, Converter};
 use ellie_core::utils::{ExportPage, PageExport};
 use ellie_core::{defs, error, information, warning};
@@ -14,16 +15,18 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ProcessedPage {
-    pub hash: u64,
-    pub inner: Option<u64>,
+    pub hash: usize,
+    pub inner: Option<usize>,
+    pub unassigned_file_keys: Vec<FileKey>,
+    pub global_file_keys: Vec<FileKey>,
     pub path: String,
     pub items: Vec<ellie_core::definite::items::Collecting>,
-    pub dependents: Vec<u64>,
+    pub dependents: Vec<usize>,
     pub dependencies: Vec<ellie_tokenizer::tokenizer::Dependency>,
 }
 
 impl ExportPage for ProcessedPage {
-    fn get_hash(&self) -> u64 {
+    fn get_hash(&self) -> usize {
         self.hash
     }
 }
@@ -74,10 +77,10 @@ impl ProcessedPage {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Module {
-    pub hash: u64,
+    pub hash: usize,
     pub name: String,
     pub description: String,
-    pub initial_page: u64,
+    pub initial_page: usize,
     pub is_library: bool,
     pub ellie_version: ellie_core::defs::Version,
     pub pages: PageExport<ProcessedPage>,
@@ -152,20 +155,28 @@ impl ParserSettings {
     }
 }
 
-pub struct Parser {
+pub struct ModuleInfo {
+    pub name: String,
+    pub description: String,
+    pub is_lib: bool,
     pub version: ellie_core::defs::Version,
+    pub ellie_version: ellie_core::defs::Version,
+}
+
+pub struct Parser {
     pub pages: PageExport<Page>,
     pub processed_pages: PageExport<ProcessedPage>,
     pub modules: Vec<Module>,
-    pub initial_page: u64,
+    pub initial_page: usize,
     pub informations: information::Informations,
     pub parser_settings: ParserSettings,
+    pub module_info: ModuleInfo,
 }
 
 #[derive(Debug, Clone, Default)]
 pub struct FoundPage {
-    pub hash: u64,
-    pub inner: Option<u64>,
+    pub hash: usize,
+    pub inner: Option<usize>,
     pub processed: bool,
     pub module: bool,
     pub path: String,
@@ -235,21 +246,31 @@ impl DeepSearchItems {
 impl Parser {
     pub fn new(
         pages: PageExport<Page>,
-        initial_hash: u64,
+        initial_hash: usize,
         version: ellie_core::defs::Version,
+        module_name: String,
+        module_description: String,
+        is_lib: bool,
+        ellie_version: defs::Version,
     ) -> Parser {
         Parser {
-            version,
             pages,
             processed_pages: PageExport::new(),
             modules: vec![],
             initial_page: initial_hash,
             informations: information::Informations::new(),
             parser_settings: ParserSettings::default(),
+            module_info: ModuleInfo {
+                name: module_name,
+                description: module_description,
+                is_lib,
+                version,
+                ellie_version,
+            },
         }
     }
 
-    pub fn calculate_hash(&self) -> u64 {
+    pub fn calculate_hash(&self) -> usize {
         self.pages[0].hash
     }
 
@@ -297,7 +318,7 @@ impl Parser {
         &mut self,
         defining: ellie_core::definite::definers::DefinerCollecting,
         rtype: ellie_core::definite::types::Types,
-        target_page: u64,
+        target_page: usize,
     ) -> Result<(bool, String, String), Vec<error::Error>> {
         let mut errors: Vec<error::Error> = Vec::new();
         let found_type = crate::deep_search_extensions::resolve_deep_type(
@@ -476,13 +497,13 @@ impl Parser {
                 }
             }
             deep_search_extensions::DeepTypeResult::Collective(_) => todo!(),
-            deep_search_extensions::DeepTypeResult::Operator(_) => {
+            deep_search_extensions::DeepTypeResult::Operator(e) => {
                 let value_gen = match deep_search_extensions::resolve_type(
                     rtype,
                     target_page,
                     self,
                     &mut errors,
-                    None,
+                    Some(e.pos),
                 ) {
                     Some(e) => e,
                     None => {
@@ -505,13 +526,13 @@ impl Parser {
                 }
             }
             deep_search_extensions::DeepTypeResult::Cloak(_) => todo!(),
-            deep_search_extensions::DeepTypeResult::Array(_) => {
+            deep_search_extensions::DeepTypeResult::Array(e) => {
                 let value_gen = match deep_search_extensions::resolve_type(
                     rtype,
                     target_page,
                     self,
                     &mut errors,
-                    None,
+                    Some(e.pos),
                 ) {
                     Some(e) => e,
                     None => {
@@ -532,32 +553,6 @@ impl Parser {
                         Err(errors)
                     }
                 }
-
-                /*
-                if let ellie_core::definite::definers::DefinerCollecting::ParentGeneric(
-                    parent_generic,
-                ) = defining.clone()
-                {
-                    if parent_generic.rtype == "array" {
-                        if let ellie_core::definite::definers::DefinerCollecting::ParentGeneric(
-                            value_generic,
-                        ) = value_gen.clone()
-                        {
-                            if value_generic.rtype == "array" {
-                                panic!("{:#?} == {:#?}", value_generic, parent_generic);
-                            } else {
-                                (false, defining.to_string(), value_gen.to_string())
-                            }
-                        } else {
-                            (false, defining.to_string(), value_gen.to_string())
-                        }
-                    } else {
-                        (false, defining.to_string(), "arrayE".to_owned())
-                    }
-                } else {
-                    (false, defining.to_string(), "arrayC".to_owned())
-                }
-                */
             }
             deep_search_extensions::DeepTypeResult::Vector(_) => todo!(),
             deep_search_extensions::DeepTypeResult::ClassCall(class_call) => {
@@ -591,8 +586,77 @@ impl Parser {
                         defining.to_string(),
                         e.return_type.to_string(),
                     )),
+                    deep_search_extensions::DeepTypeResult::FunctionCall(e) => Ok((
+                        defining.same_as(e.returning.clone()),
+                        defining.to_string(),
+                        e.returning.to_string(),
+                    )),
                     _ => {
-                        unreachable!()
+                        let rtype = match resolved_target {
+                            deep_search_extensions::DeepTypeResult::Integer(e) => {
+                                ellie_core::definite::types::Types::Integer(e)
+                            }
+                            deep_search_extensions::DeepTypeResult::Byte(e) => {
+                                ellie_core::definite::types::Types::Byte(e)
+                            }
+                            deep_search_extensions::DeepTypeResult::Float(e) => {
+                                ellie_core::definite::types::Types::Float(e)
+                            }
+                            deep_search_extensions::DeepTypeResult::Double(e) => {
+                                ellie_core::definite::types::Types::Double(e)
+                            }
+                            deep_search_extensions::DeepTypeResult::Bool(e) => {
+                                ellie_core::definite::types::Types::Bool(e)
+                            }
+                            deep_search_extensions::DeepTypeResult::String(e) => {
+                                ellie_core::definite::types::Types::String(e)
+                            }
+                            deep_search_extensions::DeepTypeResult::Char(e) => {
+                                ellie_core::definite::types::Types::Char(e)
+                            }
+                            deep_search_extensions::DeepTypeResult::Collective(e) => {
+                                ellie_core::definite::types::Types::Collective(e)
+                            }
+                            deep_search_extensions::DeepTypeResult::Operator(e) => {
+                                ellie_core::definite::types::Types::Operator(e)
+                            }
+                            deep_search_extensions::DeepTypeResult::Cloak(e) => {
+                                ellie_core::definite::types::Types::Cloak(e)
+                            }
+                            deep_search_extensions::DeepTypeResult::Array(e) => {
+                                ellie_core::definite::types::Types::Array(e)
+                            }
+                            deep_search_extensions::DeepTypeResult::Vector(e) => {
+                                ellie_core::definite::types::Types::Vector(e)
+                            }
+                            deep_search_extensions::DeepTypeResult::ClassCall(e) => {
+                                ellie_core::definite::types::Types::ClassCall(e)
+                            }
+                            deep_search_extensions::DeepTypeResult::BraceReference(e) => {
+                                ellie_core::definite::types::Types::BraceReference(e)
+                            }
+                            deep_search_extensions::DeepTypeResult::Void => {
+                                ellie_core::definite::types::Types::Void
+                            }
+                            deep_search_extensions::DeepTypeResult::Null => {
+                                ellie_core::definite::types::Types::Null
+                            }
+                            deep_search_extensions::DeepTypeResult::Dynamic => {
+                                ellie_core::definite::types::Types::Dynamic
+                            }
+                            _ => unreachable!(),
+                        };
+                        let resolved_type =
+                            resolve_type(rtype, target_page, self, &mut errors, Some(e.target_pos));
+                        if errors.is_empty() {
+                            Ok((
+                                false,
+                                defining.to_string(),
+                                resolved_type.unwrap().to_string(),
+                            ))
+                        } else {
+                            Err(errors)
+                        }
                     }
                 }
             }
@@ -796,39 +860,33 @@ impl Parser {
         }
     }
 
-    pub fn page_has_file_key_with(&mut self, page_id: u64, key: &str, value: &str) -> bool {
-        let mut found = false;
-        match self.find_page(page_id) {
-            Some(e) => {
-                for file in e.items.iter() {
-                    match file {
-                        Processors::FileKey(e) => {
-                            if e.key_name == key
-                                && matches!(&e.value, ellie_tokenizer::processors::types::Processors::String(e) if e.data.value == value)
-                            {
-                                found = true;
-                                break;
-                            }
+    pub fn global_key_matches(&mut self, processed_page: usize, key: &str, value: &str) -> bool {
+        match self.find_processed_page(processed_page) {
+            Some(e) => e
+                .global_file_keys
+                .iter()
+                .find(|x| {
+                    x.key_name == key
+                        && match &x.value {
+                            ellie_core::definite::types::Types::String(e) => e.value == value,
+                            _ => false,
                         }
-                        _ => (),
-                    }
-                }
-            }
-            None => (),
+                })
+                .is_some(),
+            None => false,
         }
-        found
     }
 
     pub fn is_duplicate(
         &mut self,
-        page_id: u64,
+        page_id: usize,
         name: String,
-        hash: u64,
+        hash: usize,
         pos: defs::Cursor,
     ) -> (bool, Option<(FoundPage, defs::Cursor)>) {
         let deep_search = self.deep_search(
             page_id,
-            name,
+            name.clone(),
             if hash == 0 { None } else { Some(hash) },
             vec![],
             0,
@@ -842,7 +900,7 @@ impl Parser {
                 DeepSearchItems::SelfItem(_) => (true, None),
                 DeepSearchItems::GenericItem(e) => (true, Some((deep_search.found_page, e.pos))),
                 e => (
-                    pos.is_bigger(e.get_pos()),
+                    pos.range_start.is_bigger(&e.get_pos().range_start),
                     Some((deep_search.found_page, e.get_pos())),
                 ),
             }
@@ -853,11 +911,11 @@ impl Parser {
 
     pub fn deep_search(
         &mut self,
-        target_page: u64,
+        target_page: usize,
         name: String,
-        ignore_hash: Option<u64>,
-        searched: Vec<u64>,
-        _level: u32,
+        ignore_hash: Option<usize>,
+        searched: Vec<usize>,
+        _level: usize,
     ) -> DeepSearchResult {
         let mut level = _level;
         let mut found = false;
@@ -866,7 +924,7 @@ impl Parser {
         let mut found_page = FoundPage::default();
         let has_mixup = false;
         let mut inner_page = None;
-        let mut searched: Vec<u64> = searched;
+        let mut searched: Vec<usize> = searched;
         let mixup_hashes: Vec<(String, String)> = Vec::new();
         let mut self_dependencies = vec![Dependency {
             hash: target_page,
@@ -895,9 +953,20 @@ impl Parser {
                         Some(page) => {
                             for item in page.items.iter() {
                                 match item.clone() {
+                                    Collecting::FuctionParameter(e) => {
+                                        if e.name == name {
+                                            found_pos = Some(defs::Cursor {
+                                                range_start: e.name_pos.range_start,
+                                                range_end: e.rtype_pos.range_end,
+                                            });
+                                            found = true;
+                                            found_page = FoundPage::fill(&unprocessed_page);
+                                            found_type = DeepSearchItems::FunctionParameter(ellie_tokenizer::syntax::items::function_parameter::FunctionParameter::default().from_definite(e));
+                                        }
+                                    }
                                     Collecting::Variable(e) => {
                                         if e.name == name
-                                            && (e.public || level == 0)
+                                            && (e.public || level == 0 || dep.deep_link.is_some())
                                             && (ignore_hash.is_none()
                                                 || matches!(ignore_hash, Some(ref t) if &e.hash != t))
                                         {
@@ -909,7 +978,7 @@ impl Parser {
                                     }
                                     Collecting::Getter(e) => {
                                         if e.name == name
-                                            && (e.public || level == 0)
+                                            && (e.public || level == 0 || dep.deep_link.is_some())
                                             && (ignore_hash.is_none()
                                                 || matches!(ignore_hash, Some(ref t) if &e.hash != t))
                                         {
@@ -921,7 +990,7 @@ impl Parser {
                                     }
                                     Collecting::Setter(e) => {
                                         if e.name == name
-                                            && (e.public || level == 0)
+                                            && (e.public || level == 0 || dep.deep_link.is_some())
                                             && (ignore_hash.is_none()
                                                 || matches!(ignore_hash, Some(ref t) if &e.hash != t))
                                         {
@@ -933,7 +1002,7 @@ impl Parser {
                                     }
                                     Collecting::Function(e) => {
                                         if e.name == name
-                                            && (e.public || level == 0)
+                                            && (e.public || level == 0 || dep.deep_link.is_some())
                                             && (ignore_hash.is_none()
                                                 || matches!(ignore_hash, Some(ref t) if &e.hash != t))
                                         {
@@ -948,6 +1017,7 @@ impl Parser {
                                             && e.reference == name
                                             && (e.public
                                                 || level == 0
+                                                || dep.deep_link.is_some()
                                                 || matches!(inner_page, Some(ref parent_page_hash) if parent_page_hash == &page.hash))
                                             && (ignore_hash.is_none()
                                                 || matches!(ignore_hash, Some(ref t) if &e.hash != t))
@@ -962,6 +1032,7 @@ impl Parser {
                                         if e.name == name
                                             && (e.public
                                                 || level == 0
+                                                || dep.deep_link.is_some()
                                                 || matches!(inner_page, Some(ref parent_page_hash) if parent_page_hash == &page.hash))
                                             && (ignore_hash.is_none()
                                                 || matches!(ignore_hash, Some(ref t) if &e.hash != t))
@@ -990,12 +1061,11 @@ impl Parser {
                         .clone();
                     match self.find_processed_page(dep.hash) {
                         Some(page) => {
-                            let page = page.clone();
                             for item in page.items.iter() {
                                 match item.clone() {
                                     Collecting::Variable(e) => {
                                         if e.name == name
-                                            && (e.public || level == 0)
+                                            && (e.public || level == 0 || dep.deep_link.is_some())
                                             && (ignore_hash.is_none()
                                                 || matches!(ignore_hash, Some(ref t) if &e.hash != t))
                                         {
@@ -1007,7 +1077,7 @@ impl Parser {
                                     }
                                     Collecting::Function(e) => {
                                         if e.name == name
-                                            && (e.public || level == 0)
+                                            && (e.public || level == 0 || dep.deep_link.is_some())
                                             && (ignore_hash.is_none()
                                                 || matches!(ignore_hash, Some(ref t) if &e.hash != t))
                                         {
@@ -1019,7 +1089,7 @@ impl Parser {
                                     }
                                     Collecting::Getter(e) => {
                                         if e.name == name
-                                            && (e.public || level == 0)
+                                            && (e.public || level == 0 || dep.deep_link.is_some())
                                             && (ignore_hash.is_none()
                                                 || matches!(ignore_hash, Some(ref t) if &e.hash != t))
                                         {
@@ -1031,7 +1101,7 @@ impl Parser {
                                     }
                                     Collecting::Setter(e) => {
                                         if e.name == name
-                                            && (e.public || level == 0)
+                                            && (e.public || level == 0 || dep.deep_link.is_some())
                                             && (ignore_hash.is_none()
                                                 || matches!(ignore_hash, Some(ref t) if &e.hash != t))
                                         {
@@ -1046,6 +1116,7 @@ impl Parser {
                                             && e.reference == name
                                             && (e.public
                                                 || level == 0
+                                                || dep.deep_link.is_some()
                                                 || matches!(inner_page, Some(ref parent_page_hash) if parent_page_hash == &page.hash))
                                             && (ignore_hash.is_none()
                                                 || matches!(ignore_hash, Some(ref t) if &e.hash != t))
@@ -1060,6 +1131,7 @@ impl Parser {
                                         if e.name == name
                                             && (e.public
                                                 || level == 0
+                                                || dep.deep_link.is_some()
                                                 || matches!(inner_page, Some(ref parent_page_hash) if parent_page_hash == &page.hash))
                                             && (ignore_hash.is_none()
                                                 || matches!(ignore_hash, Some(ref t) if &e.hash != t))
@@ -1088,7 +1160,9 @@ impl Parser {
                                 match item {
                                     Processors::Variable(e) => {
                                         if e.data.name == name
-                                            && (e.data.public || level == 0)
+                                            && (e.data.public
+                                                || level == 0
+                                                || dep.deep_link.is_some())
                                             && (ignore_hash.is_none()
                                                 || matches!(ignore_hash, Some(ref t) if &e.data.hash != t))
                                         {
@@ -1100,7 +1174,9 @@ impl Parser {
                                     }
                                     Processors::Function(e) => {
                                         if e.data.name == name
-                                            && (e.data.public || level == 0)
+                                            && (e.data.public
+                                                || level == 0
+                                                || dep.deep_link.is_some())
                                             && (ignore_hash.is_none()
                                                 || matches!(ignore_hash, Some(ref t) if &e.data.hash != t))
                                         {
@@ -1112,7 +1188,7 @@ impl Parser {
                                     }
                                     Processors::Getter(e) => {
                                         if e.name == name
-                                            && (e.public || level == 0)
+                                            && (e.public || level == 0 || dep.deep_link.is_some())
                                             && (ignore_hash.is_none()
                                                 || matches!(ignore_hash, Some(ref t) if &e.hash != t))
                                         {
@@ -1124,7 +1200,7 @@ impl Parser {
                                     }
                                     Processors::Setter(e) => {
                                         if e.name == name
-                                            && (e.public || level == 0)
+                                            && (e.public || level == 0 || dep.deep_link.is_some())
                                             && (ignore_hash.is_none()
                                                 || matches!(ignore_hash, Some(ref t) if &e.hash != t))
                                         {
@@ -1139,6 +1215,7 @@ impl Parser {
                                             && e.reference == name
                                             && (e.public
                                                 || level == 0
+                                                || dep.deep_link.is_some()
                                                 || matches!(inner_page, Some(ref parent_page_hash) if parent_page_hash == &page.hash))
                                             && (ignore_hash.is_none()
                                                 || matches!(ignore_hash, Some(ref t) if &e.hash != t))
@@ -1154,6 +1231,7 @@ impl Parser {
                                         if e.name == name
                                             && (e.public
                                                 || level == 0
+                                                || dep.deep_link.is_some()
                                                 || matches!(inner_page, Some(ref parent_page_hash) if parent_page_hash == &page.hash))
                                             && (ignore_hash.is_none()
                                                 || matches!(ignore_hash, Some(ref t) if &e.hash != t))
@@ -1167,6 +1245,7 @@ impl Parser {
                                     Processors::GenericItem(e) => {
                                         if e.generic_name == name
                                             && (level == 0
+                                                || dep.deep_link.is_some()
                                                 || matches!(inner_page, Some(ref parent_page_hash) if parent_page_hash == &page.hash))
                                         {
                                             found_pos = Some(e.pos);
@@ -1178,6 +1257,7 @@ impl Parser {
                                     Processors::SelfItem(e) => {
                                         if "self" == name
                                             && (level == 0
+                                                || dep.deep_link.is_some()
                                                 || matches!(inner_page, Some(ref parent_page_hash) if parent_page_hash == &page.hash))
                                         {
                                             found = true;
@@ -1186,7 +1266,7 @@ impl Parser {
                                         }
                                     }
                                     Processors::FunctionParameter(e) => {
-                                        if e.name == name && level == 0 {
+                                        if e.name == name && level == 0 || dep.deep_link.is_some() {
                                             found_pos = Some(e.name_pos);
                                             found = true;
                                             found_page = FoundPage::fill(page);
@@ -1195,7 +1275,7 @@ impl Parser {
                                         }
                                     }
                                     Processors::ConstructorParameter(e) => {
-                                        if e.name == name && level == 0 {
+                                        if e.name == name && level == 0 || dep.deep_link.is_some() {
                                             found_pos = Some(e.pos);
                                             found = true;
                                             found_page = FoundPage::fill(&page);
@@ -1243,14 +1323,14 @@ impl Parser {
         }
     }
 
-    pub fn find_processed_page(&mut self, hash: u64) -> Option<&mut ProcessedPage> {
+    pub fn find_processed_page(&mut self, hash: usize) -> Option<&mut ProcessedPage> {
         self.processed_pages.find_page(hash)
     }
 
     pub fn find_processed_page_in_module(
         &mut self,
-        module_hash: u64,
-        hash: u64,
+        module_hash: usize,
+        hash: usize,
     ) -> Option<&mut ProcessedPage> {
         match self.modules.iter_mut().find(|x| x.hash == module_hash) {
             Some(e) => e.pages.iter_mut().find(|x| x.hash == hash),
@@ -1258,11 +1338,11 @@ impl Parser {
         }
     }
 
-    pub fn find_page(&mut self, hash: u64) -> Option<&mut Page> {
+    pub fn find_page(&mut self, hash: usize) -> Option<&mut Page> {
         self.pages.find_page(hash)
     }
 
-    pub fn process_page(&mut self, hash: u64) {
+    pub fn process_page(&mut self, hash: usize) {
         let (unprocessed_page, unprocessed_page_idx) = match self.pages.find_page_and_idx(hash) {
             Some(e) => (e.0.clone(), e.1),
             None => panic!("Page not found"),
@@ -1275,8 +1355,11 @@ impl Parser {
                     inner: unprocessed_page.inner,
                     path: unprocessed_page.path.clone(),
                     items: vec![],
+
                     dependents: unprocessed_page.dependents.clone(),
                     dependencies: unprocessed_page.dependencies.clone(),
+                    unassigned_file_keys: vec![],
+                    global_file_keys: vec![],
                 });
                 (hash, self.processed_pages.pages.len() - 1)
             }
@@ -1294,6 +1377,38 @@ impl Parser {
                     unprocessed_page.unreachable_range.range_end = item.get_pos().range_end;
                 }
             } else {
+                //Check leftover file keys are compatible with the element
+                match self.processed_pages.nth(processed_page_idx) {
+                    Some(e) => {
+                        if !e.unassigned_file_keys.is_empty() {
+                            match item {
+                                Processors::Variable(_) => (),
+                                Processors::Function(_) => (),
+                                Processors::FileKey(_) => (),
+                                Processors::Class(_) => (),
+                                Processors::Getter(_) => (),
+                                Processors::Setter(_) => (),
+                                _ => self.informations.push(
+                                    &ellie_core::error::error_list::ERROR_S56
+                                        .clone()
+                                        .build_with_path(
+                                            vec![],
+                                            alloc::format!(
+                                                "{}:{}:{}",
+                                                file!().to_owned(),
+                                                line!(),
+                                                column!()
+                                            ),
+                                            unprocessed_page.path.clone(),
+                                            item.get_pos(),
+                                        ),
+                                ),
+                            }
+                        }
+                    }
+                    None => (),
+                }
+
                 let terminated = match unprocessed_page.page_type {
                     ellie_tokenizer::tokenizer::PageType::FunctionBody => match item {
                         Processors::Variable(e) => e.process(
@@ -1315,6 +1430,12 @@ impl Parser {
                             unprocessed_page.hash,
                         ),
                         Processors::Function(e) => e.process(
+                            self,
+                            unprocessed_page_idx,
+                            processed_page_idx,
+                            unprocessed_page.hash,
+                        ),
+                        Processors::Enum(e) => e.process(
                             self,
                             unprocessed_page_idx,
                             processed_page_idx,
@@ -1368,15 +1489,39 @@ impl Parser {
                                 unprocessed_page.hash,
                             )
                         }
-                        Processors::SelfItem(_) => true,
+                        Processors::SelfItem(e) => {
+                            self.processed_pages
+                                .nth_mut(processed_page_idx)
+                                .unwrap()
+                                .items
+                                .push(Collecting::SelfItem(
+                                    ellie_core::definite::items::self_item::SelfItem {
+                                        class_page: e.class_page,
+                                        class_hash: e.class_hash,
+                                    },
+                                ));
+                            true
+                        }
                         Processors::GenericItem(e) => e.process(
                             self,
                             unprocessed_page_idx,
                             processed_page_idx,
                             unprocessed_page.hash,
                         ),
-                        Processors::FunctionParameter(_) => true,
-                        Processors::ConstructorParameter(_) => true,
+                        Processors::FunctionParameter(e) => {
+                            self.processed_pages.nth_mut(processed_page_idx).unwrap().items.push(
+                            Collecting::FuctionParameter(
+                                ellie_core::definite::items::function_parameter::FunctionParameter { name: e.name.clone(), rtype: e.rtype.clone(), name_pos: e.name_pos, rtype_pos: e.rtype_pos }
+                            ));
+                            true
+                        }
+                        Processors::ConstructorParameter(e) => {
+                            self.processed_pages.nth_mut(processed_page_idx).unwrap().items.push(
+                            Collecting::ConstructorParameter(
+                                ellie_core::definite::items::constructor_parameter::ConstructorParameter { name: e.name.clone(), pos: e.pos }
+                            ));
+                            true
+                        }
                         unexpected_element => {
                             self.informations.push(
                                 &error::error_list::ERROR_S22.clone().build_with_path(
@@ -1414,6 +1559,12 @@ impl Parser {
                             unprocessed_page.hash,
                         ),
                         Processors::Function(e) => e.process(
+                            self,
+                            unprocessed_page_idx,
+                            processed_page_idx,
+                            unprocessed_page.hash,
+                        ),
+                        Processors::Enum(e) => e.process(
                             self,
                             unprocessed_page_idx,
                             processed_page_idx,
@@ -1461,15 +1612,35 @@ impl Parser {
                             processed_page_idx,
                             unprocessed_page.hash,
                         ),
-                        Processors::SelfItem(_) => true,
+                        Processors::SelfItem(e) => {
+                            self.processed_pages
+                                .nth_mut(processed_page_idx)
+                                .unwrap()
+                                .items
+                                .push(Collecting::SelfItem(
+                                    ellie_core::definite::items::self_item::SelfItem {
+                                        class_page: e.class_page,
+                                        class_hash: e.class_hash,
+                                    },
+                                ));
+                            true
+                        }
                         Processors::GenericItem(e) => e.process(
                             self,
                             unprocessed_page_idx,
                             processed_page_idx,
                             unprocessed_page.hash,
                         ),
-                        Processors::FunctionParameter(_) => true,
-                        Processors::ConstructorParameter(_) => true,
+                        Processors::FunctionParameter(_) => {
+                            unreachable!("Unexpected element in body")
+                        }
+                        Processors::ConstructorParameter(e) => {
+                            self.processed_pages.nth_mut(processed_page_idx).unwrap().items.push(
+                            Collecting::ConstructorParameter(
+                                ellie_core::definite::items::constructor_parameter::ConstructorParameter { name: e.name.clone(), pos: e.pos }
+                            ));
+                            true
+                        }
                         unexpected_element => {
                             self.informations.push(
                                 &error::error_list::ERROR_S22.clone().build_with_path(
@@ -1507,6 +1678,12 @@ impl Parser {
                             unprocessed_page.hash,
                         ),
                         Processors::Function(e) => e.process(
+                            self,
+                            unprocessed_page_idx,
+                            processed_page_idx,
+                            unprocessed_page.hash,
+                        ),
+                        Processors::Enum(e) => e.process(
                             self,
                             unprocessed_page_idx,
                             processed_page_idx,
@@ -1562,15 +1739,39 @@ impl Parser {
                             unprocessed_page.hash,
                         ),
 
-                        Processors::SelfItem(_) => true,
+                        Processors::SelfItem(e) => {
+                            self.processed_pages
+                                .nth_mut(processed_page_idx)
+                                .unwrap()
+                                .items
+                                .push(Collecting::SelfItem(
+                                    ellie_core::definite::items::self_item::SelfItem {
+                                        class_page: e.class_page,
+                                        class_hash: e.class_hash,
+                                    },
+                                ));
+                            true
+                        }
                         Processors::GenericItem(e) => e.process(
                             self,
                             unprocessed_page_idx,
                             processed_page_idx,
                             unprocessed_page.hash,
                         ),
-                        Processors::FunctionParameter(_) => true,
-                        Processors::ConstructorParameter(_) => true,
+                        Processors::FunctionParameter(e) => {
+                            self.processed_pages.nth_mut(processed_page_idx).unwrap().items.push(
+                                Collecting::FuctionParameter(
+                                    ellie_core::definite::items::function_parameter::FunctionParameter { name: e.name.clone(), rtype: e.rtype.clone(), name_pos: e.name_pos, rtype_pos: e.rtype_pos }
+                                ));
+                            true
+                        }
+                        Processors::ConstructorParameter(e) => {
+                            self.processed_pages.nth_mut(processed_page_idx).unwrap().items.push(
+                                Collecting::ConstructorParameter(
+                                    ellie_core::definite::items::constructor_parameter::ConstructorParameter { name: e.name.clone(), pos: e.pos }
+                                ));
+                            true
+                        }
                         unexpected_element => {
                             self.informations.push(
                                 &error::error_list::ERROR_S22.clone().build_with_path(
@@ -1613,7 +1814,6 @@ impl Parser {
                             processed_page_idx,
                             unprocessed_page.hash,
                         ),
-                        Processors::SelfItem(_) => true,
                         Processors::GenericItem(e) => e.process(
                             self,
                             unprocessed_page_idx,
@@ -1632,8 +1832,9 @@ impl Parser {
                             processed_page_idx,
                             unprocessed_page.hash,
                         ),
-                        Processors::FunctionParameter(_) => true,
-                        Processors::ConstructorParameter(_) => true,
+                        Processors::SelfItem(_) => true,
+                        Processors::FunctionParameter(e) => true,
+                        Processors::ConstructorParameter(e) => true,
                         unexpected_element => {
                             self.informations.push(
                                 &error::error_list::ERROR_S22.clone().build_with_path(
@@ -1671,6 +1872,12 @@ impl Parser {
                             unprocessed_page.hash,
                         ),
                         Processors::Function(e) => e.process(
+                            self,
+                            unprocessed_page_idx,
+                            processed_page_idx,
+                            unprocessed_page.hash,
+                        ),
+                        Processors::Enum(e) => e.process(
                             self,
                             unprocessed_page_idx,
                             processed_page_idx,
@@ -1728,7 +1935,19 @@ impl Parser {
                             );
                             false
                         }
-                        Processors::SelfItem(_) => true,
+                        Processors::SelfItem(e) => {
+                            self.processed_pages
+                                .nth_mut(processed_page_idx)
+                                .unwrap()
+                                .items
+                                .push(Collecting::SelfItem(
+                                    ellie_core::definite::items::self_item::SelfItem {
+                                        class_page: e.class_page,
+                                        class_hash: e.class_hash,
+                                    },
+                                ));
+                            true
+                        }
                         Processors::GenericItem(e) => e.process(
                             self,
                             unprocessed_page_idx,
@@ -1736,7 +1955,13 @@ impl Parser {
                             unprocessed_page.hash,
                         ),
                         Processors::FunctionParameter(_) => true,
-                        Processors::ConstructorParameter(_) => true,
+                        Processors::ConstructorParameter(e) => {
+                            self.processed_pages.nth_mut(processed_page_idx).unwrap().items.push(
+                            Collecting::ConstructorParameter(
+                                ellie_core::definite::items::constructor_parameter::ConstructorParameter { name: e.name.clone(), pos: e.pos }
+                            ));
+                            true
+                        }
                         unexpected_element => {
                             self.informations.push(
                                 &error::error_list::ERROR_S22.clone().build_with_path(
@@ -1774,6 +1999,12 @@ impl Parser {
                             unprocessed_page.hash,
                         ),
                         Processors::Function(e) => e.process(
+                            self,
+                            unprocessed_page_idx,
+                            processed_page_idx,
+                            unprocessed_page.hash,
+                        ),
+                        Processors::Enum(e) => e.process(
                             self,
                             unprocessed_page_idx,
                             processed_page_idx,
@@ -1827,7 +2058,19 @@ impl Parser {
                                 unprocessed_page.hash,
                             )
                         }
-                        Processors::SelfItem(_) => true,
+                        Processors::SelfItem(e) => {
+                            self.processed_pages
+                                .nth_mut(processed_page_idx)
+                                .unwrap()
+                                .items
+                                .push(Collecting::SelfItem(
+                                    ellie_core::definite::items::self_item::SelfItem {
+                                        class_page: e.class_page,
+                                        class_hash: e.class_hash,
+                                    },
+                                ));
+                            true
+                        }
                         Processors::Brk(e) => {
                             self.pages
                                 .nth_mut(unprocessed_page_idx)
@@ -1858,8 +2101,20 @@ impl Parser {
                             processed_page_idx,
                             unprocessed_page.hash,
                         ),
-                        Processors::FunctionParameter(_) => true,
-                        Processors::ConstructorParameter(_) => true,
+                        Processors::FunctionParameter(e) => {
+                            self.processed_pages.nth_mut(processed_page_idx).unwrap().items.push(
+                                Collecting::FuctionParameter(
+                                    ellie_core::definite::items::function_parameter::FunctionParameter { name: e.name.clone(), rtype: e.rtype.clone(), name_pos: e.name_pos, rtype_pos: e.rtype_pos }
+                                ));
+                            true
+                        }
+                        Processors::ConstructorParameter(e) => {
+                            self.processed_pages.nth_mut(processed_page_idx).unwrap().items.push(
+                            Collecting::ConstructorParameter(
+                                ellie_core::definite::items::constructor_parameter::ConstructorParameter { name: e.name.clone(), pos: e.pos }
+                            ));
+                            true
+                        }
                         unexpected_element => {
                             self.informations.push(
                                 &error::error_list::ERROR_S22.clone().build_with_path(
@@ -1899,16 +2154,10 @@ impl Parser {
         }
     }
 
-    pub fn parse(
-        &mut self,
-        module_name: String,
-        module_description: String,
-        is_lib: bool,
-        ellie_version: defs::Version,
-    ) -> Module {
+    pub fn parse(&mut self) -> Module {
         self.process_page(self.initial_page);
 
-        if !is_lib {
+        if !self.module_info.is_lib {
             let main_function =
                 self.deep_search(self.initial_page, "main".to_string(), None, vec![], 0);
             if main_function.found {
@@ -1939,14 +2188,14 @@ impl Parser {
         }
 
         Module {
-            name: module_name,
-            description: module_description,
+            name: self.module_info.name.clone(),
+            description: self.module_info.description.clone(),
             initial_page: self.initial_page,
             hash: self.calculate_hash(),
-            is_library: is_lib,
+            is_library: self.module_info.is_lib,
             pages: self.processed_pages.clone(),
-            version: self.version.clone(),
-            ellie_version,
+            version: self.module_info.version.clone(),
+            ellie_version: self.module_info.ellie_version.clone(),
             modules: self
                 .modules
                 .iter()

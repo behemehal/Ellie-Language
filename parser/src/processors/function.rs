@@ -8,7 +8,7 @@ impl super::Processor for function::FunctionCollector {
         parser: &mut super::Parser,
         page_idx: usize,
         processed_page_idx: usize,
-        page_hash: u64,
+        page_hash: usize,
     ) -> bool {
         let (duplicate, found) = parser.is_duplicate(
             page_hash,
@@ -44,9 +44,9 @@ impl super::Processor for function::FunctionCollector {
         } else {
             let mut parameters: Vec<ellie_core::definite::items::function::FunctionParameter> =
                 Vec::new();
-            let mut items = self.data.body.clone();
+            let mut items = Vec::new();
 
-            let inner_page_id: u64 = ellie_core::utils::generate_hash_u64();
+            let inner_page_id: usize = ellie_core::utils::generate_hash_usize();
             let mut return_type = match super::definer_processor::process(
                 self.data.return_type.definer_type.clone(),
                 parser,
@@ -159,7 +159,7 @@ impl super::Processor for function::FunctionCollector {
                                             parameter.name.clone()
                                         );
                                     if !is_correct
-                                        && !parser.page_has_file_key_with(
+                                        && !parser.global_key_matches(
                                             page_hash,
                                             "allow",
                                             "FunctionParameterNameRule",
@@ -213,8 +213,7 @@ impl super::Processor for function::FunctionCollector {
             {
                 let (is_correct, fixed) = (ellie_standard_rules::rules::FUNCTION_NAMING_ISSUE
                     .worker)(self.data.name.clone());
-                if !is_correct
-                    && !parser.page_has_file_key_with(page_hash, "allow", "FunctionNameRule")
+                if !is_correct && !parser.global_key_matches(page_hash, "allow", "FunctionNameRule")
                 {
                     parser
                         .informations
@@ -250,19 +249,24 @@ impl super::Processor for function::FunctionCollector {
                             name_pos: self.data.name_pos,
                             parameters_pos: self.data.parameters_pos,
                             return_pos: self.data.return_pos,
+                            file_keys: processed_page.unassigned_file_keys.clone(),
                             no_return: self.data.no_return,
+                            module_name: parser.module_info.name.clone(),
                         },
                     ));
+                processed_page.unassigned_file_keys = vec![];
+
                 true
             } else {
                 let mut dependencies = vec![ellie_tokenizer::tokenizer::Dependency {
                     hash: page.hash.clone(),
                     processed: false,
                     module: None,
-                    deep_link: None,
+                    deep_link: Some(page.hash.clone()),
                     public: false,
                 }];
                 dependencies.extend(page.dependencies);
+                items.extend(self.data.body.clone());
 
                 let inner = ellie_tokenizer::tokenizer::Page {
                     hash: inner_page_id,
@@ -287,6 +291,7 @@ impl super::Processor for function::FunctionCollector {
                             parameters: parameters,
                             hash: self.data.hash.clone(),
                             return_type: return_type.clone(),
+                            file_keys: processed_page.unassigned_file_keys.clone(),
                             public: self.data.public,
                             name_pos: self.data.name_pos,
                             body_pos: self.data.body_pos,
@@ -296,6 +301,8 @@ impl super::Processor for function::FunctionCollector {
                             inner_page_id,
                         },
                     ));
+                processed_page.unassigned_file_keys = vec![];
+
                 parser.process_page(inner_page_id);
                 let found_ret = parser
                     .find_processed_page(inner_page_id)

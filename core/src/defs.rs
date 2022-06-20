@@ -81,6 +81,10 @@ impl Default for CursorPosition {
 }
 
 impl CursorPosition {
+    pub fn is_bigger(&self, other: &CursorPosition) -> bool {
+        self.0 > other.0 || (self.0 == other.0 && self.1 > other.1)
+    }
+
     pub fn skip_char(&mut self, n: usize) -> CursorPosition {
         let mut clone = self.clone();
         clone.1 += n;
@@ -245,6 +249,31 @@ impl Version {
             }
         } else {
             Err(0)
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+pub enum PlatformArchitecture {
+    B16,
+    B32,
+    B64,
+}
+
+impl PlatformArchitecture {
+    pub fn get_code(&self) -> u8 {
+        match self {
+            PlatformArchitecture::B16 => 16,
+            PlatformArchitecture::B32 => 32,
+            PlatformArchitecture::B64 => 64,
+        }
+    }
+
+    pub fn usize_len(&self) -> usize {
+        match self {
+            PlatformArchitecture::B16 => 2,
+            PlatformArchitecture::B32 => 4,
+            PlatformArchitecture::B64 => 8,
         }
     }
 }

@@ -20,4 +20,5 @@ pub struct Function {
     pub inside_code: Vec<Collecting>,
     pub return_pos: defs::Cursor,
     pub arrow_function: bool,
+    pub native: bool,
 }
