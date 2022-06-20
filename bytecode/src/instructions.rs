@@ -1,9 +1,6 @@
 #![allow(dead_code)]
 
-use std::{print, println};
-
 use alloc::{
-    boxed::Box,
     string::{String, ToString},
     vec,
     vec::Vec,

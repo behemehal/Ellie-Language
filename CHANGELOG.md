@@ -38,3 +38,21 @@
 
 - Tokenizer v0.3.3
   - Fix comment bug [2723381f7f0f32e549c56a4e29a14ac3667c44a0](https://github.com/behemehal/Ellie-Language/commit/2723381f7f0f32e549c56a4e29a14ac3667c44a0)
+
+
+# v0.7.0
+
+- Parser v0.5.0
+  - Implement Enum
+
+- Tokenizer v0.4.0
+  - Implement Enum
+
+- ByteCode v0.1.0
+  - Implement Transpiler
+
+- VM v0.1.0
+  - Implement VM
+
+- Core v0.3.0
+  - Implement VM
