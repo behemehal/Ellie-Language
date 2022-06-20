@@ -25,7 +25,7 @@ pub struct Setter {
     pub body_pos: defs::Cursor,
     pub body: Vec<Processors>,
     pub pos: defs::Cursor,
-    pub hash: u64,
+    pub hash: usize,
 }
 
 impl Converter<Setter, ellie_core::definite::items::setter::Setter> for Setter {
@@ -39,6 +39,7 @@ impl Converter<Setter, ellie_core::definite::items::setter::Setter> for Setter {
             hash: self.hash,
             inner_page_id: 0,
             rtype_pos: self.parameters[0].rtype_pos,
+            file_keys: Vec::new(),
             param_name_pos: self.parameters[0].name_pos,
             rtype: self.parameters[0].rtype.definer_type.clone().to_definite(),
             param_name: self.parameters[0].clone().name,

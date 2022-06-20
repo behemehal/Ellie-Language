@@ -26,7 +26,7 @@ pub struct CompilerSettings {
     pub show_debug_lines: bool,
     pub exclude_stdlib: bool,
     pub warnings: bool,
-    pub byte_code_architecture: ellie_bytecode::assembler::PlatformArchitecture,
+    pub byte_code_architecture: ellie_core::defs::PlatformArchitecture,
 }
 
 pub fn get_output_path(
@@ -114,7 +114,7 @@ pub fn compile(
                                                     ellie_tokenizer::tokenizer::ImportType::Code(
                                                         data,
                                                     ),
-                                                hash: hasher.finish(),
+                                                hash: hasher.finish().try_into().unwrap(),
                                                 path,
                                                 ..Default::default()
                                             }
@@ -148,7 +148,7 @@ pub fn compile(
                         }
                     }
                 },
-                first_page_hash.clone(),
+                first_page_hash.clone().try_into().unwrap(),
             );
 
             let tokenize_start = Instant::now();
@@ -156,7 +156,7 @@ pub fn compile(
                 Ok(_) => {
                     let mut parser = parser::Parser::new(
                         pager.pages.clone(),
-                        first_page_hash,
+                        first_page_hash.try_into().unwrap(),
                         compiler_settings.version,
                         compiler_settings.name,
                         compiler_settings.description,
@@ -556,9 +556,9 @@ pub fn compile(
                                         cli_utils::Colors::Green,
                                         cli_utils::Colors::Reset,
                                         match compiler_settings.byte_code_architecture {
-                                            ellie_bytecode::assembler::PlatformArchitecture::B16 => "16",
-                                            ellie_bytecode::assembler::PlatformArchitecture::B32 => "32",
-                                            ellie_bytecode::assembler::PlatformArchitecture::B64 => "64",
+                                            ellie_core::defs::PlatformArchitecture::B16 => "16",
+                                            ellie_core::defs::PlatformArchitecture::B32 => "32",
+                                            ellie_core::defs::PlatformArchitecture::B64 => "64",
                                         }
                                     );
                                 }
@@ -566,8 +566,7 @@ pub fn compile(
                                 let mut assembler = ellie_bytecode::assembler::Assembler::new(
                                     workspace,
                                     ellie_bytecode::assembler::PlatformAttributes {
-                                        architecture:
-                                            ellie_bytecode::assembler::PlatformArchitecture::B64, //64 Bit Limit
+                                        architecture: ellie_core::defs::PlatformArchitecture::B64, //64 Bit Limit
                                         memory_size: 512000, //512kb memory limit
                                     },
                                 );
@@ -674,9 +673,9 @@ pub fn compile(
                                         cli_utils::Colors::Green,
                                         cli_utils::Colors::Reset,
                                         match compiler_settings.byte_code_architecture {
-                                            ellie_bytecode::assembler::PlatformArchitecture::B16 => "16",
-                                            ellie_bytecode::assembler::PlatformArchitecture::B32 => "32",
-                                            ellie_bytecode::assembler::PlatformArchitecture::B64 => "64",
+                                            ellie_core::defs::PlatformArchitecture::B16 => "16",
+                                            ellie_core::defs::PlatformArchitecture::B32 => "32",
+                                            ellie_core::defs::PlatformArchitecture::B64 => "64",
                                         }
                                     );
                                 }
@@ -685,8 +684,7 @@ pub fn compile(
                                 let mut assembler = ellie_bytecode::assembler::Assembler::new(
                                     workspace,
                                     ellie_bytecode::assembler::PlatformAttributes {
-                                        architecture:
-                                            ellie_bytecode::assembler::PlatformArchitecture::B64, //64 Bit Limit
+                                        architecture: ellie_core::defs::PlatformArchitecture::B64, //64 Bit Limit
                                         memory_size: 512000, //512kb memory limit
                                     },
                                 );

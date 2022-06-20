@@ -22,5 +22,8 @@ pub mod instructions;
 /// Utils
 pub mod utils;
 
+//Transpilers
+pub mod transpiler;
+
 #[macro_use]
 extern crate lazy_static;

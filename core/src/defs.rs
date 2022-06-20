@@ -252,3 +252,28 @@ impl Version {
         }
     }
 }
+
+#[derive(Clone, Debug)]
+pub enum PlatformArchitecture {
+    B16,
+    B32,
+    B64,
+}
+
+impl PlatformArchitecture {
+    pub fn get_code(&self) -> u8 {
+        match self {
+            PlatformArchitecture::B16 => 16,
+            PlatformArchitecture::B32 => 32,
+            PlatformArchitecture::B64 => 64,
+        }
+    }
+
+    pub fn usize_len(&self) -> usize {
+        match self {
+            PlatformArchitecture::B16 => 2,
+            PlatformArchitecture::B32 => 4,
+            PlatformArchitecture::B64 => 8,
+        }
+    }
+}

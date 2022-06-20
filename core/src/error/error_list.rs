@@ -317,6 +317,7 @@ lazy_static! {
         code: 0x50,
         title: "TypeError".to_owned(),
         message: "Cannot resolve non nullAble foreign type".to_owned(),
+        full_assist: true,
         ..Default::default()
     };
 
@@ -338,13 +339,30 @@ lazy_static! {
         code: 0x53,
         title: "SyntaxError".to_owned(),
         message: "Char can only take one character".to_owned(),
+        semi_assist: true,
         ..Default::default()
     };
 
     pub static ref ERROR_S55: error::Error = error::Error {
         code: 0x54,
-        title: "SyntaxError".to_owned(),
+        title: "TypeError".to_owned(),
         message: "Consider giving this a type".to_owned(),
+        ..Default::default()
+    };
+
+    pub static ref ERROR_S56: error::Error = error::Error {
+        code: 0x55,
+        title: "TypeError".to_owned(),
+        message: "Cannot assign file key to this element".to_owned(),
+        semi_assist: true,
+        ..Default::default()
+    };
+
+    pub static ref ERROR_S57: error::Error = error::Error {
+        code: 0x56,
+        title: "TypeError".to_owned(),
+        message: "Unassigned file keys".to_owned(),
+        semi_assist: true,
         ..Default::default()
     };
 }

@@ -1,26 +1,18 @@
-use crate::instructions::{self, Instruction, Instructions};
-use alloc::{
-    boxed::Box,
-    format,
-    string::{String, ToString},
-    vec,
-    vec::Vec,
-};
-use ellie_core::{
-    definite::types::{operator, Types},
-    defs::Cursor,
-    utils::ExportPage,
-};
+use crate::instructions::{self};
+use crate::transpiler::Transpiler;
+use alloc::{format, string::String, vec::Vec};
+use ellie_core::defs::PlatformArchitecture;
+use ellie_core::utils::ExportPage;
 use ellie_parser::parser::Module;
 use std::{io::Write, panic, println};
 
 pub struct Assembler {
-    module: Module,
-    processed: Vec<u64>,
-    platform_attributes: PlatformAttributes,
-    instructions: Vec<instructions::Instructions>,
-    locals: Vec<LocalHeader>,
-    debug_headers: Vec<DebugHeader>,
+    pub(crate) module: Module,
+    pub(crate) processed: Vec<usize>,
+    pub(crate) platform_attributes: PlatformAttributes,
+    pub(crate) instructions: Vec<instructions::Instructions>,
+    pub(crate) locals: Vec<LocalHeader>,
+    pub(crate) debug_headers: Vec<DebugHeader>,
 }
 
 #[derive(Clone, Debug)]
@@ -55,8 +47,8 @@ pub struct InstructionPage {
 }
 
 impl ExportPage for InstructionPage {
-    fn get_hash(&self) -> u64 {
-        self.hash as u64
+    fn get_hash(&self) -> usize {
+        self.hash
     }
 }
 
@@ -71,23 +63,6 @@ impl InstructionPage {
 
     pub fn find_local(&self, name: &String) -> Option<&LocalHeader> {
         self.locals.iter().find(|_local| &_local.name == name)
-    }
-}
-
-#[derive(Clone, Debug)]
-pub enum PlatformArchitecture {
-    B16,
-    B32,
-    B64,
-}
-
-impl PlatformArchitecture {
-    pub fn get_code(&self) -> u8 {
-        match self {
-            PlatformArchitecture::B16 => 16,
-            PlatformArchitecture::B32 => 32,
-            PlatformArchitecture::B64 => 64,
-        }
     }
 }
 
@@ -247,626 +222,7 @@ impl Assembler {
         self.locals.iter().find(|_local| &_local.name == name)
     }
 
-    pub fn convert_type(&mut self, types: &Types) -> (instructions::Types, Vec<u8>) {
-        match types {
-            Types::Byte(byte) => (instructions::Types::Byte, byte.value.to_le_bytes().to_vec()),
-            Types::Integer(integer) => (
-                instructions::Types::Integer,
-                integer.value.to_le_bytes().to_vec(),
-            ),
-            Types::Float(float) => (
-                instructions::Types::Float,
-                float.value.to_le_bytes().to_vec(),
-            ),
-            Types::Double(double) => (
-                instructions::Types::Double,
-                double.value.to_le_bytes().to_vec(),
-            ),
-            Types::Bool(bool) => (instructions::Types::Bool, vec![bool.value as u8]),
-            Types::String(string) => (
-                instructions::Types::String((string.value.len(), 1)), //UTF-16, UTF-32 is todo
-                string.value.as_bytes().to_vec(),
-            ),
-            Types::Char(char) => (instructions::Types::Char, vec![char.value as u8]),
-            Types::Collective(_) => todo!(),
-            Types::Reference(_) => todo!(),
-            Types::BraceReference(_) => todo!(),
-            Types::Operator(_) => todo!(),
-            Types::Cloak(_) => todo!(),
-            Types::Array(array) => {
-                let mut inner_type = instructions::Types::Null;
-
-                let mut bytes = Vec::new();
-                for collective in &array.collective {
-                    let converted = self.convert_type(&collective.value);
-                    if bytes.len() == 0 {
-                        inner_type = converted.0;
-                    }
-                    bytes.extend(converted.1);
-                }
-                (
-                    instructions::Types::Array((Box::new(inner_type), array.collective.len())),
-                    bytes,
-                )
-            }
-            Types::Vector(_) => todo!(),
-            Types::Function(_) => todo!(),
-            Types::ClassCall(_) => todo!(),
-            Types::FunctionCall(_) => todo!(),
-            Types::SetterCall(_) => todo!(),
-            Types::Void => todo!(),
-            Types::NullResolver(_) => todo!(),
-            Types::Negative(_) => todo!(),
-            Types::VariableType(_) => todo!(),
-            Types::AsKeyword(_) => todo!(),
-            Types::Null => todo!(),
-            Types::Dynamic => todo!(),
-        }
-    }
-
-    pub fn resolve_type(
-        &mut self,
-        types: &Types,
-        target_register: instructions::Registers,
-        target_page: &u64,
-    ) -> Vec<Instructions> {
-        match types {
-            Types::Collective(_) => todo!(),
-            Types::Reference(_) => todo!(),
-            Types::BraceReference(_) => todo!(),
-            Types::Operator(operator) => match &operator.operator {
-                operator::Operators::ComparisonType(e) => {
-                    let mut instructions = Vec::new();
-                    instructions.extend(self.resolve_type(
-                        &operator.first,
-                        instructions::Registers::B,
-                        target_page,
-                    ));
-
-                    instructions.extend(self.resolve_type(
-                        &operator.second,
-                        instructions::Registers::C,
-                        target_page,
-                    ));
-
-                    instructions.push(match e {
-                        operator::ComparisonOperators::Equal => {
-                            instructions::Instructions::EQ(Instruction::implict())
-                        }
-                        operator::ComparisonOperators::NotEqual => {
-                            instructions::Instructions::NE(Instruction::implict())
-                        }
-                        operator::ComparisonOperators::GreaterThan => {
-                            instructions::Instructions::GT(Instruction::implict())
-                        }
-                        operator::ComparisonOperators::LessThan => {
-                            instructions::Instructions::LT(Instruction::implict())
-                        }
-                        operator::ComparisonOperators::GreaterThanOrEqual => {
-                            instructions::Instructions::GQ(Instruction::implict())
-                        }
-                        operator::ComparisonOperators::LessThanOrEqual => {
-                            instructions::Instructions::LQ(Instruction::implict())
-                        }
-                        operator::ComparisonOperators::Null => unreachable!(),
-                    });
-
-                    match target_register {
-                        instructions::Registers::A => (),
-                        instructions::Registers::B => {
-                            instructions
-                                .push(instructions::Instructions::LDB(Instruction::indirect_a()));
-                        }
-                        instructions::Registers::C => {
-                            instructions
-                                .push(instructions::Instructions::LDC(Instruction::indirect_a()));
-                        }
-                        instructions::Registers::X => {
-                            instructions
-                                .push(instructions::Instructions::LDX(Instruction::indirect_a()));
-                        }
-                        instructions::Registers::Y => {
-                            instructions
-                                .push(instructions::Instructions::LDY(Instruction::indirect_a()));
-                        }
-                    }
-                    instructions
-                }
-                operator::Operators::LogicalType(_) => todo!(),
-                operator::Operators::ArithmeticType(e) => {
-                    let mut instructions = Vec::new();
-                    instructions.extend(self.resolve_type(
-                        &operator.first,
-                        instructions::Registers::B,
-                        target_page,
-                    ));
-
-                    instructions.extend(self.resolve_type(
-                        &operator.second,
-                        instructions::Registers::C,
-                        target_page,
-                    ));
-
-                    instructions.push(match e {
-                        operator::ArithmeticOperators::Addition => {
-                            instructions::Instructions::ADD(Instruction::implict())
-                        }
-                        operator::ArithmeticOperators::Subtraction => {
-                            instructions::Instructions::SUB(Instruction::implict())
-                        }
-                        operator::ArithmeticOperators::Multiplication => {
-                            instructions::Instructions::MUL(Instruction::implict())
-                        }
-                        operator::ArithmeticOperators::Exponentiation => {
-                            instructions::Instructions::EXP(Instruction::implict())
-                        }
-                        operator::ArithmeticOperators::Division => {
-                            instructions::Instructions::DIV(Instruction::implict())
-                        }
-                        operator::ArithmeticOperators::Modulus => {
-                            instructions::Instructions::MOD(Instruction::implict())
-                        }
-                        operator::ArithmeticOperators::Null => unreachable!("Wrong operator"),
-                    });
-                    match target_register {
-                        instructions::Registers::A => (),
-                        instructions::Registers::B => {
-                            instructions
-                                .push(instructions::Instructions::LDB(Instruction::indirect_a()));
-                        }
-                        instructions::Registers::C => {
-                            instructions
-                                .push(instructions::Instructions::LDC(Instruction::indirect_a()));
-                        }
-                        instructions::Registers::X => {
-                            instructions
-                                .push(instructions::Instructions::LDX(Instruction::indirect_a()));
-                        }
-                        instructions::Registers::Y => {
-                            instructions
-                                .push(instructions::Instructions::LDY(Instruction::indirect_a()));
-                        }
-                    }
-                    instructions
-                }
-                operator::Operators::AssignmentType(_) => todo!(),
-                operator::Operators::Null => todo!(),
-            },
-            Types::Cloak(_) => todo!(),
-            Types::Array(_) => {
-                let converted_type = self.convert_type(types);
-
-                match target_register {
-                    instructions::Registers::A => vec![instructions::Instructions::LDA(
-                        Instruction::immediate(converted_type.0, converted_type.1),
-                    )],
-                    instructions::Registers::B => vec![instructions::Instructions::LDB(
-                        Instruction::immediate(converted_type.0, converted_type.1),
-                    )],
-                    instructions::Registers::C => vec![instructions::Instructions::LDC(
-                        Instruction::immediate(converted_type.0, converted_type.1),
-                    )],
-                    instructions::Registers::X => vec![instructions::Instructions::LDX(
-                        Instruction::immediate(converted_type.0, converted_type.1),
-                    )],
-                    instructions::Registers::Y => vec![instructions::Instructions::LDY(
-                        Instruction::immediate(converted_type.0, converted_type.1),
-                    )],
-                }
-            }
-            Types::Vector(_) => todo!(),
-            Types::Function(_) => todo!(),
-            Types::ClassCall(_) => {
-                vec![]
-            }
-            Types::FunctionCall(e) => {
-                let mut instructions = Vec::new();
-                instructions.extend(self.resolve_type(
-                    &e.target,
-                    instructions::Registers::B,
-                    target_page,
-                ));
-                instructions
-            }
-            Types::Void => match target_register {
-                instructions::Registers::A => {
-                    vec![instructions::Instructions::LDA(Instruction::immediate(
-                        crate::instructions::Types::Void,
-                        vec![],
-                    ))]
-                }
-                instructions::Registers::B => {
-                    vec![instructions::Instructions::LDB(Instruction::immediate(
-                        crate::instructions::Types::Void,
-                        vec![],
-                    ))]
-                }
-                instructions::Registers::C => {
-                    vec![instructions::Instructions::LDC(Instruction::immediate(
-                        crate::instructions::Types::Void,
-                        vec![],
-                    ))]
-                }
-                instructions::Registers::X => {
-                    vec![instructions::Instructions::LDX(Instruction::immediate(
-                        crate::instructions::Types::Void,
-                        vec![],
-                    ))]
-                }
-                instructions::Registers::Y => {
-                    vec![instructions::Instructions::LDY(Instruction::immediate(
-                        crate::instructions::Types::Void,
-                        vec![],
-                    ))]
-                }
-            },
-            Types::NullResolver(_) => todo!(),
-            Types::Negative(_) => todo!(),
-            Types::VariableType(e) => {
-                let pos = self.find_local(&e.value).unwrap();
-
-                let mut instructions = Vec::new();
-
-                match target_register {
-                    instructions::Registers::A => match pos.reference {
-                        Some(target_page) => {
-                            instructions.push(instructions::Instructions::AOL(
-                                Instruction::absolute(target_page),
-                            ));
-                            instructions.push(instructions::Instructions::LDA(
-                                Instruction::absolute(pos.cursor),
-                            ))
-                        }
-                        None => instructions.push(instructions::Instructions::LDA(
-                            Instruction::absolute(pos.cursor),
-                        )),
-                    },
-                    instructions::Registers::B => match pos.reference {
-                        Some(target_page) => {
-                            instructions.push(instructions::Instructions::AOL(
-                                Instruction::absolute(target_page),
-                            ));
-                            instructions.push(instructions::Instructions::LDB(
-                                Instruction::absolute(pos.cursor),
-                            ))
-                        }
-                        None => instructions.push(instructions::Instructions::LDB(
-                            Instruction::absolute(pos.cursor),
-                        )),
-                    },
-                    instructions::Registers::C => match pos.reference {
-                        Some(target_page) => {
-                            instructions.push(instructions::Instructions::AOL(
-                                Instruction::absolute(target_page),
-                            ));
-                            instructions.push(instructions::Instructions::LDC(
-                                Instruction::absolute(pos.cursor),
-                            ))
-                        }
-                        None => instructions.push(instructions::Instructions::LDC(
-                            Instruction::absolute(pos.cursor),
-                        )),
-                    },
-                    instructions::Registers::X => match pos.reference {
-                        Some(target_page) => {
-                            instructions.push(instructions::Instructions::AOL(
-                                Instruction::absolute(target_page),
-                            ));
-                            instructions.push(instructions::Instructions::LDX(
-                                Instruction::absolute(pos.cursor),
-                            ))
-                        }
-                        None => instructions.push(instructions::Instructions::LDX(
-                            Instruction::absolute(pos.cursor),
-                        )),
-                    },
-                    instructions::Registers::Y => match pos.reference {
-                        Some(target_page) => {
-                            instructions.push(instructions::Instructions::AOL(
-                                Instruction::absolute(target_page),
-                            ));
-                            instructions.push(instructions::Instructions::LDY(
-                                Instruction::absolute(pos.cursor),
-                            ))
-                        }
-                        None => instructions.push(instructions::Instructions::LDY(
-                            Instruction::absolute(pos.cursor),
-                        )),
-                    },
-                };
-
-                instructions
-            }
-            Types::AsKeyword(_) => todo!(),
-            Types::Byte(_) => {
-                let converted_type = self.convert_type(types);
-                match target_register {
-                    instructions::Registers::A => {
-                        vec![instructions::Instructions::LDA(Instruction::immediate(
-                            converted_type.0,
-                            converted_type.1,
-                        ))]
-                    }
-                    instructions::Registers::B => {
-                        vec![instructions::Instructions::LDB(Instruction::immediate(
-                            converted_type.0,
-                            converted_type.1,
-                        ))]
-                    }
-                    instructions::Registers::C => {
-                        vec![instructions::Instructions::LDC(Instruction::immediate(
-                            converted_type.0,
-                            converted_type.1,
-                        ))]
-                    }
-                    instructions::Registers::X => {
-                        vec![instructions::Instructions::LDX(Instruction::immediate(
-                            converted_type.0,
-                            converted_type.1,
-                        ))]
-                    }
-                    instructions::Registers::Y => {
-                        vec![instructions::Instructions::LDY(Instruction::immediate(
-                            converted_type.0,
-                            converted_type.1,
-                        ))]
-                    }
-                }
-            }
-            Types::Integer(_) => {
-                let converted_type = self.convert_type(types);
-
-                match target_register {
-                    instructions::Registers::A => {
-                        vec![instructions::Instructions::LDA(Instruction::immediate(
-                            converted_type.0,
-                            converted_type.1,
-                        ))]
-                    }
-                    instructions::Registers::B => {
-                        vec![instructions::Instructions::LDB(Instruction::immediate(
-                            converted_type.0,
-                            converted_type.1,
-                        ))]
-                    }
-                    instructions::Registers::C => {
-                        vec![instructions::Instructions::LDC(Instruction::immediate(
-                            converted_type.0,
-                            converted_type.1,
-                        ))]
-                    }
-                    instructions::Registers::X => {
-                        vec![instructions::Instructions::LDX(Instruction::immediate(
-                            converted_type.0,
-                            converted_type.1,
-                        ))]
-                    }
-                    instructions::Registers::Y => {
-                        vec![instructions::Instructions::LDY(Instruction::immediate(
-                            converted_type.0,
-                            converted_type.1,
-                        ))]
-                    }
-                }
-            }
-            Types::Float(_) => {
-                let converted_type = self.convert_type(types);
-
-                match target_register {
-                    instructions::Registers::A => {
-                        vec![instructions::Instructions::LDA(Instruction::immediate(
-                            converted_type.0,
-                            converted_type.1,
-                        ))]
-                    }
-                    instructions::Registers::B => {
-                        vec![instructions::Instructions::LDB(Instruction::immediate(
-                            converted_type.0,
-                            converted_type.1,
-                        ))]
-                    }
-                    instructions::Registers::C => {
-                        vec![instructions::Instructions::LDC(Instruction::immediate(
-                            converted_type.0,
-                            converted_type.1,
-                        ))]
-                    }
-                    instructions::Registers::X => {
-                        vec![instructions::Instructions::LDX(Instruction::immediate(
-                            converted_type.0,
-                            converted_type.1,
-                        ))]
-                    }
-                    instructions::Registers::Y => {
-                        vec![instructions::Instructions::LDY(Instruction::immediate(
-                            converted_type.0,
-                            converted_type.1,
-                        ))]
-                    }
-                }
-            }
-            Types::Double(_) => {
-                let converted_type = self.convert_type(types);
-
-                match target_register {
-                    instructions::Registers::A => {
-                        vec![instructions::Instructions::LDA(Instruction::immediate(
-                            converted_type.0,
-                            converted_type.1,
-                        ))]
-                    }
-                    instructions::Registers::B => {
-                        vec![instructions::Instructions::LDB(Instruction::immediate(
-                            converted_type.0,
-                            converted_type.1,
-                        ))]
-                    }
-                    instructions::Registers::C => {
-                        vec![instructions::Instructions::LDC(Instruction::immediate(
-                            converted_type.0,
-                            converted_type.1,
-                        ))]
-                    }
-                    instructions::Registers::X => {
-                        vec![instructions::Instructions::LDX(Instruction::immediate(
-                            converted_type.0,
-                            converted_type.1,
-                        ))]
-                    }
-                    instructions::Registers::Y => {
-                        vec![instructions::Instructions::LDY(Instruction::immediate(
-                            converted_type.0,
-                            converted_type.1,
-                        ))]
-                    }
-                }
-            }
-            Types::Bool(_) => {
-                let converted_type = self.convert_type(types);
-
-                match target_register {
-                    instructions::Registers::A => {
-                        vec![instructions::Instructions::LDA(Instruction::immediate(
-                            converted_type.0,
-                            converted_type.1,
-                        ))]
-                    }
-                    instructions::Registers::B => {
-                        vec![instructions::Instructions::LDB(Instruction::immediate(
-                            converted_type.0,
-                            converted_type.1,
-                        ))]
-                    }
-                    instructions::Registers::C => {
-                        vec![instructions::Instructions::LDC(Instruction::immediate(
-                            converted_type.0,
-                            converted_type.1,
-                        ))]
-                    }
-                    instructions::Registers::X => {
-                        vec![instructions::Instructions::LDX(Instruction::immediate(
-                            converted_type.0,
-                            converted_type.1,
-                        ))]
-                    }
-                    instructions::Registers::Y => {
-                        vec![instructions::Instructions::LDY(Instruction::immediate(
-                            converted_type.0,
-                            converted_type.1,
-                        ))]
-                    }
-                }
-            }
-            Types::String(_) => {
-                let converted_type = self.convert_type(types);
-
-                match target_register {
-                    instructions::Registers::A => {
-                        vec![instructions::Instructions::LDA(Instruction::immediate(
-                            converted_type.0,
-                            converted_type.1,
-                        ))]
-                    }
-                    instructions::Registers::B => {
-                        vec![instructions::Instructions::LDB(Instruction::immediate(
-                            converted_type.0,
-                            converted_type.1,
-                        ))]
-                    }
-                    instructions::Registers::C => {
-                        vec![instructions::Instructions::LDC(Instruction::immediate(
-                            converted_type.0,
-                            converted_type.1,
-                        ))]
-                    }
-                    instructions::Registers::X => {
-                        vec![instructions::Instructions::LDX(Instruction::immediate(
-                            converted_type.0,
-                            converted_type.1,
-                        ))]
-                    }
-                    instructions::Registers::Y => {
-                        vec![instructions::Instructions::LDY(Instruction::immediate(
-                            converted_type.0,
-                            converted_type.1,
-                        ))]
-                    }
-                }
-            }
-            Types::Char(_) => {
-                let converted_type = self.convert_type(types);
-
-                match target_register {
-                    instructions::Registers::A => {
-                        vec![instructions::Instructions::LDA(Instruction::immediate(
-                            converted_type.0,
-                            converted_type.1,
-                        ))]
-                    }
-                    instructions::Registers::B => {
-                        vec![instructions::Instructions::LDB(Instruction::immediate(
-                            converted_type.0,
-                            converted_type.1,
-                        ))]
-                    }
-                    instructions::Registers::C => {
-                        vec![instructions::Instructions::LDC(Instruction::immediate(
-                            converted_type.0,
-                            converted_type.1,
-                        ))]
-                    }
-                    instructions::Registers::X => {
-                        vec![instructions::Instructions::LDX(Instruction::immediate(
-                            converted_type.0,
-                            converted_type.1,
-                        ))]
-                    }
-                    instructions::Registers::Y => {
-                        vec![instructions::Instructions::LDY(Instruction::immediate(
-                            converted_type.0,
-                            converted_type.1,
-                        ))]
-                    }
-                }
-            }
-            Types::Null => match target_register {
-                instructions::Registers::A => {
-                    vec![instructions::Instructions::LDA(Instruction::immediate(
-                        crate::instructions::Types::Null,
-                        vec![],
-                    ))]
-                }
-                instructions::Registers::B => {
-                    vec![instructions::Instructions::LDB(Instruction::immediate(
-                        crate::instructions::Types::Null,
-                        vec![],
-                    ))]
-                }
-                instructions::Registers::C => {
-                    vec![instructions::Instructions::LDC(Instruction::immediate(
-                        crate::instructions::Types::Null,
-                        vec![],
-                    ))]
-                }
-                instructions::Registers::X => {
-                    vec![instructions::Instructions::LDX(Instruction::immediate(
-                        crate::instructions::Types::Null,
-                        vec![],
-                    ))]
-                }
-                instructions::Registers::Y => {
-                    vec![instructions::Instructions::LDY(Instruction::immediate(
-                        crate::instructions::Types::Null,
-                        vec![],
-                    ))]
-                }
-            },
-            Types::Dynamic => todo!(),
-            Types::SetterCall(_) => todo!(),
-        }
-    }
-
-    fn assemble_dependency(&mut self, hash: &u64) -> Option<usize> {
+    pub(crate) fn assemble_dependency(&mut self, hash: &usize) -> Option<usize> {
         if self.processed.contains(hash) {
             return None;
         }
@@ -891,189 +247,48 @@ impl Assembler {
         for item in &processed_page.items {
             match item {
                 ellie_core::definite::items::Collecting::Variable(variable) => {
-                    let resolved_instructions =
-                        self.resolve_type(&variable.value, instructions::Registers::A, hash);
-
-                    //current_page.debug_headers.push(DebugHeader {
-                    //    id: current_page.instructions.len() - 1,
-                    //    rtype: DebugHeaderType::Variable,
-                    //    name: variable.name.clone(),
-                    //    cursor: variable.pos,
-                    //});
-
-                    self.instructions.extend(resolved_instructions);
-                    self.instructions
-                        .push(instructions::Instructions::STA(Instruction::implict()));
-                    self.locals.push(LocalHeader {
-                        name: variable.name.clone(),
-                        cursor: self.instructions.len() - 1,
-                        reference: None,
-                    })
+                    variable.transpile(self, processed_page.hash as usize, &processed_page)
                 }
                 ellie_core::definite::items::Collecting::Function(function) => {
-                    for dependency in &processed_page.dependencies {
-                        self.assemble_dependency(&dependency.hash);
-                    }
-
-                    self.locals.push(LocalHeader {
-                        name: function.name.clone(),
-                        cursor: self.instructions.len(),
-                        reference: Some(function.inner_page_id as usize),
-                    });
-
                     if function.name == "main" {
                         main_pos = Some(self.instructions.len());
                     }
-
-                    self.assemble_dependency(&function.inner_page_id);
-
-                    self.instructions
-                        .push(instructions::Instructions::RET(Instruction::implict()));
+                    function.transpile(self, processed_page.hash as usize, &processed_page)
                 }
-                ellie_core::definite::items::Collecting::ForLoop(_) => {
-                    std::println!("[Assembler,Ignore,Element] ForLoop")
+                ellie_core::definite::items::Collecting::ForLoop(for_loop) => {
+                    for_loop.transpile(self, processed_page.hash as usize, &processed_page)
                 }
                 ellie_core::definite::items::Collecting::Condition(condition) => {
-                    let has_ret = condition.returns.is_some();
-                    let mut data_cursor = 0;
-                    {
-                        self.instructions.push(instructions::Instructions::LDA(
-                            Instruction::immediate(crate::instructions::Types::Void, vec![]),
-                        ));
-                        self.instructions
-                            .push(instructions::Instructions::STA(Instruction::implict()));
-                        //Register a ret point
-                        self.locals.push(LocalHeader {
-                            name: "$0".to_string(),
-                            cursor: self.instructions.len() - 1,
-                            reference: None,
-                        });
-                        data_cursor = self.instructions.len() - 1;
-                    }
-
-                    for chain in &condition.chains {
-                        if chain.rtype
-                            != ellie_core::definite::items::condition::ConditionType::Else
-                        {
-                            let resolved_instructions = self.resolve_type(
-                                &chain.condition,
-                                instructions::Registers::A,
-                                hash,
-                            );
-                            self.instructions.extend(resolved_instructions);
-                        }
-                        self.instructions.push(instructions::Instructions::JMPA(
-                            Instruction::absolute(01234),
-                        ));
-                        self.assemble_dependency(&chain.inner_page_id);
-                    }
-                    let mut ret_location = 0;
-                    {
-                        self.instructions.push(instructions::Instructions::RET(
-                            Instruction::absolute(data_cursor),
-                        ));
-                        ret_location = self.instructions.len() - 1;
-                    }
-                    for chain in &condition.chains {
-                        self.instructions.push(instructions::Instructions::ACP(
-                            Instruction::absolute(ret_location),
-                        ));
-                        self.instructions.push(instructions::Instructions::JMP(
-                            Instruction::absolute(*hash as usize),
-                        ));
-                    }
+                    condition.transpile(self, processed_page.hash as usize, &processed_page)
                 }
                 ellie_core::definite::items::Collecting::Class(class) => {
-                    for dependency in &processed_page.dependencies {
-                        self.assemble_dependency(&dependency.hash);
-                    }
-                    self.assemble_dependency(&class.inner_page_id);
+                    class.transpile(self, processed_page.hash as usize, &processed_page)
                 }
-                ellie_core::definite::items::Collecting::Ret(_) => {
-                    std::println!("[Assembler,Ignore,Element] Ret")
+                ellie_core::definite::items::Collecting::Ret(ret) => {
+                    ret.transpile(self, processed_page.hash as usize, &processed_page)
                 }
-                ellie_core::definite::items::Collecting::Constructor(_) => {
-                    std::println!("[Assembler,Ignore,Element] Constructor")
+                ellie_core::definite::items::Collecting::Constructor(constructor) => {
+                    constructor.transpile(self, processed_page.hash as usize, &processed_page)
                 }
                 ellie_core::definite::items::Collecting::Import(_) => {
-                    std::println!("[Assembler,Ignore,Element] Import")
+                    std::println!("[Assembler,Ignore,Element] Import");
+                    true
                 }
                 ellie_core::definite::items::Collecting::FileKey(_) => {
-                    std::println!("[Assembler,Ignore,Element] FileKey")
+                    std::println!("[Assembler,Ignore,Element] FileKey");
+                    true
                 }
                 ellie_core::definite::items::Collecting::Getter(_) => todo!(),
                 ellie_core::definite::items::Collecting::Setter(_) => todo!(),
                 ellie_core::definite::items::Collecting::Generic(_) => {
-                    std::println!("[Assembler,Ignore,Element] Generic")
+                    std::println!("[Assembler,Ignore,Element] Generic");
+                    true
                 }
-                ellie_core::definite::items::Collecting::GetterCall(getter) => match &getter.data {
-                    Types::Collective(_) => todo!(),
-                    Types::Reference(_) => todo!(),
-                    Types::BraceReference(_) => todo!(),
-                    Types::Operator(_) => todo!(),
-                    Types::Cloak(_) => todo!(),
-                    Types::Array(_) => todo!(),
-                    Types::Vector(_) => todo!(),
-                    Types::Function(_) => todo!(),
-                    Types::ClassCall(_) => todo!(),
-                    Types::FunctionCall(function_call) => {
-                        let target_local = match *function_call.target.clone() {
-                            Types::VariableType(e) => e.value,
-                            _ => unreachable!(),
-                        };
-
-                        let target = self.find_local(&target_local).unwrap().clone();
-
-                        self.instructions.push(instructions::Instructions::CALL(
-                            Instruction::absolute(target.cursor),
-                        ));
-                    }
-                    Types::SetterCall(_) => todo!(),
-                    Types::NullResolver(_) => todo!(),
-                    Types::Negative(_) => todo!(),
-                    Types::VariableType(_) => todo!(),
-                    Types::AsKeyword(_) => todo!(),
-                    Types::Null => todo!(),
-                    Types::Dynamic => todo!(),
-                    _ => {
-                        let resolved_instructions =
-                            self.resolve_type(&getter.data, instructions::Registers::A, hash);
-                        todo!("GetterCall: {:?}", resolved_instructions);
-                    }
-                    Types::Byte(_) => todo!(),
-                    Types::Integer(_) => todo!(),
-                    Types::Float(_) => todo!(),
-                    Types::Double(_) => todo!(),
-                    Types::Bool(_) => todo!(),
-                    Types::String(_) => todo!(),
-                    Types::Char(_) => todo!(),
-                    Types::Void => todo!(),
-                },
-                ellie_core::definite::items::Collecting::SetterCall(setter) => {
-                    match &setter.target {
-                        Types::Reference(_) => todo!(),
-                        Types::BraceReference(_) => todo!(),
-                        Types::VariableType(e) => {
-                            let mut instructions = Vec::new();
-                            let resolved_instructions =
-                                self.resolve_type(&setter.value, instructions::Registers::A, hash);
-
-                            let target = self.find_local(&e.value).unwrap();
-
-                            instructions.extend(resolved_instructions);
-                            if let Some(reference) = target.reference {
-                                instructions.push(instructions::Instructions::AOL(
-                                    Instruction::absolute(reference),
-                                ));
-                            }
-
-                            instructions.push(instructions::Instructions::STA(
-                                Instruction::absolute(target.cursor),
-                            ));
-                            self.instructions.extend(instructions)
-                        }
-                        _ => unreachable!("Invalid left-side of assignment"),
-                    }
+                ellie_core::definite::items::Collecting::GetterCall(getter_call) => {
+                    getter_call.transpile(self, processed_page.hash as usize, &processed_page)
+                }
+                ellie_core::definite::items::Collecting::SetterCall(setter_call) => {
+                    setter_call.transpile(self, processed_page.hash as usize, &processed_page)
                 }
                 ellie_core::definite::items::Collecting::Enum(_) => todo!(),
                 ellie_core::definite::items::Collecting::NativeFunction(function) => {
@@ -1082,42 +297,28 @@ impl Assembler {
                         cursor: self.instructions.len(),
                         reference: None,
                     });
+                    true
                     //std::println!("[Assembler,Ignore,Element] NativeFunction: {:?}", function)
                 }
                 ellie_core::definite::items::Collecting::None => todo!(),
                 ellie_core::definite::items::Collecting::Brk(_) => todo!(),
                 ellie_core::definite::items::Collecting::Go(_) => todo!(),
                 ellie_core::definite::items::Collecting::FuctionParameter(function_parameter) => {
-                    self.debug_headers.push(DebugHeader {
-                        id: if self.instructions.len() == 0 {
-                            0
-                        } else {
-                            self.instructions.len() - 1
-                        },
-                        rtype: DebugHeaderType::Variable,
-                        name: function_parameter.name.clone(),
-                        cursor: Cursor {
-                            range_start: function_parameter.name_pos.range_start,
-                            range_end: function_parameter.rtype_pos.range_end,
-                        },
-                    });
-
-                    self.instructions
-                        .push(instructions::Instructions::STA(Instruction::implict()));
-
-                    self.locals.push(LocalHeader {
-                        name: function_parameter.name.clone(),
-                        cursor: self.instructions.len() - 1,
-                        reference: None,
-                    });
+                    function_parameter.transpile(
+                        self,
+                        processed_page.hash as usize,
+                        &processed_page,
+                    )
                 }
                 ellie_core::definite::items::Collecting::ConstructorParameter(_) => {
-                    std::println!("[Assembler,Ignore,Element] ConstructorParameter")
+                    std::println!("[Assembler,Ignore,Element] ConstructorParameter");
+                    true
                 }
                 ellie_core::definite::items::Collecting::SelfItem(_) => {
-                    std::println!("[Assembler,Ignore,Element] SelfItem")
+                    std::println!("[Assembler,Ignore,Element] SelfItem");
+                    true
                 }
-            }
+            };
         }
         main_pos
     }

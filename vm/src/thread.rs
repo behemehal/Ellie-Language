@@ -623,19 +623,17 @@ impl<'a> Thread<'a> {
                         _ => panic!("Illegal addressing value"),
                     }
                 }
-                Instructions::CALLN(e) => {
-                    match &current_instruction.addressing_value {
-                        utils::AddressingValues::Absolute(stack_pos) => {
-                            println!(
-                                "{}[VM]{} Native Call: {}",
-                                utils::Colors::Yellow,
-                                utils::Colors::Reset,
-                                stack_pos
-                            );
-                        }
-                        _ => panic!("Illegal addressing value"),
+                Instructions::CALLN(e) => match &current_instruction.addressing_value {
+                    utils::AddressingValues::Absolute(stack_pos) => {
+                        println!(
+                            "{}[VM]{} Native Call: {}",
+                            utils::Colors::Yellow,
+                            utils::Colors::Reset,
+                            stack_pos
+                        );
                     }
-                }
+                    _ => panic!("Illegal addressing value"),
+                },
                 Instructions::RET(_) => match &current_instruction.addressing_value {
                     utils::AddressingValues::Implicit => {
                         drop_current_stack = true;

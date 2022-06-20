@@ -5,6 +5,7 @@ use alloc::format;
 use alloc::string::ToString;
 use alloc::vec::Vec;
 use alloc::{string::String, vec};
+use ellie_core::definite::items::file_key::FileKey;
 use ellie_core::definite::{items::Collecting, Converter};
 use ellie_core::utils::{ExportPage, PageExport};
 use ellie_core::{defs, error, information, warning};
@@ -14,16 +15,18 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ProcessedPage {
-    pub hash: u64,
-    pub inner: Option<u64>,
+    pub hash: usize,
+    pub inner: Option<usize>,
+    pub unassigned_file_keys: Vec<FileKey>,
+    pub global_file_keys: Vec<FileKey>,
     pub path: String,
     pub items: Vec<ellie_core::definite::items::Collecting>,
-    pub dependents: Vec<u64>,
+    pub dependents: Vec<usize>,
     pub dependencies: Vec<ellie_tokenizer::tokenizer::Dependency>,
 }
 
 impl ExportPage for ProcessedPage {
-    fn get_hash(&self) -> u64 {
+    fn get_hash(&self) -> usize {
         self.hash
     }
 }
@@ -74,10 +77,10 @@ impl ProcessedPage {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Module {
-    pub hash: u64,
+    pub hash: usize,
     pub name: String,
     pub description: String,
-    pub initial_page: u64,
+    pub initial_page: usize,
     pub is_library: bool,
     pub ellie_version: ellie_core::defs::Version,
     pub pages: PageExport<ProcessedPage>,
@@ -164,7 +167,7 @@ pub struct Parser {
     pub pages: PageExport<Page>,
     pub processed_pages: PageExport<ProcessedPage>,
     pub modules: Vec<Module>,
-    pub initial_page: u64,
+    pub initial_page: usize,
     pub informations: information::Informations,
     pub parser_settings: ParserSettings,
     pub module_info: ModuleInfo,
@@ -172,8 +175,8 @@ pub struct Parser {
 
 #[derive(Debug, Clone, Default)]
 pub struct FoundPage {
-    pub hash: u64,
-    pub inner: Option<u64>,
+    pub hash: usize,
+    pub inner: Option<usize>,
     pub processed: bool,
     pub module: bool,
     pub path: String,
@@ -243,7 +246,7 @@ impl DeepSearchItems {
 impl Parser {
     pub fn new(
         pages: PageExport<Page>,
-        initial_hash: u64,
+        initial_hash: usize,
         version: ellie_core::defs::Version,
         module_name: String,
         module_description: String,
@@ -267,7 +270,7 @@ impl Parser {
         }
     }
 
-    pub fn calculate_hash(&self) -> u64 {
+    pub fn calculate_hash(&self) -> usize {
         self.pages[0].hash
     }
 
@@ -315,7 +318,7 @@ impl Parser {
         &mut self,
         defining: ellie_core::definite::definers::DefinerCollecting,
         rtype: ellie_core::definite::types::Types,
-        target_page: u64,
+        target_page: usize,
     ) -> Result<(bool, String, String), Vec<error::Error>> {
         let mut errors: Vec<error::Error> = Vec::new();
         let found_type = crate::deep_search_extensions::resolve_deep_type(
@@ -857,34 +860,28 @@ impl Parser {
         }
     }
 
-    pub fn page_has_file_key_with(&mut self, page_id: u64, key: &str, value: &str) -> bool {
-        let mut found = false;
-        match self.find_page(page_id) {
-            Some(e) => {
-                for file in e.items.iter() {
-                    match file {
-                        Processors::FileKey(e) => {
-                            if e.key_name == key
-                                && matches!(&e.value, ellie_tokenizer::processors::types::Processors::String(e) if e.data.value == value)
-                            {
-                                found = true;
-                                break;
-                            }
+    pub fn global_key_matches(&mut self, processed_page: usize, key: &str, value: &str) -> bool {
+        match self.find_processed_page(processed_page) {
+            Some(e) => e
+                .global_file_keys
+                .iter()
+                .find(|x| {
+                    x.key_name == key
+                        && match &x.value {
+                            ellie_core::definite::types::Types::String(e) => e.value == value,
+                            _ => false,
                         }
-                        _ => (),
-                    }
-                }
-            }
-            None => (),
+                })
+                .is_some(),
+            None => false,
         }
-        found
     }
 
     pub fn is_duplicate(
         &mut self,
-        page_id: u64,
+        page_id: usize,
         name: String,
-        hash: u64,
+        hash: usize,
         pos: defs::Cursor,
     ) -> (bool, Option<(FoundPage, defs::Cursor)>) {
         let deep_search = self.deep_search(
@@ -914,11 +911,11 @@ impl Parser {
 
     pub fn deep_search(
         &mut self,
-        target_page: u64,
+        target_page: usize,
         name: String,
-        ignore_hash: Option<u64>,
-        searched: Vec<u64>,
-        _level: u32,
+        ignore_hash: Option<usize>,
+        searched: Vec<usize>,
+        _level: usize,
     ) -> DeepSearchResult {
         let mut level = _level;
         let mut found = false;
@@ -927,7 +924,7 @@ impl Parser {
         let mut found_page = FoundPage::default();
         let has_mixup = false;
         let mut inner_page = None;
-        let mut searched: Vec<u64> = searched;
+        let mut searched: Vec<usize> = searched;
         let mixup_hashes: Vec<(String, String)> = Vec::new();
         let mut self_dependencies = vec![Dependency {
             hash: target_page,
@@ -1326,14 +1323,14 @@ impl Parser {
         }
     }
 
-    pub fn find_processed_page(&mut self, hash: u64) -> Option<&mut ProcessedPage> {
+    pub fn find_processed_page(&mut self, hash: usize) -> Option<&mut ProcessedPage> {
         self.processed_pages.find_page(hash)
     }
 
     pub fn find_processed_page_in_module(
         &mut self,
-        module_hash: u64,
-        hash: u64,
+        module_hash: usize,
+        hash: usize,
     ) -> Option<&mut ProcessedPage> {
         match self.modules.iter_mut().find(|x| x.hash == module_hash) {
             Some(e) => e.pages.iter_mut().find(|x| x.hash == hash),
@@ -1341,11 +1338,11 @@ impl Parser {
         }
     }
 
-    pub fn find_page(&mut self, hash: u64) -> Option<&mut Page> {
+    pub fn find_page(&mut self, hash: usize) -> Option<&mut Page> {
         self.pages.find_page(hash)
     }
 
-    pub fn process_page(&mut self, hash: u64) {
+    pub fn process_page(&mut self, hash: usize) {
         let (unprocessed_page, unprocessed_page_idx) = match self.pages.find_page_and_idx(hash) {
             Some(e) => (e.0.clone(), e.1),
             None => panic!("Page not found"),
@@ -1358,8 +1355,11 @@ impl Parser {
                     inner: unprocessed_page.inner,
                     path: unprocessed_page.path.clone(),
                     items: vec![],
+
                     dependents: unprocessed_page.dependents.clone(),
                     dependencies: unprocessed_page.dependencies.clone(),
+                    unassigned_file_keys: vec![],
+                    global_file_keys: vec![],
                 });
                 (hash, self.processed_pages.pages.len() - 1)
             }
@@ -1377,6 +1377,38 @@ impl Parser {
                     unprocessed_page.unreachable_range.range_end = item.get_pos().range_end;
                 }
             } else {
+                //Check leftover file keys are compatible with the element
+                match self.processed_pages.nth(processed_page_idx) {
+                    Some(e) => {
+                        if !e.unassigned_file_keys.is_empty() {
+                            match item {
+                                Processors::Variable(_) => (),
+                                Processors::Function(_) => (),
+                                Processors::FileKey(_) => (),
+                                Processors::Class(_) => (),
+                                Processors::Getter(_) => (),
+                                Processors::Setter(_) => (),
+                                _ => self.informations.push(
+                                    &ellie_core::error::error_list::ERROR_S56
+                                        .clone()
+                                        .build_with_path(
+                                            vec![],
+                                            alloc::format!(
+                                                "{}:{}:{}",
+                                                file!().to_owned(),
+                                                line!(),
+                                                column!()
+                                            ),
+                                            unprocessed_page.path.clone(),
+                                            item.get_pos(),
+                                        ),
+                                ),
+                            }
+                        }
+                    }
+                    None => (),
+                }
+
                 let terminated = match unprocessed_page.page_type {
                     ellie_tokenizer::tokenizer::PageType::FunctionBody => match item {
                         Processors::Variable(e) => e.process(
@@ -1398,6 +1430,12 @@ impl Parser {
                             unprocessed_page.hash,
                         ),
                         Processors::Function(e) => e.process(
+                            self,
+                            unprocessed_page_idx,
+                            processed_page_idx,
+                            unprocessed_page.hash,
+                        ),
+                        Processors::Enum(e) => e.process(
                             self,
                             unprocessed_page_idx,
                             processed_page_idx,
@@ -1526,6 +1564,12 @@ impl Parser {
                             processed_page_idx,
                             unprocessed_page.hash,
                         ),
+                        Processors::Enum(e) => e.process(
+                            self,
+                            unprocessed_page_idx,
+                            processed_page_idx,
+                            unprocessed_page.hash,
+                        ),
                         Processors::FileKey(e) => e.process(
                             self,
                             unprocessed_page_idx,
@@ -1634,6 +1678,12 @@ impl Parser {
                             unprocessed_page.hash,
                         ),
                         Processors::Function(e) => e.process(
+                            self,
+                            unprocessed_page_idx,
+                            processed_page_idx,
+                            unprocessed_page.hash,
+                        ),
+                        Processors::Enum(e) => e.process(
                             self,
                             unprocessed_page_idx,
                             processed_page_idx,
@@ -1827,6 +1877,12 @@ impl Parser {
                             processed_page_idx,
                             unprocessed_page.hash,
                         ),
+                        Processors::Enum(e) => e.process(
+                            self,
+                            unprocessed_page_idx,
+                            processed_page_idx,
+                            unprocessed_page.hash,
+                        ),
                         Processors::FileKey(e) => e.process(
                             self,
                             unprocessed_page_idx,
@@ -1943,6 +1999,12 @@ impl Parser {
                             unprocessed_page.hash,
                         ),
                         Processors::Function(e) => e.process(
+                            self,
+                            unprocessed_page_idx,
+                            processed_page_idx,
+                            unprocessed_page.hash,
+                        ),
+                        Processors::Enum(e) => e.process(
                             self,
                             unprocessed_page_idx,
                             processed_page_idx,

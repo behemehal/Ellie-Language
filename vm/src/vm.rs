@@ -55,7 +55,7 @@ impl<'a> VM<'a> {
             utils::Colors::Reset
         );
         {
-            let mut thread = Thread::new(0, self.target_arch ,&self.stack, &mut self.heap);
+            let mut thread = Thread::new(0, self.target_arch, &self.stack, &mut self.heap);
             thread.stack.push(Stack {
                 id: 0,
                 name: "<ellie_main>".to_string(),

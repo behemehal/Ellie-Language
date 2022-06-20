@@ -60,7 +60,7 @@ pub fn color_code(target_path: &Path, output_path: &Path, colorizer_settings: Co
         Ok(main_file_content) => {
             let mut main_file_hasher = DefaultHasher::new();
             main_file_content.hash(&mut main_file_hasher);
-            let first_page_hash = main_file_hasher.finish();
+            let first_page_hash: usize = main_file_hasher.finish().try_into().unwrap();
             let mut pager = tokenizer::Pager::new(
                 main_file_content,
                 colorizer_settings.file_name,
@@ -97,7 +97,7 @@ pub fn color_code(target_path: &Path, output_path: &Path, colorizer_settings: Co
                                                     ellie_tokenizer::tokenizer::ImportType::Code(
                                                         data,
                                                     ),
-                                                hash: hasher.finish(),
+                                                hash: hasher.finish().try_into().unwrap(),
                                                 path,
                                                 ..Default::default()
                                             }
@@ -329,6 +329,7 @@ pub fn color_code(target_path: &Path, output_path: &Path, colorizer_settings: Co
                             Processors::ConstructorParameter(_) => todo!(),
                             Processors::Brk(_) => todo!(),
                             Processors::Go(_) => todo!(),
+                            Processors::Enum(_) => todo!(),
                         }
                         lines
                     }

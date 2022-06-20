@@ -11,7 +11,7 @@ impl super::Processor for SetterCall {
         parser: &mut super::Parser,
         page_idx: usize,
         processed_page_idx: usize,
-        page_hash: u64,
+        page_hash: usize,
     ) -> bool {
         let current_page = parser
             .pages

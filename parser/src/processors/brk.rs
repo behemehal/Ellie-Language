@@ -6,7 +6,7 @@ impl super::Processor for Brk {
         parser: &mut super::Parser,
         _page_idx: usize,
         processed_page_idx: usize,
-        _page_hash: u64,
+        _page_hash: usize,
     ) -> bool {
         parser
             .processed_pages

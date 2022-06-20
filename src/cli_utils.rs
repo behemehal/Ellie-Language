@@ -1,8 +1,3 @@
-#[cfg(feature = "build-cli")]
-use clap::ValueHint;
-#[cfg(feature = "build-cli")]
-use clap::{Arg, Command};
-
 use ellie_core::{defs, error, warning};
 use std::{
     collections::hash_map::DefaultHasher,

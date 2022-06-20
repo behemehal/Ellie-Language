@@ -1,21 +1,10 @@
-use ellie_core::defs::Version;
 use ellie_vm::program::Program;
-use std::fs;
 use std::fs::File;
 use std::io::Read;
-use std::io::Write;
 use std::path::Path;
-use std::path::PathBuf;
-use std::sync::Arc;
-use std::sync::Mutex;
-use std::time::Instant;
 
-use crate::cli_outputs;
 use crate::cli_utils;
 use crate::cli_utils::read_error_text;
-use path_absolutize::Absolutize;
-use std::collections::hash_map::DefaultHasher;
-use std::hash::{Hash, Hasher};
 
 use ellie_vm::{
     utils::{ProgramReader, Reader},
@@ -25,7 +14,7 @@ use ellie_vm::{
 pub struct VmSettings {
     pub json_log: bool,
     pub warnings: bool,
-    pub architecture: ellie_bytecode::assembler::PlatformArchitecture,
+    pub architecture: ellie_core::defs::PlatformArchitecture,
 }
 
 pub struct RFile<'a, T> {

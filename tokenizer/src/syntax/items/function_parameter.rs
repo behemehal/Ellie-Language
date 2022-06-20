@@ -1,5 +1,5 @@
-use ellie_core::definite::Converter;
 use ellie_core::definite::definers::DefinerCollecting;
+use ellie_core::definite::Converter;
 use ellie_core::defs;
 use serde::Deserialize;
 use serde::Serialize;

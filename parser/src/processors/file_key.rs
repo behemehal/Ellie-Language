@@ -8,17 +8,24 @@ impl super::Processor for FileKey {
         parser: &mut super::Parser,
         page_idx: usize,
         processed_page_idx: usize,
-        _page_hash: u64,
+        _page_hash: usize,
     ) -> bool {
         if self.value.is_static() {
-            parser
-                .processed_pages
-                .nth_mut(processed_page_idx)
-                .unwrap()
-                .items
-                .push(ellie_core::definite::items::Collecting::FileKey(
-                    self.clone().to_definite(),
-                ));
+            if self.is_global {
+                parser
+                    .processed_pages
+                    .nth_mut(processed_page_idx)
+                    .unwrap()
+                    .global_file_keys
+                    .push(self.clone().to_definite());
+            } else {
+                parser
+                    .processed_pages
+                    .nth_mut(processed_page_idx)
+                    .unwrap()
+                    .unassigned_file_keys
+                    .push(self.clone().to_definite());
+            }
         } else {
             let path = parser.pages.nth(page_idx).unwrap().path.clone();
             parser

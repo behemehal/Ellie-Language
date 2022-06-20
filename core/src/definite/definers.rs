@@ -30,14 +30,14 @@ pub struct ParentGenericType {
     pub rtype: String,
     pub parent_pos: defs::Cursor,
     pub generics: Vec<GenericParameter>,
-    pub hash: u64,
+    pub hash: usize,
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct GenericType {
     pub rtype: String,
     pub pos: defs::Cursor,
-    pub hash: u64,
+    pub hash: usize,
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]

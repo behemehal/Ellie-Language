@@ -8,7 +8,7 @@ impl super::Processor for getter::Getter {
         parser: &mut super::Parser,
         page_idx: usize,
         processed_page_idx: usize,
-        page_hash: u64,
+        page_hash: usize,
     ) -> bool {
         let (duplicate, found) =
             parser.is_duplicate(page_hash, self.name.clone(), self.hash.clone(), self.pos);
@@ -39,15 +39,14 @@ impl super::Processor for getter::Getter {
             true
         } else {
             let mut items = Vec::new();
-            let inner_page_id: u64 = ellie_core::utils::generate_hash_u64();
+            let inner_page_id: usize = ellie_core::utils::generate_hash_usize();
             let return_type = self.return_type.definer_type.clone().to_definite();
 
             #[cfg(feature = "standard_rules")]
             {
                 let (is_correct, fixed) =
                     (ellie_standard_rules::rules::FUNCTION_NAMING_ISSUE.worker)(self.name.clone());
-                if !is_correct
-                    && !parser.page_has_file_key_with(page_hash, "allow", "FunctionNameRule")
+                if !is_correct && !parser.global_key_matches(page_hash, "allow", "FunctionNameRule")
                 {
                     parser
                         .informations
@@ -101,6 +100,7 @@ impl super::Processor for getter::Getter {
                         name: self.name.clone(),
                         pos: self.pos,
                         hash: self.hash.clone(),
+                        file_keys: processed_page.unassigned_file_keys.clone(),
                         return_type: return_type.clone(),
                         public: self.public,
                         name_pos: self.name_pos,
@@ -109,6 +109,7 @@ impl super::Processor for getter::Getter {
                         inner_page_id,
                     },
                 ));
+            processed_page.unassigned_file_keys = vec![];
             parser.process_page(inner_page_id);
             let found_ret = parser
                 .find_processed_page(inner_page_id)

@@ -13,7 +13,6 @@ use path_absolutize::Absolutize;
 use regex::Regex;
 use toml::Value;
 
-
 pub enum Colors {
     Black,
     Red,

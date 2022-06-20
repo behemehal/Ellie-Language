@@ -54,7 +54,7 @@ impl crate::processors::Processor for class::Class {
                             ..Default::default()
                         },
                         name: letter_char.to_string(),
-                        hash: utils::generate_hash_u64(),
+                        hash: utils::generate_hash_usize(),
                     });
                 } else {
                     if self.generic_definings[generic_len - 1].name == "" {
@@ -107,7 +107,7 @@ impl crate::processors::Processor for class::Class {
                 ));
             }
         } else if letter_char == '}' && self.brace_count == 0 {
-            self.hash = ellie_core::utils::generate_hash_u64();
+            self.hash = ellie_core::utils::generate_hash_usize();
             self.pos.range_end = cursor;
             self.complete = true;
             self.iterator.finalize();

@@ -15,7 +15,7 @@ pub enum ConditionType {
 pub struct ConditionChain {
     pub rtype: ConditionType,
     pub condition: Box<types::Types>,
-    pub inner_page_id: u64,
+    pub inner_page_id: usize,
     pub keyword_pos: defs::Cursor,
 }
 

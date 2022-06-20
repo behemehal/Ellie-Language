@@ -16,7 +16,7 @@ impl super::Processor for Condition {
         parser: &mut super::Parser,
         page_idx: usize,
         processed_page_idx: usize,
-        page_hash: u64,
+        page_hash: usize,
     ) -> bool {
         let mut common_return: Option<(
             Cursor,
@@ -26,7 +26,7 @@ impl super::Processor for Condition {
 
         let path = parser.pages.nth(page_idx).unwrap().path.clone();
         //(processed_page_id, conditionType)
-        let mut chains: Vec<(u64, Types)> = Vec::new();
+        let mut chains: Vec<(usize, Types)> = Vec::new();
 
         for chain in &self.chains {
             let condition_type: Types;
@@ -99,7 +99,7 @@ impl super::Processor for Condition {
             }
 
             let page = parser.pages.nth_mut(page_idx).unwrap().clone();
-            let inner_page_id: u64 = ellie_core::utils::generate_hash_u64();
+            let inner_page_id: usize = ellie_core::utils::generate_hash_usize();
             let mut dependencies = vec![ellie_tokenizer::tokenizer::Dependency {
                 hash: page.hash.clone(),
                 processed: false,

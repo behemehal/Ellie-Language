@@ -50,7 +50,6 @@ pub enum Collecting {
     ConstructorParameter(constructor_parameter::ConstructorParameter),
     SelfItem(self_item::SelfItem),
 
-
     None,
 }
 

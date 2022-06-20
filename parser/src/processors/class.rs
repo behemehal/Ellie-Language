@@ -7,8 +7,8 @@ impl super::Processor for Class {
         &self,
         parser: &mut super::Parser,
         page_idx: usize,
-        _processed_page_idx: usize,
-        page_hash: u64,
+        processed_page_idx: usize,
+        page_hash: usize,
     ) -> bool {
         let (duplicate, found) =
             parser.is_duplicate(page_hash, self.name.clone(), self.hash.clone(), self.pos);
@@ -41,9 +41,7 @@ impl super::Processor for Class {
             {
                 let (is_correct, fixed) =
                     (ellie_standard_rules::rules::CLASS_NAMING_ISSUE.worker)(self.name.clone());
-                if !is_correct
-                    && !parser.page_has_file_key_with(page_hash, "allow", "ClassNameRule")
-                {
+                if !is_correct && !parser.global_key_matches(page_hash, "allow", "ClassNameRule") {
                     parser
                         .informations
                         .push(&warning::warning_list::WARNING_S1.clone().build(
@@ -63,7 +61,7 @@ impl super::Processor for Class {
                 }
             }
 
-            let page = parser.pages.nth_mut(page_idx).unwrap().clone();
+            let page = parser.pages.nth(page_idx).unwrap();
 
             let constructors = self.body.iter().filter_map(|item| match item {
                 ellie_tokenizer::processors::items::Processors::Constructor(e) => Some(e),
@@ -121,7 +119,7 @@ impl super::Processor for Class {
                 }
             }
 
-            let inner_page_id: u64 = ellie_core::utils::generate_hash_u64();
+            let inner_page_id: usize = ellie_core::utils::generate_hash_usize();
 
             let mut items = Vec::new();
 
@@ -149,7 +147,7 @@ impl super::Processor for Class {
                 deep_link: None,
                 public: false,
             }];
-            dependencies.extend(page.dependencies);
+            dependencies.extend(page.dependencies.clone());
             items.extend(self.body.clone());
 
             let inner = ellie_tokenizer::tokenizer::Page {
@@ -166,6 +164,8 @@ impl super::Processor for Class {
                 module: false,
             };
             parser.pages.push_page(inner);
+            let processed_page = parser.processed_pages.nth_mut(processed_page_idx).unwrap();
+
             let processed = ellie_core::definite::items::Collecting::Class(
                 ellie_core::definite::items::class::Class {
                     name: self.name.clone(),
@@ -174,6 +174,7 @@ impl super::Processor for Class {
                     name_pos: self.name_pos,
                     pos: self.pos,
                     hash: self.hash,
+                    file_keys: processed_page.unassigned_file_keys.clone(),
                     generic_definings: self
                         .generic_definings
                         .iter()
@@ -185,11 +186,9 @@ impl super::Processor for Class {
                         .collect::<Vec<_>>(),
                 },
             );
-            parser
-                .find_processed_page(page_hash)
-                .unwrap()
-                .items
-                .push(processed);
+
+            processed_page.unassigned_file_keys = vec![];
+            processed_page.items.push(processed);
             parser.process_page(inner_page_id);
         }
         true

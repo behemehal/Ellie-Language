@@ -6,7 +6,7 @@ impl super::Processor for GetterCall {
         parser: &mut super::Parser,
         _page_idx: usize,
         processed_page_idx: usize,
-        page_hash: u64,
+        page_hash: usize,
     ) -> bool {
         match super::type_processor::process(
             self.data.clone(),

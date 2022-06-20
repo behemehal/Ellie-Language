@@ -14,6 +14,7 @@ pub struct FileKey {
     pub value_location: defs::Cursor,
     pub pos: defs::Cursor,
     pub value_cache: TypeProcessor,
+    pub is_global: bool,
     pub complete: bool,
 }
 
@@ -23,6 +24,7 @@ impl Converter<FileKey, ellie_core::definite::items::file_key::FileKey> for File
             key_name: self.key_name,
             value: self.value.to_definite(),
             key_name_location: self.key_name_location,
+            is_global: self.is_global,
             value_location: self.value_location,
             pos: self.pos,
         }
@@ -35,6 +37,7 @@ impl Converter<FileKey, ellie_core::definite::items::file_key::FileKey> for File
             key_name_location: from.key_name_location,
             value_location: from.value_location,
             pos: from.pos,
+            is_global: from.is_global,
             ..Default::default()
         }
     }

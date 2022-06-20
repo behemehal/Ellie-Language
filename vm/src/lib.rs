@@ -1,5 +1,5 @@
-pub mod vm;
 pub mod heap;
-pub mod utils;
-pub mod thread;
 pub mod program;
+pub mod thread;
+pub mod utils;
+pub mod vm;

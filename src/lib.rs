@@ -19,8 +19,8 @@ pub mod cli_utils;
 pub mod color_code;
 pub mod compile_file;
 pub mod engine_constants;
-pub mod tokenize_file;
 pub mod run_vm;
+pub mod tokenize_file;
 pub mod view_module;
 
 #[cfg(feature = "build-cli")]

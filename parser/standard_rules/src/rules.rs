@@ -58,4 +58,32 @@ lazy_static! {
             (param_name == fixed, fixed)
         }
     };
+    pub static ref ENUM_NAMING_ISSUE: Rule<String, (bool, String)> = Rule {
+        warning_id: 0x03,
+        worker: |enum_name| {
+            let _ = Regex::new("([a-z][a-z0-9]+[A-Z])+[a-z]+").unwrap();
+            let num_regex = Regex::new("[0-9]+").unwrap();
+            let mut fixed: String;
+            fixed = num_regex.replace_all(&enum_name, "").to_string();
+            fixed.get_mut(0..1).map(|s| {
+                s.make_ascii_lowercase();
+                &*s
+            });
+            (fixed == enum_name, fixed)
+        }
+    };
+    pub static ref ENUM_ITEM_NAMING_ISSUE: Rule<String, (bool, String)> = Rule {
+        warning_id: 0x03,
+        worker: |enum_item_name| {
+            let _ = Regex::new("([a-z][a-z0-9]+[A-Z])+[a-z]+").unwrap();
+            let num_regex = Regex::new("[0-9]+").unwrap();
+            let mut fixed: String;
+            fixed = num_regex.replace_all(&enum_item_name, "").to_string();
+            fixed.get_mut(0..1).map(|s| {
+                s.make_ascii_lowercase();
+                &*s
+            });
+            (fixed == enum_item_name, fixed)
+        }
+    };
 }

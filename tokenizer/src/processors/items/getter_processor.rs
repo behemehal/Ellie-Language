@@ -60,7 +60,7 @@ impl crate::processors::Processor for getter::Getter {
             self.complete = true;
             self.body_pos.range_end = cursor;
             self.pos.range_end = cursor;
-            self.hash = ellie_core::utils::generate_hash_u64();
+            self.hash = ellie_core::utils::generate_hash_usize();
             self.iterator.finalize();
             errors.extend(self.iterator.errors.clone());
             self.body = self.iterator.collected.clone();

@@ -44,8 +44,8 @@ pub enum Types {
     Byte,
     Bool,
     String((usize, u8)),
-    Char,
-    Array((Box<Types>, usize)),
+    Char(u8),
+    Array(u8),
     Vector,
     Void,
     Null,
@@ -60,8 +60,8 @@ impl Types {
             Types::Byte => "byte".to_string(),
             Types::Bool => "bool".to_string(),
             Types::String(e) => alloc::format!("string[{}@{}]", e.0, e.1),
-            Types::Char => "char".to_string(),
-            Types::Array(e) => alloc::format!("array<{}@{}>", e.0.display(), e.1),
+            Types::Char(e) => alloc::format!("char[{}]", e),
+            Types::Array(e) => alloc::format!("array<{}>", e),
             Types::Vector => "vector".to_string(),
             Types::Void => "void".to_string(),
             Types::Null => "null".to_string(),
@@ -92,9 +92,9 @@ impl Types {
                 }
                 (*x, package)
             }
-            Types::Char => (1, vec![7, 0]),
+            Types::Char(char_size) => (1, vec![7, 0]),
             Types::Void => (1, vec![8, 0]),
-            Types::Array((rtype, e)) => {
+            Types::Array(e) => {
                 /*
                 println!("@@@ {:?} {:?} {:?}", rtype.code() ,rtype, e);
                 let mut package = Vec::new();
@@ -103,7 +103,8 @@ impl Types {
                 }
                 (2, package)
                 */
-                (*e, vec![9, 0])
+                // (*e, vec![9, 0])
+                todo!()
             }
             Types::Vector => todo!(),
             Types::Null => (1, vec![11, 0]),
@@ -774,6 +775,53 @@ impl Instructions {
             Instructions::BRK(e) => e.addressing_mode.clone(),
         }
         .to_string()
+    }
+
+    pub fn get_arg(&self) -> Vec<u8> {
+        match self {
+            Instructions::LDA(e) => e.addressing_mode.arg(),
+            Instructions::LDB(e) => e.addressing_mode.arg(),
+            Instructions::LDC(e) => e.addressing_mode.arg(),
+            Instructions::LDX(e) => e.addressing_mode.arg(),
+            Instructions::LDY(e) => e.addressing_mode.arg(),
+            Instructions::STA(e) => e.addressing_mode.arg(),
+            Instructions::STB(e) => e.addressing_mode.arg(),
+            Instructions::STC(e) => e.addressing_mode.arg(),
+            Instructions::STX(e) => e.addressing_mode.arg(),
+            Instructions::STY(e) => e.addressing_mode.arg(),
+            Instructions::EQ(e) => e.addressing_mode.arg(),
+            Instructions::NE(e) => e.addressing_mode.arg(),
+            Instructions::GT(e) => e.addressing_mode.arg(),
+            Instructions::LT(e) => e.addressing_mode.arg(),
+            Instructions::GQ(e) => e.addressing_mode.arg(),
+            Instructions::LQ(e) => e.addressing_mode.arg(),
+            Instructions::AND(e) => e.addressing_mode.arg(),
+            Instructions::OR(e) => e.addressing_mode.arg(),
+            Instructions::ADD(e) => e.addressing_mode.arg(),
+            Instructions::SUB(e) => e.addressing_mode.arg(),
+            Instructions::MUL(e) => e.addressing_mode.arg(),
+            Instructions::EXP(e) => e.addressing_mode.arg(),
+            Instructions::DIV(e) => e.addressing_mode.arg(),
+            Instructions::MOD(e) => e.addressing_mode.arg(),
+            Instructions::JMP(e) => e.addressing_mode.arg(),
+            Instructions::CALL(e) => e.addressing_mode.arg(),
+            Instructions::CALLN(e) => e.addressing_mode.arg(),
+            Instructions::RET(e) => e.addressing_mode.arg(),
+            Instructions::AOL(e) => e.addressing_mode.arg(),
+            Instructions::PUSHA(e) => e.addressing_mode.arg(),
+            Instructions::LEN(e) => e.addressing_mode.arg(),
+            Instructions::A2I(e) => e.addressing_mode.arg(),
+            Instructions::A2F(e) => e.addressing_mode.arg(),
+            Instructions::A2D(e) => e.addressing_mode.arg(),
+            Instructions::A2B(e) => e.addressing_mode.arg(),
+            Instructions::A2S(e) => e.addressing_mode.arg(),
+            Instructions::A2C(e) => e.addressing_mode.arg(),
+            Instructions::A2O(e) => e.addressing_mode.arg(),
+            Instructions::JMPA(e) => e.addressing_mode.arg(),
+            Instructions::POPS(e) => e.addressing_mode.arg(),
+            Instructions::ACP(e) => e.addressing_mode.arg(),
+            Instructions::BRK(e) => e.addressing_mode.arg(),
+        }
     }
 }
 

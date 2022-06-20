@@ -1,5 +1,3 @@
-
-
 use crate::utils::Types;
 
 pub struct Entry {

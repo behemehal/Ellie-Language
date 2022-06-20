@@ -19,7 +19,7 @@ pub struct Getter {
     pub body_pos: defs::Cursor,
     pub body: Vec<Processors>,
     pub pos: defs::Cursor,
-    pub hash: u64,
+    pub hash: usize,
 }
 
 impl Converter<Getter, ellie_core::definite::items::getter::Getter> for Getter {
@@ -31,6 +31,7 @@ impl Converter<Getter, ellie_core::definite::items::getter::Getter> for Getter {
             name_pos: self.name_pos,
             return_pos: self.return_pos,
             pos: self.pos,
+            file_keys: Vec::new(),
             body_pos: self.body_pos,
             hash: self.hash,
             inner_page_id: 0,

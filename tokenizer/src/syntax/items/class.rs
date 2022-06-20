@@ -6,7 +6,7 @@ use crate::processors::items::Processors;
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct GenericDefining {
     pub name: String,
-    pub hash: u64,
+    pub hash: usize,
     pub pos: defs::Cursor,
 }
 
@@ -23,7 +23,7 @@ pub struct Class {
     pub body: Vec<Processors>,
     pub brace_count: usize,
     pub pos: defs::Cursor,
-    pub hash: u64,
+    pub hash: usize,
     pub complete: bool,
 }
 

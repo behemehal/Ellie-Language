@@ -92,7 +92,7 @@ pub fn tokenize(target_path: &Path, output_path: &Path, tokenizer_settings: Toke
                                                     ellie_tokenizer::tokenizer::ImportType::Code(
                                                         data,
                                                     ),
-                                                hash: hasher.finish(),
+                                                hash: hasher.finish().try_into().unwrap(),
                                                 path,
                                                 ..Default::default()
                                             }
@@ -126,7 +126,7 @@ pub fn tokenize(target_path: &Path, output_path: &Path, tokenizer_settings: Toke
                         }
                     }
                 },
-                first_page_hash.clone(),
+                first_page_hash.clone().try_into().unwrap(),
             );
 
             let tokenize_start = Instant::now();

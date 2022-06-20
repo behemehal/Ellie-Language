@@ -6,7 +6,7 @@ impl super::Processor for Go {
         parser: &mut super::Parser,
         _page_idx: usize,
         processed_page_idx: usize,
-        _page_hash: u64,
+        _page_hash: usize,
     ) -> bool {
         let page = parser.processed_pages.nth_mut(processed_page_idx).unwrap();
         page.items.push(ellie_core::definite::items::Collecting::Go(

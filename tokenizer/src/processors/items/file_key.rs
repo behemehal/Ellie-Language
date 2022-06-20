@@ -44,6 +44,8 @@ impl crate::processors::Processor for FileKey {
             } else if letter_char == '=' {
                 self.value_location.range_start = cursor;
                 self.name_collected = true;
+            } else if letter_char == '!' && last_char == '@' {
+                self.is_global = true;
             } else if letter_char != ' ' {
                 errors.push(error::error_list::ERROR_S1.clone().build(
                     vec![error::ErrorBuildField {

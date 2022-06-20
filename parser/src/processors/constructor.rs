@@ -8,7 +8,7 @@ impl super::Processor for Constructor {
         parser: &mut super::Parser,
         page_idx: usize,
         processed_page_idx: usize,
-        page_hash: u64,
+        page_hash: usize,
     ) -> bool {
         let class_body_page = parser
             .pages
@@ -111,7 +111,7 @@ impl super::Processor for Constructor {
             }
         }
         items.extend(self.inside_code.clone());
-        let inner_page_id: u64 = ellie_core::utils::generate_hash_u64();
+        let inner_page_id: usize = ellie_core::utils::generate_hash_usize();
         let inner = ellie_tokenizer::tokenizer::Page {
             hash: inner_page_id,
             inner: Some(class_body_page.hash),

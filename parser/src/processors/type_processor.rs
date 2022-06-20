@@ -17,8 +17,8 @@ use crate::deep_search_extensions::{deep_search, deep_search_hash, find_type, re
 pub fn process(
     from: Processors,
     parser: &mut super::Parser,
-    page_id: u64,
-    ignore_hash: Option<u64>,
+    page_id: usize,
+    ignore_hash: Option<usize>,
     include_setter: bool,
     exclude_getter: bool,
     ignore_type: bool,
@@ -360,7 +360,7 @@ pub fn process(
                     #[allow(dead_code)]
                     fn generate_type_from_defining(
                         rtype: ellie_core::definite::definers::DefinerCollecting,
-                        page_id: u64,
+                        page_id: usize,
                         parser: &mut crate::parser::Parser,
                     ) -> Option<types::Types> {
                         match rtype {
@@ -604,7 +604,7 @@ pub fn process(
                     fn resolve_chain(
                         reference_type: DefinerCollecting,
                         reference_pos: ellie_core::defs::Cursor,
-                        page_id: u64,
+                        page_id: usize,
                         parser: &mut crate::parser::Parser,
                         is_setter: bool,
                     ) -> Result<Vec<Attribute>, Vec<error::Error>> {

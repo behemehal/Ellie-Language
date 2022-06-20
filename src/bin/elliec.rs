@@ -586,11 +586,11 @@ fn main() {
                 byte_code_architecture: match matches.value_of("targetArchitecture") {
                     Some(e) => {
                         if e == "64" {
-                            ellie_bytecode::assembler::PlatformArchitecture::B64
+                            ellie_core::defs::PlatformArchitecture::B64
                         } else if e == "32" {
-                            ellie_bytecode::assembler::PlatformArchitecture::B32
+                            ellie_core::defs::PlatformArchitecture::B32
                         } else if e == "16" {
-                            ellie_bytecode::assembler::PlatformArchitecture::B16
+                            ellie_core::defs::PlatformArchitecture::B16
                         } else {
                             println!(
                                 "{}Error:{} Unknown architecture '{}{}{}'",

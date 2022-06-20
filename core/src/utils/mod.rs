@@ -68,8 +68,8 @@ pub fn is_reserved(value: &str, allow_core_naming: bool) -> bool {
         || (value == "rawMemoryData" && !allow_core_naming)
 }
 
-pub fn generate_hash_u64() -> u64 {
-    rand::random::<u64>()
+pub fn generate_hash_usize() -> usize {
+    rand::random::<usize>()
 }
 
 pub fn generate_hash() -> String {
@@ -307,7 +307,7 @@ pub fn operator_control(
             vec![
                 error::ErrorBuildField {
                     key: "opType".to_owned(),
-                    value: operator_string.to_string()
+                    value: operator_string.to_string(),
                 },
                 error::ErrorBuildField {
                     key: "target".to_owned(),
@@ -397,7 +397,7 @@ pub fn resolve_operator(operator: &str) -> Option<FoundExtended> {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PageExport<T> {
     pub pages: Vec<T>,
-    pub page_hashs: (Vec<usize>, Vec<u64>),
+    pub page_hashs: (Vec<usize>, Vec<usize>),
 }
 
 impl<T> Index<usize> for PageExport<T> {
@@ -414,7 +414,7 @@ impl<T> IndexMut<usize> for PageExport<T> {
 }
 
 pub trait ExportPage {
-    fn get_hash(&self) -> u64;
+    fn get_hash(&self) -> usize;
 }
 
 impl<T> PageExport<T>
@@ -473,7 +473,7 @@ where
     /// * `hash` - page hash
     /// ## Returns
     /// Option<&mut [`Page`]> //Page
-    pub fn find_page(&mut self, hash: u64) -> Option<&mut T> {
+    pub fn find_page(&mut self, hash: usize) -> Option<&mut T> {
         self.pages.iter_mut().find(|page| page.get_hash() == hash)
         //match self.page_hashs.1.iter().position(|x| x == &hash) {
         //    Some(index_pos) => {
@@ -489,7 +489,7 @@ where
     /// * `hash` - page hash
     /// ## Returns
     /// Option<(&mut [`Page`], usize)> //Page and index
-    pub fn find_page_and_idx(&mut self, hash: u64) -> Option<(&mut T, usize)> {
+    pub fn find_page_and_idx(&mut self, hash: usize) -> Option<(&mut T, usize)> {
         let pos = self
             .pages
             .iter_mut()

@@ -9,7 +9,7 @@ impl super::Processor for ForLoop {
         parser: &mut super::Parser,
         page_idx: usize,
         processed_page_idx: usize,
-        page_hash: u64,
+        page_hash: usize,
     ) -> bool {
         let page = parser.pages.nth(page_idx).unwrap().clone();
         let path = page.path.clone();
@@ -133,7 +133,7 @@ impl super::Processor for ForLoop {
                 }
             }
 
-            let inner_page_id: u64 = ellie_core::utils::generate_hash_u64();
+            let inner_page_id: usize = ellie_core::utils::generate_hash_usize();
             let mut dependencies = vec![ellie_tokenizer::tokenizer::Dependency {
                 hash: page.hash.clone(),
                 processed: false,

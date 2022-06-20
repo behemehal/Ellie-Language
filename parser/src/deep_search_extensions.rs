@@ -20,7 +20,7 @@ use crate::parser::{FoundPage, Parser};
 
 pub fn generate_type_from_defining(
     rtype: ellie_core::definite::definers::DefinerCollecting,
-    page_id: u64,
+    page_id: usize,
     parser: &mut crate::parser::Parser,
 ) -> Option<Types> {
     match rtype {
@@ -289,7 +289,7 @@ pub enum DeepTypeResult {
 
 fn iterate_deep_type(
     parser: &mut Parser,
-    page_id: u64,
+    page_id: usize,
     rtype: Types,
     errors: &mut Vec<error::Error>,
 ) -> DeepTypeResult {
@@ -316,7 +316,7 @@ fn iterate_deep_type(
             fn resolve_chain(
                 reference_type: definers::DefinerCollecting,
                 reference_pos: defs::Cursor,
-                page_id: u64,
+                page_id: usize,
                 parser: &mut crate::parser::Parser,
             ) -> Result<Vec<Attribute>, Vec<error::Error>> {
                 let mut errors: Vec<error::Error> = Vec::new();
@@ -1404,7 +1404,7 @@ fn iterate_deep_type(
 
 pub fn resolve_absolute_definer(
     parser: &mut Parser,
-    page_id: u64,
+    page_id: usize,
     rtype: definers::DefinerCollecting,
 ) -> Result<definers::DefinerCollecting, Vec<error::Error>> {
     match rtype {
@@ -1637,7 +1637,7 @@ pub fn resolve_absolute_definer(
 
 pub fn resolve_deep_type(
     parser: &mut Parser,
-    page_id: u64,
+    page_id: usize,
     rtype: Types,
     errors: &mut Vec<error::Error>,
 ) -> DeepTypeResult {
@@ -1673,10 +1673,10 @@ pub struct ProcessedDeepSearchResult {
 
 pub fn deep_search_hash(
     parser: &mut Parser,
-    target_page: u64,
-    target_hash: u64,
-    searched: Vec<u64>,
-    _level: u32,
+    target_page: usize,
+    target_hash: usize,
+    searched: Vec<usize>,
+    _level: usize,
 ) -> ProcessedDeepSearchResult {
     let mut level = _level;
     let mut found = false;
@@ -1685,7 +1685,7 @@ pub fn deep_search_hash(
     let mut found_page = FoundPage::default();
     let has_mixup = false;
     let mut inner_page = None;
-    let mut searched: Vec<u64> = searched;
+    let mut searched: Vec<usize> = searched;
     //let mixup_hashes: Vec<(String, String)> = Vec::new();
     let mut self_dependencies = vec![];
 
@@ -1840,11 +1840,11 @@ pub fn deep_search_hash(
 
 pub fn deep_search(
     parser: &mut Parser,
-    target_page: u64,
+    target_page: usize,
     name: String,
-    ignore_hash: Option<u64>,
-    searched: Vec<u64>,
-    _level: u32,
+    ignore_hash: Option<usize>,
+    searched: Vec<usize>,
+    _level: usize,
 ) -> ProcessedDeepSearchResult {
     let mut level = _level;
     let mut found = false;
@@ -1853,7 +1853,7 @@ pub fn deep_search(
     let mut found_page = FoundPage::default();
     let has_mixup = false;
     let mut inner_page = None;
-    let mut searched: Vec<u64> = searched;
+    let mut searched: Vec<usize> = searched;
     let mut self_dependencies = vec![Dependency {
         hash: target_page,
         ..Default::default()
@@ -2049,7 +2049,7 @@ pub fn deep_search(
 
 pub fn find_type(
     rtype: String,
-    target_page: u64,
+    target_page: usize,
     parser: &mut Parser,
 ) -> Option<definers::GenericType> {
     let result = deep_search(parser, target_page, rtype.clone(), None, vec![], 0);
@@ -2115,7 +2115,7 @@ pub fn find_type(
 
 pub fn resolve_type(
     target_type: Types,
-    target_page: u64,
+    target_page: usize,
     parser: &mut Parser,
     errors: &mut Vec<error::Error>,
     pos: Option<defs::Cursor>,
@@ -2313,8 +2313,10 @@ pub fn resolve_type(
                         }
                         Types::String(_) => "string".to_string(),
                         _ => {
-                            let first = resolve_type(*operator.first, target_page, parser, errors, pos);
-                            let second = resolve_type(*operator.second, target_page, parser, errors, pos);
+                            let first =
+                                resolve_type(*operator.first, target_page, parser, errors, pos);
+                            let second =
+                                resolve_type(*operator.second, target_page, parser, errors, pos);
 
                             if first.is_none() || second.is_none() {
                                 return None;
@@ -2334,7 +2336,12 @@ pub fn resolve_type(
                                             value: second.unwrap().to_string(),
                                         },
                                     ],
-                                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                                    alloc::format!(
+                                        "{}:{}:{}",
+                                        file!().to_owned(),
+                                        line!(),
+                                        column!()
+                                    ),
                                     parser.find_page(target_page).unwrap().path.clone(),
                                     match pos {
                                         Some(e) => e,
@@ -2343,7 +2350,6 @@ pub fn resolve_type(
                                 ));
                             }
 
-                            
                             return None;
                         }
                     };
