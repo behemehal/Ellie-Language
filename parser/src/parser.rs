@@ -231,6 +231,41 @@ pub enum DeepSearchItems {
     None,
 }
 
+pub struct CompareResult {
+    pub same: bool,
+    pub first: String,
+    pub second: String,
+    pub requires_cast: bool,
+    pub cast_to: String,
+}
+
+impl CompareResult {
+    pub fn result(same: bool, first: String, second: String) -> CompareResult {
+        CompareResult {
+            same,
+            first,
+            second,
+            requires_cast: false,
+            cast_to: String::new(),
+        }
+    }
+
+    pub fn result_with_cast(
+        same: bool,
+        first: String,
+        second: String,
+        cast_to: String,
+    ) -> CompareResult {
+        CompareResult {
+            same,
+            first,
+            second,
+            requires_cast: true,
+            cast_to,
+        }
+    }
+}
+
 impl DeepSearchItems {
     pub fn get_pos(&self) -> defs::Cursor {
         match self {
@@ -319,7 +354,7 @@ impl Parser {
         defining: ellie_core::definite::definers::DefinerCollecting,
         rtype: ellie_core::definite::types::Types,
         target_page: usize,
-    ) -> Result<(bool, String, String), Vec<error::Error>> {
+    ) -> Result<CompareResult, Vec<error::Error>> {
         let mut errors: Vec<error::Error> = Vec::new();
         let found_type = crate::deep_search_extensions::resolve_deep_type(
             self,
@@ -329,9 +364,55 @@ impl Parser {
         );
 
         //Ignre everything since defining is dynamic
-        if matches!(defining.clone(), ellie_core::definite::definers::DefinerCollecting::Generic(e) if e.rtype == "dyn")
+        if matches!(&defining, ellie_core::definite::definers::DefinerCollecting::Generic(e) if e.rtype == "dyn")
         {
-            return Ok((true, "dyn".to_string(), "dyn".to_string()));
+            return Ok(CompareResult::result(
+                true,
+                "dyn".to_string(),
+                "dyn".to_string(),
+            ));
+        } else if matches!(&defining, ellie_core::definite::definers::DefinerCollecting::ParentGeneric(e) if e.rtype == "vector")
+        {
+            if matches!(&found_type, deep_search_extensions::DeepTypeResult::Array(e) if e.collective.len() == 0)
+            {
+                return Ok(CompareResult::result_with_cast(
+                    true,
+                    "vector".to_string(),
+                    "vector".to_string(),
+                    "vector".to_string(),
+                ));
+            } else {
+                let array_type = match &found_type {
+                    deep_search_extensions::DeepTypeResult::Array(e) => {
+                        let mut array_type = String::new();
+                        for t in &e.collective {
+                            let rtype =
+                                resolve_type(t.value.clone(), target_page, self, &mut errors, None)
+                                    .unwrap()
+                                    .to_string();
+                            if array_type != "" && array_type != rtype {
+                                array_type = "dyn".to_string();
+                                break;
+                            } else {
+                                array_type = rtype;
+                            }
+                        }
+                        array_type
+                    }
+                    _ => unreachable!(),
+                };
+                let vector_inner = defining.to_string();
+                let vector_inner = vector_inner.split("vector<").collect::<Vec<_>>()[1]
+                    .split(">")
+                    .collect::<Vec<_>>()[0]
+                    .to_string();
+                return Ok(CompareResult::result_with_cast(
+                    array_type == vector_inner,
+                    defining.to_string(),
+                    array_type,
+                    "vector".to_string(),
+                ));
+            }
         }
 
         match found_type {
@@ -339,20 +420,32 @@ impl Parser {
                 if let ellie_core::definite::definers::DefinerCollecting::Generic(_) = defining {
                     if defining.to_string() == "int" {
                         if errors.is_empty() {
-                            Ok((true, defining.to_string(), "int".to_owned()))
+                            Ok(CompareResult::result(
+                                true,
+                                defining.to_string(),
+                                "int".to_owned(),
+                            ))
                         } else {
                             Err(errors)
                         }
                     } else {
                         if errors.is_empty() {
-                            Ok((false, defining.to_string(), "int".to_owned()))
+                            Ok(CompareResult::result(
+                                false,
+                                defining.to_string(),
+                                "int".to_owned(),
+                            ))
                         } else {
                             Err(errors)
                         }
                     }
                 } else {
                     if errors.is_empty() {
-                        Ok((false, defining.to_string(), "int".to_owned()))
+                        Ok(CompareResult::result(
+                            false,
+                            defining.to_string(),
+                            "int".to_owned(),
+                        ))
                     } else {
                         Err(errors)
                     }
@@ -362,20 +455,32 @@ impl Parser {
                 if let ellie_core::definite::definers::DefinerCollecting::Generic(_) = defining {
                     if defining.to_string() == "byte" {
                         if errors.is_empty() {
-                            Ok((true, defining.to_string(), "byte".to_owned()))
+                            Ok(CompareResult::result(
+                                true,
+                                defining.to_string(),
+                                "byte".to_owned(),
+                            ))
                         } else {
                             Err(errors)
                         }
                     } else {
                         if errors.is_empty() {
-                            Ok((false, defining.to_string(), "byte".to_owned()))
+                            Ok(CompareResult::result(
+                                false,
+                                defining.to_string(),
+                                "byte".to_owned(),
+                            ))
                         } else {
                             Err(errors)
                         }
                     }
                 } else {
                     if errors.is_empty() {
-                        Ok((false, defining.to_string(), "byte".to_owned()))
+                        Ok(CompareResult::result(
+                            false,
+                            defining.to_string(),
+                            "byte".to_owned(),
+                        ))
                     } else {
                         Err(errors)
                     }
@@ -385,20 +490,32 @@ impl Parser {
                 if let ellie_core::definite::definers::DefinerCollecting::Generic(_) = defining {
                     if defining.to_string() == "float" {
                         if errors.is_empty() {
-                            Ok((true, defining.to_string(), "float".to_owned()))
+                            Ok(CompareResult::result(
+                                true,
+                                defining.to_string(),
+                                "float".to_owned(),
+                            ))
                         } else {
                             Err(errors)
                         }
                     } else {
                         if errors.is_empty() {
-                            Ok((false, defining.to_string(), "float".to_owned()))
+                            Ok(CompareResult::result(
+                                false,
+                                defining.to_string(),
+                                "float".to_owned(),
+                            ))
                         } else {
                             Err(errors)
                         }
                     }
                 } else {
                     if errors.is_empty() {
-                        Ok((false, defining.to_string(), "float".to_owned()))
+                        Ok(CompareResult::result(
+                            false,
+                            defining.to_string(),
+                            "float".to_owned(),
+                        ))
                     } else {
                         Err(errors)
                     }
@@ -408,20 +525,32 @@ impl Parser {
                 if let ellie_core::definite::definers::DefinerCollecting::Generic(_) = defining {
                     if defining.to_string() == "double" {
                         if errors.is_empty() {
-                            Ok((true, defining.to_string(), "double".to_owned()))
+                            Ok(CompareResult::result(
+                                true,
+                                defining.to_string(),
+                                "double".to_owned(),
+                            ))
                         } else {
                             Err(errors)
                         }
                     } else {
                         if errors.is_empty() {
-                            Ok((false, defining.to_string(), "double".to_owned()))
+                            Ok(CompareResult::result(
+                                false,
+                                defining.to_string(),
+                                "double".to_owned(),
+                            ))
                         } else {
                             Err(errors)
                         }
                     }
                 } else {
                     if errors.is_empty() {
-                        Ok((false, defining.to_string(), "double".to_owned()))
+                        Ok(CompareResult::result(
+                            false,
+                            defining.to_string(),
+                            "double".to_owned(),
+                        ))
                     } else {
                         Err(errors)
                     }
@@ -431,20 +560,32 @@ impl Parser {
                 if let ellie_core::definite::definers::DefinerCollecting::Generic(_) = defining {
                     if defining.to_string() == "bool" {
                         if errors.is_empty() {
-                            Ok((true, defining.to_string(), "bool".to_owned()))
+                            Ok(CompareResult::result(
+                                true,
+                                defining.to_string(),
+                                "bool".to_owned(),
+                            ))
                         } else {
                             Err(errors)
                         }
                     } else {
                         if errors.is_empty() {
-                            Ok((false, defining.to_string(), "bool".to_owned()))
+                            Ok(CompareResult::result(
+                                false,
+                                defining.to_string(),
+                                "bool".to_owned(),
+                            ))
                         } else {
                             Err(errors)
                         }
                     }
                 } else {
                     if errors.is_empty() {
-                        Ok((false, defining.to_string(), "bool".to_owned()))
+                        Ok(CompareResult::result(
+                            false,
+                            defining.to_string(),
+                            "bool".to_owned(),
+                        ))
                     } else {
                         Err(errors)
                     }
@@ -454,20 +595,32 @@ impl Parser {
                 if let ellie_core::definite::definers::DefinerCollecting::Generic(_) = defining {
                     if defining.to_string() == "string" {
                         if errors.is_empty() {
-                            Ok((true, defining.to_string(), "string".to_owned()))
+                            Ok(CompareResult::result(
+                                true,
+                                defining.to_string(),
+                                "string".to_owned(),
+                            ))
                         } else {
                             Err(errors)
                         }
                     } else {
                         if errors.is_empty() {
-                            Ok((false, defining.to_string(), "string".to_owned()))
+                            Ok(CompareResult::result(
+                                false,
+                                defining.to_string(),
+                                "string".to_owned(),
+                            ))
                         } else {
                             Err(errors)
                         }
                     }
                 } else {
                     if errors.is_empty() {
-                        Ok((false, defining.to_string(), "string".to_owned()))
+                        Ok(CompareResult::result(
+                            false,
+                            defining.to_string(),
+                            "string".to_owned(),
+                        ))
                     } else {
                         Err(errors)
                     }
@@ -477,20 +630,32 @@ impl Parser {
                 if let ellie_core::definite::definers::DefinerCollecting::Generic(_) = defining {
                     if defining.to_string() == "char" {
                         if errors.is_empty() {
-                            Ok((true, defining.to_string(), "char".to_owned()))
+                            Ok(CompareResult::result(
+                                true,
+                                defining.to_string(),
+                                "char".to_owned(),
+                            ))
                         } else {
                             Err(errors)
                         }
                     } else {
                         if errors.is_empty() {
-                            Ok((false, defining.to_string(), "char".to_owned()))
+                            Ok(CompareResult::result(
+                                false,
+                                defining.to_string(),
+                                "char".to_owned(),
+                            ))
                         } else {
                             Err(errors)
                         }
                     }
                 } else {
                     if errors.is_empty() {
-                        Ok((false, defining.to_string(), "char".to_owned()))
+                        Ok(CompareResult::result(
+                            false,
+                            defining.to_string(),
+                            "char".to_owned(),
+                        ))
                     } else {
                         Err(errors)
                     }
@@ -513,13 +678,21 @@ impl Parser {
 
                 if value_gen.same_as(defining.clone()) {
                     if errors.is_empty() {
-                        Ok((true, defining.to_string(), value_gen.to_string()))
+                        Ok(CompareResult::result(
+                            true,
+                            defining.to_string(),
+                            value_gen.to_string(),
+                        ))
                     } else {
                         Err(errors)
                     }
                 } else {
                     if errors.is_empty() {
-                        Ok((false, defining.to_string(), value_gen.to_string()))
+                        Ok(CompareResult::result(
+                            false,
+                            defining.to_string(),
+                            value_gen.to_string(),
+                        ))
                     } else {
                         Err(errors)
                     }
@@ -542,13 +715,21 @@ impl Parser {
 
                 if value_gen.same_as(defining.clone()) {
                     if errors.is_empty() {
-                        Ok((true, defining.to_string(), value_gen.to_string()))
+                        Ok(CompareResult::result(
+                            true,
+                            defining.to_string(),
+                            value_gen.to_string(),
+                        ))
                     } else {
                         Err(errors)
                     }
                 } else {
                     if errors.is_empty() {
-                        Ok((false, defining.to_string(), value_gen.to_string()))
+                        Ok(CompareResult::result(
+                            false,
+                            defining.to_string(),
+                            value_gen.to_string(),
+                        ))
                     } else {
                         Err(errors)
                     }
@@ -568,9 +749,17 @@ impl Parser {
                 };
                 if errors.is_empty() {
                     if class_call_type.same_as(defining.clone()) {
-                        Ok((true, defining.to_string(), class_call_type.to_string()))
+                        Ok(CompareResult::result(
+                            true,
+                            defining.to_string(),
+                            class_call_type.to_string(),
+                        ))
                     } else {
-                        Ok((false, defining.to_string(), class_call_type.to_string()))
+                        Ok(CompareResult::result(
+                            false,
+                            defining.to_string(),
+                            class_call_type.to_string(),
+                        ))
                     }
                 } else {
                     Err(errors)
@@ -581,16 +770,20 @@ impl Parser {
                     resolve_deep_type(self, target_page, *e.target.clone(), &mut errors);
 
                 match resolved_target {
-                    deep_search_extensions::DeepTypeResult::Function(e) => Ok((
-                        defining.same_as(e.return_type.clone()),
-                        defining.to_string(),
-                        e.return_type.to_string(),
-                    )),
-                    deep_search_extensions::DeepTypeResult::FunctionCall(e) => Ok((
-                        defining.same_as(e.returning.clone()),
-                        defining.to_string(),
-                        e.returning.to_string(),
-                    )),
+                    deep_search_extensions::DeepTypeResult::Function(e) => {
+                        Ok(CompareResult::result(
+                            defining.same_as(e.return_type.clone()),
+                            defining.to_string(),
+                            e.return_type.to_string(),
+                        ))
+                    }
+                    deep_search_extensions::DeepTypeResult::FunctionCall(e) => {
+                        Ok(CompareResult::result(
+                            defining.same_as(e.returning.clone()),
+                            defining.to_string(),
+                            e.returning.to_string(),
+                        ))
+                    }
                     _ => {
                         let rtype = match resolved_target {
                             deep_search_extensions::DeepTypeResult::Integer(e) => {
@@ -649,7 +842,7 @@ impl Parser {
                         let resolved_type =
                             resolve_type(rtype, target_page, self, &mut errors, Some(e.target_pos));
                         if errors.is_empty() {
-                            Ok((
+                            Ok(CompareResult::result(
                                 false,
                                 defining.to_string(),
                                 resolved_type.unwrap().to_string(),
@@ -664,20 +857,32 @@ impl Parser {
                 if let ellie_core::definite::definers::DefinerCollecting::Generic(_) = defining {
                     if defining.clone().to_string() == "void" {
                         if errors.is_empty() {
-                            Ok((true, defining.to_string(), "void".to_owned()))
+                            Ok(CompareResult::result(
+                                true,
+                                defining.to_string(),
+                                "void".to_owned(),
+                            ))
                         } else {
                             Err(errors)
                         }
                     } else {
                         if errors.is_empty() {
-                            Ok((false, defining.to_string(), "void".to_owned()))
+                            Ok(CompareResult::result(
+                                false,
+                                defining.to_string(),
+                                "void".to_owned(),
+                            ))
                         } else {
                             Err(errors)
                         }
                     }
                 } else {
                     if errors.is_empty() {
-                        Ok((false, defining.to_string(), "void".to_owned()))
+                        Ok(CompareResult::result(
+                            false,
+                            defining.to_string(),
+                            "void".to_owned(),
+                        ))
                     } else {
                         Err(errors)
                     }
@@ -687,20 +892,32 @@ impl Parser {
                 if let ellie_core::definite::definers::DefinerCollecting::Generic(_) = defining {
                     if defining.to_string() == "null" {
                         if errors.is_empty() {
-                            Ok((true, defining.to_string(), "null".to_owned()))
+                            Ok(CompareResult::result(
+                                true,
+                                defining.to_string(),
+                                "null".to_owned(),
+                            ))
                         } else {
                             Err(errors)
                         }
                     } else {
                         if errors.is_empty() {
-                            Ok((false, defining.to_string(), "null".to_owned()))
+                            Ok(CompareResult::result(
+                                false,
+                                defining.to_string(),
+                                "null".to_owned(),
+                            ))
                         } else {
                             Err(errors)
                         }
                     }
                 } else {
                     if errors.is_empty() {
-                        Ok((false, defining.to_string(), "null".to_owned()))
+                        Ok(CompareResult::result(
+                            false,
+                            defining.to_string(),
+                            "null".to_owned(),
+                        ))
                     } else {
                         Err(errors)
                     }
@@ -720,13 +937,21 @@ impl Parser {
 
                 if value_gen.same_as(defining.clone()) {
                     if errors.is_empty() {
-                        Ok((true, defining.to_string(), value_gen.to_string()))
+                        Ok(CompareResult::result(
+                            true,
+                            defining.to_string(),
+                            value_gen.to_string(),
+                        ))
                     } else {
                         Err(errors)
                     }
                 } else {
                     if errors.is_empty() {
-                        Ok((false, defining.to_string(), value_gen.to_string()))
+                        Ok(CompareResult::result(
+                            false,
+                            defining.to_string(),
+                            value_gen.to_string(),
+                        ))
                     } else {
                         Err(errors)
                     }
@@ -736,13 +961,21 @@ impl Parser {
                 if let ellie_core::definite::definers::DefinerCollecting::Generic(_) = defining {
                     if defining.to_string() == "dyn" {
                         if errors.is_empty() {
-                            Ok((true, defining.to_string(), "dyn".to_owned()))
+                            Ok(CompareResult::result(
+                                true,
+                                defining.to_string(),
+                                "dyn".to_owned(),
+                            ))
                         } else {
                             Err(errors)
                         }
                     } else {
                         if errors.is_empty() {
-                            Ok((false, defining.to_string(), "dyn".to_owned()))
+                            Ok(CompareResult::result(
+                                false,
+                                defining.to_string(),
+                                "dyn".to_owned(),
+                            ))
                         } else {
                             Err(errors)
                         }
@@ -750,13 +983,21 @@ impl Parser {
                 } else if let ellie_core::definite::definers::DefinerCollecting::Dynamic = defining
                 {
                     if errors.is_empty() {
-                        Ok((true, defining.to_string(), "dyn".to_owned()))
+                        Ok(CompareResult::result(
+                            true,
+                            defining.to_string(),
+                            "dyn".to_owned(),
+                        ))
                     } else {
                         Err(errors)
                     }
                 } else {
                     if errors.is_empty() {
-                        Ok((false, defining.to_string(), "dyn".to_owned()))
+                        Ok(CompareResult::result(
+                            false,
+                            defining.to_string(),
+                            "dyn".to_owned(),
+                        ))
                     } else {
                         Err(errors)
                     }
@@ -764,7 +1005,7 @@ impl Parser {
             }
             deep_search_extensions::DeepTypeResult::NotFound => {
                 if errors.is_empty() {
-                    Ok((false, String::new(), String::new()))
+                    Ok(CompareResult::result(false, String::new(), String::new()))
                 } else {
                     Err(errors)
                 }
@@ -789,7 +1030,7 @@ impl Parser {
                         .is_none()
                 {
                     if errors.is_empty() {
-                        Ok((
+                        Ok(CompareResult::result(
                             true,
                             defining.to_string(),
                             format!(
@@ -811,7 +1052,7 @@ impl Parser {
                     }
                 } else {
                     if errors.is_empty() {
-                        Ok((
+                        Ok(CompareResult::result(
                             false,
                             defining.to_string(),
                             format!(
@@ -833,6 +1074,8 @@ impl Parser {
                     }
                 }
             }
+            deep_search_extensions::DeepTypeResult::EnumData(_) => todo!(),
+            deep_search_extensions::DeepTypeResult::Enum(_) => todo!(),
         }
     }
 
