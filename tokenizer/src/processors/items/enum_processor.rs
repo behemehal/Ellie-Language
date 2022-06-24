@@ -105,6 +105,9 @@ impl crate::processors::Processor for EnumType {
                     current_item.has_type = true;
 
                     current_item.type_pos.range_start = cursor;
+                } else if letter_char == '}' && !current_item.identifier.is_empty() {
+                    current_item.identifier_collected = false;
+                    self.complete = true;
                 } else if letter_char == ',' && !current_item.identifier.is_empty() {
                     current_item.identifier_collected = false;
                     self.items.push(EnumItem::default());
