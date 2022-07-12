@@ -1,5 +1,7 @@
-use crate::utils::{
-    resolve_type, AddressingModes, AddressingValues, Instructions, ProgramReader, Reader,
+use crate::utils::{self, AddressingModes, AddressingValues, Instructions, ProgramReader};
+use ellie_core::{
+    defs::PlatformArchitecture,
+    raw_type::{RawType, TypeId},
 };
 
 #[derive(Debug)]
@@ -13,21 +15,24 @@ pub struct ReadInstruction {
 
 #[derive(Debug)]
 pub struct Program {
-    pub(crate) main: usize,
-    pub(crate) arch: u8,
-    pub(crate) instructions: Vec<ReadInstruction>,
+    pub main: usize,
+    pub arch: PlatformArchitecture,
+    pub instructions: Vec<ReadInstruction>,
 }
 
 impl Program {
     pub fn build_from_reader(reader: &mut ProgramReader) -> Result<Self, u8> {
         let arch = match reader.read_u8() {
-            Some(byte) => byte,
+            Some(byte) => PlatformArchitecture::from_byte(byte),
             None => return Err(0),
         };
 
-        let size = arch / 8;
-
-        println!("[Program]: Target arch {}", arch);
+        println!(
+            "{}[Program]{}: Target arch {}",
+            utils::Colors::Yellow,
+            utils::Colors::Reset,
+            arch
+        );
 
         let main_exists = match reader.read_u8() {
             Some(byte) => byte,
@@ -38,11 +43,16 @@ impl Program {
             return Err(3);
         }
 
-        let main = match reader.read_usize(size) {
+        let main = match reader.read_usize(arch.usize_len()) {
             Some(byte) => byte,
             None => return Err(0),
         };
-        println!("[Program]: Program starts at {}", main);
+        println!(
+            "{}[Program]{}: Program starts at {}",
+            utils::Colors::Yellow,
+            utils::Colors::Reset,
+            main
+        );
 
         let mut program = Program {
             main,
@@ -94,48 +104,23 @@ impl Program {
                     });
                 } else {
                     let mut args: Vec<u8> = Vec::new();
-                    let size = self.arch / 8;
                     match addressing_mode {
                         AddressingModes::Immediate => {
-                            let type_defination_size = reader.read_usize(size).unwrap();
-                            let mut chains: Vec<[u8; 2]> = Vec::new();
-                            for i in 0..type_defination_size {
-                                let type_1 = match reader.read_u8() {
-                                    Some(byte) => byte,
-                                    None => return Err(1),
-                                };
-                                let type_2 = match reader.read_u8() {
-                                    Some(byte) => byte,
-                                    None => return Err(1),
-                                };
-                                chains.push([type_1, type_2]);
+                            let id = reader.read_u8().unwrap();
+                            let size = reader.read_usize(self.arch.usize_len()).unwrap();
+                            let type_id = TypeId::from(id, size);
+                            let mut data = Vec::new();
+                            for _ in 0..size {
+                                data.push(match reader.read_u8() {
+                                    Some(e) => e,
+                                    None => return Err(0),
+                                })
                             }
-
-                            let resolved_type =
-                                resolve_type(type_defination_size, chains.clone(), self.arch);
-
-                            println!("{:?}", resolved_type);
-                            panic!(
-                                "Type defination size {}, chains {:?}, args {:?}",
-                                type_defination_size, chains, args
-                            );
-
-                            addressing_value = match resolved_type {
-                                Ok((rtype, size)) => {
-                                    for _ in 0..size {
-                                        let read_byte = match reader.read_u8() {
-                                            Some(byte) => byte,
-                                            None => return Err(0),
-                                        };
-                                        args.push(read_byte);
-                                    }
-                                    AddressingValues::Immediate(rtype, args.clone())
-                                }
-                                Err(_) => todo!(),
-                            }
+                            addressing_value =
+                                AddressingValues::Immediate(RawType { type_id, data });
                         }
                         AddressingModes::Absolute => {
-                            for _ in 0..size {
+                            for _ in 0..self.arch.usize_len() {
                                 let read_byte = match reader.read_u8() {
                                     Some(byte) => byte,
                                     None => return Err(0),
@@ -148,7 +133,22 @@ impl Program {
                         }
                         AddressingModes::AbsoluteIndex => todo!(),
                         AddressingModes::AbsoluteProperty => todo!(),
-                        _ => println!("[VM]: Ignore Indirect[?] modes"),
+                        AddressingModes::Implicit => todo!(),
+                        AddressingModes::IndirectA => {
+                            addressing_value = AddressingValues::IndirectA;
+                        }
+                        AddressingModes::IndirectB => {
+                            addressing_value = AddressingValues::IndirectB;
+                        }
+                        AddressingModes::IndirectC => {
+                            addressing_value = AddressingValues::IndirectC;
+                        }
+                        AddressingModes::IndirectX => {
+                            addressing_value = AddressingValues::IndirectX;
+                        }
+                        AddressingModes::IndirectY => {
+                            addressing_value = AddressingValues::IndirectY;
+                        }
                     }
 
                     return Ok(ReadInstruction {

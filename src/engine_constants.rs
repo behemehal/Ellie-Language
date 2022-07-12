@@ -5,3 +5,4 @@ pub static ELLIE_TOKENIZER_VERSION : &'static str = &"0.4.0";
 pub static ELLIE_PARSER_VERSION : &'static str = &"0.5.0";
 pub static ELLIE_BYTECODE_VERSION : &'static str = &"0.1.0";
 pub static ELLIE_VM_VERSION : &'static str = &"0.1.0";
+pub static ELLIE_FMT_VERSION : &'static str = &"0.3.0";

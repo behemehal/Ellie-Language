@@ -45,4 +45,4 @@ Auto builded from `instructions.csv` by `build.rs`
 | pops        |   0x61   |     -     |    -     |       -        |         -         |     -     |     -     |     -     |     -     |     -     |
 | acp         |    -     |     -     |   0x62   |       -        |         -         |     -     |     -     |     -     |     -     |     -     |
 | brk         |   0x63   |     -     |    -     |       -        |         -         |     -     |     -     |     -     |     -     |     -     |
-| calln       |   0x64   |     -     |    -     |       -        |         -         |     -     |     -     |     -     |     -     |     -     |
+| calln       |    -     |    0x64   |    -     |       -        |         -         |     -     |     -     |     -     |     -     |     -     |

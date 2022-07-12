@@ -1,4 +1,4 @@
-use ellie_vm::program::Program;
+use ellie_vm::{program::Program, utils};
 use std::fs::File;
 use std::io::Read;
 use std::path::Path;
@@ -60,7 +60,53 @@ pub fn run(target_path: &Path, vm_settings: VmSettings) {
         }
     };
 
-    let mut vm = VM::new(vm_settings.architecture.get_code());
-    vm.execute(program);
-    //vm.execute(target_path);
+    let mut vm = VM::new(vm_settings.architecture, |native_message| {
+        if native_message.module == "test" && native_message.name == "print" {
+            let string = String::from_utf8(native_message.params[0].data.clone()).unwrap();
+            println!("NativePrint: {}", string)
+        }
+        true
+    });
+    let main = program.main;
+    vm.load(program);
+
+    let output = vm.run(main);
+    let dump = vm.heap_dump();
+
+    match output {
+        ellie_vm::utils::ThreadExit::Panic(e) => {
+            println!(
+                "\n{}ThreadPanic{} : {}{:?}{}",
+                utils::Colors::Red,
+                utils::Colors::Reset,
+                utils::Colors::Cyan,
+                e.reason,
+                utils::Colors::Reset,
+            );
+            for frame in e.stack_trace {
+                println!(
+                    "{}    at {}:{}",
+                    utils::Colors::Green,
+                    frame.name,
+                    frame.pos
+                );
+            }
+        }
+        ellie_vm::utils::ThreadExit::OutOfInstructions => todo!(),
+        ellie_vm::utils::ThreadExit::ExitGracefully => {
+            println!(
+                "{}[VM]{}: Thread Exited Gracefully",
+                utils::Colors::Green,
+                utils::Colors::Reset
+            );
+
+            println!("======");
+            println!(
+                "{}[VM]{}: Heap Dump\n\n{}",
+                utils::Colors::Yellow,
+                utils::Colors::Reset,
+                dump
+            );
+        }
+    }
 }

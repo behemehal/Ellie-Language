@@ -5,6 +5,7 @@ use alloc::{
     vec,
     vec::Vec,
 };
+use ellie_core::defs::PlatformArchitecture;
 
 #[derive(Clone, Debug)]
 pub struct Immediate;
@@ -40,10 +41,10 @@ pub enum Types {
     Double,
     Byte,
     Bool,
-    String((usize, u8)),
-    Char(u8),
-    Array(u8),
-    Vector,
+    String(usize),
+    Char,
+    Array(usize),
+    //Vector,
     Void,
     Null,
 }
@@ -56,55 +57,28 @@ impl Types {
             Types::Double => "double".to_string(),
             Types::Byte => "byte".to_string(),
             Types::Bool => "bool".to_string(),
-            Types::String(e) => alloc::format!("string[{}@{}]", e.0, e.1),
-            Types::Char(e) => alloc::format!("char[{}]", e),
-            Types::Array(e) => alloc::format!("array<{}>", e),
-            Types::Vector => "vector".to_string(),
+            Types::String(str_len) => alloc::format!("string[{str_len}]"),
+            Types::Char => alloc::format!("char"),
+            Types::Array(len) => alloc::format!("array<{len}>"),
             Types::Void => "void".to_string(),
             Types::Null => "null".to_string(),
         }
     }
 
-    //(Size of tree, types)
-    // (1, [1, 4]) Integer with 4 bytes
-    // (1, [2, 4]) Float with 4 bytes
-    // (1, [3, 4]) Double with 4 bytes
-    // (1, [4, 1]) Byte with 1 byte
-    // (1, [5, 1]) Bool with 1 byte
-    // (3(Charachter len), [6, 1], [6, 1], [6, 1]) Char with 1 byte (UTF-8)
-    // (1, [7, 1]) UTF-8 string with 1 byte
-    // (1, [8, 1]) Void
-    // Table above is kinda lie for now, except string
-    pub fn code(&self) -> (usize, Vec<u8>) {
+    //(type_id, size)
+    // (1, platform_size) Integer
+    pub fn code(&self, platform_size: &PlatformArchitecture) -> (u8, usize) {
         match self {
-            Types::Integer => (1, vec![1, 0]),
-            Types::Float => (1, vec![2, 0]),
-            Types::Double => (1, vec![3, 0]),
-            Types::Byte => (1, vec![4, 0]),
-            Types::Bool => (1, vec![5, 0]),
-            Types::String((x, char_size)) => {
-                let mut package = Vec::new();
-                for _ in 0..*x {
-                    package.extend([6, *char_size]);
-                }
-                (*x, package)
-            }
-            Types::Char(char_size) => (1, vec![7, 0]),
-            Types::Void => (1, vec![8, 0]),
-            Types::Array(e) => {
-                /*
-                println!("@@@ {:?} {:?} {:?}", rtype.code() ,rtype, e);
-                let mut package = Vec::new();
-                for _ in 0..*e {
-                    package.extend(rtype.code().1);
-                }
-                (2, package)
-                */
-                // (*e, vec![9, 0])
-                todo!()
-            }
-            Types::Vector => todo!(),
-            Types::Null => (1, vec![11, 0]),
+            Types::Integer => (1, platform_size.usize_len() as usize),
+            Types::Float => (2, platform_size.usize_len() as usize),
+            Types::Double => (3, platform_size.usize_len() as usize),
+            Types::Byte => (4, 1),
+            Types::Bool => (5, 1),
+            Types::String(str_len) => (6, *str_len),
+            Types::Char => (7, 4),
+            Types::Void => (8, 0),
+            Types::Array(len) => (9, *len),
+            Types::Null => (10, 0),
         }
     }
 }
@@ -141,13 +115,13 @@ impl AddressingModes {
         .to_string()
     }
 
-    pub fn arg(&self) -> Vec<u8> {
+    pub fn arg(&self, platform_size: &PlatformArchitecture) -> Vec<u8> {
         match self {
             AddressingModes::Immediate(rtype, x) => {
                 let mut v = vec![];
-                let code = rtype.code();
+                let code = rtype.code(platform_size);
                 v.extend(code.0.to_le_bytes().to_vec());
-                v.extend(code.1.to_vec());
+                v.extend(code.1.to_le_bytes().to_vec());
                 v.extend(x);
                 v
             }
@@ -299,7 +273,7 @@ pub enum Instructions {
 }
 
 impl Instructions {
-    pub fn op_code(&self) -> Vec<u8> {
+    pub fn op_code(&self, platform_size: &PlatformArchitecture) -> Vec<u8> {
         //let entries = crate::instruction_table::Instructions.entries();
 
         match self {
@@ -310,7 +284,7 @@ impl Instructions {
                     .find(|(k, _)| *k == "lda_".to_string() + &e.addressing_mode.to_string())
                     .unwrap();
                 let mut op_code: Vec<u8> = vec![instruction.1.code];
-                op_code.extend(e.addressing_mode.arg());
+                op_code.extend(e.addressing_mode.arg(platform_size));
                 op_code
             }
             Instructions::LDB(e) => {
@@ -320,7 +294,7 @@ impl Instructions {
                     .find(|(k, _)| *k == "ldb_".to_string() + &e.addressing_mode.to_string())
                     .unwrap();
                 let mut op_code: Vec<u8> = vec![instruction.1.code];
-                op_code.extend(e.addressing_mode.arg());
+                op_code.extend(e.addressing_mode.arg(platform_size));
                 op_code
             }
             Instructions::LDC(e) => {
@@ -330,7 +304,7 @@ impl Instructions {
                     .find(|(k, _)| *k == "ldc_".to_string() + &e.addressing_mode.to_string())
                     .unwrap();
                 let mut op_code: Vec<u8> = vec![instruction.1.code];
-                op_code.extend(e.addressing_mode.arg());
+                op_code.extend(e.addressing_mode.arg(platform_size));
                 op_code
             }
             Instructions::LDX(e) => {
@@ -340,7 +314,7 @@ impl Instructions {
                     .find(|(k, _)| *k == "ldx_".to_string() + &e.addressing_mode.to_string())
                     .unwrap();
                 let mut op_code: Vec<u8> = vec![instruction.1.code];
-                op_code.extend(e.addressing_mode.arg());
+                op_code.extend(e.addressing_mode.arg(platform_size));
                 op_code
             }
             Instructions::LDY(e) => {
@@ -350,7 +324,7 @@ impl Instructions {
                     .find(|(k, _)| *k == "ldy_".to_string() + &e.addressing_mode.to_string())
                     .unwrap();
                 let mut op_code: Vec<u8> = vec![instruction.1.code];
-                op_code.extend(e.addressing_mode.arg());
+                op_code.extend(e.addressing_mode.arg(platform_size));
                 op_code
             }
             Instructions::STA(e) => {
@@ -360,7 +334,7 @@ impl Instructions {
                     .find(|(k, _)| *k == "sta_".to_string() + &e.addressing_mode.to_string())
                     .unwrap_or_else(|| panic!("sta_{}", &e.addressing_mode.to_string()));
                 let mut op_code: Vec<u8> = vec![instruction.1.code];
-                op_code.extend(e.addressing_mode.arg());
+                op_code.extend(e.addressing_mode.arg(platform_size));
                 op_code
             }
             Instructions::STB(e) => {
@@ -370,7 +344,7 @@ impl Instructions {
                     .find(|(k, _)| *k == "stb_".to_string() + &e.addressing_mode.to_string())
                     .unwrap();
                 let mut op_code: Vec<u8> = vec![instruction.1.code];
-                op_code.extend(e.addressing_mode.arg());
+                op_code.extend(e.addressing_mode.arg(platform_size));
                 op_code
             }
             Instructions::STC(e) => {
@@ -380,7 +354,7 @@ impl Instructions {
                     .find(|(k, _)| *k == "stc_".to_string() + &e.addressing_mode.to_string())
                     .unwrap();
                 let mut op_code: Vec<u8> = vec![instruction.1.code];
-                op_code.extend(e.addressing_mode.arg());
+                op_code.extend(e.addressing_mode.arg(platform_size));
                 op_code
             }
             Instructions::STX(e) => {
@@ -390,7 +364,7 @@ impl Instructions {
                     .find(|(k, _)| *k == "stx_".to_string() + &e.addressing_mode.to_string())
                     .unwrap();
                 let mut op_code: Vec<u8> = vec![instruction.1.code];
-                op_code.extend(e.addressing_mode.arg());
+                op_code.extend(e.addressing_mode.arg(platform_size));
                 op_code
             }
             Instructions::STY(e) => {
@@ -400,7 +374,7 @@ impl Instructions {
                     .find(|(k, _)| *k == "sty_".to_string() + &e.addressing_mode.to_string())
                     .unwrap();
                 let mut op_code: Vec<u8> = vec![instruction.1.code];
-                op_code.extend(e.addressing_mode.arg());
+                op_code.extend(e.addressing_mode.arg(platform_size));
                 op_code
             }
             Instructions::EQ(e) => {
@@ -410,7 +384,7 @@ impl Instructions {
                     .find(|(k, _)| *k == "eq_".to_string() + &e.addressing_mode.to_string())
                     .unwrap();
                 let mut op_code: Vec<u8> = vec![instruction.1.code];
-                op_code.extend(e.addressing_mode.arg());
+                op_code.extend(e.addressing_mode.arg(platform_size));
                 op_code
             }
             Instructions::NE(e) => {
@@ -420,7 +394,7 @@ impl Instructions {
                     .find(|(k, _)| *k == "ne_".to_string() + &e.addressing_mode.to_string())
                     .unwrap();
                 let mut op_code: Vec<u8> = vec![instruction.1.code];
-                op_code.extend(e.addressing_mode.arg());
+                op_code.extend(e.addressing_mode.arg(platform_size));
                 op_code
             }
             Instructions::GT(e) => {
@@ -430,7 +404,7 @@ impl Instructions {
                     .find(|(k, _)| *k == "gt_".to_string() + &e.addressing_mode.to_string())
                     .unwrap();
                 let mut op_code: Vec<u8> = vec![instruction.1.code];
-                op_code.extend(e.addressing_mode.arg());
+                op_code.extend(e.addressing_mode.arg(platform_size));
                 op_code
             }
             Instructions::LT(e) => {
@@ -440,7 +414,7 @@ impl Instructions {
                     .find(|(k, _)| *k == "lt_".to_string() + &e.addressing_mode.to_string())
                     .unwrap();
                 let mut op_code: Vec<u8> = vec![instruction.1.code];
-                op_code.extend(e.addressing_mode.arg());
+                op_code.extend(e.addressing_mode.arg(platform_size));
                 op_code
             }
             Instructions::GQ(e) => {
@@ -450,7 +424,7 @@ impl Instructions {
                     .find(|(k, _)| *k == "gq_".to_string() + &e.addressing_mode.to_string())
                     .unwrap();
                 let mut op_code: Vec<u8> = vec![instruction.1.code];
-                op_code.extend(e.addressing_mode.arg());
+                op_code.extend(e.addressing_mode.arg(platform_size));
                 op_code
             }
             Instructions::LQ(e) => {
@@ -460,7 +434,7 @@ impl Instructions {
                     .find(|(k, _)| *k == "lq_".to_string() + &e.addressing_mode.to_string())
                     .unwrap();
                 let mut op_code: Vec<u8> = vec![instruction.1.code];
-                op_code.extend(e.addressing_mode.arg());
+                op_code.extend(e.addressing_mode.arg(platform_size));
                 op_code
             }
             Instructions::AND(e) => {
@@ -470,7 +444,7 @@ impl Instructions {
                     .find(|(k, _)| *k == "and_".to_string() + &e.addressing_mode.to_string())
                     .unwrap();
                 let mut op_code: Vec<u8> = vec![instruction.1.code];
-                op_code.extend(e.addressing_mode.arg());
+                op_code.extend(e.addressing_mode.arg(platform_size));
                 op_code
             }
             Instructions::OR(e) => {
@@ -480,7 +454,7 @@ impl Instructions {
                     .find(|(k, _)| *k == "or_".to_string() + &e.addressing_mode.to_string())
                     .unwrap();
                 let mut op_code: Vec<u8> = vec![instruction.1.code];
-                op_code.extend(e.addressing_mode.arg());
+                op_code.extend(e.addressing_mode.arg(platform_size));
                 op_code
             }
             Instructions::ADD(e) => {
@@ -490,7 +464,7 @@ impl Instructions {
                     .find(|(k, _)| *k == "add_".to_string() + &e.addressing_mode.to_string())
                     .unwrap();
                 let mut op_code: Vec<u8> = vec![instruction.1.code];
-                op_code.extend(e.addressing_mode.arg());
+                op_code.extend(e.addressing_mode.arg(platform_size));
                 op_code
             }
             Instructions::SUB(e) => {
@@ -500,7 +474,7 @@ impl Instructions {
                     .find(|(k, _)| *k == "sub_".to_string() + &e.addressing_mode.to_string())
                     .unwrap();
                 let mut op_code: Vec<u8> = vec![instruction.1.code];
-                op_code.extend(e.addressing_mode.arg());
+                op_code.extend(e.addressing_mode.arg(platform_size));
                 op_code
             }
             Instructions::MUL(e) => {
@@ -510,7 +484,7 @@ impl Instructions {
                     .find(|(k, _)| *k == "mul_".to_string() + &e.addressing_mode.to_string())
                     .unwrap();
                 let mut op_code: Vec<u8> = vec![instruction.1.code];
-                op_code.extend(e.addressing_mode.arg());
+                op_code.extend(e.addressing_mode.arg(platform_size));
                 op_code
             }
             Instructions::EXP(e) => {
@@ -520,7 +494,7 @@ impl Instructions {
                     .find(|(k, _)| *k == "exp_".to_string() + &e.addressing_mode.to_string())
                     .unwrap();
                 let mut op_code: Vec<u8> = vec![instruction.1.code];
-                op_code.extend(e.addressing_mode.arg());
+                op_code.extend(e.addressing_mode.arg(platform_size));
                 op_code
             }
             Instructions::DIV(e) => {
@@ -530,7 +504,7 @@ impl Instructions {
                     .find(|(k, _)| *k == "div_".to_string() + &e.addressing_mode.to_string())
                     .unwrap();
                 let mut op_code: Vec<u8> = vec![instruction.1.code];
-                op_code.extend(e.addressing_mode.arg());
+                op_code.extend(e.addressing_mode.arg(platform_size));
                 op_code
             }
             Instructions::MOD(e) => {
@@ -540,7 +514,7 @@ impl Instructions {
                     .find(|(k, _)| *k == "mod_".to_string() + &e.addressing_mode.to_string())
                     .unwrap();
                 let mut op_code: Vec<u8> = vec![instruction.1.code];
-                op_code.extend(e.addressing_mode.arg());
+                op_code.extend(e.addressing_mode.arg(platform_size));
                 op_code
             }
             Instructions::CALL(e) => {
@@ -550,7 +524,7 @@ impl Instructions {
                     .find(|(k, _)| *k == "call_".to_string() + &e.addressing_mode.to_string())
                     .unwrap();
                 let mut op_code: Vec<u8> = vec![instruction.1.code];
-                op_code.extend(e.addressing_mode.arg());
+                op_code.extend(e.addressing_mode.arg(platform_size));
                 op_code
             }
             Instructions::AOL(e) => {
@@ -560,7 +534,7 @@ impl Instructions {
                     .find(|(k, _)| *k == "aol_".to_string() + &e.addressing_mode.to_string())
                     .unwrap();
                 let mut op_code: Vec<u8> = vec![instruction.1.code];
-                op_code.extend(e.addressing_mode.arg());
+                op_code.extend(e.addressing_mode.arg(platform_size));
                 op_code
             }
             Instructions::PUSHA(e) => {
@@ -570,7 +544,7 @@ impl Instructions {
                     .find(|(k, _)| *k == "push_".to_string() + &e.addressing_mode.to_string())
                     .unwrap();
                 let mut op_code: Vec<u8> = vec![instruction.1.code];
-                op_code.extend(e.addressing_mode.arg());
+                op_code.extend(e.addressing_mode.arg(platform_size));
                 op_code
             }
             Instructions::LEN(e) => {
@@ -580,7 +554,7 @@ impl Instructions {
                     .find(|(k, _)| *k == "len_".to_string() + &e.addressing_mode.to_string())
                     .unwrap();
                 let mut op_code: Vec<u8> = vec![instruction.1.code];
-                op_code.extend(e.addressing_mode.arg());
+                op_code.extend(e.addressing_mode.arg(platform_size));
                 op_code
             }
             Instructions::A2I(e) => {
@@ -590,7 +564,7 @@ impl Instructions {
                     .find(|(k, _)| *k == "a2i_".to_string() + &e.addressing_mode.to_string())
                     .unwrap();
                 let mut op_code: Vec<u8> = vec![instruction.1.code];
-                op_code.extend(e.addressing_mode.arg());
+                op_code.extend(e.addressing_mode.arg(platform_size));
                 op_code
             }
             Instructions::A2F(e) => {
@@ -600,7 +574,7 @@ impl Instructions {
                     .find(|(k, _)| *k == "a2f_".to_string() + &e.addressing_mode.to_string())
                     .unwrap();
                 let mut op_code: Vec<u8> = vec![instruction.1.code];
-                op_code.extend(e.addressing_mode.arg());
+                op_code.extend(e.addressing_mode.arg(platform_size));
                 op_code
             }
             Instructions::A2D(e) => {
@@ -610,7 +584,7 @@ impl Instructions {
                     .find(|(k, _)| *k == "a2d_".to_string() + &e.addressing_mode.to_string())
                     .unwrap();
                 let mut op_code: Vec<u8> = vec![instruction.1.code];
-                op_code.extend(e.addressing_mode.arg());
+                op_code.extend(e.addressing_mode.arg(platform_size));
                 op_code
             }
             Instructions::A2B(e) => {
@@ -620,7 +594,7 @@ impl Instructions {
                     .find(|(k, _)| *k == "a2b_".to_string() + &e.addressing_mode.to_string())
                     .unwrap();
                 let mut op_code: Vec<u8> = vec![instruction.1.code];
-                op_code.extend(e.addressing_mode.arg());
+                op_code.extend(e.addressing_mode.arg(platform_size));
                 op_code
             }
             Instructions::A2S(e) => {
@@ -630,7 +604,7 @@ impl Instructions {
                     .find(|(k, _)| *k == "a2s_".to_string() + &e.addressing_mode.to_string())
                     .unwrap();
                 let mut op_code: Vec<u8> = vec![instruction.1.code];
-                op_code.extend(e.addressing_mode.arg());
+                op_code.extend(e.addressing_mode.arg(platform_size));
                 op_code
             }
             Instructions::A2C(e) => {
@@ -640,7 +614,7 @@ impl Instructions {
                     .find(|(k, _)| *k == "a2c_".to_string() + &e.addressing_mode.to_string())
                     .unwrap();
                 let mut op_code: Vec<u8> = vec![instruction.1.code];
-                op_code.extend(e.addressing_mode.arg());
+                op_code.extend(e.addressing_mode.arg(platform_size));
                 op_code
             }
             Instructions::A2O(e) => {
@@ -650,7 +624,7 @@ impl Instructions {
                     .find(|(k, _)| *k == "a2o_".to_string() + &e.addressing_mode.to_string())
                     .unwrap();
                 let mut op_code: Vec<u8> = vec![instruction.1.code];
-                op_code.extend(e.addressing_mode.arg());
+                op_code.extend(e.addressing_mode.arg(platform_size));
                 op_code
             }
             Instructions::JMP(e) => {
@@ -660,7 +634,7 @@ impl Instructions {
                     .find(|(k, _)| *k == "jmp_".to_string() + &e.addressing_mode.to_string())
                     .unwrap();
                 let mut op_code: Vec<u8> = vec![instruction.1.code];
-                op_code.extend(e.addressing_mode.arg());
+                op_code.extend(e.addressing_mode.arg(platform_size));
                 op_code
             }
             Instructions::JMPA(e) => {
@@ -670,7 +644,7 @@ impl Instructions {
                     .find(|(k, _)| *k == "jmpa_".to_string() + &e.addressing_mode.to_string())
                     .unwrap();
                 let mut op_code: Vec<u8> = vec![instruction.1.code];
-                op_code.extend(e.addressing_mode.arg());
+                op_code.extend(e.addressing_mode.arg(platform_size));
                 op_code
             }
             Instructions::POPS(e) => {
@@ -680,7 +654,7 @@ impl Instructions {
                     .find(|(k, _)| *k == "pops_".to_string() + &e.addressing_mode.to_string())
                     .unwrap();
                 let mut op_code: Vec<u8> = vec![instruction.1.code];
-                op_code.extend(e.addressing_mode.arg());
+                op_code.extend(e.addressing_mode.arg(platform_size));
                 op_code
             }
             Instructions::RET(e) => {
@@ -690,7 +664,7 @@ impl Instructions {
                     .find(|(k, _)| *k == "ret_".to_string() + &e.addressing_mode.to_string())
                     .unwrap();
                 let mut op_code: Vec<u8> = vec![instruction.1.code];
-                op_code.extend(e.addressing_mode.arg());
+                op_code.extend(e.addressing_mode.arg(platform_size));
                 op_code
             }
             Instructions::ACP(e) => {
@@ -700,7 +674,7 @@ impl Instructions {
                     .find(|(k, _)| *k == "acp_".to_string() + &e.addressing_mode.to_string())
                     .unwrap();
                 let mut op_code: Vec<u8> = vec![instruction.1.code];
-                op_code.extend(e.addressing_mode.arg());
+                op_code.extend(e.addressing_mode.arg(platform_size));
                 op_code
             }
             Instructions::BRK(e) => {
@@ -710,7 +684,7 @@ impl Instructions {
                     .find(|(k, _)| *k == "brk_".to_string() + &e.addressing_mode.to_string())
                     .unwrap();
                 let mut op_code: Vec<u8> = vec![instruction.1.code];
-                op_code.extend(e.addressing_mode.arg());
+                op_code.extend(e.addressing_mode.arg(platform_size));
                 op_code
             }
             Instructions::CALLN(e) => {
@@ -720,7 +694,7 @@ impl Instructions {
                     .find(|(k, _)| *k == "calln_".to_string() + &e.addressing_mode.to_string())
                     .unwrap();
                 let mut op_code: Vec<u8> = vec![instruction.1.code];
-                op_code.extend(e.addressing_mode.arg());
+                op_code.extend(e.addressing_mode.arg(platform_size));
                 op_code
             }
         }
@@ -774,50 +748,50 @@ impl Instructions {
         .to_string()
     }
 
-    pub fn get_arg(&self) -> Vec<u8> {
+    pub fn get_arg(&self, platform_size: &PlatformArchitecture) -> Vec<u8> {
         match self {
-            Instructions::LDA(e) => e.addressing_mode.arg(),
-            Instructions::LDB(e) => e.addressing_mode.arg(),
-            Instructions::LDC(e) => e.addressing_mode.arg(),
-            Instructions::LDX(e) => e.addressing_mode.arg(),
-            Instructions::LDY(e) => e.addressing_mode.arg(),
-            Instructions::STA(e) => e.addressing_mode.arg(),
-            Instructions::STB(e) => e.addressing_mode.arg(),
-            Instructions::STC(e) => e.addressing_mode.arg(),
-            Instructions::STX(e) => e.addressing_mode.arg(),
-            Instructions::STY(e) => e.addressing_mode.arg(),
-            Instructions::EQ(e) => e.addressing_mode.arg(),
-            Instructions::NE(e) => e.addressing_mode.arg(),
-            Instructions::GT(e) => e.addressing_mode.arg(),
-            Instructions::LT(e) => e.addressing_mode.arg(),
-            Instructions::GQ(e) => e.addressing_mode.arg(),
-            Instructions::LQ(e) => e.addressing_mode.arg(),
-            Instructions::AND(e) => e.addressing_mode.arg(),
-            Instructions::OR(e) => e.addressing_mode.arg(),
-            Instructions::ADD(e) => e.addressing_mode.arg(),
-            Instructions::SUB(e) => e.addressing_mode.arg(),
-            Instructions::MUL(e) => e.addressing_mode.arg(),
-            Instructions::EXP(e) => e.addressing_mode.arg(),
-            Instructions::DIV(e) => e.addressing_mode.arg(),
-            Instructions::MOD(e) => e.addressing_mode.arg(),
-            Instructions::JMP(e) => e.addressing_mode.arg(),
-            Instructions::CALL(e) => e.addressing_mode.arg(),
-            Instructions::CALLN(e) => e.addressing_mode.arg(),
-            Instructions::RET(e) => e.addressing_mode.arg(),
-            Instructions::AOL(e) => e.addressing_mode.arg(),
-            Instructions::PUSHA(e) => e.addressing_mode.arg(),
-            Instructions::LEN(e) => e.addressing_mode.arg(),
-            Instructions::A2I(e) => e.addressing_mode.arg(),
-            Instructions::A2F(e) => e.addressing_mode.arg(),
-            Instructions::A2D(e) => e.addressing_mode.arg(),
-            Instructions::A2B(e) => e.addressing_mode.arg(),
-            Instructions::A2S(e) => e.addressing_mode.arg(),
-            Instructions::A2C(e) => e.addressing_mode.arg(),
-            Instructions::A2O(e) => e.addressing_mode.arg(),
-            Instructions::JMPA(e) => e.addressing_mode.arg(),
-            Instructions::POPS(e) => e.addressing_mode.arg(),
-            Instructions::ACP(e) => e.addressing_mode.arg(),
-            Instructions::BRK(e) => e.addressing_mode.arg(),
+            Instructions::LDA(e) => e.addressing_mode.arg(platform_size),
+            Instructions::LDB(e) => e.addressing_mode.arg(platform_size),
+            Instructions::LDC(e) => e.addressing_mode.arg(platform_size),
+            Instructions::LDX(e) => e.addressing_mode.arg(platform_size),
+            Instructions::LDY(e) => e.addressing_mode.arg(platform_size),
+            Instructions::STA(e) => e.addressing_mode.arg(platform_size),
+            Instructions::STB(e) => e.addressing_mode.arg(platform_size),
+            Instructions::STC(e) => e.addressing_mode.arg(platform_size),
+            Instructions::STX(e) => e.addressing_mode.arg(platform_size),
+            Instructions::STY(e) => e.addressing_mode.arg(platform_size),
+            Instructions::EQ(e) => e.addressing_mode.arg(platform_size),
+            Instructions::NE(e) => e.addressing_mode.arg(platform_size),
+            Instructions::GT(e) => e.addressing_mode.arg(platform_size),
+            Instructions::LT(e) => e.addressing_mode.arg(platform_size),
+            Instructions::GQ(e) => e.addressing_mode.arg(platform_size),
+            Instructions::LQ(e) => e.addressing_mode.arg(platform_size),
+            Instructions::AND(e) => e.addressing_mode.arg(platform_size),
+            Instructions::OR(e) => e.addressing_mode.arg(platform_size),
+            Instructions::ADD(e) => e.addressing_mode.arg(platform_size),
+            Instructions::SUB(e) => e.addressing_mode.arg(platform_size),
+            Instructions::MUL(e) => e.addressing_mode.arg(platform_size),
+            Instructions::EXP(e) => e.addressing_mode.arg(platform_size),
+            Instructions::DIV(e) => e.addressing_mode.arg(platform_size),
+            Instructions::MOD(e) => e.addressing_mode.arg(platform_size),
+            Instructions::JMP(e) => e.addressing_mode.arg(platform_size),
+            Instructions::CALL(e) => e.addressing_mode.arg(platform_size),
+            Instructions::CALLN(e) => e.addressing_mode.arg(platform_size),
+            Instructions::RET(e) => e.addressing_mode.arg(platform_size),
+            Instructions::AOL(e) => e.addressing_mode.arg(platform_size),
+            Instructions::PUSHA(e) => e.addressing_mode.arg(platform_size),
+            Instructions::LEN(e) => e.addressing_mode.arg(platform_size),
+            Instructions::A2I(e) => e.addressing_mode.arg(platform_size),
+            Instructions::A2F(e) => e.addressing_mode.arg(platform_size),
+            Instructions::A2D(e) => e.addressing_mode.arg(platform_size),
+            Instructions::A2B(e) => e.addressing_mode.arg(platform_size),
+            Instructions::A2S(e) => e.addressing_mode.arg(platform_size),
+            Instructions::A2C(e) => e.addressing_mode.arg(platform_size),
+            Instructions::A2O(e) => e.addressing_mode.arg(platform_size),
+            Instructions::JMPA(e) => e.addressing_mode.arg(platform_size),
+            Instructions::POPS(e) => e.addressing_mode.arg(platform_size),
+            Instructions::ACP(e) => e.addressing_mode.arg(platform_size),
+            Instructions::BRK(e) => e.addressing_mode.arg(platform_size),
         }
     }
 }
@@ -896,11 +870,11 @@ pub enum AddressingModesStruct {
 impl PartialEq for AddressingModesStruct {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
-            (Self::Implicit(l0), Self::Implicit(r0)) => true,
-            (Self::Immediate(l0), Self::Immediate(r0)) => true,
-            (Self::Absolute(l0), Self::Absolute(r0)) => true,
-            (Self::AbsoluteIndex(l0), Self::AbsoluteIndex(r0)) => true,
-            (Self::AbsoluteProperty(l0), Self::AbsoluteProperty(r0)) => true,
+            (Self::Implicit(_), Self::Implicit(_)) => true,
+            (Self::Immediate(_), Self::Immediate(_)) => true,
+            (Self::Absolute(_), Self::Absolute(_)) => true,
+            (Self::AbsoluteIndex(_), Self::AbsoluteIndex(_)) => true,
+            (Self::AbsoluteProperty(_), Self::AbsoluteProperty(_)) => true,
             (Self::IndirectA(_), Self::IndirectA(_)) => true,
             (Self::IndirectB(_), Self::IndirectB(_)) => true,
             (Self::IndirectC(_), Self::IndirectC(_)) => true,

@@ -65,6 +65,20 @@ pub struct NullableType {
     pub value: Box<DefinerCollecting>,
 }
 
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
+pub enum EnumFieldData {
+    NoData,
+    Data(Box<DefinerCollecting>),
+}
+
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
+pub struct EnumField {
+    pub field_name: String,
+    pub field_data: EnumFieldData,
+    pub name: String,
+    pub hash: usize,
+}
+
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize, EnumAsInner)]
 pub enum DefinerCollecting {
     Array(ArrayType),
@@ -75,6 +89,7 @@ pub enum DefinerCollecting {
     Cloak(CloakType),
     Collective(CollectiveType),
     Nullable(NullableType),
+    EnumField(EnumField),
     Dynamic,
 }
 
@@ -108,6 +123,13 @@ impl DefinerCollecting {
             DefinerCollecting::Collective(_) => "collective".to_owned(),
             DefinerCollecting::Nullable(_) => "nullAble".to_owned(),
             DefinerCollecting::Dynamic => "dyn".to_owned(),
+            DefinerCollecting::EnumField(e) => match &e.field_data {
+                EnumFieldData::NoData => format!("{}.{}", e.name, e.field_name),
+                EnumFieldData::Data(inner_def) => {
+                    //format!("{}.{}({})", e.name, e.field_name, inner_def.to_string())
+                    inner_def.to_string()
+                },
+            },
         }
     }
 
@@ -204,6 +226,13 @@ impl DefinerCollecting {
             DefinerCollecting::Dynamic => {
                 if let DefinerCollecting::Dynamic = other {
                     true
+                } else {
+                    false
+                }
+            }
+            DefinerCollecting::EnumField(e) => {
+                if let DefinerCollecting::EnumField(other_e) = other {
+                    e.name == other_e.name && e.field_name == other_e.field_name
                 } else {
                     false
                 }

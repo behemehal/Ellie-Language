@@ -4,7 +4,7 @@ impl super::Transpiler for class::Class {
     fn transpile(
         &self,
         assembler: &mut crate::assembler::Assembler,
-        hash: usize,
+        _hash: usize,
         processed_page: &ellie_parser::parser::ProcessedPage,
     ) -> bool {
         for dependency in &processed_page.dependencies {

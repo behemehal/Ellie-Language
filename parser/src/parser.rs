@@ -168,6 +168,7 @@ pub struct Parser {
     pub processed_pages: PageExport<ProcessedPage>,
     pub modules: Vec<Module>,
     pub initial_page: usize,
+    pub experimental_features: bool,
     pub informations: information::Informations,
     pub parser_settings: ParserSettings,
     pub module_info: ModuleInfo,
@@ -219,6 +220,7 @@ pub enum DeepSearchItems {
     Getter(ellie_tokenizer::syntax::items::getter::Getter),
     Setter(ellie_tokenizer::syntax::items::setter::Setter),
     Function(ellie_tokenizer::syntax::items::function::Function),
+    Enum(ellie_tokenizer::syntax::items::enum_type::EnumType),
     ImportReference(ellie_tokenizer::syntax::items::import::Import),
     SelfItem(ellie_tokenizer::syntax::items::self_item::SelfItem),
     GenericItem(ellie_tokenizer::syntax::items::generic_item::GenericItem),
@@ -286,6 +288,7 @@ impl Parser {
         module_name: String,
         module_description: String,
         is_lib: bool,
+        experimental_features: bool,
         ellie_version: defs::Version,
     ) -> Parser {
         Parser {
@@ -293,6 +296,7 @@ impl Parser {
             processed_pages: PageExport::new(),
             modules: vec![],
             initial_page: initial_hash,
+            experimental_features,
             informations: information::Informations::new(),
             parser_settings: ParserSettings::default(),
             module_info: ModuleInfo {
@@ -1074,7 +1078,66 @@ impl Parser {
                     }
                 }
             }
-            deep_search_extensions::DeepTypeResult::EnumData(_) => todo!(),
+            deep_search_extensions::DeepTypeResult::EnumData(e) => {
+                let (enum_hash, enum_name) = match *e.reference {
+                    ellie_core::definite::types::Types::VariableType(e) => (e.reference, e.value),
+                    _ => unreachable!("Parser should have prevented this"),
+                };
+
+                match &e.value {
+                    ellie_core::definite::types::enum_data::Pointer::NoData => {
+                        if errors.is_empty() {
+                            match defining {
+                                ellie_core::definite::definers::DefinerCollecting::Generic(
+                                    generic,
+                                ) => Ok(CompareResult::result(
+                                    generic.hash == enum_hash,
+                                    generic.rtype,
+                                    enum_name,
+                                )),
+                                _ => Ok(CompareResult::result(
+                                    false,
+                                    defining.to_string(),
+                                    enum_name,
+                                )),
+                            }
+                        } else {
+                            Err(errors)
+                        }
+                    }
+                    ellie_core::definite::types::enum_data::Pointer::Data(q) => {
+                        let mut errors = Vec::new();
+                        match resolve_type(*q.clone(), target_page, self, &mut errors, Some(e.pos))
+                        {
+                            Some(value_defining) => {
+                                if value_defining.same_as(defining.clone()) {
+                                    Ok(CompareResult::result(
+                                        true,
+                                        defining.to_string(),
+                                        value_defining.to_string(),
+                                    ))
+                                } else {
+                                    match defining {
+                                        ellie_core::definite::definers::DefinerCollecting::Generic(
+                                            generic,
+                                        ) => Ok(CompareResult::result(
+                                            generic.hash == enum_hash,
+                                            generic.rtype,
+                                            enum_name,
+                                        )),
+                                        _ => Ok(CompareResult::result(
+                                            false,
+                                            defining.to_string(),
+                                            enum_name,
+                                        )),
+                                    }
+                                }
+                            }
+                            None => Err(errors),
+                        }
+                    }
+                }
+            }
             deep_search_extensions::DeepTypeResult::Enum(_) => todo!(),
         }
     }
@@ -1100,6 +1163,7 @@ impl Parser {
                 "NullAble".to_string()
             }
             ellie_core::definite::definers::DefinerCollecting::Dynamic => "dyn".to_string(),
+            ellie_core::definite::definers::DefinerCollecting::EnumField(e) => e.name,
         }
     }
 
@@ -1219,6 +1283,18 @@ impl Parser {
                                             found_type = DeepSearchItems::Variable(ellie_tokenizer::syntax::items::variable::VariableCollector::default().from_definite(e).data);
                                         }
                                     }
+                                    Collecting::Enum(e) => {
+                                        if e.name == name
+                                            && (e.public || level == 0 || dep.deep_link.is_some())
+                                            && (ignore_hash.is_none()
+                                                || matches!(ignore_hash, Some(ref t) if &e.hash != t))
+                                        {
+                                            found_pos = Some(e.pos);
+                                            found = true;
+                                            found_page = FoundPage::fill(&unprocessed_page);
+                                            found_type = DeepSearchItems::Enum(ellie_tokenizer::syntax::items::enum_type::EnumType::default().from_definite(e));
+                                        }
+                                    }
                                     Collecting::Getter(e) => {
                                         if e.name == name
                                             && (e.public || level == 0 || dep.deep_link.is_some())
@@ -1318,6 +1394,18 @@ impl Parser {
                                             found_type = DeepSearchItems::Variable(ellie_tokenizer::syntax::items::variable::VariableCollector::default().from_definite(e).data);
                                         }
                                     }
+                                    Collecting::Enum(e) => {
+                                        if e.name == name
+                                            && (e.public || level == 0 || dep.deep_link.is_some())
+                                            && (ignore_hash.is_none()
+                                                || matches!(ignore_hash, Some(ref t) if &e.hash != t))
+                                        {
+                                            found_pos = Some(e.pos);
+                                            found = true;
+                                            found_page = FoundPage::fill(&unprocessed_page);
+                                            found_type = DeepSearchItems::Enum(ellie_tokenizer::syntax::items::enum_type::EnumType::default().from_definite(e));
+                                        }
+                                    }
                                     Collecting::Function(e) => {
                                         if e.name == name
                                             && (e.public || level == 0 || dep.deep_link.is_some())
@@ -1413,6 +1501,18 @@ impl Parser {
                                             found = true;
                                             found_page = FoundPage::fill(&page);
                                             found_type = DeepSearchItems::Variable(e.data.clone());
+                                        }
+                                    }
+                                    Processors::Enum(e) => {
+                                        if e.name == name
+                                            && (e.public || level == 0 || dep.deep_link.is_some())
+                                            && (ignore_hash.is_none()
+                                                || matches!(ignore_hash, Some(ref t) if &e.hash != t))
+                                        {
+                                            found_pos = Some(e.pos);
+                                            found = true;
+                                            found_page = FoundPage::fill(&page);
+                                            found_type = DeepSearchItems::Enum(e.clone());
                                         }
                                     }
                                     Processors::Function(e) => {
@@ -2076,8 +2176,8 @@ impl Parser {
                             unprocessed_page.hash,
                         ),
                         Processors::SelfItem(_) => true,
-                        Processors::FunctionParameter(e) => true,
-                        Processors::ConstructorParameter(e) => true,
+                        Processors::FunctionParameter(_) => true,
+                        Processors::ConstructorParameter(_) => true,
                         unexpected_element => {
                             self.informations.push(
                                 &error::error_list::ERROR_S22.clone().build_with_path(

@@ -1,6 +1,13 @@
-use crate::{processors::items::Processors, syntax::items::definers};
+use crate::syntax::items::definers;
 use ellie_core::{definite::Converter, defs};
 use serde::{Deserialize, Serialize};
+
+#[derive(Default, Debug, Clone, Serialize, Deserialize)]
+pub struct GenericDefining {
+    pub name: String,
+    pub hash: usize,
+    pub pos: defs::Cursor,
+}
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct EnumItem {
@@ -19,6 +26,10 @@ pub struct EnumType {
     pub name_pos: defs::Cursor,
     pub name_collected: bool,
 
+    pub continuum_collected: bool,
+    pub generics_collected: bool,
+    pub generic_definings: Vec<GenericDefining>,
+
     pub items: Vec<EnumItem>,
     pub hash: usize,
 
@@ -33,7 +44,7 @@ impl Converter<EnumType, ellie_core::definite::items::enum_type::EnumType> for E
         todo!()
     }
 
-    fn from_definite(self, from: ellie_core::definite::items::enum_type::EnumType) -> EnumType {
+    fn from_definite(self, _: ellie_core::definite::items::enum_type::EnumType) -> EnumType {
         todo!()
     }
 }

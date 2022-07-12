@@ -573,6 +573,7 @@ fn main() {
                 is_lib: matches.is_present("isLib"),
                 version,
                 output_type,
+                experimental_features: matches.is_present("experimentalFeatures"),
                 exclude_stdlib: matches.is_present("excludeStd"),
                 performance_info: matches.is_present("performanceInfo"),
                 file_name: Path::new(&target_path)

@@ -4,8 +4,6 @@ use ellie_core::defs;
 use serde::Deserialize;
 use serde::Serialize;
 
-use super::definers::DefinerCollector;
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FunctionParameter {
     pub name: String,

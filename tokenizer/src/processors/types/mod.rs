@@ -6,6 +6,7 @@ pub mod char_processor;
 pub mod class_call_processor;
 pub mod cloak_processor;
 pub mod collective_processor;
+pub mod enum_data_processor;
 pub mod float_processor;
 pub mod function_call_processor;
 pub mod integer_processor;
@@ -37,6 +38,7 @@ pub enum Processors {
     Operator(operator_type::OperatorTypeCollector),
     Reference(reference_type::ReferenceTypeCollector),
     BraceReference(brace_reference_type::BraceReferenceTypeCollector),
+    EnumData(enum_data::EnumDataCollector),
     NullResolver(null_resolver::NullResolver),
     FunctionCall(function_call_type::FunctionCallCollector),
     ClassCall(class_call_type::ClassCallCollector),
@@ -68,6 +70,9 @@ impl Processors {
             }
             Processors::BraceReference(e) => {
                 ellie_core::definite::types::Types::BraceReference(e.to_definite())
+            }
+            Processors::EnumData(e) => {
+                ellie_core::definite::types::Types::EnumData(e.to_definite())
             }
             Processors::FunctionCall(e) => {
                 ellie_core::definite::types::Types::FunctionCall(e.to_definite())
@@ -153,6 +158,7 @@ impl Processors {
             Processors::Operator(e) => e.data.first.is_static() && e.data.second.is_static(),
             Processors::Reference(_) => false,
             Processors::BraceReference(_) => false,
+            Processors::EnumData(_) => false,
             Processors::ClassCall(_) => false,
             Processors::Cloak(e) => e.data.collective.iter().all(|e| e.value.is_static()),
             Processors::Collective(e) => e
@@ -177,6 +183,7 @@ impl Processors {
             Processors::Negative(e) => e.value.is_complete(),
             Processors::Operator(e) => e.data.second.is_complete(),
             Processors::Reference(e) => !e.on_dot,
+            Processors::EnumData(e) => e.complete,
             Processors::BraceReference(e) => e.complete,
             Processors::FunctionCall(e) => e.complete,
             Processors::ClassCall(e) => e.complete,
@@ -199,6 +206,7 @@ impl Processors {
             Processors::Array(_) => false,
             Processors::Operator(_) => false,
             Processors::Reference(_) => false,
+            Processors::EnumData(_) => false,
             Processors::BraceReference(_) => false,
             Processors::FunctionCall(_) => false,
             Processors::ClassCall(_) => false,
@@ -228,6 +236,7 @@ impl Processors {
             Processors::Collective(e) => e.data.pos,
             Processors::AsKeyword(e) => e.data.pos,
             Processors::NullResolver(e) => e.pos,
+            Processors::EnumData(e) => e.data.pos,
         }
     }
 }
@@ -310,31 +319,61 @@ impl super::Processor for TypeProcessor {
                     ..Default::default()
                 });
             } else {
-                self.current =
-                    Processors::FunctionCall(function_call_type::FunctionCallCollector {
-                        data: function_call_type::FunctionCall {
-                            target: Box::new(self.current.clone()),
-                            target_pos: self.current.get_pos(),
-                            pos: self.current.get_pos(),
+                match self.current.as_operator() {
+                    Some(operator) => {
+                        self.current = Processors::Operator(operator_type::OperatorTypeCollector {
+                            data: operator_type::OperatorType {
+                                first: operator.data.first.clone(),
+                                first_pos: self.current.get_pos(),
+                                operator: operator.data.operator.clone(),
+                                pos: defs::Cursor::build_from_cursor(cursor.clone()),
+                                ..Default::default()
+                            },
+                            itered_cache: Box::new(TypeProcessor {
+                                current: Processors::FunctionCall(
+                                    function_call_type::FunctionCallCollector {
+                                        data: function_call_type::FunctionCall {
+                                            target: operator.data.second.clone(),
+                                            target_pos: operator.data.second_pos,
+                                            pos: operator.data.second_pos,
+                                            ..Default::default()
+                                        },
+                                        ..Default::default()
+                                    },
+                                ),
+                                ignore: false,
+                            }),
+                            operator_collected: true,
+                            first_filled: true,
                             ..Default::default()
-                        },
-                        ..Default::default()
-                    });
+                        });
+                    }
+                    None => {
+                        self.current =
+                            Processors::FunctionCall(function_call_type::FunctionCallCollector {
+                                data: function_call_type::FunctionCall {
+                                    target: Box::new(self.current.clone()),
+                                    target_pos: self.current.get_pos(),
+                                    pos: self.current.get_pos(),
+                                    ..Default::default()
+                                },
+                                ..Default::default()
+                            });
+                    }
+                }
             }
         } else if letter_char == '\'' && not_initalized {
             self.current = Processors::Char(char_type::CharType {
                 pos: defs::Cursor::build_from_cursor(cursor.clone()),
                 ..Default::default()
             });
-        } else if letter_char == '!'
-            && (not_initalized || (self.current.as_operator().is_none() && last_char != ' '))
-        {
+        } else if letter_char == '!' && (not_initalized || (last_char != ' ')) {
             if not_initalized {
                 self.current = Processors::Negative(negative_type::Negative {
                     pos: defs::Cursor::build_from_cursor(cursor.clone()),
                     ..Default::default()
                 });
-            } else if self.current.as_operator().is_none() && last_char != ' ' {
+            } else {
                 self.current = Processors::NullResolver(null_resolver::NullResolver {
                     target: Box::new(self.current.clone()),
                     target_pos: self.current.get_pos(),
@@ -453,44 +492,34 @@ impl super::Processor for TypeProcessor {
             && !(matches!(self.current.clone(), Processors::AsKeyword(e) if matches!(e.data.rtype.definer_type, crate::syntax::items::definers::DefinerTypes::Generic(_))))
         {
             //Operator priority
-            if let Processors::Operator(operator) = self.current.clone() {
-                if letter_char == '/' || letter_char == '*' || letter_char == '%' {
-                    self.current = Processors::Operator(operator_type::OperatorTypeCollector {
-                        data: operator_type::OperatorType {
-                            first: operator.data.first,
-                            first_pos: self.current.get_pos(),
-                            operator: operator.data.operator,
-                            pos: defs::Cursor::build_from_cursor(cursor.clone()),
-                            ..Default::default()
-                        },
-                        itered_cache: Box::new(TypeProcessor {
-                            current: Processors::Operator(operator_type::OperatorTypeCollector {
-                                data: operator_type::OperatorType {
-                                    first: operator.data.second,
-                                    //operator: operator.data.operator.clone(),
-                                    ..Default::default()
-                                },
-                                first_filled: true,
+            if self.current.clone().as_operator().is_some()
+                && (letter_char == '/' || letter_char == '*' || letter_char == '%')
+            {
+                let operator = self.current.as_operator().unwrap().clone();
+                self.current = Processors::Operator(operator_type::OperatorTypeCollector {
+                    data: operator_type::OperatorType {
+                        first: operator.data.first,
+                        first_pos: self.current.get_pos(),
+                        operator: operator.data.operator,
+                        pos: defs::Cursor::build_from_cursor(cursor.clone()),
+                        ..Default::default()
+                    },
+                    itered_cache: Box::new(TypeProcessor {
+                        current: Processors::Operator(operator_type::OperatorTypeCollector {
+                            data: operator_type::OperatorType {
+                                first: operator.data.second,
+                                //operator: operator.data.operator.clone(),
                                 ..Default::default()
-                            }),
-                            ignore: false,
-                        }),
-                        operator_collected: true,
-                        first_filled: true,
-                        ..Default::default()
-                    });
-                } else {
-                    self.current = Processors::Operator(operator_type::OperatorTypeCollector {
-                        data: operator_type::OperatorType {
-                            first: Box::new(self.current.clone()),
-                            first_pos: self.current.get_pos(),
-                            pos: defs::Cursor::build_from_cursor(cursor.clone()),
+                            },
+                            first_filled: true,
                             ..Default::default()
-                        },
-                        first_filled: true,
-                        ..Default::default()
-                    });
-                }
+                        }),
+                        ignore: false,
+                    }),
+                    operator_collected: true,
+                    first_filled: true,
+                    ..Default::default()
+                });
             } else {
                 self.current = Processors::Operator(operator_type::OperatorTypeCollector {
                     data: operator_type::OperatorType {
@@ -517,6 +546,7 @@ impl super::Processor for TypeProcessor {
             Processors::Operator(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::Reference(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::BraceReference(e) => e.iterate(errors, cursor, last_char, letter_char),
+            Processors::EnumData(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::FunctionCall(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::ClassCall(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::Cloak(e) => e.iterate(errors, cursor, last_char, letter_char),

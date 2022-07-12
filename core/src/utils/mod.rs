@@ -39,12 +39,19 @@ pub fn is_reserved(value: &str, allow_core_naming: bool) -> bool {
         || value == "class"
         || value == "if"
         || value == "else"
+        || value == "enum"
+        || value == "enumField"
+        || value == "var"
         || value == "v"
         || value == "c"
+        || value == "const"
         || value == "d"
         || value == "co"
+        || value == "constructor"
         || value == "import"
+        || value == "g"
         || value == "get"
+        || value == "s"
         || value == "set"
         || value == "new"
         || (value == "array" && !allow_core_naming)
@@ -60,12 +67,6 @@ pub fn is_reserved(value: &str, allow_core_naming: bool) -> bool {
         || (value == "void" && !allow_core_naming)
         || (value == "null" && !allow_core_naming)
         || (value == "nullAble" && !allow_core_naming)
-        || (value == "function" && !allow_core_naming)
-        || (value == "panic" && !allow_core_naming)
-        || (value == "createThread" && !allow_core_naming)
-        || (value == "cursorPosition" && !allow_core_naming)
-        || (value == "error" && !allow_core_naming)
-        || (value == "rawMemoryData" && !allow_core_naming)
 }
 
 pub fn generate_hash_usize() -> usize {
@@ -175,6 +176,26 @@ pub enum FoundExtended {
     ComparisonOperator,
     ArithmeticOperator,
     AssignmentOperator,
+}
+
+pub fn operator_priority(operator: &str) -> usize {
+    match operator {
+        "=" => 1,
+        "==" => 2,
+        "!=" => 2,
+        ">" => 3,
+        "<" => 3,
+        ">=" => 3,
+        "<=" => 3,
+        "&&" => 4,
+        "||" => 5,
+        "+" => 6,
+        "-" => 6,
+        "*" => 7,
+        "/" => 7,
+        "%" => 7,
+        _ => 0,
+    }
 }
 
 pub fn operator_control(
@@ -303,25 +324,27 @@ pub fn operator_control(
         Operators::Null => unreachable!(),
     };
     match operator {
-        Some(operator_string) => Some(error::error_list::ERROR_S52.clone().build_with_path(
-            vec![
-                error::ErrorBuildField {
-                    key: "opType".to_owned(),
-                    value: operator_string.to_string(),
-                },
-                error::ErrorBuildField {
-                    key: "target".to_owned(),
-                    value: first.to_owned(),
-                },
-                error::ErrorBuildField {
-                    key: "value".to_owned(),
-                    value: second.to_owned(),
-                },
-            ],
-            alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-            path,
-            pos,
-        )),
+        Some(operator_string) => {
+            Some(error::error_list::ERROR_S52.clone().build_with_path(
+                vec![
+                    error::ErrorBuildField {
+                        key: "opType".to_owned(),
+                        value: operator_string.to_string(),
+                    },
+                    error::ErrorBuildField {
+                        key: "target".to_owned(),
+                        value: first.to_owned(),
+                    },
+                    error::ErrorBuildField {
+                        key: "value".to_owned(),
+                        value: second.to_owned(),
+                    },
+                ],
+                alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                path,
+                pos,
+            ))
+        }
         None => None,
     }
 }

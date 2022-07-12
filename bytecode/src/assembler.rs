@@ -1,10 +1,10 @@
-use crate::instructions::{self};
+use crate::instructions;
 use crate::transpiler::Transpiler;
 use alloc::{format, string::String, vec::Vec};
 use ellie_core::defs::PlatformArchitecture;
 use ellie_core::utils::ExportPage;
 use ellie_parser::parser::Module;
-use std::{io::Write, panic, println};
+use std::{io::Write, panic};
 
 pub struct Assembler {
     pub(crate) module: Module,
@@ -34,6 +34,7 @@ pub struct DebugHeader {
 pub struct LocalHeader {
     pub name: String,
     pub cursor: usize,
+    pub page_hash: usize,
     pub reference: Option<usize>,
 }
 
@@ -98,9 +99,9 @@ impl AssembleResult {
         }
 
         for instruction in &self.instructions {
-            let op_code = instruction.op_code();
-            println!("{:?}", op_code);
-            writer.write(&instruction.op_code()).unwrap();
+            writer
+                .write(&instruction.op_code(&self.platform_attributes.architecture))
+                .unwrap();
         }
     }
 
@@ -218,8 +219,14 @@ impl Assembler {
         }
     }
 
-    pub fn find_local(&self, name: &String) -> Option<&LocalHeader> {
-        self.locals.iter().find(|_local| &_local.name == name)
+    pub fn find_local(&self, name: &String, page_hash: Option<Vec<usize>>) -> Option<&LocalHeader> {
+        self.locals.iter().find(|local| {
+            &local.name == name
+                && match &page_hash {
+                    Some(e) => e.contains(&local.page_hash),
+                    None => true,
+                }
+        })
     }
 
     pub(crate) fn assemble_dependency(&mut self, hash: &usize) -> Option<usize> {
@@ -291,14 +298,8 @@ impl Assembler {
                     setter_call.transpile(self, processed_page.hash as usize, &processed_page)
                 }
                 ellie_core::definite::items::Collecting::Enum(_) => todo!(),
-                ellie_core::definite::items::Collecting::NativeFunction(function) => {
-                    self.locals.push(LocalHeader {
-                        name: function.name.clone(),
-                        cursor: self.instructions.len(),
-                        reference: None,
-                    });
-                    true
-                    //std::println!("[Assembler,Ignore,Element] NativeFunction: {:?}", function)
+                ellie_core::definite::items::Collecting::NativeFunction(native_function) => {
+                    native_function.transpile(self, processed_page.hash as usize, &processed_page)
                 }
                 ellie_core::definite::items::Collecting::None => todo!(),
                 ellie_core::definite::items::Collecting::Brk(_) => todo!(),
@@ -316,6 +317,10 @@ impl Assembler {
                 }
                 ellie_core::definite::items::Collecting::SelfItem(_) => {
                     std::println!("[Assembler,Ignore,Element] SelfItem");
+                    true
+                }
+                ellie_core::definite::items::Collecting::Extend(_) => {
+                    std::println!("[Assembler,Ignore,Element] Extend");
                     true
                 }
             };

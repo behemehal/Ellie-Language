@@ -14,21 +14,8 @@ use path_absolutize::Absolutize;
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 
-#[derive(Clone)]
-pub struct CompilerSettings {
+pub struct FormatterSettings {
     pub json_log: bool,
-    pub name: String,
-    pub file_name: String,
-    pub is_lib: bool,
-    pub description: String,
-    pub experimental_features: bool,
-    pub version: Version,
-    pub performance_info: bool,
-    pub output_type: cli_utils::OutputTypes,
-    pub show_debug_lines: bool,
-    pub exclude_stdlib: bool,
-    pub warnings: bool,
-    pub byte_code_architecture: ellie_core::defs::PlatformArchitecture,
 }
 
 pub fn get_output_path(
@@ -66,9 +53,8 @@ pub fn get_output_path(
     }
 }
 
-pub fn compile(
+pub fn format(
     target_path: &Path,
-    output_path: &Path,
     modules: Vec<(parser::Module, Option<String>)>,
     compiler_settings: CompilerSettings,
 ) {
@@ -82,7 +68,7 @@ pub fn compile(
             let used_modules = Mutex::new(vec!["ellieStd".to_string()]);
             let mut pager = tokenizer::Pager::new(
                 main_file_content,
-                compiler_settings.file_name.clone(),
+                compiler_settings.file_name,
                 format!("{}/", starter_name),
                 |path, module_identifier| {
                     if module_identifier.starts_with("@") {
@@ -153,60 +139,29 @@ pub fn compile(
                 first_page_hash.clone().try_into().unwrap(),
             );
 
-            let mut exit_messages: Vec<Box<dyn Fn(CompilerSettings, bool)>> = vec![
-                Box::new(|_: CompilerSettings, _: bool| {
-                    if compiler_settings.experimental_features {
-                        println!(
-                            "\n{}[!]{}: Experimental features are enabled.\n",
-                            cli_utils::Colors::Red,
-                            cli_utils::Colors::Reset,
-                        );
-                    }
-                }),
-                Box::new(|_, _| {
-                    println!(
-                        "{}[?]{}: Ellie v{}",
-                        cli_utils::Colors::Green,
-                        cli_utils::Colors::Reset,
-                        crate::engine_constants::ELLIE_ENGINE_VERSION
-                    );
-                }),
-                Box::new(|_, _| {
-                    println!(
-                        "{}[!]{}: Ellie is on development and may not be stable.",
-                        cli_utils::Colors::Red,
-                        cli_utils::Colors::Reset,
-                    );
-                }),
-            ];
-
             let tokenize_start = Instant::now();
             match pager.run() {
                 Ok(_) => {
-                    let _compiler_settings = compiler_settings.clone();
                     let mut parser = parser::Parser::new(
                         pager.pages.clone(),
                         first_page_hash.try_into().unwrap(),
-                        _compiler_settings.version,
-                        _compiler_settings.name,
-                        _compiler_settings.description,
-                        _compiler_settings.is_lib,
-                        _compiler_settings.experimental_features,
+                        compiler_settings.version,
+                        compiler_settings.name,
+                        compiler_settings.description,
+                        compiler_settings.is_lib,
                         ellie_core::defs::Version::build_from_string(
                             crate::engine_constants::ELLIE_ENGINE_VERSION.to_owned(),
                         ),
                     );
 
                     if compiler_settings.exclude_stdlib {
-                        exit_messages.push(Box::new(|_, _| {
-                            println!(
-                                "\n{}[!]{}: {}'exclude_stdlib'{} option is deprecated",
-                                cli_utils::Colors::Yellow,
-                                cli_utils::Colors::Reset,
-                                cli_utils::Colors::Cyan,
-                                cli_utils::Colors::Reset,
-                            );
-                        }));
+                        println!(
+                            "\n{}[!]{}: {}'exclude_stdlib'{} option is deprecated",
+                            cli_utils::Colors::Yellow,
+                            cli_utils::Colors::Reset,
+                            cli_utils::Colors::Cyan,
+                            cli_utils::Colors::Reset,
+                        );
                     }
 
                     for (module, _) in modules.iter() {
@@ -482,9 +437,6 @@ pub fn compile(
                                     cli_utils::Colors::Reset,
                                 );
                             }
-                        }
-                        for message in exit_messages {
-                            (message)(compiler_settings.clone(), false);
                         }
                         std::process::exit(1)
                     } else {
@@ -779,6 +731,13 @@ pub fn compile(
                     }
 
                     if !compiler_settings.json_log {
+                        println!(
+                            "{}[?]{}: Ellie v{}",
+                            cli_utils::Colors::Green,
+                            cli_utils::Colors::Reset,
+                            crate::engine_constants::ELLIE_ENGINE_VERSION
+                        );
+
                         if (compiler_settings.output_type == cli_utils::OutputTypes::ByteCode
                             || compiler_settings.output_type == cli_utils::OutputTypes::ByteCodeAsm)
                             && compiler_settings.performance_info
@@ -816,9 +775,12 @@ pub fn compile(
                                 cli_utils::Colors::Reset,
                             );
                         }
-                        for message in exit_messages {
-                            (message)(compiler_settings.clone(), true)
-                        }
+
+                        println!(
+                            "{}[!]{}: Ellie is on development and may not be stable.",
+                            cli_utils::Colors::Red,
+                            cli_utils::Colors::Reset,
+                        );
                     }
                 }
                 Err(pager_errors) => {

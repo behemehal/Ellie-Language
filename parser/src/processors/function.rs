@@ -322,18 +322,63 @@ impl super::Processor for function::FunctionCollector {
                             ret.value,
                             inner_page_id,
                         ) {
-                            Ok((same, defined, rtype)) => {
-                                if !same {
+                            Ok(result) => {
+                                if result.requires_cast {
+                                    parser.informations.push(
+                                        &error::error_list::ERROR_S41.clone().build_with_path(
+                                            vec![error::ErrorBuildField {
+                                                key: "token".to_owned(),
+                                                value: "Type helpers are not completely implemented yet. Next error is result of this. Follow progress here (https://github.com/behemehal/EllieWorks/issues/8)".to_owned(),
+                                            }],
+                                            alloc::format!(
+                                                "{}:{}:{}",
+                                                file!().to_owned(),
+                                                line!(),
+                                                column!()
+                                            ),
+                                            page.path.clone(),
+                                            ret.pos,
+                                        ),
+                                    );
                                     let mut err =
                                         error::error_list::ERROR_S3.clone().build_with_path(
                                             vec![
                                                 error::ErrorBuildField {
                                                     key: "token1".to_owned(),
-                                                    value: defined,
+                                                    value: result.first,
                                                 },
                                                 error::ErrorBuildField {
                                                     key: "token2".to_owned(),
-                                                    value: rtype,
+                                                    value: result.second,
+                                                },
+                                            ],
+                                            alloc::format!(
+                                                "{}:{}:{}",
+                                                file!().to_owned(),
+                                                line!(),
+                                                column!()
+                                            ),
+                                            page.path.clone(),
+                                            ret.pos,
+                                        );
+                                    err.reference_block = Some((self.data.return_pos, page.path));
+                                    err.reference_message = "Defined here".to_owned();
+                                    err.semi_assist = true;
+                                    parser.informations.push(&err);
+                                    return false;
+                                }
+
+                                if !result.same {
+                                    let mut err =
+                                        error::error_list::ERROR_S3.clone().build_with_path(
+                                            vec![
+                                                error::ErrorBuildField {
+                                                    key: "token1".to_owned(),
+                                                    value: result.first,
+                                                },
+                                                error::ErrorBuildField {
+                                                    key: "token2".to_owned(),
+                                                    value: result.second,
                                                 },
                                             ],
                                             alloc::format!(

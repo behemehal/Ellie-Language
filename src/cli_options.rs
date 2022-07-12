@@ -2,6 +2,62 @@
 use clap::{Arg, Command, ValueHint};
 
 #[cfg(feature = "build-cli")]
+pub fn generate_elliefmt_options() -> Command<'static> {
+    Command::new("EllieFMT")
+        .about("Ellie Formatter")
+        .arg_required_else_help(true)
+        .subcommand(
+            Command::new("format")
+                .about("Format a file")
+                .arg(
+                    Arg::new("allowPanics")
+                        .help("Allow panics")
+                        .short('a')
+                        .long("--allow-panics"),
+                )
+                .arg(
+                    Arg::new("jsonLog")
+                        .help("Output json log")
+                        .short('j')
+                        .long("-json-log"),
+                ), //FEATURE
+                   //.arg(
+                   //    Arg::new("formatShortType")
+                   //        .help("Convert short types to regular types")
+                   //        .short('l')
+                   //        .long("--log-level")
+                   //),
+        )
+        .subcommand(
+            Command::new("analyze")
+                .about("Analyze file")
+                .arg(
+                    Arg::new("allowPanics")
+                        .help("Allow panics")
+                        .short('a')
+                        .long("--allow-panics"),
+                )
+                .arg(
+                    Arg::new("jsonLog")
+                        .help("Output json log")
+                        .short('j')
+                        .long("-json-log"),
+                ),
+        )
+        .subcommand(
+            Command::new("version")
+                .about("Get version")
+                .arg(
+                    Arg::new("jsonLog")
+                        .help("Output json log")
+                        .short('j')
+                        .long("-json-log"),
+                )
+                .arg(Arg::new("detailed").short('d').long("--detailed-version")),
+        )
+}
+
+#[cfg(feature = "build-cli")]
 pub fn generate_elliec_options() -> Command<'static> {
     Command::new("EllieCompiler")
         .about("Ellie Compiler")
@@ -57,6 +113,12 @@ pub fn generate_elliec_options() -> Command<'static> {
                         .help("Allow panics")
                         .short('a')
                         .long("--allow-panics"),
+                )
+                .arg(
+                    Arg::new("experimentalFeatures")
+                        .help("Allow experimental features")
+                        .short('x')
+                        .long("--experimental-features"),
                 )
                 .arg(
                     Arg::new("showDebugLines")

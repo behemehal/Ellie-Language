@@ -365,4 +365,12 @@ lazy_static! {
         semi_assist: true,
         ..Default::default()
     };
+
+    pub static ref ERROR_S58: error::Error = error::Error {
+        code: 0x57,
+        title: "ExperimentalFeature".to_owned(),
+        message: "Usage of '$token' is experimental, use '--experiental-feature' flag to use it".to_owned(),
+        semi_assist: true,
+        ..Default::default()
+    };
 }

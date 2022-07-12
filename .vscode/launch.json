@@ -18,6 +18,7 @@
       "args": [
         "compile",
         "${workspaceFolder}/test_dir/test.ei",
+        
         "--allow-panics",
       ],
       "cwd": "${workspaceFolder}"

@@ -261,6 +261,7 @@ impl definite::Converter<DefinerTypes, definite::definers::DefinerCollecting> fo
                     ..Default::default()
                 })
             }
+            definite::definers::DefinerCollecting::EnumField(_) => todo!(),
         }
     }
 }

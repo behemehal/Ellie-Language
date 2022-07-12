@@ -28,4 +28,5 @@ pub struct EnumType {
     pub body_pos: crate::defs::Cursor,
     pub file_keys: Vec<FileKey>,
     pub items: Vec<EnumItem>,
+    pub hash: usize,
 }

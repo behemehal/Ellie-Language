@@ -333,6 +333,7 @@ impl super::Processor for ItemProcessor {
             self.current = Processors::Enum(enum_type::EnumType {
                 public: self.used_modifier == Modifier::Pub,
                 pos: self.current.get_pos(),
+                hash: ellie_core::utils::generate_hash_usize(),
                 ..Default::default()
             })
         } else if (keyword == "s" || keyword == "set") && letter_char == ' ' {

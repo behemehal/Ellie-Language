@@ -1,5 +1,12 @@
-use crate::syntax::types::operator_type::{self, ComparisonOperators};
-use ellie_core::{definite::Converter, defs, error, utils};
+use crate::{
+    processors::types::{Processors, TypeProcessor},
+    syntax::types::operator_type::{self, ComparisonOperators},
+};
+use ellie_core::{
+    definite::Converter,
+    defs, error,
+    utils::{self, operator_priority},
+};
 
 impl crate::processors::Processor for operator_type::OperatorTypeCollector {
     fn iterate(
@@ -57,10 +64,33 @@ impl crate::processors::Processor for operator_type::OperatorTypeCollector {
                     }
                 }
                 self.data.pos.range_end = cursor;
-            } else {
-                if self.operator_collect != "" {
-                    self.operator_collected = true;
+            } else if self.operator_collect != "" {
+                if let Processors::Operator(operator) = *self.data.first.clone() {
+                    let first_priority = operator_priority(&operator.operator_collect);
+                    let second_priority = operator_priority(&self.operator_collect);
+                    if first_priority > second_priority {
+                        self.data.first = operator.data.first.clone();
+                        self.operator_collect = operator.operator_collect;
+                        self.itered_cache = Box::new(TypeProcessor {
+                            current: Processors::Operator(operator_type::OperatorTypeCollector {
+                                data: operator_type::OperatorType {
+                                    first: operator.data.second.clone(),
+                                    first_pos: operator.data.first_pos,
+                                    operator: self.data.operator.clone(),
+                                    pos: defs::Cursor::build_from_cursor(cursor.clone()),
+                                    ..Default::default()
+                                },
+                                operator_collected: true,
+                                first_filled: true,
+                                ..Default::default()
+                            }),
+                            ignore: false,
+                        });
+                        self.data.operator = operator.data.operator;
+                    }
                 }
+
+                self.operator_collected = true;
             }
         }
 

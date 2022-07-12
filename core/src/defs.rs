@@ -1,4 +1,6 @@
-use crate::alloc::borrow::ToOwned;
+use core::fmt::{Display, Error, Formatter};
+
+use crate::{alloc::borrow::ToOwned, raw_type::RawType};
 use alloc::{string::String, vec::Vec};
 use serde::{Deserialize, Serialize};
 
@@ -253,14 +255,38 @@ impl Version {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Copy)]
 pub enum PlatformArchitecture {
     B16,
     B32,
     B64,
 }
 
+impl Display for PlatformArchitecture {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
+        match self {
+            PlatformArchitecture::B16 => write!(f, "b16"),
+            PlatformArchitecture::B32 => write!(f, "b32"),
+            PlatformArchitecture::B64 => write!(f, "b64"),
+        }
+    }
+}
+
 impl PlatformArchitecture {
+    pub fn is_16(&self) -> bool {
+        match self {
+            PlatformArchitecture::B16 => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_32(&self) -> bool {
+        match self {
+            PlatformArchitecture::B32 => true,
+            _ => false,
+        }
+    }
+
     pub fn get_code(&self) -> u8 {
         match self {
             PlatformArchitecture::B16 => 16,
@@ -269,11 +295,27 @@ impl PlatformArchitecture {
         }
     }
 
-    pub fn usize_len(&self) -> usize {
+    pub fn usize_len(&self) -> u8 {
         match self {
             PlatformArchitecture::B16 => 2,
             PlatformArchitecture::B32 => 4,
             PlatformArchitecture::B64 => 8,
         }
     }
+
+    pub fn from_byte(byte: u8) -> PlatformArchitecture {
+        match byte {
+            16 => PlatformArchitecture::B16,
+            32 => PlatformArchitecture::B32,
+            64 => PlatformArchitecture::B64,
+            _ => panic!("Unknown architecture"),
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct VmNativeCall {
+    pub module: String,
+    pub name: String,
+    pub params: Vec<RawType>,
 }

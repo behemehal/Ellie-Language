@@ -1,4 +1,4 @@
-use crate::syntax::items::enum_type::{EnumItem, EnumType};
+use crate::syntax::items::enum_type::{EnumItem, EnumType, GenericDefining};
 use ellie_core::{defs, error, utils};
 
 impl crate::processors::Processor for EnumType {
@@ -9,8 +9,7 @@ impl crate::processors::Processor for EnumType {
         last_char: char,
         letter_char: char,
     ) -> bool {
-        let mut hang = false;
-
+        let hang = false;
         if !self.name_collected {
             if utils::reliable_name_range(utils::ReliableNameRanges::VariableName, letter_char)
                 .reliable
@@ -29,9 +28,74 @@ impl crate::processors::Processor for EnumType {
                 }
                 self.name_pos.range_end = cursor;
                 self.name += &letter_char.to_string();
+            } else if letter_char == '<' {
+                self.name_collected = true;
             } else if letter_char == '{' {
                 self.body_pos.range_start = cursor;
                 self.name_collected = true;
+                self.continuum_collected = true;
+                self.generics_collected = true;
+            } else if letter_char != ' ' {
+                errors.push(error::error_list::ERROR_S1.clone().build(
+                    vec![error::ErrorBuildField {
+                        key: "token".to_string(),
+                        value: letter_char.to_string(),
+                    }],
+                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                    defs::Cursor::build_from_cursor(cursor),
+                ));
+            }
+        } else if !self.generics_collected {
+            let generic_len = self.generic_definings.len();
+            if utils::reliable_name_range(utils::ReliableNameRanges::Type, letter_char).reliable {
+                if generic_len == 0 {
+                    self.generic_definings.push(GenericDefining {
+                        pos: defs::Cursor {
+                            range_start: cursor,
+                            ..Default::default()
+                        },
+                        name: letter_char.to_string(),
+                        hash: utils::generate_hash_usize(),
+                    });
+                } else {
+                    if self.generic_definings[generic_len - 1].name == "" {
+                        self.generic_definings[generic_len - 1].pos.range_start = cursor;
+                    } else if last_char == ' ' {
+                        errors.push(error::error_list::ERROR_S1.clone().build(
+                            vec![error::ErrorBuildField {
+                                key: "token".to_string(),
+                                value: letter_char.to_string(),
+                            }],
+                            alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                            defs::Cursor::build_from_cursor(cursor),
+                        ));
+                    }
+                    self.generic_definings[generic_len - 1].pos.range_end = cursor;
+                    self.generic_definings[generic_len - 1].name += &letter_char.to_string();
+                }
+            } else if letter_char == ','
+                && generic_len > 0
+                && self.generic_definings[generic_len - 1].name != ""
+            {
+                self.generic_definings.push(GenericDefining::default());
+            } else if letter_char == '>'
+                && generic_len > 0
+                && self.generic_definings[generic_len - 1].name != ""
+            {
+                self.generics_collected = true;
+            } else if letter_char != ' ' {
+                errors.push(error::error_list::ERROR_S1.clone().build(
+                    vec![error::ErrorBuildField {
+                        key: "token".to_string(),
+                        value: letter_char.to_string(),
+                    }],
+                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                    defs::Cursor::build_from_cursor(cursor),
+                ));
+            }
+        } else if !self.continuum_collected {
+            if letter_char == '{' {
+                self.continuum_collected = true;
             } else if letter_char != ' ' {
                 errors.push(error::error_list::ERROR_S1.clone().build(
                     vec![error::ErrorBuildField {

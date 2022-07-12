@@ -1,17 +1,21 @@
-use std::sync::Mutex;
+#![allow(non_snake_case)]
+use ellie_core::{
+    defs::{PlatformArchitecture, VmNativeCall},
+    raw_type::RawType,
+};
 
 use crate::{
     heap,
     program::ReadInstruction,
-    utils::{self, ExitCode, Instructions, ThreadExit, ThreadPanic, ThreadPanicReason, Types},
+    utils::{self, Instructions, ThreadExit, ThreadPanic, ThreadPanicReason},
 };
 
 pub struct Registers {
-    pub A: (Types, Vec<u8>),
-    pub B: (Types, Vec<u8>),
-    pub C: (Types, Vec<u8>),
-    pub X: (Types, Vec<u8>),
-    pub Y: (Types, Vec<u8>),
+    pub A: RawType,
+    pub B: RawType,
+    pub C: RawType,
+    pub X: RawType,
+    pub Y: RawType,
 }
 
 #[derive(Debug, Clone)]
@@ -61,21 +65,26 @@ impl StackController {
     }
 }
 
-pub struct Thread<'a> {
+pub struct Thread<'a, T> {
     pub id: u32,
     pub program: &'a Vec<ReadInstruction>,
     pub heap: &'a mut heap::Heap,
     pub registers: Registers,
     pub stack: StackController,
-    pub arch: u8,
+    pub arch: PlatformArchitecture,
+    pub(crate) native_call_channel: T,
 }
 
-impl<'a> Thread<'a> {
+impl<'a, T> Thread<'a, T>
+where
+    T: Fn(VmNativeCall) -> bool + Clone + Sized,
+{
     pub fn new(
         id: u32,
-        arch: u8,
+        arch: PlatformArchitecture,
         program: &'a Vec<ReadInstruction>,
         heap: &'a mut heap::Heap,
+        native_call_channel: T,
     ) -> Self {
         Thread {
             id,
@@ -84,12 +93,13 @@ impl<'a> Thread<'a> {
             arch,
             stack: StackController::new(),
             registers: Registers {
-                A: (Types::Void, vec![]),
-                B: (Types::Void, vec![]),
-                C: (Types::Void, vec![]),
-                X: (Types::Void, vec![]),
-                Y: (Types::Void, vec![]),
+                A: RawType::void(),
+                B: RawType::void(),
+                C: RawType::void(),
+                X: RawType::void(),
+                Y: RawType::void(),
             },
+            native_call_channel,
         }
     }
 
@@ -110,9 +120,6 @@ impl<'a> Thread<'a> {
             self.stack.last().unwrap().pos
         );
 
-        let mut thread_exit = ThreadExit::Complete;
-        let last_stack = self.stack.last_mut().unwrap();
-
         loop {
             if self.stack.len() == 0 {
                 println!(
@@ -123,11 +130,10 @@ impl<'a> Thread<'a> {
                     self.id,
                     utils::Colors::Reset
                 );
-                return ThreadExit::Complete;
+                return ThreadExit::ExitGracefully;
             }
 
             //Borrow self.stack with mutex
-
             let mut drop_current_stack = false;
             let current_stack = self.stack.last_mut().unwrap();
 
@@ -145,17 +151,20 @@ impl<'a> Thread<'a> {
 
             let current_instruction = &self.program[current_stack.pos];
             println!(
-                "{}[VM]{}: Executing instruction {:?} : {}",
+                "{}[VM]{} {}({}){} : Exec '{:?}' at {}",
                 utils::Colors::Yellow,
                 utils::Colors::Reset,
-                current_instruction,
+                utils::Colors::Cyan,
+                self.id,
+                utils::Colors::Reset,
+                current_instruction.instruction,
                 current_stack.pos
             );
             match &current_instruction.instruction {
                 Instructions::LDA(_) => match &current_instruction.addressing_value {
                     utils::AddressingValues::Implicit => todo!(),
-                    utils::AddressingValues::Immediate(rtype, value) => {
-                        self.registers.A = (rtype.clone(), value.clone());
+                    utils::AddressingValues::Immediate(raw_type) => {
+                        self.registers.A = raw_type.clone();
                     }
                     utils::AddressingValues::Absolute(e) => {
                         self.registers.A = self.heap.get(e).unwrap().clone()
@@ -176,13 +185,21 @@ impl<'a> Thread<'a> {
                         self.registers.A = self.registers.Y.clone();
                     }
                 },
-                Instructions::LDB(_) => match &current_instruction.addressing_value {
-                    utils::AddressingValues::Implicit => unreachable!("Illegal addressing value"),
-                    utils::AddressingValues::Immediate(rtype, value) => {
-                        self.registers.B = (rtype.clone(), value.clone());
+                Instructions::LDB(e) => match &current_instruction.addressing_value {
+                    utils::AddressingValues::Implicit => unreachable!(
+                        "Illegal addressing value: {:?} {:?}",
+                        current_instruction, e
+                    ),
+                    utils::AddressingValues::Immediate(raw_type) => {
+                        self.registers.B = raw_type.clone();
                     }
                     utils::AddressingValues::Absolute(e) => {
-                        self.registers.B = self.heap.get(e).unwrap().clone();
+                        self.registers.B = match self.heap.get(e) {
+                            Some(e) => e.clone(),
+                            None => {
+                                panic!("HEAP BROKE: {e}\n{}", self.heap.dump())
+                            }
+                        };
                     }
                     utils::AddressingValues::AbsoluteIndex(_, _) => todo!(),
                     utils::AddressingValues::AbsoluteProperty(_, _) => todo!(),
@@ -202,8 +219,8 @@ impl<'a> Thread<'a> {
                 },
                 Instructions::LDC(_) => match &current_instruction.addressing_value {
                     utils::AddressingValues::Implicit => unreachable!("Illegal addressing value"),
-                    utils::AddressingValues::Immediate(rtype, value) => {
-                        self.registers.C = (rtype.clone(), value.clone());
+                    utils::AddressingValues::Immediate(raw_type) => {
+                        self.registers.C = raw_type.clone();
                     }
                     utils::AddressingValues::Absolute(e) => {
                         self.registers.C = self.heap.get(e).unwrap().clone();
@@ -226,8 +243,8 @@ impl<'a> Thread<'a> {
                 },
                 Instructions::LDX(_) => match &current_instruction.addressing_value {
                     utils::AddressingValues::Implicit => unreachable!("Illegal addressing value"),
-                    utils::AddressingValues::Immediate(rtype, value) => {
-                        self.registers.X = (rtype.clone(), value.clone());
+                    utils::AddressingValues::Immediate(raw_type) => {
+                        self.registers.X = raw_type.clone();
                     }
                     utils::AddressingValues::Absolute(e) => {
                         self.registers.X = self.heap.get(e).unwrap().clone();
@@ -250,8 +267,8 @@ impl<'a> Thread<'a> {
                 },
                 Instructions::LDY(_) => match &current_instruction.addressing_value {
                     utils::AddressingValues::Implicit => unreachable!("Illegal addressing value"),
-                    utils::AddressingValues::Immediate(rtype, value) => {
-                        self.registers.Y = (rtype.clone(), value.clone());
+                    utils::AddressingValues::Immediate(raw_type) => {
+                        self.registers.Y = raw_type.clone();
                     }
                     utils::AddressingValues::Absolute(e) => {
                         self.registers.Y = self.heap.get(e).unwrap().clone();
@@ -331,7 +348,7 @@ impl<'a> Thread<'a> {
                     utils::AddressingValues::Implicit => {
                         let b = self.registers.B.clone();
                         let c = self.registers.C.clone();
-                        self.registers.A = (Types::Bool, vec![if b.1 == c.1 { 1 } else { 0 }]);
+                        self.registers.A = RawType::bool(b == c);
                     }
                     _ => panic!("Illegal addressing value"),
                 },
@@ -339,7 +356,7 @@ impl<'a> Thread<'a> {
                     utils::AddressingValues::Implicit => {
                         let b = self.registers.B.clone();
                         let c = self.registers.C.clone();
-                        self.registers.A = (Types::Bool, vec![if b.1 != c.1 { 1 } else { 0 }]);
+                        self.registers.A = RawType::bool(b == c);
                     }
                     _ => panic!("Illegal addressing value"),
                 },
@@ -347,7 +364,7 @@ impl<'a> Thread<'a> {
                     utils::AddressingValues::Implicit => {
                         let b = self.registers.B.clone();
                         let c = self.registers.C.clone();
-                        self.registers.A = (Types::Bool, vec![if b.1 > c.1 { 1 } else { 0 }]);
+                        self.registers.A = RawType::bool(b == c);
                     }
                     _ => panic!("Illegal addressing value"),
                 },
@@ -355,7 +372,7 @@ impl<'a> Thread<'a> {
                     utils::AddressingValues::Implicit => {
                         let b = self.registers.B.clone();
                         let c = self.registers.C.clone();
-                        self.registers.A = (Types::Bool, vec![if b.1 < c.1 { 1 } else { 0 }]);
+                        self.registers.A = RawType::bool(b == c);
                     }
                     _ => panic!("Illegal addressing value"),
                 },
@@ -363,7 +380,7 @@ impl<'a> Thread<'a> {
                     utils::AddressingValues::Implicit => {
                         let b = self.registers.B.clone();
                         let c = self.registers.C.clone();
-                        self.registers.A = (Types::Bool, vec![if b.1 >= c.1 { 1 } else { 0 }]);
+                        self.registers.A = RawType::bool(b == c);
                     }
                     _ => panic!("Illegal addressing value"),
                 },
@@ -371,7 +388,7 @@ impl<'a> Thread<'a> {
                     utils::AddressingValues::Implicit => {
                         let b = self.registers.B.clone();
                         let c = self.registers.C.clone();
-                        self.registers.A = (Types::Bool, vec![if b.1 <= c.1 { 1 } else { 0 }]);
+                        self.registers.A = RawType::bool(b == c);
                     }
                     _ => panic!("Illegal addressing value"),
                 },
@@ -379,15 +396,14 @@ impl<'a> Thread<'a> {
                     utils::AddressingValues::Implicit => {
                         let b = self.registers.B.clone();
                         let c = self.registers.C.clone();
-                        let and = b.0 == Types::Bool && c.0 == Types::Bool;
-                        let and = if and {
-                            let b: bool = b.1.first().unwrap().clone() == 1_u8;
-                            let c: bool = c.1.first().unwrap().clone() == 1_u8;
+                        let and = if c.is_bool() && b.is_bool() {
+                            let b: bool = b.data.first().unwrap() == &1_u8;
+                            let c: bool = c.data.first().unwrap() == &1_u8;
                             b && c
                         } else {
                             false
                         };
-                        self.registers.A = (Types::Bool, vec![if b.1 <= c.1 { 1 } else { 0 }]);
+                        self.registers.A = RawType::bool(and);
                     }
                     _ => panic!("Illegal addressing value"),
                 },
@@ -395,15 +411,14 @@ impl<'a> Thread<'a> {
                     utils::AddressingValues::Implicit => {
                         let b = self.registers.B.clone();
                         let c = self.registers.C.clone();
-                        let or = b.0 == Types::Bool && c.0 == Types::Bool;
-                        let or = if or {
-                            let b: bool = b.1.first().unwrap().clone() == 1_u8;
-                            let c: bool = c.1.first().unwrap().clone() == 1_u8;
+                        let and = if c.is_bool() && b.is_bool() {
+                            let b: bool = b.data.first().unwrap() == &1_u8;
+                            let c: bool = c.data.first().unwrap() == &1_u8;
                             b || c
                         } else {
                             false
                         };
-                        self.registers.A = (Types::Bool, vec![if b.1 <= c.1 { 1 } else { 0 }]);
+                        self.registers.A = RawType::bool(and);
                     }
                     _ => panic!("Illegal addressing value"),
                 },
@@ -411,14 +426,10 @@ impl<'a> Thread<'a> {
                     utils::AddressingValues::Implicit => {
                         let b = self.registers.B.clone();
                         let c = self.registers.C.clone();
-                        let arch_size = self.arch / 8;
-
-                        let result = match (b.0, c.0) {
-                            (Types::Integer, Types::Integer) => {
-                                let b_value =
-                                    usize::from_le_bytes(b.1[0..b.1.len()].try_into().unwrap());
-                                let c_value =
-                                    usize::from_le_bytes(c.1[0..c.1.len()].try_into().unwrap());
+                        match (b.type_id.id, c.type_id.id) {
+                            (1, 1) => {
+                                let b_value = usize::from_le_bytes(b.data.try_into().unwrap());
+                                let c_value = usize::from_le_bytes(c.data.try_into().unwrap());
                                 let result = match b_value.checked_add(c_value) {
                                     Some(e) => e,
                                     None => {
@@ -429,38 +440,54 @@ impl<'a> Thread<'a> {
                                     }
                                 };
                                 //Check emulated platform overflow
-                                if self.arch == 16 && result > 0xffff {
+                                if self.arch.is_16() && result > 0xffff {
                                     return ThreadExit::Panic(ThreadPanic {
                                         reason: ThreadPanicReason::IntegerOverflow,
                                         stack_trace: self.stack.stack.clone(),
                                     });
-                                } else if self.arch == 32 && result > 0xffff_ffff {
+                                } else if self.arch.is_32() && result > 0xffff_ffff {
                                     return ThreadExit::Panic(ThreadPanic {
                                         reason: ThreadPanicReason::IntegerOverflow,
                                         stack_trace: self.stack.stack.clone(),
                                     });
                                 }
-                                self.registers.A = (Types::Integer, result.to_le_bytes().to_vec());
+                                self.registers.A = RawType::integer(result.to_le_bytes().to_vec());
                             }
-                            (Types::Float, Types::Integer) => todo!(),
-                            (Types::Float, Types::Float) => todo!(),
-                            (Types::Double, Types::Integer) => todo!(),
-                            (Types::Double, Types::Double) => todo!(),
-                            (Types::Byte, Types::Byte) => todo!(),
-                            (Types::String, Types::Integer) => {
-                                let b_value = String::from_utf8(b.1.clone()).unwrap();
+                            //Float + int
+                            (2, 1) => todo!(),
+                            //Float + float
+                            (2, 2) => todo!(),
+                            // Double + integer
+                            (3, 1) => todo!(),
+                            // Double + Double
+                            (3, 3) => todo!(),
+                            // Byte + Byte
+                            (4, 4) => todo!(),
+                            // String + Integer
+                            (6, 1) => {
+                                let b_value = String::from_utf8(b.data).unwrap();
                                 let c_value =
-                                    usize::from_le_bytes(c.1[0..c.1.len()].try_into().unwrap())
-                                        .to_string();
+                                    usize::from_le_bytes(c.data.try_into().unwrap()).to_string();
                                 let result = b_value + &c_value;
-                                self.registers.A = (Types::String, result.bytes().collect());
+                                self.registers.A = RawType::string(result.bytes().collect());
                             }
-                            (Types::String, Types::Float) => todo!(),
-                            (Types::String, Types::Double) => todo!(),
-                            (Types::String, Types::Byte) => todo!(),
-                            (Types::String, Types::Bool) => todo!(),
-                            (Types::String, Types::String) => todo!(),
-                            (Types::String, Types::Char) => todo!(),
+                            //String + Float
+                            (6, 2) => todo!(),
+                            //String + Double
+                            (6, 3) => todo!(),
+                            // String + Byte
+                            (6, 4) => todo!(),
+                            // String + Bool
+                            (6, 5) => todo!(),
+                            // String + String
+                            (6, 6) => {
+                                let b_value = String::from_utf8(b.data).unwrap();
+                                let c_value = String::from_utf8(c.data).unwrap();
+                                let result = b_value + &c_value;
+                                self.registers.A = RawType::string(result.bytes().collect());
+                            }
+                            // String + Char
+                            (6, 7) => todo!(),
                             _ => {
                                 return ThreadExit::Panic(ThreadPanic {
                                     reason: ThreadPanicReason::UnmergebleTypes,
@@ -476,8 +503,8 @@ impl<'a> Thread<'a> {
                         let b = self.registers.B.clone();
                         let c = self.registers.C.clone();
 
-                        let b_value = usize::from_le_bytes(b.1[0..8].try_into().unwrap());
-                        let c_value = usize::from_le_bytes(c.1[0..8].try_into().unwrap());
+                        let b_value = usize::from_le_bytes(b.data.try_into().unwrap());
+                        let c_value = usize::from_le_bytes(c.data.try_into().unwrap());
                         let result = match b_value.checked_sub(c_value) {
                             Some(e) => e,
                             None => {
@@ -488,7 +515,7 @@ impl<'a> Thread<'a> {
                             }
                         };
 
-                        self.registers.A = (Types::Integer, result.to_le_bytes().to_vec());
+                        self.registers.A = RawType::integer(result.to_le_bytes().to_vec());
                     }
                     _ => panic!("Illegal addressing value"),
                 },
@@ -496,8 +523,8 @@ impl<'a> Thread<'a> {
                     utils::AddressingValues::Implicit => {
                         let b = self.registers.B.clone();
                         let c = self.registers.C.clone();
-                        let b_value = usize::from_le_bytes(b.1[0..8].try_into().unwrap());
-                        let c_value = usize::from_le_bytes(c.1[0..8].try_into().unwrap());
+                        let b_value = usize::from_le_bytes(b.data.try_into().unwrap());
+                        let c_value = usize::from_le_bytes(c.data.try_into().unwrap());
 
                         let result = match b_value.checked_mul(c_value) {
                             Some(e) => e,
@@ -510,19 +537,19 @@ impl<'a> Thread<'a> {
                         };
 
                         //Check emulated platform overflow
-                        if self.arch == 16 && result > 0xffff {
+                        if self.arch.is_16() && result > 0xffff {
                             return ThreadExit::Panic(ThreadPanic {
                                 reason: ThreadPanicReason::IntegerOverflow,
                                 stack_trace: self.stack.stack.clone(),
                             });
-                        } else if self.arch == 32 && result > 0xffff_ffff {
+                        } else if self.arch.is_32() && result > 0xffff_ffff {
                             return ThreadExit::Panic(ThreadPanic {
                                 reason: ThreadPanicReason::IntegerOverflow,
                                 stack_trace: self.stack.stack.clone(),
                             });
                         }
 
-                        self.registers.A = (Types::Integer, result.to_le_bytes().to_vec());
+                        self.registers.A = RawType::integer(result.to_le_bytes().to_vec());
                     }
                     _ => panic!("Illegal addressing value"),
                 },
@@ -530,8 +557,8 @@ impl<'a> Thread<'a> {
                     utils::AddressingValues::Implicit => {
                         let b = self.registers.B.clone();
                         let c = self.registers.C.clone();
-                        let b_value = usize::from_le_bytes(b.1[0..8].try_into().unwrap());
-                        let c_value = usize::from_le_bytes(c.1[0..8].try_into().unwrap());
+                        let _b_value = usize::from_le_bytes(b.data.try_into().unwrap());
+                        let _c_value = usize::from_le_bytes(c.data.try_into().unwrap());
                         //TODO
                         panic!("Exponentiation not implemented");
                     }
@@ -541,8 +568,8 @@ impl<'a> Thread<'a> {
                     utils::AddressingValues::Implicit => {
                         let b = self.registers.B.clone();
                         let c = self.registers.C.clone();
-                        let b_value = usize::from_le_bytes(b.1[0..8].try_into().unwrap());
-                        let c_value = usize::from_le_bytes(c.1[0..8].try_into().unwrap());
+                        let b_value = usize::from_le_bytes(b.data.try_into().unwrap());
+                        let c_value = usize::from_le_bytes(c.data.try_into().unwrap());
                         let result = match b_value.checked_div(c_value) {
                             Some(e) => e,
                             None => {
@@ -554,27 +581,27 @@ impl<'a> Thread<'a> {
                         };
 
                         //Check emulated platform overflow
-                        if self.arch == 16 && result > 0xffff {
+                        if self.arch.is_16() && result > 0xffff {
                             return ThreadExit::Panic(ThreadPanic {
                                 reason: ThreadPanicReason::IntegerOverflow,
                                 stack_trace: self.stack.stack.clone(),
                             });
-                        } else if self.arch == 32 && result > 0xffff_ffff {
+                        } else if self.arch.is_32() && result > 0xffff_ffff {
                             return ThreadExit::Panic(ThreadPanic {
                                 reason: ThreadPanicReason::IntegerOverflow,
                                 stack_trace: self.stack.stack.clone(),
                             });
                         }
 
-                        self.registers.A = (Types::Integer, result.to_le_bytes().to_vec());
+                        self.registers.A = RawType::integer(result.to_le_bytes().to_vec());
                     }
                     _ => panic!("Illegal addressing value"),
                 },
                 Instructions::MOD(_) => match &current_instruction.addressing_value {
                     utils::AddressingValues::Implicit => {
-                        let b = self.registers.B.clone();
-                        let c = self.registers.C.clone();
-                        panic!("Modulo not implemented");
+                        let _b = self.registers.B.clone();
+                        let _c = self.registers.C.clone();
+                        panic!("Mod not implemented");
                     }
                     _ => panic!("Illegal addressing value"),
                 },
@@ -591,46 +618,64 @@ impl<'a> Thread<'a> {
                     _ => panic!("Illegal addressing value"),
                 },
                 Instructions::JMP(_) => todo!(),
-                Instructions::CALL(e) => {
-                    match &current_instruction.addressing_value {
-                        utils::AddressingValues::Absolute(stack_pos) => {
-                            println!(
-                                "{}[VM]{} Push stack: {}",
-                                utils::Colors::Yellow,
-                                utils::Colors::Reset,
-                                stack_pos
-                            );
-                            current_stack.pos += 1;
-                            let current_stack_id = current_stack.id.clone();
-                            match self.stack.push(Stack {
-                                id: *stack_pos,
-                                name: format!("fn<{}>", stack_pos),
-                                caller: Some(current_stack_id),
-                                pos: *stack_pos,
-                            }) {
-                                Ok(_) => (),
-                                Err(_) => {
-                                    println!(
-                                        "{}[VM]{} Might be Stack overflow",
-                                        utils::Colors::Red,
-                                        utils::Colors::Reset
-                                    );
-                                    //return ThreadExit::StackOverflow;
-                                }
-                            };
-                            continue;
-                        }
-                        _ => panic!("Illegal addressing value"),
-                    }
-                }
-                Instructions::CALLN(e) => match &current_instruction.addressing_value {
+                Instructions::CALL(e) => match &current_instruction.addressing_value {
                     utils::AddressingValues::Absolute(stack_pos) => {
                         println!(
-                            "{}[VM]{} Native Call: {}",
+                            "{}[CL]{} Call Function: {:?}",
+                            utils::Colors::Red,
+                            utils::Colors::Reset,
+                            e
+                        );
+                        println!(
+                            "{}[VM]{} Push stack: {}",
                             utils::Colors::Yellow,
                             utils::Colors::Reset,
                             stack_pos
                         );
+                        current_stack.pos += 1;
+                        let current_stack_id = current_stack.id.clone();
+                        match self.stack.push(Stack {
+                            id: *stack_pos,
+                            name: format!("fn<{}>", stack_pos),
+                            caller: Some(current_stack_id),
+                            pos: *stack_pos,
+                        }) {
+                            Ok(_) => (),
+                            Err(_) => {
+                                return ThreadExit::Panic(ThreadPanic {
+                                    reason: ThreadPanicReason::StackOverflow,
+                                    stack_trace: self.stack.stack.clone(),
+                                });
+                            }
+                        };
+                        continue;
+                    }
+                    _ => panic!("Illegal addressing value"),
+                },
+                Instructions::CALLN(_) => match &current_instruction.addressing_value {
+                    utils::AddressingValues::Immediate(target) => {
+                        let location = String::from_utf8(target.data.clone()).unwrap();
+                        let module = location.split(">").collect::<Vec<_>>()[0];
+                        let fn_name = location.split(">").collect::<Vec<_>>()[1]
+                            .split(":")
+                            .collect::<Vec<_>>()[0];
+                        let number_of_params = location.split(":").collect::<Vec<_>>()[1]
+                            .parse::<usize>()
+                            .unwrap();
+                        let raw_params = {
+                            let mut params = Vec::new();
+                            for i in 0..number_of_params {
+                                params.push(self.heap.get(&i).unwrap().clone());
+                            }
+                            params
+                        };
+                        let native_call = VmNativeCall {
+                            module: module.to_string(),
+                            name: fn_name.to_string(),
+                            params: raw_params,
+                        };
+
+                        (self.native_call_channel)(native_call);
                     }
                     _ => panic!("Illegal addressing value"),
                 },
@@ -638,7 +683,7 @@ impl<'a> Thread<'a> {
                     utils::AddressingValues::Implicit => {
                         drop_current_stack = true;
                     }
-                    utils::AddressingValues::Immediate(_, _) => todo!(),
+                    utils::AddressingValues::Immediate(_) => todo!(),
                     utils::AddressingValues::Absolute(_) => todo!(),
                     utils::AddressingValues::AbsoluteIndex(_, _) => todo!(),
                     utils::AddressingValues::AbsoluteProperty(_, _) => todo!(),
@@ -648,7 +693,17 @@ impl<'a> Thread<'a> {
                     utils::AddressingValues::IndirectX => todo!(),
                     utils::AddressingValues::IndirectY => todo!(),
                 },
-                Instructions::AOL(_) => todo!(),
+                Instructions::AOL(_) => {
+                    println!(
+                        "{}[VM]{} Ignore aol: {}",
+                        utils::Colors::Yellow,
+                        utils::Colors::Reset,
+                        match current_instruction.addressing_value {
+                            utils::AddressingValues::Absolute(e) => e,
+                            _ => unreachable!("Wrong op-code"),
+                        }
+                    );
+                }
                 Instructions::PUSHA(_) => todo!(),
                 Instructions::LEN(_) => todo!(),
                 Instructions::A2I(_) => todo!(),
@@ -661,6 +716,7 @@ impl<'a> Thread<'a> {
                 Instructions::JMPA(_) => todo!(),
                 Instructions::POPS(_) => todo!(),
                 Instructions::ACP(_) => todo!(),
+                Instructions::BRK(_) => todo!(),
             }
             if drop_current_stack {
                 println!(

@@ -275,8 +275,8 @@ where
             false,
         );
         println!(
-            "{}{}[?]{}╞ Check online standard rules repo for more info {}{}{}",
-            generate_blank(line_space - 1),
+            "{}{}[?]{} ╞ Check online standard rules repo for more info {}{}{}",
+            generate_blank(line_space - 2),
             Colors::Magenta,
             Colors::Reset,
             Colors::Green,
@@ -290,8 +290,8 @@ where
         if warning.full_assist || warning.semi_assist {
             if cfg!(feature = "ellie_assist") {
                 println!(
-                    "{}{}[{}]{}╞ {} assistment available type '{}ellie{} {}--show-me-something{} {}{}{}' for request assist",
-                    generate_blank(line_space - 1),
+                    "{}{}[{}]{} ╞ {} assistment available type '{}ellie{} {}--show-me-something{} {}{}{}' for request assist",
+                    generate_blank(line_space - 2),
                     Colors::Yellow,
                     if warning.semi_assist {
                         "◆"
@@ -314,8 +314,8 @@ where
                 );
             } else {
                 println!(
-                    "{}{}[x]{}╞ {} assistment available but {}ellie_assist{} feature is not enabled",
-                    generate_blank(line_space - 1),
+                    "{}{}[x]{} ╞ {} assistment available but {}ellie_assist{} feature is not enabled",
+                    generate_blank(line_space - 2),
                     Colors::Yellow,
                     Colors::Reset,
                     if warning.semi_assist {
@@ -342,8 +342,9 @@ pub fn print_errors<E, F>(
 {
     for error in errors {
         println!(
-            "\n{}Error[{:#04x}{}]{}: {}{}{}\n",
+            "\n{}{} [{:#04x}{}]{}: {}{}{}\n",
             Colors::Red,
+            error.title,
             error.code,
             if show_debug_lines {
                 format!(" - {}", error.debug_message)
@@ -382,14 +383,9 @@ pub fn print_errors<E, F>(
             true,
         );
         println!(
-            "  {}[?]{}{}╞ Check online error repo for more info {}{}{}",
+            "  {}[?]{} ╞ Check online error repo for more info {}{}{}",
             Colors::Magenta,
             Colors::Reset,
-            if line_space < 3 {
-                String::new()
-            } else {
-                generate_blank(line_space - 3)
-            },
             Colors::Green,
             format!(
                 "https://www.ellie-lang.org/errorIndex.html#{:#04x}",
@@ -401,8 +397,8 @@ pub fn print_errors<E, F>(
         if error.full_assist || error.semi_assist {
             if cfg!(feature = "ellie_assist") {
                 println!(
-                    "{}{}[{}]{}╞ {} assistment available type '{}ellie{} {}--show-me-something{} {}{}{}' for request assist",
-                    generate_blank(line_space - 1),
+                    "{}{}[{}]{} ╞ {} assistment available type '{}ellie{} {}--show-me-something{} {}{}{}' for request assist",
+                    generate_blank(line_space - 2),
                     Colors::Yellow,
                     if error.semi_assist {
                         "◆"
@@ -425,8 +421,8 @@ pub fn print_errors<E, F>(
                 );
             } else {
                 println!(
-                    "{}{}[x]{}╞ {} assistment available but {}ellie_assist{} feature is not enabled",
-                    generate_blank(line_space - 1),
+                    "{}{}[x]{} ╞ {} assistment available but {}ellie_assist{} feature is not enabled",
+                    generate_blank(line_space - 2),
                     Colors::Yellow,
                     Colors::Reset,
                     if error.semi_assist {

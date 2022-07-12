@@ -1,5 +1,5 @@
 use alloc::{borrow::ToOwned, vec, vec::Vec};
-use ellie_core::{defs, error, warning};
+use ellie_core::{defs, error, utils, warning};
 use ellie_tokenizer::{syntax::items::class::Class, tokenizer::PageType};
 
 impl super::Processor for Class {
@@ -12,7 +12,29 @@ impl super::Processor for Class {
     ) -> bool {
         let (duplicate, found) =
             parser.is_duplicate(page_hash, self.name.clone(), self.hash.clone(), self.pos);
+
         let path = parser.pages.nth(page_idx).unwrap().path.clone();
+        let class_key_definings = parser
+            .processed_pages
+            .nth_mut(processed_page_idx)
+            .unwrap()
+            .unassigned_file_keys
+            .clone();
+
+        if utils::is_reserved(&self.name, class_key_definings.iter().find(|x| x.key_name == "dont_fix_variant").is_some()) {
+            parser
+                .informations
+                .push(&error::error_list::ERROR_S21.clone().build_with_path(
+                    vec![error::ErrorBuildField {
+                        key: "token".to_owned(),
+                        value: self.name.clone(),
+                    }],
+                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                    path.clone(),
+                    self.name_pos,
+                ));
+        }
+
         if duplicate {
             if let Some((page, cursor_pos)) = found {
                 let mut err = error::error_list::ERROR_S24.clone().build_with_path(

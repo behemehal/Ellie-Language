@@ -15,7 +15,7 @@ impl super::Transpiler for condition::Condition {
         hash: usize,
         processed_page: &ellie_parser::parser::ProcessedPage,
     ) -> bool {
-        let has_ret = self.returns.is_some();
+        let _has_ret = self.returns.is_some();
         let mut data_cursor = 0;
         {
             assembler
@@ -31,10 +31,14 @@ impl super::Transpiler for condition::Condition {
             assembler.locals.push(LocalHeader {
                 name: "$0".to_string(),
                 cursor: assembler.instructions.len() - 1,
+                page_hash: processed_page.hash,
                 reference: None,
             });
             data_cursor = assembler.instructions.len() - 1;
         }
+
+        let mut dependencies = vec![processed_page.hash];
+        dependencies.extend(processed_page.dependencies.iter().map(|d| d.hash));
 
         for chain in &self.chains {
             if chain.rtype != ellie_core::definite::items::condition::ConditionType::Else {
@@ -43,6 +47,7 @@ impl super::Transpiler for condition::Condition {
                     &chain.condition,
                     instructions::Registers::A,
                     &hash,
+                    Some(dependencies.clone()),
                 );
                 assembler.instructions.extend(resolved_instructions);
             }
@@ -63,7 +68,7 @@ impl super::Transpiler for condition::Condition {
                 )));
             ret_location = assembler.instructions.len() - 1;
         }
-        for chain in &self.chains {
+        for _ in &self.chains {
             assembler
                 .instructions
                 .push(instructions::Instructions::ACP(Instruction::absolute(

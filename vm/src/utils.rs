@@ -1,28 +1,34 @@
 use std::fmt::Display;
 
+use ellie_core::raw_type::RawType;
+
 use crate::thread::Stack;
 
 pub trait Reader {
     fn read(&mut self) -> Option<u8>;
 }
 
+#[derive(Debug, Clone)]
 pub enum ThreadPanicReason {
     IntegerOverflow,
     PlatformOverflow,
     FloatOverflow,
     DoubleOverflow,
     UnmergebleTypes,
+    StackOverflow,
 }
 
+#[derive(Debug, Clone)]
 pub struct ThreadPanic {
     pub reason: ThreadPanicReason,
     pub stack_trace: Vec<Stack>,
 }
 
+#[derive(Debug, Clone)]
 pub enum ThreadExit {
     Panic(ThreadPanic),
     OutOfInstructions,
-    Complete,
+    ExitGracefully,
 }
 
 pub enum ExitCode {
@@ -39,7 +45,7 @@ pub enum Types {
     Bool,
     String,
     Char,
-    Array(Box<Types>),
+    Array,
     Vector,
     Void,
 }
@@ -54,7 +60,7 @@ impl Types {
             Types::Bool => String::from("Bool"),
             Types::String => String::from("String"),
             Types::Char => String::from("Char"),
-            Types::Array(t) => format!("Array({})", t.display()),
+            Types::Array => String::from("Array"),
             Types::Vector => String::from("Vector"),
             Types::Void => String::from("Void"),
         }
@@ -83,7 +89,7 @@ pub struct Instruction {
 #[derive(Clone, Debug)]
 pub enum AddressingValues {
     Implicit,
-    Immediate(Types, Vec<u8>),
+    Immediate(RawType),
     Absolute(usize),
     AbsoluteIndex(usize, usize),
     AbsoluteProperty(usize, usize),
@@ -93,50 +99,6 @@ pub enum AddressingValues {
     IndirectC,
     IndirectX,
     IndirectY,
-}
-
-pub fn resolve_type(
-    tree_size: usize,
-    chains: Vec<[u8; 2]>,
-    arch: u8,
-) -> Result<(Types, usize), u8> {
-    fn resolve_type(first: u8, second: u8, arch: u8) -> (Types, usize) {
-        match (first, second) {
-            (1, 0) => (Types::Integer, (arch / 8) as usize),
-            (2, 0) => (Types::Float, (arch / 8) as usize),
-            (3, 0) => (Types::Double, (arch / 8) as usize),
-            (5, 0) => (Types::Bool, 1),
-            (7, 0) => (Types::Char, 1), // UTF-8
-            (4, 0) => (Types::Byte, 1),
-            (8, 0) => (Types::Void, 1),
-            (6, 1) => (Types::String, 1),
-            //(6, 2) => Types::String, //TODO UTF-16
-            //(6, 3) => Types::String, //TODO UTF-32
-            (9, x) => {
-                let inner_type = resolve_type(x, 0, arch);
-                (Types::Array(Box::new(inner_type.0)), inner_type.1)
-            }
-            _ => unreachable!("Invalid type defination: ({}, {})", first, second),
-        }
-    }
-
-    match tree_size {
-        0 => unreachable!(),
-        1 => {
-            //INT, BYTE, BOOL, CHAR, VOID, DOUBLE, FLOAT
-            let entry = chains[0];
-            let resolved_type = resolve_type(entry[0], entry[1], arch);
-            Ok((resolved_type.0, resolved_type.1))
-        }
-        x => {
-            let mut childs = Vec::new();
-            let type_of_array = resolve_type(chains[0][0], chains[0][1], arch);
-            for chain in &chains {
-                childs.push(resolve_type(chain[0], chain[1], arch))
-            }
-            Ok((type_of_array.0, chains.len()))
-        }
-    }
 }
 
 #[derive(Clone, Debug)]
@@ -169,7 +131,6 @@ pub enum Instructions {
     DEC(Instruction),
     JMP(Instruction),
     CALL(Instruction),
-    CALLN(Instruction),
     RET(Instruction),
     AOL(Instruction),
     PUSHA(Instruction),
@@ -184,6 +145,8 @@ pub enum Instructions {
     JMPA(Instruction),
     POPS(Instruction),
     ACP(Instruction),
+    BRK(Instruction),
+    CALLN(Instruction),
 }
 
 impl Instructions {
@@ -483,6 +446,12 @@ impl Instructions {
             98 => Some(Instructions::ACP(Instruction {
                 addressing_mode: AddressingModes::Absolute,
             })),
+            99 => Some(Instructions::BRK(Instruction {
+                addressing_mode: AddressingModes::Absolute,
+            })),
+            100 => Some(Instructions::CALLN(Instruction {
+                addressing_mode: AddressingModes::Immediate,
+            })),
             _ => None,
         }
     }
@@ -517,7 +486,6 @@ impl Instructions {
             Instructions::DEC(e) => e.addressing_mode.clone(),
             Instructions::JMP(e) => e.addressing_mode.clone(),
             Instructions::CALL(e) => e.addressing_mode.clone(),
-            Instructions::CALLN(e) => e.addressing_mode.clone(),
             Instructions::RET(e) => e.addressing_mode.clone(),
             Instructions::AOL(e) => e.addressing_mode.clone(),
             Instructions::PUSHA(e) => e.addressing_mode.clone(),
@@ -532,6 +500,8 @@ impl Instructions {
             Instructions::JMPA(e) => e.addressing_mode.clone(),
             Instructions::POPS(e) => e.addressing_mode.clone(),
             Instructions::ACP(e) => e.addressing_mode.clone(),
+            Instructions::BRK(e) => e.addressing_mode.clone(),
+            Instructions::CALLN(e) => e.addressing_mode.clone(),
         }
     }
 }
@@ -553,7 +523,6 @@ impl ProgramReader<'_> {
 
     pub fn read_usize(&mut self, arch_size: u8) -> Option<usize> {
         //Read usize in little endian
-        let mut result = 0;
         let mut bytes = Vec::new();
         for _ in 0..arch_size {
             match self.reader.read() {
@@ -568,7 +537,6 @@ impl ProgramReader<'_> {
 
     pub fn read_isize(&mut self, arch_size: u8) -> Option<isize> {
         //Read usize in little endian
-        let mut result = 0;
         let mut bytes = Vec::new();
         for _ in 0..arch_size {
             match self.reader.read() {

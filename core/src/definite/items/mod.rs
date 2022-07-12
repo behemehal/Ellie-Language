@@ -16,6 +16,7 @@ pub mod native_function;
 pub mod setter;
 pub mod setter_call;
 pub mod variable;
+pub mod extend;
 
 pub mod constructor_parameter;
 pub mod function_parameter;
@@ -32,6 +33,7 @@ pub enum Collecting {
     ForLoop(for_loop::ForLoop),
     Condition(condition::Condition),
     Class(class::Class),
+    Extend(extend::Extend),
     Ret(ret::Ret),
     Brk(brk::Brk),
     Go(go::Go),
@@ -89,7 +91,8 @@ impl Collecting {
             Collecting::None => unreachable!(),
             Collecting::Brk(e) => e.pos,
             Collecting::Go(e) => e.pos,
-            Collecting::SelfItem(e) => unreachable!(),
+            Collecting::SelfItem(_) => unreachable!(),
+            Collecting::Extend(e) => e.pos,
         }
     }
 
@@ -110,13 +113,14 @@ impl Collecting {
             Collecting::SetterCall(_) => false,
             Collecting::Enum(e) => e.public,
             Collecting::NativeFunction(e) => e.public,
-            Collecting::SelfItem(e) => true,
+            Collecting::SelfItem(_) => true,
             Collecting::None => false,
             Collecting::Generic(_) => false,
             Collecting::Brk(_) => false,
             Collecting::Go(_) => false,
             Collecting::FuctionParameter(_) => false,
             Collecting::ConstructorParameter(_) => false,
+            Collecting::Extend(_) => false,
         }
     }
 }

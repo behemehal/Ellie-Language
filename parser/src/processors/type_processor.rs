@@ -12,7 +12,7 @@ use ellie_core::{
 };
 use ellie_tokenizer::processors::types::Processors;
 
-use crate::deep_search_extensions::{deep_search, deep_search_hash, find_type, resolve_type};
+use crate::deep_search_extensions::{deep_search, deep_search_hash, find_type, resolve_type, generate_type_from_defining};
 
 pub fn process(
     from: Processors,
@@ -64,6 +64,13 @@ pub fn process(
                         return Err(errors);
                     }
                     crate::parser::DeepSearchItems::Variable(e) => {
+                        Ok(types::Types::VariableType(types::variable::VariableType {
+                            value: e.name,
+                            reference: e.hash,
+                            pos: from.get_pos(),
+                        }))
+                    }
+                    crate::parser::DeepSearchItems::Enum(e) => {
                         Ok(types::Types::VariableType(types::variable::VariableType {
                             value: e.name,
                             reference: e.hash,
@@ -291,7 +298,7 @@ pub fn process(
             }
 
             let _first_value = match resolve_type(
-                operator.data.first.to_definite(),
+                processed_first_value.clone().unwrap(),
                 page_id,
                 parser,
                 &mut errors,
@@ -300,8 +307,9 @@ pub fn process(
                 Some(e) => e,
                 None => return Err(errors),
             };
+            std::println!(":: {:?}", processed_second_value);
             let _second_value = match resolve_type(
-                operator.data.second.to_definite(),
+                processed_second_value.clone().unwrap(),
                 page_id,
                 parser,
                 &mut errors,
@@ -310,6 +318,7 @@ pub fn process(
                 Some(e) => e,
                 None => return Err(errors),
             };
+
 
             match ellie_core::utils::operator_control(
                 operator.data.operator.clone().to_definite(),
@@ -348,6 +357,8 @@ pub fn process(
                         Method,
                         Setter,
                         Getter,
+                        EnumItemData,
+                        _EnumItemNoData,
                     }
 
                     #[derive(Debug, Clone)]
@@ -722,6 +733,47 @@ pub fn process(
                                         crate::deep_search_extensions::ProcessedDeepSearchItems::ImportReference(_) => todo!(),
                                         crate::deep_search_extensions::ProcessedDeepSearchItems::GenericItem(_) => todo!(),
                                         crate::deep_search_extensions::ProcessedDeepSearchItems::None => todo!(),
+                                        crate::deep_search_extensions::ProcessedDeepSearchItems::Enum(enum_data) => {
+                                            Ok(enum_data.items.iter().map(|item| {
+                                                Attribute {
+                                                    _rtype: match item.value {
+                                                        ellie_core::definite::items::enum_type::EnumValue::NoValue => AttributeType::EnumItemData,
+                                                        ellie_core::definite::items::enum_type::EnumValue::Value(_) => AttributeType::EnumItemData,
+                                                    },
+                                                    name: item.identifier.clone(),
+                                                    value:  match item.value.clone() {
+                                                        ellie_core::definite::items::enum_type::EnumValue::NoValue => {
+                                                            match find_type("void".to_string(), page_id, parser) {
+                                                                Some(e) => ellie_core::definite::definers::DefinerCollecting::Generic(e),
+                                                                None => {
+                                                                    errors.push(
+                                                                        error::error_list::ERROR_S38.clone().build_with_path(
+                                                                            vec![error::ErrorBuildField {
+                                                                                key: "void".to_owned(),
+                                                                                value: reference_type.to_string(),
+                                                                            }],
+                                                                            alloc::format!(
+                                                                                "{}:{}:{}",
+                                                                                file!().to_owned(),
+                                                                                line!(),
+                                                                                column!()
+                                                                            ),
+                                                                            parser.find_page(page_id).unwrap().path.clone(),
+                                                                            reference_pos,
+                                                                        ),
+                                                                    );
+                                                                    DefinerCollecting::Dynamic
+                                                                }
+                                                            }
+                                                            
+                                                        },
+                                                        ellie_core::definite::items::enum_type::EnumValue::Value(e) => 
+                                                           e
+                                                        
+                                                    },
+                                                }
+                                            }).collect())
+                                        },
                                     }
                                 } else {
                                     errors.push(
@@ -780,6 +832,7 @@ pub fn process(
                                 todo!()
                             }
                             ellie_core::definite::definers::DefinerCollecting::Dynamic => todo!(),
+                            DefinerCollecting::EnumField(_) => todo!(),
                         }
                     }
 
@@ -1065,6 +1118,7 @@ pub fn process(
                     match resolved {
                         Some(index) => match &index {
                             DefinerCollecting::Function(function) => {
+                                let mut resolved_params = Vec::new();
                                 let used_params = function_call
                                     .data
                                     .parameters
@@ -1081,13 +1135,16 @@ pub fn process(
                                         ) {
                                             Ok(resolved) => {
                                                 let found = resolve_type(
-                                                    param.value.clone().to_definite(),
+                                                    resolved.clone(),
                                                     page_id,
                                                     parser,
                                                     &mut errors,
                                                     Some(function_call.data.target_pos),
                                                 );
                                                 if errors.is_empty() {
+                                                    resolved_params.push((
+                                                        resolved.clone(), param.pos
+                                                    ));
                                                     Some((resolved, found.unwrap(), param.pos))
                                                 } else {
                                                     None
@@ -1161,7 +1218,7 @@ pub fn process(
                                                             .unwrap()
                                                             .path
                                                             .clone(),
-                                                        pos,
+                                                            pos,
                                                     ),
                                             );
                                         }
@@ -1182,10 +1239,10 @@ pub fn process(
                                                     target: Box::new(resolved),
                                                     target_pos: ellie_core::defs::Cursor::default(),
                                                     returning: *function.returning.clone(),
-                                                    params: function.params.iter().map(|_| {
+                                                    params: function.params.iter().enumerate().map(|(idx, _)| {
                                                         ellie_core::definite::types::function_call::FunctionCallParameter {
-                                                            value: types::Types::Dynamic,
-                                                            pos: ellie_core::defs::Cursor::default()
+                                                            value: resolved_params[idx].0.clone(),
+                                                            pos: resolved_params[idx].1
                                                         }
                                                     }).collect::<Vec<_>>(),
                                                     pos: ellie_core::defs::Cursor::default(),
@@ -1201,6 +1258,32 @@ pub fn process(
                                 } else {
                                     Err(errors)
                                 }
+                            }
+                            DefinerCollecting::EnumField(e) => {
+                                Ok(ellie_core::definite::types::Types::EnumData(
+                                    ellie_core::definite::types::enum_data::EnumData {
+                                        reference: Box::new(types::Types::VariableType(
+                                            types::variable::VariableType {
+                                                value: e.name.clone(),
+                                                reference: e.hash,
+                                                pos: ellie_core::defs::Cursor::default(),
+                                            },
+                                        
+                                        )),
+                                        reference_pos: ellie_core::defs::Cursor::default(),
+                                        brace_pos:ellie_core::defs::Cursor::default(),
+                                        value: match e.field_data.clone() {
+                                            ellie_core::definite::definers::EnumFieldData::NoData => types::enum_data::Pointer::NoData,
+                                            ellie_core::definite::definers::EnumFieldData::Data(rtype) => {
+                                                let value = generate_type_from_defining(*rtype, page_id, parser).unwrap();
+                                                ellie_core::definite::types::enum_data::Pointer::Data(Box::new(value))
+                                            },
+                                        },
+                                        field_name: e.field_name.clone(),
+                                        //TODO this is not correct
+                                        pos: ellie_core::defs::Cursor::default(),
+                                    },
+                                ))
                             }
                             _ => {
                                 errors.push(error::error_list::ERROR_S25.clone().build_with_path(
@@ -1643,26 +1726,73 @@ pub fn process(
                                                         false,
                                                     ) {
                                                         Ok(resolved_type) => {
+                                                            
                                                             let comperable = parser
                                                                 .compare_defining_with_type(
                                                                     element.clone(),
                                                                     resolved_type.clone(),
-                                                                    belonging_class.inner_page_id,
+                                                                    belonging_class.inner_page_id
                                                                 );
+                                                                let path =parser.find_page(page_id).unwrap().path.clone();
                                                             match comperable {
-                                                                Ok((compare, defined, given)) => {
-                                                                    if !compare {
+                                                                Ok(result) => {
+                                                                    if result.requires_cast {
+                                                                    parser.informations.push(
+                                                                        &error::error_list::ERROR_S41.clone().build_with_path(
+                                                                            vec![error::ErrorBuildField {
+                                                                                key: "token".to_owned(),
+                                                                                value: "Type helpers are not completely implemented yet. Next error is result of this. Follow progress here (https://github.com/behemehal/EllieWorks/issues/8)".to_owned(),
+                                                                            }],
+                                                                            alloc::format!(
+                                                                                "{}:{}:{}",
+                                                                                file!().to_owned(),
+                                                                                line!(),
+                                                                                column!()
+                                                                            ),
+                                                                            path.clone(),
+                                                                        matching_param.pos,
+                                                                        ),
+                                                                    );
+                                                                    let err = error::error_list::ERROR_S3
+                                                                    .clone()
+                                                                    .build_with_path(
+                                                                        vec![
+                                                                            error::ErrorBuildField {
+                                                                                key: "token1".to_owned(),
+                                                                                value: result.first,
+                                                                            },
+                                                                            error::ErrorBuildField {
+                                                                                key: "token2".to_owned(),
+                                                                                value: result.second,
+                                                                            },
+                                                                        ],
+                                                                        alloc::format!(
+                                                                            "{}:{}:{}",
+                                                                            file!().to_owned(),
+                                                                            line!(),
+                                                                            column!()
+                                                                        ),
+                                                                        path,
+                                                                        matching_param.pos,
+                                                                    );
+                                                                    errors.push(err);
+                                                                    return Err(errors);
+
+                                                                }
+
+
+                                                                    if !result.same {
                                                                         let err = error::error_list::ERROR_S3
                                                                         .clone()
                                                                         .build_with_path(
                                                                             vec![
                                                                                 error::ErrorBuildField {
                                                                                     key: "token1".to_owned(),
-                                                                                    value: defined,
+                                                                                    value: result.first,
                                                                                 },
                                                                                 error::ErrorBuildField {
                                                                                     key: "token2".to_owned(),
-                                                                                    value: given,
+                                                                                    value: result.second,
                                                                                 },
                                                                             ],
                                                                             alloc::format!(
@@ -1848,6 +1978,7 @@ pub fn process(
                 Processors::FunctionCall(_) => todo!(),
                 Processors::AsKeyword(_) => todo!(),
                 Processors::NullResolver(_) => todo!(),
+                Processors::EnumData(_) => todo!(),
             }
         }
         Processors::Cloak(_) => todo!("cloak type not yet implemented"),

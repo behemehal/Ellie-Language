@@ -142,17 +142,61 @@ impl super::Processor for VariableCollector {
 
                     let current_page = parser.processed_pages.nth_mut(processed_page_idx).unwrap();
                     match comperable {
-                        Ok((compare, defined, given)) => {
-                            if !compare {
+                        Ok(result) => {
+                            if result.requires_cast {
+                                parser.informations.push(
+                                &error::error_list::ERROR_S41.clone().build_with_path(
+                                    vec![error::ErrorBuildField {
+                                        key: "token".to_owned(),
+                                        value: "Type helpers are not completely implemented yet. Next error is result of this. Follow progress here (https://github.com/behemehal/EllieWorks/issues/8)".to_owned(),
+                                    }],
+                                    alloc::format!(
+                                        "{}:{}:{}",
+                                        file!().to_owned(),
+                                        line!(),
+                                        column!()
+                                    ),
+                                    current_page.path.clone(),
+                                    self.data.value_pos,
+                                ),
+                            );
                                 let mut err = error::error_list::ERROR_S3.clone().build_with_path(
                                     vec![
                                         error::ErrorBuildField {
                                             key: "token1".to_string(),
-                                            value: defined,
+                                            value: result.first,
                                         },
                                         error::ErrorBuildField {
                                             key: "token2".to_string(),
-                                            value: given,
+                                            value: result.second,
+                                        },
+                                    ],
+                                    alloc::format!(
+                                        "{}:{}:{}",
+                                        file!().to_owned(),
+                                        line!(),
+                                        column!()
+                                    ),
+                                    current_page.path.clone(),
+                                    self.data.value_pos,
+                                );
+                                err.reference_block =
+                                    Some((self.data.type_pos, current_page.path.clone()));
+                                err.reference_message = "Defined here".to_owned();
+                                err.semi_assist = true;
+                                parser.informations.push(&err);
+                                return false;
+                            }
+                            if !result.same {
+                                let mut err = error::error_list::ERROR_S3.clone().build_with_path(
+                                    vec![
+                                        error::ErrorBuildField {
+                                            key: "token1".to_string(),
+                                            value: result.first,
+                                        },
+                                        error::ErrorBuildField {
+                                            key: "token2".to_string(),
+                                            value: result.second,
                                         },
                                     ],
                                     alloc::format!(

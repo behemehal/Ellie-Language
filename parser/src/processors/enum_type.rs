@@ -15,10 +15,21 @@ impl super::Processor for EnumType {
         processed_page_idx: usize,
         page_hash: usize,
     ) -> bool {
+        let path = parser.pages.nth(page_idx).unwrap().path.clone();
+        if !parser.experimental_features {
+            parser
+                .informations
+                .push(&error::error_list::ERROR_S58.clone().build_with_path(
+                    vec![error::ErrorBuildField::new("token", &"enum".to_owned())],
+                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                    path,
+                    self.name_pos,
+                ));
+            return false;
+        }
         let mut halt = true;
         let (duplicate, found) =
             parser.is_duplicate(page_hash, self.name.clone(), self.hash.clone(), self.pos);
-        let path = parser.pages.nth(page_idx).unwrap().path.clone();
 
         if duplicate {
             if let Some((page, cursor_pos)) = found {
@@ -135,6 +146,7 @@ impl super::Processor for EnumType {
                 ellie_core::definite::items::enum_type::EnumType {
                     public: self.public,
                     name: self.name.clone(),
+                    hash: self.hash,
                     name_pos: self.name_pos,
                     pos: self.pos,
                     file_keys: processed_page.unassigned_file_keys.clone(),

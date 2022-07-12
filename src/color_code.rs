@@ -212,6 +212,7 @@ pub fn color_code(target_path: &Path, output_path: &Path, colorizer_settings: Co
                                 todo!()
                             }
                             ellie_tokenizer::processors::types::Processors::AsKeyword(_) => todo!(),
+                            ellie_tokenizer::processors::types::Processors::EnumData(_) => todo!(),
                         }
                     }
 

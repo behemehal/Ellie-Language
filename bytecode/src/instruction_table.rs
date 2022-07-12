@@ -801,16 +801,16 @@ lazy_static! {
             "brk_implicit",
             Instruction {
                 rtype: "brk",
-                code: 90,
+                code: 99,
                 mode: "implicit",
             },
         );
         i.insert(
-            "calln_absolute",
+            "calln_immediate",
             Instruction {
                 rtype: "calln",
-                code: 90,
-                mode: "absolute",
+                code: 100,
+                mode: "immediate",
             },
         );
         i

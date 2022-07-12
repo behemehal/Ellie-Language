@@ -674,6 +674,13 @@ pub fn process(
                             pos: generic.pos,
                         });
                     }
+                    crate::parser::DeepSearchItems::Enum(enum_data) => {
+                        found = DefinerCollecting::Generic(definers::GenericType {
+                            rtype: enum_data.name,
+                            hash: enum_data.hash,
+                            pos: enum_data.pos,
+                        });
+                    }
                     _ => {
                         errors.push(error::error_list::ERROR_S45.clone().build_with_path(
                             vec![error::ErrorBuildField {

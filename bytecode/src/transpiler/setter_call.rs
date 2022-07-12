@@ -2,6 +2,7 @@ use crate::instructions::{self, Instruction};
 
 use super::type_resolver::resolve_type;
 use alloc::vec::Vec;
+use alloc::vec;
 use ellie_core::definite::{items::setter_call, types::Types};
 
 impl super::Transpiler for setter_call::SetterCall {
@@ -11,15 +12,20 @@ impl super::Transpiler for setter_call::SetterCall {
         hash: usize,
         processed_page: &ellie_parser::parser::ProcessedPage,
     ) -> bool {
+        let mut dependencies = vec![processed_page.hash];
+        dependencies.extend(processed_page.dependencies.iter().map(|d| d.hash));
+
         match &self.target {
             Types::Reference(_) => todo!(),
             Types::BraceReference(_) => todo!(),
             Types::VariableType(e) => {
                 let mut instructions = Vec::new();
                 let resolved_instructions =
-                    resolve_type(assembler, &self.value, instructions::Registers::A, &hash);
+                    resolve_type(assembler, &self.value, instructions::Registers::A, &hash, Some(dependencies.clone()));
 
-                let target = assembler.find_local(&e.value).unwrap();
+                let target = assembler
+                    .find_local(&e.value, Some(dependencies))
+                    .unwrap();
 
                 instructions.extend(resolved_instructions);
                 if let Some(reference) = target.reference {

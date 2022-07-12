@@ -67,18 +67,61 @@ impl super::Processor for SetterCall {
                             );
 
                             match comperable {
-                                Ok((compare, defined, given)) => {
-                                    if !compare {
+                                Ok(result) => {
+                                    if result.requires_cast {
+                                        parser.informations.push(
+                                            &error::error_list::ERROR_S41.clone().build_with_path(
+                                                vec![error::ErrorBuildField {
+                                                    key: "token".to_owned(),
+                                                    value: "Type helpers are not completely implemented yet. Next error is result of this. Follow progress here (https://github.com/behemehal/EllieWorks/issues/8)".to_owned(),
+                                                }],
+                                                alloc::format!(
+                                                    "{}:{}:{}",
+                                                    file!().to_owned(),
+                                                    line!(),
+                                                    column!()
+                                                ),
+                                                current_page.path.clone(),
+                                                self.value_pos,
+                                            ),
+                                        );
+
                                         parser.informations.push(
                                             &error::error_list::ERROR_S3.clone().build_with_path(
                                                 vec![
                                                     error::ErrorBuildField {
                                                         key: "token1".to_owned(),
-                                                        value: defined,
+                                                        value: result.first,
                                                     },
                                                     error::ErrorBuildField {
                                                         key: "token2".to_owned(),
-                                                        value: given,
+                                                        value: result.second,
+                                                    },
+                                                ],
+                                                alloc::format!(
+                                                    "{}:{}:{}",
+                                                    file!().to_owned(),
+                                                    line!(),
+                                                    column!()
+                                                ),
+                                                current_page.path.clone(),
+                                                self.value_pos,
+                                            ),
+                                        );
+                                        return false;
+                                    }
+
+                                    if !result.same {
+                                        parser.informations.push(
+                                            &error::error_list::ERROR_S3.clone().build_with_path(
+                                                vec![
+                                                    error::ErrorBuildField {
+                                                        key: "token1".to_owned(),
+                                                        value: result.first,
+                                                    },
+                                                    error::ErrorBuildField {
+                                                        key: "token2".to_owned(),
+                                                        value: result.second,
                                                     },
                                                 ],
                                                 alloc::format!(
@@ -167,18 +210,60 @@ impl super::Processor for SetterCall {
                             );
 
                             match comperable {
-                                Ok((compare, defined, given)) => {
-                                    if !compare {
+                                Ok(result) => {
+                                    if result.requires_cast {
+                                        parser.informations.push(
+                                            &error::error_list::ERROR_S41.clone().build_with_path(
+                                                vec![error::ErrorBuildField {
+                                                    key: "token".to_owned(),
+                                                    value: "Type helpers are not completely implemented yet. Next error is result of this. Follow progress here (https://github.com/behemehal/EllieWorks/issues/8)".to_owned(),
+                                                }],
+                                                alloc::format!(
+                                                    "{}:{}:{}",
+                                                    file!().to_owned(),
+                                                    line!(),
+                                                    column!()
+                                                ),
+                                                current_page.path.clone(),
+                                                self.value_pos,
+                                            ),
+                                        );
                                         let err =
                                             error::error_list::ERROR_S3.clone().build_with_path(
                                                 vec![
                                                     error::ErrorBuildField {
                                                         key: "token1".to_owned(),
-                                                        value: defined,
+                                                        value: result.first,
                                                     },
                                                     error::ErrorBuildField {
                                                         key: "token2".to_owned(),
-                                                        value: given,
+                                                        value: result.second,
+                                                    },
+                                                ],
+                                                alloc::format!(
+                                                    "{}:{}:{}",
+                                                    file!().to_owned(),
+                                                    line!(),
+                                                    column!()
+                                                ),
+                                                current_page.path.clone(),
+                                                self.value_pos,
+                                            );
+
+                                        parser.informations.push(&err);
+                                        return false;
+                                    }
+                                    if !result.same {
+                                        let err =
+                                            error::error_list::ERROR_S3.clone().build_with_path(
+                                                vec![
+                                                    error::ErrorBuildField {
+                                                        key: "token1".to_owned(),
+                                                        value: result.first,
+                                                    },
+                                                    error::ErrorBuildField {
+                                                        key: "token2".to_owned(),
+                                                        value: result.second,
                                                     },
                                                 ],
                                                 alloc::format!(
@@ -293,19 +378,73 @@ impl super::Processor for SetterCall {
                                                 page_hash,
                                             );
                                             match comperable {
-                                                Ok((compare, defined, given)) => {
-                                                    if !compare {
+                                                Ok(result) => {
+                                                    if result.requires_cast {
+                                                        parser.informations.push(
+                                                            &error::error_list::ERROR_S41.clone().build_with_path(
+                                                                vec![error::ErrorBuildField {
+                                                                    key: "token".to_owned(),
+                                                                    value: "Type helpers are not completely implemented yet. Next error is result of this. Follow progress here (https://github.com/behemehal/EllieWorks/issues/8)".to_owned(),
+                                                                }],
+                                                                alloc::format!(
+                                                                    "{}:{}:{}",
+                                                                    file!().to_owned(),
+                                                                    line!(),
+                                                                    column!()
+                                                                ),
+                                                                current_page.path.clone(),
+                                                                self.value_pos,
+                                                            ),
+                                                        );
                                                         let mut err = error::error_list::ERROR_S3
                                                             .clone()
                                                             .build_with_path(
                                                                 vec![
                                                                     error::ErrorBuildField {
                                                                         key: "token1".to_owned(),
-                                                                        value: defined,
+                                                                        value: result.first,
                                                                     },
                                                                     error::ErrorBuildField {
                                                                         key: "token2".to_owned(),
-                                                                        value: given,
+                                                                        value: result.second,
+                                                                    },
+                                                                ],
+                                                                alloc::format!(
+                                                                    "{}:{}:{}",
+                                                                    file!().to_owned(),
+                                                                    line!(),
+                                                                    column!()
+                                                                ),
+                                                                current_page.path.clone(),
+                                                                self.value_pos,
+                                                            );
+                                                        err.reference_block = Some((
+                                                            if variable.has_type {
+                                                                variable.type_pos
+                                                            } else {
+                                                                variable.value_pos
+                                                            },
+                                                            current_page.path.clone(),
+                                                        ));
+                                                        err.reference_message =
+                                                            "Defined here".to_owned();
+                                                        err.semi_assist = true;
+                                                        parser.informations.push(&err);
+                                                        return false;
+                                                    }
+
+                                                    if !result.same {
+                                                        let mut err = error::error_list::ERROR_S3
+                                                            .clone()
+                                                            .build_with_path(
+                                                                vec![
+                                                                    error::ErrorBuildField {
+                                                                        key: "token1".to_owned(),
+                                                                        value: result.first,
+                                                                    },
+                                                                    error::ErrorBuildField {
+                                                                        key: "token2".to_owned(),
+                                                                        value: result.second,
                                                                     },
                                                                 ],
                                                                 alloc::format!(
@@ -391,18 +530,60 @@ impl super::Processor for SetterCall {
                                 page_hash,
                             );
                             match comperable {
-                                Ok((compare, defined, given)) => {
-                                    if !compare {
+                                Ok(result) => {
+                                    if result.requires_cast {
+                                        parser.informations.push(
+                                            &error::error_list::ERROR_S41.clone().build_with_path(
+                                                vec![error::ErrorBuildField {
+                                                    key: "token".to_owned(),
+                                                    value: "Type helpers are not completely implemented yet. Next error is result of this. Follow progress here (https://github.com/behemehal/EllieWorks/issues/8)".to_owned(),
+                                                }],
+                                                alloc::format!(
+                                                    "{}:{}:{}",
+                                                    file!().to_owned(),
+                                                    line!(),
+                                                    column!()
+                                                ),
+                                                current_page.path.clone(),
+                                                self.value_pos,
+                                            ),
+                                        );
                                         parser.informations.push(
                                             &error::error_list::ERROR_S3.clone().build_with_path(
                                                 vec![
                                                     error::ErrorBuildField {
                                                         key: "token1".to_owned(),
-                                                        value: defined,
+                                                        value: result.first,
                                                     },
                                                     error::ErrorBuildField {
                                                         key: "token2".to_owned(),
-                                                        value: given,
+                                                        value: result.second,
+                                                    },
+                                                ],
+                                                alloc::format!(
+                                                    "{}:{}:{}",
+                                                    file!().to_owned(),
+                                                    line!(),
+                                                    column!()
+                                                ),
+                                                current_page.path.clone(),
+                                                self.value_pos,
+                                            ),
+                                        );
+                                        return false;
+                                    }
+
+                                    if !result.same {
+                                        parser.informations.push(
+                                            &error::error_list::ERROR_S3.clone().build_with_path(
+                                                vec![
+                                                    error::ErrorBuildField {
+                                                        key: "token1".to_owned(),
+                                                        value: result.first,
+                                                    },
+                                                    error::ErrorBuildField {
+                                                        key: "token2".to_owned(),
+                                                        value: result.second,
                                                     },
                                                 ],
                                                 alloc::format!(

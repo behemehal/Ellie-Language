@@ -3,6 +3,7 @@ use crate::{
     assembler::LocalHeader,
     instructions::{self, Instruction},
 };
+use alloc::vec;
 use ellie_core::definite::items::variable;
 
 impl super::Transpiler for variable::Variable {
@@ -12,8 +13,16 @@ impl super::Transpiler for variable::Variable {
         hash: usize,
         processed_page: &ellie_parser::parser::ProcessedPage,
     ) -> bool {
-        let resolved_instructions =
-            resolve_type(assembler, &self.value, instructions::Registers::A, &hash);
+        let mut dependencies = vec![processed_page.hash];
+        dependencies.extend(processed_page.dependencies.iter().map(|d| d.hash));
+
+        let resolved_instructions = resolve_type(
+            assembler,
+            &self.value,
+            instructions::Registers::A,
+            &hash,
+            Some(dependencies),
+        );
 
         assembler.instructions.extend(resolved_instructions);
 
@@ -24,6 +33,7 @@ impl super::Transpiler for variable::Variable {
         assembler.locals.push(LocalHeader {
             name: self.name.clone(),
             cursor: assembler.instructions.len() - 1,
+            page_hash: processed_page.hash,
             reference: None,
         });
 

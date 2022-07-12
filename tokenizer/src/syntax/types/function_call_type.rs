@@ -35,7 +35,32 @@ impl definite::Converter<FunctionCallCollector, definite::types::function_call::
     for FunctionCallCollector
 {
     fn to_definite(self) -> definite::types::function_call::FunctionCall {
-        unreachable!()
+        definite::types::function_call::FunctionCall {
+            target: Box::new(self.data.target.to_definite()),
+            target_pos: self.data.target_pos,
+            returning: definite::definers::DefinerCollecting::Dynamic,
+            generic_parameters: self
+                .data
+                .generic_parameters
+                .iter()
+                .map(
+                    |x| definite::types::function_call::FunctionCallGenericParameter {
+                        value: x.value.clone().to_definite(),
+                        pos: x.pos,
+                    },
+                )
+                .collect(),
+            params: self
+                .data
+                .parameters
+                .iter()
+                .map(|x| definite::types::function_call::FunctionCallParameter {
+                    value: x.value.to_definite(),
+                    pos: x.pos,
+                })
+                .collect(),
+            pos: self.data.pos,
+        }
     }
 
     fn from_definite(

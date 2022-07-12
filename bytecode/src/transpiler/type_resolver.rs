@@ -1,5 +1,5 @@
+use alloc::vec;
 use alloc::vec::Vec;
-use alloc::{boxed::Box, vec};
 use ellie_core::definite::types::{operator, Types};
 
 use crate::{
@@ -7,7 +7,10 @@ use crate::{
     instructions::{self, Instruction, Instructions},
 };
 
-pub fn convert_type(types: &Types) -> (instructions::Types, Vec<u8>) {
+pub fn convert_type(
+    types: &Types,
+    _page_hash: Option<Vec<usize>>,
+) -> (instructions::Types, Vec<u8>) {
     match types {
         Types::Byte(byte) => (instructions::Types::Byte, byte.value.to_le_bytes().to_vec()),
         Types::Integer(integer) => (
@@ -24,29 +27,16 @@ pub fn convert_type(types: &Types) -> (instructions::Types, Vec<u8>) {
         ),
         Types::Bool(bool) => (instructions::Types::Bool, vec![bool.value as u8]),
         Types::String(string) => (
-            instructions::Types::String((string.value.len(), 1)), //UTF-16, UTF-32 is todo
+            instructions::Types::String(string.value.len()),
             string.value.as_bytes().to_vec(),
         ),
-        Types::Char(char) => (instructions::Types::Char(8), vec![]),
+        Types::Char(_) => (instructions::Types::Char, vec![]),
         Types::Collective(_) => todo!(),
         Types::Reference(_) => todo!(),
         Types::BraceReference(_) => todo!(),
         Types::Operator(_) => todo!(),
         Types::Cloak(_) => todo!(),
-        Types::Array(array) => {
-            let mut inner_type = instructions::Types::Null;
-
-            let mut bytes = Vec::new();
-            for collective in &array.collective {
-                let converted = convert_type(&collective.value);
-                if bytes.len() == 0 {
-                    inner_type = converted.0;
-                }
-                bytes.extend(converted.1);
-            }
-            todo!()
-            //instructions::Types::Array(array.collective.len())
-        }
+        Types::Array(array) => (instructions::Types::Array(array.collective.len()), vec![]),
         Types::Vector(_) => todo!(),
         Types::Function(_) => todo!(),
         Types::ClassCall(_) => todo!(),
@@ -59,6 +49,7 @@ pub fn convert_type(types: &Types) -> (instructions::Types, Vec<u8>) {
         Types::AsKeyword(_) => todo!(),
         Types::Null => todo!(),
         Types::Dynamic => todo!(),
+        Types::EnumData(_) => todo!(),
     }
 }
 
@@ -67,6 +58,7 @@ pub fn resolve_type(
     types: &Types,
     target_register: instructions::Registers,
     target_page: &usize,
+    dependencies: Option<Vec<usize>>,
 ) -> Vec<Instructions> {
     match types {
         Types::Collective(_) => todo!(),
@@ -80,6 +72,7 @@ pub fn resolve_type(
                     &operator.first,
                     instructions::Registers::B,
                     target_page,
+                    dependencies.clone(),
                 ));
 
                 instructions.extend(resolve_type(
@@ -87,6 +80,7 @@ pub fn resolve_type(
                     &operator.second,
                     instructions::Registers::C,
                     target_page,
+                    dependencies,
                 ));
 
                 instructions.push(match e {
@@ -140,6 +134,7 @@ pub fn resolve_type(
                     &operator.first,
                     instructions::Registers::B,
                     target_page,
+                    dependencies.clone(),
                 ));
 
                 instructions.extend(resolve_type(
@@ -147,6 +142,7 @@ pub fn resolve_type(
                     &operator.second,
                     instructions::Registers::C,
                     target_page,
+                    dependencies,
                 ));
 
                 instructions.push(match e {
@@ -196,7 +192,7 @@ pub fn resolve_type(
         },
         Types::Cloak(_) => todo!(),
         Types::Array(_) => {
-            let converted_type = convert_type(types);
+            let converted_type = convert_type(types, dependencies);
 
             match target_register {
                 instructions::Registers::A => vec![instructions::Instructions::LDA(
@@ -221,14 +217,37 @@ pub fn resolve_type(
         Types::ClassCall(_) => {
             vec![]
         }
-        Types::FunctionCall(e) => {
+        Types::FunctionCall(function_call) => {
+            let target_local = match *function_call.target.clone() {
+                Types::VariableType(e) => e.value,
+                _ => unreachable!(),
+            };
+
+            let target = assembler
+                .find_local(&target_local, dependencies.clone())
+                .unwrap()
+                .clone();
+
             let mut instructions = Vec::new();
-            instructions.extend(resolve_type(
-                assembler,
-                &e.target,
-                instructions::Registers::B,
-                target_page,
-            ));
+
+            for (idx, param) in function_call.params.iter().enumerate() {
+                let resolved_instructions = resolve_type(
+                    assembler,
+                    &param.value,
+                    instructions::Registers::A,
+                    &target_page,
+                    dependencies.clone(),
+                );
+                instructions.extend(resolved_instructions);
+                //Functions always reserve parameter spaces we're writing upper locations of function
+                instructions.push(instructions::Instructions::STA(Instruction::absolute(
+                    target.cursor - (idx + 1),
+                )));
+            }
+
+            instructions.push(instructions::Instructions::CALL(Instruction::absolute(
+                target.cursor,
+            )));
             instructions
         }
         Types::Void => match target_register {
@@ -266,7 +285,7 @@ pub fn resolve_type(
         Types::NullResolver(_) => todo!(),
         Types::Negative(_) => todo!(),
         Types::VariableType(e) => {
-            let pos = assembler.find_local(&e.value).unwrap();
+            let pos = assembler.find_local(&e.value, dependencies).unwrap();
 
             let mut instructions = Vec::new();
 
@@ -286,6 +305,7 @@ pub fn resolve_type(
                 },
                 instructions::Registers::B => match pos.reference {
                     Some(target_page) => {
+                        std::println!("resolve ref: {:?} {:?} {:?}", target_page, pos.cursor, e);
                         instructions.push(instructions::Instructions::AOL(Instruction::absolute(
                             target_page,
                         )));
@@ -342,7 +362,7 @@ pub fn resolve_type(
         }
         Types::AsKeyword(_) => todo!(),
         Types::Byte(_) => {
-            let converted_type = convert_type(types);
+            let converted_type = convert_type(types, dependencies);
             match target_register {
                 instructions::Registers::A => {
                     vec![instructions::Instructions::LDA(Instruction::immediate(
@@ -377,7 +397,7 @@ pub fn resolve_type(
             }
         }
         Types::Integer(_) => {
-            let converted_type = convert_type(types);
+            let converted_type = convert_type(types, dependencies);
 
             match target_register {
                 instructions::Registers::A => {
@@ -413,7 +433,7 @@ pub fn resolve_type(
             }
         }
         Types::Float(_) => {
-            let converted_type = convert_type(types);
+            let converted_type = convert_type(types, dependencies);
 
             match target_register {
                 instructions::Registers::A => {
@@ -449,7 +469,7 @@ pub fn resolve_type(
             }
         }
         Types::Double(_) => {
-            let converted_type = convert_type(types);
+            let converted_type = convert_type(types, dependencies);
 
             match target_register {
                 instructions::Registers::A => {
@@ -485,7 +505,7 @@ pub fn resolve_type(
             }
         }
         Types::Bool(_) => {
-            let converted_type = convert_type(types);
+            let converted_type = convert_type(types, dependencies);
 
             match target_register {
                 instructions::Registers::A => {
@@ -521,7 +541,7 @@ pub fn resolve_type(
             }
         }
         Types::String(_) => {
-            let converted_type = convert_type(types);
+            let converted_type = convert_type(types, dependencies);
 
             match target_register {
                 instructions::Registers::A => {
@@ -557,7 +577,7 @@ pub fn resolve_type(
             }
         }
         Types::Char(_) => {
-            let converted_type = convert_type(types);
+            let converted_type = convert_type(types, dependencies);
 
             match target_register {
                 instructions::Registers::A => {
@@ -626,5 +646,6 @@ pub fn resolve_type(
         },
         Types::Dynamic => todo!(),
         Types::SetterCall(_) => todo!(),
+        Types::EnumData(_) => todo!(),
     }
 }

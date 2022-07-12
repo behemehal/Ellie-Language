@@ -8,6 +8,7 @@ pub mod cloak;
 pub mod collective;
 pub mod double;
 pub mod ellie_char;
+pub mod enum_data;
 pub mod float;
 pub mod function;
 pub mod function_call;
@@ -35,6 +36,7 @@ pub enum Types {
     Collective(collective::CollectiveType),
     Reference(reference::ReferenceType),
     BraceReference(brace_reference::BraceReferenceType),
+    EnumData(enum_data::EnumData),
     Operator(operator::OperatorType),
     Cloak(cloak::CloakType),
     Array(array::ArrayType),
