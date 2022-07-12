@@ -6,21 +6,23 @@ import fs from "fs";
 import crypto from "crypto";
 
 const targeted_archs = {
-  "aarch64-apple-darwin": ["elliec_aarch64_apple_darwin", ""],
-  //"aarch64-pc-windows-msvc": ["elliec_aarch64_windows", "exe"],
-  //"aarch64-unknown-linux-gnu": ["elliec_aarch64_linux", ""],
-  //"aarch64-linux-android": ["elliec_aarch64_android", ""],
-  //"armv7-linux-androideabi": ["elliec_armv7_android", ""],
-  //"armv7-unknown-linux-gnueabi": ["elliec_armv7_gnuabi_linux", ""],
-  //"armv7-unknown-linux-gnueabihf": ["elliec_armv7_gnuabihf_linux", ""],
-  //"i686-pc-windows-gnu": ["elliec_i686_windows", "exe"],
-  //"i686-unknown-linux-gnu": ["elliec_i686_linux", ""],
-  //"mips-unknown-linux-gnu": ["elliec_mips_linux", ""],
-  //"mips64-unknown-linux-gnuabi64": ["elliec_mips64_linux", ""],
-  "x86_64-apple-darwin": ["elliec_x86_64_apple_darwin", ""],
-  "x86_64-pc-windows-gnu": ["elliec_x86_64_windows", "exe"],
-  "x86_64-unknown-linux-gnu": ["elliec_x86_64_linux", ""],
-  //"x86_64-unknown-redox": ["elliec_x86_64_redox", ""],
+  "aarch64-apple-darwin": [
+    ["elliec_aarch64_apple_darwin", ""],
+    ["ellievm_aarch64_apple_darwin", ""],
+    ["elliefmt_aarch64_apple_darwin", ""],
+  ],
+  "x86_64-apple-darwin": [
+    ["elliec_x86_64_apple_darwin", ""],
+    ["elliefmt_x86_64_apple_darwin", ""],
+  ],
+  "x86_64-pc-windows-gnu": [
+    ["elliec_x86_64_windows", "exe"],
+    ["elliefmt_x86_64_windows", "exe"],
+  ],
+  "x86_64-unknown-linux-gnu": [
+    ["elliec_x86_64_linux", ""],
+    ["elliefmt_x86_64_linux", ""],
+  ],
 };
 
 var start_time = moment();
@@ -69,24 +71,24 @@ async function buildTargets(target_list) {
     try {
       await buildTargetedArch(arch);
       spinner.stop();
-      await moveItem(
-        `./target/${arch}/release/elliec${
-          target_list[arch][1] != "" ? "." + target_list[arch][1] : ""
-        }`,
-        `./ellieRelease/${target_list[arch][0]}${
-          target_list[arch][1] != "" ? "." + target_list[arch][1] : ""
-        }`
-      );
-      var hash = await resolveHash(
-        `./ellieRelease/${target_list[arch][0]}${
-          target_list[arch][1] != "" ? "." + target_list[arch][1] : ""
-        }`
-      );
-      SHASUMS.push({
-        arch: arch,
-        hash: hash.split(":")[0].trim(),
-        file: hash.split(":")[1].trim(),
-      });
+      let list = [];
+      for (let target of target_list[arch]) {
+        const executable_name = target[0].split("_")[0];
+        const current = `./target/${arch}/release/${executable_name}${
+          target[1] == "exe" ? ".exe" : ""
+        }`;
+
+        const targeted = `./ellieRelease/${target[0]}`;
+
+        await moveItem(current, targeted);
+        var hash = await resolveHash(targeted);
+        SHASUMS.push({
+          arch: target[0].split(executable_name + "_"),
+          hash: hash.split(":")[0].trim(),
+          file: target[0],
+        });
+      }
+
       console.log(
         chalk.green("✔") + " Arch '" + chalk.yellow(arch) + "' builded"
       );
@@ -252,25 +254,78 @@ exec(`rustup target list --installed`, (err, stdout, stderr) => {
             "./ellieRelease/elliec_completion_fish"
           );
 
+          await moveItem(
+            "./target/ellievm_completion_bash",
+            "./ellieRelease/ellievm_completion_bash"
+          );
+          await moveItem(
+            "./target/ellievm_completion_zsh",
+            "./ellieRelease/ellievm_completion_zsh"
+          );
+          await moveItem(
+            "./target/ellievm_completion_fish",
+            "./ellieRelease/ellievm_completion_fish"
+          );
+          await moveItem(
+            "./target/ellievm_completion_powershell",
+            "./ellieRelease/ellievm_completion_powershell"
+          );
+
+          let ellievm_completion_powershell_shasum = await resolveHash(
+            "./ellieRelease/ellievm_completion_powershell"
+          );
+          let ellievm_completion_bash_shasum = await resolveHash(
+            "./ellieRelease/ellievm_completion_bash"
+          );
+          let ellievm_completion_zsh_shasum = await resolveHash(
+            "./ellieRelease/ellievm_completion_zsh"
+          );
+          let ellievm_completion_fish_shasum = await resolveHash(
+            "./ellieRelease/ellievm_completion_fish"
+          );
+
           binary_shasums.push({
             arch: "powershell",
             hash: elliec_completion_powershell_shasum.split(":")[0].trim(),
-            file: "./ellieRelease/elliec_completion_powershell",
+            file: "elliec_completion_powershell",
           });
           binary_shasums.push({
             arch: "bash",
             hash: elliec_completion_bash_shasum.split(":")[0].trim(),
-            file: "./ellieRelease/elliec_completion_bash",
+            file: "elliec_completion_bash",
           });
           binary_shasums.push({
             arch: "zsh",
             hash: elliec_completion_zsh_shasum.split(":")[0].trim(),
-            file: "./ellieRelease/elliec_completion_zsh",
+            file: "elliec_completion_zsh",
           });
           binary_shasums.push({
             arch: "fish",
             hash: elliec_completion_fish_shasum.split(":")[0].trim(),
-            file: "./ellieRelease/elliec_completion_fish",
+            file: "elliec_completion_fish",
+          });
+
+          /// ----
+
+          binary_shasums.push({
+            arch: "powershell",
+            hash: ellievm_completion_powershell_shasum.split(":")[0].trim(),
+            file: "ellievm_completion_powershell",
+          });
+          binary_shasums.push({
+            arch: "bash",
+            hash: ellievm_completion_bash_shasum.split(":")[0].trim(),
+            file: "ellievm_completion_bash",
+          });
+          binary_shasums.push({
+            arch: "zsh",
+            hash: ellievm_completion_zsh_shasum.split(":")[0].trim(),
+            file: "ellievm_completion_zsh",
+          });
+          binary_shasums.push({
+            arch: "fish",
+            hash: ellievm_completion_fish_shasum.split(":")[0].trim(),
+            file: "ellievm_completion_fish",
           });
 
           var shasums = `EllieVersion = v${ellie_version} - ${ellie_ver_code}`;
