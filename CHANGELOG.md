@@ -56,3 +56,14 @@
 
 - Core v0.3.0
   - Implement VM
+
+# v0.7.1
+
+- Parser v0.5.1
+  Fix operator priority bugs
+- Core v0.4.0
+  Add raw types
+- VM 0.1.1
+  Implement more instructions and raw types
+- Tokenizer v0.4.1
+  Fix null resolver & not operator conflict
