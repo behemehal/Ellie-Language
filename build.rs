@@ -285,9 +285,10 @@ fn main() {
             env!("CARGO_MANIFEST_DIR").to_string() + "/target/elliefmt_completion_fish",
         )
         .unwrap();
-        let mut zsh =
-            File::create(env!("CARGO_MANIFEST_DIR").to_string() + "/target/elliefmt_completion_zsh")
-                .unwrap();
+        let mut zsh = File::create(
+            env!("CARGO_MANIFEST_DIR").to_string() + "/target/elliefmt_completion_zsh",
+        )
+        .unwrap();
         let mut powershell = File::create(
             env!("CARGO_MANIFEST_DIR").to_string() + "/target/elliefmt_completion_powershell",
         )

@@ -1,7 +1,6 @@
-use ellie_core::definite::items::function;
-
+use ellie_core::{definite::items::function, defs::Cursor};
 use crate::{
-    assembler::LocalHeader,
+    assembler::{DebugHeader, DebugHeaderType, LocalHeader},
     instructions::{Instruction, Instructions},
 };
 
@@ -17,11 +16,20 @@ impl super::Transpiler for function::Function {
         }
 
         //Reserve memory spaces for parameters
-        for _ in &self.parameters {
+        for hash in 0..self.parameters.len() {
+            assembler.debug_headers.push(DebugHeader {
+                rtype: DebugHeaderType::Parameter,
+                hash,
+                module: processed_page.path.clone(),
+                name: self.parameters[hash].name.clone(),
+                start_end: (assembler.location(), assembler.location()),
+                pos: Cursor { range_start: self.parameters[hash].name_pos.range_start, range_end: self.parameters[hash].rtype_pos.range_end },
+            });
             assembler
                 .instructions
-                .push(Instructions::STA(Instruction::implict()))
+                .push(Instructions::STA(Instruction::implicit()));
         }
+        let debug_header_start = assembler.location();
 
         assembler.locals.push(LocalHeader {
             name: self.name.clone(),
@@ -34,8 +42,15 @@ impl super::Transpiler for function::Function {
 
         assembler
             .instructions
-            .push(Instructions::RET(Instruction::implict()));
-
+            .push(Instructions::RET(Instruction::implicit()));
+        assembler.debug_headers.push(DebugHeader {
+            rtype: DebugHeaderType::Function,
+            hash: self.hash,
+            module: processed_page.path.clone(),
+            name: self.name.clone(),
+            start_end: (debug_header_start, assembler.location()),
+            pos: self.pos,
+        });
         true
     }
 }

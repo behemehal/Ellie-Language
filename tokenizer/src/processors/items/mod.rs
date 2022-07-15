@@ -28,6 +28,7 @@ mod variable_processor;
 
 mod brk_processor;
 mod go_processor;
+pub mod loop_processor;
 
 #[derive(Debug, Clone, Serialize, Deserialize, EnumAsInner)]
 pub enum Processors {
@@ -37,6 +38,7 @@ pub enum Processors {
     Function(function::FunctionCollector),
     FileKey(file_key::FileKey),
     Import(import::Import),
+    Loop(loop_type::Loop),
     ForLoop(for_loop::ForLoop),
     Condition(condition::Condition),
     Constructor(constructor::Constructor),
@@ -78,6 +80,7 @@ impl Processors {
             Processors::ConstructorParameter(_) => panic!("Unexpected behaviour"),
             Processors::Brk(e) => e.complete,
             Processors::Go(e) => e.complete,
+            Processors::Loop(e) => e.complete,
         }
     }
 
@@ -130,6 +133,7 @@ impl Processors {
             Processors::ConstructorParameter(_) => ellie_core::defs::Cursor::default(),
             Processors::Brk(e) => e.pos,
             Processors::Go(e) => e.pos,
+            Processors::Loop(e) => e.pos,
         }
     }
 
@@ -155,6 +159,7 @@ impl Processors {
             Processors::ConstructorParameter(_) => panic!("Unexpected behaviour"),
             Processors::Brk(e) => Collecting::Brk(e.to_definite()),
             Processors::Go(e) => Collecting::Go(e.to_definite()),
+            Processors::Loop(e) => Collecting::Loop(e.to_definite()),
         }
     }
 
@@ -431,7 +436,16 @@ impl super::Processor for ItemProcessor {
                 ..Default::default()
             });
         } else if self.used_modifier == Modifier::None && keyword == "for" && letter_char == ' ' {
-            self.current = Processors::ForLoop(for_loop::ForLoop::default());
+            self.current = Processors::ForLoop(for_loop::ForLoop {
+                pos: self.current.get_pos(),
+                ..Default::default()
+            });
+        } else if self.used_modifier == Modifier::None && keyword == "loop" && letter_char == ' ' {
+            self.current = Processors::Loop(loop_type::Loop {
+                pos: self.current.get_pos(),
+                hash: ellie_core::utils::generate_hash_usize(),
+                ..Default::default()
+            });
         } else if self.used_modifier == Modifier::None && keyword == "if" && letter_char == ' ' {
             self.current = Processors::Condition(condition::Condition {
                 chains: vec![condition::ConditionChain {
@@ -475,6 +489,7 @@ impl super::Processor for ItemProcessor {
             Processors::ConstructorParameter(_) => unreachable!("Unexpected behaviour"),
             Processors::Brk(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::Go(e) => e.iterate(errors, cursor, last_char, letter_char),
+            Processors::Loop(e) => e.iterate(errors, cursor, last_char, letter_char),
         }
     }
 }

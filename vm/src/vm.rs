@@ -62,7 +62,13 @@ where
     }
 
     pub fn run(&mut self, main: usize) -> ThreadExit {
-        let mut thread = Thread::new(0, self.target_arch, &self.stack, &mut self.heap, self.native_call_channel);
+        let mut thread = Thread::new(
+            0,
+            self.target_arch,
+            &self.stack,
+            &mut self.heap,
+            self.native_call_channel,
+        );
         thread
             .stack
             .push(Stack {

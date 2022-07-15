@@ -122,7 +122,34 @@ fn main() {
                 }
             };
 
-            ellie_engine::run_vm::run(Path::new(&target_path), vm_settings);
+            let dbg_target_path = {
+                let path = Path::new(matches.value_of("debugHeader").unwrap().clone());
+                if path.exists() {
+                    if path.is_file() {
+                        matches.value_of("debugHeader").unwrap().to_string()
+                    } else {
+                        println!(
+                            "{}Error:{} Given path is not a file",
+                            cli_utils::Colors::Red,
+                            cli_utils::Colors::Reset
+                        );
+                        std::process::exit(1);
+                    }
+                } else {
+                    println!(
+                        "{}Error:{} Target path does not exist",
+                        cli_utils::Colors::Red,
+                        cli_utils::Colors::Reset
+                    );
+                    std::process::exit(1);
+                }
+            };
+
+            ellie_engine::run_vm::run(
+                Path::new(&target_path),
+                Path::new(&dbg_target_path),
+                vm_settings,
+            );
         }
         Some(("version", matches)) => {
             if matches.is_present("detailed") {

@@ -324,27 +324,25 @@ pub fn operator_control(
         Operators::Null => unreachable!(),
     };
     match operator {
-        Some(operator_string) => {
-            Some(error::error_list::ERROR_S52.clone().build_with_path(
-                vec![
-                    error::ErrorBuildField {
-                        key: "opType".to_owned(),
-                        value: operator_string.to_string(),
-                    },
-                    error::ErrorBuildField {
-                        key: "target".to_owned(),
-                        value: first.to_owned(),
-                    },
-                    error::ErrorBuildField {
-                        key: "value".to_owned(),
-                        value: second.to_owned(),
-                    },
-                ],
-                alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                path,
-                pos,
-            ))
-        }
+        Some(operator_string) => Some(error::error_list::ERROR_S52.clone().build_with_path(
+            vec![
+                error::ErrorBuildField {
+                    key: "opType".to_owned(),
+                    value: operator_string.to_string(),
+                },
+                error::ErrorBuildField {
+                    key: "target".to_owned(),
+                    value: first.to_owned(),
+                },
+                error::ErrorBuildField {
+                    key: "value".to_owned(),
+                    value: second.to_owned(),
+                },
+            ],
+            alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+            path,
+            pos,
+        )),
         None => None,
     }
 }

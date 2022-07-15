@@ -7,7 +7,6 @@ impl super::Transpiler for for_loop::ForLoop {
         _hash: usize,
         _processed_page: &ellie_parser::parser::ProcessedPage,
     ) -> bool {
-        std::println!("[Assembler,Ignore,Element] ForLoop");
         true
     }
 }

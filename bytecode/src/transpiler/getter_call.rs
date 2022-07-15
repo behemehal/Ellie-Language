@@ -1,5 +1,5 @@
-use crate::instructions;
 use super::type_resolver::resolve_type;
+use crate::instructions;
 use alloc::vec;
 use ellie_core::definite::items::getter_call;
 

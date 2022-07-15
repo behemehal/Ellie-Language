@@ -7,7 +7,6 @@ impl super::Transpiler for constructor::Constructor {
         _hash: usize,
         _processed_page: &ellie_parser::parser::ProcessedPage,
     ) -> bool {
-        std::println!("[Assembler,Ignore,Element] Constructor");
         true
     }
 }

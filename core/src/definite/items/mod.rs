@@ -5,6 +5,7 @@ pub mod class;
 pub mod condition;
 pub mod constructor;
 pub mod enum_type;
+pub mod extend;
 pub mod file_key;
 pub mod for_loop;
 pub mod function;
@@ -16,7 +17,6 @@ pub mod native_function;
 pub mod setter;
 pub mod setter_call;
 pub mod variable;
-pub mod extend;
 
 pub mod constructor_parameter;
 pub mod function_parameter;
@@ -24,12 +24,14 @@ pub mod self_item;
 
 pub mod brk;
 pub mod go;
+pub mod loop_type;
 pub mod ret;
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub enum Collecting {
     Variable(variable::Variable),
     Function(function::Function),
+    Loop(loop_type::Loop),
     ForLoop(for_loop::ForLoop),
     Condition(condition::Condition),
     Class(class::Class),
@@ -47,7 +49,6 @@ pub enum Collecting {
     SetterCall(setter_call::SetterCall),
     Enum(enum_type::EnumType),
     NativeFunction(native_function::NativeFunction),
-
     FuctionParameter(function_parameter::FunctionParameter),
     ConstructorParameter(constructor_parameter::ConstructorParameter),
     SelfItem(self_item::SelfItem),
@@ -93,6 +94,7 @@ impl Collecting {
             Collecting::Go(e) => e.pos,
             Collecting::SelfItem(_) => unreachable!(),
             Collecting::Extend(e) => e.pos,
+            Collecting::Loop(e) => e.pos,
         }
     }
 
@@ -121,6 +123,7 @@ impl Collecting {
             Collecting::FuctionParameter(_) => false,
             Collecting::ConstructorParameter(_) => false,
             Collecting::Extend(_) => false,
+            Collecting::Loop(_) => false,
         }
     }
 }

@@ -1,9 +1,8 @@
-use crate::instructions::{self, Instruction};
-
 use super::type_resolver::resolve_type;
-use alloc::vec::Vec;
+use crate::instructions::{self, Instruction};
 use alloc::vec;
-use ellie_core::definite::{items::setter_call, types::Types};
+use alloc::vec::Vec;
+use ellie_core::definite::items::setter_call;
 
 impl super::Transpiler for setter_call::SetterCall {
     fn transpile(
@@ -15,32 +14,78 @@ impl super::Transpiler for setter_call::SetterCall {
         let mut dependencies = vec![processed_page.hash];
         dependencies.extend(processed_page.dependencies.iter().map(|d| d.hash));
 
-        match &self.target {
-            Types::Reference(_) => todo!(),
-            Types::BraceReference(_) => todo!(),
-            Types::VariableType(e) => {
-                let mut instructions = Vec::new();
-                let resolved_instructions =
-                    resolve_type(assembler, &self.value, instructions::Registers::A, &hash, Some(dependencies.clone()));
+        let mut instructions = Vec::new();
 
-                let target = assembler
-                    .find_local(&e.value, Some(dependencies))
-                    .unwrap();
+        let target = resolve_type(
+            assembler,
+            &self.target,
+            instructions::Registers::B,
+            &hash,
+            Some(dependencies.clone()),
+        );
 
-                instructions.extend(resolved_instructions);
-                if let Some(reference) = target.reference {
-                    instructions.push(instructions::Instructions::AOL(Instruction::absolute(
-                        reference,
-                    )));
-                }
+        let value = resolve_type(
+            assembler,
+            &self.value,
+            instructions::Registers::C,
+            &hash,
+            Some(dependencies.clone()),
+        );
 
-                instructions.push(instructions::Instructions::STA(Instruction::absolute(
-                    target.cursor,
-                )));
-                assembler.instructions.extend(instructions)
+        instructions.extend(target.clone());
+        instructions.extend(value);
+
+        match self.operator {
+        ellie_core::definite::types::operator::AssignmentOperators::Assignment => {
+            match target.last().unwrap() {
+                instructions::Instructions::LDB(e) => match e.addressing_mode {
+                    instructions::AddressingModes::Absolute(e) => {
+                        instructions.push(instructions::Instructions::STC(Instruction::absolute(e)));
+                        assembler.instructions.extend(instructions);
+                            return true;
+                    }
+                    _ => unreachable!(
+                        "Since this is setter its impossible to get a no absolute addressing mode"
+                    ),
+                },
+                _ => unreachable!(),
             }
-            _ => unreachable!("Invalid left-side of assignment"),
+        },
+        ellie_core::definite::types::operator::AssignmentOperators::AdditionAssignment => {
+            instructions.push(instructions::Instructions::ADD(Instruction::implicit()));
+
+        },
+        ellie_core::definite::types::operator::AssignmentOperators::SubtractionAssignment => {
+            instructions.push(instructions::Instructions::SUB(Instruction::implicit()));
+        },
+        ellie_core::definite::types::operator::AssignmentOperators::MultiplicationAssignment => {
+            instructions.push(instructions::Instructions::MUL(Instruction::implicit()));
+        },
+        ellie_core::definite::types::operator::AssignmentOperators::DivisionAssignment => {
+            instructions.push(instructions::Instructions::DIV(Instruction::implicit()));
+        },
+        ellie_core::definite::types::operator::AssignmentOperators::ModulusAssignment => {
+            instructions.push(instructions::Instructions::MOD(Instruction::implicit()));
+        },
+        ellie_core::definite::types::operator::AssignmentOperators::ExponentiationAssignment => {
+            instructions.push(instructions::Instructions::EXP(Instruction::implicit()));
+        },
+        ellie_core::definite::types::operator::AssignmentOperators::Null => unreachable!(),
+    }
+
+        match target.last().unwrap() {
+            instructions::Instructions::LDB(e) => match e.addressing_mode {
+                instructions::AddressingModes::Absolute(e) => {
+                    instructions.push(instructions::Instructions::STA(Instruction::absolute(e)));
+                }
+                _ => unreachable!(
+                    "Since this is setter its impossible to get a no absolute addressing mode"
+                ),
+            },
+            _ => unreachable!(),
         }
+
+        assembler.instructions.extend(instructions);
         true
     }
 }

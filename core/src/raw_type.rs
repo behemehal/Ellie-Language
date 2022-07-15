@@ -1,7 +1,7 @@
-use core::fmt::{Display, Error, Formatter};
-use alloc::vec;
-use alloc::vec::Vec;
 use crate::{definite::types::Types, defs::PlatformArchitecture};
+use alloc::vec::Vec;
+use alloc::{string::String, vec};
+use core::fmt::{Display, Error, Formatter};
 
 #[derive(Clone, Debug)]
 /// TypeId
@@ -72,24 +72,66 @@ impl PartialEq for RawType {
 }
 
 impl RawType {
-    pub fn void() -> RawType {
-        RawType {
-            type_id: TypeId { id: 8, size: 0 },
-            data: vec![],
-        }
+    pub fn to_int(&self) -> isize {
+        isize::from_le_bytes(self.data.clone().try_into().unwrap())
     }
 
-    pub fn bool(boolity: bool) -> RawType {
-        RawType {
-            type_id: TypeId { id: 8, size: 0 },
-            data: vec![if boolity { 1 } else { 0 }],
-        }
+    pub fn to_float(&self) -> f64 {
+        f64::from_le_bytes(self.data.clone().try_into().unwrap())
+    }
+
+    pub fn to_double(&self) -> f64 {
+        f64::from_le_bytes(self.data.clone().try_into().unwrap())
+    }
+
+    pub fn to_byte(&self) -> u8 {
+        u8::from_le_bytes(self.data.clone().try_into().unwrap())
+    }
+
+    pub fn to_bool(&self) -> bool {
+        self.data[0] == 1
+    }
+
+    pub fn to_string(&self) -> String {
+        String::from_utf8(self.data.clone()).unwrap()
+    }
+
+    pub fn to_char(&self) -> char {
+        char::from_u32(u32::from_le_bytes(self.data.clone().try_into().unwrap())).unwrap()
     }
 
     pub fn integer(data: Vec<u8>) -> RawType {
         RawType {
             type_id: TypeId { id: 1, size: 0 },
             data,
+        }
+    }
+
+    pub fn float(data: Vec<u8>) -> RawType {
+        RawType {
+            type_id: TypeId { id: 2, size: 0 },
+            data,
+        }
+    }
+
+    pub fn double(data: Vec<u8>) -> RawType {
+        RawType {
+            type_id: TypeId { id: 3, size: 0 },
+            data,
+        }
+    }
+
+    pub fn byte(data: u8) -> RawType {
+        RawType {
+            type_id: TypeId { id: 4, size: 0 },
+            data: vec![data],
+        }
+    }
+
+    pub fn bool(boolity: bool) -> RawType {
+        RawType {
+            type_id: TypeId { id: 5, size: 0 },
+            data: vec![if boolity { 1 } else { 0 }],
         }
     }
 
@@ -103,8 +145,45 @@ impl RawType {
         }
     }
 
+    pub fn char(data: Vec<u8>) -> RawType {
+        RawType {
+            type_id: TypeId {
+                id: 7,
+                size: data.len(),
+            },
+            data,
+        }
+    }
+
+    pub fn void() -> RawType {
+        RawType {
+            type_id: TypeId { id: 8, size: 0 },
+            data: vec![],
+        }
+    }
+
+    pub fn is_int(&self) -> bool {
+        self.type_id.id == 1
+    }
+
+    pub fn is_float(&self) -> bool {
+        self.type_id.id == 2
+    }
+
+    pub fn is_double(&self) -> bool {
+        self.type_id.id == 3
+    }
+
+    pub fn is_byte(&self) -> bool {
+        self.type_id.id == 4
+    }
+
     pub fn is_bool(&self) -> bool {
         self.type_id.id == 5
+    }
+
+    pub fn is_string(&self) -> bool {
+        self.type_id.id == 6
     }
 
     pub fn from(from: &Types, platform: PlatformArchitecture) -> RawType {

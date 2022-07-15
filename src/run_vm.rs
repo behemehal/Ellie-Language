@@ -1,3 +1,5 @@
+use ellie_bytecode::assembler::{DebugHeader, DebugHeaderType};
+use ellie_core::defs::CursorPosition;
 use ellie_vm::{program::Program, utils};
 use std::fs::File;
 use std::io::Read;
@@ -40,8 +42,104 @@ where
     }
 }
 
-pub fn run(target_path: &Path, vm_settings: VmSettings) {
+pub fn run(target_path: &Path, dbg_target_path: &Path, vm_settings: VmSettings) {
     let mut program = File::open(target_path).unwrap();
+
+    let mut dbg_file = String::new();
+    File::open(dbg_target_path)
+        .unwrap()
+        .read_to_string(&mut dbg_file)
+        .unwrap();
+
+    let dbg_headers = dbg_file
+        .split("\n")
+        .collect::<Vec<_>>()
+        .iter()
+        .enumerate()
+        .map(|(idx, s)| {
+            let logs = s.split(":").collect::<Vec<_>>();
+            if logs.len() != 9 {
+                println!(
+                    "{}[Error]{}: Broken debug header, line: {}",
+                    utils::Colors::Red,
+                    utils::Colors::Reset,
+                    idx + 1
+                );
+                std::process::exit(1);
+            }
+            DebugHeader {
+                start_end: (
+                    logs[0].parse::<usize>().unwrap_or_else(|_| {
+                        println!(
+                            "{}[Error]{}: Broken debug header, line: {}",
+                            utils::Colors::Red,
+                            utils::Colors::Reset,
+                            idx + 1
+                        );
+                        std::process::exit(1);
+                    }),
+                    logs[1].parse::<usize>().unwrap_or_else(|_| {
+                        println!(
+                            "{}[Error]{}: Broken debug header, line: {}",
+                            utils::Colors::Red,
+                            utils::Colors::Reset,
+                            idx + 1
+                        );
+                        std::process::exit(1);
+                    }),
+                ),
+                module: logs[2].to_string(),
+                name: logs[3].to_string(),
+                pos: ellie_core::defs::Cursor {
+                    range_start: CursorPosition(
+                        logs[4].parse::<usize>().unwrap_or_else(|_| {
+                            println!(
+                                "{}[Error]{}: Broken debug header",
+                                utils::Colors::Red,
+                                utils::Colors::Reset
+                            );
+                            std::process::exit(1);
+                        }),
+                        logs[5].parse::<usize>().unwrap_or_else(|_| {
+                            println!(
+                                "{}[Error]{}: Broken debug header",
+                                utils::Colors::Red,
+                                utils::Colors::Reset
+                            );
+                            std::process::exit(1);
+                        }),
+                    ),
+                    range_end: CursorPosition(
+                        logs[6].parse::<usize>().unwrap_or_else(|_| {
+                            println!(
+                                "{}[Error]{}: Broken debug header",
+                                utils::Colors::Red,
+                                utils::Colors::Reset
+                            );
+                            std::process::exit(1);
+                        }),
+                        logs[7].parse::<usize>().unwrap_or_else(|_| {
+                            println!(
+                                "{}[Error]{}: Broken debug header",
+                                utils::Colors::Red,
+                                utils::Colors::Reset
+                            );
+                            std::process::exit(1);
+                        }),
+                    ),
+                },
+                rtype: DebugHeaderType::Variable,
+                hash: logs[8].parse().unwrap_or_else(|_| {
+                    println!(
+                        "{}[Error]{}: Broken debug header",
+                        utils::Colors::Red,
+                        utils::Colors::Reset
+                    );
+                    std::process::exit(1);
+                }),
+            }
+        })
+        .collect::<Vec<_>>();
 
     let mut reader = RFile::new(&mut program);
     let mut program_reader = ProgramReader::new(&mut reader);
@@ -84,15 +182,36 @@ pub fn run(target_path: &Path, vm_settings: VmSettings) {
                 utils::Colors::Reset,
             );
             for frame in e.stack_trace {
-                println!(
-                    "{}    at {}:{}",
-                    utils::Colors::Green,
-                    frame.name,
-                    frame.pos
-                );
+                let coresponding_header = dbg_headers
+                    .iter()
+                    .find(|x| frame.pos >= x.start_end.0 && frame.pos <= x.start_end.1);
+
+                match coresponding_header {
+                    Some(e) => {
+                        println!(
+                            "{}    at Thread: {}, File: {}:{}:{} - {}:{}~{}:{}",
+                            utils::Colors::Green,
+                            frame.name,
+                            e.module,
+                            e.pos.range_start.0 + 1,
+                            e.pos.range_start.1 + 1,
+                            e.pos.range_start.0 + 1,
+                            e.pos.range_start.1 + 1,
+                            e.pos.range_end.0 + 1,
+                            e.pos.range_end.1 + 1,
+                        );
+                    }
+                    None => {
+                        println!(
+                            "{}    at {}:{}",
+                            utils::Colors::Green,
+                            frame.name,
+                            frame.pos
+                        );
+                    }
+                }
             }
         }
-        ellie_vm::utils::ThreadExit::OutOfInstructions => todo!(),
         ellie_vm::utils::ThreadExit::ExitGracefully => {
             println!(
                 "{}[VM]{}: Thread Exited Gracefully",

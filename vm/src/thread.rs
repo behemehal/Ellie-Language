@@ -7,7 +7,7 @@ use ellie_core::{
 use crate::{
     heap,
     program::ReadInstruction,
-    utils::{self, Instructions, ThreadExit, ThreadPanic, ThreadPanicReason},
+    utils::{self, Instructions, ThreadExit, ThreadPanic, ThreadPanicReason, StackNode},
 };
 
 pub struct Registers {
@@ -52,7 +52,15 @@ impl StackController {
     }
 
     pub fn push(&mut self, stack: Stack) -> Result<(), u8> {
-        if self.stack.len() > 0 && self.stack.last().unwrap().name == stack.name {
+        if self.stack.len() > 0
+            && self
+                .stack
+                .iter()
+                .filter(|x| x.name == stack.name)
+                .collect::<Vec<_>>()
+                .len()
+                > 7
+        {
             Err(1)
         } else {
             self.stack.push(stack);
@@ -138,15 +146,12 @@ where
             let current_stack = self.stack.last_mut().unwrap();
 
             if current_stack.pos >= self.program.len() {
-                println!(
-                    "{}[VM]{}: Thread {}'{}'{} halted: Out of instructions",
-                    utils::Colors::Yellow,
-                    utils::Colors::Reset,
-                    utils::Colors::Cyan,
-                    self.id,
-                    utils::Colors::Reset
+                return ThreadExit::Panic(
+                    ThreadPanic {
+                        reason: ThreadPanicReason::OutOfInstructions,
+                        stack_trace: self.stack.stack.clone(),
+                    }
                 );
-                return ThreadExit::OutOfInstructions;
             }
 
             let current_instruction = &self.program[current_stack.pos];
@@ -167,7 +172,16 @@ where
                         self.registers.A = raw_type.clone();
                     }
                     utils::AddressingValues::Absolute(e) => {
-                        self.registers.A = self.heap.get(e).unwrap().clone()
+                        self.registers.A = self
+                            .heap
+                            .get(e)
+                            .unwrap_or_else(|| {
+                                panic!(
+                                    "Cr: {:?}, tag: {:?} - {:?}",
+                                    e, current_instruction, current_stack
+                                )
+                            })
+                            .clone()
                     }
                     utils::AddressingValues::AbsoluteIndex(_, _) => todo!(),
                     utils::AddressingValues::AbsoluteProperty(_, _) => todo!(),
@@ -428,8 +442,8 @@ where
                         let c = self.registers.C.clone();
                         match (b.type_id.id, c.type_id.id) {
                             (1, 1) => {
-                                let b_value = usize::from_le_bytes(b.data.try_into().unwrap());
-                                let c_value = usize::from_le_bytes(c.data.try_into().unwrap());
+                                let b_value = isize::from_le_bytes(b.data.try_into().unwrap());
+                                let c_value = isize::from_le_bytes(c.data.try_into().unwrap());
                                 let result = match b_value.checked_add(c_value) {
                                     Some(e) => e,
                                     None => {
@@ -467,7 +481,7 @@ where
                             (6, 1) => {
                                 let b_value = String::from_utf8(b.data).unwrap();
                                 let c_value =
-                                    usize::from_le_bytes(c.data.try_into().unwrap()).to_string();
+                                    isize::from_le_bytes(c.data.try_into().unwrap()).to_string();
                                 let result = b_value + &c_value;
                                 self.registers.A = RawType::string(result.bytes().collect());
                             }
@@ -503,8 +517,8 @@ where
                         let b = self.registers.B.clone();
                         let c = self.registers.C.clone();
 
-                        let b_value = usize::from_le_bytes(b.data.try_into().unwrap());
-                        let c_value = usize::from_le_bytes(c.data.try_into().unwrap());
+                        let b_value = isize::from_le_bytes(b.data.try_into().unwrap());
+                        let c_value = isize::from_le_bytes(c.data.try_into().unwrap());
                         let result = match b_value.checked_sub(c_value) {
                             Some(e) => e,
                             None => {
@@ -523,8 +537,8 @@ where
                     utils::AddressingValues::Implicit => {
                         let b = self.registers.B.clone();
                         let c = self.registers.C.clone();
-                        let b_value = usize::from_le_bytes(b.data.try_into().unwrap());
-                        let c_value = usize::from_le_bytes(c.data.try_into().unwrap());
+                        let b_value = isize::from_le_bytes(b.data.try_into().unwrap());
+                        let c_value = isize::from_le_bytes(c.data.try_into().unwrap());
 
                         let result = match b_value.checked_mul(c_value) {
                             Some(e) => e,
@@ -557,8 +571,8 @@ where
                     utils::AddressingValues::Implicit => {
                         let b = self.registers.B.clone();
                         let c = self.registers.C.clone();
-                        let _b_value = usize::from_le_bytes(b.data.try_into().unwrap());
-                        let _c_value = usize::from_le_bytes(c.data.try_into().unwrap());
+                        let _b_value = isize::from_le_bytes(b.data.try_into().unwrap());
+                        let _c_value = isize::from_le_bytes(c.data.try_into().unwrap());
                         //TODO
                         panic!("Exponentiation not implemented");
                     }
@@ -568,8 +582,8 @@ where
                     utils::AddressingValues::Implicit => {
                         let b = self.registers.B.clone();
                         let c = self.registers.C.clone();
-                        let b_value = usize::from_le_bytes(b.data.try_into().unwrap());
-                        let c_value = usize::from_le_bytes(c.data.try_into().unwrap());
+                        let b_value = isize::from_le_bytes(b.data.try_into().unwrap());
+                        let c_value = isize::from_le_bytes(c.data.try_into().unwrap());
                         let result = match b_value.checked_div(c_value) {
                             Some(e) => e,
                             None => {
@@ -676,6 +690,7 @@ where
                         };
 
                         (self.native_call_channel)(native_call);
+                        drop_current_stack = true
                     }
                     _ => panic!("Illegal addressing value"),
                 },
@@ -706,14 +721,257 @@ where
                 }
                 Instructions::PUSHA(_) => todo!(),
                 Instructions::LEN(_) => todo!(),
-                Instructions::A2I(_) => todo!(),
-                Instructions::A2F(_) => todo!(),
-                Instructions::A2D(_) => todo!(),
-                Instructions::A2B(_) => todo!(),
-                Instructions::A2S(_) => todo!(),
-                Instructions::A2C(_) => todo!(),
-                Instructions::A2O(_) => todo!(),
-                Instructions::JMPA(_) => todo!(),
+                Instructions::A2I(_) => match current_instruction.addressing_value {
+                    utils::AddressingValues::Implicit => match self.registers.A.type_id.id {
+                        1 => (),
+                        2 => {
+                            let data = self.registers.A.to_float();
+                            self.registers.A =
+                                RawType::integer((data as isize).to_le_bytes().to_vec());
+                        }
+                        3 => {
+                            let data = self.registers.A.to_double();
+                            self.registers.A =
+                                RawType::integer((data as isize).to_le_bytes().to_vec());
+                        }
+                        4 => {
+                            let data = self.registers.A.to_byte();
+                            self.registers.A =
+                                RawType::integer((data as isize).to_le_bytes().to_vec());
+                        }
+                        5 => {
+                            let data = if self.registers.A.to_bool() {
+                                1_isize
+                            } else {
+                                0_isize
+                            };
+                            self.registers.A = RawType::integer(data.to_le_bytes().to_vec());
+                        }
+                        _ => {
+                            return ThreadExit::Panic(ThreadPanic {
+                                reason: ThreadPanicReason::UnexpectedType,
+                                stack_trace: self.stack.stack.clone(),
+                            });
+                        }
+                    },
+                    _ => panic!("Illegal addressing value"),
+                },
+                Instructions::A2F(_) => match current_instruction.addressing_value {
+                    utils::AddressingValues::Implicit => match self.registers.A.type_id.id {
+                        1 => {
+                            let data = self.registers.A.to_int();
+                            self.registers.A = RawType::float((data as f32).to_le_bytes().to_vec());
+                        }
+                        2 => (),
+                        3 => {
+                            let data = self.registers.A.to_double();
+                            self.registers.A = RawType::float((data as f32).to_le_bytes().to_vec());
+                        }
+                        4 => {
+                            let data = self.registers.A.to_byte();
+                            self.registers.A = RawType::float((data as f32).to_le_bytes().to_vec());
+                        }
+                        _ => {
+                            return ThreadExit::Panic(ThreadPanic {
+                                reason: ThreadPanicReason::UnexpectedType,
+                                stack_trace: self.stack.stack.clone(),
+                            });
+                        }
+                    },
+                    _ => panic!("Illegal addressing value"),
+                },
+                Instructions::A2D(_) => match current_instruction.addressing_value {
+                    utils::AddressingValues::Implicit => match self.registers.A.type_id.id {
+                        1 => {
+                            let data = self.registers.A.to_int();
+                            self.registers.A =
+                                RawType::double((data as f64).to_le_bytes().to_vec());
+                        }
+                        2 => {
+                            let data = self.registers.A.to_float();
+                            self.registers.A =
+                                RawType::double((data as f64).to_le_bytes().to_vec());
+                        }
+                        3 => (),
+                        4 => {
+                            let data = self.registers.A.to_byte();
+                            self.registers.A =
+                                RawType::double((data as f64).to_le_bytes().to_vec());
+                        }
+                        _ => {
+                            return ThreadExit::Panic(ThreadPanic {
+                                reason: ThreadPanicReason::UnexpectedType,
+                                stack_trace: self.stack.stack.clone(),
+                            });
+                        }
+                    },
+                    _ => panic!("Illegal addressing value"),
+                },
+                Instructions::A2B(_) => match current_instruction.addressing_value {
+                    utils::AddressingValues::Implicit => match self.registers.A.type_id.id {
+                        1 => {
+                            let data = self.registers.A.to_int();
+                            if data < 255 {
+                                self.registers.A = RawType::byte(data as u8);
+                            } else {
+                                return ThreadExit::Panic(ThreadPanic {
+                                    reason: ThreadPanicReason::IntegerOverflow,
+                                    stack_trace: self.stack.stack.clone(),
+                                });
+                            }
+                        }
+                        2 => {
+                            let data = self.registers.A.to_float();
+                            self.registers.A = RawType::byte(if data.is_sign_negative() {
+                                data.to_be_bytes()[0]
+                            } else {
+                                data.to_le_bytes()[0]
+                            });
+                        }
+                        3 => {
+                            let data = self.registers.A.to_double();
+                            self.registers.A = RawType::byte(if data.is_sign_negative() {
+                                data.to_be_bytes()[0]
+                            } else {
+                                data.to_le_bytes()[0]
+                            });
+                        }
+                        4 => (),
+                        5 => {
+                            let data = self.registers.A.to_bool();
+                            self.registers.A = RawType::byte(if data { 1 } else { 0 });
+                        }
+                        _ => {
+                            return ThreadExit::Panic(ThreadPanic {
+                                reason: ThreadPanicReason::UnexpectedType,
+                                stack_trace: self.stack.stack.clone(),
+                            });
+                        }
+                    },
+                    _ => panic!("Illegal addressing value"),
+                },
+                Instructions::A2S(_) => match current_instruction.addressing_value {
+                    utils::AddressingValues::Implicit => match self.registers.A.type_id.id {
+                        1 => {
+                            let data = self.registers.A.to_int();
+                            self.registers.A =
+                                RawType::string(data.to_string().as_bytes().to_vec());
+                        }
+                        2 => {
+                            let data = self.registers.A.to_float();
+                            self.registers.A =
+                                RawType::string(data.to_string().as_bytes().to_vec());
+                        }
+                        3 => {
+                            let data = self.registers.A.to_double();
+                            self.registers.A =
+                                RawType::string(data.to_string().as_bytes().to_vec());
+                        }
+                        4 => {
+                            let data = self.registers.A.to_byte();
+                            self.registers.A =
+                                RawType::string(data.to_string().as_bytes().to_vec());
+                        }
+                        5 => {
+                            let data = self.registers.A.to_bool();
+                            self.registers.A =
+                                RawType::string(data.to_string().as_bytes().to_vec());
+                        }
+                        6 => (),
+                        7 => {
+                            let data = self.registers.A.to_char();
+                            self.registers.A =
+                                RawType::string(data.to_string().as_bytes().to_vec());
+                        }
+                        8 => {
+                            self.registers.A = RawType::string("void".as_bytes().to_vec());
+                        }
+                        10 => {
+                            let data = self.registers.A.to_string();
+                            self.registers.A = RawType::string("null".as_bytes().to_vec());
+                        }
+                        _ => {
+                            return ThreadExit::Panic(ThreadPanic {
+                                reason: ThreadPanicReason::UnexpectedType,
+                                stack_trace: self.stack.stack.clone(),
+                            });
+                        }
+                    },
+                    _ => panic!("Illegal addressing value"),
+                },
+                Instructions::A2C(_) => match current_instruction.addressing_value {
+                    utils::AddressingValues::Implicit => match self.registers.A.type_id.id {
+                        7 => (),
+                        6 => {
+                            let data = self.registers.A.to_string().chars().collect::<Vec<_>>()[0];
+                            self.registers.A = RawType::char((data as u32).to_le_bytes().to_vec());
+                        }
+                        _ => {
+                            return ThreadExit::Panic(ThreadPanic {
+                                reason: ThreadPanicReason::UnexpectedType,
+                                stack_trace: self.stack.stack.clone(),
+                            });
+                        }
+                    },
+                    _ => panic!("Illegal addressing value"),
+                },
+                Instructions::A2O(_) => match current_instruction.addressing_value {
+                    utils::AddressingValues::Implicit => match self.registers.A.type_id.id {
+                        1 => {
+                            let data = self.registers.A.to_int();
+                            self.registers.A = RawType::bool(data.is_positive());
+                        }
+                        2 => {
+                            let data = self.registers.A.to_float();
+                            self.registers.A = RawType::bool(data.is_sign_positive());
+                        }
+                        3 => {
+                            let data = self.registers.A.to_double();
+                            self.registers.A = RawType::bool(data.is_sign_negative());
+                        }
+                        4 => {
+                            self.registers.A = RawType::bool(true);
+                        }
+                        5 => (),
+                        6 => {
+                            let data = self.registers.A.to_string();
+                            self.registers.A = RawType::bool(data.len() > 0);
+                        }
+                        7 => {
+                            let data = self.registers.A.to_char();
+                            self.registers.A = RawType::bool(data != '\0');
+                        }
+                        8 => {
+                            self.registers.A = RawType::bool(false);
+                        }
+                        10 => {
+                            self.registers.A = RawType::bool(false);
+                        }
+                        _ => unreachable!(),
+                    },
+                    _ => unreachable!("Illegal addressing value"),
+                },
+                Instructions::JMPA(_) => match current_instruction.addressing_value {
+                    utils::AddressingValues::Absolute(e) => {
+                        if self.registers.A.is_bool() {
+                            if self.registers.A.data[0] == 1 {
+                                current_stack.pos = e;
+                            }
+                            println!(
+                                "{}[VM]{} JMPA: {}",
+                                utils::Colors::Yellow,
+                                utils::Colors::Reset,
+                                self.registers.A.data[0]
+                            );
+                        } else {
+                            return ThreadExit::Panic(ThreadPanic {
+                                reason: ThreadPanicReason::UnexpectedType,
+                                stack_trace: self.stack.stack.clone(),
+                            });
+                        }
+                    }
+                    _ => unreachable!("Illegal addressing value"),
+                },
                 Instructions::POPS(_) => todo!(),
                 Instructions::ACP(_) => todo!(),
                 Instructions::BRK(_) => todo!(),

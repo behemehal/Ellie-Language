@@ -26,7 +26,7 @@ impl super::Transpiler for condition::Condition {
                 )));
             assembler
                 .instructions
-                .push(instructions::Instructions::STA(Instruction::implict()));
+                .push(instructions::Instructions::STA(Instruction::implicit()));
             //Register a ret point
             assembler.locals.push(LocalHeader {
                 name: "$0".to_string(),

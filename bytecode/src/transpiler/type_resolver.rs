@@ -1,5 +1,5 @@
-use alloc::vec;
 use alloc::vec::Vec;
+use alloc::{string::String, vec};
 use ellie_core::definite::types::{operator, Types};
 
 use crate::{
@@ -85,22 +85,22 @@ pub fn resolve_type(
 
                 instructions.push(match e {
                     operator::ComparisonOperators::Equal => {
-                        instructions::Instructions::EQ(Instruction::implict())
+                        instructions::Instructions::EQ(Instruction::implicit())
                     }
                     operator::ComparisonOperators::NotEqual => {
-                        instructions::Instructions::NE(Instruction::implict())
+                        instructions::Instructions::NE(Instruction::implicit())
                     }
                     operator::ComparisonOperators::GreaterThan => {
-                        instructions::Instructions::GT(Instruction::implict())
+                        instructions::Instructions::GT(Instruction::implicit())
                     }
                     operator::ComparisonOperators::LessThan => {
-                        instructions::Instructions::LT(Instruction::implict())
+                        instructions::Instructions::LT(Instruction::implicit())
                     }
                     operator::ComparisonOperators::GreaterThanOrEqual => {
-                        instructions::Instructions::GQ(Instruction::implict())
+                        instructions::Instructions::GQ(Instruction::implicit())
                     }
                     operator::ComparisonOperators::LessThanOrEqual => {
-                        instructions::Instructions::LQ(Instruction::implict())
+                        instructions::Instructions::LQ(Instruction::implicit())
                     }
                     operator::ComparisonOperators::Null => unreachable!(),
                 });
@@ -147,22 +147,22 @@ pub fn resolve_type(
 
                 instructions.push(match e {
                     operator::ArithmeticOperators::Addition => {
-                        instructions::Instructions::ADD(Instruction::implict())
+                        instructions::Instructions::ADD(Instruction::implicit())
                     }
                     operator::ArithmeticOperators::Subtraction => {
-                        instructions::Instructions::SUB(Instruction::implict())
+                        instructions::Instructions::SUB(Instruction::implicit())
                     }
                     operator::ArithmeticOperators::Multiplication => {
-                        instructions::Instructions::MUL(Instruction::implict())
+                        instructions::Instructions::MUL(Instruction::implicit())
                     }
                     operator::ArithmeticOperators::Exponentiation => {
-                        instructions::Instructions::EXP(Instruction::implict())
+                        instructions::Instructions::EXP(Instruction::implicit())
                     }
                     operator::ArithmeticOperators::Division => {
-                        instructions::Instructions::DIV(Instruction::implict())
+                        instructions::Instructions::DIV(Instruction::implicit())
                     }
                     operator::ArithmeticOperators::Modulus => {
-                        instructions::Instructions::MOD(Instruction::implict())
+                        instructions::Instructions::MOD(Instruction::implicit())
                     }
                     operator::ArithmeticOperators::Null => unreachable!("Wrong operator"),
                 });
@@ -305,7 +305,6 @@ pub fn resolve_type(
                 },
                 instructions::Registers::B => match pos.reference {
                     Some(target_page) => {
-                        std::println!("resolve ref: {:?} {:?} {:?}", target_page, pos.cursor, e);
                         instructions.push(instructions::Instructions::AOL(Instruction::absolute(
                             target_page,
                         )));
@@ -360,7 +359,55 @@ pub fn resolve_type(
 
             instructions
         }
-        Types::AsKeyword(_) => todo!(),
+        Types::AsKeyword(e) => {
+            let mut instructions = resolve_type(
+                assembler,
+                &e.target,
+                instructions::Registers::A,
+                target_page,
+                dependencies,
+            );
+
+            match &e.rtype {
+                ellie_core::definite::definers::DefinerCollecting::Generic(e) => {
+                    if e.rtype == "int" {
+                        instructions.push(instructions::Instructions::A2I(Instruction::implicit()));
+                    } else if e.rtype == "float" {
+                        instructions.push(instructions::Instructions::A2F(Instruction::implicit()));
+                    } else if e.rtype == "double" {
+                        instructions.push(instructions::Instructions::A2D(Instruction::implicit()));
+                    } else if e.rtype == "bool" {
+                        instructions.push(instructions::Instructions::A2O(Instruction::implicit()));
+                    } else if e.rtype == "string" {
+                        instructions.push(instructions::Instructions::A2S(Instruction::implicit()));
+                    } else if e.rtype == "char" {
+                        instructions.push(instructions::Instructions::A2C(Instruction::implicit()));
+                    } else if e.rtype == "byte" {
+                        instructions.push(instructions::Instructions::A2B(Instruction::implicit()));
+                    }
+                }
+                _ => panic!("As conv parent generic not implemented yet"),
+            };
+
+            instructions.push(instructions::Instructions::LDB(Instruction::indirect_a()));
+
+            match target_register {
+                instructions::Registers::A => {
+                    instructions.push(instructions::Instructions::LDA(Instruction::indirect_b()))
+                }
+                instructions::Registers::B => (),
+                instructions::Registers::C => {
+                    instructions.push(instructions::Instructions::LDC(Instruction::indirect_b()))
+                }
+                instructions::Registers::X => {
+                    instructions.push(instructions::Instructions::LDX(Instruction::indirect_b()))
+                }
+                instructions::Registers::Y => {
+                    instructions.push(instructions::Instructions::LDY(Instruction::indirect_b()))
+                }
+            }
+            instructions
+        }
         Types::Byte(_) => {
             let converted_type = convert_type(types, dependencies);
             match target_register {

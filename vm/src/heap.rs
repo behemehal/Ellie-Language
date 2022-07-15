@@ -57,7 +57,7 @@ impl Heap {
                 Colors::Cyan,
                 match entry.value.type_id.id {
                     1 => {
-                        usize::from_le_bytes(entry.value.data.clone().try_into().unwrap())
+                        isize::from_le_bytes(entry.value.data.clone().try_into().unwrap())
                             .to_string()
                     }
                     2 => {

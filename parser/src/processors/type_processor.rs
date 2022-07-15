@@ -12,7 +12,9 @@ use ellie_core::{
 };
 use ellie_tokenizer::processors::types::Processors;
 
-use crate::deep_search_extensions::{deep_search, deep_search_hash, find_type, resolve_type, generate_type_from_defining};
+use crate::deep_search_extensions::{
+    deep_search, deep_search_hash, find_type, generate_type_from_defining, resolve_type,
+};
 
 pub fn process(
     from: Processors,
@@ -307,7 +309,6 @@ pub fn process(
                 Some(e) => e,
                 None => return Err(errors),
             };
-            std::println!(":: {:?}", processed_second_value);
             let _second_value = match resolve_type(
                 processed_second_value.clone().unwrap(),
                 page_id,
@@ -318,7 +319,6 @@ pub fn process(
                 Some(e) => e,
                 None => return Err(errors),
             };
-
 
             match ellie_core::utils::operator_control(
                 operator.data.operator.clone().to_definite(),
@@ -765,11 +765,8 @@ pub fn process(
                                                                     DefinerCollecting::Dynamic
                                                                 }
                                                             }
-                                                            
                                                         },
-                                                        ellie_core::definite::items::enum_type::EnumValue::Value(e) => 
-                                                           e
-                                                        
+                                                        ellie_core::definite::items::enum_type::EnumValue::Value(e) => e
                                                     },
                                                 }
                                             }).collect())
@@ -1142,9 +1139,8 @@ pub fn process(
                                                     Some(function_call.data.target_pos),
                                                 );
                                                 if errors.is_empty() {
-                                                    resolved_params.push((
-                                                        resolved.clone(), param.pos
-                                                    ));
+                                                    resolved_params
+                                                        .push((resolved.clone(), param.pos));
                                                     Some((resolved, found.unwrap(), param.pos))
                                                 } else {
                                                     None
@@ -1218,7 +1214,7 @@ pub fn process(
                                                             .unwrap()
                                                             .path
                                                             .clone(),
-                                                            pos,
+                                                        pos,
                                                     ),
                                             );
                                         }
@@ -1268,7 +1264,6 @@ pub fn process(
                                                 reference: e.hash,
                                                 pos: ellie_core::defs::Cursor::default(),
                                             },
-                                        
                                         )),
                                         reference_pos: ellie_core::defs::Cursor::default(),
                                         brace_pos:ellie_core::defs::Cursor::default(),
@@ -1726,18 +1721,21 @@ pub fn process(
                                                         false,
                                                     ) {
                                                         Ok(resolved_type) => {
-                                                            
                                                             let comperable = parser
                                                                 .compare_defining_with_type(
                                                                     element.clone(),
                                                                     resolved_type.clone(),
-                                                                    belonging_class.inner_page_id
+                                                                    belonging_class.inner_page_id,
                                                                 );
-                                                                let path =parser.find_page(page_id).unwrap().path.clone();
+                                                            let path = parser
+                                                                .find_page(page_id)
+                                                                .unwrap()
+                                                                .path
+                                                                .clone();
                                                             match comperable {
                                                                 Ok(result) => {
                                                                     if result.requires_cast {
-                                                                    parser.informations.push(
+                                                                        parser.informations.push(
                                                                         &error::error_list::ERROR_S41.clone().build_with_path(
                                                                             vec![error::ErrorBuildField {
                                                                                 key: "token".to_owned(),
@@ -1753,7 +1751,7 @@ pub fn process(
                                                                         matching_param.pos,
                                                                         ),
                                                                     );
-                                                                    let err = error::error_list::ERROR_S3
+                                                                        let err = error::error_list::ERROR_S3
                                                                     .clone()
                                                                     .build_with_path(
                                                                         vec![
@@ -1775,11 +1773,9 @@ pub fn process(
                                                                         path,
                                                                         matching_param.pos,
                                                                     );
-                                                                    errors.push(err);
-                                                                    return Err(errors);
-
-                                                                }
-
+                                                                        errors.push(err);
+                                                                        return Err(errors);
+                                                                    }
 
                                                                     if !result.same {
                                                                         let err = error::error_list::ERROR_S3
@@ -1981,7 +1977,18 @@ pub fn process(
                 Processors::EnumData(_) => todo!(),
             }
         }
-        Processors::Cloak(_) => todo!("cloak type not yet implemented"),
+        Processors::Cloak(e) => {
+            errors.push(error::error_list::ERROR_S59.clone().build_with_path(
+                vec![error::ErrorBuildField {
+                    key: "token".to_string(),
+                    value: "cloak".to_string(),
+                }],
+                alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                parser.find_page(page_id).unwrap().path.clone(),
+                e.data.pos,
+            ));
+            Err(errors)
+        }
         Processors::Collective(_) => todo!("collective type not yet implemented"),
         Processors::AsKeyword(as_keyword) => {
             match process(

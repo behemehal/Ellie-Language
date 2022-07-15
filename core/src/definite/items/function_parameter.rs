@@ -10,4 +10,5 @@ pub struct FunctionParameter {
     pub rtype: definers::DefinerCollecting,
     pub name_pos: defs::Cursor,
     pub rtype_pos: defs::Cursor,
+    pub hash: usize,
 }

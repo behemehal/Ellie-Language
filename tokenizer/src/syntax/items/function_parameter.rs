@@ -11,16 +11,19 @@ pub struct FunctionParameter {
     pub rtype: ellie_core::definite::definers::DefinerCollecting,
     pub name_pos: defs::Cursor,
     pub rtype_pos: defs::Cursor,
+    pub hash: usize,
 }
 
 impl Default for FunctionParameter {
     fn default() -> Self {
         FunctionParameter {
-            name: String::new(),
-            reference: false,
             rtype: DefinerCollecting::Dynamic,
+            name: Default::default(),
+            reference: Default::default(),
             name_pos: Default::default(),
             rtype_pos: Default::default(),
+            hash: Default::default(),
+            //..Default::default() Generates a weird warning
         }
     }
 }
@@ -30,7 +33,13 @@ impl
     for FunctionParameter
 {
     fn to_definite(self) -> ellie_core::definite::items::function_parameter::FunctionParameter {
-        unreachable!()
+        ellie_core::definite::items::function_parameter::FunctionParameter {
+            name: self.name,
+            rtype: self.rtype,
+            name_pos: self.name_pos,
+            rtype_pos: self.rtype_pos,
+            hash: self.hash,
+        }
     }
 
     fn from_definite(
@@ -43,6 +52,7 @@ impl
             reference: false,
             name_pos: from.name_pos,
             rtype_pos: from.rtype_pos,
+            hash: from.hash,
         }
     }
 }

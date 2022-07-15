@@ -57,6 +57,7 @@ pub fn get_output_path(
                     cli_utils::OutputTypes::Bin => ".eib",
                     cli_utils::OutputTypes::ByteCode => ".eic",
                     cli_utils::OutputTypes::ByteCodeAsm => ".eia",
+                    cli_utils::OutputTypes::ByteCodeDebug => ".eig",
                     _ => ".json",
                 }),
         )
@@ -533,6 +534,15 @@ pub fn compile(
                             output_path,
                             compiler_settings.output_type.clone(),
                         );
+
+                        let dbg_output_path = output_path.file_name().unwrap().to_str().unwrap();
+
+                        let dbg_output_path = &get_output_path(
+                            target_path,
+                            Path::new(&output_path.to_str().unwrap().replace(dbg_output_path, "")),
+                            cli_utils::OutputTypes::ByteCodeDebug,
+                        );
+
                         match compiler_settings.output_type {
                             cli_utils::OutputTypes::Bin => {
                                 let bytes = bincode::serialize(&workspace).unwrap();
@@ -606,6 +616,7 @@ pub fn compile(
                                         memory_size: 512000, //512kb memory limit
                                     },
                                 );
+
                                 let assembler_result = assembler.assemble();
                                 bytecode_end = (bytecode_start.elapsed().as_nanos() as f64
                                     / 1000000_f64)
@@ -729,32 +740,71 @@ pub fn compile(
                                     / 1000000_f64)
                                     as f64;
                                 match File::create(output_path) {
-                                    Ok(mut file) => {
-                                        assembler_result.render_binary(&mut file, None);
-                                        if compiler_settings.json_log {
-                                            let mut output =
-                                                cli_outputs::WRITE_BYTE_CODE_SUCCEDED.clone();
-                                            output.extra.push(cli_outputs::CliOuputExtraData {
-                                                key: 0,
-                                                value: output_path
-                                                    .absolutize()
-                                                    .unwrap()
-                                                    .to_str()
-                                                    .unwrap()
-                                                    .to_owned(),
-                                            });
-                                            println!("{}", serde_json::to_string(&output).unwrap())
-                                        } else {
-                                            println!(
-                                                "{}[!]{}: ByteCode output written to {}{}{}",
-                                                cli_utils::Colors::Green,
-                                                cli_utils::Colors::Reset,
-                                                cli_utils::Colors::Yellow,
-                                                output_path.absolutize().unwrap().to_str().unwrap(),
-                                                cli_utils::Colors::Reset,
-                                            );
+                                    Ok(mut file) => match File::create(dbg_output_path) {
+                                        Ok(mut dbg_file) => {
+                                            assembler_result
+                                                .render_binary(&mut file, &mut dbg_file);
+                                            if compiler_settings.json_log {
+                                                let mut output =
+                                                    cli_outputs::WRITE_BYTE_CODE_SUCCEDED.clone();
+                                                output.extra.push(cli_outputs::CliOuputExtraData {
+                                                    key: 0,
+                                                    value: output_path
+                                                        .absolutize()
+                                                        .unwrap()
+                                                        .to_str()
+                                                        .unwrap()
+                                                        .to_owned(),
+                                                });
+                                                println!(
+                                                    "{}",
+                                                    serde_json::to_string(&output).unwrap()
+                                                )
+                                            } else {
+                                                println!(
+                                                    "{}[!]{}: ByteCode output written to {}{}{}",
+                                                    cli_utils::Colors::Green,
+                                                    cli_utils::Colors::Reset,
+                                                    cli_utils::Colors::Yellow,
+                                                    output_path
+                                                        .absolutize()
+                                                        .unwrap()
+                                                        .to_str()
+                                                        .unwrap(),
+                                                    cli_utils::Colors::Reset,
+                                                );
+                                                println!(
+                                                            "{}[!]{}: ByteCode debug file written to {}{}{}",
+                                                            cli_utils::Colors::Green,
+                                                            cli_utils::Colors::Reset,
+                                                            cli_utils::Colors::Yellow,
+                                                            dbg_output_path.absolutize().unwrap().to_str().unwrap(),
+                                                            cli_utils::Colors::Reset,
+                                                        );
+                                            }
                                         }
-                                    }
+                                        Err(err) => {
+                                            if compiler_settings.json_log {
+                                                let mut output =
+                                                    cli_outputs::WRITE_FILE_ERROR.clone();
+                                                output.extra.push(cli_outputs::CliOuputExtraData {
+                                                    key: "path".to_string(),
+                                                    value: format!("{:?}", err),
+                                                });
+                                                println!(
+                                                    "{}",
+                                                    serde_json::to_string(&output).unwrap()
+                                                )
+                                            } else {
+                                                println!(
+                                                    "\nFailed to write output. [{}{:?}{}]",
+                                                    cli_utils::Colors::Red,
+                                                    err,
+                                                    cli_utils::Colors::Reset,
+                                                );
+                                            }
+                                        }
+                                    },
                                     Err(write_error) => {
                                         if compiler_settings.json_log {
                                             let mut output = cli_outputs::WRITE_FILE_ERROR.clone();
@@ -775,6 +825,7 @@ pub fn compile(
                                     }
                                 }
                             }
+                            cli_utils::OutputTypes::ByteCodeDebug => unreachable!(),
                         }
                     }
 

@@ -13,6 +13,7 @@ pub mod getter;
 pub mod getter_call;
 pub mod go;
 pub mod import;
+pub mod loop_type;
 pub mod ret;
 pub mod setter;
 pub mod setter_call;

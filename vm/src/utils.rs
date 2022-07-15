@@ -1,6 +1,9 @@
 use std::fmt::Display;
 
-use ellie_core::raw_type::RawType;
+use ellie_core::{
+    defs::{Cursor, CursorPosition},
+    raw_type::RawType,
+};
 
 use crate::thread::Stack;
 
@@ -16,6 +19,15 @@ pub enum ThreadPanicReason {
     DoubleOverflow,
     UnmergebleTypes,
     StackOverflow,
+    UnexpectedType,
+    OutOfInstructions,
+}
+
+#[derive(Debug, Clone)]
+pub struct StackNode {
+    pub stack_name: String,
+    pub location: CursorPosition,
+    pub program_counter: usize,
 }
 
 #[derive(Debug, Clone)]
@@ -27,7 +39,6 @@ pub struct ThreadPanic {
 #[derive(Debug, Clone)]
 pub enum ThreadExit {
     Panic(ThreadPanic),
-    OutOfInstructions,
     ExitGracefully,
 }
 
@@ -582,22 +593,3 @@ impl Display for Colors {
         write!(f, "{}{}", '\u{001b}', color_id)
     }
 }
-
-/*
-
-
- pub fn read(&self) -> u8 {
-        match (self.reader)(Request::GetByte) {
-            Response::SeekByte(_) => panic!("SeekByte not expected"),
-            Response::GetByte(e) => e,
-        }
-    }
-
-    pub fn seek(&self) -> bool {
-        match (self.reader)(Request::SeekByte) {
-            Response::SeekByte(e) => e,
-            Response::GetByte(_) => panic!("GetByte not expected"),
-        }
-    }
-
-*/

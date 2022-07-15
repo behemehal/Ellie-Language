@@ -1,5 +1,5 @@
 use alloc::{borrow::ToOwned, vec, vec::Vec};
-use ellie_core::{error, warning};
+use ellie_core::{error, utils::generate_hash_usize, warning};
 use ellie_tokenizer::{syntax::items::setter, tokenizer::PageType};
 
 impl super::Processor for setter::Setter {
@@ -126,6 +126,7 @@ impl super::Processor for setter::Setter {
                                             rtype: e.clone(),
                                             name_pos: parameter.name_pos,
                                             rtype_pos: parameter.rtype_pos,
+                                            hash: generate_hash_usize()
                                         },
                                     ));
                         setter_parameter =

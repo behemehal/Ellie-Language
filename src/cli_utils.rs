@@ -64,6 +64,7 @@ pub enum OutputTypes {
     Json,
     ByteCode,
     ByteCodeAsm,
+    ByteCodeDebug,
     Nop,
 }
 

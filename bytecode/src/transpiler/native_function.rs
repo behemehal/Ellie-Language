@@ -24,7 +24,7 @@ impl super::Transpiler for native_function::NativeFunction {
         for _ in &self.parameters {
             assembler
                 .instructions
-                .push(Instructions::STA(Instruction::implict()))
+                .push(Instructions::STA(Instruction::implicit()))
         }
         assembler.locals.push(LocalHeader {
             name: self.name.clone(),

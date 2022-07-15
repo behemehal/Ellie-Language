@@ -373,4 +373,12 @@ lazy_static! {
         semi_assist: true,
         ..Default::default()
     };
+
+    pub static ref ERROR_S59: error::Error = error::Error {
+        code: 0x58,
+        title: "UnfinishedFeature".to_owned(),
+        message: "Usage of '$token' is forbidden for now".to_owned(),
+        semi_assist: true,
+        ..Default::default()
+    };
 }

@@ -124,11 +124,7 @@ impl super::Processor for getter::Getter {
 
             if let Some(ret) = found_ret {
                 if parser.informations.has_no_errors() {
-                    match parser.compare_defining_with_type(
-                        return_type,
-                        ret.value,
-                        inner_page_id,
-                    ) {
+                    match parser.compare_defining_with_type(return_type, ret.value, inner_page_id) {
                         Ok(result) => {
                             if result.requires_cast {
                                 parser.informations.push(

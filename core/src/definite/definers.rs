@@ -128,7 +128,7 @@ impl DefinerCollecting {
                 EnumFieldData::Data(inner_def) => {
                     //format!("{}.{}({})", e.name, e.field_name, inner_def.to_string())
                     inner_def.to_string()
-                },
+                }
             },
         }
     }

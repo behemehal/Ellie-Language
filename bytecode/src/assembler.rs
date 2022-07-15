@@ -1,7 +1,11 @@
 use crate::instructions;
 use crate::transpiler::Transpiler;
-use alloc::{format, string::String, vec::Vec};
-use ellie_core::defs::PlatformArchitecture;
+use alloc::{
+    format,
+    string::{String, ToString},
+    vec::Vec,
+};
+use ellie_core::defs::{Cursor, PlatformArchitecture};
 use ellie_core::utils::ExportPage;
 use ellie_parser::parser::Module;
 use std::{io::Write, panic};
@@ -20,14 +24,23 @@ pub enum DebugHeaderType {
     Variable,
     Class,
     Parameter,
+    Function,
 }
 
 #[derive(Clone, Debug)]
 pub struct DebugHeader {
-    pub id: usize,
+    /// Element Type
     pub rtype: DebugHeaderType,
+    /// Element's hash
+    pub hash: usize,
+    /// Module Name
+    pub module: String,
+    /// Element Name
     pub name: String,
-    pub cursor: ellie_core::defs::Cursor,
+    /// Instruction start -> end,
+    pub start_end: (usize, usize),
+    /// Code pos
+    pub pos: Cursor,
 }
 
 #[derive(Clone, Debug)]
@@ -74,13 +87,34 @@ pub struct PlatformAttributes {
 }
 
 pub struct AssembleResult {
+    pub debug_headers: Vec<DebugHeader>,
+    pub locals: Vec<LocalHeader>,
     pub instructions: Vec<instructions::Instructions>,
     pub platform_attributes: PlatformAttributes,
     pub main_function: Option<usize>,
 }
 
 impl AssembleResult {
-    pub fn render_binary<T: Write>(&self, writer: &mut T, _header: Option<&mut T>) {
+    pub fn render_binary<T: Write, E: Write>(&self, writer: &mut T, dbg_w: &mut E) {
+        for header in &self.debug_headers {
+            dbg_w
+                .write_all(
+                    format!(
+                        "{}:{}:{}:{}:{}:{}:{}:{}:{}\n",
+                        header.start_end.0,
+                        header.start_end.1,
+                        header.module,
+                        header.name,
+                        header.pos.range_start.0,
+                        header.pos.range_start.1,
+                        header.pos.range_end.0,
+                        header.pos.range_end.1,
+                        header.hash,
+                    )
+                    .as_bytes(),
+                )
+                .unwrap();
+        }
         writer
             .write(&[match self.platform_attributes.architecture {
                 PlatformArchitecture::B16 => 16_u8,
@@ -127,6 +161,48 @@ impl AssembleResult {
             }
             None => (),
         }
+        output.write_all(".locals".as_bytes()).unwrap();
+
+        for local in &self.locals {
+            output
+                .write_all(
+                    format!(" {} {} {}", local.name, local.cursor, local.page_hash).as_bytes(),
+                )
+                .unwrap();
+            match local.reference {
+                Some(reference) => {
+                    output
+                        .write_all(format!(" {}", reference).as_bytes())
+                        .unwrap();
+                }
+                None => (),
+            }
+            output.write_all("\n".as_bytes()).unwrap();
+        }
+
+        output.write_all(".debugHeader".as_bytes()).unwrap();
+
+        for debug_header in &self.debug_headers {
+            output
+                .write_all(
+                    format!(
+                        "\n\t{:?} = {} : {}",
+                        debug_header.rtype,
+                        {
+                            if debug_header.start_end.1 == (debug_header.start_end.0 + 1) {
+                                debug_header.start_end.0.to_string()
+                            } else {
+                                format!("{}~{}", debug_header.start_end.0, debug_header.start_end.1)
+                            }
+                        },
+                        debug_header.hash
+                    )
+                    .as_bytes(),
+                )
+                .unwrap()
+        }
+
+        output.write_all("\n".as_bytes()).unwrap();
 
         let mut count = 0;
 
@@ -219,6 +295,10 @@ impl Assembler {
         }
     }
 
+    pub fn location(&self) -> usize {
+        self.instructions.len() - 1
+    }
+
     pub fn find_local(&self, name: &String, page_hash: Option<Vec<usize>>) -> Option<&LocalHeader> {
         self.locals.iter().find(|local| {
             &local.name == name
@@ -277,20 +357,11 @@ impl Assembler {
                 ellie_core::definite::items::Collecting::Constructor(constructor) => {
                     constructor.transpile(self, processed_page.hash as usize, &processed_page)
                 }
-                ellie_core::definite::items::Collecting::Import(_) => {
-                    std::println!("[Assembler,Ignore,Element] Import");
-                    true
-                }
-                ellie_core::definite::items::Collecting::FileKey(_) => {
-                    std::println!("[Assembler,Ignore,Element] FileKey");
-                    true
-                }
+                ellie_core::definite::items::Collecting::Import(_) => true,
+                ellie_core::definite::items::Collecting::FileKey(_) => true,
                 ellie_core::definite::items::Collecting::Getter(_) => todo!(),
                 ellie_core::definite::items::Collecting::Setter(_) => todo!(),
-                ellie_core::definite::items::Collecting::Generic(_) => {
-                    std::println!("[Assembler,Ignore,Element] Generic");
-                    true
-                }
+                ellie_core::definite::items::Collecting::Generic(_) => true,
                 ellie_core::definite::items::Collecting::GetterCall(getter_call) => {
                     getter_call.transpile(self, processed_page.hash as usize, &processed_page)
                 }
@@ -311,17 +382,11 @@ impl Assembler {
                         &processed_page,
                     )
                 }
-                ellie_core::definite::items::Collecting::ConstructorParameter(_) => {
-                    std::println!("[Assembler,Ignore,Element] ConstructorParameter");
-                    true
-                }
-                ellie_core::definite::items::Collecting::SelfItem(_) => {
-                    std::println!("[Assembler,Ignore,Element] SelfItem");
-                    true
-                }
-                ellie_core::definite::items::Collecting::Extend(_) => {
-                    std::println!("[Assembler,Ignore,Element] Extend");
-                    true
+                ellie_core::definite::items::Collecting::ConstructorParameter(_) => true,
+                ellie_core::definite::items::Collecting::SelfItem(_) => true,
+                ellie_core::definite::items::Collecting::Extend(_) => true,
+                ellie_core::definite::items::Collecting::Loop(loop_type) => {
+                    loop_type.transpile(self, processed_page.hash as usize, &processed_page)
                 }
             };
         }
@@ -329,26 +394,10 @@ impl Assembler {
     }
 
     pub fn assemble(&mut self) -> AssembleResult {
-        /*
-        if !self.module.is_library {
-
-            let main_fn_inner_page_id = self.module.pages.find_page(self.module.initial_page).unwrap().items.iter().find_map(|x| match x {
-                ellie_core::definite::items::Collecting::Function(e) => Some(e),
-                _ => None
-            }).unwrap().inner_page_id;
-            self.pages.push_page(InstructionPage {
-                is_main: true,
-                hash: 0,
-                instructions: vec![instructions::Instructions::CALL(Instruction::absolute(
-                    main_fn_inner_page_id as usize,
-                ))],
-                locals: Vec::new(),
-                debug_headers: Vec::new(),
-            });
-        }
-        */
         let main_function = self.assemble_dependency(&self.module.initial_page.clone());
         AssembleResult {
+            locals: self.locals.clone(),
+            debug_headers: self.debug_headers.clone(),
             instructions: self.instructions.clone(),
             platform_attributes: self.platform_attributes.clone(),
             main_function,

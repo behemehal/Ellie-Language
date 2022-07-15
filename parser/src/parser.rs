@@ -1796,6 +1796,12 @@ impl Parser {
                             processed_page_idx,
                             unprocessed_page.hash,
                         ),
+                        Processors::Loop(e) => e.process(
+                            self,
+                            unprocessed_page_idx,
+                            processed_page_idx,
+                            unprocessed_page.hash,
+                        ),
                         Processors::Condition(e) => e.process(
                             self,
                             unprocessed_page_idx,
@@ -1854,7 +1860,7 @@ impl Parser {
                         Processors::FunctionParameter(e) => {
                             self.processed_pages.nth_mut(processed_page_idx).unwrap().items.push(
                             Collecting::FuctionParameter(
-                                ellie_core::definite::items::function_parameter::FunctionParameter { name: e.name.clone(), rtype: e.rtype.clone(), name_pos: e.name_pos, rtype_pos: e.rtype_pos }
+                                ellie_core::definite::items::function_parameter::FunctionParameter { name: e.name.clone(), rtype: e.rtype.clone(), name_pos: e.name_pos, rtype_pos: e.rtype_pos, hash: e.hash }
                             ));
                             true
                         }
@@ -1920,6 +1926,12 @@ impl Parser {
                             unprocessed_page.hash,
                         ),
                         Processors::ForLoop(e) => e.process(
+                            self,
+                            unprocessed_page_idx,
+                            processed_page_idx,
+                            unprocessed_page.hash,
+                        ),
+                        Processors::Loop(e) => e.process(
                             self,
                             unprocessed_page_idx,
                             processed_page_idx,
@@ -2057,6 +2069,12 @@ impl Parser {
                             processed_page_idx,
                             unprocessed_page.hash,
                         ),
+                        Processors::Loop(e) => e.process(
+                            self,
+                            unprocessed_page_idx,
+                            processed_page_idx,
+                            unprocessed_page.hash,
+                        ),
                         Processors::Condition(e) => e.process(
                             self,
                             unprocessed_page_idx,
@@ -2104,7 +2122,7 @@ impl Parser {
                         Processors::FunctionParameter(e) => {
                             self.processed_pages.nth_mut(processed_page_idx).unwrap().items.push(
                                 Collecting::FuctionParameter(
-                                    ellie_core::definite::items::function_parameter::FunctionParameter { name: e.name.clone(), rtype: e.rtype.clone(), name_pos: e.name_pos, rtype_pos: e.rtype_pos }
+                                    ellie_core::definite::items::function_parameter::FunctionParameter { name: e.name.clone(), rtype: e.rtype.clone(), name_pos: e.name_pos, rtype_pos: e.rtype_pos, hash: e.hash }
                                 ));
                             true
                         }
@@ -2238,6 +2256,12 @@ impl Parser {
                             processed_page_idx,
                             unprocessed_page.hash,
                         ),
+                        Processors::Loop(e) => e.process(
+                            self,
+                            unprocessed_page_idx,
+                            processed_page_idx,
+                            unprocessed_page.hash,
+                        ),
                         Processors::Condition(e) => e.process(
                             self,
                             unprocessed_page_idx,
@@ -2322,7 +2346,7 @@ impl Parser {
                             false
                         }
                     },
-                    ellie_tokenizer::tokenizer::PageType::ForBody => match item {
+                    ellie_tokenizer::tokenizer::PageType::LoopBody => match item {
                         Processors::Variable(e) => e.process(
                             self,
                             unprocessed_page_idx,
@@ -2360,6 +2384,12 @@ impl Parser {
                             unprocessed_page.hash,
                         ),
                         Processors::ForLoop(e) => e.process(
+                            self,
+                            unprocessed_page_idx,
+                            processed_page_idx,
+                            unprocessed_page.hash,
+                        ),
+                        Processors::Loop(e) => e.process(
                             self,
                             unprocessed_page_idx,
                             processed_page_idx,
@@ -2447,7 +2477,7 @@ impl Parser {
                         Processors::FunctionParameter(e) => {
                             self.processed_pages.nth_mut(processed_page_idx).unwrap().items.push(
                                 Collecting::FuctionParameter(
-                                    ellie_core::definite::items::function_parameter::FunctionParameter { name: e.name.clone(), rtype: e.rtype.clone(), name_pos: e.name_pos, rtype_pos: e.rtype_pos }
+                                    ellie_core::definite::items::function_parameter::FunctionParameter { name: e.name.clone(), rtype: e.rtype.clone(), name_pos: e.name_pos, rtype_pos: e.rtype_pos, hash: e.hash }
                                 ));
                             true
                         }

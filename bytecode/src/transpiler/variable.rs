@@ -1,6 +1,6 @@
 use super::type_resolver::resolve_type;
 use crate::{
-    assembler::LocalHeader,
+    assembler::{DebugHeader, DebugHeaderType, LocalHeader},
     instructions::{self, Instruction},
 };
 use alloc::vec;
@@ -16,6 +16,8 @@ impl super::Transpiler for variable::Variable {
         let mut dependencies = vec![processed_page.hash];
         dependencies.extend(processed_page.dependencies.iter().map(|d| d.hash));
 
+        let location = assembler.location();
+
         let resolved_instructions = resolve_type(
             assembler,
             &self.value,
@@ -24,15 +26,26 @@ impl super::Transpiler for variable::Variable {
             Some(dependencies),
         );
 
+        std::println!("RES: {:?}", resolved_instructions);
+
         assembler.instructions.extend(resolved_instructions);
 
         assembler
             .instructions
-            .push(instructions::Instructions::STA(Instruction::implict()));
+            .push(instructions::Instructions::STA(Instruction::implicit()));
+
+        assembler.debug_headers.push(DebugHeader {
+            rtype: DebugHeaderType::Variable,
+            hash: self.hash,
+            start_end: (location, assembler.location()),
+            module: processed_page.path.clone(),
+            name: self.name.clone(),
+            pos: self.pos,
+        });
 
         assembler.locals.push(LocalHeader {
             name: self.name.clone(),
-            cursor: assembler.instructions.len() - 1,
+            cursor: assembler.location(),
             page_hash: processed_page.hash,
             reference: None,
         });

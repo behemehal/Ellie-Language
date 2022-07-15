@@ -23,7 +23,10 @@ pub struct Program {
 impl Program {
     pub fn build_from_reader(reader: &mut ProgramReader) -> Result<Self, u8> {
         let arch = match reader.read_u8() {
-            Some(byte) => PlatformArchitecture::from_byte(byte),
+            Some(byte) => match PlatformArchitecture::from_byte(byte) {
+                Some(e) => e,
+                None => return Err(2),
+            },
             None => return Err(0),
         };
 

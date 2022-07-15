@@ -5,11 +5,12 @@ mod for_loop;
 mod function;
 mod function_parameter;
 mod getter_call;
+mod loop_type;
+mod native_function;
 mod ret;
 mod setter_call;
 pub mod type_resolver;
 mod variable;
-mod native_function;
 
 use ellie_parser::parser::ProcessedPage;
 

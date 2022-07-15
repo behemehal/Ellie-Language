@@ -167,11 +167,11 @@ impl core::fmt::Display for AddressingModes {
 
 #[derive(Clone, Debug)]
 pub struct Instruction {
-    addressing_mode: AddressingModes,
+    pub addressing_mode: AddressingModes,
 }
 
 impl Instruction {
-    pub fn implict() -> Instruction {
+    pub fn implicit() -> Instruction {
         Instruction {
             addressing_mode: AddressingModes::Implicit,
         }

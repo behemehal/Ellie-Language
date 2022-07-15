@@ -303,12 +303,12 @@ impl PlatformArchitecture {
         }
     }
 
-    pub fn from_byte(byte: u8) -> PlatformArchitecture {
+    pub fn from_byte(byte: u8) -> Option<PlatformArchitecture> {
         match byte {
-            16 => PlatformArchitecture::B16,
-            32 => PlatformArchitecture::B32,
-            64 => PlatformArchitecture::B64,
-            _ => panic!("Unknown architecture"),
+            16 => Some(PlatformArchitecture::B16),
+            32 => Some(PlatformArchitecture::B32),
+            64 => Some(PlatformArchitecture::B64),
+            _ => None,
         }
     }
 }

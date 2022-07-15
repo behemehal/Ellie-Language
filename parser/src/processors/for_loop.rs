@@ -13,6 +13,17 @@ impl super::Processor for ForLoop {
     ) -> bool {
         let page = parser.pages.nth(page_idx).unwrap().clone();
         let path = page.path.clone();
+        if !parser.experimental_features {
+            parser
+                .informations
+                .push(&error::error_list::ERROR_S58.clone().build_with_path(
+                    vec![error::ErrorBuildField::new("token", &"for".to_owned())],
+                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                    path,
+                    self.pos,
+                ));
+            return false;
+        }
         if self.variable.current.as_variable().is_none() {
             parser
                 .informations
@@ -138,7 +149,7 @@ impl super::Processor for ForLoop {
                 hash: page.hash.clone(),
                 processed: false,
                 module: None,
-                deep_link: None,
+                deep_link: Some(page.hash.clone()),
                 public: false,
             }];
 
@@ -174,7 +185,7 @@ impl super::Processor for ForLoop {
                 hash: inner_page_id,
                 inner: Some(page.hash),
                 path: page.path.clone(),
-                page_type: PageType::ForBody,
+                page_type: PageType::LoopBody,
                 items,
                 dependents: vec![],
                 dependencies,

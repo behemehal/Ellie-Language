@@ -21,7 +21,13 @@ impl super::Processor for Class {
             .unassigned_file_keys
             .clone();
 
-        if utils::is_reserved(&self.name, class_key_definings.iter().find(|x| x.key_name == "dont_fix_variant").is_some()) {
+        if utils::is_reserved(
+            &self.name,
+            class_key_definings
+                .iter()
+                .find(|x| x.key_name == "dont_fix_variant")
+                .is_some(),
+        ) {
             parser
                 .informations
                 .push(&error::error_list::ERROR_S21.clone().build_with_path(
