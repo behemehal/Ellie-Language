@@ -6,6 +6,7 @@ use alloc::{borrow::ToOwned, string::String};
 use core::panic;
 use ellie_core::definite::definers::DefinerCollecting;
 use ellie_core::definite::types::Types;
+use ellie_core::defs::Cursor;
 use ellie_core::{
     definite::{items::Collecting, types, Converter},
     error,
@@ -24,6 +25,7 @@ pub fn process(
     include_setter: bool,
     exclude_getter: bool,
     ignore_type: bool,
+    variable_pos: Option<Cursor>,
 ) -> Result<types::Types, Vec<error::Error>> {
     let mut errors = Vec::new();
     let (type_allowed, err_str) = parser.parser_settings.is_type_allowed(from.clone());
@@ -50,6 +52,7 @@ pub fn process(
                 ignore_hash,
                 Vec::new(),
                 0,
+                variable_pos,
             );
 
             if deep_search_result.found {
@@ -143,24 +146,6 @@ pub fn process(
                                                 pos: ellie_core::defs::Cursor::default(),
                                             },
                                         ))
-
-                                        /*
-                                            Ok(types::Types::ClassCall(types::class_call::ClassCall {
-                                            pos: from.get_pos(),
-                                            target: Box::new(ellie_core::definite::types::Types::VariableType(
-                                                ellie_core::definite::types::variable::VariableType {
-                                                    value: "function".to_owned(),
-                                                    reference: e.hash,
-                                                    pos: ellie_core::defs::Cursor::default(),
-                                                },
-                                            )),
-                                            params: vec![],
-                                            keyword_pos: ellie_core::defs::Cursor::default(),
-                                            target_pos: ellie_core::defs::Cursor::default(),
-                                            generic_parameters: vec![],
-                                            resolved_generics: vec![],
-                                        }))
-                                        */
                                     }
                                     None => {
                                         errors.push(
@@ -237,6 +222,7 @@ pub fn process(
                     false,
                     false,
                     ignore_type,
+                    variable_pos,
                 );
                 if response.is_err() {
                     errors.append(&mut response.unwrap_err());
@@ -277,6 +263,7 @@ pub fn process(
                 false,
                 false,
                 false,
+                variable_pos,
             );
 
             let processed_second_value = process(
@@ -287,6 +274,7 @@ pub fn process(
                 false,
                 false,
                 false,
+                variable_pos,
             );
 
             if processed_first_value.is_err() || processed_second_value.is_err() {
@@ -348,6 +336,7 @@ pub fn process(
                 false,
                 exclude_getter,
                 false,
+                variable_pos,
             );
             match processed_reference {
                 Ok(found_reference) => {
@@ -950,6 +939,7 @@ pub fn process(
                 false,
                 exclude_getter,
                 false,
+                variable_pos,
             );
             match index {
                 Ok(index) => {
@@ -975,6 +965,7 @@ pub fn process(
                         false,
                         exclude_getter,
                         false,
+                        variable_pos,
                     );
                     match reference {
                         Ok(found_reference) => {
@@ -1102,6 +1093,7 @@ pub fn process(
                 false,
                 false,
                 false,
+                variable_pos,
             );
             match target {
                 Ok(_) => {
@@ -1129,6 +1121,7 @@ pub fn process(
                                             false,
                                             false,
                                             false,
+                                            Some(function_call.data.pos),
                                         ) {
                                             Ok(resolved) => {
                                                 let found = resolve_type(
@@ -1138,6 +1131,11 @@ pub fn process(
                                                     &mut errors,
                                                     Some(function_call.data.target_pos),
                                                 );
+
+                                                if found.is_none() {
+                                                    panic!("{:?}, {:?}", resolved, param.value);
+                                                }
+
                                                 if errors.is_empty() {
                                                     resolved_params
                                                         .push((resolved.clone(), param.pos));
@@ -1228,6 +1226,7 @@ pub fn process(
                                         page_id,
                                         None,
                                         false,false,false,
+                                        variable_pos,
                                     ) {
                                         Ok(resolved) => {
                                             Ok(ellie_core::definite::types::Types::FunctionCall(
@@ -1495,6 +1494,7 @@ pub fn process(
                         ignore_hash,
                         Vec::new(),
                         0,
+                        variable_pos
                     );
 
                     if deep_search_result.found {
@@ -1719,6 +1719,7 @@ pub fn process(
                                                         false,
                                                         false,
                                                         false,
+                                                        variable_pos,
                                                     ) {
                                                         Ok(resolved_type) => {
                                                             let comperable = parser
@@ -1999,6 +2000,7 @@ pub fn process(
                 false,
                 false,
                 false,
+                variable_pos,
             ) {
                 Ok(resolved_types) => {
                     match crate::processors::definer_processor::process(
@@ -2037,6 +2039,7 @@ pub fn process(
                 false,
                 false,
                 false,
+                variable_pos,
             ) {
                 Ok(resolved_types) => Ok(types::Types::NullResolver(
                     types::null_resolver::NullResolver {

@@ -67,6 +67,7 @@ impl super::Processor for VariableCollector {
                     false,
                     false,
                     true,
+                    Some(self.data.pos),
                 )
             };
 

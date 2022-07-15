@@ -46,7 +46,7 @@ impl super::Processor for Constructor {
 
         for (index, parameter) in self.parameters.clone().iter().enumerate() {
             let deep_search =
-                parser.deep_search(page_hash, parameter.name.clone(), None, vec![], 0);
+                parser.deep_search(page_hash, parameter.name.clone(), None, vec![], 0, None);
 
             if let Some(other_index) = self
                 .parameters

@@ -1,3 +1,5 @@
+use std::panic;
+
 use crate::deep_search_extensions::{self, resolve_deep_type, resolve_type};
 use crate::processors::Processor;
 use alloc::borrow::ToOwned;
@@ -7,6 +9,7 @@ use alloc::vec::Vec;
 use alloc::{string::String, vec};
 use ellie_core::definite::items::file_key::FileKey;
 use ellie_core::definite::{items::Collecting, Converter};
+use ellie_core::defs::Cursor;
 use ellie_core::utils::{ExportPage, PageExport};
 use ellie_core::{defs, error, information, warning};
 use ellie_tokenizer::processors::items::Processors;
@@ -1197,6 +1200,7 @@ impl Parser {
             if hash == 0 { None } else { Some(hash) },
             vec![],
             0,
+            None,
         );
 
         if deep_search.found {
@@ -1223,6 +1227,7 @@ impl Parser {
         ignore_hash: Option<usize>,
         searched: Vec<usize>,
         _level: usize,
+        current_pos: Option<Cursor>,
     ) -> DeepSearchResult {
         let mut level = _level;
         let mut found = false;
@@ -1276,6 +1281,11 @@ impl Parser {
                                             && (e.public || level == 0 || dep.deep_link.is_some())
                                             && (ignore_hash.is_none()
                                                 || matches!(ignore_hash, Some(ref t) if &e.hash != t))
+                                            && (current_pos.is_none()
+                                                || (level == 0
+                                                    && e.pos.range_start.is_bigger(
+                                                        &current_pos.unwrap().range_start,
+                                                    )))
                                         {
                                             found_pos = Some(e.pos);
                                             found = true;
@@ -1387,6 +1397,10 @@ impl Parser {
                                             && (e.public || level == 0 || dep.deep_link.is_some())
                                             && (ignore_hash.is_none()
                                                 || matches!(ignore_hash, Some(ref t) if &e.hash != t))
+                                            && current_pos
+                                                .unwrap()
+                                                .range_start
+                                                .is_bigger(&e.pos.range_start)
                                         {
                                             found_pos = Some(e.pos);
                                             found = true;
@@ -1496,6 +1510,12 @@ impl Parser {
                                                 || dep.deep_link.is_some())
                                             && (ignore_hash.is_none()
                                                 || matches!(ignore_hash, Some(ref t) if &e.data.hash != t))
+                                            && (current_pos.is_none()
+                                                || (level == 0
+                                                    && current_pos
+                                                        .unwrap()
+                                                        .range_start
+                                                        .is_bigger(&e.data.pos.range_start)))
                                         {
                                             found_pos = Some(e.data.pos);
                                             found = true;
@@ -2532,7 +2552,7 @@ impl Parser {
 
         if !self.module_info.is_lib {
             let main_function =
-                self.deep_search(self.initial_page, "main".to_string(), None, vec![], 0);
+                self.deep_search(self.initial_page, "main".to_string(), None, vec![], 0, None);
             if main_function.found {
                 match main_function.found_item {
                     DeepSearchItems::Function(_) => (),

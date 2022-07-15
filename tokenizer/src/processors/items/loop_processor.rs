@@ -12,7 +12,8 @@ impl crate::processors::Processor for Loop {
         let mut hang = false;
         if !self.condition_filled {
             if self.condition.is_complete() && letter_char == '{' {
-                self.condition_filled = true
+                self.condition_filled = true;
+                self.condition_pos = self.condition.current.get_pos();
             } else {
                 hang = self
                     .condition

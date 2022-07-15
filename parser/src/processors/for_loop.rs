@@ -86,6 +86,7 @@ impl super::Processor for ForLoop {
                 false,
                 false,
                 false,
+                Some(self.pos)
             ) {
                 Ok(rtype) => rtype,
                 Err(e) => {

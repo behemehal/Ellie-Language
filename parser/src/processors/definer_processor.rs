@@ -18,7 +18,7 @@ pub fn process(
     match from.clone() {
         DefinerTypes::Cloak(e) => {
             let deep_search_result =
-                parser.deep_search(page_id, "cloak".to_string(), ignore_hash.clone(), vec![], 0);
+                parser.deep_search(page_id, "cloak".to_string(), ignore_hash.clone(), vec![], 0, None);
 
             if deep_search_result.found {
                 match deep_search_result.found_item {
@@ -72,7 +72,7 @@ pub fn process(
         }
         DefinerTypes::Array(array_type) => {
             let deep_search_result =
-                parser.deep_search(page_id, "array".to_string(), ignore_hash.clone(), vec![], 0);
+                parser.deep_search(page_id, "array".to_string(), ignore_hash.clone(), vec![], 0, None);
 
             if deep_search_result.found {
                 match deep_search_result.found_item {
@@ -253,6 +253,7 @@ pub fn process(
                 ignore_hash.clone(),
                 vec![],
                 0,
+                None
             );
 
             if deep_search_result.found && errors.is_empty() {
@@ -326,6 +327,7 @@ pub fn process(
                 ignore_hash.clone(),
                 vec![],
                 0,
+                None
             );
 
             if deep_search_result.found {
@@ -432,6 +434,7 @@ pub fn process(
                 ignore_hash.clone(),
                 vec![],
                 0,
+                None
             );
 
             if deep_search_result.found {
@@ -538,6 +541,7 @@ pub fn process(
                 ignore_hash.clone(),
                 vec![],
                 0,
+                None
             );
 
             if deep_search_result.found {
@@ -625,6 +629,7 @@ pub fn process(
                 ignore_hash.clone(),
                 vec![],
                 0,
+                None
             );
 
             if deep_search_result.found {
@@ -712,6 +717,7 @@ pub fn process(
                 ignore_hash.clone(),
                 vec![],
                 0,
+                None
             );
 
             if deep_search_result.found {

@@ -96,6 +96,7 @@ pub struct AssembleResult {
 
 impl AssembleResult {
     pub fn render_binary<T: Write, E: Write>(&self, writer: &mut T, dbg_w: &mut E) {
+        
         for header in &self.debug_headers {
             dbg_w
                 .write_all(

@@ -188,10 +188,16 @@ pub fn run(target_path: &Path, dbg_target_path: &Path, vm_settings: VmSettings) 
 
                 match coresponding_header {
                     Some(e) => {
+                        let path_starter = e.module.split("/").next().unwrap();
+                        let virtual_path_identifier =
+                            match path_starter.split("<ellie_module_").last() {
+                                Some(e) => e.split(">").next().unwrap(),
+                                None => "",
+                            };
+
                         println!(
-                            "{}    at Thread: {}, File: {}:{}:{} - {}:{}~{}:{}",
+                            "{}    at {}:{}:{} - {}:{}~{}:{}",
                             utils::Colors::Green,
-                            frame.name,
                             e.module,
                             e.pos.range_start.0 + 1,
                             e.pos.range_start.1 + 1,

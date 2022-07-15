@@ -43,6 +43,7 @@ impl super::Processor for Condition {
                     false,
                     false,
                     false,
+                    Some(self.pos),
                 ) {
                     Ok(condition) => {
                         condition_type = condition.clone();

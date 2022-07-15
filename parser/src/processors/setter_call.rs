@@ -27,6 +27,7 @@ impl super::Processor for SetterCall {
             true,
             true,
             false,
+            Some(self.target_pos),
         ) {
             Ok(target) => match target.clone() {
                 ellie_core::definite::types::Types::Reference(_) => {
@@ -38,6 +39,7 @@ impl super::Processor for SetterCall {
                         false,
                         true,
                         false,
+                        Some(self.target_pos),
                     ) {
                         Ok(processed_value_type) => {
                             let mut errors = Vec::new();
@@ -179,6 +181,7 @@ impl super::Processor for SetterCall {
                         false,
                         false,
                         false,
+                        Some(self.value_pos),
                     ) {
                         Ok(processed_value_type) => {
                             let mut errors = Vec::new();
@@ -370,6 +373,7 @@ impl super::Processor for SetterCall {
                                         false,
                                         false,
                                         false,
+                                        Some(self.value_pos),
                                     ) {
                                         Ok(processed_value_type) => {
                                             let comperable = parser.compare_defining_with_type(
@@ -522,6 +526,7 @@ impl super::Processor for SetterCall {
                         false,
                         false,
                         false,
+                        Some(self.value_pos),
                     ) {
                         Ok(processed_value_type) => {
                             let comperable = parser.compare_defining_with_type(

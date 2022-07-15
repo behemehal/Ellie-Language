@@ -2608,7 +2608,7 @@ pub fn resolve_type(
             }
             Types::VariableType(variable) => {
                 let deep_search_result =
-                    parser.deep_search(target_page, variable.value.clone(), None, Vec::new(), 0);
+                    parser.deep_search(target_page, variable.value.clone(), None, Vec::new(), 0, None);
                 let targeted_class = find_type(variable.value.clone(), target_page, parser)
                     .unwrap_or_else(|| panic!("Failed to find class {}", variable.value));
 
@@ -2696,13 +2696,6 @@ pub fn resolve_type(
         },
         DeepTypeResult::FunctionCall(e) => {
             Some(e.returning)
-            /*
-            let dyn_type = find_type("function".to_string(), target_page, parser);
-            match dyn_type {
-                Some(dynamic_type) => Some(definers::DefinerCollecting::Generic(dynamic_type)),
-                None => panic!("Unhandled behaviour"),
-            }
-            */
         }
         DeepTypeResult::Void => {
             let void_type = find_type("void".to_string(), target_page, parser);
