@@ -1,3 +1,6 @@
+use crate::deep_search_extensions::{
+    deep_search, deep_search_hash, find_type, generate_type_from_defining, resolve_type,
+};
 use alloc::boxed::Box;
 use alloc::string::ToString;
 use alloc::vec;
@@ -12,10 +15,6 @@ use ellie_core::{
     error,
 };
 use ellie_tokenizer::processors::types::Processors;
-
-use crate::deep_search_extensions::{
-    deep_search, deep_search_hash, find_type, generate_type_from_defining, resolve_type,
-};
 
 pub fn process(
     from: Processors,
@@ -136,38 +135,34 @@ pub fn process(
                             page_id,
                             ignore_hash,
                         ) {
-                            Ok(_) => {
-                                match find_type("function".to_owned(), page_id, parser) {
-                                    Some(_) => {
-                                        Ok(ellie_core::definite::types::Types::VariableType(
-                                            ellie_core::definite::types::variable::VariableType {
-                                                value: function.name,
-                                                reference: function.hash,
-                                                pos: ellie_core::defs::Cursor::default(),
-                                            },
-                                        ))
-                                    }
-                                    None => {
-                                        errors.push(
-                                            error::error_list::ERROR_S38.clone().build_with_path(
-                                                vec![error::ErrorBuildField {
-                                                    key: "token".to_owned(),
-                                                    value: "function".to_string(),
-                                                }],
-                                                alloc::format!(
-                                                    "{}:{}:{}",
-                                                    file!().to_owned(),
-                                                    line!(),
-                                                    column!()
-                                                ),
-                                                parser.find_page(page_id).unwrap().path.clone(),
-                                                from.get_pos(),
+                            Ok(_) => match find_type("function".to_owned(), page_id, parser) {
+                                Some(_) => Ok(ellie_core::definite::types::Types::VariableType(
+                                    ellie_core::definite::types::variable::VariableType {
+                                        value: function.name,
+                                        reference: function.hash,
+                                        pos: ellie_core::defs::Cursor::default(),
+                                    },
+                                )),
+                                None => {
+                                    errors.push(
+                                        error::error_list::ERROR_S38.clone().build_with_path(
+                                            vec![error::ErrorBuildField {
+                                                key: "token".to_owned(),
+                                                value: "function".to_string(),
+                                            }],
+                                            alloc::format!(
+                                                "{}:{}:{}",
+                                                file!().to_owned(),
+                                                line!(),
+                                                column!()
                                             ),
-                                        );
-                                        Err(errors)
-                                    }
+                                            parser.find_page(page_id).unwrap().path.clone(),
+                                            from.get_pos(),
+                                        ),
+                                    );
+                                    Err(errors)
                                 }
-                            }
+                            },
                             Err(e) => {
                                 errors.extend(e);
                                 Err(errors)
@@ -498,16 +493,13 @@ pub fn process(
                                         ))
                                     }
                                 } else if parent_generic.rtype == "collective" {
-                                    match generate_type_from_defining(parent_generic.generics[0].value.clone(),  page_id,
-                                    parser,) {
-                                        Some(k) =>
-                                        match generate_type_from_defining(parent_generic.generics[1].value.clone(), page_id,
+                                    match generate_type_from_defining(parent_generic.generics[0].value.clone(), page_id,
                                         parser,) {
                                             Some(t) => Some(types::Types::Collective(
                                             ellie_core::definite::types::collective::CollectiveType {
                                                 entries: vec![
                                                     ellie_core::definite::types::collective::CollectiveEntry {
-                                                        key: k,
+                                                        key: "".to_owned(),
                                                         value: t,
                                                         key_pos: ellie_core::defs::Cursor::default(),
                                                         value_pos: ellie_core::defs::Cursor::default(),
@@ -517,9 +509,7 @@ pub fn process(
                                             },
                                         )),
                                             None => None,
-                                        },
-                                        None => None,
-                                    }
+                                        }
                                 } else if parent_generic.rtype == "vector" {
                                     match generate_type_from_defining(
                                         parent_generic.generics[0].value.clone(),
@@ -1074,17 +1064,6 @@ pub fn process(
             }
         }
         Processors::FunctionCall(function_call) => {
-            // let mut errors = Vec::new();
-            //let index = process(
-            //    function_call.data.target.clone()
-            //    page_id,
-            //    parser,
-            //    &mut errors,
-            //    Some(function_call.data.target_pos),
-            //);
-            //let target_resolution = resolve_deep_type(parser, page_id, function_call.data.target.clone().to_definite(), &mut errors);
-            //panic!("Target resolution: {:#?} - {:#?}", target_resolution, function_call.data.target.to_definite());
-
             let target = process(
                 *function_call.data.target.clone(),
                 parser,
@@ -1494,7 +1473,7 @@ pub fn process(
                         ignore_hash,
                         Vec::new(),
                         0,
-                        variable_pos
+                        variable_pos,
                     );
 
                     if deep_search_result.found {
@@ -1990,7 +1969,18 @@ pub fn process(
             ));
             Err(errors)
         }
-        Processors::Collective(_) => todo!("collective type not yet implemented"),
+        Processors::Collective(e) => {
+            errors.push(error::error_list::ERROR_S59.clone().build_with_path(
+                vec![error::ErrorBuildField {
+                    key: "token".to_string(),
+                    value: "cloak".to_string(),
+                }],
+                alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                parser.find_page(page_id).unwrap().path.clone(),
+                e.data.pos,
+            ));
+            Err(errors)
+        }
         Processors::AsKeyword(as_keyword) => {
             match process(
                 *as_keyword.data.target,

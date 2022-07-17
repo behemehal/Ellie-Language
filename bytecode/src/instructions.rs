@@ -83,7 +83,7 @@ impl Types {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum AddressingModes {
     Implicit,
     Immediate(Types, Vec<u8>),
@@ -165,7 +165,7 @@ impl core::fmt::Display for AddressingModes {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Instruction {
     pub addressing_mode: AddressingModes,
 }
@@ -226,7 +226,7 @@ impl Instruction {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Instructions {
     LDA(Instruction),
     LDB(Instruction),

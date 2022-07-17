@@ -51,10 +51,25 @@ pub fn run(target_path: &Path, dbg_target_path: &Path, vm_settings: VmSettings) 
         .read_to_string(&mut dbg_file)
         .unwrap();
 
-    let dbg_headers = dbg_file
-        .split("\n")
-        .collect::<Vec<_>>()
-        .iter()
+    let mut dbg_headers = dbg_file.split("\n").collect::<Vec<_>>().into_iter();
+    let package_name = dbg_headers.next().unwrap_or_else(|| {
+        println!(
+            "{}[Error]{}: Broken debug header, line: 0",
+            utils::Colors::Red,
+            utils::Colors::Reset,
+        );
+        std::process::exit(1);
+    });
+    let real_path = dbg_headers.next().unwrap_or_else(|| {
+        println!(
+            "{}[Error]{}: Broken debug header, line: 1",
+            utils::Colors::Red,
+            utils::Colors::Reset,
+        );
+        std::process::exit(1);
+    });
+
+    let dbg_headers = dbg_headers
         .enumerate()
         .map(|(idx, s)| {
             let logs = s.split(":").collect::<Vec<_>>();
@@ -188,23 +203,16 @@ pub fn run(target_path: &Path, dbg_target_path: &Path, vm_settings: VmSettings) 
 
                 match coresponding_header {
                     Some(e) => {
-                        let path_starter = e.module.split("/").next().unwrap();
-                        let virtual_path_identifier =
-                            match path_starter.split("<ellie_module_").last() {
-                                Some(e) => e.split(">").next().unwrap(),
-                                None => "",
-                            };
-
+                        let real_path = e
+                            .module
+                            .to_string()
+                            .replace(&format!("<ellie_module_{}>", package_name), real_path);
                         println!(
-                            "{}    at {}:{}:{} - {}:{}~{}:{}",
+                            "{}    at {}:{}:{}",
                             utils::Colors::Green,
-                            e.module,
+                            real_path,
                             e.pos.range_start.0 + 1,
                             e.pos.range_start.1 + 1,
-                            e.pos.range_start.0 + 1,
-                            e.pos.range_start.1 + 1,
-                            e.pos.range_end.0 + 1,
-                            e.pos.range_end.1 + 1,
                         );
                     }
                     None => {
@@ -219,13 +227,13 @@ pub fn run(target_path: &Path, dbg_target_path: &Path, vm_settings: VmSettings) 
             }
         }
         ellie_vm::utils::ThreadExit::ExitGracefully => {
+            #[cfg(feature = "debug")]
             println!(
                 "{}[VM]{}: Thread Exited Gracefully",
                 utils::Colors::Green,
                 utils::Colors::Reset
             );
 
-            println!("======");
             println!(
                 "{}[VM]{}: Heap Dump\n\n{}",
                 utils::Colors::Yellow,

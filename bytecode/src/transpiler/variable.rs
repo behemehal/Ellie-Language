@@ -16,7 +16,11 @@ impl super::Transpiler for variable::Variable {
         let mut dependencies = vec![processed_page.hash];
         dependencies.extend(processed_page.dependencies.iter().map(|d| d.hash));
 
-        let location = assembler.location();
+        let location = if assembler.instructions.len() == 0 {
+            0
+        } else {
+            assembler.location()
+        };
 
         let resolved_instructions = resolve_type(
             assembler,
@@ -25,8 +29,6 @@ impl super::Transpiler for variable::Variable {
             &hash,
             Some(dependencies),
         );
-
-        std::println!("RES: {:?}", resolved_instructions);
 
         assembler.instructions.extend(resolved_instructions);
 

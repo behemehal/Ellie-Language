@@ -21,7 +21,7 @@ impl super::Processor for Loop {
             false,
             false,
             false,
-            Some(self.pos),
+            Some(self.condition_pos),
         ) {
             Ok(rtype) => rtype,
             Err(e) => {

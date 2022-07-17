@@ -164,6 +164,7 @@ impl Program {
                 }
             }
             None => {
+                #[cfg(feature = "debug")]
                 println!("[VM]: Illegal op code {}", read_byte);
                 return Err(1);
             }

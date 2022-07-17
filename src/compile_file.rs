@@ -617,7 +617,16 @@ pub fn compile(
                                     },
                                 );
 
-                                let assembler_result = assembler.assemble();
+                                let assembler_result = assembler.assemble(Some(
+                                    Path::new(target_path)
+                                        .absolutize()
+                                        .unwrap()
+                                        .parent()
+                                        .unwrap()
+                                        .to_str()
+                                        .unwrap()
+                                        .to_string(),
+                                ));
                                 bytecode_end = (bytecode_start.elapsed().as_nanos() as f64
                                     / 1000000_f64)
                                     as f64;
@@ -735,7 +744,16 @@ pub fn compile(
                                         memory_size: 512000, //512kb memory limit
                                     },
                                 );
-                                let assembler_result = assembler.assemble();
+                                let assembler_result = assembler.assemble(Some(
+                                    Path::new(target_path)
+                                        .absolutize()
+                                        .unwrap()
+                                        .parent()
+                                        .unwrap()
+                                        .to_str()
+                                        .unwrap()
+                                        .to_string(),
+                                ));
                                 bytecode_end = (bytecode_start.elapsed().as_nanos() as f64
                                     / 1000000_f64)
                                     as f64;

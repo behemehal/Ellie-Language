@@ -5,3 +5,7 @@ edition = "2021"
 
 [dependencies]
 ellie_core = { path = "../core", version = "*" }
+
+[features]
+default = []
+debug = []

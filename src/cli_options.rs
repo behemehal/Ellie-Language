@@ -253,10 +253,11 @@ pub fn generate_ellievm_options() -> Command<'static> {
                 )
                 .arg(
                     Arg::new("debugHeader")
-                        .help("Allow panics")
+                        .help("Supply debug headers")
                         .short('g')
                         .long("--debug-header")
                         .takes_value(true)
+                        .required(true)
                         .value_hint(ValueHint::FilePath),
                 )
                 .arg(

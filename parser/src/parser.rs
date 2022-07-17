@@ -1282,10 +1282,12 @@ impl Parser {
                                             && (ignore_hash.is_none()
                                                 || matches!(ignore_hash, Some(ref t) if &e.hash != t))
                                             && (current_pos.is_none()
+                                                || level != 0
                                                 || (level == 0
-                                                    && e.pos.range_start.is_bigger(
-                                                        &current_pos.unwrap().range_start,
-                                                    )))
+                                                    && current_pos
+                                                        .unwrap()
+                                                        .range_start
+                                                        .is_bigger(&e.pos.range_start)))
                                         {
                                             found_pos = Some(e.pos);
                                             found = true;
@@ -1397,10 +1399,13 @@ impl Parser {
                                             && (e.public || level == 0 || dep.deep_link.is_some())
                                             && (ignore_hash.is_none()
                                                 || matches!(ignore_hash, Some(ref t) if &e.hash != t))
-                                            && current_pos
-                                                .unwrap()
-                                                .range_start
-                                                .is_bigger(&e.pos.range_start)
+                                            && (current_pos.is_none()
+                                                || level != 0
+                                                || (level == 0
+                                                    && current_pos
+                                                        .unwrap()
+                                                        .range_start
+                                                        .is_bigger(&e.pos.range_start)))
                                         {
                                             found_pos = Some(e.pos);
                                             found = true;
@@ -1511,6 +1516,7 @@ impl Parser {
                                             && (ignore_hash.is_none()
                                                 || matches!(ignore_hash, Some(ref t) if &e.data.hash != t))
                                             && (current_pos.is_none()
+                                                || level != 0
                                                 || (level == 0
                                                     && current_pos
                                                         .unwrap()

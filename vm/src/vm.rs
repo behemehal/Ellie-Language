@@ -20,6 +20,7 @@ where
     T: Fn(VmNativeCall) -> bool + Clone + Copy + Sized,
 {
     pub fn new(target_arch: PlatformArchitecture, native_call_channel: T) -> Self {
+        #[cfg(feature = "debug")]
         println!(
             "{}[VM]{}: Creating vm instance",
             utils::Colors::Yellow,
@@ -36,6 +37,7 @@ where
 
     pub fn load(&mut self, program: Program) {
         if self.target_arch != program.arch {
+            #[cfg(feature = "debug")]
             panic!(
                 "{}[VM]{}: Target arch {} does not match program arch {}",
                 utils::Colors::Red,
@@ -45,6 +47,7 @@ where
             );
         }
 
+        #[cfg(feature = "debug")]
         println!(
             "{}[VM]{}: Loading program that contains '{}' instructions",
             utils::Colors::Yellow,
@@ -54,6 +57,7 @@ where
 
         self.stack = program.instructions;
 
+        #[cfg(feature = "debug")]
         println!(
             "{}[VM]{}: Program loaded",
             utils::Colors::Yellow,

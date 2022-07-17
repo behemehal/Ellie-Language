@@ -1,8 +1,8 @@
-use ellie_core::{definite::items::function, defs::Cursor};
 use crate::{
     assembler::{DebugHeader, DebugHeaderType, LocalHeader},
     instructions::{Instruction, Instructions},
 };
+use ellie_core::{definite::items::function, defs::Cursor};
 
 impl super::Transpiler for function::Function {
     fn transpile(
@@ -23,13 +23,20 @@ impl super::Transpiler for function::Function {
                 module: processed_page.path.clone(),
                 name: self.parameters[hash].name.clone(),
                 start_end: (assembler.location(), assembler.location()),
-                pos: Cursor { range_start: self.parameters[hash].name_pos.range_start, range_end: self.parameters[hash].rtype_pos.range_end },
+                pos: Cursor {
+                    range_start: self.parameters[hash].name_pos.range_start,
+                    range_end: self.parameters[hash].rtype_pos.range_end,
+                },
             });
             assembler
                 .instructions
                 .push(Instructions::STA(Instruction::implicit()));
         }
-        let debug_header_start = assembler.location();
+        let debug_header_start = if assembler.instructions.len() == 0 {
+            0
+        } else {
+            assembler.location()
+        };
 
         assembler.locals.push(LocalHeader {
             name: self.name.clone(),

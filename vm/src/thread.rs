@@ -7,7 +7,7 @@ use ellie_core::{
 use crate::{
     heap,
     program::ReadInstruction,
-    utils::{self, Instructions, ThreadExit, ThreadPanic, ThreadPanicReason, StackNode},
+    utils::{self, Instructions, StackNode, ThreadExit, ThreadPanic, ThreadPanicReason},
 };
 
 pub struct Registers {
@@ -112,6 +112,7 @@ where
     }
 
     pub fn run(&mut self) -> ThreadExit {
+        #[cfg(feature = "debug")]
         println!(
             "{}[VM]{}: Running thread {}'{}'{}",
             utils::Colors::Yellow,
@@ -120,6 +121,7 @@ where
             self.id,
             utils::Colors::Reset,
         );
+        #[cfg(feature = "debug")]
         println!(
             "{}[VM]{}: Thread start at {}: {}",
             utils::Colors::Yellow,
@@ -130,6 +132,7 @@ where
 
         loop {
             if self.stack.len() == 0 {
+                #[cfg(feature = "debug")]
                 println!(
                     "{}[VM]{}: Thread {}'{}'{} finished",
                     utils::Colors::Yellow,
@@ -146,15 +149,15 @@ where
             let current_stack = self.stack.last_mut().unwrap();
 
             if current_stack.pos >= self.program.len() {
-                return ThreadExit::Panic(
-                    ThreadPanic {
-                        reason: ThreadPanicReason::OutOfInstructions,
-                        stack_trace: self.stack.stack.clone(),
-                    }
-                );
+                println!("{}-{}", current_stack.pos, self.program.len(),);
+                return ThreadExit::Panic(ThreadPanic {
+                    reason: ThreadPanicReason::OutOfInstructions,
+                    stack_trace: self.stack.stack.clone(),
+                });
             }
 
             let current_instruction = &self.program[current_stack.pos];
+            #[cfg(feature = "debug")]
             println!(
                 "{}[VM]{} {}({}){} : Exec '{:?}' at {}",
                 utils::Colors::Yellow,
@@ -208,12 +211,7 @@ where
                         self.registers.B = raw_type.clone();
                     }
                     utils::AddressingValues::Absolute(e) => {
-                        self.registers.B = match self.heap.get(e) {
-                            Some(e) => e.clone(),
-                            None => {
-                                panic!("HEAP BROKE: {e}\n{}", self.heap.dump())
-                            }
-                        };
+                        self.registers.B = self.heap.get(e).unwrap().clone();
                     }
                     utils::AddressingValues::AbsoluteIndex(_, _) => todo!(),
                     utils::AddressingValues::AbsoluteProperty(_, _) => todo!(),
@@ -631,15 +629,30 @@ where
                     }
                     _ => panic!("Illegal addressing value"),
                 },
-                Instructions::JMP(_) => todo!(),
+                Instructions::JMP(_) => match current_instruction.addressing_value {
+                    utils::AddressingValues::Absolute(e) => {
+                        current_stack.pos = e;
+                        continue;
+                        #[cfg(feature = "debug")]
+                        println!(
+                            "{}[VM]{} JMP: {}",
+                            utils::Colors::Yellow,
+                            utils::Colors::Reset,
+                            e
+                        );
+                    }
+                    _ => unreachable!("Illegal addressing value"),
+                },
                 Instructions::CALL(e) => match &current_instruction.addressing_value {
                     utils::AddressingValues::Absolute(stack_pos) => {
+                        #[cfg(feature = "debug")]
                         println!(
                             "{}[CL]{} Call Function: {:?}",
                             utils::Colors::Red,
                             utils::Colors::Reset,
                             e
                         );
+                        #[cfg(feature = "debug")]
                         println!(
                             "{}[VM]{} Push stack: {}",
                             utils::Colors::Yellow,
@@ -709,6 +722,7 @@ where
                     utils::AddressingValues::IndirectY => todo!(),
                 },
                 Instructions::AOL(_) => {
+                    #[cfg(feature = "debug")]
                     println!(
                         "{}[VM]{} Ignore aol: {}",
                         utils::Colors::Yellow,
@@ -956,12 +970,16 @@ where
                         if self.registers.A.is_bool() {
                             if self.registers.A.data[0] == 1 {
                                 current_stack.pos = e;
+                                continue;
                             }
+                            #[cfg(feature = "debug")]
                             println!(
-                                "{}[VM]{} JMPA: {}",
+                                "{}[VM]{} JMPA: {} - {} - {}",
                                 utils::Colors::Yellow,
                                 utils::Colors::Reset,
-                                self.registers.A.data[0]
+                                self.registers.A.data[0],
+                                e,
+                                current_stack.pos
                             );
                         } else {
                             return ThreadExit::Panic(ThreadPanic {
@@ -977,6 +995,7 @@ where
                 Instructions::BRK(_) => todo!(),
             }
             if drop_current_stack {
+                #[cfg(feature = "debug")]
                 println!(
                     "{}[VM]{}: Dropping stack '{}'",
                     utils::Colors::Yellow,

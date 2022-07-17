@@ -25,6 +25,7 @@ pub enum DebugHeaderType {
     Class,
     Parameter,
     Function,
+    Condition,
 }
 
 #[derive(Clone, Debug)]
@@ -86,22 +87,38 @@ pub struct PlatformAttributes {
     pub memory_size: usize,
 }
 
+pub struct ModuleInfo {
+    pub name: String,
+    pub real_path: Option<String>,
+    pub is_library: bool,
+    pub main_function: Option<usize>,
+    pub platform_attributes: PlatformAttributes,
+}
+
 pub struct AssembleResult {
+    pub module_info: ModuleInfo,
     pub debug_headers: Vec<DebugHeader>,
     pub locals: Vec<LocalHeader>,
     pub instructions: Vec<instructions::Instructions>,
-    pub platform_attributes: PlatformAttributes,
-    pub main_function: Option<usize>,
 }
 
 impl AssembleResult {
     pub fn render_binary<T: Write, E: Write>(&self, writer: &mut T, dbg_w: &mut E) {
-        
-        for header in &self.debug_headers {
+        dbg_w.write_all(self.module_info.name.as_bytes()).unwrap();
+        dbg_w.write_all(b"\n").unwrap();
+        dbg_w
+            .write_all(match &self.module_info.real_path {
+                Some(path) => path.as_bytes(),
+                None => b"None",
+            })
+            .unwrap();
+        dbg_w.write_all(b"\n").unwrap();
+
+        for (idx, header) in self.debug_headers.iter().enumerate() {
             dbg_w
                 .write_all(
                     format!(
-                        "{}:{}:{}:{}:{}:{}:{}:{}:{}\n",
+                        "{}:{}:{}:{}:{}:{}:{}:{}:{}{}",
                         header.start_end.0,
                         header.start_end.1,
                         header.module,
@@ -111,22 +128,31 @@ impl AssembleResult {
                         header.pos.range_end.0,
                         header.pos.range_end.1,
                         header.hash,
+                        if idx != self.debug_headers.len() - 1 {
+                            "\n"
+                        } else {
+                            ""
+                        },
                     )
                     .as_bytes(),
                 )
                 .unwrap();
         }
         writer
-            .write(&[match self.platform_attributes.architecture {
+            .write(&[match self.module_info.platform_attributes.architecture {
                 PlatformArchitecture::B16 => 16_u8,
                 PlatformArchitecture::B32 => 32_u8,
                 PlatformArchitecture::B64 => 64_u8,
             }])
             .unwrap();
         writer
-            .write(&[if self.main_function.is_some() { 1 } else { 0 }])
+            .write(&[if self.module_info.main_function.is_some() {
+                1
+            } else {
+                0
+            }])
             .unwrap();
-        match self.main_function {
+        match self.module_info.main_function {
             Some(main_fn_cursor) => {
                 writer.write_all(&main_fn_cursor.to_le_bytes()).unwrap();
             }
@@ -135,7 +161,7 @@ impl AssembleResult {
 
         for instruction in &self.instructions {
             writer
-                .write(&instruction.op_code(&self.platform_attributes.architecture))
+                .write(&instruction.op_code(&self.module_info.platform_attributes.architecture))
                 .unwrap();
         }
     }
@@ -145,7 +171,7 @@ impl AssembleResult {
             .write_all(
                 format!(
                     ".arch {}\n",
-                    match self.platform_attributes.architecture {
+                    match self.module_info.platform_attributes.architecture {
                         PlatformArchitecture::B16 => "16",
                         PlatformArchitecture::B32 => "32",
                         PlatformArchitecture::B64 => "64",
@@ -154,7 +180,7 @@ impl AssembleResult {
                 .as_bytes(),
             )
             .unwrap();
-        match self.main_function {
+        match self.module_info.main_function {
             Some(main_fn_cursor) => {
                 output
                     .write_all(format!(".main {}\n", main_fn_cursor).as_bytes())
@@ -212,66 +238,6 @@ impl AssembleResult {
             output.write_all(&code.as_bytes()).unwrap();
             count += 1;
         }
-    }
-
-    pub fn render<T: Write>(&self, mut output: T) {
-        output
-            .write_all(
-                format!(
-                    ".arch {}\n",
-                    match self.platform_attributes.architecture {
-                        PlatformArchitecture::B16 => "16",
-                        PlatformArchitecture::B32 => "32",
-                        PlatformArchitecture::B64 => "64",
-                    }
-                )
-                .as_bytes(),
-            )
-            .unwrap();
-        match self.main_function {
-            Some(main_fn_cursor) => {
-                output
-                    .write_all(format!(".main {}\n", main_fn_cursor).as_bytes())
-                    .unwrap();
-            }
-            None => (),
-        }
-
-        /*
-        for (index, page) in self.pages.iter().enumerate() {
-            let mut page_output = String::new();
-            page_output += &alloc::format!("{:?}- {:?}:", index.to_le(), page.hash);
-            page_output += &alloc::format!("\n\th:");
-            for (index, header) in page.debug_headers.iter().enumerate() {
-                page_output += &alloc::format!(
-                    "\n\t\t{}: {} - {} - {}",
-                    index,
-                    header.cursor.range_start,
-                    header.cursor.range_end,
-                    header.name
-                );
-            }
-            page_output += &alloc::format!("\n\tl:");
-            for (index, header) in page.locals.iter().enumerate() {
-                page_output += &alloc::format!(
-                    "\n\t\t{}: {} - {}{}",
-                    index,
-                    header.name,
-                    header.cursor,
-                    match header.reference {
-                        Some(e) => format!("~{}", e),
-                        None => String::new(),
-                    }
-                );
-            }
-            page_output += &alloc::format!("\n\ta:");
-            for instruction in &page.instructions {
-                page_output += &alloc::format!("\n\t\t{}", instruction);
-            }
-            output.write_all(page_output.as_bytes()).unwrap();
-            output.write_all("\n".as_bytes()).unwrap();
-        }
-        */
     }
 }
 
@@ -394,14 +360,19 @@ impl Assembler {
         main_pos
     }
 
-    pub fn assemble(&mut self) -> AssembleResult {
+    pub fn assemble(&mut self, real_path: Option<String>) -> AssembleResult {
         let main_function = self.assemble_dependency(&self.module.initial_page.clone());
         AssembleResult {
+            module_info: ModuleInfo {
+                name: self.module.name.clone(),
+                is_library: self.module.is_library,
+                platform_attributes: self.platform_attributes.clone(),
+                real_path,
+                main_function,
+            },
             locals: self.locals.clone(),
             debug_headers: self.debug_headers.clone(),
             instructions: self.instructions.clone(),
-            platform_attributes: self.platform_attributes.clone(),
-            main_function,
         }
     }
 }

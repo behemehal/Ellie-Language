@@ -20,7 +20,7 @@ impl super::Processor for Import {
                     Some(self.hash.clone()),
                     vec![],
                     0,
-                    None
+                    None,
                 )
                 .found
         };
