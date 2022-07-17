@@ -4,9 +4,9 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct CollectiveEntry {
-    pub key: types::Processors,
-    pub value: types::Processors,
+    pub key: String,
     pub key_pos: defs::Cursor,
+    pub value: types::Processors,
     pub value_pos: defs::Cursor,
 }
 
@@ -21,7 +21,11 @@ pub struct CollectiveTypeCollector {
     pub data: CollectiveType,
     pub complete: bool,
     pub brace_started: bool,
+    pub key_started: bool,
+    pub key_ended: bool,
     pub key_collected: bool,
+    pub key_pos: defs::Cursor,
+    pub key_collect: String,
     pub itered_cache: Box<types::TypeProcessor>,
 }
 
@@ -36,7 +40,7 @@ impl definite::Converter<CollectiveTypeCollector, definite::types::collective::C
                 .into_iter()
                 .map(|x| definite::types::collective::CollectiveEntry {
                     value: x.value.to_definite(),
-                    key: x.key.to_definite(),
+                    key: x.key,
                     key_pos: x.key_pos,
                     value_pos: x.value_pos,
                 })
@@ -56,7 +60,7 @@ impl definite::Converter<CollectiveTypeCollector, definite::types::collective::C
                     .into_iter()
                     .map(|x| CollectiveEntry {
                         value: types::Processors::default().from_definite(x.value),
-                        key: types::Processors::default().from_definite(x.key),
+                        key: x.key,
                         key_pos: x.key_pos,
                         value_pos: x.value_pos,
                     })

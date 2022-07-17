@@ -161,11 +161,7 @@ impl Processors {
             Processors::EnumData(_) => false,
             Processors::ClassCall(_) => false,
             Processors::Cloak(e) => e.data.collective.iter().all(|e| e.value.is_static()),
-            Processors::Collective(e) => e
-                .data
-                .entries
-                .iter()
-                .all(|e| e.value.is_static() && e.key.is_static()),
+            Processors::Collective(e) => e.data.entries.iter().all(|e| e.value.is_static()),
             Processors::AsKeyword(_) => false,
             Processors::NullResolver(_) => false,
         }

@@ -23,7 +23,10 @@ impl crate::processors::Processor for array_type::ArrayTypeCollector {
                     defs::Cursor::build_from_cursor(cursor),
                 ));
             }
-        } else if self.itered_cache.is_complete() && letter_char == ',' {
+        } else if (self.itered_cache.is_complete()
+            || self.itered_cache.current.is_not_initialized())
+            && letter_char == ','
+        {
             self.data.collective.push(array_type::ArrayEntry::default());
             self.itered_cache = Box::new(super::TypeProcessor::default())
         } else if (self.itered_cache.is_complete() || self.data.collective.is_empty())

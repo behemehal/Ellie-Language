@@ -1,13 +1,13 @@
 use crate::definite::types;
 use crate::defs;
-use alloc::vec::Vec;
+use alloc::{vec::Vec, string::String};
 use serde::{Deserialize, Serialize};
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct CollectiveEntry {
-    pub key: types::Types,
-    pub value: types::Types,
+    pub key: String,
     pub key_pos: defs::Cursor,
+    pub value: types::Types,
     pub value_pos: defs::Cursor,
 }
 

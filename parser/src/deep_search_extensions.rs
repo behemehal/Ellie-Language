@@ -152,26 +152,19 @@ pub fn generate_type_from_defining(
                     page_id,
                     parser,
                 ) {
-                    Some(k) => match generate_type_from_defining(
-                        parent_generic.generics[1].value.clone(),
-                        page_id,
-                        parser,
-                    ) {
-                        Some(t) => Some(Types::Collective(
-                            ellie_core::definite::types::collective::CollectiveType {
-                                entries: vec![
-                                    ellie_core::definite::types::collective::CollectiveEntry {
-                                        key: k,
-                                        value: t,
-                                        key_pos: defs::Cursor::default(),
-                                        value_pos: defs::Cursor::default(),
-                                    },
-                                ],
-                                pos: defs::Cursor::default(),
-                            },
-                        )),
-                        None => None,
-                    },
+                    Some(t) => Some(Types::Collective(
+                        ellie_core::definite::types::collective::CollectiveType {
+                            entries: vec![
+                                ellie_core::definite::types::collective::CollectiveEntry {
+                                    key: "?".to_string(),
+                                    value: t,
+                                    key_pos: defs::Cursor::default(),
+                                    value_pos: defs::Cursor::default(),
+                                },
+                            ],
+                            pos: defs::Cursor::default(),
+                        },
+                    )),
                     None => None,
                 }
             } else if parent_generic.rtype == "vector" {
@@ -1359,23 +1352,19 @@ fn iterate_deep_type(
                                         }
                                     } else if parent_generic.rtype == "collective" {
                                         match generate_type_from_defining(parent_generic.generics[0].value.clone()) {
-                                            Some(k) =>
-                                            match generate_type_from_defining(parent_generic.generics[1].value.clone()) {
-                                                Some(t) => Some(Types::Collective(
-                                                ellie_core::definite::types::collective::CollectiveType {
-                                                    entries: vec![
-                                                        ellie_core::definite::types::collective::CollectiveEntry {
-                                                            key: k,
-                                                            value: t,
-                                                            key_pos: defs::Cursor::default(),
-                                                            value_pos: defs::Cursor::default(),
-                                                        },
-                                                    ],
-                                                    pos: defs::Cursor::default(),
-                                                },
-                                            )),
-                                                None => None,
+                                            Some(t) => Some(Types::Collective(
+                                            ellie_core::definite::types::collective::CollectiveType {
+                                                entries: vec![
+                                                    ellie_core::definite::types::collective::CollectiveEntry {
+                                                        key: "?".to_owned(),
+                                                        value: t,
+                                                        key_pos: defs::Cursor::default(),
+                                                        value_pos: defs::Cursor::default(),
+                                                    },
+                                                ],
+                                                pos: defs::Cursor::default(),
                                             },
+                                        )),
                                             None => None,
                                         }
                                     } else if parent_generic.rtype == "vector" {
@@ -2607,8 +2596,14 @@ pub fn resolve_type(
                 }
             }
             Types::VariableType(variable) => {
-                let deep_search_result =
-                    parser.deep_search(target_page, variable.value.clone(), None, Vec::new(), 0, None);
+                let deep_search_result = parser.deep_search(
+                    target_page,
+                    variable.value.clone(),
+                    None,
+                    Vec::new(),
+                    0,
+                    None,
+                );
                 let targeted_class = find_type(variable.value.clone(), target_page, parser)
                     .unwrap_or_else(|| panic!("Failed to find class {}", variable.value));
 
@@ -2694,9 +2689,7 @@ pub fn resolve_type(
 
             _ => unreachable!(),
         },
-        DeepTypeResult::FunctionCall(e) => {
-            Some(e.returning)
-        }
+        DeepTypeResult::FunctionCall(e) => Some(e.returning),
         DeepTypeResult::Void => {
             let void_type = find_type("void".to_string(), target_page, parser);
             match void_type {
