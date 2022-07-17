@@ -19,10 +19,9 @@ impl super::Processor for ForLoop {
             .push(&error::error_list::ERROR_S59.clone().build_with_path(
                 vec![error::ErrorBuildField::new("token", &"for".to_owned())],
                 alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                path,
+                path.clone(),
                 self.pos,
             ));
-        return false;
 
         if self.variable.current.as_variable().is_none() {
             parser

@@ -7,7 +7,7 @@ use ellie_core::{
 use crate::{
     heap,
     program::ReadInstruction,
-    utils::{self, Instructions, StackNode, ThreadExit, ThreadPanic, ThreadPanicReason},
+    utils::{self, Instructions, ThreadExit, ThreadPanic, ThreadPanicReason},
 };
 
 pub struct Registers {

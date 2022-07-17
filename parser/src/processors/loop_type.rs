@@ -1,6 +1,6 @@
 use crate::processors::type_processor::process;
 use alloc::{borrow::ToOwned, vec, vec::Vec};
-use ellie_core::{definite::definers::DefinerCollecting, error};
+use ellie_core::error;
 use ellie_tokenizer::{syntax::items::loop_type::Loop, tokenizer::PageType};
 
 impl super::Processor for Loop {
@@ -78,8 +78,6 @@ impl super::Processor for Loop {
         }
 
         let page = parser.pages.nth(page_idx).unwrap().clone();
-        let path = page.path.clone();
-
         let inner_page_id: usize = ellie_core::utils::generate_hash_usize();
         let mut dependencies = vec![ellie_tokenizer::tokenizer::Dependency {
             hash: page.hash.clone(),

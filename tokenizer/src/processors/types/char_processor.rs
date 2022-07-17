@@ -62,6 +62,12 @@ impl crate::processors::Processor for char_type::CharType {
                         defs::Cursor::build_from_cursor(cursor),
                     ));
                 }
+            } else if letter_char != ' ' {
+                errors.push(error::error_list::ERROR_S54.clone().build(
+                    vec![],
+                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                    defs::Cursor::build_from_cursor(cursor),
+                ));
             }
         }
         false

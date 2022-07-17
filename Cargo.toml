@@ -26,7 +26,7 @@ ellie_vm = { path = "vm", version = "*" }
 [features]
 default = ["standard_rules", "build-cli"]
 build-cli = ["path-absolutize", "regex", "bincode", "clap", "clap_complete"]
-ellie_asist = ["ellie_assist"]
+ellie_assistant = ["ellie_assist"]
 standard_rules =  ["ellie_parser/standard_rules"]
 
 [[bin]]

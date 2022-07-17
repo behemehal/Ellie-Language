@@ -1,9 +1,6 @@
 use std::fmt::Display;
 
-use ellie_core::{
-    defs::{Cursor, CursorPosition},
-    raw_type::RawType,
-};
+use ellie_core::{defs::CursorPosition, raw_type::RawType};
 
 use crate::thread::Stack;
 

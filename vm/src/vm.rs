@@ -4,7 +4,7 @@ use crate::{
     heap::Heap,
     program::{Program, ReadInstruction},
     thread::{Stack, Thread},
-    utils::{self, ThreadExit},
+    utils::ThreadExit,
 };
 
 pub struct VM<'a, T> {

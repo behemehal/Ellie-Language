@@ -23,7 +23,7 @@ impl crate::processors::Processor for string_type::StringTypeCollector {
                     defs::Cursor::build_from_cursor(cursor),
                 ));
             }
-        } else {
+        } else if !self.complete {
             if letter_char == '"' && last_char != '\\' {
                 self.complete = true;
                 self.data.pos.range_end = cursor;
@@ -41,6 +41,15 @@ impl crate::processors::Processor for string_type::StringTypeCollector {
                     self.data.value += &letter_char.to_string();
                 }
             }
+        } else if letter_char != ' ' {
+            errors.push(error::error_list::ERROR_S1.clone().build(
+                vec![error::ErrorBuildField {
+                    key: "token".to_string(),
+                    value: letter_char.to_string(),
+                }],
+                "0x38".to_owned(),
+                defs::Cursor::build_from_cursor(cursor),
+            ));
         }
         false
     }

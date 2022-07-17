@@ -1973,7 +1973,7 @@ pub fn process(
             errors.push(error::error_list::ERROR_S59.clone().build_with_path(
                 vec![error::ErrorBuildField {
                     key: "token".to_string(),
-                    value: "cloak".to_string(),
+                    value: "collective".to_string(),
                 }],
                 alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                 parser.find_page(page_id).unwrap().path.clone(),
