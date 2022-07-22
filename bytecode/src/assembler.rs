@@ -87,9 +87,10 @@ pub struct PlatformAttributes {
     pub memory_size: usize,
 }
 
+#[derive(Clone, Debug)]
 pub struct ModuleInfo {
     pub name: String,
-    pub real_path: Option<String>,
+    pub modue_maps: Vec<(String, Option<String>)>,
     pub is_library: bool,
     pub main_function: Option<usize>,
     pub platform_attributes: PlatformAttributes,
@@ -104,16 +105,19 @@ pub struct AssembleResult {
 
 impl AssembleResult {
     pub fn render_binary<T: Write, E: Write>(&self, writer: &mut T, dbg_w: &mut E) {
-        dbg_w.write_all(self.module_info.name.as_bytes()).unwrap();
-        dbg_w.write_all(b"\n").unwrap();
-        dbg_w
-            .write_all(match &self.module_info.real_path {
-                Some(path) => path.as_bytes(),
-                None => b"None",
-            })
-            .unwrap();
-        dbg_w.write_all(b"\n").unwrap();
-
+        for (module_name, path) in &self.module_info.modue_maps {
+            dbg_w
+                .write_all(
+                    format!(
+                        "{}: {}\n",
+                        module_name,
+                        path.clone().unwrap_or("-   ".to_string())
+                    )
+                    .as_bytes(),
+                )
+                .unwrap();
+        }
+        dbg_w.write_all(b"---\n").unwrap();
         for (idx, header) in self.debug_headers.iter().enumerate() {
             dbg_w
                 .write_all(
@@ -360,14 +364,14 @@ impl Assembler {
         main_pos
     }
 
-    pub fn assemble(&mut self, real_path: Option<String>) -> AssembleResult {
+    pub fn assemble(&mut self, modue_maps: Vec<(String, Option<String>)>) -> AssembleResult {
         let main_function = self.assemble_dependency(&self.module.initial_page.clone());
         AssembleResult {
             module_info: ModuleInfo {
                 name: self.module.name.clone(),
                 is_library: self.module.is_library,
                 platform_attributes: self.platform_attributes.clone(),
-                real_path,
+                modue_maps,
                 main_function,
             },
             locals: self.locals.clone(),

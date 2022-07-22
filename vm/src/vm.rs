@@ -4,7 +4,7 @@ use crate::{
     heap::Heap,
     program::{Program, ReadInstruction},
     thread::{Stack, Thread},
-    utils::ThreadExit,
+    utils::{self, ThreadExit},
 };
 
 pub struct VM<'a, T> {
@@ -17,7 +17,7 @@ pub struct VM<'a, T> {
 
 impl<'a, T> VM<'a, T>
 where
-    T: Fn(VmNativeCall) -> bool + Clone + Copy + Sized,
+    T: Fn(crate::thread::ThreadInfo, VmNativeCall) -> bool + Clone + Copy + Sized,
 {
     pub fn new(target_arch: PlatformArchitecture, native_call_channel: T) -> Self {
         #[cfg(feature = "debug")]

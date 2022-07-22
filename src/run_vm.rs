@@ -1,9 +1,9 @@
 use ellie_bytecode::assembler::{DebugHeader, DebugHeaderType};
 use ellie_core::defs::CursorPosition;
 use ellie_vm::{program::Program, utils};
-use std::fs::File;
-use std::io::Read;
+use std::io::{Read, Write};
 use std::path::Path;
+use std::{fs::File, io};
 
 use crate::cli_utils;
 use crate::cli_utils::read_error_text;
@@ -52,28 +52,36 @@ pub fn run(target_path: &Path, dbg_target_path: &Path, vm_settings: VmSettings) 
         .unwrap();
 
     let mut dbg_headers = dbg_file.split("\n").collect::<Vec<_>>().into_iter();
-    let package_name = dbg_headers.next().unwrap_or_else(|| {
+    let mut module_maps_ended = false;
+
+    let mut module_maps = Vec::new();
+
+    while let Some(line) = dbg_headers.next() {
+        if line == "---" {
+            module_maps_ended = true;
+            break;
+        } else {
+            let line = line.split(":").collect::<Vec<_>>();
+            let module_name = line[0];
+            let path = line[1].trim();
+            module_maps.push((module_name, if path == "-" { None } else { Some(path) }));
+        }
+    }
+
+    if !module_maps_ended {
         println!(
-            "{}[Error]{}: Broken debug header, line: 0",
+            "{}[Error]{}: Broken debug header, line: {}",
             utils::Colors::Red,
             utils::Colors::Reset,
+            module_maps.len(),
         );
-        std::process::exit(1);
-    });
-    let real_path = dbg_headers.next().unwrap_or_else(|| {
-        println!(
-            "{}[Error]{}: Broken debug header, line: 1",
-            utils::Colors::Red,
-            utils::Colors::Reset,
-        );
-        std::process::exit(1);
-    });
+    }
 
     let dbg_headers = dbg_headers
         .enumerate()
         .map(|(idx, s)| {
-            let logs = s.split(":").collect::<Vec<_>>();
-            if logs.len() != 9 {
+            let line = s.split(":").collect::<Vec<_>>();
+            if line.len() != 9 {
                 println!(
                     "{}[Error]{}: Broken debug header, line: {}",
                     utils::Colors::Red,
@@ -84,7 +92,7 @@ pub fn run(target_path: &Path, dbg_target_path: &Path, vm_settings: VmSettings) 
             }
             DebugHeader {
                 start_end: (
-                    logs[0].parse::<usize>().unwrap_or_else(|_| {
+                    line[0].parse::<usize>().unwrap_or_else(|_| {
                         println!(
                             "{}[Error]{}: Broken debug header, line: {}",
                             utils::Colors::Red,
@@ -93,7 +101,7 @@ pub fn run(target_path: &Path, dbg_target_path: &Path, vm_settings: VmSettings) 
                         );
                         std::process::exit(1);
                     }),
-                    logs[1].parse::<usize>().unwrap_or_else(|_| {
+                    line[1].parse::<usize>().unwrap_or_else(|_| {
                         println!(
                             "{}[Error]{}: Broken debug header, line: {}",
                             utils::Colors::Red,
@@ -103,11 +111,11 @@ pub fn run(target_path: &Path, dbg_target_path: &Path, vm_settings: VmSettings) 
                         std::process::exit(1);
                     }),
                 ),
-                module: logs[2].to_string(),
-                name: logs[3].to_string(),
+                module: line[2].to_string(),
+                name: line[3].to_string(),
                 pos: ellie_core::defs::Cursor {
                     range_start: CursorPosition(
-                        logs[4].parse::<usize>().unwrap_or_else(|_| {
+                        line[4].parse::<usize>().unwrap_or_else(|_| {
                             println!(
                                 "{}[Error]{}: Broken debug header",
                                 utils::Colors::Red,
@@ -115,7 +123,7 @@ pub fn run(target_path: &Path, dbg_target_path: &Path, vm_settings: VmSettings) 
                             );
                             std::process::exit(1);
                         }),
-                        logs[5].parse::<usize>().unwrap_or_else(|_| {
+                        line[5].parse::<usize>().unwrap_or_else(|_| {
                             println!(
                                 "{}[Error]{}: Broken debug header",
                                 utils::Colors::Red,
@@ -125,7 +133,7 @@ pub fn run(target_path: &Path, dbg_target_path: &Path, vm_settings: VmSettings) 
                         }),
                     ),
                     range_end: CursorPosition(
-                        logs[6].parse::<usize>().unwrap_or_else(|_| {
+                        line[6].parse::<usize>().unwrap_or_else(|_| {
                             println!(
                                 "{}[Error]{}: Broken debug header",
                                 utils::Colors::Red,
@@ -133,7 +141,7 @@ pub fn run(target_path: &Path, dbg_target_path: &Path, vm_settings: VmSettings) 
                             );
                             std::process::exit(1);
                         }),
-                        logs[7].parse::<usize>().unwrap_or_else(|_| {
+                        line[7].parse::<usize>().unwrap_or_else(|_| {
                             println!(
                                 "{}[Error]{}: Broken debug header",
                                 utils::Colors::Red,
@@ -144,7 +152,7 @@ pub fn run(target_path: &Path, dbg_target_path: &Path, vm_settings: VmSettings) 
                     ),
                 },
                 rtype: DebugHeaderType::Variable,
-                hash: logs[8].parse().unwrap_or_else(|_| {
+                hash: line[8].parse().unwrap_or_else(|_| {
                     println!(
                         "{}[Error]{}: Broken debug header",
                         utils::Colors::Red,
@@ -173,10 +181,20 @@ pub fn run(target_path: &Path, dbg_target_path: &Path, vm_settings: VmSettings) 
         }
     };
 
-    let mut vm = VM::new(vm_settings.architecture, |native_message| {
-        if native_message.module == "test" && native_message.name == "print" {
-            let string = String::from_utf8(native_message.params[0].data.clone()).unwrap();
-            println!("NativePrint: {}", string)
+    let mut vm = VM::new(vm_settings.architecture, |thread_info, native_message| {
+        if native_message.module == "test" && native_message.name == "println" {
+            io::stdout()
+                .write_all(&native_message.params[0].data)
+                .unwrap();
+        } else if native_message.module == "ellieStd" && native_message.name == "print" {
+            io::stdout()
+                .write_all(&native_message.params[0].data)
+                .unwrap();
+        } else if native_message.module == "ellieStd" && native_message.name == "println" {
+            io::stdout()
+                .write_all(&native_message.params[0].data)
+                .unwrap();
+            io::stdout().write_all(b"\n").unwrap();
         }
         true
     });
@@ -203,10 +221,28 @@ pub fn run(target_path: &Path, dbg_target_path: &Path, vm_settings: VmSettings) 
 
                 match coresponding_header {
                     Some(e) => {
-                        let real_path = e
+                        let module_name = e
                             .module
-                            .to_string()
-                            .replace(&format!("<ellie_module_{}>", package_name), real_path);
+                            .split("<ellie_module_")
+                            .nth(1)
+                            .unwrap()
+                            .split(">")
+                            .nth(0)
+                            .unwrap();
+                        let module_path =
+                            module_maps.iter().find(|(mname, _)| module_name == *mname);
+                        let real_path = match module_path {
+                            Some(module_path) => match module_path.1 {
+                                Some(module_path) => {
+                                    let new_path = e.module.clone();
+                                    let starter_name = format!("<ellie_module_{}>", module_name);
+                                    new_path.replace(&starter_name, module_path)
+                                }
+                                None => e.module.clone(),
+                            },
+                            None => e.module.clone(),
+                        };
+
                         println!(
                             "{}    at {}:{}:{}",
                             utils::Colors::Green,

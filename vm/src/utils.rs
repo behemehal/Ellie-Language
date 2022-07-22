@@ -39,6 +39,18 @@ pub enum ThreadExit {
     ExitGracefully,
 }
 
+#[derive(Debug, Clone)]
+pub enum ThreadStepInfo {
+    /// The thread requires a step.
+    StepNext,
+    /// Thread called a function and pushed a new stack
+    CALL(usize),
+    /// Thread jumped to a position
+    JMP(usize),
+    /// Thread has no more stack to execute
+    EndOfStacks,
+}
+
 pub enum ExitCode {
     Success,
     StackOverflow,

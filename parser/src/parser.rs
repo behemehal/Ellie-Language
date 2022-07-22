@@ -1210,10 +1210,16 @@ impl Parser {
                 DeepSearchItems::None => (false, None),
                 DeepSearchItems::SelfItem(_) => (true, None),
                 DeepSearchItems::GenericItem(e) => (true, Some((deep_search.found_page, e.pos))),
-                e => (
-                    pos.range_start.is_bigger(&e.get_pos().range_start),
-                    Some((deep_search.found_page, e.get_pos())),
-                ),
+                e => {
+                    if deep_search.found_page.hash == page_id {
+                        (
+                            pos.range_start.is_bigger(&e.get_pos().range_start),
+                            Some((deep_search.found_page, e.get_pos())),
+                        )
+                    } else {
+                        (true, Some((deep_search.found_page, e.get_pos())))
+                    }
+                }
             }
         } else {
             (false, None)
@@ -1250,7 +1256,6 @@ impl Parser {
             }
             None => (),
         }
-
         if !searched.contains(&target_page) {
             for dep in self_dependencies {
                 searched.push(target_page);
@@ -1374,6 +1379,46 @@ impl Parser {
                                             found_type = DeepSearchItems::Class(ellie_tokenizer::syntax::items::class::Class::default().from_definite(e));
                                         }
                                     }
+                                    Collecting::NativeFunction(e) => {
+                                        if e.name == name
+                                            && (e.public || level == 0 || dep.deep_link.is_some())
+                                            && (ignore_hash.is_none()
+                                                || matches!(ignore_hash, Some(ref t) if &e.hash != t))
+                                        {
+                                            found_pos = Some(e.pos);
+                                            found = true;
+                                            found_page = FoundPage::fill(&unprocessed_page);
+                                            found_type = DeepSearchItems::Function(ellie_tokenizer::syntax::items::function::Function {
+                                                name: name.clone(),
+                                                name_pos: e.name_pos,
+                                                public: e.public,
+                                                defining: true,
+                                                parameters: e.parameters.into_iter()
+                                                .map(|x| ellie_tokenizer::syntax::items::function::FunctionParameter {
+                                                    name: x.name,
+                                                    rtype: ellie_tokenizer::syntax::items::definers::DefinerCollector {
+                                                        definer_type: ellie_tokenizer::syntax::items::definers::DefinerTypes::default().from_definite(x.rtype),
+                                                        complete: true,
+                                                    },
+                                                    name_pos: x.name_pos,
+                                                    rtype_pos: x.rtype_pos,
+                                                    multi_capture: x.multi_capture,
+                                                })
+                                                .collect::<Vec<_>>(),
+                                                parameters_pos: e.parameters_pos,
+                                                return_type: ellie_tokenizer::syntax::items::definers::DefinerCollector {
+                                                    definer_type: ellie_tokenizer::syntax::items::definers::DefinerTypes::default().from_definite(e.return_type),
+                                                    complete: true,
+                                                },
+                                                no_return: e.no_return,
+                                                return_pos:  e.return_pos,
+                                                body_pos: defs::Cursor::default(),
+                                                body: Vec::new(),
+                                                pos: e.pos,
+                                                hash: e.hash,
+                                            });
+                                        }
+                                    }
                                     _ => (),
                                 }
                             }
@@ -1490,6 +1535,46 @@ impl Parser {
                                             found = true;
                                             found_page = FoundPage::fill(&unprocessed_page);
                                             found_type = DeepSearchItems::Class(ellie_tokenizer::syntax::items::class::Class::default().from_definite(e));
+                                        }
+                                    }
+                                    Collecting::NativeFunction(e) => {
+                                        if e.name == name
+                                            && (e.public || level == 0 || dep.deep_link.is_some())
+                                            && (ignore_hash.is_none()
+                                                || matches!(ignore_hash, Some(ref t) if &e.hash != t))
+                                        {
+                                            found_pos = Some(e.pos);
+                                            found = true;
+                                            found_page = FoundPage::fill(&unprocessed_page);
+                                            found_type = DeepSearchItems::Function(ellie_tokenizer::syntax::items::function::Function {
+                                                name: name.clone(),
+                                                name_pos: e.name_pos,
+                                                public: e.public,
+                                                defining: true,
+                                                parameters: e.parameters.into_iter()
+                                                .map(|x| ellie_tokenizer::syntax::items::function::FunctionParameter {
+                                                    name: x.name,
+                                                    rtype: ellie_tokenizer::syntax::items::definers::DefinerCollector {
+                                                        definer_type: ellie_tokenizer::syntax::items::definers::DefinerTypes::default().from_definite(x.rtype),
+                                                        complete: true,
+                                                    },
+                                                    name_pos: x.name_pos,
+                                                    rtype_pos: x.rtype_pos,
+                                                    multi_capture: x.multi_capture,
+                                                })
+                                                .collect::<Vec<_>>(),
+                                                parameters_pos: e.parameters_pos,
+                                                return_type: ellie_tokenizer::syntax::items::definers::DefinerCollector {
+                                                    definer_type: ellie_tokenizer::syntax::items::definers::DefinerTypes::default().from_definite(e.return_type),
+                                                    complete: true,
+                                                },
+                                                no_return: e.no_return,
+                                                return_pos:  e.return_pos,
+                                                body_pos: defs::Cursor::default(),
+                                                body: Vec::new(),
+                                                pos: e.pos,
+                                                hash: e.hash,
+                                            });
                                         }
                                     }
                                     _ => (),
@@ -2040,12 +2125,31 @@ impl Parser {
                         }
                     },
                     ellie_tokenizer::tokenizer::PageType::RawBody => match item {
-                        Processors::Variable(e) => e.process(
-                            self,
-                            unprocessed_page_idx,
-                            processed_page_idx,
-                            unprocessed_page.hash,
-                        ),
+                        Processors::Variable(e) => {
+                            if e.data.constant && e.data.value.is_static() {
+                                e.process(
+                                    self,
+                                    unprocessed_page_idx,
+                                    processed_page_idx,
+                                    unprocessed_page.hash,
+                                )
+                            } else {
+                                self.informations.push(
+                                    &error::error_list::ERROR_S60.clone().build_with_path(
+                                        vec![],
+                                        alloc::format!(
+                                            "{}:{}:{}",
+                                            file!().to_owned(),
+                                            line!(),
+                                            column!()
+                                        ),
+                                        unprocessed_page.path.clone(),
+                                        e.data.pos,
+                                    ),
+                                );
+                                false
+                            }
+                        }
                         Processors::GetterCall(e) => e.process(
                             self,
                             unprocessed_page_idx,
@@ -2089,18 +2193,6 @@ impl Parser {
                             }
                             true
                         }
-                        Processors::ForLoop(e) => e.process(
-                            self,
-                            unprocessed_page_idx,
-                            processed_page_idx,
-                            unprocessed_page.hash,
-                        ),
-                        Processors::Loop(e) => e.process(
-                            self,
-                            unprocessed_page_idx,
-                            processed_page_idx,
-                            unprocessed_page.hash,
-                        ),
                         Processors::Condition(e) => e.process(
                             self,
                             unprocessed_page_idx,
@@ -2125,20 +2217,6 @@ impl Parser {
                             processed_page_idx,
                             unprocessed_page.hash,
                         ),
-
-                        Processors::SelfItem(e) => {
-                            self.processed_pages
-                                .nth_mut(processed_page_idx)
-                                .unwrap()
-                                .items
-                                .push(Collecting::SelfItem(
-                                    ellie_core::definite::items::self_item::SelfItem {
-                                        class_page: e.class_page,
-                                        class_hash: e.class_hash,
-                                    },
-                                ));
-                            true
-                        }
                         Processors::GenericItem(e) => e.process(
                             self,
                             unprocessed_page_idx,
