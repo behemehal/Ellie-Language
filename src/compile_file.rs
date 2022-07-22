@@ -85,9 +85,13 @@ pub fn compile(
                 main_file_content,
                 compiler_settings.file_name.clone(),
                 format!("{}/", starter_name),
-                |path, module_identifier| {
-                    if module_identifier.starts_with("@") {
-                        panic!("Link module not ready");
+                |link_module, path, module_identifier| {
+                    if link_module {
+                        used_modules.lock().unwrap().push(module_identifier.clone());
+                        ResolvedImport {
+                            found: true,
+                            ..Default::default()
+                        }
                     } else {
                         match ellie_core::module_path::parse_module_import(
                             &path,
@@ -131,7 +135,7 @@ pub fn compile(
                                 } else {
                                     ResolvedImport {
                                         found: false,
-                                        resolve_error: "Path is not exists".to_string(),
+                                        resolve_error: "Path does not exist".to_string(),
                                         ..Default::default()
                                     }
                                 }
@@ -154,32 +158,33 @@ pub fn compile(
                 first_page_hash.clone().try_into().unwrap(),
             );
 
-            let mut exit_messages: Vec<Box<dyn Fn(CompilerSettings, bool)>> = vec![
-                Box::new(|_: CompilerSettings, _: bool| {
-                    if compiler_settings.experimental_features {
+            let mut exit_messages: Mutex<Vec<Box<dyn Fn(CompilerSettings, bool)>>> =
+                Mutex::new(vec![
+                    Box::new(|_: CompilerSettings, _: bool| {
+                        if compiler_settings.experimental_features {
+                            println!(
+                                "\n{}[!]{}: Experimental features are enabled.\n",
+                                cli_utils::Colors::Red,
+                                cli_utils::Colors::Reset,
+                            );
+                        }
+                    }),
+                    Box::new(|_, _| {
                         println!(
-                            "\n{}[!]{}: Experimental features are enabled.\n",
+                            "{}[?]{}: Ellie v{}",
+                            cli_utils::Colors::Green,
+                            cli_utils::Colors::Reset,
+                            crate::engine_constants::ELLIE_ENGINE_VERSION
+                        );
+                    }),
+                    Box::new(|_, _| {
+                        println!(
+                            "{}[!]{}: Ellie is on development and may not be stable.",
                             cli_utils::Colors::Red,
                             cli_utils::Colors::Reset,
                         );
-                    }
-                }),
-                Box::new(|_, _| {
-                    println!(
-                        "{}[?]{}: Ellie v{}",
-                        cli_utils::Colors::Green,
-                        cli_utils::Colors::Reset,
-                        crate::engine_constants::ELLIE_ENGINE_VERSION
-                    );
-                }),
-                Box::new(|_, _| {
-                    println!(
-                        "{}[!]{}: Ellie is on development and may not be stable.",
-                        cli_utils::Colors::Red,
-                        cli_utils::Colors::Reset,
-                    );
-                }),
-            ];
+                    }),
+                ]);
 
             let tokenize_start = Instant::now();
             match pager.run() {
@@ -199,7 +204,7 @@ pub fn compile(
                     );
 
                     if compiler_settings.exclude_stdlib {
-                        exit_messages.push(Box::new(|_, _| {
+                        exit_messages.lock().unwrap().push(Box::new(|_, _| {
                             println!(
                                 "\n{}[!]{}: {}'exclude_stdlib'{} option is deprecated",
                                 cli_utils::Colors::Yellow,
@@ -379,16 +384,21 @@ pub fn compile(
                                         let module_path = module_path.clone().unwrap();
                                         let real_path =
                                             path.replace(&path_starter, &module_path).clone();
-                                        match cli_utils::read_file(real_path) {
+                                        match cli_utils::read_file(real_path.clone()) {
                                             Ok(e) => e,
                                             Err(err) => {
-                                                panic!(
-                                                "Failed to ouput error. Cannot read file '{}' {}[{}]{}",
-                                                path,
-                                                cli_utils::Colors::Red,
-                                                err,
-                                                cli_utils::Colors::Reset
-                                            );
+                                                exit_messages.lock().unwrap().push(Box::new(move |_, _| {
+                                                    println!(
+                                                        "{}[!]{}: Failed to read module targeted code director y: {}{}{} - [{}]",
+                                                        cli_utils::Colors::Red,
+                                                        cli_utils::Colors::Reset,
+                                                        cli_utils::Colors::Yellow,
+                                                        real_path.clone(),
+                                                        cli_utils::Colors::Reset,
+                                                        err,
+                                                    );
+                                                }));
+                                                module_path
                                             }
                                         }
                                     } else {
@@ -484,7 +494,7 @@ pub fn compile(
                                 );
                             }
                         }
-                        for message in exit_messages {
+                        for message in exit_messages.lock().unwrap().iter() {
                             (message)(compiler_settings.clone(), false);
                         }
                         std::process::exit(1)
@@ -541,6 +551,27 @@ pub fn compile(
                             target_path,
                             Path::new(&output_path.to_str().unwrap().replace(dbg_output_path, "")),
                             cli_utils::OutputTypes::ByteCodeDebug,
+                        );
+
+                        let mut module_maps = vec![(
+                            workspace.name.clone(),
+                            Some(
+                                Path::new(target_path)
+                                    .absolutize()
+                                    .unwrap()
+                                    .parent()
+                                    .unwrap()
+                                    .to_str()
+                                    .unwrap()
+                                    .to_string(),
+                            ),
+                        )];
+
+                        module_maps.extend(
+                            modules
+                                .iter()
+                                .map(|(module, path)| (module.name.clone(), path.clone()))
+                                .collect::<Vec<_>>(),
                         );
 
                         match compiler_settings.output_type {
@@ -617,16 +648,7 @@ pub fn compile(
                                     },
                                 );
 
-                                let assembler_result = assembler.assemble(Some(
-                                    Path::new(target_path)
-                                        .absolutize()
-                                        .unwrap()
-                                        .parent()
-                                        .unwrap()
-                                        .to_str()
-                                        .unwrap()
-                                        .to_string(),
-                                ));
+                                let assembler_result = assembler.assemble(module_maps);
                                 bytecode_end = (bytecode_start.elapsed().as_nanos() as f64
                                     / 1000000_f64)
                                     as f64;
@@ -744,16 +766,7 @@ pub fn compile(
                                         memory_size: 512000, //512kb memory limit
                                     },
                                 );
-                                let assembler_result = assembler.assemble(Some(
-                                    Path::new(target_path)
-                                        .absolutize()
-                                        .unwrap()
-                                        .parent()
-                                        .unwrap()
-                                        .to_str()
-                                        .unwrap()
-                                        .to_string(),
-                                ));
+                                let assembler_result = assembler.assemble(module_maps);
                                 bytecode_end = (bytecode_start.elapsed().as_nanos() as f64
                                     / 1000000_f64)
                                     as f64;
@@ -885,7 +898,7 @@ pub fn compile(
                                 cli_utils::Colors::Reset,
                             );
                         }
-                        for message in exit_messages {
+                        for message in exit_messages.lock().unwrap().iter() {
                             (message)(compiler_settings.clone(), true)
                         }
                     }

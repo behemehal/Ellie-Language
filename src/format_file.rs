@@ -116,7 +116,7 @@ pub fn format(
                                 } else {
                                     ResolvedImport {
                                         found: false,
-                                        resolve_error: "Path is not exists".to_string(),
+                                        resolve_error: "Path does not exist".to_string(),
                                         ..Default::default()
                                     }
                                 }

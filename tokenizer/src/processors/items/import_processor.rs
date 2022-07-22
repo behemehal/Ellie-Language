@@ -16,12 +16,14 @@ impl crate::processors::Processor for Import {
                 self.pos.range_end = cursor;
                 self.complete = true;
             } else {
-                if self.path == "" {
+                if self.path.trim() == "" {
                     if letter_char == '@' {
                         self.link_module = true;
+                        return false;
                     }
                     self.path_pos.range_start = cursor;
                 }
+
                 if self.link_module {
                     if utils::reliable_name_range(
                         utils::ReliableNameRanges::VariableName,
@@ -41,6 +43,15 @@ impl crate::processors::Processor for Import {
                         }
                         self.path_pos.range_end = cursor;
                         self.path += &letter_char.to_string();
+                    } else {
+                        errors.push(error::error_list::ERROR_S1.clone().build(
+                            vec![error::ErrorBuildField {
+                                key: "token".to_string(),
+                                value: letter_char.to_string(),
+                            }],
+                            alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                            defs::Cursor::build_from_cursor(cursor),
+                        ));
                     }
                 } else {
                     if last_char == ' ' && self.path != "" {

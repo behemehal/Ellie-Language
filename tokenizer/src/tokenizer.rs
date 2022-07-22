@@ -219,7 +219,7 @@ pub struct RawPage {
 
 impl<E> Pager<E>
 where
-    E: FnMut(String, String) -> ResolvedImport + Clone + Sized, //Path, filename
+    E: FnMut(bool, String, String) -> ResolvedImport + Clone + Sized, //Path, filename
 {
     /// Find page by hash
     /// ## Arguments
@@ -352,7 +352,11 @@ where
                     .collect::<Vec<_>>();
 
                 for import in imports {
-                    let resolved = (self.import_resolver)(page.path.clone(), import.path.clone());
+                    let resolved = (self.import_resolver)(
+                        import.link_module,
+                        page.path.clone(),
+                        import.path.clone(),
+                    );
                     if resolved.found {
                         import.hash = resolved.hash;
                         let current_page = self.find_page(cr_page).unwrap();

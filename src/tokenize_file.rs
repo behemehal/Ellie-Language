@@ -60,9 +60,13 @@ pub fn tokenize(target_path: &Path, output_path: &Path, tokenizer_settings: Toke
                 main_file_content,
                 tokenizer_settings.file_name,
                 format!("{}/", starter_name),
-                |path, module_identifier| {
-                    if module_identifier.starts_with("@") {
-                        panic!("Link module not ready");
+                |link_module, path, module_identifier| {
+                    if link_module {
+                        ResolvedImport {
+                            found: false,
+                            resolve_error: "Cannot use modules in tokenizer".to_owned(),
+                            ..Default::default()
+                        }
                     } else {
                         match ellie_core::module_path::parse_module_import(
                             &path,
@@ -106,7 +110,7 @@ pub fn tokenize(target_path: &Path, output_path: &Path, tokenizer_settings: Toke
                                 } else {
                                     ResolvedImport {
                                         found: false,
-                                        resolve_error: "Path is not exists".to_string(),
+                                        resolve_error: "Path does not exist".to_string(),
                                         ..Default::default()
                                     }
                                 }
