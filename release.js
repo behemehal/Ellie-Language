@@ -13,14 +13,17 @@ const targeted_archs = {
   ],
   "x86_64-apple-darwin": [
     ["elliec_x86_64_apple_darwin", ""],
+    ["ellievm_x86_64_apple_darwin", ""],
     ["elliefmt_x86_64_apple_darwin", ""],
   ],
   "x86_64-pc-windows-gnu": [
     ["elliec_x86_64_windows", "exe"],
+    ["ellievm_x86_64_windows", "exe"],
     ["elliefmt_x86_64_windows", "exe"],
   ],
   "x86_64-unknown-linux-gnu": [
     ["elliec_x86_64_linux", ""],
+    ["ellievm_x86_64_linux", ""],
     ["elliefmt_x86_64_linux", ""],
   ],
 };

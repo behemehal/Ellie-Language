@@ -92,6 +92,7 @@ pub fn generate_hash() -> String {
 pub enum ReliableNameRanges {
     VariableName,
     Type,
+    Path,
 }
 
 /// ReliableNameRange is a function that returns [`ReliableNameRangeResponse`]
@@ -105,6 +106,9 @@ pub fn reliable_name_range(range: ReliableNameRanges, value: char) -> ReliableNa
         }
         ReliableNameRanges::Type => {
             "QWERTYUIOPASDFGHJKLIZXCVBNMqwertyuıopasdfghjklizxcvbnm0123456789"
+        }
+        ReliableNameRanges::Path => {
+            "QWERTYUIOPASDFGHJKLIZXCVBNMqwertyuıopasdfghjklizxcvbnm0123456789_@!?"
         }
     };
 
