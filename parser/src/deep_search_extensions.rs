@@ -1,4 +1,4 @@
-use crate::parser::{FoundPage, Parser};
+use crate::parser::{DeepSearchItems, FoundPage, Parser};
 use alloc::{
     borrow::ToOwned,
     boxed::Box,
@@ -2141,62 +2141,22 @@ pub fn find_type(
     target_page: usize,
     parser: &mut Parser,
 ) -> Option<definers::GenericType> {
-    let result = deep_search(parser, target_page, rtype.clone(), None, vec![], 0);
+    let result = parser.deep_search(target_page, rtype.clone(), None, vec![], 0, None);
     if result.found {
         match result.found_item {
-            ProcessedDeepSearchItems::Class(e) => Some(definers::GenericType {
+            DeepSearchItems::Class(e) => Some(definers::GenericType {
                 rtype,
                 pos: e.pos,
                 hash: e.hash,
             }),
-            ProcessedDeepSearchItems::Variable(_) => {
+            DeepSearchItems::None => None,
+            DeepSearchItems::Enum(_) => todo!(),
+            _ => {
                 unreachable!(
                     "Unexpected internal crash, parser should have prevented this, {:?}",
                     result
                 );
             }
-            ProcessedDeepSearchItems::Function(_) => {
-                unreachable!(
-                    "Unexpected internal crash, parser should have prevented this, {:?}",
-                    result
-                );
-            }
-            ProcessedDeepSearchItems::Setter(_) => {
-                unreachable!(
-                    "Unexpected internal crash, parser should have prevented this, {:?}",
-                    result
-                );
-            }
-            ProcessedDeepSearchItems::Getter(_) => {
-                unreachable!(
-                    "Unexpected internal crash, parser should have prevented this, {:?}",
-                    result
-                );
-            }
-            ProcessedDeepSearchItems::ImportReference(_) => {
-                unreachable!(
-                    "Unexpected internal crash, parser should have prevented this, {:?}",
-                    result
-                );
-            }
-            ProcessedDeepSearchItems::GenericItem(_) => {
-                unreachable!(
-                    "Unexpected internal crash, parser should have prevented this, {:?}",
-                    result
-                );
-            }
-            ProcessedDeepSearchItems::None => None,
-            ProcessedDeepSearchItems::FunctionParameter(_) => {
-                unreachable!(
-                    "Unexpected internal crash, parser should have prevented this, {:?}",
-                    result
-                );
-            }
-            ProcessedDeepSearchItems::NativeFunction(_) => unreachable!(
-                "Unexpected internal crash, parser should have prevented this, {:?}",
-                result
-            ),
-            ProcessedDeepSearchItems::Enum(_) => todo!(),
         }
     } else {
         None
@@ -2220,6 +2180,7 @@ pub fn resolve_type(
     match deep_type {
         DeepTypeResult::Integer(_) => {
             let int_type = find_type("int".to_string(), target_page, parser);
+
             match int_type {
                 Some(e) => Some(definers::DefinerCollecting::Generic(e)),
                 None => {
@@ -2397,73 +2358,6 @@ pub fn resolve_type(
                         ),
                         None => (None, String::new()),
                     }
-
-                    //let second = resolve_type(*operator.second, target_page, parser, errors, pos);
-
-                    /*
-                    if first.is_none() || second.is_none() {
-                        return None;
-                    } else {
-
-                    }
-
-                    let rtype = match first {
-                        Types::Byte(_) => "byte".to_string(),
-                        Types::Integer(_) => "int".to_string(),
-                        Types::Float(_) => "float".to_string(),
-                        Types::Double(_) => "double".to_string(),
-                        Types::Operator(_) => {
-                            let res = resolve_type(
-                                *operator.first.clone(),
-                                target_page,
-                                parser,
-                                errors,
-                                pos,
-                            )
-                            .unwrap()
-                            .to_string();
-                            res
-                        }
-                        Types::String(_) => "string".to_string(),
-                        _ => {
-                            if first.is_none() || second.is_none() {
-                                return None;
-                            } else {
-                                std::println!("{:#?}", first);
-                                errors.push(error::error_list::ERROR_S52.clone().build_with_path(
-                                    vec![
-                                        error::ErrorBuildField {
-                                            key: "opType".to_owned(),
-                                            value: "ArithmeticType".to_string(),
-                                        },
-                                        error::ErrorBuildField {
-                                            key: "target".to_owned(),
-                                            value: first.unwrap().to_string(),
-                                        },
-                                        error::ErrorBuildField {
-                                            key: "value".to_owned(),
-                                            value: second.unwrap().to_string(),
-                                        },
-                                    ],
-                                    alloc::format!(
-                                        "{}:{}:{}",
-                                        file!().to_owned(),
-                                        line!(),
-                                        column!()
-                                    ),
-                                    parser.find_page(target_page).unwrap().path.clone(),
-                                    match pos {
-                                        Some(e) => e,
-                                        None => defs::Cursor::default(),
-                                    },
-                                ));
-                            }
-
-                            return None;
-                        }
-                    };
-                    (find_type(rtype.clone(), target_page, parser), rtype)
-                    */
                 }
                 ellie_core::definite::types::operator::Operators::AssignmentType(_) => {
                     let res =

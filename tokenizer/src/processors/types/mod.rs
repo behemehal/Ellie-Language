@@ -113,6 +113,19 @@ impl Processors {
             definite::types::Types::VariableType(e) => Processors::Variable(
                 variable_type::VariableTypeCollector::default().from_definite(e),
             ),
+            definite::types::Types::Bool(e) => {
+                Processors::Variable(variable_type::VariableTypeCollector {
+                    data: variable_type::VariableType {
+                        value: if e.value {
+                            "true".to_string()
+                        } else {
+                            "false".to_string()
+                        },
+                        ..Default::default()
+                    },
+                    complete: true,
+                })
+            }
             definite::types::Types::Array(e) => {
                 Processors::Array(array_type::ArrayTypeCollector::default().from_definite(e))
             }
@@ -134,6 +147,9 @@ impl Processors {
             definite::types::Types::Collective(e) => Processors::Collective(
                 collective_type::CollectiveTypeCollector::default().from_definite(e),
             ),
+            definite::types::Types::AsKeyword(e) => {
+                Processors::AsKeyword(as_keyword::AsKeywordCollector::default().from_definite(e))
+            }
             _ => panic!("NOT SUPPORTED, {:?}", from),
         }
     }
@@ -162,7 +178,15 @@ impl Processors {
             Processors::ClassCall(_) => false,
             Processors::Cloak(e) => e.data.collective.iter().all(|e| e.value.is_static()),
             Processors::Collective(e) => e.data.entries.iter().all(|e| e.value.is_static()),
-            Processors::AsKeyword(_) => false,
+            Processors::AsKeyword(e) => {
+                if matches!(e.data.rtype.definer_type, crate::syntax::items::definers::DefinerTypes::Generic(ref e) if e.rtype == "bool")
+                    && matches!(*e.data.target, Processors::Integer(ref e) if e.data.value == 1 || e.data.value == 0)
+                {
+                    true
+                } else {
+                    false
+                }
+            }
             Processors::NullResolver(_) => false,
         }
     }
@@ -369,7 +393,9 @@ impl super::Processor for TypeProcessor {
                     pos: defs::Cursor::build_from_cursor(cursor.clone()),
                     ..Default::default()
                 });
-            } else {
+            } else if self.current.clone().into_string().is_err()
+                && self.current.clone().into_char().is_err()
+            {
                 self.current = Processors::NullResolver(null_resolver::NullResolver {
                     target: Box::new(self.current.clone()),
                     target_pos: self.current.get_pos(),

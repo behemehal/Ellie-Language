@@ -35,7 +35,20 @@ impl definite::Converter<AsKeywordCollector, definite::types::as_keyword::AsKeyw
         }
     }
 
-    fn from_definite(self, _from: definite::types::as_keyword::AsKeyword) -> AsKeywordCollector {
-        todo!()
+    fn from_definite(self, from: definite::types::as_keyword::AsKeyword) -> AsKeywordCollector {
+        AsKeywordCollector {
+            data: AsKeyword {
+                target: Box::new(types::Processors::default().from_definite(*from.target)),
+                pos: from.pos,
+                target_pos: from.target_pos,
+                type_pos: from.type_pos,
+                rtype: items::definers::DefinerCollector {
+                    definer_type: items::definers::DefinerTypes::default()
+                        .from_definite(from.rtype),
+                    complete: true,
+                },
+            },
+            ..Default::default()
+        }
     }
 }

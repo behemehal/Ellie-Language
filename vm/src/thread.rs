@@ -1793,7 +1793,6 @@ where
                             self.registers.A = RawType::string("void".as_bytes().to_vec());
                         }
                         10 => {
-                            let data = self.registers.A.to_string();
                             self.registers.A = RawType::string("null".as_bytes().to_vec());
                         }
                         _ => {

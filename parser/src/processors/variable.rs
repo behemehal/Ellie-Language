@@ -45,6 +45,67 @@ impl super::Processor for VariableCollector {
             }
             return false;
         } else {
+            let deep_cast = parser
+                .processed_pages
+                .nth(processed_page_idx)
+                .unwrap()
+                .unassigned_file_keys
+                .clone()
+                .into_iter()
+                .find(|key| key.key_name == "ellie_deep_cast");
+
+            if let Some(key) = deep_cast {
+                let processed = ellie_core::definite::items::Collecting::Variable(
+                    ellie_core::definite::items::variable::Variable {
+                        name: self.data.name.clone(),
+                        constant: self.data.constant,
+                        public: self.data.public,
+                        value: match key.value {
+                            Types::Byte(e) => Types::Byte(e),
+                            Types::Integer(e) => Types::Integer(e),
+                            Types::Float(e) => Types::Float(e),
+                            Types::Double(e) => Types::Double(e),
+                            Types::Bool(e) => Types::Bool(e),
+                            Types::String(e) => Types::String(e),
+                            Types::Char(e) => Types::Char(e),
+                            Types::VariableType(e) => {
+                                Types::Bool(ellie_core::definite::types::bool::BoolType {
+                                    value: if e.value == "true" {
+                                        true
+                                    } else if e.value == "false" {
+                                        false
+                                    } else {
+                                        //This will give me headache later
+                                        unreachable!()
+                                    },
+                                })
+                            }
+                            _ => unreachable!(),
+                        },
+                        pos: self.data.pos,
+                        name_pos: self.data.name_pos,
+                        file_keys: parser
+                            .processed_pages
+                            .nth(processed_page_idx)
+                            .unwrap()
+                            .unassigned_file_keys
+                            .clone(),
+
+                        value_pos: self.data.value_pos,
+                        type_pos: self.data.type_pos,
+                        rtype: DefinerCollecting::Dynamic,
+                        hash: self.data.hash,
+                        has_type: self.data.has_type,
+                        has_value: self.data.has_value,
+                    },
+                );
+
+                let processed_page = parser.processed_pages.nth_mut(processed_page_idx).unwrap();
+                processed_page.unassigned_file_keys = Vec::new();
+                processed_page.items.push(processed);
+                return true;
+            }
+
             let resolved_defining = if !self.data.has_type {
                 Ok(DefinerCollecting::Dynamic)
             } else {

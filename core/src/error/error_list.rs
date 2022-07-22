@@ -381,4 +381,12 @@ lazy_static! {
         semi_assist: true,
         ..Default::default()
     };
+
+    pub static ref ERROR_S60: error::Error = error::Error {
+        code: 0x59,
+        title: "ReferenceError".to_owned(),
+        message: "Cannot use non-static variables here".to_owned(),
+        semi_assist: true,
+        ..Default::default()
+    };
 }
