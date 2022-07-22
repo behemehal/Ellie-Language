@@ -16,6 +16,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - name: Download EllieAssist
+      run: git clone https://github.com/behemehal/EllieAssist.git
     - name: Build
       run: cargo build --verbose
     - name: Run tests
