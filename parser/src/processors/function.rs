@@ -19,14 +19,14 @@ impl super::Processor for function::FunctionCollector {
         let page = parser.pages.nth(page_idx).unwrap().clone();
 
         if duplicate {
-            if let Some((page, cursor_pos)) = found {
+            if let Some((found_page, cursor_pos)) = found {
                 let mut err = error::error_list::ERROR_S24.clone().build_with_path(
                     vec![error::ErrorBuildField::new("token", &self.data.name)],
                     alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                     page.path.clone(),
                     self.data.name_pos,
                 );
-                err.reference_block = Some((cursor_pos, page.path));
+                err.reference_block = Some((cursor_pos, found_page.path));
                 err.reference_message = "Prime is here".to_owned();
                 err.semi_assist = true;
                 parser.informations.push(&err);
