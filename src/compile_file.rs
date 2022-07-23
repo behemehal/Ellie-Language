@@ -158,33 +158,32 @@ pub fn compile(
                 first_page_hash.clone().try_into().unwrap(),
             );
 
-            let mut exit_messages: Mutex<Vec<Box<dyn Fn(CompilerSettings, bool)>>> =
-                Mutex::new(vec![
-                    Box::new(|_: CompilerSettings, _: bool| {
-                        if compiler_settings.experimental_features {
-                            println!(
-                                "\n{}[!]{}: Experimental features are enabled.\n",
-                                cli_utils::Colors::Red,
-                                cli_utils::Colors::Reset,
-                            );
-                        }
-                    }),
-                    Box::new(|_, _| {
+            let exit_messages: Mutex<Vec<Box<dyn Fn(CompilerSettings, bool)>>> = Mutex::new(vec![
+                Box::new(|_: CompilerSettings, _: bool| {
+                    if compiler_settings.experimental_features {
                         println!(
-                            "{}[?]{}: Ellie v{}",
-                            cli_utils::Colors::Green,
-                            cli_utils::Colors::Reset,
-                            crate::engine_constants::ELLIE_ENGINE_VERSION
-                        );
-                    }),
-                    Box::new(|_, _| {
-                        println!(
-                            "{}[!]{}: Ellie is on development and may not be stable.",
+                            "\n{}[!]{}: Experimental features are enabled.\n",
                             cli_utils::Colors::Red,
                             cli_utils::Colors::Reset,
                         );
-                    }),
-                ]);
+                    }
+                }),
+                Box::new(|_, _| {
+                    println!(
+                        "{}[?]{}: Ellie v{}",
+                        cli_utils::Colors::Green,
+                        cli_utils::Colors::Reset,
+                        crate::engine_constants::ELLIE_ENGINE_VERSION
+                    );
+                }),
+                Box::new(|_, _| {
+                    println!(
+                        "{}[!]{}: Ellie is on development and may not be stable.",
+                        cli_utils::Colors::Red,
+                        cli_utils::Colors::Reset,
+                    );
+                }),
+            ]);
 
             let tokenize_start = Instant::now();
             match pager.run() {

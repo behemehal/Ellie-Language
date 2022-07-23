@@ -1,7 +1,7 @@
 //Auto builded from `instructions.csv` by `build.rs`
 use lazy_static;
 use std::collections::HashMap;
-pub static Revision: i8 = 1;
+pub static REVISION: i8 = 2;
 
 #[derive(Clone)]
 pub struct Instruction {

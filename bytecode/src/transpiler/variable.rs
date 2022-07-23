@@ -22,13 +22,38 @@ impl super::Transpiler for variable::Variable {
             assembler.location()
         };
 
-        let resolved_instructions = resolve_type(
+        let mut resolved_instructions = resolve_type(
             assembler,
             &self.value,
             instructions::Registers::A,
             &hash,
             Some(dependencies),
         );
+
+        if self.constant {
+            resolved_instructions[0] =
+                instructions::Instructions::STA(match resolved_instructions[0].clone() {
+                    instructions::Instructions::LDA(e) => e,
+                    _ => panic!("Constant variable must have ben a LDA"),
+                });
+            assembler.instructions.extend(resolved_instructions);
+            assembler.debug_headers.push(DebugHeader {
+                rtype: DebugHeaderType::Variable,
+                hash: self.hash,
+                start_end: (location, assembler.location()),
+                module: processed_page.path.clone(),
+                name: self.name.clone(),
+                pos: self.pos,
+            });
+
+            assembler.locals.push(LocalHeader {
+                name: self.name.clone(),
+                cursor: assembler.location(),
+                page_hash: processed_page.hash,
+                reference: None,
+            });
+            return true;
+        }
 
         assembler.instructions.extend(resolved_instructions);
 

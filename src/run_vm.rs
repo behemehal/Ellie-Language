@@ -182,7 +182,9 @@ pub fn run(target_path: &Path, dbg_target_path: &Path, vm_settings: VmSettings) 
     };
 
     let mut vm = VM::new(vm_settings.architecture, |thread_info, native_message| {
-        if native_message.module == "test" && native_message.name == "println" {
+        if native_message.module == "ellieStd" && native_message.name == "panic" {
+            panic!("{:?} {:?}", thread_info, native_message);
+        } else if native_message.module == "test" && native_message.name == "println" {
             io::stdout()
                 .write_all(&native_message.params[0].data)
                 .unwrap();

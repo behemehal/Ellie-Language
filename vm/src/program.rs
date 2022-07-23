@@ -69,9 +69,10 @@ impl Program {
                 Ok(instruction) => program.instructions.push(instruction),
                 Err(error) => {
                     if error != 0 {
-                        panic!("Might be not error {}", error);
+                        return Err(error);
+                    } else {
+                        break;
                     }
-                    break;
                 }
             }
         }

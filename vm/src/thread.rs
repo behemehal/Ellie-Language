@@ -73,6 +73,7 @@ impl StackController {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct ThreadInfo {
     pub id: usize,
     pub stack_id: usize,
@@ -159,13 +160,13 @@ where
                     self.registers.A = self
                         .heap
                         .get(e)
-                        .unwrap_or_else(|| {
-                            panic!(
-                                "Cr: {:?}, tag: {:?} - {:?}",
-                                e, current_instruction, current_stack
-                            )
+                        .unwrap_or({
+                            match &self.program[*e].addressing_value {
+                                utils::AddressingValues::Immediate(e) => e,
+                                _ => panic!("Can't find data at {} in heap or stack", e),
+                            }
                         })
-                        .clone()
+                        .clone();
                 }
                 utils::AddressingValues::AbsoluteIndex(_, _) => todo!(),
                 utils::AddressingValues::AbsoluteProperty(_, _) => todo!(),
@@ -192,7 +193,16 @@ where
                     self.registers.B = raw_type.clone();
                 }
                 utils::AddressingValues::Absolute(e) => {
-                    self.registers.B = self.heap.get(e).unwrap().clone();
+                    self.registers.B = self
+                        .heap
+                        .get(e)
+                        .unwrap_or({
+                            match &self.program[*e].addressing_value {
+                                utils::AddressingValues::Immediate(e) => e,
+                                _ => panic!("Can't find data at {} in heap or stack", e),
+                            }
+                        })
+                        .clone();
                 }
                 utils::AddressingValues::AbsoluteIndex(_, _) => todo!(),
                 utils::AddressingValues::AbsoluteProperty(_, _) => todo!(),
@@ -216,7 +226,16 @@ where
                     self.registers.C = raw_type.clone();
                 }
                 utils::AddressingValues::Absolute(e) => {
-                    self.registers.C = self.heap.get(e).unwrap().clone();
+                    self.registers.C = self
+                        .heap
+                        .get(e)
+                        .unwrap_or({
+                            match &self.program[*e].addressing_value {
+                                utils::AddressingValues::Immediate(e) => e,
+                                _ => panic!("Can't find data at {} in heap or stack", e),
+                            }
+                        })
+                        .clone();
                 }
                 utils::AddressingValues::AbsoluteIndex(_, _) => todo!(),
                 utils::AddressingValues::AbsoluteProperty(_, _) => todo!(),
@@ -240,7 +259,16 @@ where
                     self.registers.X = raw_type.clone();
                 }
                 utils::AddressingValues::Absolute(e) => {
-                    self.registers.X = self.heap.get(e).unwrap().clone();
+                    self.registers.X = self
+                        .heap
+                        .get(e)
+                        .unwrap_or({
+                            match &self.program[*e].addressing_value {
+                                utils::AddressingValues::Immediate(e) => e,
+                                _ => panic!("Can't find data at {} in heap or stack", e),
+                            }
+                        })
+                        .clone();
                 }
                 utils::AddressingValues::AbsoluteIndex(_, _) => todo!(),
                 utils::AddressingValues::AbsoluteProperty(_, _) => todo!(),
@@ -264,7 +292,16 @@ where
                     self.registers.Y = raw_type.clone();
                 }
                 utils::AddressingValues::Absolute(e) => {
-                    self.registers.Y = self.heap.get(e).unwrap().clone();
+                    self.registers.Y = self
+                        .heap
+                        .get(e)
+                        .unwrap_or({
+                            match &self.program[*e].addressing_value {
+                                utils::AddressingValues::Immediate(e) => e,
+                                _ => panic!("Can't find data at {} in heap or stack", e),
+                            }
+                        })
+                        .clone();
                 }
                 utils::AddressingValues::AbsoluteIndex(_, _) => todo!(),
                 utils::AddressingValues::AbsoluteProperty(_, _) => todo!(),
@@ -614,13 +651,6 @@ where
                 utils::AddressingValues::Absolute(e) => {
                     current_stack.pos = e;
                     return Ok(ThreadStepInfo::JMP(e));
-                    #[cfg(feature = "debug")]
-                    println!(
-                        "{}[VM]{} JMP: {}",
-                        utils::Colors::Yellow,
-                        utils::Colors::Reset,
-                        e
-                    );
                 }
                 _ => unreachable!("Illegal addressing value"),
             },
@@ -887,7 +917,6 @@ where
                         self.registers.A = RawType::string("void".as_bytes().to_vec());
                     }
                     10 => {
-                        let data = self.registers.A.to_string();
                         self.registers.A = RawType::string("null".as_bytes().to_vec());
                     }
                     _ => {
@@ -1053,13 +1082,13 @@ where
                         self.registers.A = self
                             .heap
                             .get(e)
-                            .unwrap_or_else(|| {
-                                panic!(
-                                    "Cr: {:?}, tag: {:?} - {:?}",
-                                    e, current_instruction, current_stack
-                                )
+                            .unwrap_or({
+                                match &self.program[*e].addressing_value {
+                                    utils::AddressingValues::Immediate(e) => e,
+                                    _ => panic!("Can't find data at {} in heap or stack", e),
+                                }
                             })
-                            .clone()
+                            .clone();
                     }
                     utils::AddressingValues::AbsoluteIndex(_, _) => todo!(),
                     utils::AddressingValues::AbsoluteProperty(_, _) => todo!(),
@@ -1086,7 +1115,16 @@ where
                         self.registers.B = raw_type.clone();
                     }
                     utils::AddressingValues::Absolute(e) => {
-                        self.registers.B = self.heap.get(e).unwrap().clone();
+                        self.registers.B = self
+                            .heap
+                            .get(e)
+                            .unwrap_or({
+                                match &self.program[*e].addressing_value {
+                                    utils::AddressingValues::Immediate(e) => e,
+                                    _ => panic!("Can't find data at {} in heap or stack", e),
+                                }
+                            })
+                            .clone();
                     }
                     utils::AddressingValues::AbsoluteIndex(_, _) => todo!(),
                     utils::AddressingValues::AbsoluteProperty(_, _) => todo!(),
@@ -1110,7 +1148,16 @@ where
                         self.registers.C = raw_type.clone();
                     }
                     utils::AddressingValues::Absolute(e) => {
-                        self.registers.C = self.heap.get(e).unwrap().clone();
+                        self.registers.C = self
+                            .heap
+                            .get(e)
+                            .unwrap_or({
+                                match &self.program[*e].addressing_value {
+                                    utils::AddressingValues::Immediate(e) => e,
+                                    _ => panic!("Can't find data at {} in heap or stack", e),
+                                }
+                            })
+                            .clone();
                     }
                     utils::AddressingValues::AbsoluteIndex(_, _) => todo!(),
                     utils::AddressingValues::AbsoluteProperty(_, _) => todo!(),
@@ -1134,7 +1181,16 @@ where
                         self.registers.X = raw_type.clone();
                     }
                     utils::AddressingValues::Absolute(e) => {
-                        self.registers.X = self.heap.get(e).unwrap().clone();
+                        self.registers.X = self
+                            .heap
+                            .get(e)
+                            .unwrap_or({
+                                match &self.program[*e].addressing_value {
+                                    utils::AddressingValues::Immediate(e) => e,
+                                    _ => panic!("Can't find data at {} in heap or stack", e),
+                                }
+                            })
+                            .clone();
                     }
                     utils::AddressingValues::AbsoluteIndex(_, _) => todo!(),
                     utils::AddressingValues::AbsoluteProperty(_, _) => todo!(),
@@ -1158,7 +1214,16 @@ where
                         self.registers.Y = raw_type.clone();
                     }
                     utils::AddressingValues::Absolute(e) => {
-                        self.registers.Y = self.heap.get(e).unwrap().clone();
+                        self.registers.Y = self
+                            .heap
+                            .get(e)
+                            .unwrap_or({
+                                match &self.program[*e].addressing_value {
+                                    utils::AddressingValues::Immediate(e) => e,
+                                    _ => panic!("Can't find data at {} in heap or stack", e),
+                                }
+                            })
+                            .clone();
                     }
                     utils::AddressingValues::AbsoluteIndex(_, _) => todo!(),
                     utils::AddressingValues::AbsoluteProperty(_, _) => todo!(),
@@ -1508,13 +1573,6 @@ where
                     utils::AddressingValues::Absolute(e) => {
                         current_stack.pos = e;
                         continue;
-                        #[cfg(feature = "debug")]
-                        println!(
-                            "{}[VM]{} JMP: {}",
-                            utils::Colors::Yellow,
-                            utils::Colors::Reset,
-                            e
-                        );
                     }
                     _ => unreachable!("Illegal addressing value"),
                 },
