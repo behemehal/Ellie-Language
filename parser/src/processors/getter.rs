@@ -10,9 +10,19 @@ impl super::Processor for getter::Getter {
         processed_page_idx: usize,
         page_hash: usize,
     ) -> bool {
+        let path = parser.pages.nth(page_idx).unwrap().path.clone();
+        parser
+            .informations
+            .push(&error::error_list::ERROR_S59.clone().build_with_path(
+                vec![error::ErrorBuildField::new("token", &"getter".to_owned())],
+                alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                path,
+                self.name_pos,
+            ));
+        return false;
+
         let (duplicate, found) =
             parser.is_duplicate(page_hash, self.name.clone(), self.hash.clone(), self.pos);
-        let path = parser.pages.nth(page_idx).unwrap().path.clone();
 
         if duplicate {
             if let Some((page, cursor_pos)) = found {
