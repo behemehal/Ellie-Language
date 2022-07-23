@@ -343,7 +343,7 @@ pub fn print_errors<E, F>(
 {
     for error in errors {
         println!(
-            "\n{}{} [{:#04x}{}]{}: {}{}{}\n",
+            "\n{}{}[{:#04x}{}]{}: {}{}{}\n",
             Colors::Red,
             error.title,
             error.code,
@@ -384,7 +384,8 @@ pub fn print_errors<E, F>(
             true,
         );
         println!(
-            "  {}[?]{} ╞ Check online error repo for more info {}{}{}",
+            "{}{}[?]{} ╞ Check online error repo for more info {}{}{}",
+            generate_blank(line_space - 2),
             Colors::Magenta,
             Colors::Reset,
             Colors::Green,
