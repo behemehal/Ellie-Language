@@ -278,6 +278,11 @@ impl DeepSearchItems {
             DeepSearchItems::Variable(e) => e.pos,
             DeepSearchItems::Function(e) => e.pos,
             DeepSearchItems::ImportReference(e) => e.pos,
+            DeepSearchItems::Getter(e) => e.pos,
+            DeepSearchItems::Setter(e) => e.pos,
+            DeepSearchItems::Enum(e) => e.pos,
+            DeepSearchItems::GenericItem(e) => e.pos,
+            DeepSearchItems::ConstructorParameter(e) => e.pos,
             _ => defs::Cursor::default(),
         }
     }
