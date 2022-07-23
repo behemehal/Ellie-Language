@@ -1,10 +1,10 @@
 use alloc::vec::Vec;
 use alloc::{borrow::ToOwned, vec};
-use ellie_core::warning;
 use ellie_core::{
     definite::items::enum_type::{EnumItem, EnumValue},
     error,
 };
+use ellie_core::{utils, warning};
 use ellie_tokenizer::syntax::items::enum_type::EnumType;
 
 impl super::Processor for EnumType {
@@ -30,6 +30,33 @@ impl super::Processor for EnumType {
         let mut halt = true;
         let (duplicate, found) =
             parser.is_duplicate(page_hash, self.name.clone(), self.hash.clone(), self.pos);
+
+        let enum_key_definings = parser
+            .processed_pages
+            .nth_mut(processed_page_idx)
+            .unwrap()
+            .unassigned_file_keys
+            .clone();
+
+        if utils::is_reserved(
+            &self.name,
+            enum_key_definings
+                .iter()
+                .find(|x| x.key_name == "dont_fix_variant")
+                .is_some(),
+        ) {
+            parser
+                .informations
+                .push(&error::error_list::ERROR_S21.clone().build_with_path(
+                    vec![error::ErrorBuildField {
+                        key: "token".to_owned(),
+                        value: self.name.clone(),
+                    }],
+                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                    path.clone(),
+                    self.name_pos,
+                ));
+        }
 
         if duplicate {
             if let Some((page, cursor_pos)) = found {

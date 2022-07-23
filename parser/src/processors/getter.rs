@@ -1,5 +1,5 @@
 use alloc::{borrow::ToOwned, vec, vec::Vec};
-use ellie_core::{definite::Converter, error, warning};
+use ellie_core::{definite::Converter, error, utils, warning};
 use ellie_tokenizer::{syntax::items::getter, tokenizer::PageType};
 
 impl super::Processor for getter::Getter {
@@ -20,6 +20,33 @@ impl super::Processor for getter::Getter {
                 self.name_pos,
             ));
         return false;
+
+        let getter_key_definings = parser
+            .processed_pages
+            .nth_mut(processed_page_idx)
+            .unwrap()
+            .unassigned_file_keys
+            .clone();
+
+        if utils::is_reserved(
+            &self.name,
+            getter_key_definings
+                .iter()
+                .find(|x| x.key_name == "dont_fix_variant")
+                .is_some(),
+        ) {
+            parser
+                .informations
+                .push(&error::error_list::ERROR_S21.clone().build_with_path(
+                    vec![error::ErrorBuildField {
+                        key: "token".to_owned(),
+                        value: self.name.clone(),
+                    }],
+                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                    path.clone(),
+                    self.name_pos,
+                ));
+        }
 
         let (duplicate, found) =
             parser.is_duplicate(page_hash, self.name.clone(), self.hash.clone(), self.pos);

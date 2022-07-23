@@ -1,5 +1,5 @@
 use alloc::{borrow::ToOwned, vec, vec::Vec};
-use ellie_core::{error, utils::generate_hash_usize, warning};
+use ellie_core::{error, utils::{generate_hash_usize, self}, warning};
 use ellie_tokenizer::{syntax::items::function, tokenizer::PageType};
 
 impl super::Processor for function::FunctionCollector {
@@ -17,6 +17,33 @@ impl super::Processor for function::FunctionCollector {
             self.data.pos,
         );
         let page = parser.pages.nth(page_idx).unwrap().clone();
+
+        let function_key_definings = parser
+            .processed_pages
+            .nth_mut(processed_page_idx)
+            .unwrap()
+            .unassigned_file_keys
+            .clone();
+
+        if utils::is_reserved(
+            &self.data.name,
+            function_key_definings
+                .iter()
+                .find(|x| x.key_name == "dont_fix_variant")
+                .is_some(),
+        ) {
+            parser
+                .informations
+                .push(&error::error_list::ERROR_S21.clone().build_with_path(
+                    vec![error::ErrorBuildField {
+                        key: "token".to_owned(),
+                        value: self.data.name.clone(),
+                    }],
+                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                    page.path.clone(),
+                    self.data.name_pos,
+                ));
+        }
 
         if duplicate {
             if let Some((found_page, cursor_pos)) = found {
