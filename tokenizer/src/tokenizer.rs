@@ -355,7 +355,7 @@ where
                     let resolved = (self.import_resolver)(
                         import.link_module,
                         page.path.clone(),
-                        import.path.clone(),
+                        import.path.trim().to_string(),
                     );
                     if resolved.found {
                         import.hash = resolved.hash;
