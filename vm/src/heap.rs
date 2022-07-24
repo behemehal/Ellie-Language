@@ -1,7 +1,5 @@
 use ellie_core::raw_type::RawType;
 
-use crate::utils::Colors;
-
 #[derive(Clone)]
 pub struct Entry {
     pub key: usize,
@@ -51,10 +49,9 @@ impl Heap {
         let mut result = String::new();
         for entry in &self.data {
             result.push_str(&format!(
-                "{:02x} : {} = {}{:?}{} =! {}{:?}{}\n",
+                "{:02x} : {} = {:?} =! {:?}\n",
                 entry.key,
                 entry.value.type_id,
-                Colors::Cyan,
                 match entry.value.type_id.id {
                     1 => {
                         isize::from_le_bytes(entry.value.data.clone().try_into().unwrap())
@@ -83,10 +80,7 @@ impl Heap {
                     10 => String::from("null"),
                     _ => unreachable!("Wrong typeid"),
                 },
-                Colors::Reset,
-                Colors::Red,
                 entry.value.data,
-                Colors::Reset,
             ));
         }
         result

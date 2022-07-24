@@ -219,7 +219,7 @@ pub struct RawPage {
 
 impl<E> Pager<E>
 where
-    E: FnMut(bool, String, String) -> ResolvedImport + Clone + Sized, //Path, filename
+    E: FnMut(bool, String, String) -> ResolvedImport, //Path, filename
 {
     /// Find page by hash
     /// ## Arguments

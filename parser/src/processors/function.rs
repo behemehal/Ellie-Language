@@ -1,5 +1,9 @@
 use alloc::{borrow::ToOwned, vec, vec::Vec};
-use ellie_core::{error, utils::{generate_hash_usize, self}, warning};
+use ellie_core::{
+    error,
+    utils::{self, generate_hash_usize},
+    warning,
+};
 use ellie_tokenizer::{syntax::items::function, tokenizer::PageType};
 
 impl super::Processor for function::FunctionCollector {

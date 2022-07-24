@@ -7,5 +7,4 @@ edition = "2021"
 ellie_core = { path = "../core", version = "*" }
 
 [features]
-default = ["debug"]
-debug = []
+default = []

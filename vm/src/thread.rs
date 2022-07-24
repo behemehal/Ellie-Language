@@ -137,19 +137,6 @@ where
         }
 
         let current_instruction = &self.program[current_stack.pos];
-
-        #[cfg(feature = "debug")]
-        println!(
-            "{}[VM]{} {}({}){} : Exec '{:?}' at {}",
-            utils::Colors::Yellow,
-            utils::Colors::Reset,
-            utils::Colors::Cyan,
-            self.id,
-            utils::Colors::Reset,
-            current_instruction.instruction,
-            current_stack.pos
-        );
-
         match &current_instruction.instruction {
             Instructions::LDA(_) => match &current_instruction.addressing_value {
                 utils::AddressingValues::Implicit => todo!(),
@@ -656,20 +643,6 @@ where
             },
             Instructions::CALL(e) => match &current_instruction.addressing_value {
                 utils::AddressingValues::Absolute(stack_pos) => {
-                    #[cfg(feature = "debug")]
-                    println!(
-                        "{}[CL]{} Call Function: {:?}",
-                        utils::Colors::Red,
-                        utils::Colors::Reset,
-                        e
-                    );
-                    #[cfg(feature = "debug")]
-                    println!(
-                        "{}[VM]{} Push stack: {}",
-                        utils::Colors::Yellow,
-                        utils::Colors::Reset,
-                        stack_pos
-                    );
                     current_stack.pos += 1;
                     let current_stack_id = current_stack.id.clone();
                     match self.stack.push(Stack {
@@ -706,9 +679,7 @@ where
                             params.push(match self.heap.get(&(current_stack.pos - (i + 1))) {
                                 Some(e) => e.clone(),
                                 None => panic!(
-                                    "{}[VM]{} Parameter {} not found",
-                                    utils::Colors::Yellow,
-                                    utils::Colors::Reset,
+                                    "[VM] Parameter {} not found",
                                     &(current_stack.pos - (i + 1))
                                 ),
                             });
@@ -1627,12 +1598,12 @@ where
                             for i in 0..number_of_params {
                                 params.push(match self.heap.get(&(current_stack.pos - (i + 1))) {
                                     Some(e) => e.clone(),
-                                    None => panic!(
-                                        "{}[VM]{} Parameter {} not found",
-                                        utils::Colors::Yellow,
-                                        utils::Colors::Reset,
-                                        &(current_stack.pos - (i + 1))
-                                    ),
+                                    None => {
+                                        return ThreadExit::Panic(ThreadPanic {
+                                            reason: ThreadPanicReason::MemoryAccessViolation,
+                                            stack_trace: self.stack.stack.clone(),
+                                        });
+                                    }
                                 });
                             }
                             params

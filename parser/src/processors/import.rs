@@ -16,7 +16,10 @@ impl super::Processor for Import {
             parser
                 .informations
                 .push(&error::error_list::ERROR_S59.clone().build_with_path(
-                    vec![error::ErrorBuildField::new("token", &"referenced imports".to_owned())],
+                    vec![error::ErrorBuildField::new(
+                        "token",
+                        &"referenced imports".to_owned(),
+                    )],
                     alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                     path,
                     self.reference_pos,

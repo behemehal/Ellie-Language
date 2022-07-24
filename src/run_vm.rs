@@ -1,12 +1,10 @@
+use crate::terminal_utils::{read_error_text, ColorDisplay, Colors, TextStyles};
 use ellie_bytecode::assembler::{DebugHeader, DebugHeaderType};
 use ellie_core::defs::CursorPosition;
 use ellie_vm::{program::Program, utils};
 use std::io::{Read, Write};
 use std::path::Path;
 use std::{fs::File, io};
-
-use crate::cli_utils;
-use crate::cli_utils::read_error_text;
 
 use ellie_vm::{
     utils::{ProgramReader, Reader},
@@ -43,6 +41,38 @@ where
 }
 
 pub fn run(target_path: &Path, dbg_target_path: &Path, vm_settings: VmSettings) {
+    #[derive(Copy, Clone)]
+    struct ColorTerminal;
+
+    let color_terminal = ColorTerminal;
+
+    impl ColorDisplay for ColorTerminal {
+        fn color(&self, color: Colors) -> String {
+            let color_id = match color {
+                Colors::Black => "[30m",
+                Colors::Red => "[31m",
+                Colors::Green => "[32m",
+                Colors::Yellow => "[33m",
+                Colors::Blue => "[34m",
+                Colors::Magenta => "[35m",
+                Colors::Cyan => "[36m",
+                Colors::White => "[37m",
+                Colors::Reset => "[0m",
+            };
+            format!("{}{}", '\u{001b}', color_id)
+        }
+
+        fn text_style(&self, text_style: TextStyles) -> String {
+            let type_id = match text_style {
+                TextStyles::Bold => "[1m",
+                TextStyles::Dim => "[2m",
+                TextStyles::Italic => "[3m",
+                TextStyles::Underline => "[4m",
+            };
+            format!("{}{}", '\u{001b}', type_id)
+        }
+    }
+
     let mut program = File::open(target_path).unwrap();
 
     let mut dbg_file = String::new();
@@ -71,8 +101,8 @@ pub fn run(target_path: &Path, dbg_target_path: &Path, vm_settings: VmSettings) 
     if !module_maps_ended {
         println!(
             "{}[Error]{}: Broken debug header, line: {}",
-            utils::Colors::Red,
-            utils::Colors::Reset,
+            color_terminal.color(Colors::Red),
+            color_terminal.color(Colors::Reset),
             module_maps.len(),
         );
     }
@@ -84,8 +114,8 @@ pub fn run(target_path: &Path, dbg_target_path: &Path, vm_settings: VmSettings) 
             if line.len() != 9 {
                 println!(
                     "{}[Error]{}: Broken debug header, line: {}",
-                    utils::Colors::Red,
-                    utils::Colors::Reset,
+                    color_terminal.color(Colors::Red),
+                    color_terminal.color(Colors::Reset),
                     idx + 1
                 );
                 std::process::exit(1);
@@ -95,8 +125,8 @@ pub fn run(target_path: &Path, dbg_target_path: &Path, vm_settings: VmSettings) 
                     line[0].parse::<usize>().unwrap_or_else(|_| {
                         println!(
                             "{}[Error]{}: Broken debug header, line: {}",
-                            utils::Colors::Red,
-                            utils::Colors::Reset,
+                            color_terminal.color(Colors::Red),
+                            color_terminal.color(Colors::Reset),
                             idx + 1
                         );
                         std::process::exit(1);
@@ -104,8 +134,8 @@ pub fn run(target_path: &Path, dbg_target_path: &Path, vm_settings: VmSettings) 
                     line[1].parse::<usize>().unwrap_or_else(|_| {
                         println!(
                             "{}[Error]{}: Broken debug header, line: {}",
-                            utils::Colors::Red,
-                            utils::Colors::Reset,
+                            color_terminal.color(Colors::Red),
+                            color_terminal.color(Colors::Reset),
                             idx + 1
                         );
                         std::process::exit(1);
@@ -118,16 +148,16 @@ pub fn run(target_path: &Path, dbg_target_path: &Path, vm_settings: VmSettings) 
                         line[4].parse::<usize>().unwrap_or_else(|_| {
                             println!(
                                 "{}[Error]{}: Broken debug header",
-                                utils::Colors::Red,
-                                utils::Colors::Reset
+                                color_terminal.color(Colors::Red),
+                                color_terminal.color(Colors::Reset)
                             );
                             std::process::exit(1);
                         }),
                         line[5].parse::<usize>().unwrap_or_else(|_| {
                             println!(
                                 "{}[Error]{}: Broken debug header",
-                                utils::Colors::Red,
-                                utils::Colors::Reset
+                                color_terminal.color(Colors::Red),
+                                color_terminal.color(Colors::Reset)
                             );
                             std::process::exit(1);
                         }),
@@ -136,16 +166,16 @@ pub fn run(target_path: &Path, dbg_target_path: &Path, vm_settings: VmSettings) 
                         line[6].parse::<usize>().unwrap_or_else(|_| {
                             println!(
                                 "{}[Error]{}: Broken debug header",
-                                utils::Colors::Red,
-                                utils::Colors::Reset
+                                color_terminal.color(Colors::Red),
+                                color_terminal.color(Colors::Reset)
                             );
                             std::process::exit(1);
                         }),
                         line[7].parse::<usize>().unwrap_or_else(|_| {
                             println!(
                                 "{}[Error]{}: Broken debug header",
-                                utils::Colors::Red,
-                                utils::Colors::Reset
+                                color_terminal.color(Colors::Red),
+                                color_terminal.color(Colors::Reset)
                             );
                             std::process::exit(1);
                         }),
@@ -155,8 +185,8 @@ pub fn run(target_path: &Path, dbg_target_path: &Path, vm_settings: VmSettings) 
                 hash: line[8].parse().unwrap_or_else(|_| {
                     println!(
                         "{}[Error]{}: Broken debug header",
-                        utils::Colors::Red,
-                        utils::Colors::Reset
+                        color_terminal.color(Colors::Red),
+                        color_terminal.color(Colors::Reset)
                     );
                     std::process::exit(1);
                 }),
@@ -171,11 +201,11 @@ pub fn run(target_path: &Path, dbg_target_path: &Path, vm_settings: VmSettings) 
         Err(e) => {
             println!(
                 "{}Error:{} Failed to run program '{}{}{}'",
-                cli_utils::Colors::Red,
-                cli_utils::Colors::Reset,
-                cli_utils::Colors::Yellow,
+                color_terminal.color(Colors::Red),
+                color_terminal.color(Colors::Reset),
+                color_terminal.color(Colors::Yellow),
                 read_error_text(e),
-                cli_utils::Colors::Reset,
+                color_terminal.color(Colors::Reset),
             );
             std::process::exit(1);
         }
@@ -210,11 +240,11 @@ pub fn run(target_path: &Path, dbg_target_path: &Path, vm_settings: VmSettings) 
         ellie_vm::utils::ThreadExit::Panic(e) => {
             println!(
                 "\n{}ThreadPanic{} : {}{:?}{}",
-                utils::Colors::Red,
-                utils::Colors::Reset,
-                utils::Colors::Cyan,
+                color_terminal.color(Colors::Red),
+                color_terminal.color(Colors::Reset),
+                color_terminal.color(Colors::Cyan),
                 e.reason,
-                utils::Colors::Reset,
+                color_terminal.color(Colors::Reset),
             );
             for frame in e.stack_trace {
                 let coresponding_header = dbg_headers
@@ -247,7 +277,7 @@ pub fn run(target_path: &Path, dbg_target_path: &Path, vm_settings: VmSettings) 
 
                         println!(
                             "{}    at {}:{}:{}",
-                            utils::Colors::Green,
+                            color_terminal.color(Colors::Green),
                             real_path,
                             e.pos.range_start.0 + 1,
                             e.pos.range_start.1 + 1,
@@ -256,7 +286,7 @@ pub fn run(target_path: &Path, dbg_target_path: &Path, vm_settings: VmSettings) 
                     None => {
                         println!(
                             "{}    at {}:{}",
-                            utils::Colors::Green,
+                            color_terminal.color(Colors::Green),
                             frame.name,
                             frame.pos
                         );
@@ -274,8 +304,8 @@ pub fn run(target_path: &Path, dbg_target_path: &Path, vm_settings: VmSettings) 
 
             println!(
                 "{}[VM]{}: Heap Dump\n\n{}",
-                utils::Colors::Yellow,
-                utils::Colors::Reset,
+                color_terminal.color(Colors::Yellow),
+                color_terminal.color(Colors::Reset),
                 dump
             );
         }

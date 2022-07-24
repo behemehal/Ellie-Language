@@ -18,6 +18,7 @@ pub enum ThreadPanicReason {
     StackOverflow,
     UnexpectedType,
     OutOfInstructions,
+    MemoryAccessViolation,
 }
 
 #[derive(Debug, Clone)]
@@ -113,7 +114,6 @@ pub enum AddressingValues {
     Absolute(usize),
     AbsoluteIndex(usize, usize),
     AbsoluteProperty(usize, usize),
-    //AbsoluteRef(usize, usize),
     IndirectA,
     IndirectB,
     IndirectC,
@@ -580,34 +580,5 @@ impl ProgramReader<'_> {
 
     pub fn read_u8(&mut self) -> Option<u8> {
         self.reader.read()
-    }
-}
-
-pub enum Colors {
-    Black,
-    Red,
-    Green,
-    Yellow,
-    Blue,
-    Magenta,
-    Cyan,
-    White,
-    Reset,
-}
-
-impl Display for Colors {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let color_id = match self {
-            Colors::Black => "[30m",
-            Colors::Red => "[31m",
-            Colors::Green => "[32m",
-            Colors::Yellow => "[33m",
-            Colors::Blue => "[34m",
-            Colors::Magenta => "[35m",
-            Colors::Cyan => "[36m",
-            Colors::White => "[37m",
-            Colors::Reset => "[0m",
-        };
-        write!(f, "{}{}", '\u{001b}', color_id)
     }
 }

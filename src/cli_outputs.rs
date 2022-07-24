@@ -141,4 +141,16 @@ lazy_static! {
         message: "Output write succeded as byte code".to_string(),
         extra: Vec::new(),
     };
+    pub static ref WRITE_BYTE_CODE_ASM_SUCCEDED: CliOuput<i8, String> = CliOuput {
+        code: 17,
+        rtype: CliOuputType::Info,
+        message: "Output write succeded as byte code assembly".to_string(),
+        extra: Vec::new(),
+    };
+    pub static ref FAILED_TO_FIND_MODULE: CliOuput<i8, String> = CliOuput {
+        code: 18,
+        rtype: CliOuputType::Info,
+        message: "Could not find imported module".to_string(),
+        extra: Vec::new(),
+    };
 }

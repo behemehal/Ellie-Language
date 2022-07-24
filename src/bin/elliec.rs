@@ -1,4 +1,4 @@
-use ellie_engine::{cli_options, cli_outputs, cli_utils};
+use ellie_engine::{cli_options, cli_outputs, cli_utils, terminal_utils};
 use std::path::Path;
 
 #[derive(Debug, Clone)]
@@ -205,12 +205,12 @@ fn main() {
             });
 
             let output_type = match matches.value_of("outputType").unwrap() {
-                "bin" => cli_utils::OutputTypes::Bin,
-                "json" => cli_utils::OutputTypes::Json,
-                "byteCode" => cli_utils::OutputTypes::ByteCode,
-                "byteCodeAsm" => cli_utils::OutputTypes::ByteCodeAsm,
-                "depA" => cli_utils::OutputTypes::DependencyAnalysis,
-                "nop" => cli_utils::OutputTypes::Nop,
+                "bin" => terminal_utils::OutputTypesSelector::Bin,
+                "json" => terminal_utils::OutputTypesSelector::Json,
+                "byteCode" => terminal_utils::OutputTypesSelector::ByteCode,
+                "byteCodeAsm" => terminal_utils::OutputTypesSelector::ByteCodeAsm,
+                "depA" => terminal_utils::OutputTypesSelector::DependencyAnalysis,
+                "nop" => terminal_utils::OutputTypesSelector::Nop,
                 _ => {
                     println!(
                         "{}Error:{} Given output type does not exist",
@@ -448,46 +448,48 @@ fn main() {
                 std::process::exit(1);
             }
 
-            let compiler_settings = ellie_engine::compile_file::CompilerSettings {
+            let compiler_settings = ellie_engine::compile_file::CliCompilerSettings {
                 json_log: matches.is_present("jsonLog"),
-                description: matches.value_of("description").unwrap().to_string(),
-                name: project_name,
-                is_lib: matches.is_present("isLib"),
-                version,
+                exclude_std: false,
+                compiler_settings: ellie_engine::terminal_utils::CompilerSettings {
+                    description: matches.value_of("description").unwrap().to_string(),
+                    name: project_name,
+                    is_lib: matches.is_present("isLib"),
+                    version,
+                    experimental_features: matches.is_present("experimentalFeatures"),
+                    byte_code_architecture: match matches.value_of("targetArchitecture") {
+                        Some(e) => {
+                            if e == "64" {
+                                ellie_core::defs::PlatformArchitecture::B64
+                            } else if e == "32" {
+                                ellie_core::defs::PlatformArchitecture::B32
+                            } else if e == "16" {
+                                ellie_core::defs::PlatformArchitecture::B16
+                            } else {
+                                println!(
+                                    "{}Error:{} Unknown architecture '{}{}{}'",
+                                    cli_utils::Colors::Red,
+                                    cli_utils::Colors::Reset,
+                                    cli_utils::Colors::Yellow,
+                                    e,
+                                    cli_utils::Colors::Reset,
+                                );
+                                std::process::exit(1);
+                            }
+                        }
+                        None => unreachable!(),
+                    },
+                    file_name: Path::new(&target_path)
+                        .file_name()
+                        .unwrap()
+                        .to_str()
+                        .unwrap()
+                        .to_string(),
+                },
                 output_type,
-                experimental_features: matches.is_present("experimentalFeatures"),
-                exclude_stdlib: matches.is_present("excludeStd"),
                 performance_info: matches.is_present("performanceInfo"),
-                file_name: Path::new(&target_path)
-                    .file_name()
-                    .unwrap()
-                    .to_str()
-                    .unwrap()
-                    .to_string(),
                 show_debug_lines: matches.is_present("showDebugLines"),
                 warnings: !matches.is_present("disableWarnings"),
-                byte_code_architecture: match matches.value_of("targetArchitecture") {
-                    Some(e) => {
-                        if e == "64" {
-                            ellie_core::defs::PlatformArchitecture::B64
-                        } else if e == "32" {
-                            ellie_core::defs::PlatformArchitecture::B32
-                        } else if e == "16" {
-                            ellie_core::defs::PlatformArchitecture::B16
-                        } else {
-                            println!(
-                                "{}Error:{} Unknown architecture '{}{}{}'",
-                                cli_utils::Colors::Red,
-                                cli_utils::Colors::Reset,
-                                cli_utils::Colors::Yellow,
-                                e,
-                                cli_utils::Colors::Reset,
-                            );
-                            std::process::exit(1);
-                        }
-                    }
-                    None => unreachable!(),
-                },
             };
 
             ellie_engine::compile_file::compile(

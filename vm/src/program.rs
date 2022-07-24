@@ -30,13 +30,6 @@ impl Program {
             None => return Err(0),
         };
 
-        println!(
-            "{}[Program]{}: Target arch {}",
-            utils::Colors::Yellow,
-            utils::Colors::Reset,
-            arch
-        );
-
         let main_exists = match reader.read_u8() {
             Some(byte) => byte,
             None => return Err(0),
@@ -50,12 +43,6 @@ impl Program {
             Some(byte) => byte,
             None => return Err(0),
         };
-        println!(
-            "{}[Program]{}: Program starts at {}",
-            utils::Colors::Yellow,
-            utils::Colors::Reset,
-            main
-        );
 
         let mut program = Program {
             main,
