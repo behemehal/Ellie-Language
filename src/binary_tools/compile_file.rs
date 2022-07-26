@@ -1,12 +1,5 @@
-use crate::cli_outputs;
-use crate::cli_utils;
-use crate::compile::parse_pages;
-use crate::terminal_utils;
-use crate::terminal_utils::ColorDisplay;
-use crate::terminal_utils::Colors;
-use crate::terminal_utils::CompilerSettings;
-use crate::terminal_utils::MainProgram;
-use crate::terminal_utils::ProgramRepository;
+use crate::terminal_utils::*;
+use crate::utils::{CompilerSettings, MainProgram, ProgramRepository};
 use ellie_parser::parser;
 use ellie_tokenizer::tokenizer::ResolvedImport;
 use path_absolutize::Absolutize;
@@ -19,10 +12,12 @@ use std::path::PathBuf;
 use std::sync::Mutex;
 use std::time::Instant;
 
+use ellie_cli_utils::{outputs, utils};
+
 #[derive(Clone)]
 pub struct CliCompilerSettings {
     pub json_log: bool,
-    pub output_type: terminal_utils::OutputTypesSelector,
+    pub output_type: OutputTypesSelector,
     pub warnings: bool,
     pub performance_info: bool,
     pub show_debug_lines: bool,
@@ -33,7 +28,7 @@ pub struct CliCompilerSettings {
 pub fn get_output_path(
     target_path: &Path,
     output_path: &Path,
-    output_type: terminal_utils::OutputTypesSelector,
+    output_type: OutputTypesSelector,
 ) -> PathBuf {
     if output_path.is_dir() {
         let path = output_path
@@ -53,10 +48,10 @@ pub fn get_output_path(
                 + "/"
                 + file_name
                 + match output_type {
-                    terminal_utils::OutputTypesSelector::Bin => ".eib",
-                    terminal_utils::OutputTypesSelector::ByteCode => ".eic",
-                    terminal_utils::OutputTypesSelector::ByteCodeAsm => ".eia",
-                    terminal_utils::OutputTypesSelector::ByteCodeDebug => ".eig",
+                    OutputTypesSelector::Bin => ".eib",
+                    OutputTypesSelector::ByteCode => ".eic",
+                    OutputTypesSelector::ByteCodeAsm => ".eia",
+                    OutputTypesSelector::ByteCodeDebug => ".eig",
                     _ => ".json",
                 }),
         )
@@ -75,8 +70,8 @@ pub fn compile(
     let mut exit_messages: Mutex<Vec<Box<dyn Fn()>>> = Mutex::new(vec![Box::new(|| {
         println!(
             "{}[?]{}: Ellie v{}",
-            cli_utils::Colors::Green,
-            cli_utils::Colors::Reset,
+            utils::Colors::Green,
+            utils::Colors::Reset,
             crate::engine_constants::ELLIE_ENGINE_VERSION
         );
     })]);
@@ -84,8 +79,8 @@ pub fn compile(
     if cli_settings.compiler_settings.experimental_features {
         println!(
             "{}[!]{}: Experimental features are enabled.",
-            cli_utils::Colors::Red,
-            cli_utils::Colors::Reset,
+            utils::Colors::Red,
+            utils::Colors::Reset,
         );
     }
 
@@ -95,27 +90,27 @@ pub fn compile(
     let color_terminal = ColorTerminal;
 
     impl ColorDisplay for ColorTerminal {
-        fn color(&self, color: terminal_utils::Colors) -> String {
+        fn color(&self, color: Colors) -> String {
             let color_id = match color {
-                terminal_utils::Colors::Black => "[30m",
-                terminal_utils::Colors::Red => "[31m",
-                terminal_utils::Colors::Green => "[32m",
-                terminal_utils::Colors::Yellow => "[33m",
-                terminal_utils::Colors::Blue => "[34m",
-                terminal_utils::Colors::Magenta => "[35m",
-                terminal_utils::Colors::Cyan => "[36m",
-                terminal_utils::Colors::White => "[37m",
-                terminal_utils::Colors::Reset => "[0m",
+                Colors::Black => "[30m",
+                Colors::Red => "[31m",
+                Colors::Green => "[32m",
+                Colors::Yellow => "[33m",
+                Colors::Blue => "[34m",
+                Colors::Magenta => "[35m",
+                Colors::Cyan => "[36m",
+                Colors::White => "[37m",
+                Colors::Reset => "[0m",
             };
             format!("{}{}", '\u{001b}', color_id)
         }
 
-        fn text_style(&self, text_style: terminal_utils::TextStyles) -> String {
+        fn text_style(&self, text_style: TextStyles) -> String {
             let type_id = match text_style {
-                terminal_utils::TextStyles::Bold => "[1m",
-                terminal_utils::TextStyles::Dim => "[2m",
-                terminal_utils::TextStyles::Italic => "[3m",
-                terminal_utils::TextStyles::Underline => "[4m",
+                TextStyles::Bold => "[1m",
+                TextStyles::Dim => "[2m",
+                TextStyles::Italic => "[3m",
+                TextStyles::Underline => "[4m",
             };
             format!("{}{}", '\u{001b}', type_id)
         }
@@ -143,8 +138,8 @@ pub fn compile(
     };
 
     impl ProgramRepository for Repository {
-        fn read_main(&mut self) -> terminal_utils::MainProgram {
-            match cli_utils::read_file(self.target_path.clone()) {
+        fn read_main(&mut self) -> MainProgram {
+            match utils::read_file(self.target_path.clone()) {
                 Ok(main_file_content) => {
                     let mut main_file_hasher = DefaultHasher::new();
                     main_file_content.hash(&mut main_file_hasher);
@@ -166,16 +161,14 @@ pub fn compile(
                 }
                 Err(err) => {
                     if self.cli_compiler_settings.json_log {
-                        let mut cli_module_output = cli_outputs::READ_FILE_ERROR.clone();
+                        let mut cli_module_output = outputs::READ_FILE_ERROR.clone();
                         cli_module_output
                             .extra
-                            .push(cli_outputs::CliOuputExtraData { key: 0, value: err });
-                        cli_module_output
-                            .extra
-                            .push(cli_outputs::CliOuputExtraData {
-                                key: 1,
-                                value: self.target_path.clone(),
-                            });
+                            .push(outputs::CliOuputExtraData { key: 0, value: err });
+                        cli_module_output.extra.push(outputs::CliOuputExtraData {
+                            key: 1,
+                            value: self.target_path.clone(),
+                        });
                         println!(
                             "{}",
                             serde_json::to_string_pretty(&cli_module_output).unwrap()
@@ -221,7 +214,7 @@ pub fn compile(
                             )
                             .clone();
                         if Path::new(&real_path).exists() {
-                            match cli_utils::read_file(real_path) {
+                            match utils::read_file(real_path) {
                                 Ok(data) => {
                                     let mut hasher = DefaultHasher::new();
                                     data.hash(&mut hasher);
@@ -274,13 +267,11 @@ pub fn compile(
             used_modules.push(module.clone());
         } else {
             if program_repisotory.cli_compiler_settings.json_log {
-                let mut cli_module_output = cli_outputs::FAILED_TO_FIND_MODULE.clone();
-                cli_module_output
-                    .extra
-                    .push(cli_outputs::CliOuputExtraData {
-                        key: 0,
-                        value: module_name.to_string(),
-                    });
+                let mut cli_module_output = outputs::FAILED_TO_FIND_MODULE.clone();
+                cli_module_output.extra.push(outputs::CliOuputExtraData {
+                    key: 0,
+                    value: module_name.to_string(),
+                });
                 println!(
                     "{}",
                     serde_json::to_string_pretty(&cli_module_output).unwrap()
@@ -305,7 +296,7 @@ pub fn compile(
             let tokenize_end = (tokenize_start.elapsed().as_nanos() as f64 / 1000000_f64) as f64;
             let compile_start = Instant::now();
 
-            match parse_pages(
+            match crate::compiler::parse_pages(
                 program_repisotory.main_hash,
                 used_modules,
                 pages,
@@ -318,8 +309,8 @@ pub fn compile(
 
                     if !compile_output.warnings.is_empty() {
                         if cli_settings.json_log {
-                            let mut output = cli_outputs::COMPILER_WARNINGS.clone();
-                            output.extra.push(cli_outputs::CliOuputExtraData {
+                            let mut output = outputs::COMPILER_WARNINGS.clone();
+                            output.extra.push(outputs::CliOuputExtraData {
                                 key: "warnings".to_string(),
                                 value: compile_output.warnings.clone(),
                             });
@@ -327,7 +318,7 @@ pub fn compile(
                         } else {
                             println!(
                                 "{}",
-                                terminal_utils::print_warnings(
+                                print_warnings(
                                     &compile_output.warnings,
                                     |path| {
                                         let path_starter = path.split("/").next().unwrap();
@@ -349,15 +340,15 @@ pub fn compile(
                                                         .unwrap(),
                                                 )
                                                 .clone();
-                                            match cli_utils::read_file(real_path) {
+                                            match utils::read_file(real_path) {
                                                 Ok(e) => e,
                                                 Err(err) => {
                                                     panic!(
                                                     "Failed to ouput error. Cannot read file '{}' {}[{}]{}",
                                                     path,
-                                                    color_terminal.color(terminal_utils::Colors::Red),
+                                                    color_terminal.color(Colors::Red),
                                                     err,
-                                                    color_terminal.color(terminal_utils::Colors::Reset)
+                                                    color_terminal.color(Colors::Reset)
                                                 );
                                                 }
                                             }
@@ -369,15 +360,15 @@ pub fn compile(
                                             let module_path = module_path.clone().unwrap();
                                             let real_path =
                                                 path.replace(&path_starter, &module_path).clone();
-                                            match cli_utils::read_file(real_path) {
+                                            match utils::read_file(real_path) {
                                                 Ok(e) => e,
                                                 Err(err) => {
                                                     panic!(
                                                     "Failed to ouput error. Cannot read file '{}' {}[{}]{}",
                                                     path,
-                                                    color_terminal.color(terminal_utils::Colors::Red),
+                                                    color_terminal.color(Colors::Red),
                                                     err,
-                                                    color_terminal.color(terminal_utils::Colors::Reset)
+                                                    color_terminal.color(Colors::Reset)
                                                 );
                                                 }
                                             }
@@ -438,7 +429,7 @@ pub fn compile(
                     let dbg_output_path = &get_output_path(
                         target_path,
                         Path::new(&output_path.to_str().unwrap().replace(dbg_output_path, "")),
-                        terminal_utils::OutputTypesSelector::ByteCodeDebug,
+                        OutputTypesSelector::ByteCodeDebug,
                     );
 
                     let mut module_maps = vec![(
@@ -463,13 +454,13 @@ pub fn compile(
                     );
 
                     match cli_settings.output_type {
-                        terminal_utils::OutputTypesSelector::Bin => {
+                        OutputTypesSelector::Bin => {
                             let bytes = bincode::serialize(&compile_output.module).unwrap();
                             if let Err(write_error) = fs::write(output_path, bytes) {
                                 if cli_settings.json_log {
-                                    let mut output = cli_outputs::WRITE_FILE_ERROR.clone();
+                                    let mut output = outputs::WRITE_FILE_ERROR.clone();
 
-                                    output.extra.push(cli_outputs::CliOuputExtraData {
+                                    output.extra.push(outputs::CliOuputExtraData {
                                         key: "path".to_string(),
                                         value: format!("{:?}", write_error),
                                     });
@@ -477,15 +468,15 @@ pub fn compile(
                                 } else {
                                     println!(
                                         "\nFailed to write output. [{}{:?}{}]",
-                                        color_terminal.color(terminal_utils::Colors::Red),
+                                        color_terminal.color(Colors::Red),
                                         write_error,
-                                        color_terminal.color(terminal_utils::Colors::Reset),
+                                        color_terminal.color(Colors::Reset),
                                     );
                                 }
                             } else {
                                 if cli_settings.json_log {
-                                    let mut output = cli_outputs::WRITE_BINARY_SUCCEDED.clone();
-                                    output.extra.push(cli_outputs::CliOuputExtraData {
+                                    let mut output = outputs::WRITE_BINARY_SUCCEDED.clone();
+                                    output.extra.push(outputs::CliOuputExtraData {
                                         key: 0,
                                         value: output_path
                                             .absolutize()
@@ -498,29 +489,29 @@ pub fn compile(
                                 } else {
                                     println!(
                                         "{}[!]{}: Binary output written to {}{}{}",
-                                        color_terminal.color(terminal_utils::Colors::Green),
-                                        color_terminal.color(terminal_utils::Colors::Reset),
-                                        color_terminal.color(terminal_utils::Colors::Yellow),
+                                        color_terminal.color(Colors::Green),
+                                        color_terminal.color(Colors::Reset),
+                                        color_terminal.color(Colors::Yellow),
                                         output_path.absolutize().unwrap().to_str().unwrap(),
-                                        color_terminal.color(terminal_utils::Colors::Reset)
+                                        color_terminal.color(Colors::Reset)
                                     );
                                 }
                             }
                         }
-                        terminal_utils::OutputTypesSelector::DependencyAnalysis => {
+                        OutputTypesSelector::DependencyAnalysis => {
                             println!(
                                 "{}[Error]{}: Dependency analysis output is not supported yet.",
-                                color_terminal.color(terminal_utils::Colors::Red),
-                                color_terminal.color(terminal_utils::Colors::Reset),
+                                color_terminal.color(Colors::Red),
+                                color_terminal.color(Colors::Reset),
                             );
                             std::process::exit(1);
                         }
-                        terminal_utils::OutputTypesSelector::Json => {
+                        OutputTypesSelector::Json => {
                             let json = serde_json::to_string(&compile_output.module).unwrap();
                             if let Err(write_error) = fs::write(&output_path, json) {
                                 if cli_settings.json_log {
-                                    let mut output = cli_outputs::WRITE_FILE_ERROR.clone();
-                                    output.extra.push(cli_outputs::CliOuputExtraData {
+                                    let mut output = outputs::WRITE_FILE_ERROR.clone();
+                                    output.extra.push(outputs::CliOuputExtraData {
                                         key: "path".to_string(),
                                         value: format!("{:?}", write_error),
                                     });
@@ -529,15 +520,15 @@ pub fn compile(
                                 } else {
                                     println!(
                                         "\nFailed to write output. [{}{:?}{}]",
-                                        color_terminal.color(terminal_utils::Colors::Red),
+                                        color_terminal.color(Colors::Red),
                                         write_error,
-                                        color_terminal.color(terminal_utils::Colors::Reset),
+                                        color_terminal.color(Colors::Reset),
                                     );
                                 }
                             } else {
                                 if cli_settings.json_log {
-                                    let mut output = cli_outputs::WRITE_JSON_SUCCEDED.clone();
-                                    output.extra.push(cli_outputs::CliOuputExtraData {
+                                    let mut output = outputs::WRITE_JSON_SUCCEDED.clone();
+                                    output.extra.push(outputs::CliOuputExtraData {
                                         key: 0,
                                         value: output_path
                                             .absolutize()
@@ -550,21 +541,21 @@ pub fn compile(
                                 } else {
                                     println!(
                                         "{}[!]{}: JSON output written to {}{}{}",
-                                        color_terminal.color(terminal_utils::Colors::Green),
-                                        color_terminal.color(terminal_utils::Colors::Reset),
-                                        color_terminal.color(terminal_utils::Colors::Yellow),
+                                        color_terminal.color(Colors::Green),
+                                        color_terminal.color(Colors::Reset),
+                                        color_terminal.color(Colors::Yellow),
                                         output_path.absolutize().unwrap().to_str().unwrap(),
-                                        color_terminal.color(terminal_utils::Colors::Reset),
+                                        color_terminal.color(Colors::Reset),
                                     );
                                 }
                             }
                         }
-                        terminal_utils::OutputTypesSelector::ByteCode => {
+                        OutputTypesSelector::ByteCode => {
                             if !cli_settings.json_log {
                                 println!(
                                     "{}[?]{}: ByteCode compiling to {} bit architecture",
-                                    color_terminal.color(terminal_utils::Colors::Green),
-                                    color_terminal.color(terminal_utils::Colors::Reset),
+                                    color_terminal.color(Colors::Green),
+                                    color_terminal.color(Colors::Reset),
                                     match cli_settings.compiler_settings.byte_code_architecture {
                                         ellie_core::defs::PlatformArchitecture::B16 => "16",
                                         ellie_core::defs::PlatformArchitecture::B32 => "32",
@@ -586,8 +577,8 @@ pub fn compile(
 
                             let mut output_file = File::create(output_path).unwrap_or_else(|err| {
                                 if cli_settings.json_log {
-                                    let mut output = cli_outputs::WRITE_FILE_ERROR.clone();
-                                    output.extra.push(cli_outputs::CliOuputExtraData {
+                                    let mut output = outputs::WRITE_FILE_ERROR.clone();
+                                    output.extra.push(outputs::CliOuputExtraData {
                                         key: "path".to_string(),
                                         value: format!("{:?}", err),
                                     });
@@ -595,12 +586,12 @@ pub fn compile(
                                 } else {
                                     println!(
                                         "\nFailed to create file {}{}{}. [{}{:?}{}]",
-                                        color_terminal.color(terminal_utils::Colors::Cyan),
+                                        color_terminal.color(Colors::Cyan),
                                         output_path.absolutize().unwrap().to_str().unwrap(),
-                                        color_terminal.color(terminal_utils::Colors::Reset),
-                                        color_terminal.color(terminal_utils::Colors::Red),
+                                        color_terminal.color(Colors::Reset),
+                                        color_terminal.color(Colors::Red),
                                         err,
-                                        color_terminal.color(terminal_utils::Colors::Reset),
+                                        color_terminal.color(Colors::Reset),
                                     );
                                 }
                                 std::process::exit(1);
@@ -608,8 +599,8 @@ pub fn compile(
                             let mut dbg_file =
                                 File::create(dbg_output_path).unwrap_or_else(|err| {
                                     if cli_settings.json_log {
-                                        let mut output = cli_outputs::WRITE_FILE_ERROR.clone();
-                                        output.extra.push(cli_outputs::CliOuputExtraData {
+                                        let mut output = outputs::WRITE_FILE_ERROR.clone();
+                                        output.extra.push(outputs::CliOuputExtraData {
                                             key: "path".to_string(),
                                             value: format!("{:?}", err),
                                         });
@@ -617,20 +608,20 @@ pub fn compile(
                                     } else {
                                         println!(
                                             "\nFailed to create file {}{}{}. [{}{:?}{}]",
-                                            color_terminal.color(terminal_utils::Colors::Cyan),
+                                            color_terminal.color(Colors::Cyan),
                                             dbg_output_path.absolutize().unwrap().to_str().unwrap(),
-                                            color_terminal.color(terminal_utils::Colors::Reset),
-                                            color_terminal.color(terminal_utils::Colors::Red),
+                                            color_terminal.color(Colors::Reset),
+                                            color_terminal.color(Colors::Red),
                                             err,
-                                            color_terminal.color(terminal_utils::Colors::Reset),
+                                            color_terminal.color(Colors::Reset),
                                         );
                                     }
                                     std::process::exit(1);
                                 });
                             assembler_result.render_binary(&mut output_file, &mut dbg_file);
                             if cli_settings.json_log {
-                                let mut output = cli_outputs::WRITE_BYTE_CODE_SUCCEDED.clone();
-                                output.extra.push(cli_outputs::CliOuputExtraData {
+                                let mut output = outputs::WRITE_BYTE_CODE_SUCCEDED.clone();
+                                output.extra.push(outputs::CliOuputExtraData {
                                     key: 0,
                                     value: output_path
                                         .absolutize()
@@ -643,28 +634,28 @@ pub fn compile(
                             } else {
                                 println!(
                                     "{}[!]{}: ByteCode output written to {}{}{}",
-                                    color_terminal.color(terminal_utils::Colors::Green),
-                                    color_terminal.color(terminal_utils::Colors::Reset),
-                                    color_terminal.color(terminal_utils::Colors::Yellow),
+                                    color_terminal.color(Colors::Green),
+                                    color_terminal.color(Colors::Reset),
+                                    color_terminal.color(Colors::Yellow),
                                     output_path.absolutize().unwrap().to_str().unwrap(),
-                                    color_terminal.color(terminal_utils::Colors::Reset),
+                                    color_terminal.color(Colors::Reset),
                                 );
                                 println!(
                                     "{}[!]{}: ByteCode debug file written to {}{}{}",
-                                    color_terminal.color(terminal_utils::Colors::Green),
-                                    color_terminal.color(terminal_utils::Colors::Reset),
-                                    color_terminal.color(terminal_utils::Colors::Yellow),
+                                    color_terminal.color(Colors::Green),
+                                    color_terminal.color(Colors::Reset),
+                                    color_terminal.color(Colors::Yellow),
                                     dbg_output_path.absolutize().unwrap().to_str().unwrap(),
-                                    color_terminal.color(terminal_utils::Colors::Reset),
+                                    color_terminal.color(Colors::Reset),
                                 );
                             }
                         }
-                        terminal_utils::OutputTypesSelector::ByteCodeAsm => {
+                        OutputTypesSelector::ByteCodeAsm => {
                             if !cli_settings.json_log {
                                 println!(
                                     "{}[?]{}: ByteCode compiling to {} bit architecture",
-                                    color_terminal.color(terminal_utils::Colors::Green),
-                                    color_terminal.color(terminal_utils::Colors::Reset),
+                                    color_terminal.color(Colors::Green),
+                                    color_terminal.color(Colors::Reset),
                                     match cli_settings.compiler_settings.byte_code_architecture {
                                         ellie_core::defs::PlatformArchitecture::B16 => "16",
                                         ellie_core::defs::PlatformArchitecture::B32 => "32",
@@ -686,8 +677,8 @@ pub fn compile(
 
                             let mut output_file = File::create(output_path).unwrap_or_else(|err| {
                                 if cli_settings.json_log {
-                                    let mut output = cli_outputs::WRITE_FILE_ERROR.clone();
-                                    output.extra.push(cli_outputs::CliOuputExtraData {
+                                    let mut output = outputs::WRITE_FILE_ERROR.clone();
+                                    output.extra.push(outputs::CliOuputExtraData {
                                         key: "path".to_string(),
                                         value: format!("{:?}", err),
                                     });
@@ -695,12 +686,12 @@ pub fn compile(
                                 } else {
                                     println!(
                                         "\nFailed to create file {}{}{}. [{}{:?}{}]",
-                                        color_terminal.color(terminal_utils::Colors::Cyan),
+                                        color_terminal.color(Colors::Cyan),
                                         output_path.absolutize().unwrap().to_str().unwrap(),
-                                        color_terminal.color(terminal_utils::Colors::Reset),
-                                        color_terminal.color(terminal_utils::Colors::Red),
+                                        color_terminal.color(Colors::Reset),
+                                        color_terminal.color(Colors::Red),
                                         err,
-                                        color_terminal.color(terminal_utils::Colors::Reset),
+                                        color_terminal.color(Colors::Reset),
                                     );
                                 }
                                 std::process::exit(1);
@@ -708,8 +699,8 @@ pub fn compile(
                             assembler_result.alternate_render(output_file);
 
                             if cli_settings.json_log {
-                                let mut output = cli_outputs::WRITE_BYTE_CODE_ASM_SUCCEDED.clone();
-                                output.extra.push(cli_outputs::CliOuputExtraData {
+                                let mut output = outputs::WRITE_BYTE_CODE_ASM_SUCCEDED.clone();
+                                output.extra.push(outputs::CliOuputExtraData {
                                     key: 0,
                                     value: output_path
                                         .absolutize()
@@ -722,16 +713,16 @@ pub fn compile(
                             } else {
                                 println!(
                                     "{}[!]{}: ByteCodeAsm output written to {}{}{}",
-                                    color_terminal.color(terminal_utils::Colors::Green),
-                                    color_terminal.color(terminal_utils::Colors::Reset),
-                                    color_terminal.color(terminal_utils::Colors::Yellow),
+                                    color_terminal.color(Colors::Green),
+                                    color_terminal.color(Colors::Reset),
+                                    color_terminal.color(Colors::Yellow),
                                     output_path.absolutize().unwrap().to_str().unwrap(),
-                                    color_terminal.color(terminal_utils::Colors::Reset),
+                                    color_terminal.color(Colors::Reset),
                                 );
                             }
                         }
-                        terminal_utils::OutputTypesSelector::ByteCodeDebug => unreachable!(),
-                        terminal_utils::OutputTypesSelector::Nop => (),
+                        OutputTypesSelector::ByteCodeDebug => unreachable!(),
+                        OutputTypesSelector::Nop => (),
                     }
                     if !cli_settings.json_log {
                         for message in exit_messages.lock().unwrap().iter() {
@@ -741,8 +732,8 @@ pub fn compile(
                 }
                 Err(errors) => {
                     if cli_settings.json_log {
-                        let mut output = cli_outputs::COMPILER_ERRORS.clone();
-                        output.extra.push(cli_outputs::CliOuputExtraData {
+                        let mut output = outputs::COMPILER_ERRORS.clone();
+                        output.extra.push(outputs::CliOuputExtraData {
                             key: "errors".to_string(),
                             value: errors,
                         });
@@ -750,7 +741,7 @@ pub fn compile(
                     } else {
                         println!(
                             "{}",
-                            terminal_utils::print_errors(
+                            print_errors(
                                 &errors,
                                 |path| {
                                     let path_starter = path.split("/").next().unwrap();
@@ -772,15 +763,15 @@ pub fn compile(
                                                     .unwrap(),
                                             )
                                             .clone();
-                                        match cli_utils::read_file(real_path) {
+                                        match utils::read_file(real_path) {
                                             Ok(e) => e,
                                             Err(err) => {
                                                 panic!(
                                             "Failed to ouput error. Cannot read file '{}' {}[{}]{}",
                                             path,
-                                            cli_utils::Colors::Red,
+                                            utils::Colors::Red,
                                             err,
-                                            cli_utils::Colors::Reset
+                                            utils::Colors::Reset
                                         );
                                             }
                                         }
@@ -791,17 +782,17 @@ pub fn compile(
                                         if let Some(module_path) = module_path.clone() {
                                             let real_path =
                                                 path.replace(&path_starter, &module_path).clone();
-                                            match cli_utils::read_file(real_path.clone()) {
+                                            match utils::read_file(real_path.clone()) {
                                                 Ok(e) => e,
                                                 Err(err) => {
                                                     exit_messages.lock().unwrap().push(Box::new(move || {
                                                     println!(
                                                         "{}[!]{}: Failed to read module targeted code director y: {}{}{} - [{}]",
-                                                        cli_utils::Colors::Red,
-                                                        cli_utils::Colors::Reset,
-                                                        cli_utils::Colors::Yellow,
+                                                        utils::Colors::Red,
+                                                        utils::Colors::Reset,
+                                                        utils::Colors::Yellow,
                                                         real_path.clone(),
-                                                        cli_utils::Colors::Reset,
+                                                        utils::Colors::Reset,
                                                         err,
                                                     );
                                                 }));
@@ -812,11 +803,11 @@ pub fn compile(
                                             exit_messages.lock().unwrap().push(Box::new(move || {
                                                 println!(
                                                     "{}[!]{}: Path not provided no output will be shown: {}{}{}",
-                                                    cli_utils::Colors::Red,
-                                                    cli_utils::Colors::Reset,
-                                                    cli_utils::Colors::Yellow,
+                                                    utils::Colors::Red,
+                                                    utils::Colors::Reset,
+                                                    utils::Colors::Yellow,
                                                     path,
-                                                    cli_utils::Colors::Reset,
+                                                    utils::Colors::Reset,
                                                 );
                                             }));
                                             "No output path provided".to_string()
@@ -858,11 +849,11 @@ pub fn compile(
                                             exit_messages.lock().unwrap().push(Box::new(move || {
                                                 println!(
                                                     "{}[!]{}: Path not provided no output will be shown: {}{}{}",
-                                                    cli_utils::Colors::Red,
-                                                    cli_utils::Colors::Reset,
-                                                    cli_utils::Colors::Yellow,
+                                                    utils::Colors::Red,
+                                                    utils::Colors::Reset,
+                                                    utils::Colors::Yellow,
                                                     path,
-                                                    cli_utils::Colors::Reset,
+                                                    utils::Colors::Reset,
                                                 );
                                             }));
                                             "[No output path provided]".to_string()
@@ -886,8 +877,8 @@ pub fn compile(
         }
         Err(pager_errors) => {
             if cli_settings.json_log {
-                let mut output = cli_outputs::COMPILER_ERRORS.clone();
-                output.extra.push(cli_outputs::CliOuputExtraData {
+                let mut output = outputs::COMPILER_ERRORS.clone();
+                output.extra.push(outputs::CliOuputExtraData {
                     key: "errors".to_string(),
                     value: pager_errors,
                 });
@@ -895,9 +886,9 @@ pub fn compile(
             } else {
                 println!(
                     "{}",
-                    terminal_utils::print_errors(
+                    print_errors(
                         &pager_errors,
-                        |path| match cli_utils::read_file(
+                        |path| match utils::read_file(
                             &path.replace(
                                 &starter_name,
                                 Path::new(target_path)
@@ -913,12 +904,12 @@ pub fn compile(
                             Err(err) => {
                                 println!(
                                     "{}[Internal Error]{} Cannot build error, read file failed '{}' {}[{}]{}",
-                                    color_terminal.color(terminal_utils::Colors::Red),
-                                    color_terminal.color(terminal_utils::Colors::Reset),
+                                    color_terminal.color(Colors::Red),
+                                    color_terminal.color(Colors::Reset),
                                     path,
-                                    color_terminal.color(terminal_utils::Colors::Red),
+                                    color_terminal.color(Colors::Red),
                                     err,
-                                    color_terminal.color(terminal_utils::Colors::Reset),
+                                    color_terminal.color(Colors::Reset),
                                 );
                                 std::process::exit(1);
                             }

@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use lazy_static::lazy_static;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub enum CliOuputType {

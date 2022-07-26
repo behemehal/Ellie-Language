@@ -1,8 +1,11 @@
 use crate::{
-    assembler::{DebugHeader, DebugHeaderType, LocalHeader},
+    assembler::LocalHeader,
     instructions::{Instruction, Instructions},
 };
-use ellie_core::{definite::items::function, defs::Cursor};
+use ellie_core::{
+    definite::items::function,
+    defs::{Cursor, DebugHeader, DebugHeaderType},
+};
 
 impl super::Transpiler for function::Function {
     fn transpile(

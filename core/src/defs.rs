@@ -319,3 +319,46 @@ pub struct VmNativeCall {
     pub name: String,
     pub params: Vec<RawType>,
 }
+
+#[derive(Clone, Debug)]
+pub enum VmNativeAnswer {
+    Ok(RawType),
+    RuntimeError(String),
+}
+
+#[derive(Clone, Debug)]
+pub enum DebugHeaderType {
+    Variable,
+    Class,
+    Parameter,
+    Function,
+    Condition,
+}
+
+#[derive(Clone, Debug)]
+pub struct DebugHeader {
+    /// Element Type
+    pub rtype: DebugHeaderType,
+    /// Element's hash
+    pub hash: usize,
+    /// Module Name
+    pub module: String,
+    /// Element Name
+    pub name: String,
+    /// Instruction start -> end,
+    pub start_end: (usize, usize),
+    /// Code pos
+    pub pos: Cursor,
+}
+
+#[derive(Debug, Clone)]
+pub struct ModuleMap {
+    pub module_name: String,
+    pub module_path: Option<String>,
+}
+
+#[derive(Debug, Clone)]
+pub struct DebugInfo {
+    pub module_map: Vec<ModuleMap>,
+    pub debug_headers: Vec<DebugHeader>,
+}

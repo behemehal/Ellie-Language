@@ -1,7 +1,5 @@
-#[cfg(feature = "build-cli")]
 use clap::{Arg, Command, ValueHint};
 
-#[cfg(feature = "build-cli")]
 pub fn generate_elliefmt_options() -> Command<'static> {
     Command::new("EllieFMT")
         .about("Ellie Formatter")
@@ -57,7 +55,6 @@ pub fn generate_elliefmt_options() -> Command<'static> {
         )
 }
 
-#[cfg(feature = "build-cli")]
 pub fn generate_elliec_options() -> Command<'static> {
     Command::new("EllieCompiler")
         .about("Ellie Compiler")
@@ -235,7 +232,6 @@ pub fn generate_elliec_options() -> Command<'static> {
         )
 }
 
-#[cfg(feature = "build-cli")]
 pub fn generate_ellievm_options() -> Command<'static> {
     Command::new("EllieVM")
         .about("Ellie Virtual Machine")
@@ -252,13 +248,18 @@ pub fn generate_ellievm_options() -> Command<'static> {
                         .default_value("64"),
                 )
                 .arg(
-                    Arg::new("debugHeader")
-                        .help("Supply debug headers")
-                        .short('g')
-                        .long("--debug-header")
+                    Arg::new("debugInfo")
+                        .help("Supply debug info file for more information")
+                        .short('d')
+                        .long("--debug-info")
                         .takes_value(true)
-                        .required(true)
                         .value_hint(ValueHint::FilePath),
+                )
+                .arg(
+                    Arg::new("heapDump")
+                        .help("Dump heap to file")
+                        .short('u')
+                        .long("--heap-dump")
                 )
                 .arg(
                     Arg::new("allowPanics")

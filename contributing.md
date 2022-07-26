@@ -18,6 +18,6 @@ ModuleDescription = A ellie module
 ModuleVersion     = 1.0.0
 EllieVersion      = 3.0.0
 ```
-- If you're working on issue please create a new issue in [EllieNonWorks Repo](https://github.com/behemehal/EllieNonWorks). Submiting issue with id will help us to identify the issue.
+- If you're working on issue please create a new issue in [EllieWorks Repo](https://github.com/behemehal/EllieWorks). Submiting issue with id will help us to identify the issue.
 
-For more info about Ellie please visit [Ellie Developer Handbook](DeveloperHandbook.md).
+For more info about Ellie please visit [Ellie Docs](https://docs.ellie-lang.org).

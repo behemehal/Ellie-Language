@@ -1,10 +1,13 @@
 use super::type_resolver::resolve_type;
 use crate::{
-    assembler::{DebugHeader, DebugHeaderType, LocalHeader},
+    assembler::LocalHeader,
     instructions::{self, Instruction},
 };
 use alloc::vec;
-use ellie_core::definite::items::variable;
+use ellie_core::{
+    definite::items::variable,
+    defs::{DebugHeader, DebugHeaderType},
+};
 
 impl super::Transpiler for variable::Variable {
     fn transpile(

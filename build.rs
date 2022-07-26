@@ -2,13 +2,6 @@
 #![allow(unused_variables)]
 #![allow(unused_imports)]
 
-#[cfg(feature = "build-cli")]
-#[path = "src/cli_options.rs"]
-mod cli_options;
-
-#[cfg(feature = "build-cli")]
-use clap_complete::generate;
-
 use path_absolutize::Absolutize;
 use regex::Regex;
 use toml::Value;
@@ -181,6 +174,8 @@ fn main() {
         }
     }
 
+    /*
+
     #[cfg(feature = "build-cli")]
     {
         let mut bash =
@@ -323,6 +318,8 @@ fn main() {
             &mut powershell,
         );
     }
+
+    */
 
     fs::write(
         env!("CARGO_MANIFEST_DIR").to_owned() + &"/src/engine_constants.rs",

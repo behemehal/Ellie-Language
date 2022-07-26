@@ -1,48 +1,50 @@
-use ellie_core::{defs::Version, warning::Warning};
+use ellie_core::defs::Version;
+#[cfg(feature = "compiler")]
+use ellie_core::warning::Warning;
+#[cfg(feature = "compiler")]
 use ellie_parser::parser::Module;
+#[cfg(feature = "compiler")]
 use ellie_tokenizer::tokenizer::ResolvedImport;
 
+#[cfg(feature = "compiler")]
 pub struct CompileOutput {
     pub warnings: Vec<Warning>,
     pub module: Module,
 }
 
-#[derive(Debug, Clone, PartialEq)]
-pub enum OutputTypesSelector {
-    /// Outputs module in binary format. This is the default export mode for modules.
-    Bin,
-    /// Not supported yet
-    DependencyAnalysis,
-    /// Compiled module as json
-    Json,
-    /// ByteCode binary format
-    ByteCode,
-    /// ByteCode assembly text
-    ByteCodeAsm,
-    /// ByteCode debug file
-    ByteCodeDebug,
-    /// No output
-    Nop,
-}
-
+/// Main program struct
 pub struct MainProgram {
+    /// Main file content
     pub file_content: String,
+    /// Main file name
     pub file_name: String,
+    /// Main file hash
     pub file_hash: usize,
+    /// Program's main directory
     pub start_directory: String,
 }
 
 #[derive(Clone)]
+/// EllieC settings
 pub struct CompilerSettings {
+    /// Module name
     pub name: String,
+    /// Main file name
     pub file_name: String,
+    /// Check module is library
     pub is_lib: bool,
+    /// Module description
     pub description: String,
+    /// Enable experimental features for Compiler
     pub experimental_features: bool,
+    /// Module version
     pub version: Version,
+    /// ByteCode architecture
     pub byte_code_architecture: ellie_core::defs::PlatformArchitecture,
 }
 
+/// Repository interface is channel for communication between compiler and code
+#[cfg(feature = "compiler")]
 pub trait ProgramRepository {
     /// Return main program and its hash
     /// ## Returns
@@ -62,4 +64,9 @@ pub trait ProgramRepository {
         current_path: String,
         requested_path: String,
     ) -> ResolvedImport;
+}
+
+pub struct ModuleMap {
+    pub module_name: String,
+    pub module_path: Option<String>,
 }

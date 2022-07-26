@@ -226,6 +226,7 @@ exec(`rustup target list --installed`, (err, stdout, stderr) => {
             .replaceAll('"', "")
             .trim();
 
+          /*
           //Move file to release folder
           await moveItem(
             "./target/elliec_completion_bash",
@@ -330,6 +331,7 @@ exec(`rustup target list --installed`, (err, stdout, stderr) => {
             hash: ellievm_completion_fish_shasum.split(":")[0].trim(),
             file: "ellievm_completion_fish",
           });
+          */
 
           var shasums = `EllieVersion = v${ellie_version} - ${ellie_ver_code}`;
           shasums +=

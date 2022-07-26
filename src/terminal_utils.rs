@@ -1,15 +1,7 @@
 use ellie_core::{
-    defs::{self, Version},
-    error,
+    defs, error,
     warning::{self, Warning},
 };
-use ellie_parser::parser::Module;
-use ellie_tokenizer::tokenizer::ResolvedImport;
-
-pub struct CompileOutput {
-    pub warnings: Vec<Warning>,
-    pub module: Module,
-}
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum OutputTypesSelector {
@@ -25,24 +17,6 @@ pub enum OutputTypesSelector {
     ByteCodeAsm,
     /// ByteCode debug file
     ByteCodeDebug,
-    /// No output
-    Nop,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub enum OutputTypes {
-    /// Outputs module in binary format. This is the default export mode for modules.
-    Bin(Vec<u8>),
-    /// Not supported yet
-    DependencyAnalysis,
-    /// Compiled module as json
-    Json(String),
-    /// ByteCode binary format
-    ByteCode(Vec<u8>),
-    /// ByteCode assembly text
-    ByteCodeAsm(String),
-    /// ByteCode debug file
-    ByteCodeDebug(String),
     /// No output
     Nop,
 }

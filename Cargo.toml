@@ -7,65 +7,50 @@ edition = "2021"
 license-file = "LICENSE"
 
 [dependencies]
-lazy_static = { version = "1.4.0", features = ["spin_no_std"] }
-serde = { version = "1.0", features = ["derive"] }
-serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
+serde = { version = "1.0", features = ["derive"], optional = true }
+serde_json = { version = "1.0", default-features = false, features = ["alloc"], optional = true }
 path-absolutize = { version = "3.0.10", optional = true }
 regex = { version = "1.1.7", optional = true }
 bincode = { version = "1.0", optional = true }
-clap = { version = "3.1.1", optional = true }
-clap_complete = { version = "3.0.0", optional = true }
-
 ellie_core = { path = "core", version = "*" }
 ellie_assist = { path = "EllieAssist", version = "*", optional = true }
-
 ellie_tokenizer = { path = "tokenizer", version = "*", default-features = false, optional = true }
 ellie_parser = { path = "parser", version = "*", default-features = false, optional = true }
 ellie_bytecode = { path = "bytecode", version = "*", optional = true }
 ellie_vm = { path = "vm", version = "*", optional = true }
 
+ellie_cli_utils = { path = "cli_utils", version = "*", optional = true }
+
 [features]
-default = ["standard_rules", "build-cli", "terminal-utils", "tokenizer", "parser", "bytecode", "vm"]
-no-renderer = []
-terminal-utils = []
-tokenizer = ["ellie_tokenizer"]
-parser = ["ellie_parser"]
-bytecode = ["ellie_bytecode"]
+default = ["standard_rules", "build-cli", "vm", "compiler"]
+compiler = ["ellie_tokenizer", "ellie_parser", "ellie_bytecode"]
 vm = ["ellie_vm"]
-build-cli = ["path-absolutize", "regex", "bincode", "clap", "clap_complete", "terminal-utils"]
+build-cli = ["path-absolutize", "regex", "bincode", "ellie_cli_utils", "serde", "serde_json"]
 ellie_assistant = ["ellie_assist"]
 standard_rules =  ["ellie_parser/standard_rules"]
 
-[lib]
-crate-type = ["cdylib"]
 
 [[bin]]
 name = "elliec"
 test = false
 bench = false
-required-features = ["build-cli", "terminal-utils", "tokenizer", "parser", "bytecode"]
+required-features = ["build-cli"]
 
 [[bin]]
 name = "ellievm"
 test = false
 bench = false
-required-features = ["build-cli", "terminal-utils", "tokenizer", "parser", "bytecode", "vm"]
+required-features = ["build-cli"]
 
 [[bin]]
 name = "elliefmt"
 test = false
 bench = false
-required-features = ["build-cli", "terminal-utils", "tokenizer", "parser", "bytecode"]
+required-features = ["build-cli"]
 
 [build-dependencies]
-clap = { version = "3.1.1", optional = true }
-clap_complete = { version = "3.0.0", optional = true }
-lazy_static = "1.4.0"
-serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
 path-absolutize = { version = "3.0.10" }
 toml = "0.5.8"
 regex = { version = "1.1.7" }
-bincode = { version = "1.0", optional = true }
 
-[profile.release]
-opt-level = 3
+

@@ -1,10 +1,13 @@
-use ellie_core::defs::{PlatformArchitecture, VmNativeCall};
+use ellie_core::{
+    defs::{PlatformArchitecture, VmNativeCall, VmNativeAnswer},
+    raw_type::RawType,
+};
 
 use crate::{
     heap::Heap,
     program::{Program, ReadInstruction},
     thread::{Stack, Thread},
-    utils::{self, ThreadExit},
+    utils::ThreadExit,
 };
 
 pub struct VM<'a, T> {
@@ -17,7 +20,7 @@ pub struct VM<'a, T> {
 
 impl<'a, T> VM<'a, T>
 where
-    T: Fn(crate::thread::ThreadInfo, VmNativeCall) -> bool + Clone + Copy + Sized,
+    T: Fn(crate::thread::ThreadInfo, VmNativeCall) -> VmNativeAnswer + Clone + Copy + Sized,
 {
     pub fn new(target_arch: PlatformArchitecture, native_call_channel: T) -> Self {
         #[cfg(feature = "debug")]
@@ -35,34 +38,12 @@ where
         }
     }
 
-    pub fn load(&mut self, program: Program) {
+    pub fn load(&mut self, program: &Program) -> Result<(), u8> {
         if self.target_arch != program.arch {
-            #[cfg(feature = "debug")]
-            panic!(
-                "{}[VM]{}: Target arch {} does not match program arch {}",
-                utils::Colors::Red,
-                utils::Colors::Reset,
-                self.target_arch,
-                program.arch
-            );
+            return Err(1);
         }
-
-        #[cfg(feature = "debug")]
-        println!(
-            "{}[VM]{}: Loading program that contains '{}' instructions",
-            utils::Colors::Yellow,
-            utils::Colors::Reset,
-            program.instructions.len()
-        );
-
-        self.stack = program.instructions;
-
-        #[cfg(feature = "debug")]
-        println!(
-            "{}[VM]{}: Program loaded",
-            utils::Colors::Yellow,
-            utils::Colors::Reset,
-        );
+        self.stack = program.instructions.clone();
+        Ok(())
     }
 
     pub fn run(&mut self, main: usize) -> ThreadExit {

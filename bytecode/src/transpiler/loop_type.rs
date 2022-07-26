@@ -1,10 +1,10 @@
 use alloc::{string::ToString, vec};
-use ellie_core::definite::items::loop_type;
-
-use crate::{
-    assembler::{DebugHeader, DebugHeaderType},
-    instructions::{self, Instruction},
+use ellie_core::{
+    definite::items::loop_type,
+    defs::{DebugHeader, DebugHeaderType},
 };
+
+use crate::instructions::{self, Instruction};
 
 use super::type_resolver::resolve_type;
 

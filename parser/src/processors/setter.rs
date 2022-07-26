@@ -1,18 +1,14 @@
-use alloc::{borrow::ToOwned, vec, vec::Vec};
-use ellie_core::{
-    error,
-    utils::{self, generate_hash_usize},
-    warning,
-};
-use ellie_tokenizer::{syntax::items::setter, tokenizer::PageType};
+use alloc::{borrow::ToOwned, vec};
+use ellie_core::error;
+use ellie_tokenizer::syntax::items::setter;
 
 impl super::Processor for setter::Setter {
     fn process(
         &self,
         parser: &mut super::Parser,
         page_idx: usize,
-        processed_page_idx: usize,
-        page_hash: usize,
+        _processed_page_idx: usize,
+        _page_hash: usize,
     ) -> bool {
         let path = parser.pages.nth(page_idx).unwrap().path.clone();
         parser
@@ -25,6 +21,7 @@ impl super::Processor for setter::Setter {
             ));
 
         return false;
+        /*
         let (duplicate, found) =
             parser.is_duplicate(page_hash, self.name.clone(), self.hash.clone(), self.pos);
 
@@ -264,5 +261,6 @@ impl super::Processor for setter::Setter {
             parser.process_page(inner_page_id);
             true
         }
+        */
     }
 }

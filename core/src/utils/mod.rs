@@ -263,6 +263,7 @@ pub fn operator_control(
                     | ("string", "int")
                     | ("string", "float")
                     | ("string", "double")
+                    | ("string", "bool")
                     | ("string", "byte") => None,
                     _ => Some("Addition"),
                 }

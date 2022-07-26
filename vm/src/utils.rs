@@ -1,12 +1,5 @@
-use std::fmt::Display;
-
-use ellie_core::{defs::CursorPosition, raw_type::RawType};
-
 use crate::thread::Stack;
-
-pub trait Reader {
-    fn read(&mut self) -> Option<u8>;
-}
+use ellie_core::{defs::CursorPosition, raw_type::RawType};
 
 #[derive(Debug, Clone)]
 pub enum ThreadPanicReason {
@@ -18,7 +11,9 @@ pub enum ThreadPanicReason {
     StackOverflow,
     UnexpectedType,
     OutOfInstructions,
-    MemoryAccessViolation,
+    RuntimeError(String),
+    ParemeterMemoryAccessViolation(usize),
+    MemoryAccessViolation(usize, usize),
 }
 
 #[derive(Debug, Clone)]
@@ -32,6 +27,7 @@ pub struct StackNode {
 pub struct ThreadPanic {
     pub reason: ThreadPanicReason,
     pub stack_trace: Vec<Stack>,
+    pub code_location: String,
 }
 
 #[derive(Debug, Clone)]
@@ -539,6 +535,10 @@ impl Instructions {
             Instructions::CALLN(e) => e.addressing_mode.clone(),
         }
     }
+}
+
+pub trait Reader {
+    fn read(&mut self) -> Option<u8>;
 }
 
 pub struct ProgramReader<'a> {

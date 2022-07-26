@@ -5,43 +5,31 @@
 #![allow(unused_assignments)]
 #![allow(unknown_lints)]
 #![warn(clippy::all)]
-extern crate ellie_core;
 
-#[cfg(feature = "parser")]
+/// EllieCore contains various functions and structs used by Ellie.
+extern crate ellie_core;
+#[cfg(feature = "compiler")]
 extern crate ellie_parser;
-#[cfg(feature = "tokenizer")]
+#[cfg(feature = "compiler")]
 extern crate ellie_tokenizer;
 #[cfg(feature = "vm")]
 extern crate ellie_vm;
 
-#[macro_use]
-extern crate lazy_static;
 pub mod engine_constants;
 
-#[cfg(feature = "tokenizer")]
+#[cfg(feature = "compiler")]
 pub mod tokenizer;
-//Use cfg tokenizer and parser feature
+#[cfg(feature = "compiler")]
+pub mod compiler;
+#[cfg(feature = "vm")]
+pub mod vm;
 
-#[cfg(all(feature = "tokenizer", feature = "parser"))]
-pub mod compile;
-
-#[cfg(feature = "terminal-utils")]
-pub mod terminal_utils;
-
-#[cfg(all(feature = "tokenizer", feature = "parser"))]
 pub mod utils;
 
 #[cfg(feature = "build-cli")]
-pub mod cli_options;
+pub mod terminal_utils;
+
+/// Virtual channels for communication between compiler and code
+
 #[cfg(feature = "build-cli")]
-pub mod cli_outputs;
-#[cfg(feature = "build-cli")]
-pub mod cli_utils;
-#[cfg(feature = "build-cli")]
-pub mod compile_file;
-#[cfg(feature = "build-cli")]
-pub mod run_vm;
-#[cfg(feature = "build-cli")]
-pub mod tokenize_file;
-#[cfg(feature = "build-cli")]
-pub mod view_module;
+pub mod binary_tools;

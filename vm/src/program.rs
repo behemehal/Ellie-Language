@@ -1,10 +1,10 @@
-use crate::utils::{self, AddressingModes, AddressingValues, Instructions, ProgramReader};
+use crate::utils::{AddressingModes, AddressingValues, Instructions, ProgramReader};
 use ellie_core::{
-    defs::PlatformArchitecture,
+    defs::{DebugInfo, PlatformArchitecture},
     raw_type::{RawType, TypeId},
 };
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ReadInstruction {
     pub instruction: Instructions,
     pub addressing_mode: AddressingModes,
@@ -13,7 +13,7 @@ pub struct ReadInstruction {
     pub args: Vec<u8>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Program {
     pub main: usize,
     pub arch: PlatformArchitecture,
@@ -21,7 +21,9 @@ pub struct Program {
 }
 
 impl Program {
-    pub fn build_from_reader(reader: &mut ProgramReader) -> Result<Self, u8> {
+    pub fn build_from_reader(
+        reader: &mut ProgramReader,
+    ) -> Result<Self, u8> {
         let arch = match reader.read_u8() {
             Some(byte) => match PlatformArchitecture::from_byte(byte) {
                 Some(e) => e,

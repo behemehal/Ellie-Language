@@ -5,7 +5,7 @@ use alloc::{
     string::{String, ToString},
     vec::Vec,
 };
-use ellie_core::defs::{Cursor, PlatformArchitecture};
+use ellie_core::defs::{DebugHeader, PlatformArchitecture};
 use ellie_core::utils::ExportPage;
 use ellie_parser::parser::Module;
 use std::{io::Write, panic};
@@ -17,31 +17,6 @@ pub struct Assembler {
     pub(crate) instructions: Vec<instructions::Instructions>,
     pub(crate) locals: Vec<LocalHeader>,
     pub(crate) debug_headers: Vec<DebugHeader>,
-}
-
-#[derive(Clone, Debug)]
-pub enum DebugHeaderType {
-    Variable,
-    Class,
-    Parameter,
-    Function,
-    Condition,
-}
-
-#[derive(Clone, Debug)]
-pub struct DebugHeader {
-    /// Element Type
-    pub rtype: DebugHeaderType,
-    /// Element's hash
-    pub hash: usize,
-    /// Module Name
-    pub module: String,
-    /// Element Name
-    pub name: String,
-    /// Instruction start -> end,
-    pub start_end: (usize, usize),
-    /// Code pos
-    pub pos: Cursor,
 }
 
 #[derive(Clone, Debug)]

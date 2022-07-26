@@ -1,16 +1,15 @@
-use crate::cli_outputs;
-use crate::cli_utils;
 use crate::terminal_utils;
 use crate::terminal_utils::ColorDisplay;
-use crate::terminal_utils::MainProgram;
-use crate::terminal_utils::ProgramRepository;
+use crate::utils::{MainProgram, ProgramRepository};
+
+use ellie_cli_utils::{outputs, utils};
+
 use ellie_tokenizer::tokenizer::ResolvedImport;
 use path_absolutize::Absolutize;
 use std::collections::hash_map::DefaultHasher;
 use std::fs;
 use std::hash::{Hash, Hasher};
-use std::path::Path;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::time::Instant;
 
 #[derive(Clone)]
@@ -24,7 +23,7 @@ pub struct TokenizerSettings {
 pub fn get_output_path(
     target_path: &Path,
     output_path: &Path,
-    output_type: cli_utils::OutputTypes,
+    output_type: utils::OutputTypes,
 ) -> PathBuf {
     if output_path.is_dir() {
         let path = output_path
@@ -44,7 +43,7 @@ pub fn get_output_path(
                 + "/"
                 + file_name
                 + match output_type {
-                    cli_utils::OutputTypes::Bin => ".bin",
+                    utils::OutputTypes::Bin => ".bin",
                     _ => ".json",
                 }),
         )
@@ -71,8 +70,8 @@ pub fn tokenize(target_path: &Path, output_path: &Path, tokenizer_settings: Toke
     };
 
     impl ProgramRepository for Repository {
-        fn read_main(&mut self) -> terminal_utils::MainProgram {
-            match cli_utils::read_file(self.target_path.clone()) {
+        fn read_main(&mut self) -> MainProgram {
+            match utils::read_file(self.target_path.clone()) {
                 Ok(main_file_content) => {
                     let mut main_file_hasher = DefaultHasher::new();
                     main_file_content.hash(&mut main_file_hasher);
@@ -86,16 +85,14 @@ pub fn tokenize(target_path: &Path, output_path: &Path, tokenizer_settings: Toke
                 }
                 Err(err) => {
                     if self.tokenizer_settings.json_log {
-                        let mut cli_module_output = cli_outputs::READ_FILE_ERROR.clone();
+                        let mut cli_module_output = outputs::READ_FILE_ERROR.clone();
                         cli_module_output
                             .extra
-                            .push(cli_outputs::CliOuputExtraData { key: 0, value: err });
-                        cli_module_output
-                            .extra
-                            .push(cli_outputs::CliOuputExtraData {
-                                key: 1,
-                                value: self.target_path.clone(),
-                            });
+                            .push(outputs::CliOuputExtraData { key: 0, value: err });
+                        cli_module_output.extra.push(outputs::CliOuputExtraData {
+                            key: 1,
+                            value: self.target_path.clone(),
+                        });
                         println!(
                             "{}",
                             serde_json::to_string_pretty(&cli_module_output).unwrap()
@@ -138,7 +135,7 @@ pub fn tokenize(target_path: &Path, output_path: &Path, tokenizer_settings: Toke
                             )
                             .clone();
                         if Path::new(&real_path).exists() {
-                            match cli_utils::read_file(real_path) {
+                            match utils::read_file(real_path) {
                                 Ok(data) => {
                                     let mut hasher = DefaultHasher::new();
                                     data.hash(&mut hasher);
@@ -215,13 +212,12 @@ pub fn tokenize(target_path: &Path, output_path: &Path, tokenizer_settings: Toke
         Ok(pages) => {
             let tokenize_end = (tokenize_start.elapsed().as_nanos() as f64 / 1000000_f64) as f64;
             let json = serde_json::to_string(&pages).unwrap();
-            let output_path =
-                &get_output_path(target_path, output_path, cli_utils::OutputTypes::Json);
+            let output_path = &get_output_path(target_path, output_path, utils::OutputTypes::Json);
 
             if let Err(write_error) = fs::write(&output_path, json) {
                 if tokenizer_settings.json_log {
-                    let mut output = cli_outputs::WRITE_FILE_ERROR.clone();
-                    output.extra.push(cli_outputs::CliOuputExtraData {
+                    let mut output = outputs::WRITE_FILE_ERROR.clone();
+                    output.extra.push(outputs::CliOuputExtraData {
                         key: "path".to_string(),
                         value: format!("{:?}", write_error),
                     });
@@ -230,15 +226,15 @@ pub fn tokenize(target_path: &Path, output_path: &Path, tokenizer_settings: Toke
                 } else {
                     println!(
                         "\nFailed to write output. [{}{:?}{}]",
-                        cli_utils::Colors::Red,
+                        utils::Colors::Red,
                         write_error,
-                        cli_utils::Colors::Reset,
+                        utils::Colors::Reset,
                     );
                 }
             } else {
                 if tokenizer_settings.json_log {
-                    let mut output = cli_outputs::WRITE_JSON_SUCCEDED.clone();
-                    output.extra.push(cli_outputs::CliOuputExtraData {
+                    let mut output = outputs::WRITE_JSON_SUCCEDED.clone();
+                    output.extra.push(outputs::CliOuputExtraData {
                         key: 0,
                         value: output_path
                             .absolutize()
@@ -251,11 +247,11 @@ pub fn tokenize(target_path: &Path, output_path: &Path, tokenizer_settings: Toke
                 } else {
                     println!(
                         "{}[!]{}: JSON output written to {}{}{}",
-                        cli_utils::Colors::Green,
-                        cli_utils::Colors::Reset,
-                        cli_utils::Colors::Yellow,
+                        utils::Colors::Green,
+                        utils::Colors::Reset,
+                        utils::Colors::Yellow,
                         output_path.absolutize().unwrap().to_str().unwrap(),
-                        cli_utils::Colors::Reset,
+                        utils::Colors::Reset,
                     );
                 }
             }
@@ -263,29 +259,29 @@ pub fn tokenize(target_path: &Path, output_path: &Path, tokenizer_settings: Toke
             if !tokenizer_settings.json_log {
                 println!(
                     "{}[?]{}: Ellie v{}",
-                    cli_utils::Colors::Green,
-                    cli_utils::Colors::Reset,
+                    utils::Colors::Green,
+                    utils::Colors::Reset,
                     crate::engine_constants::ELLIE_ENGINE_VERSION
                 );
                 println!(
                     "{}[?]{}: Tokenizing took {}{}{}ms",
-                    cli_utils::Colors::Yellow,
-                    cli_utils::Colors::Reset,
-                    cli_utils::Colors::Yellow,
+                    utils::Colors::Yellow,
+                    utils::Colors::Reset,
+                    utils::Colors::Yellow,
                     tokenize_end,
-                    cli_utils::Colors::Reset,
+                    utils::Colors::Reset,
                 );
                 println!(
                     "{}[!]{}: Ellie is on development and may not be stable.",
-                    cli_utils::Colors::Red,
-                    cli_utils::Colors::Reset,
+                    utils::Colors::Red,
+                    utils::Colors::Reset,
                 );
             }
         }
         Err(pager_errors) => {
             if tokenizer_settings.json_log {
-                let mut output = cli_outputs::COMPILER_ERRORS.clone();
-                output.extra.push(cli_outputs::CliOuputExtraData {
+                let mut output = outputs::COMPILER_ERRORS.clone();
+                output.extra.push(outputs::CliOuputExtraData {
                     key: "errors".to_string(),
                     value: pager_errors,
                 });
@@ -295,7 +291,7 @@ pub fn tokenize(target_path: &Path, output_path: &Path, tokenizer_settings: Toke
                     "{}",
                     terminal_utils::print_errors(
                         &pager_errors,
-                        |path| match cli_utils::read_file(
+                        |path| match utils::read_file(
                             &path.replace(
                                 &starter_name,
                                 Path::new(target_path)
@@ -311,12 +307,12 @@ pub fn tokenize(target_path: &Path, output_path: &Path, tokenizer_settings: Toke
                             Err(err) => {
                                 panic!(
                                     "{}[Internal Error]{} Cannot build error, read file failed '{}' {}[{}]{}",
-                                    cli_utils::Colors::Red,
-                                    cli_utils::Colors::Reset,
+                                    utils::Colors::Red,
+                                    utils::Colors::Reset,
                                     path,
-                                    cli_utils::Colors::Red,
+                                    utils::Colors::Red,
                                     err,
-                                    cli_utils::Colors::Reset,
+                                    utils::Colors::Reset,
                                 );
                             }
                         },

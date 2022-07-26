@@ -1,4 +1,5 @@
 use crate::{definite::types::Types, defs::PlatformArchitecture};
+use alloc::string::ToString;
 use alloc::vec::Vec;
 use alloc::{string::String, vec};
 use core::fmt::{Display, Error, Formatter};
@@ -65,6 +66,168 @@ pub struct RawType {
     pub data: Vec<u8>, //This is platfform dependent
 }
 
+impl From<RawType> for String {
+    fn from(c: RawType) -> Self {
+        match c.type_id {
+            TypeId { id: 6, size: 1 } => String::from_utf8(c.data).unwrap(),
+            _ => panic!("Unexpected type_id"),
+        }
+    }
+}
+
+impl From<RawType> for char {
+    fn from(c: RawType) -> Self {
+        match c.type_id {
+            TypeId { id: 7, size: 1 } => char::from(c.data[0]),
+            _ => panic!("Unexpected type_id"),
+        }
+    }
+}
+
+impl From<RawType> for i8 {
+    fn from(c: RawType) -> Self {
+        match c.type_id {
+            TypeId { id: 4, size: 1 } => c.data[0] as i8,
+            _ => panic!("Unexpected type_id"),
+        }
+    }
+}
+
+impl From<RawType> for isize {
+    fn from(c: RawType) -> Self {
+        match c.type_id {
+            TypeId { id: 1, size: 8 } => isize::from_le_bytes(c.data.try_into().unwrap()),
+            _ => panic!("Unexpected type_id"),
+        }
+    }
+}
+
+impl From<RawType> for usize {
+    fn from(c: RawType) -> Self {
+        match c.type_id {
+            TypeId { id: 1, size: 8 } => usize::from_le_bytes(c.data.try_into().unwrap()),
+            _ => panic!("Unexpected type_id"),
+        }
+    }
+}
+
+impl From<RawType> for f32 {
+    fn from(c: RawType) -> Self {
+        match c.type_id {
+            TypeId { id: 3, size: 4 } => f32::from_le_bytes(c.data.try_into().unwrap()),
+            _ => panic!("Unexpected type_id"),
+        }
+    }
+}
+
+impl From<RawType> for f64 {
+    fn from(c: RawType) -> Self {
+        match c.type_id {
+            TypeId { id: 3, size: 8 } => f64::from_le_bytes(c.data.try_into().unwrap()),
+            _ => panic!("Unexpected type_id"),
+        }
+    }
+}
+
+impl Into<RawType> for String {
+    fn into(self) -> RawType {
+        RawType {
+            type_id: TypeId::from(6, self.len()),
+            data: self.into_bytes(),
+        }
+    }
+}
+
+impl Into<RawType> for &str {
+    fn into(self) -> RawType {
+        RawType {
+            type_id: TypeId::from(6, self.len()),
+            data: self.to_string().into_bytes(),
+        }
+    }
+}
+
+impl Into<RawType> for char {
+    fn into(self) -> RawType {
+        RawType {
+            type_id: TypeId::from(7, 1),
+            data: vec![self as u8],
+        }
+    }
+}
+
+impl Into<RawType> for i8 {
+    fn into(self) -> RawType {
+        RawType {
+            type_id: TypeId::from(4, 1),
+            data: vec![self as u8],
+        }
+    }
+}
+
+impl Into<RawType> for () {
+    fn into(self) -> RawType {
+        RawType {
+            type_id: TypeId::from(8, 0),
+            data: vec![],
+        }
+    }
+}
+
+impl Into<RawType> for bool {
+    fn into(self) -> RawType {
+        RawType {
+            type_id: TypeId::from(5, 1),
+            data: vec![self as u8],
+        }
+    }
+}
+
+impl Into<RawType> for f32 {
+    fn into(self) -> RawType {
+        RawType {
+            type_id: TypeId::from(2, 4),
+            data: self.to_le_bytes().to_vec(),
+        }
+    }
+}
+
+impl Into<RawType> for f64 {
+    fn into(self) -> RawType {
+        RawType {
+            type_id: TypeId::from(3, 8),
+            data: self.to_le_bytes().to_vec(),
+        }
+    }
+}
+
+impl Into<RawType> for isize {
+    fn into(self) -> RawType {
+        RawType {
+            type_id: TypeId::from(1, 8),
+            data: self.to_le_bytes().to_vec(),
+        }
+    }
+}
+
+impl Into<RawType> for u8 {
+    fn into(self) -> RawType {
+        RawType {
+            type_id: TypeId::from(1, 1),
+            data: vec![self],
+        }
+    }
+}
+
+impl Into<RawType> for usize {
+    fn into(self) -> RawType {
+        RawType {
+            type_id: TypeId::from(1, 8),
+            data: self.to_le_bytes().to_vec(),
+        }
+    }
+}
+
 impl PartialEq for RawType {
     fn eq(&self, other: &Self) -> bool {
         self.type_id == other.type_id && self.data == other.data
@@ -76,8 +239,8 @@ impl RawType {
         isize::from_le_bytes(self.data.clone().try_into().unwrap())
     }
 
-    pub fn to_float(&self) -> f64 {
-        f64::from_le_bytes(self.data.clone().try_into().unwrap())
+    pub fn to_float(&self) -> f32 {
+        f32::from_le_bytes(self.data.clone().try_into().unwrap())
     }
 
     pub fn to_double(&self) -> f64 {
