@@ -186,7 +186,7 @@ impl super::Processor for SetterCall {
                         Ok(processed_value_type) => {
                             let mut errors = Vec::new();
                             let mut target_type = match resolve_type(
-                                target.clone(),
+                                processed_value_type.clone(),
                                 page_hash,
                                 parser,
                                 &mut errors,
