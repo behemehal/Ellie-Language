@@ -50,9 +50,9 @@ pub fn is_reserved(value: &str, allow_core_naming: bool) -> bool {
         || value == "constructor"
         || value == "import"
         || value == "g"
-        || value == "get"
+        || value == "getter"
         || value == "s"
-        || value == "set"
+        || value == "setter"
         || value == "new"
         || (value == "array" && !allow_core_naming)
         || (value == "collective" && !allow_core_naming)
