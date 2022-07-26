@@ -152,9 +152,7 @@ pub fn parse_debug_file(dbg_file: String) -> Result<DebugInfo, String> {
     })
 }
 
-pub fn read_program<T: ellie_vm::utils::Reader>(
-    program_reader: &mut T,
-) -> Result<Program, u8> {
+pub fn read_program<T: ellie_vm::utils::Reader>(program_reader: &mut T) -> Result<Program, u8> {
     let mut program_reader = ProgramReader::new(program_reader);
     Program::build_from_reader(&mut program_reader)
 }

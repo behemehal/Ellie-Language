@@ -1,5 +1,5 @@
 use ellie_core::{
-    defs::{PlatformArchitecture, VmNativeCall, VmNativeAnswer},
+    defs::{PlatformArchitecture, VmNativeAnswer, VmNativeCall},
     raw_type::RawType,
 };
 

@@ -18,9 +18,9 @@ extern crate ellie_vm;
 pub mod engine_constants;
 
 #[cfg(feature = "compiler")]
-pub mod tokenizer;
-#[cfg(feature = "compiler")]
 pub mod compiler;
+#[cfg(feature = "compiler")]
+pub mod tokenizer;
 #[cfg(feature = "vm")]
 pub mod vm;
 

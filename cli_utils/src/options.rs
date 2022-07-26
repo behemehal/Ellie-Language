@@ -259,7 +259,7 @@ pub fn generate_ellievm_options() -> Command<'static> {
                     Arg::new("heapDump")
                         .help("Dump heap to file")
                         .short('u')
-                        .long("--heap-dump")
+                        .long("--heap-dump"),
                 )
                 .arg(
                     Arg::new("allowPanics")

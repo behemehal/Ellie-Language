@@ -21,9 +21,7 @@ pub struct Program {
 }
 
 impl Program {
-    pub fn build_from_reader(
-        reader: &mut ProgramReader,
-    ) -> Result<Self, u8> {
+    pub fn build_from_reader(reader: &mut ProgramReader) -> Result<Self, u8> {
         let arch = match reader.read_u8() {
             Some(byte) => match PlatformArchitecture::from_byte(byte) {
                 Some(e) => e,
