@@ -1654,7 +1654,7 @@ pub fn process(
                                                     match attribute_search.found_item {
                                                         crate::deep_search_extensions::ProcessedDeepSearchItems::Variable(variable) => {
                                                             if variable.has_type {
-                                                                if belonging_class.generic_definings.len() - 1  >= index && matches!(variable.rtype.clone(), DefinerCollecting::Generic(e) if e.hash == belonging_class.generic_definings[index].hash) {
+                                                                if !belonging_class.generic_definings.is_empty() && belonging_class.generic_definings.len() - 1  >= index && matches!(variable.rtype.clone(), DefinerCollecting::Generic(e) if e.hash == belonging_class.generic_definings[index].hash) {
                                                                     Some(
                                                                         resolved_generics[index].clone()
                                                                     )
