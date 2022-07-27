@@ -38,13 +38,12 @@ use ellie_core::defs::{DebugInfo, ModuleMap};
 /// ## Example
 /// ```rust
 /// use ellie_engine::vm;
-/// let file = r#"
-//  main_file: /Users/ahmtcn123/Desktop/Projects/Ellie-Language/test_dir
-/// ---
-/// 0:1:<ellie_module_main>/main.ei:main:0:0:2:0:10187001090113126559
-/// "#;
-/// let debug_info = vm::parse_debug_file(file);
-/// assert!(debug_info.is_ok());
+/// let file = r#"\
+// main_file: /Users/ahmtcn123/Desktop/Projects/Ellie-Language/test_dir
+///---
+///0:1:<ellie_module_main>/main.ei:main:3:0:9:0:15608529263637909756
+///"#;
+/// let debug_info = vm::parse_debug_file(file.to_string());
 /// ```
 pub fn parse_debug_file(dbg_file: String) -> Result<DebugInfo, String> {
     let mut dbg_headers = dbg_file.split("\n").collect::<Vec<_>>().into_iter();
@@ -58,6 +57,9 @@ pub fn parse_debug_file(dbg_file: String) -> Result<DebugInfo, String> {
             break;
         } else {
             let line = line.split(":").collect::<Vec<_>>();
+            if line.len() != 2 {
+                return Err(format!("Invalid debug file"));
+            }
             let module_name = line[0].to_string();
             let path = line[1].to_string().trim().to_string();
             module_maps.push(ModuleMap {

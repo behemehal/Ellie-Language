@@ -47,14 +47,6 @@ pub trait ColorDisplay: Copy {
     /// * `color` - color [`Colors`]
     /// ## Returns
     /// [`String`]
-    /// ## Example
-    /// ```
-    /// use ellie_engine::utils::ColorDisplay;
-    ///
-    /// pub struct TerminalColors {
-    ///     
-    /// }
-    /// ```
     fn color(&self, color: Colors) -> String;
     fn text_style(&self, text_style: TextStyles) -> String;
 }
@@ -500,24 +492,25 @@ pub fn read_error_text(error: u8) -> &'static str {
 /// [`String`] of lines has been rendered
 /// ## Example
 /// ```rust
-/// use ellie_engine::utils::{print_errors, ColorDisplay};
+/// use ellie_engine::terminal_utils::{print_errors, ColorDisplay, Colors, TextStyles};
 /// use ellie_engine::ellie_core::defs::{Cursor, CursorPosition};
 ///
-/// pub struct NoColorTerminal;
+/// #[derive(Copy, Clone)]
+/// struct NoColorTerminal;
 ///
 /// impl ColorDisplay for NoColorTerminal {
-///     pub fn color(&self, _) -> String {
+///     fn color(&self, _: Colors) -> String {
 ///         //No modifier
 ///         String::new()
 ///     }
 ///
-///     pub fn text_style(&self, _) -> String {
+///     fn text_style(&self, _: TextStyles) -> String {
 ///         //No modifier
 ///         String::new()
 ///     }
 /// }
 ///
-/// let my_error = error::error_list::ERROR_S10.clone().build_without_debug(
+/// let my_error = ellie_core::error::error_list::ERROR_S10.clone().build_without_debug(
 ///     vec![],
 ///     Cursor {
 ///         range_start: CursorPosition(0, 0),
@@ -526,13 +519,14 @@ pub fn read_error_text(error: u8) -> &'static str {
 /// );
 ///
 /// let error = print_errors(
-///     vec![ my_error ],
+///     &vec![ my_error ],
 ///     | path | {
 ///         "A total error".to_owned()
 ///     },
+///    false,
 ///     | path | {
 ///         "C:VirtualPath".to_owned()
-///     }
+///     },
 ///     NoColorTerminal
 /// );
 /// println!("{}", error);

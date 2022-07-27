@@ -7,13 +7,13 @@
 #![warn(clippy::all)]
 
 /// EllieCore contains various functions and structs used by Ellie.
-extern crate ellie_core;
+pub extern crate ellie_core;
 #[cfg(feature = "compiler")]
-extern crate ellie_parser;
+pub extern crate ellie_parser;
 #[cfg(feature = "compiler")]
-extern crate ellie_tokenizer;
+pub extern crate ellie_tokenizer;
 #[cfg(feature = "vm")]
-extern crate ellie_vm;
+pub extern crate ellie_vm;
 
 pub mod engine_constants;
 
