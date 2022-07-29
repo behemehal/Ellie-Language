@@ -1,3 +1,4 @@
+use crate::processors::types::Processors;
 pub use crate::syntax::items::file_key::FileKey;
 use ellie_core::{defs, error, utils};
 
@@ -41,6 +42,19 @@ impl crate::processors::Processor for FileKey {
                 }
                 self.key_name_location.range_end = cursor;
                 self.key_name += &letter_char.to_string();
+            } else if letter_char == ';' {
+                self.name_collected = true;
+                self.complete = true;
+                self.value_location = self.key_name_location;
+                self.value = Processors::Variable(
+                    crate::syntax::types::variable_type::VariableTypeCollector {
+                        data: crate::syntax::types::variable_type::VariableType {
+                            value: "true".to_string(),
+                            pos: defs::Cursor::default(),
+                        },
+                        complete: true,
+                    },
+                );
             } else if letter_char == '=' {
                 self.value_location.range_start = cursor;
                 self.name_collected = true;
