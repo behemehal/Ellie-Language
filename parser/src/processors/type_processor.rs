@@ -1659,7 +1659,11 @@ pub fn process(
                                                                         resolved_generics[index].clone()
                                                                     )
                                                                 } else {
-                                                                    Some(variable.rtype)
+                                                                    if variable.has_type {
+                                                                        Some(variable.rtype)
+                                                                    } else {
+                                                                        resolve_type(variable.value, page_id, parser, &mut errors, variable_pos)
+                                                                    }
                                                                 }
                                                             } else {
                                                                 let mut errors = Vec::new();
@@ -1678,8 +1682,6 @@ pub fn process(
                                                 }
                                             })
                                             .collect();
-
-                                            //let resolved_generics =
 
                                             //Ignore if length is not a match
                                             if constructor.unwrap().parameters.len()
@@ -1702,11 +1704,11 @@ pub fn process(
                                                     ) {
                                                         Ok(resolved_type) => {
                                                             let comperable = parser
-                                                                .compare_defining_with_type(
-                                                                    element.clone(),
-                                                                    resolved_type.clone(),
-                                                                    belonging_class.inner_page_id,
-                                                                );
+                                                            .compare_defining_with_type(
+                                                                element.clone(),
+                                                                resolved_type.clone(),
+                                                                page_id,
+                                                            );
                                                             let path = parser
                                                                 .find_page(page_id)
                                                                 .unwrap()
