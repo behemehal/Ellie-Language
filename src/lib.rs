@@ -6,6 +6,8 @@
 #![allow(unknown_lints)]
 #![warn(clippy::all)]
 
+#[cfg(feature = "compiler")]
+pub extern crate ellie_bytecode;
 /// EllieCore contains various functions and structs used by Ellie.
 pub extern crate ellie_core;
 #[cfg(feature = "compiler")]

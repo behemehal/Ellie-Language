@@ -1,4 +1,3 @@
-use ellie_bytecode::utils::RawType;
 use ellie_cli_utils::{
     options, outputs,
     utils::{self, Colors},
@@ -8,7 +7,6 @@ use ellie_engine::{
     engine_constants,
     vm::{parse_debug_file, read_program, RFile},
 };
-use ellie_vm::utils::{ProgramReader, Reader};
 use std::{fs::File, io::Read, path::Path};
 
 pub struct VmSettings {
@@ -124,7 +122,7 @@ fn main() {
                         let mut file_contents = String::new();
                         match File::open(e) {
                             Ok(mut e) => {
-                                e.read_to_string(&mut file_contents);
+                                e.read_to_string(&mut file_contents).unwrap();
                                 match parse_debug_file(file_contents) {
                                     Ok(e) => Some(e),
                                     Err(e) => {
@@ -163,10 +161,9 @@ fn main() {
             };
 
             let path = Path::new(matches.value_of("target").unwrap().clone());
-            let mut program = if path.exists() {
+            let program = if path.exists() {
                 if path.is_file() {
                     if path.is_file() {
-                        let mut file_contents = String::new();
                         match File::open(path) {
                             Ok(mut e) => {
                                 let mut reader = RFile::new(&mut e);
@@ -174,7 +171,7 @@ fn main() {
                                     Ok(e) => e,
                                     Err(e) => {
                                         println!(
-                                            "{}Error:{} Failed read program, error code: {}{}{}",
+                                            "{}Error:{} Failed to read program, error code: {}{}{}",
                                             utils::Colors::Red,
                                             utils::Colors::Reset,
                                             utils::Colors::Cyan,
@@ -233,7 +230,7 @@ fn main() {
                     VmNativeAnswer::RuntimeError("Call to unknown function".into())
                 }
             });
-            vm.load(&program);
+            vm.load(&program).unwrap();
             match vm.run(program.main) {
                 ellie_vm::utils::ThreadExit::Panic(e) => {
                     println!(

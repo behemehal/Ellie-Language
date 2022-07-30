@@ -234,6 +234,7 @@ pub enum DeepSearchItems {
     None,
 }
 
+#[derive(Debug)]
 pub struct CompareResult {
     pub same: bool,
     pub first: String,
