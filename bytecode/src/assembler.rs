@@ -79,6 +79,37 @@ pub struct AssembleResult {
 }
 
 impl AssembleResult {
+    pub fn render_binary_to_vector(&self) -> Vec<u8> {
+        let mut binary = Vec::new();
+        binary
+            .write(&[match self.module_info.platform_attributes.architecture {
+                PlatformArchitecture::B16 => 16_u8,
+                PlatformArchitecture::B32 => 32_u8,
+                PlatformArchitecture::B64 => 64_u8,
+            }])
+            .unwrap();
+        binary
+            .write(&[if self.module_info.main_function.is_some() {
+                1
+            } else {
+                0
+            }])
+            .unwrap();
+        match self.module_info.main_function {
+            Some(main_fn_cursor) => {
+                binary.write_all(&main_fn_cursor.to_le_bytes()).unwrap();
+            }
+            None => (),
+        }
+
+        for instruction in &self.instructions {
+            binary
+                .write(&instruction.op_code(&self.module_info.platform_attributes.architecture))
+                .unwrap();
+        }
+        binary
+    }
+
     pub fn render_binary<T: Write, E: Write>(&self, writer: &mut T, dbg_w: &mut E) {
         for (module_name, path) in &self.module_info.modue_maps {
             dbg_w
@@ -213,7 +244,12 @@ impl AssembleResult {
         let mut count = 0;
 
         for instruction in &self.instructions {
-            let code = format!("{}: {}\n", count, instruction,);
+            let code = format!(
+                "{} = {}: {}\n",
+                instruction.op_code(&self.module_info.platform_attributes.architecture)[0],
+                count,
+                instruction,
+            );
             output.write_all(&code.as_bytes()).unwrap();
             count += 1;
         }
