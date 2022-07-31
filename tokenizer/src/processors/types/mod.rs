@@ -288,7 +288,7 @@ impl super::Processor for TypeProcessor {
         letter_char: char,
     ) -> bool {
         let not_initalized = matches!(&self.current, Processors::Variable(x) if x.data.value == "");
-
+        
         if letter_char == '{' && not_initalized {
             self.current = Processors::Collective(collective_type::CollectiveTypeCollector {
                 data: collective_type::CollectiveType {
@@ -387,24 +387,21 @@ impl super::Processor for TypeProcessor {
                 pos: defs::Cursor::build_from_cursor(cursor.clone()),
                 ..Default::default()
             });
-        } else if letter_char == '!' && (not_initalized || (last_char != ' ')) {
-            if not_initalized {
-                self.current = Processors::Negative(negative_type::Negative {
-                    pos: defs::Cursor::build_from_cursor(cursor.clone()),
-                    ..Default::default()
-                });
-            } else if self.current.clone().into_string().is_err()
-                && self.current.clone().into_char().is_err()
-            {
-                self.current = Processors::NullResolver(null_resolver::NullResolver {
-                    target: Box::new(self.current.clone()),
-                    target_pos: self.current.get_pos(),
-                    pos: defs::Cursor {
-                        range_start: self.current.get_pos().range_start,
-                        range_end: defs::CursorPosition::default(),
-                    },
-                });
-            }
+        } else if letter_char == '!' && not_initalized {
+            self.current = Processors::Negative(negative_type::Negative {
+                pos: defs::Cursor::build_from_cursor(cursor.clone()),
+                ..Default::default()
+            });
+        } else if letter_char == '!' && last_char != ' ' && self.current.is_complete()
+        {
+            self.current = Processors::NullResolver(null_resolver::NullResolver {
+                target: Box::new(self.current.clone()),
+                target_pos: self.current.get_pos(),
+                pos: defs::Cursor {
+                    range_start: self.current.get_pos().range_start,
+                    range_end: defs::CursorPosition::default(),
+                },
+            });
         } else if letter_char == '"' && not_initalized {
             self.current = Processors::String(string_type::StringTypeCollector {
                 data: string_type::StringType {
@@ -530,7 +527,6 @@ impl super::Processor for TypeProcessor {
                         current: Processors::Operator(operator_type::OperatorTypeCollector {
                             data: operator_type::OperatorType {
                                 first: operator.data.second,
-                                //operator: operator.data.operator.clone(),
                                 ..Default::default()
                             },
                             first_filled: true,
@@ -539,6 +535,19 @@ impl super::Processor for TypeProcessor {
                         ignore: false,
                     }),
                     operator_collected: true,
+                    first_filled: true,
+                    ..Default::default()
+                });
+            } else if self.current.as_null_resolver().is_some() && letter_char == '=' {
+                let null_r = self.current.as_null_resolver().unwrap();
+                self.current = Processors::Operator(operator_type::OperatorTypeCollector {
+                    data: operator_type::OperatorType {
+                        first: Box::new(*null_r.target.clone()),
+                        first_pos: null_r.target_pos,
+                        pos: defs::Cursor::build_from_cursor(cursor.clone()),
+                        ..Default::default()
+                    },
+                    operator_collect: "!".to_string(),
                     first_filled: true,
                     ..Default::default()
                 });
