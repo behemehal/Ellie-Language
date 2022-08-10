@@ -1,3 +1,4 @@
+#[cfg(feature = "compiler_utils")]
 use crate::{definite::types::Types, defs::PlatformArchitecture};
 use alloc::string::ToString;
 use alloc::vec::Vec;
@@ -349,6 +350,7 @@ impl RawType {
         self.type_id.id == 6
     }
 
+    #[cfg(feature = "compiler_utils")]
     pub fn from(from: &Types, platform: PlatformArchitecture) -> RawType {
         let type_id = match &from {
             Types::Integer(_) => TypeId {

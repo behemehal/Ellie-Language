@@ -4,6 +4,7 @@ use crate::{alloc::borrow::ToOwned, raw_type::RawType};
 use alloc::{string::String, vec::Vec};
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "compiler_utils")]
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub enum TokenizerType {
     Raw,
@@ -12,12 +13,14 @@ pub enum TokenizerType {
     HeaderParser,
 }
 
+#[cfg(feature = "compiler_utils")]
 impl Default for TokenizerType {
     fn default() -> Self {
         TokenizerType::Raw
     }
 }
 
+#[cfg(feature = "compiler_utils")]
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct TokenizerOptions {
     pub path: String,
@@ -41,6 +44,7 @@ pub struct TokenizerOptions {
     pub allow_import: bool,
 }
 
+#[cfg(feature = "compiler_utils")]
 impl Default for TokenizerOptions {
     fn default() -> Self {
         TokenizerOptions {

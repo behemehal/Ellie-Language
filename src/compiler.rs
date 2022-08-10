@@ -1,4 +1,5 @@
 use crate::utils::{CompileOutput, CompilerSettings};
+use alloc::{borrow::ToOwned, string::String, vec::Vec};
 use ellie_core::{error::Error, utils::PageExport};
 use ellie_parser::parser;
 use ellie_tokenizer::tokenizer::Page;

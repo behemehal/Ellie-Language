@@ -1111,10 +1111,6 @@ pub fn process(
                                                     Some(function_call.data.target_pos),
                                                 );
 
-                                                if found.is_none() {
-                                                    panic!("{:?}, {:?}", resolved, param.value);
-                                                }
-
                                                 if errors.is_empty() {
                                                     resolved_params
                                                         .push((resolved.clone(), param.pos));
@@ -1191,7 +1187,7 @@ pub fn process(
                                                             .unwrap()
                                                             .path
                                                             .clone(),
-                                                        pos,
+                                                        function_call.data.parameters[index].pos,
                                                     ),
                                             );
                                         }
@@ -1704,11 +1700,11 @@ pub fn process(
                                                     ) {
                                                         Ok(resolved_type) => {
                                                             let comperable = parser
-                                                            .compare_defining_with_type(
-                                                                element.clone(),
-                                                                resolved_type.clone(),
-                                                                page_id,
-                                                            );
+                                                                .compare_defining_with_type(
+                                                                    element.clone(),
+                                                                    resolved_type.clone(),
+                                                                    page_id,
+                                                                );
                                                             let path = parser
                                                                 .find_page(page_id)
                                                                 .unwrap()

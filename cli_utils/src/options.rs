@@ -262,6 +262,12 @@ pub fn generate_ellievm_options() -> Command<'static> {
                         .long("--heap-dump"),
                 )
                 .arg(
+                    Arg::new("vmDebug")
+                        .help("Run vm slower and print more information")
+                        .short('v')
+                        .long("-vm-debug"),
+                )
+                .arg(
                     Arg::new("allowPanics")
                         .help("Allow panics")
                         .short('a')
