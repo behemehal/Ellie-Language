@@ -282,13 +282,19 @@ impl Assembler {
     }
 
     pub fn find_local(&self, name: &String, page_hash: Option<Vec<usize>>) -> Option<&LocalHeader> {
-        self.locals.iter().find(|local| {
-            &local.name == name
-                && match &page_hash {
-                    Some(e) => e.contains(&local.page_hash),
-                    None => true,
+        let mut locals: Vec<&LocalHeader> = self
+            .locals
+            .iter()
+            .filter(|filter| match &page_hash {
+                Some(page_hash) => page_hash.contains(&filter.page_hash),
+                None => true,
                 }
-        })
+            })
+            .collect();
+
+        locals.sort_by(|a, b| a.cursor.cmp(&b.cursor));
+        locals.reverse();
+        locals.into_iter().find(|local| &local.name == name)
     }
 
     pub(crate) fn assemble_dependency(&mut self, hash: &usize) -> Option<usize> {
