@@ -1,4 +1,5 @@
 use crate::utils::{AddressingModes, AddressingValues, Instructions, ProgramReader};
+use alloc::vec::Vec;
 use ellie_core::{
     defs::{DebugInfo, PlatformArchitecture},
     raw_type::{RawType, TypeId},
@@ -15,7 +16,7 @@ pub struct ReadInstruction {
 
 #[derive(Debug, Clone)]
 pub struct Program {
-    pub main: usize,
+    pub main: (usize, usize),
     pub arch: PlatformArchitecture,
     pub instructions: Vec<ReadInstruction>,
 }
@@ -44,8 +45,13 @@ impl Program {
             None => return Err(0),
         };
 
+        let main_hash = match reader.read_usize(arch.usize_len()) {
+            Some(byte) => byte,
+            None => return Err(0),
+        };
+
         let mut program = Program {
-            main,
+            main: (main, main_hash),
             arch,
             instructions: Vec::new(),
         };
@@ -91,7 +97,7 @@ impl Program {
                         addressing_mode,
                         addressing_value,
                         op_code: read_byte,
-                        args: vec![],
+                        args: Vec::new(),
                     });
                 } else {
                     let mut args: Vec<u8> = Vec::new();

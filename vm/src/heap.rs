@@ -1,3 +1,8 @@
+use alloc::{
+    format,
+    string::{String, ToString},
+    vec::Vec,
+};
 use ellie_core::raw_type::RawType;
 
 #[derive(Clone)]
@@ -32,6 +37,7 @@ impl Heap {
                 return;
             }
         }
+
         self.data.push(Entry {
             key: key.clone(),
             value,

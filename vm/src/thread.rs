@@ -1,15 +1,21 @@
 #![allow(non_snake_case)]
+use alloc::{
+    format,
+    string::{String, ToString},
+    vec::Vec,
+};
 use ellie_core::{
     defs::{PlatformArchitecture, VmNativeAnswer, VmNativeCall},
     raw_type::RawType,
 };
 
 use crate::{
-    heap,
+    heap::{self, Heap},
     program::ReadInstruction,
     utils::{self, Instructions, ThreadExit, ThreadPanic, ThreadPanicReason, ThreadStepInfo},
 };
 
+#[derive(Debug, Clone)]
 pub struct Registers {
     pub A: RawType,
     pub B: RawType,
@@ -26,6 +32,7 @@ pub struct Stack {
     pub pos: usize,
 }
 
+#[derive(Debug, Clone)]
 pub struct StackController {
     pub stack: Vec<Stack>,
 }
@@ -82,31 +89,28 @@ pub struct ThreadInfo {
     pub stack_pos: usize,
 }
 
-pub struct Thread<'a, T> {
+pub struct Thread<T> {
     pub id: usize,
-    pub program: &'a Vec<ReadInstruction>,
-    pub heap: &'a mut heap::Heap,
+    pub program: Vec<ReadInstruction>,
     pub registers: Registers,
     pub stack: StackController,
     pub arch: PlatformArchitecture,
     pub(crate) native_call_channel: T,
 }
 
-impl<'a, T> Thread<'a, T>
+impl<T> Thread<T>
 where
     T: Fn(ThreadInfo, VmNativeCall) -> VmNativeAnswer + Clone + Sized,
 {
     pub fn new(
         id: usize,
         arch: PlatformArchitecture,
-        program: &'a Vec<ReadInstruction>,
-        heap: &'a mut heap::Heap,
+        program: Vec<ReadInstruction>,
         native_call_channel: T,
     ) -> Self {
         Thread {
             id,
             program,
-            heap,
             arch,
             stack: StackController::new(),
             registers: Registers {
@@ -120,7 +124,7 @@ where
         }
     }
 
-    pub fn step(&mut self) -> Result<ThreadStepInfo, ThreadExit> {
+    pub fn step(&mut self, heap: &mut Heap) -> Result<ThreadStepInfo, ThreadExit> {
         if self.stack.len() == 0 {
             return Err(ThreadExit::ExitGracefully);
         }
@@ -129,7 +133,6 @@ where
         let current_stack = self.stack.last_mut().unwrap();
 
         if current_stack.pos >= self.program.len() {
-            println!("{}-{}", current_stack.pos, self.program.len(),);
             return Err(ThreadExit::Panic(ThreadPanic {
                 reason: ThreadPanicReason::OutOfInstructions,
                 stack_trace: self.stack.stack.clone(),
@@ -138,6 +141,7 @@ where
         }
 
         let current_instruction = &self.program[current_stack.pos];
+
         match &current_instruction.instruction {
             Instructions::LDA(_) => match &current_instruction.addressing_value {
                 utils::AddressingValues::Implicit => todo!(),
@@ -145,7 +149,7 @@ where
                     self.registers.A = raw_type.clone();
                 }
                 utils::AddressingValues::Absolute(e) => {
-                    self.registers.A = match self.heap.get(e) {
+                    self.registers.A = match heap.get(e) {
                         Some(e) => e.clone(),
                         None => match &self.program[*e].addressing_value {
                             utils::AddressingValues::Immediate(e) => e.clone(),
@@ -178,16 +182,13 @@ where
                     self.registers.A = self.registers.Y.clone();
                 }
             },
-            Instructions::LDB(e) => match &current_instruction.addressing_value {
-                utils::AddressingValues::Implicit => unreachable!(
-                    "Illegal addressing value: {:?} {:?}",
-                    current_instruction, e
-                ),
+            Instructions::LDB(_) => match &current_instruction.addressing_value {
+                utils::AddressingValues::Implicit => unreachable!("Illegal addressing value"),
                 utils::AddressingValues::Immediate(raw_type) => {
                     self.registers.B = raw_type.clone();
                 }
                 utils::AddressingValues::Absolute(e) => {
-                    self.registers.B = match self.heap.get(e) {
+                    self.registers.B = match heap.get(e) {
                         Some(e) => e.clone(),
                         None => match &self.program[*e].addressing_value {
                             utils::AddressingValues::Immediate(e) => e.clone(),
@@ -226,7 +227,7 @@ where
                     self.registers.C = raw_type.clone();
                 }
                 utils::AddressingValues::Absolute(e) => {
-                    self.registers.C = match self.heap.get(e) {
+                    self.registers.C = match heap.get(e) {
                         Some(e) => e.clone(),
                         None => match &self.program[*e].addressing_value {
                             utils::AddressingValues::Immediate(e) => e.clone(),
@@ -265,7 +266,7 @@ where
                     self.registers.X = raw_type.clone();
                 }
                 utils::AddressingValues::Absolute(e) => {
-                    self.registers.X = match self.heap.get(e) {
+                    self.registers.X = match heap.get(e) {
                         Some(e) => e.clone(),
                         None => match &self.program[*e].addressing_value {
                             utils::AddressingValues::Immediate(e) => e.clone(),
@@ -304,7 +305,7 @@ where
                     self.registers.Y = raw_type.clone();
                 }
                 utils::AddressingValues::Absolute(e) => {
-                    self.registers.Y = match self.heap.get(e) {
+                    self.registers.Y = match heap.get(e) {
                         Some(e) => e.clone(),
                         None => match &self.program[*e].addressing_value {
                             utils::AddressingValues::Immediate(e) => e.clone(),
@@ -339,21 +340,30 @@ where
             },
             Instructions::STA(_) => match &current_instruction.addressing_value {
                 utils::AddressingValues::Implicit => {
-                    self.heap.set(&current_stack.pos, self.registers.A.clone());
+                    heap.set(&current_stack.pos, self.registers.A.clone());
+                }
+                utils::AddressingValues::Immediate(raw_type) => {
+                    heap.set(&current_stack.pos, raw_type.clone());
                 }
                 utils::AddressingValues::Absolute(e) => {
-                    self.heap.set(&e, self.registers.A.clone());
+                    heap.set(&e, self.registers.A.clone());
                 }
                 utils::AddressingValues::AbsoluteIndex(_, _) => todo!(),
                 utils::AddressingValues::AbsoluteProperty(_, _) => todo!(),
-                _ => panic!("Illegal addressing value"),
+                _ => panic!(
+                    "Illegal addressing value: {:?}",
+                    current_instruction.addressing_value
+                ),
             },
             Instructions::STB(_) => match &current_instruction.addressing_value {
                 utils::AddressingValues::Implicit => {
-                    self.heap.set(&current_stack.pos, self.registers.B.clone());
+                    heap.set(&current_stack.pos, self.registers.B.clone());
+                }
+                utils::AddressingValues::Immediate(raw_type) => {
+                    heap.set(&current_stack.pos, raw_type.clone());
                 }
                 utils::AddressingValues::Absolute(e) => {
-                    self.heap.set(&e, self.registers.B.clone());
+                    heap.set(&e, self.registers.B.clone());
                 }
                 utils::AddressingValues::AbsoluteIndex(_, _) => todo!(),
                 utils::AddressingValues::AbsoluteProperty(_, _) => todo!(),
@@ -361,10 +371,13 @@ where
             },
             Instructions::STC(_) => match &current_instruction.addressing_value {
                 utils::AddressingValues::Implicit => {
-                    self.heap.set(&current_stack.pos, self.registers.C.clone());
+                    heap.set(&current_stack.pos, self.registers.C.clone());
+                }
+                utils::AddressingValues::Immediate(raw_type) => {
+                    heap.set(&current_stack.pos, raw_type.clone());
                 }
                 utils::AddressingValues::Absolute(e) => {
-                    self.heap.set(&e, self.registers.C.clone());
+                    heap.set(&e, self.registers.C.clone());
                 }
                 utils::AddressingValues::AbsoluteIndex(_, _) => todo!(),
                 utils::AddressingValues::AbsoluteProperty(_, _) => todo!(),
@@ -372,10 +385,13 @@ where
             },
             Instructions::STX(_) => match &current_instruction.addressing_value {
                 utils::AddressingValues::Implicit => {
-                    self.heap.set(&current_stack.pos, self.registers.X.clone());
+                    heap.set(&current_stack.pos, self.registers.X.clone());
+                }
+                utils::AddressingValues::Immediate(raw_type) => {
+                    heap.set(&current_stack.pos, raw_type.clone());
                 }
                 utils::AddressingValues::Absolute(e) => {
-                    self.heap.set(&e, self.registers.X.clone());
+                    heap.set(&e, self.registers.X.clone());
                 }
                 utils::AddressingValues::AbsoluteIndex(_, _) => todo!(),
                 utils::AddressingValues::AbsoluteProperty(_, _) => todo!(),
@@ -383,10 +399,13 @@ where
             },
             Instructions::STY(_) => match &current_instruction.addressing_value {
                 utils::AddressingValues::Implicit => {
-                    self.heap.set(&current_stack.pos, self.registers.Y.clone());
+                    heap.set(&current_stack.pos, self.registers.Y.clone());
+                }
+                utils::AddressingValues::Immediate(raw_type) => {
+                    heap.set(&current_stack.pos, raw_type.clone());
                 }
                 utils::AddressingValues::Absolute(e) => {
-                    self.heap.set(&e, self.registers.Y.clone());
+                    heap.set(&e, self.registers.Y.clone());
                 }
                 utils::AddressingValues::AbsoluteIndex(_, _) => todo!(),
                 utils::AddressingValues::AbsoluteProperty(_, _) => todo!(),
@@ -488,20 +507,6 @@ where
                                     }));
                                 }
                             };
-                            //Check emulated platform overflow
-                            if self.arch.is_16() && result > 0xffff {
-                                return Err(ThreadExit::Panic(ThreadPanic {
-                                    reason: ThreadPanicReason::IntegerOverflow,
-                                    stack_trace: self.stack.stack.clone(),
-                                    code_location: format!("{}:{}", file!(), line!()),
-                                }));
-                            } else if self.arch.is_32() && result > 0xffff_ffff {
-                                return Err(ThreadExit::Panic(ThreadPanic {
-                                    reason: ThreadPanicReason::IntegerOverflow,
-                                    stack_trace: self.stack.stack.clone(),
-                                    code_location: format!("{}:{}", file!(), line!()),
-                                }));
-                            }
                             self.registers.A = RawType::integer(result.to_le_bytes().to_vec());
                         }
                         //Float + int
@@ -529,7 +534,12 @@ where
                         // String + Byte
                         (6, 4) => todo!(),
                         // String + Bool
-                        (6, 5) => todo!(),
+                        (6, 5) => {
+                            let b_value = String::from_utf8(b.data).unwrap();
+                            let c_value = c.data.first().unwrap() == &1_u8;
+                            let result = b_value + &c_value.to_string();
+                            self.registers.A = RawType::string(result.bytes().collect());
+                        }
                         // String + String
                         (6, 6) => {
                             let b_value = String::from_utf8(b.data).unwrap();
@@ -589,22 +599,6 @@ where
                             }));
                         }
                     };
-
-                    //Check emulated platform overflow
-                    if self.arch.is_16() && result > 0xffff {
-                        return Err(ThreadExit::Panic(ThreadPanic {
-                            reason: ThreadPanicReason::IntegerOverflow,
-                            stack_trace: self.stack.stack.clone(),
-                            code_location: format!("{}:{}", file!(), line!()),
-                        }));
-                    } else if self.arch.is_32() && result > 0xffff_ffff {
-                        return Err(ThreadExit::Panic(ThreadPanic {
-                            reason: ThreadPanicReason::IntegerOverflow,
-                            stack_trace: self.stack.stack.clone(),
-                            code_location: format!("{}:{}", file!(), line!()),
-                        }));
-                    }
-
                     self.registers.A = RawType::integer(result.to_le_bytes().to_vec());
                 }
                 _ => panic!("Illegal addressing value"),
@@ -636,22 +630,6 @@ where
                             }));
                         }
                     };
-
-                    //Check emulated platform overflow
-                    if self.arch.is_16() && result > 0xffff {
-                        return Err(ThreadExit::Panic(ThreadPanic {
-                            reason: ThreadPanicReason::IntegerOverflow,
-                            stack_trace: self.stack.stack.clone(),
-                            code_location: format!("{}:{}", file!(), line!()),
-                        }));
-                    } else if self.arch.is_32() && result > 0xffff_ffff {
-                        return Err(ThreadExit::Panic(ThreadPanic {
-                            reason: ThreadPanicReason::IntegerOverflow,
-                            stack_trace: self.stack.stack.clone(),
-                            code_location: format!("{}:{}", file!(), line!()),
-                        }));
-                    }
-
                     self.registers.A = RawType::integer(result.to_le_bytes().to_vec());
                 }
                 _ => panic!("Illegal addressing value"),
@@ -693,7 +671,9 @@ where
                         caller: Some(current_stack_id),
                         pos: *stack_pos,
                     }) {
-                        Ok(_) => (),
+                        Ok(_) => {
+                            return Ok(ThreadStepInfo::CALL(*stack_pos));
+                        }
                         Err(_) => {
                             return Err(ThreadExit::Panic(ThreadPanic {
                                 reason: ThreadPanicReason::StackOverflow,
@@ -702,7 +682,6 @@ where
                             }));
                         }
                     };
-                    return Ok(ThreadStepInfo::CALL(*stack_pos));
                 }
                 _ => panic!("Illegal addressing value"),
             },
@@ -719,7 +698,7 @@ where
                     let raw_params = {
                         let mut params = Vec::new();
                         for i in 0..number_of_params {
-                            params.push(match self.heap.get(&(current_stack.pos - (i + 1))) {
+                            params.push(match heap.get(&(current_stack.pos - (i + 1))) {
                                 Some(e) => e.clone(),
                                 None => panic!(
                                     "[VM] Parameter {} not found",
@@ -754,7 +733,6 @@ where
                             }));
                         }
                     };
-                    drop_current_stack = true
                 }
                 _ => panic!("Illegal addressing value"),
             },
@@ -1030,15 +1008,24 @@ where
             Instructions::POPS(_) => todo!(),
             Instructions::ACP(_) => todo!(),
             Instructions::BRK(_) => todo!(),
+            Instructions::CO(_) => todo!(),
+            Instructions::FN(_) => {
+                match &current_instruction.addressing_value {
+                    utils::AddressingValues::Immediate(e) => {
+                        let hash = e.data[0..self.arch.usize_len() as usize].to_vec();
+                        let hash = usize::from_le_bytes(hash.try_into().unwrap());
+                        let escape = e.data[self.arch.usize_len() as usize..].to_vec();
+                        let escape = usize::from_le_bytes(escape.try_into().unwrap());
+                        if hash != current_stack.id {
+                            current_stack.pos = escape;
+                            return Ok(ThreadStepInfo::JMP(escape));
+                        }
+                    }
+                    _ => unreachable!("Illegal addressing value"),
+                };
+            }
         }
         if drop_current_stack {
-            #[cfg(feature = "debug")]
-            println!(
-                "{}[VM]{}: Dropping stack '{}'",
-                utils::Colors::Yellow,
-                utils::Colors::Reset,
-                current_stack.name
-            );
             self.stack.pop();
         } else {
             current_stack.pos += 1;
@@ -1047,7 +1034,17 @@ where
         Ok(ThreadStepInfo::StepNext)
     }
 
-    pub fn run(&mut self) -> ThreadExit {
+    pub fn run(&mut self) {
+        //loop {
+        //    match self.step() {
+        //        Ok(e) => (),
+        //        Err(e) => {
+        //            return e;
+        //        }
+        //    }
+        //}
+
+        /*
         #[cfg(feature = "debug")]
         println!(
             "{}[VM]{}: Running thread {}'{}'{}",
@@ -1084,6 +1081,7 @@ where
             let current_stack = self.stack.last_mut().unwrap();
 
             if current_stack.pos >= self.program.len() {
+                #[cfg(feature = "debug")]
                 println!("{}-{}", current_stack.pos, self.program.len(),);
                 return ThreadExit::Panic(ThreadPanic {
                     reason: ThreadPanicReason::OutOfInstructions,
@@ -1111,7 +1109,7 @@ where
                         self.registers.A = raw_type.clone();
                     }
                     utils::AddressingValues::Absolute(e) => {
-                        self.registers.A = match self.heap.get(e) {
+                        self.registers.A = match heap.get(e) {
                             Some(e) => e.clone(),
                             None => match &self.program[*e].addressing_value {
                                 utils::AddressingValues::Immediate(e) => e.clone(),
@@ -1153,7 +1151,7 @@ where
                         self.registers.B = raw_type.clone();
                     }
                     utils::AddressingValues::Absolute(e) => {
-                        self.registers.B = match self.heap.get(e) {
+                        self.registers.B = match heap.get(e) {
                             Some(e) => e.clone(),
                             None => match &self.program[*e].addressing_value {
                                 utils::AddressingValues::Immediate(e) => e.clone(),
@@ -1192,7 +1190,7 @@ where
                         self.registers.C = raw_type.clone();
                     }
                     utils::AddressingValues::Absolute(e) => {
-                        self.registers.C = match self.heap.get(e) {
+                        self.registers.C = match heap.get(e) {
                             Some(e) => e.clone(),
                             None => match &self.program[*e].addressing_value {
                                 utils::AddressingValues::Immediate(e) => e.clone(),
@@ -1231,7 +1229,7 @@ where
                         self.registers.X = raw_type.clone();
                     }
                     utils::AddressingValues::Absolute(e) => {
-                        self.registers.X = match self.heap.get(e) {
+                        self.registers.X = match heap.get(e) {
                             Some(e) => e.clone(),
                             None => match &self.program[*e].addressing_value {
                                 utils::AddressingValues::Immediate(e) => e.clone(),
@@ -1270,7 +1268,7 @@ where
                         self.registers.Y = raw_type.clone();
                     }
                     utils::AddressingValues::Absolute(e) => {
-                        self.registers.Y = match self.heap.get(e) {
+                        self.registers.Y = match heap.get(e) {
                             Some(e) => e.clone(),
                             None => match &self.program[*e].addressing_value {
                                 utils::AddressingValues::Immediate(e) => e.clone(),
@@ -1305,10 +1303,10 @@ where
                 },
                 Instructions::STA(_) => match &current_instruction.addressing_value {
                     utils::AddressingValues::Implicit => {
-                        self.heap.set(&current_stack.pos, self.registers.A.clone());
+                        heap.set(&current_stack.pos, self.registers.A.clone());
                     }
                     utils::AddressingValues::Absolute(e) => {
-                        self.heap.set(&e, self.registers.A.clone());
+                        heap.set(&e, self.registers.A.clone());
                     }
                     utils::AddressingValues::AbsoluteIndex(_, _) => todo!(),
                     utils::AddressingValues::AbsoluteProperty(_, _) => todo!(),
@@ -1316,10 +1314,10 @@ where
                 },
                 Instructions::STB(_) => match &current_instruction.addressing_value {
                     utils::AddressingValues::Implicit => {
-                        self.heap.set(&current_stack.pos, self.registers.B.clone());
+                        heap.set(&current_stack.pos, self.registers.B.clone());
                     }
                     utils::AddressingValues::Absolute(e) => {
-                        self.heap.set(&e, self.registers.B.clone());
+                        heap.set(&e, self.registers.B.clone());
                     }
                     utils::AddressingValues::AbsoluteIndex(_, _) => todo!(),
                     utils::AddressingValues::AbsoluteProperty(_, _) => todo!(),
@@ -1327,10 +1325,10 @@ where
                 },
                 Instructions::STC(_) => match &current_instruction.addressing_value {
                     utils::AddressingValues::Implicit => {
-                        self.heap.set(&current_stack.pos, self.registers.C.clone());
+                        heap.set(&current_stack.pos, self.registers.C.clone());
                     }
                     utils::AddressingValues::Absolute(e) => {
-                        self.heap.set(&e, self.registers.C.clone());
+                        heap.set(&e, self.registers.C.clone());
                     }
                     utils::AddressingValues::AbsoluteIndex(_, _) => todo!(),
                     utils::AddressingValues::AbsoluteProperty(_, _) => todo!(),
@@ -1338,10 +1336,10 @@ where
                 },
                 Instructions::STX(_) => match &current_instruction.addressing_value {
                     utils::AddressingValues::Implicit => {
-                        self.heap.set(&current_stack.pos, self.registers.X.clone());
+                        heap.set(&current_stack.pos, self.registers.X.clone());
                     }
                     utils::AddressingValues::Absolute(e) => {
-                        self.heap.set(&e, self.registers.X.clone());
+                        heap.set(&e, self.registers.X.clone());
                     }
                     utils::AddressingValues::AbsoluteIndex(_, _) => todo!(),
                     utils::AddressingValues::AbsoluteProperty(_, _) => todo!(),
@@ -1349,10 +1347,10 @@ where
                 },
                 Instructions::STY(_) => match &current_instruction.addressing_value {
                     utils::AddressingValues::Implicit => {
-                        self.heap.set(&current_stack.pos, self.registers.Y.clone());
+                        heap.set(&current_stack.pos, self.registers.Y.clone());
                     }
                     utils::AddressingValues::Absolute(e) => {
-                        self.heap.set(&e, self.registers.Y.clone());
+                        heap.set(&e, self.registers.Y.clone());
                     }
                     utils::AddressingValues::AbsoluteIndex(_, _) => todo!(),
                     utils::AddressingValues::AbsoluteProperty(_, _) => todo!(),
@@ -1449,15 +1447,6 @@ where
                                 let result = match b_value.checked_add(c_value) {
                                     Some(e) => e,
                                     None => {
-                                        println!(
-                                            "{:?}: {} - {:?}: {} - {} {:?}",
-                                            b.data,
-                                            b_value,
-                                            c.data,
-                                            c_value,
-                                            current_stack.pos,
-                                            current_instruction
-                                        );
                                         return ThreadExit::Panic(ThreadPanic {
                                             reason: ThreadPanicReason::IntegerOverflow,
                                             stack_trace: self.stack.stack.clone(),
@@ -1465,20 +1454,6 @@ where
                                         });
                                     }
                                 };
-                                //Check emulated platform overflow
-                                if self.arch.is_16() && result > 0xffff {
-                                    return ThreadExit::Panic(ThreadPanic {
-                                        reason: ThreadPanicReason::IntegerOverflow,
-                                        stack_trace: self.stack.stack.clone(),
-                                        code_location: format!("{}:{}", file!(), line!()),
-                                    });
-                                } else if self.arch.is_32() && result > 0xffff_ffff {
-                                    return ThreadExit::Panic(ThreadPanic {
-                                        reason: ThreadPanicReason::IntegerOverflow,
-                                        stack_trace: self.stack.stack.clone(),
-                                        code_location: format!("{}:{}", file!(), line!()),
-                                    });
-                                }
                                 self.registers.A = RawType::integer(result.to_le_bytes().to_vec());
                             }
                             //Float + int
@@ -1571,22 +1546,6 @@ where
                                 });
                             }
                         };
-
-                        //Check emulated platform overflow
-                        if self.arch.is_16() && result > 0xffff {
-                            return ThreadExit::Panic(ThreadPanic {
-                                reason: ThreadPanicReason::IntegerOverflow,
-                                stack_trace: self.stack.stack.clone(),
-                                code_location: format!("{}:{}", file!(), line!()),
-                            });
-                        } else if self.arch.is_32() && result > 0xffff_ffff {
-                            return ThreadExit::Panic(ThreadPanic {
-                                reason: ThreadPanicReason::IntegerOverflow,
-                                stack_trace: self.stack.stack.clone(),
-                                code_location: format!("{}:{}", file!(), line!()),
-                            });
-                        }
-
                         self.registers.A = RawType::integer(result.to_le_bytes().to_vec());
                     }
                     _ => panic!("Illegal addressing value"),
@@ -1618,22 +1577,6 @@ where
                                 });
                             }
                         };
-
-                        //Check emulated platform overflow
-                        if self.arch.is_16() && result > 0xffff {
-                            return ThreadExit::Panic(ThreadPanic {
-                                reason: ThreadPanicReason::IntegerOverflow,
-                                stack_trace: self.stack.stack.clone(),
-                                code_location: format!("{}:{}", file!(), line!()),
-                            });
-                        } else if self.arch.is_32() && result > 0xffff_ffff {
-                            return ThreadExit::Panic(ThreadPanic {
-                                reason: ThreadPanicReason::IntegerOverflow,
-                                stack_trace: self.stack.stack.clone(),
-                                code_location: format!("{}:{}", file!(), line!()),
-                            });
-                        }
-
                         self.registers.A = RawType::integer(result.to_le_bytes().to_vec());
                     }
                     _ => panic!("Illegal addressing value"),
@@ -1702,7 +1645,7 @@ where
                             let raw_params = {
                                 let mut params = Vec::new();
                                 for i in 0..number_of_params {
-                                    params.push(match self.heap.get(&(current_stack.pos - (i + 1))) {
+                                    params.push(match heap.get(&(current_stack.pos - (i + 1))) {
                                     Some(e) => e.clone(),
                                     None => {
                                         return ThreadExit::Panic(ThreadPanic {
@@ -2052,5 +1995,6 @@ where
                 current_stack.pos += 1;
             }
         }
+        */
     }
 }

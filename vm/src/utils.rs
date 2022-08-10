@@ -1,4 +1,5 @@
 use crate::thread::Stack;
+use alloc::{string::String, vec::Vec};
 use ellie_core::{defs::CursorPosition, raw_type::RawType};
 
 #[derive(Debug, Clone)]
@@ -163,6 +164,8 @@ pub enum Instructions {
     ACP(Instruction),
     BRK(Instruction),
     CALLN(Instruction),
+    CO(Instruction),
+    FN(Instruction),
 }
 
 impl Instructions {
@@ -483,6 +486,12 @@ impl Instructions {
             105 => Some(Instructions::CALLN(Instruction {
                 addressing_mode: AddressingModes::Immediate,
             })),
+            106 => Some(Instructions::CO(Instruction {
+                addressing_mode: AddressingModes::Absolute,
+            })),
+            107 => Some(Instructions::FN(Instruction {
+                addressing_mode: AddressingModes::Immediate,
+            })),
             _ => None,
         }
     }
@@ -533,6 +542,8 @@ impl Instructions {
             Instructions::ACP(e) => e.addressing_mode.clone(),
             Instructions::BRK(e) => e.addressing_mode.clone(),
             Instructions::CALLN(e) => e.addressing_mode.clone(),
+            Instructions::CO(e) => e.addressing_mode.clone(),
+            Instructions::FN(e) => e.addressing_mode.clone(),
         }
     }
 }

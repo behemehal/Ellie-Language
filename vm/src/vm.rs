@@ -1,3 +1,7 @@
+use alloc::{
+    string::{String, ToString},
+    vec::Vec,
+};
 use ellie_core::{
     defs::{PlatformArchitecture, VmNativeAnswer, VmNativeCall},
     raw_type::RawType,
@@ -7,28 +11,22 @@ use crate::{
     heap::Heap,
     program::{Program, ReadInstruction},
     thread::{Stack, Thread},
-    utils::ThreadExit,
+    utils::{ThreadExit, ThreadStepInfo},
 };
 
-pub struct VM<'a, T> {
+pub struct VM<T> {
     pub stack: Vec<ReadInstruction>,
-    pub threads: Vec<Thread<'a, T>>,
+    pub threads: Vec<Thread<T>>,
     pub heap: Heap,
     native_call_channel: T,
     target_arch: PlatformArchitecture,
 }
 
-impl<'a, T> VM<'a, T>
+impl<T> VM<T>
 where
     T: Fn(crate::thread::ThreadInfo, VmNativeCall) -> VmNativeAnswer + Clone + Copy + Sized,
 {
     pub fn new(target_arch: PlatformArchitecture, native_call_channel: T) -> Self {
-        #[cfg(feature = "debug")]
-        println!(
-            "{}[VM]{}: Creating vm instance",
-            utils::Colors::Yellow,
-            utils::Colors::Reset
-        );
         VM {
             stack: Vec::new(),
             threads: Vec::new(),
@@ -46,24 +44,33 @@ where
         Ok(())
     }
 
-    pub fn run(&mut self, main: usize) -> ThreadExit {
-        let mut thread = Thread::new(
-            0,
+    pub fn build_thread(&mut self, heap: &mut Heap, main: usize) {
+        let thread = Thread::new(
+            main,
             self.target_arch,
-            &self.stack,
-            &mut self.heap,
+            self.stack.clone(),
+            self.native_call_channel,
+        );
+        self.threads.push(thread);
+    }
+
+    pub fn build_main_thread(&mut self, main: usize, main_hash: usize) {
+        let mut thread = Thread::new(
+            main,
+            self.target_arch,
+            self.stack.clone(),
             self.native_call_channel,
         );
         thread
             .stack
             .push(Stack {
-                id: 0,
+                id: main_hash,
                 name: "<ellie_main>".to_string(),
                 caller: None,
                 pos: main,
             })
             .unwrap();
-        thread.run()
+        self.threads.push(thread);
     }
 
     pub fn heap_dump(&mut self) -> String {
