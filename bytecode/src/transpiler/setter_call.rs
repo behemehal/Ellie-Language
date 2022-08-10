@@ -24,7 +24,9 @@ impl super::Transpiler for setter_call::SetterCall {
             Some(dependencies.clone()),
         );
 
-        let value = resolve_type(
+        let target_last_instruction = assembler.instructions.last().unwrap().clone();
+
+        resolve_type(
             assembler,
             &self.value,
             instructions::Registers::C,
@@ -32,12 +34,9 @@ impl super::Transpiler for setter_call::SetterCall {
             Some(dependencies.clone()),
         );
 
-        instructions.extend(target.clone());
-        instructions.extend(value);
-
         match self.operator {
         ellie_core::definite::types::operator::AssignmentOperators::Assignment => {
-            match target.last().unwrap() {
+            match target_last_instruction {
                 instructions::Instructions::LDB(e) => match e.addressing_mode {
                     instructions::AddressingModes::Absolute(e) => {
                         instructions.push(instructions::Instructions::STC(Instruction::absolute(e)));
@@ -53,7 +52,6 @@ impl super::Transpiler for setter_call::SetterCall {
         },
         ellie_core::definite::types::operator::AssignmentOperators::AdditionAssignment => {
             instructions.push(instructions::Instructions::ADD(Instruction::implicit()));
-
         },
         ellie_core::definite::types::operator::AssignmentOperators::SubtractionAssignment => {
             instructions.push(instructions::Instructions::SUB(Instruction::implicit()));
@@ -73,7 +71,7 @@ impl super::Transpiler for setter_call::SetterCall {
         ellie_core::definite::types::operator::AssignmentOperators::Null => unreachable!(),
     }
 
-        match target.last().unwrap() {
+        match target_last_instruction {
             instructions::Instructions::LDB(e) => match e.addressing_mode {
                 instructions::AddressingModes::Absolute(e) => {
                     instructions.push(instructions::Instructions::STA(Instruction::absolute(e)));

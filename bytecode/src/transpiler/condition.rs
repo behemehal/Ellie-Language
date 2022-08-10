@@ -20,23 +20,19 @@ impl super::Transpiler for condition::Condition {
         let mut condition_body_start_requests = Vec::new();
 
         for (_, chain) in self.chains.iter().enumerate() {
-            let mut chain_instructions = Vec::new();
             if chain.rtype != ellie_core::definite::items::condition::ConditionType::Else {
-                let resolved_instructions = resolve_type(
+                resolve_type(
                     assembler,
                     &chain.condition,
                     instructions::Registers::A,
                     &hash,
                     Some(dependencies.clone()),
                 );
-                chain_instructions.extend(resolved_instructions);
             } else {
-                chain_instructions.push(instructions::Instructions::LDA(Instruction::immediate(
-                    Types::Bool,
-                    vec![1],
-                )));
+                assembler.instructions.push(instructions::Instructions::LDA(
+                    Instruction::immediate(Types::Bool, vec![1]),
+                ));
             }
-            assembler.instructions.extend(chain_instructions);
             assembler
                 .instructions
                 .push(instructions::Instructions::JMPA(Instruction::absolute(144)));

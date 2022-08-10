@@ -1,6 +1,6 @@
 use crate::{
     assembler::LocalHeader,
-    instructions::{Instruction, Instructions},
+    instructions::{self, Instruction, Instructions},
 };
 use ellie_core::{
     definite::items::function,
@@ -18,6 +18,12 @@ impl super::Transpiler for function::Function {
             assembler.assemble_dependency(&dependency.hash);
         }
 
+        let start = assembler.location();
+        //Skip to the end of the function
+        assembler
+            .instructions
+            .push(instructions::Instructions::FN(Instruction::absolute(144)));
+
         //Reserve memory spaces for parameters
         for hash in 0..self.parameters.len() {
             assembler.debug_headers.push(DebugHeader {
@@ -31,9 +37,16 @@ impl super::Transpiler for function::Function {
                     range_end: self.parameters[hash].rtype_pos.range_end,
                 },
             });
+
             assembler
                 .instructions
                 .push(Instructions::STA(Instruction::implicit()));
+            assembler.locals.push(LocalHeader {
+                name: self.parameters[hash].name.clone(),
+                cursor: assembler.location(),
+                page_hash: processed_page.hash,
+                reference: None,
+            });
         }
         let debug_header_start = if assembler.instructions.len() == 0 {
             0
@@ -53,6 +66,15 @@ impl super::Transpiler for function::Function {
         assembler
             .instructions
             .push(Instructions::RET(Instruction::implicit()));
+
+        let mut hash = self.hash.to_le_bytes().to_vec();
+        hash.extend_from_slice(&(assembler.instructions.len()).to_le_bytes());
+
+        assembler.instructions[start + 1] = Instructions::FN(Instruction::immediate(
+            instructions::Types::String(hash.len()),
+            hash.to_vec(),
+        ));
+
         assembler.debug_headers.push(DebugHeader {
             rtype: DebugHeaderType::Function,
             hash: self.hash,

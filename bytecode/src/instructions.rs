@@ -1,5 +1,7 @@
 #![allow(dead_code)]
 
+use std::println;
+
 use alloc::{
     string::{String, ToString},
     vec,
@@ -77,7 +79,7 @@ impl Types {
             Types::String(str_len) => (6, *str_len),
             Types::Char => (7, 4),
             Types::Void => (8, 0),
-            Types::Array(len) => (9, *len),
+            Types::Array(len) => (9, 0),
             Types::Null => (10, 0),
         }
     }
@@ -88,7 +90,7 @@ pub enum AddressingModes {
     Implicit,
     Immediate(Types, Vec<u8>),
     Absolute(usize),
-    AbsoluteIndex(usize, usize),
+    AbsoluteIndex,
     AbsoluteProperty(usize, usize),
     //AbsoluteRef(usize, usize),
     IndirectA,
@@ -104,7 +106,7 @@ impl AddressingModes {
             AddressingModes::Implicit => "implicit",
             AddressingModes::Immediate(_, _) => "immediate",
             AddressingModes::Absolute(_) => "absolute",
-            AddressingModes::AbsoluteIndex(_, _) => "absolute_index",
+            AddressingModes::AbsoluteIndex => "absolute_index",
             AddressingModes::AbsoluteProperty(_, _) => "absolute_property",
             AddressingModes::IndirectA => "indirect_a",
             AddressingModes::IndirectB => "indirect_b",
@@ -126,12 +128,6 @@ impl AddressingModes {
                 v
             }
             AddressingModes::Absolute(x) => x.to_le_bytes().to_vec(),
-            AddressingModes::AbsoluteIndex(arr, index) => {
-                let mut v = vec![];
-                v.extend_from_slice(&arr.to_le_bytes());
-                v.extend_from_slice(&index.to_le_bytes());
-                v
-            }
             AddressingModes::AbsoluteProperty(obj, property) => {
                 let mut v = vec![];
                 v.extend_from_slice(&obj.to_le_bytes());
@@ -157,7 +153,7 @@ impl core::fmt::Display for AddressingModes {
             AddressingModes::IndirectX => write!(f, "@X"),
             AddressingModes::IndirectY => write!(f, "@Y"),
             AddressingModes::Implicit => write!(f, ""),
-            AddressingModes::AbsoluteIndex(value, index) => write!(f, "${}[{}]", value, index),
+            AddressingModes::AbsoluteIndex => write!(f, "B[C]"),
             AddressingModes::AbsoluteProperty(value, property) => {
                 write!(f, "${}.{}", value, property)
             }
@@ -189,11 +185,11 @@ impl Instruction {
         }
     }
 
-    //pub fn absolute_ref(page: usize, val: usize) -> Instruction {
-    //    Instruction {
-    //        addressing_mode: AddressingModes::AbsoluteRef(page, val),
-    //    }
-    //}
+    pub fn absolute_index() -> Instruction {
+        Instruction {
+            addressing_mode: AddressingModes::AbsoluteIndex,
+        }
+    }
 
     pub fn indirect_a() -> Instruction {
         Instruction {
@@ -270,6 +266,8 @@ pub enum Instructions {
     POPS(Instruction),
     ACP(Instruction),
     BRK(Instruction),
+    CO(Instruction),
+    FN(Instruction),
 }
 
 impl Instructions {
@@ -697,6 +695,32 @@ impl Instructions {
                 op_code.extend(e.addressing_mode.arg(platform_size));
                 op_code
             }
+            Instructions::CO(e) => {
+                let instruction = crate::instruction_table::INSTRUCTIONS
+                    .clone()
+                    .drain()
+                    .find(|(k, _)| *k == "co_".to_string() + &e.addressing_mode.to_string())
+                    .unwrap();
+                let mut op_code: Vec<u8> = vec![instruction.1.code];
+                op_code.extend(e.addressing_mode.arg(platform_size));
+                op_code
+            }
+            Instructions::FN(e) => {
+                let instruction = crate::instruction_table::INSTRUCTIONS
+                    .clone()
+                    .drain()
+                    .find(|(k, _)| *k == "fn_".to_string() + &e.addressing_mode.to_string())
+                    .unwrap_or_else(|| {
+                        panic!(
+                            "No instruction found for fn_{}",
+                            e.addressing_mode.to_string()
+                        )
+                    });
+
+                let mut op_code: Vec<u8> = vec![instruction.1.code];
+                op_code.extend(e.addressing_mode.arg(platform_size));
+                op_code
+            }
         }
     }
 
@@ -744,6 +768,8 @@ impl Instructions {
             Instructions::POPS(e) => e.addressing_mode.clone(),
             Instructions::ACP(e) => e.addressing_mode.clone(),
             Instructions::BRK(e) => e.addressing_mode.clone(),
+            Instructions::CO(e) => e.addressing_mode.clone(),
+            Instructions::FN(e) => e.addressing_mode.clone(),
         }
         .to_string()
     }
@@ -792,6 +818,8 @@ impl Instructions {
             Instructions::POPS(e) => e.addressing_mode.arg(platform_size),
             Instructions::ACP(e) => e.addressing_mode.arg(platform_size),
             Instructions::BRK(e) => e.addressing_mode.arg(platform_size),
+            Instructions::CO(e) => e.addressing_mode.arg(platform_size),
+            Instructions::FN(e) => e.addressing_mode.arg(platform_size),
         }
     }
 }
@@ -841,6 +869,8 @@ impl core::fmt::Display for Instructions {
             Instructions::RET(instruction) => write!(f, "RET {}", instruction.addressing_mode),
             Instructions::ACP(instruction) => write!(f, "ACP {}", instruction.addressing_mode),
             Instructions::BRK(_) => write!(f, "BRK"),
+            Instructions::CO(instruction) => write!(f, "CO {}", instruction.addressing_mode),
+            Instructions::FN(instruction) => write!(f, "FN {}", instruction.addressing_mode),
         }
     }
 }

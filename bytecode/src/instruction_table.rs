@@ -853,6 +853,22 @@ lazy_static! {
                 mode: "immediate",
             },
         );
+        i.insert(
+            "co_absolute",
+            Instruction {
+                rtype: "co",
+                code: 106,
+                mode: "absolute",
+            },
+        );
+        i.insert(
+            "fn_immediate",
+            Instruction {
+                rtype: "fn",
+                code: 107,
+                mode: "immediate",
+            },
+        );
         i
     };
 }

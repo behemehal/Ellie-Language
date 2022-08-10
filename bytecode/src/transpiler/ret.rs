@@ -23,8 +23,6 @@ impl super::Transpiler for ret::Ret {
             Some(dependencies),
         );
 
-        assembler.instructions.extend(resolved_instructions);
-
         assembler
             .instructions
             .push(instructions::Instructions::STA(Instruction::implicit()));

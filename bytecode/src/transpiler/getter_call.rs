@@ -12,14 +12,13 @@ impl super::Transpiler for getter_call::GetterCall {
     ) -> bool {
         let mut dependencies = vec![processed_page.hash];
         dependencies.extend(processed_page.dependencies.iter().map(|d| d.hash));
-        let instructions = resolve_type(
+        resolve_type(
             assembler,
             &self.data,
             instructions::Registers::A,
             &hash,
             Some(dependencies),
         );
-        assembler.instructions.extend(instructions);
         true
     }
 }

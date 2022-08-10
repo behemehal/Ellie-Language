@@ -25,7 +25,9 @@ impl super::Transpiler for variable::Variable {
             assembler.location()
         };
 
-        let mut resolved_instructions = resolve_type(
+        let first_instruction_index = assembler.instructions.len();
+
+        resolve_type(
             assembler,
             &self.value,
             instructions::Registers::A,
@@ -34,12 +36,12 @@ impl super::Transpiler for variable::Variable {
         );
 
         if self.constant {
-            resolved_instructions[0] =
-                instructions::Instructions::STA(match resolved_instructions[0].clone() {
+            assembler.instructions[first_instruction_index] = instructions::Instructions::STA(
+                match assembler.instructions[first_instruction_index].clone() {
                     instructions::Instructions::LDA(e) => e,
                     _ => panic!("Constant variable must have ben a LDA"),
-                });
-            assembler.instructions.extend(resolved_instructions);
+                },
+            );
             assembler.debug_headers.push(DebugHeader {
                 rtype: DebugHeaderType::Variable,
                 hash: self.hash,
@@ -57,8 +59,6 @@ impl super::Transpiler for variable::Variable {
             });
             return true;
         }
-
-        assembler.instructions.extend(resolved_instructions);
 
         assembler
             .instructions

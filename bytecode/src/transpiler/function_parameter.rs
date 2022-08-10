@@ -12,12 +12,6 @@ impl super::Transpiler for function_parameter::FunctionParameter {
         //    .instructions
         //    .push(instructions::Instructions::STA(Instruction::implicit()));
 
-        assembler.locals.push(LocalHeader {
-            name: self.name.clone(),
-            cursor: assembler.instructions.len() - 1,
-            page_hash: processed_page.hash,
-            reference: None,
-        });
         true
     }
 }

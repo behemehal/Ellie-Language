@@ -8,7 +8,7 @@ use alloc::{
 use ellie_core::defs::{DebugHeader, PlatformArchitecture};
 use ellie_core::utils::ExportPage;
 use ellie_parser::parser::Module;
-use std::{io::Write, panic};
+use std::{io::Write, panic, println};
 
 pub struct Assembler {
     pub(crate) module: Module,
@@ -67,7 +67,7 @@ pub struct ModuleInfo {
     pub name: String,
     pub modue_maps: Vec<(String, Option<String>)>,
     pub is_library: bool,
-    pub main_function: Option<usize>,
+    pub main_function: Option<(usize, usize)>,
     pub platform_attributes: PlatformAttributes,
 }
 
@@ -97,7 +97,8 @@ impl AssembleResult {
             .unwrap();
         match self.module_info.main_function {
             Some(main_fn_cursor) => {
-                binary.write_all(&main_fn_cursor.to_le_bytes()).unwrap();
+                binary.write_all(&main_fn_cursor.0.to_le_bytes()).unwrap();
+                binary.write_all(&main_fn_cursor.1.to_le_bytes()).unwrap();
             }
             None => (),
         }
@@ -164,7 +165,8 @@ impl AssembleResult {
             .unwrap();
         match self.module_info.main_function {
             Some(main_fn_cursor) => {
-                writer.write_all(&main_fn_cursor.to_le_bytes()).unwrap();
+                writer.write_all(&main_fn_cursor.0.to_le_bytes()).unwrap();
+                writer.write_all(&main_fn_cursor.1.to_le_bytes()).unwrap();
             }
             None => (),
         }
@@ -193,7 +195,9 @@ impl AssembleResult {
         match self.module_info.main_function {
             Some(main_fn_cursor) => {
                 output
-                    .write_all(format!(".main {}\n", main_fn_cursor).as_bytes())
+                    .write_all(
+                        format!(".main {}: {}\n", main_fn_cursor.0, main_fn_cursor.1).as_bytes(),
+                    )
                     .unwrap();
             }
             None => (),
@@ -245,10 +249,12 @@ impl AssembleResult {
 
         for instruction in &self.instructions {
             let code = format!(
-                "{} = {}: {}\n",
-                instruction.op_code(&self.module_info.platform_attributes.architecture)[0],
+                "{}: {} = {} : {:?}\n",
                 count,
                 instruction,
+                instruction.op_code(&self.module_info.platform_attributes.architecture)[0],
+                instruction.op_code(&self.module_info.platform_attributes.architecture)[1..]
+                    .to_vec(),
             );
             output.write_all(&code.as_bytes()).unwrap();
             count += 1;
@@ -288,7 +294,6 @@ impl Assembler {
             .filter(|filter| match &page_hash {
                 Some(page_hash) => page_hash.contains(&filter.page_hash),
                 None => true,
-                }
             })
             .collect();
 
@@ -297,7 +302,7 @@ impl Assembler {
         locals.into_iter().find(|local| &local.name == name)
     }
 
-    pub(crate) fn assemble_dependency(&mut self, hash: &usize) -> Option<usize> {
+    pub(crate) fn assemble_dependency(&mut self, hash: &usize) -> Option<(usize, usize)> {
         if self.processed.contains(hash) {
             return None;
         }
@@ -326,7 +331,7 @@ impl Assembler {
                 }
                 ellie_core::definite::items::Collecting::Function(function) => {
                     if function.name == "main" {
-                        main_pos = Some(self.instructions.len());
+                        main_pos = Some((self.instructions.len(), function.hash));
                     }
                     function.transpile(self, processed_page.hash as usize, &processed_page)
                 }

@@ -26,12 +26,7 @@ impl super::Transpiler for native_function::NativeFunction {
                 .instructions
                 .push(Instructions::STA(Instruction::implicit()))
         }
-        assembler.locals.push(LocalHeader {
-            name: self.name.clone(),
-            cursor: assembler.instructions.len(),
-            page_hash: processed_page.hash,
-            reference: None,
-        });
+
         assembler
             .instructions
             .push(instructions::Instructions::CALLN(
@@ -40,6 +35,16 @@ impl super::Transpiler for native_function::NativeFunction {
                     address.as_bytes().to_vec(),
                 ),
             ));
+
+        assembler.locals.push(LocalHeader {
+            name: self.name.clone(),
+            cursor: assembler.instructions.len() - 1,
+            page_hash: processed_page.hash,
+            reference: None,
+        });
+        assembler.instructions.push(instructions::Instructions::RET(
+            instructions::Instruction::implicit(),
+        ));
         true
     }
 }

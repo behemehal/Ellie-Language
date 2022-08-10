@@ -103,3 +103,5 @@ pops,implicit,102
 acp,absolute,103
 brk,implicit,104
 calln,immediate,105
+co,absolute,106
+fn,immediate,107
