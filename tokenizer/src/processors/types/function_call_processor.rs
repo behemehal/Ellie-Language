@@ -50,8 +50,7 @@ impl crate::processors::Processor for function_call_type::FunctionCallCollector 
                         });
                 } else {
                     self.data.parameters[param_len - 1].value = self.itered_cache.current.clone();
-                    self.data.parameters[param_len - 1].pos =
-                        defs::Cursor::build_from_cursor(cursor);
+                    self.data.parameters[param_len - 1].pos.range_end = cursor;
                 }
             }
         } else if letter_char != ' ' {

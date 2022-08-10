@@ -288,7 +288,7 @@ impl super::Processor for TypeProcessor {
         letter_char: char,
     ) -> bool {
         let not_initalized = matches!(&self.current, Processors::Variable(x) if x.data.value == "");
-        
+
         if letter_char == '{' && not_initalized {
             self.current = Processors::Collective(collective_type::CollectiveTypeCollector {
                 data: collective_type::CollectiveType {
@@ -392,8 +392,7 @@ impl super::Processor for TypeProcessor {
                 pos: defs::Cursor::build_from_cursor(cursor.clone()),
                 ..Default::default()
             });
-        } else if letter_char == '!' && last_char != ' ' && self.current.is_complete()
-        {
+        } else if letter_char == '!' && last_char != ' ' && self.current.is_complete() {
             self.current = Processors::NullResolver(null_resolver::NullResolver {
                 target: Box::new(self.current.clone()),
                 target_pos: self.current.get_pos(),
