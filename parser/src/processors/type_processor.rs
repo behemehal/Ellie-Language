@@ -1160,7 +1160,6 @@ pub fn process(
                                 if errors.len() == 0 {
                                     for (index, param) in function.params.iter().enumerate() {
                                         let used = used_params[index].1.clone();
-                                        let pos = used_params[index].2.clone();
                                         if !param.same_as(used.clone()) {
                                             errors.push(
                                                 error::error_list::ERROR_S3

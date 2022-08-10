@@ -1,16 +1,20 @@
 use crate::terminal_utils::*;
 use crate::utils::{CompilerSettings, MainProgram, ProgramRepository};
+use alloc::borrow::ToOwned;
+use alloc::boxed::Box;
+use alloc::string::{String, ToString};
+use alloc::vec::Vec;
+use alloc::{format, vec};
 use ellie_parser::parser;
 use ellie_tokenizer::tokenizer::ResolvedImport;
 use path_absolutize::Absolutize;
 use std::collections::hash_map::DefaultHasher;
-use std::fs;
 use std::fs::File;
 use std::hash::{Hash, Hasher};
 use std::path::Path;
 use std::path::PathBuf;
 use std::sync::Mutex;
-use std::time::Instant;
+use std::{fs, println};
 
 use ellie_cli_utils::{outputs, utils};
 
@@ -67,7 +71,7 @@ pub fn compile(
     modules: Vec<(parser::Module, Option<String>)>,
     cli_settings: CliCompilerSettings,
 ) {
-    let mut exit_messages: Mutex<Vec<Box<dyn Fn()>>> = Mutex::new(vec![Box::new(|| {
+    let exit_messages: Mutex<Vec<Box<dyn Fn()>>> = Mutex::new(vec![Box::new(|| {
         println!(
             "{}[?]{}: Ellie v{}",
             utils::Colors::Green,
@@ -256,8 +260,6 @@ pub fn compile(
         }
     }
 
-    let tokenize_start = Instant::now();
-
     let mut used_modules = Vec::new();
     for module_name in &program_repisotory.used_modules {
         if let Some(module) = modules
@@ -293,9 +295,6 @@ pub fn compile(
 
     match crate::tokenizer::tokenize_file(&mut program_repisotory) {
         Ok(pages) => {
-            let tokenize_end = (tokenize_start.elapsed().as_nanos() as f64 / 1000000_f64) as f64;
-            let compile_start = Instant::now();
-
             match crate::compiler::parse_pages(
                 program_repisotory.main_hash,
                 used_modules,
@@ -303,10 +302,6 @@ pub fn compile(
                 cli_settings.compiler_settings.clone(),
             ) {
                 Ok(compile_output) => {
-                    let compile_end =
-                        (compile_start.elapsed().as_nanos() as f64 / 1000000_f64) as f64;
-                    let mut bytecode_end: f64 = 0.0;
-
                     if !compile_output.warnings.is_empty() {
                         if cli_settings.json_log {
                             let mut output = outputs::COMPILER_WARNINGS.clone();
@@ -563,7 +558,6 @@ pub fn compile(
                                     }
                                 );
                             }
-                            let bytecode_start = Instant::now();
                             let mut assembler = ellie_bytecode::assembler::Assembler::new(
                                 compile_output.module,
                                 ellie_bytecode::assembler::PlatformAttributes {
@@ -572,9 +566,6 @@ pub fn compile(
                                 },
                             );
                             let assembler_result = assembler.assemble(module_maps);
-                            bytecode_end =
-                                (bytecode_start.elapsed().as_nanos() as f64 / 1000000_f64) as f64;
-
                             let mut output_file = File::create(output_path).unwrap_or_else(|err| {
                                 if cli_settings.json_log {
                                     let mut output = outputs::WRITE_FILE_ERROR.clone();
@@ -663,7 +654,6 @@ pub fn compile(
                                     }
                                 );
                             }
-                            let bytecode_start = Instant::now();
                             let mut assembler = ellie_bytecode::assembler::Assembler::new(
                                 compile_output.module,
                                 ellie_bytecode::assembler::PlatformAttributes {
@@ -672,10 +662,7 @@ pub fn compile(
                                 },
                             );
                             let assembler_result = assembler.assemble(module_maps);
-                            bytecode_end =
-                                (bytecode_start.elapsed().as_nanos() as f64 / 1000000_f64) as f64;
-
-                            let mut output_file = File::create(output_path).unwrap_or_else(|err| {
+                            let output_file = File::create(output_path).unwrap_or_else(|err| {
                                 if cli_settings.json_log {
                                     let mut output = outputs::WRITE_FILE_ERROR.clone();
                                     output.extra.push(outputs::CliOuputExtraData {

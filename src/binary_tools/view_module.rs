@@ -1,7 +1,8 @@
 use crate::engine_constants;
+use alloc::{borrow::ToOwned, format};
 use ellie_cli_utils::{outputs, utils};
 use ellie_parser::parser;
-use std::path::Path;
+use std::{path::Path, println};
 
 pub fn parse(target_path: &Path, json_log: bool) {
     match utils::read_file_bin(target_path) {
@@ -96,8 +97,8 @@ pub fn parse(target_path: &Path, json_log: bool) {
                 if json_log {
                     let mut cli_module_output = outputs::READ_BINARY_MODULE_ERROR.clone();
                     cli_module_output.extra.push(outputs::CliOuputExtraData {
-                        key: "file".to_string(),
-                        value: ".".to_string(),
+                        key: "file".to_owned(),
+                        value: ".".to_owned(),
                     });
                     println!(
                         "{}",
@@ -120,8 +121,8 @@ pub fn parse(target_path: &Path, json_log: bool) {
             if json_log {
                 let mut cli_module_output = outputs::READ_BINARY_MODULE_ERROR.clone();
                 cli_module_output.extra.push(outputs::CliOuputExtraData {
-                    key: "file".to_string(),
-                    value: ".".to_string(),
+                    key: "file".to_owned(),
+                    value: ".".to_owned(),
                 });
                 println!(
                     "{}",
@@ -130,7 +131,7 @@ pub fn parse(target_path: &Path, json_log: bool) {
             } else {
                 println!(
                     "Unable to read file ~{} [{}]",
-                    target_path.to_str().unwrap().to_string(),
+                    target_path.to_str().unwrap().to_owned(),
                     err
                 );
             }

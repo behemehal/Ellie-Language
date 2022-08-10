@@ -8,7 +8,7 @@ use alloc::{
 use ellie_core::defs::{DebugHeader, PlatformArchitecture};
 use ellie_core::utils::ExportPage;
 use ellie_parser::parser::Module;
-use std::{io::Write, panic, println};
+use std::{io::Write, panic};
 
 pub struct Assembler {
     pub(crate) module: Module,

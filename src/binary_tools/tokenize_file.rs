@@ -2,15 +2,18 @@ use crate::terminal_utils;
 use crate::terminal_utils::ColorDisplay;
 use crate::utils::{MainProgram, ProgramRepository};
 
+use alloc::borrow::ToOwned;
+use alloc::format;
+use alloc::string::{String, ToString};
 use ellie_cli_utils::{outputs, utils};
 
 use ellie_tokenizer::tokenizer::ResolvedImport;
 use path_absolutize::Absolutize;
 use std::collections::hash_map::DefaultHasher;
-use std::fs;
 use std::hash::{Hash, Hasher};
 use std::path::{Path, PathBuf};
 use std::time::Instant;
+use std::{fs, println};
 
 #[derive(Clone)]
 pub struct TokenizerSettings {

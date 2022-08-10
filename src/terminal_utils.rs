@@ -1,6 +1,11 @@
+use alloc::{
+    format,
+    string::{String, ToString},
+    vec::Vec,
+};
 use ellie_core::{
     defs, error,
-    warning::{self, Warning},
+    warning::{self},
 };
 
 #[derive(Debug, Clone, PartialEq)]
@@ -170,7 +175,7 @@ pub(crate) fn draw_error<T: ColorDisplay>(
 pub(crate) fn generate_blank(size: usize) -> String {
     let mut blank: String = String::new();
     for _ in 0..size + 1 {
-        blank += &" ".to_owned();
+        blank += &" ".to_string();
     }
     blank
 }
@@ -552,7 +557,7 @@ where
             if show_debug_lines {
                 format!(" - {}", error.debug_message)
             } else {
-                "".to_owned()
+                "".to_string()
             },
             color_output.color(Colors::Reset),
             color_output.color(Colors::Cyan),
@@ -582,7 +587,7 @@ where
             path_resolver(error.path.clone()),
             error.pos,
             file_content,
-            "".to_owned(),
+            "".to_string(),
             line_space,
             false,
             true,
@@ -605,27 +610,27 @@ where
         if error.full_assist || error.semi_assist {
             if cfg!(feature = "ellie_assist") {
                 output += &format!(
-                    "{}{}[{}]{} ╞ {} assistment available type '{}ellie{} {}--show-me-something{} {}{}{}' for request assist\n",
+                    "{}{}[{}]{} ╞ {} assistment available type '{}ellie{} {}assist{} {}{}{}' for request assist\n",
                     generate_blank(line_space - 2),
-                    color_output.color( Colors::Yellow ),
+                    color_output.color(Colors::Yellow),
                     if error.semi_assist {
                         "◆"
                     } else {
                         "✓"
                     },
-                    color_output.color( Colors::Reset),
+                    color_output.color(Colors::Reset),
                     if error.semi_assist {
                         "Semi"
                     } else {
                         "Full"
                     },
-                    color_output.color( Colors::Green ),
-                    color_output.color( Colors::Reset ),
-                    color_output.color( Colors::Yellow ),
-                    color_output.color( Colors::Reset ),
-                    color_output.color( Colors::Green ),
-                    "(NoErrorHasherModule)",
-                    color_output.color( Colors::Reset ),
+                    color_output.color(Colors::Green),
+                    color_output.color(Colors::Reset),
+                    color_output.color(Colors::Yellow),
+                    color_output.color(Colors::Reset),
+                    color_output.color(Colors::Green),
+                    "(0x00)",
+                    color_output.color(Colors::Reset),
                 );
             } else {
                 output += &format!(
@@ -703,7 +708,7 @@ where
             path_resolver(warning.path.clone()),
             warning.pos,
             file_content,
-            "".to_owned(),
+            "".to_string(),
             line_space,
             false,
             false,
@@ -727,7 +732,7 @@ where
         if warning.full_assist || warning.semi_assist {
             if cfg!(feature = "ellie_assist") {
                 output += &format!(
-                    "{}{}[{}]{} ╞ {} assistment available type '{}ellie{} {}--show-me-something{} {}{}{}' for request assist\n",
+                    "{}{}[{}]{} ╞ {} assistment available type '{}ellie{} {}assist{} {}{}{}' for request assist\n",
                     generate_blank(line_space - 2),
                     color_output.color(Colors::Yellow),
                     if warning.semi_assist {
@@ -746,7 +751,7 @@ where
                     color_output.color(Colors::Yellow),
                     color_output.color(Colors::Reset),
                     color_output.color(Colors::Green),
-                    "(NoWarningHasherModule)",
+                    "(0x00)",
                     color_output.color(Colors::Reset),
                 );
             } else {

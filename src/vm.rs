@@ -1,20 +1,30 @@
+#[cfg(feature = "std")]
+use std::io::Read;
+
+use alloc::{
+    format,
+    string::{String, ToString},
+    vec::Vec,
+};
 use ellie_core::defs::{CursorPosition, DebugHeader, DebugHeaderType};
 use ellie_vm::{
     program::Program,
     utils::{ProgramReader, Reader},
 };
-use std::io::Read;
 
+#[cfg(feature = "std")]
 pub struct RFile<'a, T> {
     pub source: &'a mut T,
 }
 
+#[cfg(feature = "std")]
 impl<'a, T> RFile<'a, T> {
     pub fn new(source: &'a mut T) -> Self {
         RFile { source }
     }
 }
 
+#[cfg(feature = "std")]
 impl<'a, T> Reader for RFile<'a, T>
 where
     T: Read,

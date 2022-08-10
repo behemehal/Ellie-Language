@@ -1,6 +1,3 @@
-#[macro_use]
-extern crate lazy_static;
-
 /// CLI arg options
 pub mod options;
 

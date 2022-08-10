@@ -1,4 +1,4 @@
-use ellie_core::{defs, error, warning};
+use ellie_core::{error, warning};
 use std::{
     collections::hash_map::DefaultHasher,
     fmt::Display,

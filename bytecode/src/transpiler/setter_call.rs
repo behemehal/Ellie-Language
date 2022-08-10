@@ -16,7 +16,7 @@ impl super::Transpiler for setter_call::SetterCall {
 
         let mut instructions = Vec::new();
 
-        let target = resolve_type(
+        resolve_type(
             assembler,
             &self.target,
             instructions::Registers::B,

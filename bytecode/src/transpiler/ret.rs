@@ -15,7 +15,7 @@ impl super::Transpiler for ret::Ret {
         let mut dependencies = vec![processed_page.hash];
         dependencies.extend(processed_page.dependencies.iter().map(|d| d.hash));
 
-        let resolved_instructions = resolve_type(
+        resolve_type(
             assembler,
             &self.value,
             instructions::Registers::A,

@@ -1,3 +1,4 @@
+use alloc::{string::String, vec::Vec};
 use ellie_core::defs::Version;
 #[cfg(feature = "compiler")]
 use ellie_core::warning::Warning;
@@ -24,6 +25,7 @@ pub struct MainProgram {
     pub start_directory: String,
 }
 
+#[cfg(feature = "compiler")]
 #[derive(Clone)]
 /// EllieC settings
 pub struct CompilerSettings {

@@ -7,7 +7,7 @@ use ellie_engine::{
     engine_constants,
     vm::{parse_debug_file, read_program, RFile},
 };
-use std::{fs::File, io::Read, path::Path};
+use std::{fs::File, io::Read, path::Path, thread};
 
 pub struct VmSettings {
     pub json_log: bool,
@@ -22,6 +22,7 @@ fn main() {
 
     match matches.subcommand() {
         Some(("run", matches)) => {
+            let is_vm_debug = matches.is_present("vmDebug");
             if !matches.is_present("allowPanics") {
                 std::panic::set_hook(Box::new(|e| {
                     if e.to_string().contains("@Halt") {
@@ -231,59 +232,91 @@ fn main() {
                 }
             });
             vm.load(&program).unwrap();
-            match vm.run(program.main) {
-                ellie_vm::utils::ThreadExit::Panic(e) => {
-                    println!(
-                        "\n{}ThreadPanic{} : {}{:?}{}",
-                        Colors::Red,
-                        Colors::Reset,
-                        Colors::Cyan,
-                        e.reason,
-                        Colors::Reset,
-                    );
 
-                    for frame in e.stack_trace {
-                        match &debug_file {
-                            Some(debug_file) => {
-                                let coresponding_header =
-                                    debug_file.debug_headers.iter().find(|x| {
-                                        frame.pos >= x.start_end.0 && frame.pos <= x.start_end.1
-                                    });
+            //let (tx, rx) = mpsc::channel();
 
-                                match coresponding_header {
-                                    Some(e) => {
-                                        let module_name = e
-                                            .module
-                                            .split("<ellie_module_")
-                                            .nth(1)
-                                            .unwrap()
-                                            .split(">")
-                                            .nth(0)
-                                            .unwrap();
-                                        let module_path = debug_file
-                                            .module_map
-                                            .iter()
-                                            .find(|map| module_name == map.module_name);
-                                        let real_path = match module_path {
-                                            Some(module_path) => match &module_path.module_path {
-                                                Some(module_path) => {
-                                                    let new_path = e.module.clone();
-                                                    let starter_name =
-                                                        format!("<ellie_module_{}>", module_name);
-                                                    new_path.replace(&starter_name, &module_path)
-                                                }
-                                                None => e.module.clone(),
-                                            },
-                                            None => e.module.clone(),
-                                        };
+            vm.build_main_thread(program.main.0, program.main.1);
 
-                                        println!(
-                                            "{}    at {}:{}:{}",
-                                            Colors::Green,
-                                            real_path,
-                                            e.pos.range_start.0 + 1,
-                                            e.pos.range_start.1 + 1,
-                                        );
+            let main_thread = thread::spawn(move || loop {
+                match vm.threads[0].step(&mut vm.heap) {
+                    Ok(_) => {
+                        if is_vm_debug {
+                            println!("{:?}", vm.threads[0].registers);
+                            let mut input = String::new();
+                            std::io::stdin().read_line(&mut input).unwrap();
+                        }
+                    }
+                    Err(e) => match e {
+                        ellie_vm::utils::ThreadExit::Panic(e) => {
+                            println!(
+                                "\n{}ThreadPanic{} : {}{:?}{}",
+                                Colors::Red,
+                                Colors::Reset,
+                                Colors::Cyan,
+                                e.reason,
+                                Colors::Reset,
+                            );
+
+                            for frame in e.stack_trace {
+                                match &debug_file {
+                                    Some(debug_file) => {
+                                        let coresponding_header =
+                                            debug_file.debug_headers.iter().find(|x| {
+                                                frame.pos >= x.start_end.0
+                                                    && frame.pos <= x.start_end.1
+                                            });
+
+                                        match coresponding_header {
+                                            Some(e) => {
+                                                let module_name = e
+                                                    .module
+                                                    .split("<ellie_module_")
+                                                    .nth(1)
+                                                    .unwrap()
+                                                    .split(">")
+                                                    .nth(0)
+                                                    .unwrap();
+                                                let module_path = debug_file
+                                                    .module_map
+                                                    .iter()
+                                                    .find(|map| module_name == map.module_name);
+                                                let real_path = match module_path {
+                                                    Some(module_path) => {
+                                                        match &module_path.module_path {
+                                                            Some(module_path) => {
+                                                                let new_path = e.module.clone();
+                                                                let starter_name = format!(
+                                                                    "<ellie_module_{}>",
+                                                                    module_name
+                                                                );
+                                                                new_path.replace(
+                                                                    &starter_name,
+                                                                    &module_path,
+                                                                )
+                                                            }
+                                                            None => e.module.clone(),
+                                                        }
+                                                    }
+                                                    None => e.module.clone(),
+                                                };
+
+                                                println!(
+                                                    "{}    at {}:{}:{}",
+                                                    Colors::Green,
+                                                    real_path,
+                                                    e.pos.range_start.0 + 1,
+                                                    e.pos.range_start.1 + 1,
+                                                );
+                                            }
+                                            None => {
+                                                println!(
+                                                    "{}    at {}:{}",
+                                                    Colors::Green,
+                                                    frame.name,
+                                                    frame.pos
+                                                );
+                                            }
+                                        }
                                     }
                                     None => {
                                         println!(
@@ -295,41 +328,44 @@ fn main() {
                                     }
                                 }
                             }
-                            None => {
-                                println!("{}    at {}:{}", Colors::Green, frame.name, frame.pos);
+                            if debug_file.is_none() {
+                                println!(
+                                                    "\n{}NoDebugFile{} : {}Given error represents stack locations, provide a debug info file to get more readable info{}",
+                                                    Colors::Yellow,
+                                                    Colors::Reset,
+                                                    Colors::Cyan,
+                                                    Colors::Reset,
+                                                );
                             }
+                            println!("{}    at {}", Colors::Red, e.code_location,);
+                            if vm_settings.heap_dump {
+                                println!(
+                                    "{}[VM]{}: Heap Dump\n\n{}",
+                                    Colors::Yellow,
+                                    Colors::Reset,
+                                    vm.heap_dump()
+                                );
+                            }
+                            break;
                         }
-                    }
-                    if debug_file.is_none() {
-                        println!(
-                            "\n{}NoDebugFile{} : {}Given error represents stack locations, provide a debug info file to get more readable info{}",
-                            Colors::Yellow,
-                            Colors::Reset,
-                            Colors::Cyan,
-                            Colors::Reset,
-                        );
-                    }
-                    println!("{}    at {}", Colors::Red, e.code_location,);
-                    if vm_settings.heap_dump {
-                        println!(
-                            "{}[VM]{}: Heap Dump\n\n{}",
-                            Colors::Yellow,
-                            Colors::Reset,
-                            vm.heap_dump()
-                        );
-                    }
+                        ellie_vm::utils::ThreadExit::ExitGracefully => {
+                            if vm_settings.heap_dump {
+                                println!(
+                                    "{}[VM]{}: Heap Dump\n\n{}",
+                                    Colors::Yellow,
+                                    Colors::Reset,
+                                    vm.heap_dump()
+                                );
+                            }
+                            break;
+                        }
+                    },
                 }
-                ellie_vm::utils::ThreadExit::ExitGracefully => {
-                    if vm_settings.heap_dump {
-                        println!(
-                            "{}[VM]{}: Heap Dump\n\n{}",
-                            Colors::Yellow,
-                            Colors::Reset,
-                            vm.heap_dump()
-                        );
-                    }
-                }
-            }
+            });
+
+            main_thread.join().unwrap();
+
+            if matches.is_present("vmDebug") {}
         }
         Some(("version", matches)) => {
             if matches.is_present("detailed") {

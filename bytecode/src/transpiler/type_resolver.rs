@@ -4,7 +4,7 @@ use ellie_core::definite::types::{operator, Types};
 
 use crate::{
     assembler::Assembler,
-    instructions::{self, Instruction, Instructions},
+    instructions::{self, Instruction},
 };
 
 pub fn convert_type(
@@ -64,7 +64,7 @@ pub fn resolve_type(
         Types::Collective(_) => todo!(),
         Types::Reference(_) => todo!(),
         Types::BraceReference(e) => {
-            let target = resolve_type(
+            resolve_type(
                 assembler,
                 &e.reference,
                 instructions::Registers::B,
@@ -72,7 +72,7 @@ pub fn resolve_type(
                 dependencies.clone(),
             );
 
-            let val = resolve_type(
+            resolve_type(
                 assembler,
                 &e.value,
                 instructions::Registers::C,

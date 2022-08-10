@@ -1,7 +1,3 @@
-#![allow(dead_code)]
-
-use std::println;
-
 use alloc::{
     string::{String, ToString},
     vec,
@@ -79,7 +75,7 @@ impl Types {
             Types::String(str_len) => (6, *str_len),
             Types::Char => (7, 4),
             Types::Void => (8, 0),
-            Types::Array(len) => (9, 0),
+            Types::Array(_) => (9, 0),
             Types::Null => (10, 0),
         }
     }

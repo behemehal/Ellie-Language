@@ -67,3 +67,14 @@
   Implement more instructions and raw types
 - Tokenizer v0.4.1
   Fix null resolver & not operator conflict
+
+# v0.8.1
+
+- Core v0.5.0
+  Split features [5fa7fdf92edf61caedd8bf987c984394ca7e0216](https://github.com/behemehal/Ellie-Language/commit/5fa7fdf92edf61caedd8bf987c984394ca7e0216)
+- VM 0.1.1
+  Implement heap safety [301f9f91d86be9874e9b06144e1e66a85c958619](https://github.com/behemehal/Ellie-Language/commit/301f9f91d86be9874e9b06144e1e66a85c958619)
+- Tokenizer v0.4.4
+  Fix null resolver & not operator conflict
+- ByteCode v0.1.1
+  Fix code order problems [e4af101b8f51d297b23550826559a9c9ceebd516](https://github.com/behemehal/Ellie-Language/commit/e4af101b8f51d297b23550826559a9c9ceebd516)
