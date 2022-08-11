@@ -393,14 +393,38 @@ impl super::Processor for TypeProcessor {
                 ..Default::default()
             });
         } else if letter_char == '!' && last_char != ' ' && self.current.is_complete() {
-            self.current = Processors::NullResolver(null_resolver::NullResolver {
-                target: Box::new(self.current.clone()),
-                target_pos: self.current.get_pos(),
-                pos: defs::Cursor {
-                    range_start: self.current.get_pos().range_start,
-                    range_end: defs::CursorPosition::default(),
-                },
-            });
+            if self.current.as_operator().is_some() {
+                let operator = self.current.as_operator().unwrap().clone();
+                self.current = Processors::Operator(operator_type::OperatorTypeCollector {
+                    data: operator_type::OperatorType {
+                        first: operator.data.first.clone(),
+                        second: Box::new(Processors::NullResolver(null_resolver::NullResolver {
+                            target: operator.data.second,
+                            target_pos: operator.data.second_pos,
+                            pos: operator.data.second_pos,
+                        })),
+                        first_pos: operator.data.first_pos,
+                        pos: defs::Cursor {
+                            range_start: operator.data.first_pos.range_start,
+                            ..Default::default()
+                        },
+                        second_pos: operator.data.second_pos,
+                        operator: operator.data.operator.clone(),
+                    },
+                    operator_collect: "!".to_string(),
+                    first_filled: true,
+                    ..Default::default()
+                });
+            } else {
+                self.current = Processors::NullResolver(null_resolver::NullResolver {
+                    target: Box::new(self.current.clone()),
+                    target_pos: self.current.get_pos(),
+                    pos: defs::Cursor {
+                        range_start: self.current.get_pos().range_start,
+                        range_end: defs::CursorPosition::default(),
+                    },
+                });
+            }
         } else if letter_char == '"' && not_initalized {
             self.current = Processors::String(string_type::StringTypeCollector {
                 data: string_type::StringType {
