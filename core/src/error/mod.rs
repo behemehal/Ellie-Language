@@ -4,6 +4,7 @@ use alloc::vec::Vec;
 use core::clone::Clone;
 use serde::{Deserialize, Serialize};
 #[doc(hidden)]
+#[cfg(feature = "compiler_utils")]
 pub mod error_list;
 
 /// `Ellie Error` struct

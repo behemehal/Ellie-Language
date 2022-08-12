@@ -2,7 +2,7 @@ use ellie_cli_utils::{
     options, outputs,
     utils::{self, Colors},
 };
-use ellie_core::defs::VmNativeAnswer;
+use ellie_core::defs::{DebugHeader, DebugInfo, VmNativeAnswer};
 use ellie_engine::{
     engine_constants,
     vm::{parse_debug_file, read_program, RFile},
@@ -241,7 +241,6 @@ fn main() {
                 match vm.threads[0].step(&mut vm.heap) {
                     Ok(_) => {
                         if is_vm_debug {
-                            println!("{:?}", vm.threads[0].registers);
                             let mut input = String::new();
                             std::io::stdin().read_line(&mut input).unwrap();
                         }
@@ -268,37 +267,47 @@ fn main() {
 
                                         match coresponding_header {
                                             Some(e) => {
-                                                let module_name = e
-                                                    .module
-                                                    .split("<ellie_module_")
-                                                    .nth(1)
-                                                    .unwrap()
-                                                    .split(">")
-                                                    .nth(0)
-                                                    .unwrap();
-                                                let module_path = debug_file
-                                                    .module_map
-                                                    .iter()
-                                                    .find(|map| module_name == map.module_name);
-                                                let real_path = match module_path {
-                                                    Some(module_path) => {
-                                                        match &module_path.module_path {
-                                                            Some(module_path) => {
-                                                                let new_path = e.module.clone();
-                                                                let starter_name = format!(
-                                                                    "<ellie_module_{}>",
-                                                                    module_name
-                                                                );
-                                                                new_path.replace(
-                                                                    &starter_name,
-                                                                    &module_path,
-                                                                )
+                                                fn get_real_path(
+                                                    debug_header: &DebugHeader,
+                                                    debug_file: &DebugInfo,
+                                                ) -> String
+                                                {
+                                                    let module_name = debug_header
+                                                        .module
+                                                        .split("<ellie_module_")
+                                                        .nth(1)
+                                                        .unwrap()
+                                                        .split(">")
+                                                        .nth(0)
+                                                        .unwrap();
+                                                    let module_path = debug_file
+                                                        .module_map
+                                                        .iter()
+                                                        .find(|map| module_name == map.module_name);
+                                                    let real_path = match module_path {
+                                                        Some(module_path) => {
+                                                            match &module_path.module_path {
+                                                                Some(module_path) => {
+                                                                    let new_path =
+                                                                        debug_header.module.clone();
+                                                                    let starter_name = format!(
+                                                                        "<ellie_module_{}>",
+                                                                        module_name
+                                                                    );
+                                                                    new_path.replace(
+                                                                        &starter_name,
+                                                                        &module_path,
+                                                                    )
+                                                                }
+                                                                None => debug_header.module.clone(),
                                                             }
-                                                            None => e.module.clone(),
                                                         }
-                                                    }
-                                                    None => e.module.clone(),
-                                                };
+                                                        None => debug_header.module.clone(),
+                                                    };
+                                                    real_path
+                                                }
+
+                                                let real_path = get_real_path(e, debug_file);
 
                                                 println!(
                                                     "{}    at {}:{}:{}",

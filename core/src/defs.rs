@@ -333,6 +333,8 @@ pub enum VmNativeAnswer {
 #[derive(Clone, Debug)]
 pub enum DebugHeaderType {
     Variable,
+    SetterCall,
+    GetterCall,
     Class,
     Parameter,
     Function,

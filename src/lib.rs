@@ -22,7 +22,8 @@ pub extern crate ellie_tokenizer;
 #[cfg(feature = "vm")]
 pub extern crate ellie_vm;
 
-#[cfg(feature = "compiler")]
+#[doc(hidden)]
+#[cfg(feature = "cli-utils")]
 pub mod engine_constants;
 
 #[cfg(feature = "compiler")]
@@ -34,7 +35,7 @@ pub mod vm;
 
 pub mod utils;
 
-#[cfg(feature = "build-cli")]
+#[cfg(feature = "cli-utils")]
 pub mod terminal_utils;
 
 /// Virtual channels for communication between compiler and code

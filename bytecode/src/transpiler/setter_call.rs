@@ -1,8 +1,12 @@
+use std::println;
+
 use super::type_resolver::resolve_type;
 use crate::instructions::{self, Instruction};
+use alloc::string::ToString;
 use alloc::vec;
 use alloc::vec::Vec;
 use ellie_core::definite::items::setter_call;
+use ellie_core::defs::{self, DebugHeader, DebugHeaderType};
 
 impl super::Transpiler for setter_call::SetterCall {
     fn transpile(
@@ -11,6 +15,7 @@ impl super::Transpiler for setter_call::SetterCall {
         hash: usize,
         processed_page: &ellie_parser::parser::ProcessedPage,
     ) -> bool {
+        let debug_header_start = assembler.location();
         let mut dependencies = vec![processed_page.hash];
         dependencies.extend(processed_page.dependencies.iter().map(|d| d.hash));
 
@@ -24,6 +29,11 @@ impl super::Transpiler for setter_call::SetterCall {
             Some(dependencies.clone()),
         );
 
+        let mut assignment = match &self.target {
+            ellie_core::definite::types::Types::BraceReference(_) => true,
+            _ => false,
+        };
+
         let target_last_instruction = assembler.instructions.last().unwrap().clone();
 
         resolve_type(
@@ -36,12 +46,16 @@ impl super::Transpiler for setter_call::SetterCall {
 
         match self.operator {
         ellie_core::definite::types::operator::AssignmentOperators::Assignment => {
-            match target_last_instruction {
+            match &target_last_instruction {
                 instructions::Instructions::LDB(e) => match e.addressing_mode {
                     instructions::AddressingModes::Absolute(e) => {
                         instructions.push(instructions::Instructions::STC(Instruction::absolute(e)));
-                        assembler.instructions.extend(instructions);
-                            return true;
+                        assembler.instructions.extend(instructions.clone());
+                        assignment = true;
+                    }
+                    instructions::AddressingModes::AbsoluteIndex(pointer_address, index_address) => {
+                        instructions.push(instructions::Instructions::STC(Instruction::absolute_index(pointer_address, index_address)));
+                        assembler.instructions.extend(instructions.clone());
                     }
                     _ => unreachable!(
                         "Since this is setter its impossible to get a no absolute addressing mode"
@@ -71,19 +85,33 @@ impl super::Transpiler for setter_call::SetterCall {
         ellie_core::definite::types::operator::AssignmentOperators::Null => unreachable!(),
     }
 
-        match target_last_instruction {
-            instructions::Instructions::LDB(e) => match e.addressing_mode {
-                instructions::AddressingModes::Absolute(e) => {
-                    instructions.push(instructions::Instructions::STA(Instruction::absolute(e)));
-                }
-                _ => unreachable!(
-                    "Since this is setter its impossible to get a no absolute addressing mode"
-                ),
-            },
-            _ => unreachable!(),
+        if !assignment {
+            match target_last_instruction {
+                instructions::Instructions::LDB(e) => match e.addressing_mode {
+                    instructions::AddressingModes::Absolute(e) => {
+                        instructions
+                            .push(instructions::Instructions::STA(Instruction::absolute(e)));
+                    }
+                    _ => unreachable!(
+                        "Since this is setter its impossible to get a no absolute addressing mode"
+                    ),
+                },
+                _ => unreachable!(),
+            }
         }
 
         assembler.instructions.extend(instructions);
+        assembler.debug_headers.push(DebugHeader {
+            rtype: DebugHeaderType::SetterCall,
+            hash: 00009999999,
+            module: processed_page.path.clone(),
+            name: "@setter".to_string(),
+            start_end: (debug_header_start, assembler.location()),
+            pos: defs::Cursor {
+                range_start: self.target_pos.range_start,
+                range_end: self.value_pos.range_end,
+            },
+        });
         true
     }
 }

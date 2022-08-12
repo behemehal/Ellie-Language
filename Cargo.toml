@@ -1,7 +1,7 @@
 [package]
 name = "ellie_engine"
 version_code = "BeautifulTropicalFish"
-version = "0.8.1"
+version = "0.8.2"
 authors = ["Ahmetcan Aksu <ahmetcanaksu@behemehal.net>", "Behemehal <info@behemehal.net>"]
 edition = "2021"
 license-file = "LICENSE"
@@ -25,7 +25,8 @@ default = ["vm", "compiler", "build-cli"]
 compiler = ["ellie_tokenizer", "ellie_parser", "ellie_bytecode", "ellie_core/compiler_utils"]
 std = []
 vm = ["ellie_vm"]
-build-cli = ["path-absolutize", "regex", "bincode", "ellie_cli_utils", "serde", "serde_json", "std"]
+build-cli = ["path-absolutize", "regex", "bincode", "ellie_cli_utils", "serde", "serde_json", "std", "cli-utils"]
+cli-utils = []
 ellie_assistant = ["ellie_assist"]
 standard_rules =  ["ellie_parser/standard_rules"]
 

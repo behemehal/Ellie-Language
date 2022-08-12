@@ -6,6 +6,7 @@ use alloc::{
 use core::clone::Clone;
 use serde::{Deserialize, Serialize};
 #[doc(hidden)]
+#[cfg(feature = "compiler_utils")]
 pub mod warning_list;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

@@ -128,7 +128,17 @@ impl Program {
                                 args.clone().try_into().unwrap(),
                             ));
                         }
-                        AddressingModes::AbsoluteIndex => todo!(),
+                        AddressingModes::AbsoluteIndex => {
+                            let pointer = match reader.read_usize(self.arch.usize_len()) {
+                                Some(byte) => byte,
+                                None => return Err(0),
+                            };
+                            let index = match reader.read_usize(self.arch.usize_len()) {
+                                Some(byte) => byte,
+                                None => return Err(0),
+                            };
+                            addressing_value = AddressingValues::AbsoluteIndex(pointer, index);
+                        }
                         AddressingModes::AbsoluteProperty => todo!(),
                         AddressingModes::Implicit => todo!(),
                         AddressingModes::IndirectA => {
@@ -158,8 +168,6 @@ impl Program {
                 }
             }
             None => {
-                #[cfg(feature = "debug")]
-                println!("[VM]: Illegal op code {}", read_byte);
                 return Err(1);
             }
         };

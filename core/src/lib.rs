@@ -19,7 +19,6 @@ pub mod com;
 #[cfg(feature = "compiler_utils")]
 pub mod definite;
 pub mod defs;
-#[cfg(feature = "compiler_utils")]
 pub mod error;
 #[cfg(feature = "compiler_utils")]
 //cfg or
@@ -32,5 +31,4 @@ pub mod native;
 pub mod raw_type;
 #[cfg(feature = "compiler_utils")]
 pub mod utils;
-#[cfg(feature = "compiler_utils")]
 pub mod warning;

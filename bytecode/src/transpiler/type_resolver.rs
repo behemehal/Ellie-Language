@@ -71,6 +71,11 @@ pub fn resolve_type(
                 target_page,
                 dependencies.clone(),
             );
+            assembler
+                .instructions
+                .push(instructions::Instructions::STB(Instruction::implicit()));
+
+            let location_of_pointer = assembler.location();
 
             resolve_type(
                 assembler,
@@ -79,31 +84,41 @@ pub fn resolve_type(
                 target_page,
                 dependencies.clone(),
             );
-            assembler.instructions.push(instructions::Instructions::LDA(
-                instructions::Instruction::absolute_index(),
-            ));
+            assembler
+                .instructions
+                .push(instructions::Instructions::STC(Instruction::implicit()));
+
             match target_register {
-                instructions::Registers::A => (),
-                instructions::Registers::B => {
-                    assembler
-                        .instructions
-                        .push(instructions::Instructions::LDB(Instruction::indirect_a()));
-                }
-                instructions::Registers::C => {
-                    assembler
-                        .instructions
-                        .push(instructions::Instructions::LDC(Instruction::indirect_a()));
-                }
-                instructions::Registers::X => {
-                    assembler
-                        .instructions
-                        .push(instructions::Instructions::LDX(Instruction::indirect_a()));
-                }
-                instructions::Registers::Y => {
-                    assembler
-                        .instructions
-                        .push(instructions::Instructions::LDY(Instruction::indirect_a()));
-                }
+                instructions::Registers::A => assembler.instructions.push(
+                    instructions::Instructions::LDA(instructions::Instruction::absolute_index(
+                        location_of_pointer,
+                        assembler.location(),
+                    )),
+                ),
+                instructions::Registers::B => assembler.instructions.push(
+                    instructions::Instructions::LDB(instructions::Instruction::absolute_index(
+                        location_of_pointer,
+                        assembler.location(),
+                    )),
+                ),
+                instructions::Registers::C => assembler.instructions.push(
+                    instructions::Instructions::LDC(instructions::Instruction::absolute_index(
+                        location_of_pointer,
+                        assembler.location(),
+                    )),
+                ),
+                instructions::Registers::X => assembler.instructions.push(
+                    instructions::Instructions::LDX(instructions::Instruction::absolute_index(
+                        location_of_pointer,
+                        assembler.location(),
+                    )),
+                ),
+                instructions::Registers::Y => assembler.instructions.push(
+                    instructions::Instructions::LDY(instructions::Instruction::absolute_index(
+                        location_of_pointer,
+                        assembler.location(),
+                    )),
+                ),
             }
         }
         Types::Operator(operator) => match &operator.operator {
@@ -246,34 +261,43 @@ pub fn resolve_type(
             operator::Operators::Null => todo!(),
         },
         Types::Cloak(_) => todo!(),
-        Types::Array(_) => {
+        Types::Array(e) => {
+            let mut entries = vec![];
+
+            for entry in &e.collective {
+                resolve_type(
+                    assembler,
+                    &entry.value,
+                    instructions::Registers::A,
+                    target_page,
+                    dependencies.clone(),
+                );
+                assembler
+                    .instructions
+                    .push(instructions::Instructions::STA(Instruction::implicit()));
+                let location_of_data = assembler.instructions.len() - 1;
+                entries.extend(location_of_data.to_le_bytes());
+            }
+
+            let array_rtype = instructions::Types::Array(entries.len());
+
             let converted_type = convert_type(types, dependencies);
             match target_register {
-                instructions::Registers::A => {
-                    assembler.instructions.push(instructions::Instructions::LDA(
-                        Instruction::immediate(converted_type.0, converted_type.1),
-                    ))
-                }
-                instructions::Registers::B => {
-                    assembler.instructions.push(instructions::Instructions::LDB(
-                        Instruction::immediate(converted_type.0, converted_type.1),
-                    ))
-                }
-                instructions::Registers::C => {
-                    assembler.instructions.push(instructions::Instructions::LDC(
-                        Instruction::immediate(converted_type.0, converted_type.1),
-                    ))
-                }
-                instructions::Registers::X => {
-                    assembler.instructions.push(instructions::Instructions::LDX(
-                        Instruction::immediate(converted_type.0, converted_type.1),
-                    ))
-                }
-                instructions::Registers::Y => {
-                    assembler.instructions.push(instructions::Instructions::LDY(
-                        Instruction::immediate(converted_type.0, converted_type.1),
-                    ))
-                }
+                instructions::Registers::A => assembler.instructions.push(
+                    instructions::Instructions::LDA(Instruction::immediate(array_rtype, entries)),
+                ),
+                instructions::Registers::B => assembler.instructions.push(
+                    instructions::Instructions::LDB(Instruction::immediate(array_rtype, entries)),
+                ),
+                instructions::Registers::C => assembler.instructions.push(
+                    instructions::Instructions::LDC(Instruction::immediate(array_rtype, entries)),
+                ),
+                instructions::Registers::X => assembler.instructions.push(
+                    instructions::Instructions::LDX(Instruction::immediate(array_rtype, entries)),
+                ),
+                instructions::Registers::Y => assembler.instructions.push(
+                    instructions::Instructions::LDY(Instruction::immediate(array_rtype, entries)),
+                ),
             }
         }
         Types::Vector(_) => todo!(),
@@ -363,7 +387,15 @@ pub fn resolve_type(
                 ))
             }
         },
-        Types::NullResolver(_) => todo!(),
+        Types::NullResolver(e) => {
+            resolve_type(
+                assembler,
+                &e.target,
+                target_register,
+                target_page,
+                dependencies.clone(),
+            );
+        }
         Types::Negative(_) => todo!(),
         Types::VariableType(e) => {
             let pos = assembler.find_local(&e.value, dependencies).unwrap();
@@ -372,66 +404,41 @@ pub fn resolve_type(
 
             match target_register {
                 instructions::Registers::A => match pos.reference {
-                    Some(target_page) => {
-                        instructions.push(instructions::Instructions::AOL(Instruction::absolute(
-                            target_page,
-                        )));
-                        instructions.push(instructions::Instructions::LDA(Instruction::absolute(
-                            pos.cursor,
-                        )))
-                    }
+                    Some(target_page) => instructions.push(instructions::Instructions::LDA(
+                        Instruction::absolute(pos.cursor),
+                    )),
                     None => instructions.push(instructions::Instructions::LDA(
                         Instruction::absolute(pos.cursor),
                     )),
                 },
                 instructions::Registers::B => match pos.reference {
-                    Some(target_page) => {
-                        instructions.push(instructions::Instructions::AOL(Instruction::absolute(
-                            target_page,
-                        )));
-                        instructions.push(instructions::Instructions::LDB(Instruction::absolute(
-                            pos.cursor,
-                        )))
-                    }
+                    Some(target_page) => instructions.push(instructions::Instructions::LDB(
+                        Instruction::absolute(pos.cursor),
+                    )),
                     None => instructions.push(instructions::Instructions::LDB(
                         Instruction::absolute(pos.cursor),
                     )),
                 },
                 instructions::Registers::C => match pos.reference {
-                    Some(target_page) => {
-                        instructions.push(instructions::Instructions::AOL(Instruction::absolute(
-                            target_page,
-                        )));
-                        instructions.push(instructions::Instructions::LDC(Instruction::absolute(
-                            pos.cursor,
-                        )))
-                    }
+                    Some(target_page) => instructions.push(instructions::Instructions::LDC(
+                        Instruction::absolute(pos.cursor),
+                    )),
                     None => instructions.push(instructions::Instructions::LDC(
                         Instruction::absolute(pos.cursor),
                     )),
                 },
                 instructions::Registers::X => match pos.reference {
-                    Some(target_page) => {
-                        instructions.push(instructions::Instructions::AOL(Instruction::absolute(
-                            target_page,
-                        )));
-                        instructions.push(instructions::Instructions::LDX(Instruction::absolute(
-                            pos.cursor,
-                        )))
-                    }
+                    Some(target_page) => instructions.push(instructions::Instructions::LDX(
+                        Instruction::absolute(pos.cursor),
+                    )),
                     None => instructions.push(instructions::Instructions::LDX(
                         Instruction::absolute(pos.cursor),
                     )),
                 },
                 instructions::Registers::Y => match pos.reference {
-                    Some(target_page) => {
-                        instructions.push(instructions::Instructions::AOL(Instruction::absolute(
-                            target_page,
-                        )));
-                        instructions.push(instructions::Instructions::LDY(Instruction::absolute(
-                            pos.cursor,
-                        )))
-                    }
+                    Some(target_page) => instructions.push(instructions::Instructions::LDY(
+                        Instruction::absolute(pos.cursor),
+                    )),
                     None => instructions.push(instructions::Instructions::LDY(
                         Instruction::absolute(pos.cursor),
                     )),
