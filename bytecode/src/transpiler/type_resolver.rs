@@ -316,7 +316,8 @@ pub fn resolve_type(
                 .unwrap()
                 .clone();
 
-            for (idx, param) in function_call.params.iter().enumerate() {
+            let mut parameter_positions = vec![];
+            for param in &function_call.params {
                 resolve_type(
                     assembler,
                     &param.value,
@@ -324,8 +325,17 @@ pub fn resolve_type(
                     &target_page,
                     dependencies.clone(),
                 );
-
                 //Functions always reserve parameter spaces we're writing upper locations of function
+                assembler
+                    .instructions
+                    .push(instructions::Instructions::STA(Instruction::implicit()));
+                parameter_positions.push(assembler.location());
+            }
+
+            for (idx, param) in parameter_positions.iter().enumerate() {
+                assembler.instructions.push(instructions::Instructions::LDA(
+                    Instruction::absolute(*param),
+                ));
                 assembler.instructions.push(instructions::Instructions::STA(
                     Instruction::absolute(target.cursor - (idx + 1)),
                 ));

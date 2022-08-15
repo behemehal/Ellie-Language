@@ -1,3 +1,5 @@
+use std::println;
+
 use alloc::{vec, vec::Vec};
 use ellie_core::definite::items::condition;
 
@@ -50,7 +52,6 @@ impl super::Transpiler for condition::Condition {
             let start = assembler.location() + 1;
             condition_body_starts.push(start);
             assembler.assemble_dependency(&chain.inner_page_id);
-            //if idx != self.chains.len() - 1 {
             assembler
                 .instructions
                 .push(instructions::Instructions::JMPA(Instruction::absolute(123)));

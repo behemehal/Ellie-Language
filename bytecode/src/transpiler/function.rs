@@ -1,7 +1,10 @@
+use std::println;
+
 use crate::{
-    assembler::LocalHeader,
-    instructions::{self, Instruction, Instructions},
+    assembler::{self, LocalHeader},
+    instructions::{self, AddressingModes, Instruction, Instructions},
 };
+use alloc::vec::Vec;
 use ellie_core::{
     definite::items::function,
     defs::{Cursor, DebugHeader, DebugHeaderType},
@@ -61,7 +64,60 @@ impl super::Transpiler for function::Function {
             reference: Some(self.inner_page_id as usize),
         });
 
+        let inner_body_start = assembler.instructions.len();
+
         assembler.assemble_dependency(&self.inner_page_id);
+
+        let inner_body_end = assembler.instructions.len();
+
+        //Search for a call for debug_header_start in inner_body_start to inner_body_end
+
+        // If function has parameter its likely to be calling himself.
+        // If it calls himself it probably will change current parameter values
+        // So we need to save them before calling himself
+
+        if self.parameters.len() != 0 {
+            //Save current parameter values
+            let self_calls: Vec<usize> = assembler.instructions[inner_body_start..inner_body_end]
+                .iter()
+                .enumerate()
+                .filter_map(|(idx, element)| match element {
+                    Instructions::CALL(instruction) => match &instruction.addressing_mode {
+                        AddressingModes::Absolute(addr) => {
+                            if *addr == debug_header_start {
+                                Some(idx)
+                            } else {
+                                None
+                            }
+                        }
+                        _ => unreachable!(),
+                    },
+                    _ => None,
+                })
+                .collect();
+
+            for (call_idx, self_call) in assembler.instructions[inner_body_start..inner_body_end]
+                .iter()
+                .enumerate()
+            {
+                match self_call {
+                    Instructions::CALL(instruction) => match &instruction.addressing_mode {
+                        AddressingModes::Absolute(addr) => {
+                            if *addr == debug_header_start + 1 {
+                                for (idx, parameter) in self.parameters.iter().enumerate() {
+                                    let instruction_idx = addr - (self.parameters.len() - idx);
+                                    let assembler_instruction =
+                                        &assembler.instructions[instruction_idx];
+                                    println!("Call: ${addr}: param: ${:?}: ", assembler_instruction)
+                                }
+                            }
+                        }
+                        _ => unreachable!(),
+                    },
+                    _ => (),
+                }
+            }
+        }
 
         assembler
             .instructions

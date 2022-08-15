@@ -154,7 +154,8 @@ pub enum Instructions {
     JMP(Instruction),
     CALL(Instruction),
     RET(Instruction),
-    AOL(Instruction),
+    UGR(Instruction),
+    ULR(Instruction),
     PUSHA(Instruction),
     LEN(Instruction),
     A2I(Instruction),
@@ -322,11 +323,11 @@ impl Instructions {
                 addressing_mode: AddressingModes::IndirectB,
             })),
 
-            38 => Some(Instructions::LDY(Instruction {
+            37 => Some(Instructions::LDY(Instruction {
                 addressing_mode: AddressingModes::IndirectC,
             })),
 
-            37 => Some(Instructions::LDY(Instruction {
+            38 => Some(Instructions::LDY(Instruction {
                 addressing_mode: AddressingModes::IndirectX,
             })),
 
@@ -550,99 +551,107 @@ impl Instructions {
                 addressing_mode: AddressingModes::AbsoluteProperty,
             })),
 
-            94 => Some(Instructions::AOL(Instruction {
-                addressing_mode: AddressingModes::Absolute,
+            94 => Some(Instructions::UGR(Instruction {
+                addressing_mode: AddressingModes::Implicit,
             })),
 
-            95 => Some(Instructions::PUSHA(Instruction {
-                addressing_mode: AddressingModes::Absolute,
+            95 => Some(Instructions::ULR(Instruction {
+                addressing_mode: AddressingModes::Implicit,
             })),
 
-            96 => Some(Instructions::PUSHA(Instruction {
-                addressing_mode: AddressingModes::IndirectA,
+            96 => Some(Instructions::ULR(Instruction {
+                addressing_mode: AddressingModes::Absolute,
             })),
 
             97 => Some(Instructions::PUSHA(Instruction {
-                addressing_mode: AddressingModes::IndirectB,
+                addressing_mode: AddressingModes::Absolute,
             })),
 
             98 => Some(Instructions::PUSHA(Instruction {
-                addressing_mode: AddressingModes::IndirectC,
+                addressing_mode: AddressingModes::IndirectA,
             })),
 
             99 => Some(Instructions::PUSHA(Instruction {
-                addressing_mode: AddressingModes::IndirectX,
+                addressing_mode: AddressingModes::IndirectB,
             })),
 
             100 => Some(Instructions::PUSHA(Instruction {
-                addressing_mode: AddressingModes::IndirectY,
+                addressing_mode: AddressingModes::IndirectC,
             })),
 
             101 => Some(Instructions::PUSHA(Instruction {
-                addressing_mode: AddressingModes::AbsoluteIndex,
+                addressing_mode: AddressingModes::IndirectX,
             })),
 
             102 => Some(Instructions::PUSHA(Instruction {
+                addressing_mode: AddressingModes::IndirectY,
+            })),
+
+            103 => Some(Instructions::PUSHA(Instruction {
+                addressing_mode: AddressingModes::AbsoluteIndex,
+            })),
+
+            104 => Some(Instructions::PUSHA(Instruction {
                 addressing_mode: AddressingModes::AbsoluteProperty,
             })),
 
-            103 => Some(Instructions::LEN(Instruction {
+            105 => Some(Instructions::LEN(Instruction {
                 addressing_mode: AddressingModes::Implicit,
             })),
 
-            104 => Some(Instructions::A2I(Instruction {
+            106 => Some(Instructions::A2I(Instruction {
                 addressing_mode: AddressingModes::Implicit,
             })),
 
-            105 => Some(Instructions::A2F(Instruction {
+            107 => Some(Instructions::A2F(Instruction {
                 addressing_mode: AddressingModes::Implicit,
             })),
 
-            106 => Some(Instructions::A2D(Instruction {
+            108 => Some(Instructions::A2D(Instruction {
                 addressing_mode: AddressingModes::Implicit,
             })),
 
-            107 => Some(Instructions::A2B(Instruction {
+            109 => Some(Instructions::A2B(Instruction {
                 addressing_mode: AddressingModes::Implicit,
             })),
 
-            108 => Some(Instructions::A2S(Instruction {
+            110 => Some(Instructions::A2S(Instruction {
                 addressing_mode: AddressingModes::Implicit,
             })),
 
-            109 => Some(Instructions::A2C(Instruction {
+            111 => Some(Instructions::A2C(Instruction {
                 addressing_mode: AddressingModes::Implicit,
             })),
 
-            110 => Some(Instructions::A2O(Instruction {
+            112 => Some(Instructions::A2O(Instruction {
                 addressing_mode: AddressingModes::Implicit,
             })),
 
-            111 => Some(Instructions::JMPA(Instruction {
+            113 => Some(Instructions::JMPA(Instruction {
                 addressing_mode: AddressingModes::Absolute,
             })),
 
-            112 => Some(Instructions::POPS(Instruction {
+            114 => Some(Instructions::POPS(Instruction {
                 addressing_mode: AddressingModes::Implicit,
             })),
 
-            113 => Some(Instructions::ACP(Instruction {
+            115 => Some(Instructions::ACP(Instruction {
                 addressing_mode: AddressingModes::Absolute,
             })),
 
-            114 => Some(Instructions::BRK(Instruction {
+            116 => Some(Instructions::BRK(Instruction {
                 addressing_mode: AddressingModes::Implicit,
             })),
 
-            115 => Some(Instructions::CALLN(Instruction {
+            117 => Some(Instructions::CALLN(Instruction {
                 addressing_mode: AddressingModes::Immediate,
             })),
 
-            116 => Some(Instructions::CO(Instruction {
+            118 => Some(Instructions::CO(Instruction {
                 addressing_mode: AddressingModes::Absolute,
             })),
 
-            117 => Some(Instructions::FN(Instruction {
+            119 => Some(Instructions::FN(Instruction {
                 addressing_mode: AddressingModes::Immediate,
             })),
             _ => None,
@@ -680,7 +689,6 @@ impl Instructions {
             Instructions::JMP(e) => e.addressing_mode.clone(),
             Instructions::CALL(e) => e.addressing_mode.clone(),
             Instructions::RET(e) => e.addressing_mode.clone(),
-            Instructions::AOL(e) => e.addressing_mode.clone(),
             Instructions::PUSHA(e) => e.addressing_mode.clone(),
             Instructions::LEN(e) => e.addressing_mode.clone(),
             Instructions::A2I(e) => e.addressing_mode.clone(),
@@ -697,6 +705,8 @@ impl Instructions {
             Instructions::CALLN(e) => e.addressing_mode.clone(),
             Instructions::CO(e) => e.addressing_mode.clone(),
             Instructions::FN(e) => e.addressing_mode.clone(),
+            Instructions::UGR(e) => e.addressing_mode.clone(),
+            Instructions::ULR(e) => e.addressing_mode.clone(),
         }
     }
 }

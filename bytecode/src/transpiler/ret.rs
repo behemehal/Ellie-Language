@@ -25,7 +25,7 @@ impl super::Transpiler for ret::Ret {
 
         assembler
             .instructions
-            .push(instructions::Instructions::STA(Instruction::implicit()));
+            .push(instructions::Instructions::RET(Instruction::implicit()));
         true
     }
 }

@@ -305,7 +305,7 @@ lazy_static! {
             "ldy_indirect_c",
             Instruction {
                 rtype: "ldy",
-                code: 38,
+                code: 37,
                 mode: "indirect_c",
             },
         );
@@ -313,7 +313,7 @@ lazy_static! {
             "ldy_indirect_x",
             Instruction {
                 rtype: "ldy",
-                code: 37,
+                code: 38,
                 mode: "indirect_x",
             },
         );
@@ -758,10 +758,26 @@ lazy_static! {
             },
         );
         i.insert(
-            "aol_absolute",
+            "ugr_implicit",
             Instruction {
-                rtype: "aol",
+                rtype: "ugr",
                 code: 94,
+                mode: "implicit",
+            },
+        );
+        i.insert(
+            "ulr_implicit",
+            Instruction {
+                rtype: "ulr",
+                code: 95,
+                mode: "implicit",
+            },
+        );
+        i.insert(
+            "ulr_absolute",
+            Instruction {
+                rtype: "ulr",
+                code: 96,
                 mode: "absolute",
             },
         );
@@ -769,7 +785,7 @@ lazy_static! {
             "pusha_absolute",
             Instruction {
                 rtype: "pusha",
-                code: 95,
+                code: 97,
                 mode: "absolute",
             },
         );
@@ -777,7 +793,7 @@ lazy_static! {
             "pusha_indirect_a",
             Instruction {
                 rtype: "pusha",
-                code: 96,
+                code: 98,
                 mode: "indirect_a",
             },
         );
@@ -785,7 +801,7 @@ lazy_static! {
             "pusha_indirect_b",
             Instruction {
                 rtype: "pusha",
-                code: 97,
+                code: 99,
                 mode: "indirect_b",
             },
         );
@@ -793,7 +809,7 @@ lazy_static! {
             "pusha_indirect_c",
             Instruction {
                 rtype: "pusha",
-                code: 98,
+                code: 100,
                 mode: "indirect_c",
             },
         );
@@ -801,7 +817,7 @@ lazy_static! {
             "pusha_indirect_x",
             Instruction {
                 rtype: "pusha",
-                code: 99,
+                code: 101,
                 mode: "indirect_x",
             },
         );
@@ -809,7 +825,7 @@ lazy_static! {
             "pusha_indirect_y",
             Instruction {
                 rtype: "pusha",
-                code: 100,
+                code: 102,
                 mode: "indirect_y",
             },
         );
@@ -817,7 +833,7 @@ lazy_static! {
             "pusha_absolute_index",
             Instruction {
                 rtype: "pusha",
-                code: 101,
+                code: 103,
                 mode: "absolute_index",
             },
         );
@@ -825,7 +841,7 @@ lazy_static! {
             "pusha_absolute_property",
             Instruction {
                 rtype: "pusha",
-                code: 102,
+                code: 104,
                 mode: "absolute_property",
             },
         );
@@ -833,7 +849,7 @@ lazy_static! {
             "len_implicit",
             Instruction {
                 rtype: "len",
-                code: 103,
+                code: 105,
                 mode: "implicit",
             },
         );
@@ -841,7 +857,7 @@ lazy_static! {
             "a2i_implicit",
             Instruction {
                 rtype: "a2i",
-                code: 104,
+                code: 106,
                 mode: "implicit",
             },
         );
@@ -849,7 +865,7 @@ lazy_static! {
             "a2f_implicit",
             Instruction {
                 rtype: "a2f",
-                code: 105,
+                code: 107,
                 mode: "implicit",
             },
         );
@@ -857,7 +873,7 @@ lazy_static! {
             "a2d_implicit",
             Instruction {
                 rtype: "a2d",
-                code: 106,
+                code: 108,
                 mode: "implicit",
             },
         );
@@ -865,7 +881,7 @@ lazy_static! {
             "a2b_implicit",
             Instruction {
                 rtype: "a2b",
-                code: 107,
+                code: 109,
                 mode: "implicit",
             },
         );
@@ -873,7 +889,7 @@ lazy_static! {
             "a2s_implicit",
             Instruction {
                 rtype: "a2s",
-                code: 108,
+                code: 110,
                 mode: "implicit",
             },
         );
@@ -881,7 +897,7 @@ lazy_static! {
             "a2c_implicit",
             Instruction {
                 rtype: "a2c",
-                code: 109,
+                code: 111,
                 mode: "implicit",
             },
         );
@@ -889,7 +905,7 @@ lazy_static! {
             "a2o_implicit",
             Instruction {
                 rtype: "a2o",
-                code: 110,
+                code: 112,
                 mode: "implicit",
             },
         );
@@ -897,7 +913,7 @@ lazy_static! {
             "jmpa_absolute",
             Instruction {
                 rtype: "jmpa",
-                code: 111,
+                code: 113,
                 mode: "absolute",
             },
         );
@@ -905,7 +921,7 @@ lazy_static! {
             "pops_implicit",
             Instruction {
                 rtype: "pops",
-                code: 112,
+                code: 114,
                 mode: "implicit",
             },
         );
@@ -913,7 +929,7 @@ lazy_static! {
             "acp_absolute",
             Instruction {
                 rtype: "acp",
-                code: 113,
+                code: 115,
                 mode: "absolute",
             },
         );
@@ -921,7 +937,7 @@ lazy_static! {
             "brk_implicit",
             Instruction {
                 rtype: "brk",
-                code: 114,
+                code: 116,
                 mode: "implicit",
             },
         );
@@ -929,7 +945,7 @@ lazy_static! {
             "calln_immediate",
             Instruction {
                 rtype: "calln",
-                code: 115,
+                code: 117,
                 mode: "immediate",
             },
         );
@@ -937,7 +953,7 @@ lazy_static! {
             "co_absolute",
             Instruction {
                 rtype: "co",
-                code: 116,
+                code: 118,
                 mode: "absolute",
             },
         );
@@ -945,7 +961,7 @@ lazy_static! {
             "fn_immediate",
             Instruction {
                 rtype: "fn",
-                code: 117,
+                code: 119,
                 mode: "immediate",
             },
         );

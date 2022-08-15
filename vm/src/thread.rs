@@ -29,6 +29,7 @@ pub struct Stack {
     pub id: usize,
     pub name: String,
     pub caller: Option<usize>,
+    pub registers: Registers,
     pub pos: usize,
 }
 
@@ -1652,7 +1653,7 @@ where
                             return Err(ThreadExit::Panic(ThreadPanic {
                                 reason: ThreadPanicReason::UnmergebleTypes,
                                 stack_trace: self.stack.stack.clone(),
-                                code_location: format!("{}:{}", file!(), line!()),
+                                code_location: format!("{}:{}:\n{:?}:{:?}", file!(), line!(), b, c),
                             }));
                         }
                     }
@@ -1992,6 +1993,13 @@ where
                     match self.stack.push(Stack {
                         id: *stack_pos,
                         name: format!("fn<{}>", stack_pos),
+                        registers: Registers {
+                            A: RawType::void(),
+                            B: RawType::void(),
+                            C: RawType::void(),
+                            X: RawType::void(),
+                            Y: RawType::void(),
+                        },
                         caller: Some(current_stack_id),
                         pos: *stack_pos,
                     }) {
@@ -2074,18 +2082,6 @@ where
                 utils::AddressingValues::IndirectX => todo!(),
                 utils::AddressingValues::IndirectY => todo!(),
             },
-            Instructions::AOL(_) => {
-                #[cfg(feature = "debug")]
-                println!(
-                    "{}[VM]{} Ignore aol: {}",
-                    utils::Colors::Yellow,
-                    utils::Colors::Reset,
-                    match current_instruction.addressing_value {
-                        utils::AddressingValues::Absolute(e) => e,
-                        _ => unreachable!("Wrong op-code"),
-                    }
-                );
-            }
             Instructions::PUSHA(_) => todo!(),
             Instructions::LEN(_) => todo!(),
             Instructions::A2I(_) => match current_instruction.addressing_value {
@@ -2348,6 +2344,8 @@ where
                     _ => unreachable!("Illegal addressing value"),
                 };
             }
+            Instructions::UGR(_) => todo!(),
+            Instructions::ULR(_) => todo!(),
         }
         if drop_current_stack {
             self.stack.pop();

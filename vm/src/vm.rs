@@ -10,7 +10,7 @@ use ellie_core::{
 use crate::{
     heap::Heap,
     program::{Program, ReadInstruction},
-    thread::{Stack, Thread},
+    thread::{Registers, Stack, Thread},
     utils::{ThreadExit, ThreadStepInfo},
 };
 
@@ -66,6 +66,13 @@ where
             .push(Stack {
                 id: main_hash,
                 name: "<ellie_main>".to_string(),
+                registers: Registers {
+                    A: RawType::void(),
+                    B: RawType::void(),
+                    C: RawType::void(),
+                    X: RawType::void(),
+                    Y: RawType::void(),
+                },
                 caller: None,
                 pos: main,
             })
