@@ -78,3 +78,9 @@
   Fix null resolver & not operator conflict
 - ByteCode v0.1.1
   Fix code order problems [e4af101b8f51d297b23550826559a9c9ceebd516](https://github.com/behemehal/Ellie-Language/commit/e4af101b8f51d297b23550826559a9c9ceebd516)
+
+# v0.8.2
+- EllieEngine
+  Add tools && local registers [fb7a2797afa9d6b88b781d3120f0b7b0df9fdadb](https://github.com/behemehal/Ellie-Language/commit/fb7a2797afa9d6b88b781d3120f0b7b0df9fdadb)
+- Tokenizer v0.4.6
+  Fix operator errors [38415a241962103f05ee47090b0a3946ee65bcac](https://github.com/behemehal/Ellie-Language/commit/38415a241962103f05ee47090b0a3946ee65bcac)
