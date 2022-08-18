@@ -5,38 +5,41 @@ class Chunker<T> {
     co(chunkCount, items);
     pri v chunkCount : int;
     pri v items : [T, *]; //This is a dynamic array
-    fn chunks() > [[T, *], *) {
+
+    fn chunks() : [[T, *], *] {
         v chunks : [[T, *], *];
-        v temp : [T, this.chunkCount];
+        v temp : [T, self.chunkCount];
         //iter 0 to given items length, write to variable i
-        for i : this.items.len {
-            if temp.len == this.chunkCount { //if we reached given cut size
-                chunks.push(tempList); //Push chunk to main array
-                tempList.empty(); //Clear temp array
+        for i : self.items.len {
+            if temp.len == self.chunkCount { //if we reached given cut size
+                chunks.push(temp); //Push chunk to main array
+                temp.clean(); //Clear temp array
             } else {
-                temp.push(this.items.at(i)); //Add to temp array until its full of given limit
+                temp.push(this.items[i]!); //Add to temp array until its full of given limit
             }
         }
-        if tempList.len != 0 { //If temp array isn't empty push remaining chunk to main array
-            chunks.push(tempList);
-            tempList.clean(); //Clear temp array
+        if temp.len != 0 { //If temp array isn't empty push remaining chunk to main array
+            chunks.push(temp);
+            temp.clean(); //Clear temp array
         }
         ret chunks; //Return main array
     }
 }
 
-//Usage:
-v categories : [int, *] = [
-     1,
-     2,
-     3,
-     4,
-     5,
-     6,
-     7,
-     8,
-     9
-];
+fn main() {
+    //Usage:
+    v categories : [int, *] = [
+         1,
+         2,
+         3,
+         4,
+         5,
+         6,
+         7,
+         8,
+         9
+    ];
 
-v chunker = new Chunker(3, categories);
-v chunked = chunker.chunks();
+    v chunker = new Chunker(3, categories);
+    v chunked = chunker.chunks();
+}

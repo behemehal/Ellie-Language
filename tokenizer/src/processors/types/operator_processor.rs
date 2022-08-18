@@ -1,14 +1,20 @@
 use crate::{
-    processors::types::{Processors, TypeProcessor},
-    syntax::types::operator_type::{self, ComparisonOperators},
+    processors::{
+        types::{Processors, TypeProcessor},
+        Processor,
+    },
+    syntax::types::operator_type::{
+        self, ComparisonOperators, OperatorType, OperatorTypeCollector,
+    },
 };
 use ellie_core::{
     definite::Converter,
-    defs, error,
-    utils::{self, operator_priority},
+    defs::{self, Cursor},
+    error,
+    utils::{self, colapseable_operator, operator_priority},
 };
 
-impl crate::processors::Processor for operator_type::OperatorTypeCollector {
+impl Processor for operator_type::OperatorTypeCollector {
     fn iterate(
         &mut self,
         errors: &mut Vec<error::Error>,
@@ -17,6 +23,7 @@ impl crate::processors::Processor for operator_type::OperatorTypeCollector {
         letter_char: char,
     ) -> bool {
         let mut hang = false;
+
         if !self.operator_collected {
             if let Some(operator) =
                 utils::resolve_operator(&(self.operator_collect.clone() + &letter_char.to_string()))
@@ -63,19 +70,35 @@ impl crate::processors::Processor for operator_type::OperatorTypeCollector {
                         }
                     }
                 }
+                self.operator_collect += &letter_char.to_string();
                 self.data.pos.range_end = cursor;
-            } else if self.operator_collect != "" {
-                if let Processors::Operator(operator) = *self.data.first.clone() {
-                    let first_priority = operator_priority(&operator.operator_collect);
-                    let second_priority = operator_priority(&self.operator_collect);
-                    if first_priority > second_priority {
-                        self.data.first = operator.data.first.clone();
-                        self.operator_collect = operator.operator_collect;
-                        self.itered_cache = Box::new(TypeProcessor {
-                            current: Processors::Operator(operator_type::OperatorTypeCollector {
+                return hang;
+            } else if self.operator_collect != ""
+                && self.data.operator != operator_type::Operators::Null
+            {
+                self.operator_collected = true;
+            } else {
+                self.operator_collect += &letter_char.to_string();
+            }
+        }
+        if self.operator_collected {
+            hang = self
+                .itered_cache
+                .iterate(errors, cursor, last_char, letter_char);
+
+            if let Processors::Operator(x) = self.itered_cache.current.clone() {
+                if x.operator_collected {
+                    if colapseable_operator(
+                        self.data.operator.clone().to_definite(),
+                        x.data.operator.clone().to_definite(),
+                    ) {
+                        self.data.first =
+                            Box::new(Processors::Operator(operator_type::OperatorTypeCollector {
                                 data: operator_type::OperatorType {
-                                    first: operator.data.second.clone(),
-                                    first_pos: operator.data.first_pos,
+                                    first: self.data.first.clone(),
+                                    first_pos: self.data.first_pos,
+                                    second: x.data.first.clone(),
+                                    second_pos: x.data.first_pos,
                                     operator: self.data.operator.clone(),
                                     pos: defs::Cursor::build_from_cursor(cursor.clone()),
                                     ..Default::default()
@@ -83,23 +106,18 @@ impl crate::processors::Processor for operator_type::OperatorTypeCollector {
                                 operator_collected: true,
                                 first_filled: true,
                                 ..Default::default()
-                            }),
-                            ignore: false,
-                        });
-                        self.data.operator = operator.data.operator;
+                            }));
+
+                        self.data.second = Box::new(x.itered_cache.current.clone());
+                        self.itered_cache = x.itered_cache.clone();
+                        self.data.operator = x.data.operator.clone();
+                        self.operator_collect = "".to_string();
+                        self.operator_collected = x.operator_collected;
+                        return hang;
                     }
+                    //panic!("expected behaviour: {:#?}", x);
                 }
-
-                self.operator_collected = true;
             }
-        }
-
-        if !self.operator_collected {
-            self.operator_collect += &letter_char.to_string();
-        } else {
-            hang = self
-                .itered_cache
-                .iterate(errors, cursor, last_char, letter_char);
 
             if letter_char != ' ' && self.data.second_pos.range_start.is_zero() {
                 self.data.second_pos.range_start = cursor.clone();
@@ -164,7 +182,6 @@ impl crate::processors::Processor for operator_type::OperatorTypeCollector {
                 }
             }
         }
-
         hang
     }
 }

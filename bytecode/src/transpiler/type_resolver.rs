@@ -185,7 +185,54 @@ pub fn resolve_type(
                     }
                 }
             }
-            operator::Operators::LogicalType(_) => todo!(),
+            operator::Operators::LogicalType(e) => {
+                resolve_type(
+                    assembler,
+                    &operator.second,
+                    instructions::Registers::C,
+                    target_page,
+                    dependencies.clone(),
+                );
+                resolve_type(
+                    assembler,
+                    &operator.first,
+                    instructions::Registers::B,
+                    target_page,
+                    dependencies,
+                );
+                assembler.instructions.push(match e {
+                    operator::LogicalOperators::And => {
+                        instructions::Instructions::AND(Instruction::implicit())
+                    }
+                    operator::LogicalOperators::Or => {
+                        instructions::Instructions::OR(Instruction::implicit())
+                    }
+                    _ => unreachable!(),
+                });
+                match target_register {
+                    instructions::Registers::A => (),
+                    instructions::Registers::B => {
+                        assembler
+                            .instructions
+                            .push(instructions::Instructions::LDB(Instruction::indirect_a()));
+                    }
+                    instructions::Registers::C => {
+                        assembler
+                            .instructions
+                            .push(instructions::Instructions::LDC(Instruction::indirect_a()));
+                    }
+                    instructions::Registers::X => {
+                        assembler
+                            .instructions
+                            .push(instructions::Instructions::LDX(Instruction::indirect_a()));
+                    }
+                    instructions::Registers::Y => {
+                        assembler
+                            .instructions
+                            .push(instructions::Instructions::LDY(Instruction::indirect_a()));
+                    }
+                }
+            }
             operator::Operators::ArithmeticType(e) => {
                 resolve_type(
                     assembler,

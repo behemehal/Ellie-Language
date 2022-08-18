@@ -1,7 +1,7 @@
 [package]
 name = "ellie_tokenizer"
 description = "Tokenizer for ellie language"
-version = "0.4.5"
+version = "0.4.6"
 authors = ["Ahmetcan Aksu <ahmetcanaksu@behemehal.net>"]
 edition = "2021"
 license = "GPL-2.0"
@@ -12,6 +12,9 @@ enum-as-inner = "0.3.3"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
 
+[dev-dependencies]
+ellie_core = { path = "../core", version = "*", features = ["compiler_utils"] }
+
 [features]
-default = ["std"]
+default = []
 std = []

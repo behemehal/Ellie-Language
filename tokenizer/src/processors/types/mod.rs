@@ -25,6 +25,8 @@ use ellie_core::{
 use enum_as_inner::EnumAsInner;
 use serde::{Deserialize, Serialize};
 
+use super::Processor;
+
 #[derive(Debug, Clone, Serialize, Deserialize, EnumAsInner)]
 pub enum Processors {
     Integer(integer_type::IntegerTypeCollector),
@@ -393,38 +395,14 @@ impl super::Processor for TypeProcessor {
                 ..Default::default()
             });
         } else if letter_char == '!' && last_char != ' ' && self.current.is_complete() {
-            if self.current.as_operator().is_some() {
-                let operator = self.current.as_operator().unwrap().clone();
-                self.current = Processors::Operator(operator_type::OperatorTypeCollector {
-                    data: operator_type::OperatorType {
-                        first: operator.data.first.clone(),
-                        second: Box::new(Processors::NullResolver(null_resolver::NullResolver {
-                            target: operator.data.second,
-                            target_pos: operator.data.second_pos,
-                            pos: operator.data.second_pos,
-                        })),
-                        first_pos: operator.data.first_pos,
-                        pos: defs::Cursor {
-                            range_start: operator.data.first_pos.range_start,
-                            ..Default::default()
-                        },
-                        second_pos: operator.data.second_pos,
-                        operator: operator.data.operator.clone(),
-                    },
-                    operator_collect: "!".to_string(),
-                    first_filled: true,
-                    ..Default::default()
-                });
-            } else {
-                self.current = Processors::NullResolver(null_resolver::NullResolver {
-                    target: Box::new(self.current.clone()),
-                    target_pos: self.current.get_pos(),
-                    pos: defs::Cursor {
-                        range_start: self.current.get_pos().range_start,
-                        range_end: defs::CursorPosition::default(),
-                    },
-                });
-            }
+            self.current = Processors::NullResolver(null_resolver::NullResolver {
+                target: Box::new(self.current.clone()),
+                target_pos: self.current.get_pos(),
+                pos: defs::Cursor {
+                    range_start: self.current.get_pos().range_start,
+                    range_end: defs::CursorPosition::default(),
+                },
+            });
         } else if letter_char == '"' && not_initalized {
             self.current = Processors::String(string_type::StringTypeCollector {
                 data: string_type::StringType {
@@ -531,37 +509,11 @@ impl super::Processor for TypeProcessor {
             }
         } else if self.is_complete()
             && utils::is_operator_start(letter_char)
+            && self.current.as_operator().is_none()
             && !(matches!(self.current.clone(), Processors::AsKeyword(e) if matches!(e.data.rtype.definer_type, crate::syntax::items::definers::DefinerTypes::Generic(_))))
         {
             //Operator priority
-            if self.current.clone().as_operator().is_some()
-                && (letter_char == '/' || letter_char == '*' || letter_char == '%')
-            {
-                let operator = self.current.as_operator().unwrap().clone();
-                self.current = Processors::Operator(operator_type::OperatorTypeCollector {
-                    data: operator_type::OperatorType {
-                        first: operator.data.first,
-                        first_pos: self.current.get_pos(),
-                        operator: operator.data.operator,
-                        pos: defs::Cursor::build_from_cursor(cursor.clone()),
-                        ..Default::default()
-                    },
-                    itered_cache: Box::new(TypeProcessor {
-                        current: Processors::Operator(operator_type::OperatorTypeCollector {
-                            data: operator_type::OperatorType {
-                                first: operator.data.second,
-                                ..Default::default()
-                            },
-                            first_filled: true,
-                            ..Default::default()
-                        }),
-                        ignore: false,
-                    }),
-                    operator_collected: true,
-                    first_filled: true,
-                    ..Default::default()
-                });
-            } else if self.current.as_null_resolver().is_some() && letter_char == '=' {
+            if self.current.as_null_resolver().is_some() && last_char != ' ' && letter_char == '=' {
                 let null_r = self.current.as_null_resolver().unwrap();
                 self.current = Processors::Operator(operator_type::OperatorTypeCollector {
                     data: operator_type::OperatorType {

@@ -1,39 +1,106 @@
 #[cfg(test)]
 mod operator_tests {
     use ellie_core::{defs, error};
-    use ellie_tokenizer::processors::types::{Processor, TypeProcessor};
-    use std::{
-        collections::hash_map::DefaultHasher,
-        hash::{Hash, Hasher},
+    use ellie_tokenizer::processors::{
+        types::{Processors, TypeProcessor},
+        Processor,
     };
-    const TESTS: [(&str, u64); 22] = [
-        ("1 == 1", 1572873490758581171),
-        ("1 != 1", 9413585100029929209),
-        ("1 > 1", 13711150573099223623),
-        ("1 < 1", 12676758993113139150),
-        ("1 >= 1", 6824084718630420199),
-        ("1 <= 1", 12415793322580424519),
-        ("1 && 1", 4407946824911942592),
-        ("1 || 1", 18140830169173162077),
-        ("1 + 1", 3627442587398136094),
-        ("1 - 1", 7939643668105705876),
-        ("1 * 1", 10349208660342430509),
-        ("1 / 1", 6922215629933148984),
-        ("1 % 1", 9652318629991548007),
-        ("1 = 1", 2373092736875450081),
-        ("1 += 1", 7516030630301770133),
-        ("1 -= 1", 418824619721974229),
-        ("1 *= 1", 310090996770967782),
-        ("1 /= 1", 2218490824804697390),
-        ("1 %= 1", 3733652645927787300),
-        ("1 **= 1", 1849410128329509803),
-        ("1 + 1 * 2", 8914537564132841071),
-        ("1 + 1 * 2 * 2", 9203198762435174590),
+    const TESTS: [(&str, &str); 56] = [
+        ("2 = 2 = 3", "(2 Assignment (2 Assignment 3))"),
+        (" 2 + 2 == 2 + 2 ", "((2 Add 2) Equal (2 Add 2))"),
+        (" 2 * 2 == 4", "((2 Mul 2) Equal 4)"),
+        (" 2 / 2 == 1", "((2 Div 2) Equal 1)"),
+        (" 2 % 2 == 0", "((2 Mod 2) Equal 0)"),
+        (" 2 - 2 == 0", "((2 Sub 2) Equal 0)"),
+        (" 2 == 2", "(2 Equal 2)"),
+        (" 2 != 2", "(2 NotEqual 2)"),
+        (" 2 > 2", "(2 GreaterThan 2)"),
+        (" 2 >= 2", "(2 GreaterThanOrEqual 2)"),
+        (" 2 < 2", "(2 LessThan 2)"),
+        (" 2 <= 2", "(2 LessThanOrEqual 2)"),
+        (" 2 && 2", "(2 And 2)"),
+        (" 2 || 2", "(2 Or 2)"),
+        (" 2 += 2", "(2 AddAssignment 2)"),
+        (" 2 -= 2", "(2 SubAssignment 2)"),
+        (" 2 *= 2", "(2 MulAssignment 2)"),
+        (" 2 /= 2", "(2 DivAssignment 2)"),
+        (" 2 %= 2", "(2 ModAssignment 2)"),
+        (" 2 = 2", "(2 Assignment 2)"),
+        (" 2 += 2", "(2 AddAssignment 2)"),
+        (" 2 -= 2", "(2 SubAssignment 2)"),
+        (" 2 *= 2", "(2 MulAssignment 2)"),
+        (" 2 /= 2", "(2 DivAssignment 2)"),
+        (" 2 %= 2", "(2 ModAssignment 2)"),
+        (" 2 = 2", "(2 Assignment 2)"),
+        (" 2 == 2", "(2 Equal 2)"),
+        (" 2 != 2", "(2 NotEqual 2)"),
+        (" 2 > 2", "(2 GreaterThan 2)"),
+        (" 2 >= 2", "(2 GreaterThanOrEqual 2)"),
+        (" 2 < 2", "(2 LessThan 2)"),
+        (" 2 <= 2", "(2 LessThanOrEqual 2)"),
+        (" 2 && 2", "(2 And 2)"),
+        (" 2 || 2", "(2 Or 2)"),
+        (" 2 += 2", "(2 AddAssignment 2)"),
+        (" 2 -= 2", "(2 SubAssignment 2)"),
+        (" 2 *= 2", "(2 MulAssignment 2)"),
+        (" 2 /= 2", "(2 DivAssignment 2)"),
+        (" 2 %= 2", "(2 ModAssignment 2)"),
+        (" 2 = 2", "(2 Assignment 2)"),
+        (" 2 == 2", "(2 Equal 2)"),
+        (" 2 != 2", "(2 NotEqual 2)"),
+        (" 2 > 2", "(2 GreaterThan 2)"),
+        (" 2 >= 2", "(2 GreaterThanOrEqual 2)"),
+        (" 2 < 2", "(2 LessThan 2)"),
+        (" 2 <= 2", "(2 LessThanOrEqual 2)"),
+        (" 2 && 2", "(2 And 2)"),
+        (" 2 || 2", "(2 Or 2)"),
+        (" 2 += 2", "(2 AddAssignment 2)"),
+        (" 2 -= 2", "(2 SubAssignment 2)"),
+        (" 2 *= 2", "(2 MulAssignment 2)"),
+        (" 2 /= 2", "(2 DivAssignment 2)"),
+        (" 2 %= 2", "(2 ModAssignment 2)"),
+        (" 2 = 2", "(2 Assignment 2)"),
+        (
+            "1 == 2 && 3 == 2 + 2",
+            "((1 Equal 2) And (3 Equal (2 Add 2)))",
+        ),
+        (
+            "1 == 2 && 3 == 2 + 2 || true == true",
+            "(((1 Equal 2) And (3 Equal (2 Add 2))) Or (true Equal true))",
+        ),
     ];
 
     #[test]
     fn operator_with_no_error() {
-        fn process(input: &str) -> Option<u64> {
+        fn stringify_type(rtype: Processors) -> String {
+            match rtype.clone() {
+                Processors::Integer(e) => format!("{}", e.data.value),
+                Processors::Byte(e) => format!("0x{:x}", e.value),
+                Processors::Float(e) => format!("f:{}", e.data.value),
+                Processors::Char(e) => format!("'{}'", e.value),
+                Processors::String(e) => format!("\"{}\"", e.data.value),
+                Processors::Operator(_) => stringify_opearator(rtype),
+                Processors::Variable(e) => e.data.value,
+                Processors::NullResolver(e) => {
+                    format!("NullResolve({})", stringify_type(*e.target.clone()))
+                }
+                Processors::Negative(e) => format!("Neg({})", stringify_type(*e.value)),
+                _ => panic!("Unexpected behaviour: {:?}", rtype),
+            }
+        }
+
+        fn stringify_opearator(rtype: Processors) -> String {
+            match rtype {
+                Processors::Operator(e) => {
+                    let first = stringify_type(*e.data.first);
+                    let second = stringify_type(*e.data.second);
+                    format!("({} {} {})", first, e.data.operator.to_string(), second)
+                }
+                _ => stringify_type(rtype),
+            }
+        }
+
+        fn run_op_str(input: String) -> Result<String, String> {
             let mut pos = defs::CursorPosition::default();
             let mut errors: Vec<error::Error> = Vec::new();
             let mut processor: TypeProcessor = TypeProcessor::default();
@@ -45,22 +112,21 @@ mod operator_tests {
             }
 
             if errors.is_empty() {
-                let mut result_hash = DefaultHasher::new();
-                format!("{:?}", processor).hash(&mut result_hash);
-                Some(result_hash.finish())
+                Ok(stringify_opearator(processor.current.clone()))
             } else {
-                None
+                Err(format!("err: {:#?}", errors))
             }
         }
 
-        let mut has_err = false;
-
-        for i in TESTS {
-            has_err = match process(i.0) {
-                Some(e) => e != i.1,
-                None => true,
-            };
+        for (input, expected) in TESTS.iter() {
+            match run_op_str(input.to_string()) {
+                Ok(result) => {
+                    assert_eq!(result, expected.to_string());
+                }
+                Err(err) => {
+                    assert!(false);
+                }
+            }
         }
-        assert!(!has_err);
     }
 }

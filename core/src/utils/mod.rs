@@ -9,6 +9,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::definite::types::operator::{
     assignment_operator_to_string, comparison_operator_to_string, logical_operator_to_string,
+    ArithmeticOperators, AssignmentOperators,
 };
 use crate::definite::{definers::DefinerCollecting, types::operator::Operators};
 use crate::{defs, error};
@@ -182,23 +183,163 @@ pub enum FoundExtended {
     AssignmentOperator,
 }
 
+pub fn colapseable_operator(parent: Operators, child: Operators) -> bool {
+    match parent {
+        Operators::ComparisonType(_) => {
+            match child {
+                // 2 == 2 == 2 This is faulty chain for ellie but should collapse like this (2 == 2) == 2
+                Operators::ComparisonType(_) => true,
+                // 2 == 2 && 2 == 2 : (2 == 2) && (2 == 2)
+                Operators::LogicalType(_) => true,
+                // 2 == 1 + 1 : 2 == (1 + 1)
+                Operators::ArithmeticType(_) => false,
+                // v a : int = 2;
+                // 4 == a *= 2 : 4 == (a *= 2)
+                Operators::AssignmentType(_) => false,
+                Operators::Null => unreachable!(),
+            }
+        }
+        Operators::LogicalType(_) => {
+            //This idiot should mind his own business
+            match child {
+                Operators::LogicalType(_) => true,
+                Operators::Null => unreachable!(),
+                _ => false,
+            }
+        }
+        Operators::ArithmeticType(parent_inner) => {
+            match child {
+                // 2 + 2 == 4 : (2 + 2) == 4
+                // steal 2 from ComparisonType
+                Operators::ComparisonType(_) => true,
+                // 2 + 2 && 1  : (2 + 2) && 1
+                Operators::LogicalType(_) => true,
+                // here is the problem
+                Operators::ArithmeticType(child_inner) => {
+                    match parent_inner {
+                        ArithmeticOperators::Addition => {
+                            match child_inner {
+                                ArithmeticOperators::Addition => true,
+                                ArithmeticOperators::Subtraction => true,
+
+                                //Basic math
+                                ArithmeticOperators::Multiplication => false,
+                                ArithmeticOperators::Exponentiation => false,
+                                ArithmeticOperators::Division => false,
+                                ArithmeticOperators::Modulus => false,
+
+                                ArithmeticOperators::Null => unreachable!(),
+                            }
+                        }
+                        ArithmeticOperators::Subtraction => match child_inner {
+                            ArithmeticOperators::Addition => false,
+                            ArithmeticOperators::Subtraction => false,
+
+                            //Basic math
+                            ArithmeticOperators::Multiplication => true,
+                            ArithmeticOperators::Exponentiation => true,
+                            ArithmeticOperators::Division => true,
+                            ArithmeticOperators::Modulus => true,
+
+                            ArithmeticOperators::Null => unreachable!(),
+                        },
+                        ArithmeticOperators::Null => unreachable!(),
+                        //other operators has high priorty
+                        _ => match child_inner {
+                            ArithmeticOperators::Addition => false,
+                            ArithmeticOperators::Subtraction => false,
+
+                            ArithmeticOperators::Multiplication => true,
+                            ArithmeticOperators::Exponentiation => true,
+                            ArithmeticOperators::Division => true,
+                            ArithmeticOperators::Modulus => true,
+
+                            ArithmeticOperators::Null => unreachable!(),
+                        },
+                    }
+                }
+                Operators::AssignmentType(_) => todo!(),
+                Operators::Null => todo!(),
+            }
+        }
+        Operators::AssignmentType(parent_inner) => {
+            match child {
+                // 2 + 2 == 4 : (2 + 2) == 4
+                // steal 2 from ComparisonType
+                Operators::ComparisonType(_) => true,
+                // 2 + 2 && 1  : (2 + 2) && 1
+                Operators::LogicalType(_) => true,
+                // here is the problem
+                Operators::ArithmeticType(child_inner) => {
+                    match parent_inner {
+                        AssignmentOperators::AdditionAssignment => {
+                            match child_inner {
+                                ArithmeticOperators::Addition => false,
+                                ArithmeticOperators::Subtraction => false,
+
+                                //Basic math
+                                ArithmeticOperators::Multiplication => true,
+                                ArithmeticOperators::Exponentiation => true,
+                                ArithmeticOperators::Division => true,
+                                ArithmeticOperators::Modulus => true,
+
+                                ArithmeticOperators::Null => unreachable!(),
+                            }
+                        }
+                        AssignmentOperators::SubtractionAssignment => match child_inner {
+                            ArithmeticOperators::Addition => false,
+                            ArithmeticOperators::Subtraction => false,
+
+                            //Basic math
+                            ArithmeticOperators::Multiplication => true,
+                            ArithmeticOperators::Exponentiation => true,
+                            ArithmeticOperators::Division => true,
+                            ArithmeticOperators::Modulus => true,
+
+                            ArithmeticOperators::Null => unreachable!(),
+                        },
+                        AssignmentOperators::Null => unreachable!(),
+                        //other operators has high priorty
+                        _ => match child_inner {
+                            ArithmeticOperators::Addition => true,
+                            ArithmeticOperators::Subtraction => true,
+
+                            ArithmeticOperators::Multiplication => false,
+                            ArithmeticOperators::Exponentiation => false,
+                            ArithmeticOperators::Division => false,
+                            ArithmeticOperators::Modulus => false,
+
+                            ArithmeticOperators::Null => unreachable!(),
+                        },
+                    }
+                }
+                Operators::AssignmentType(_) => false,
+                Operators::Null => unreachable!(),
+            }
+        }
+        Operators::Null => unreachable!(),
+    }
+}
+
 pub fn operator_priority(operator: &str) -> usize {
     match operator {
-        "=" => 1,
-        "==" => 2,
+        "=" => 2,
         "!=" => 2,
-        ">" => 3,
-        "<" => 3,
-        ">=" => 3,
-        "<=" => 3,
-        "&&" => 4,
-        "||" => 5,
-        "+" => 6,
-        "-" => 6,
-        "*" => 7,
-        "/" => 7,
-        "%" => 7,
-        _ => 0,
+        "==" => 2,
+        ">" => 2,
+        "<" => 2,
+        ">=" => 2,
+        "<=" => 2,
+
+        "&&" => 3,
+        "||" => 3,
+
+        "+" => 1,
+        "-" => 1,
+        "*" => 1,
+        "/" => 1,
+        "%" => 1,
+        _ => unreachable!(),
     }
 }
 
@@ -356,6 +497,8 @@ pub fn is_operators_chainable(target: Operators, current: Operators) -> bool {
     match target {
         Operators::ComparisonType(_) => match current {
             Operators::LogicalType(_) => true,
+            Operators::ArithmeticType(_) => true,
+            Operators::AssignmentType(_) => true,
             _ => false,
         },
         Operators::LogicalType(_) => true,
@@ -366,6 +509,7 @@ pub fn is_operators_chainable(target: Operators, current: Operators) -> bool {
             _ => false,
         },
         Operators::AssignmentType(_) => match current {
+            Operators::AssignmentType(_) => true,
             Operators::LogicalType(_) => true,
             _ => false,
         },

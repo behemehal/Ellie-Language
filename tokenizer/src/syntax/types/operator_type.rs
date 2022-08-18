@@ -141,6 +141,46 @@ impl Operators {
         }
     }
 
+    pub fn to_defining(&self) -> String {
+        match &self {
+            Operators::ComparisonType(e) => match e {
+                ComparisonOperators::Equal => "==",
+                ComparisonOperators::NotEqual => "!=",
+                ComparisonOperators::GreaterThan => ">",
+                ComparisonOperators::LessThan => "<",
+                ComparisonOperators::GreaterThanOrEqual => ">=",
+                ComparisonOperators::LessThanOrEqual => "<=",
+                ComparisonOperators::Null => "Null",
+            },
+            Operators::LogicalType(e) => match e {
+                LogicalOperators::And => "&&",
+                LogicalOperators::Or => "||",
+                LogicalOperators::Null => "Null",
+            },
+            Operators::ArithmeticType(e) => match e {
+                ArithmeticOperators::Addition => "+",
+                ArithmeticOperators::Subtraction => "-",
+                ArithmeticOperators::Multiplication => "*",
+                ArithmeticOperators::Exponentiation => "**",
+                ArithmeticOperators::Division => "/",
+                ArithmeticOperators::Modulus => "%",
+                ArithmeticOperators::Null => "Null",
+            },
+            Operators::AssignmentType(e) => match e {
+                AssignmentOperators::Assignment => "=",
+                AssignmentOperators::AdditionAssignment => "+=",
+                AssignmentOperators::SubtractionAssignment => "-=",
+                AssignmentOperators::MultiplicationAssignment => "*=",
+                AssignmentOperators::DivisionAssignment => "/=",
+                AssignmentOperators::ModulusAssignment => "%=",
+                AssignmentOperators::ExponentiationAssignment => "**=",
+                AssignmentOperators::Null => "Null",
+            },
+            Operators::Null => "Null",
+        }
+        .to_string()
+    }
+
     pub fn to_string(&self) -> String {
         match self {
             Operators::ComparisonType(value) => match value {
@@ -166,7 +206,17 @@ impl Operators {
                 ArithmeticOperators::Modulus => "Mod".to_string(),
                 ArithmeticOperators::Null => unreachable!(),
             },
-            _ => unreachable!(),
+            Operators::AssignmentType(value) => match value {
+                AssignmentOperators::Assignment => "Assignment".to_string(),
+                AssignmentOperators::AdditionAssignment => "AddAssignment".to_string(),
+                AssignmentOperators::SubtractionAssignment => "SubAssignment".to_string(),
+                AssignmentOperators::MultiplicationAssignment => "MulAssignment".to_string(),
+                AssignmentOperators::DivisionAssignment => "DivAssignment".to_string(),
+                AssignmentOperators::ModulusAssignment => "ModAssignment".to_string(),
+                AssignmentOperators::ExponentiationAssignment => "ExpAssignment".to_string(),
+                AssignmentOperators::Null => unreachable!(),
+            },
+            _ => "Null".to_string(),
         }
     }
 }

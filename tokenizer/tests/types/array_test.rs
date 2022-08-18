@@ -1,7 +1,10 @@
 #[cfg(test)]
 mod array_tests {
     use ellie_core::{defs, error};
-    use ellie_tokenizer::processors::types::{Processor, TypeProcessor};
+    use ellie_tokenizer::processors::{
+        types::{Processors, TypeProcessor},
+        Processor,
+    };
     use std::{
         collections::hash_map::DefaultHasher,
         hash::{Hash, Hasher},

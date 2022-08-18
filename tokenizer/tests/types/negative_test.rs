@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod negative_tests {
     use ellie_core::{defs, error};
-    use ellie_tokenizer::processors::types::{Processor, TypeProcessor};
+    use ellie_tokenizer::processors::{types::TypeProcessor, Processor};
     use std::{
         collections::hash_map::DefaultHasher,
         hash::{Hash, Hasher},
@@ -16,7 +16,7 @@ mod negative_tests {
         let mut last_char = '\0';
         for letter_char in code.chars() {
             processor.iterate(&mut errors, pos, last_char, letter_char);
-            pos.skip_char(1);
+            pos.1 += 1;
             last_char = letter_char;
         }
 
