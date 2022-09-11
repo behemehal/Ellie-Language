@@ -5,7 +5,7 @@ use alloc::{
 };
 use ellie_core::raw_type::RawType;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Entry {
     pub key: usize,
     pub value: RawType,
@@ -25,6 +25,15 @@ impl Heap {
         for entry in self.data.iter() {
             if &entry.key == key {
                 return Some(&entry.value);
+            }
+        }
+        None
+    }
+
+    pub fn get_mut(&mut self, key: &usize) -> Option<&mut RawType> {
+        for entry in self.data.iter_mut() {
+            if &entry.key == key {
+                return Some(&mut entry.value);
             }
         }
         None

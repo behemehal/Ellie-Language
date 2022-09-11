@@ -18,7 +18,6 @@ impl super::Processor for SetterCall {
             .nth(page_idx)
             .unwrap_or_else(|| panic!("Failed to find page"))
             .clone();
-
         match super::type_processor::process(
             self.target.clone(),
             parser,

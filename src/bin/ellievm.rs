@@ -7,7 +7,12 @@ use ellie_engine::{
     engine_constants,
     vm::{parse_debug_file, read_program, RFile},
 };
-use std::{fs::File, io::Read, path::Path, thread};
+use std::{
+    fs::{File, self},
+    io::{Read, Write},
+    path::Path,
+    thread,
+};
 
 pub struct VmSettings {
     pub json_log: bool,
@@ -221,11 +226,20 @@ fn main() {
             };
 
             let mut vm = ellie_vm::vm::VM::new(vm_settings.architecture, |_, e| {
-                if e.module == "ellieStd" && e.name == "println" {
-                    let string = String::from_utf8(e.params[0].data.clone());
-                    println!("{}", string.unwrap());
+                if e.module == "ellieStd" && e.name == "heapDump" {
+                    println!(
+                        "{}HeapDump{}: {}Queued: heapDump.txt{}",
+                        utils::Colors::Green,
+                        utils::Colors::Reset,
+                        utils::Colors::Cyan,
+                        utils::Colors::Reset
+                    );
                     VmNativeAnswer::Ok(().into())
-                } else if e.module == "main" && e.name == "±get_val_n" {
+                } else if e.module == "ellieStd" && e.name == "println" {
+                    let string = String::from_utf8(e.params[0].data.clone());
+                    println!("println: {:?}", string.unwrap());
+                    VmNativeAnswer::Ok(().into())
+                } else if e.module == "main" && e.name == "get_val_n" {
                     VmNativeAnswer::Ok("Cevaaap".into())
                 } else {
                     VmNativeAnswer::RuntimeError("Call to unknown function".into())
@@ -235,12 +249,259 @@ fn main() {
 
             //let (tx, rx) = mpsc::channel();
 
-            vm.build_main_thread(program.main.0, program.main.1);
+            vm.build_main_thread(program.main);
 
             let main_thread = thread::spawn(move || loop {
                 match vm.threads[0].step(&mut vm.heap) {
-                    Ok(_) => {
+                    Ok(thread_step) => {
                         if is_vm_debug {
+                            println!("StackId: {}", thread_step.stack_id);
+                            let coresponding_stack = vm.threads[0].stack.get(thread_step.stack_id).unwrap();
+                            println!("Name: {}, caller: {:?}", coresponding_stack.name, coresponding_stack.caller);
+                            println!("---");
+                            println!("Instruction:");
+                            println!(
+                                "{}: {:?}",
+                                thread_step.stack_pos,
+                                match thread_step.instruction.instruction {
+                                    ellie_vm::utils::Instructions::LDA(_) => format!(
+                                        "LDA {:?}",
+                                        thread_step.instruction.addressing_value
+                                    ),
+                                    ellie_vm::utils::Instructions::LDB(_) => format!(
+                                        "LDB {:?}",
+                                        thread_step.instruction.addressing_value
+                                    ),
+                                    ellie_vm::utils::Instructions::LDC(_) => format!(
+                                        "LDC {:?}",
+                                        thread_step.instruction.addressing_value
+                                    ),
+                                    ellie_vm::utils::Instructions::LDX(_) => format!(
+                                        "LDX {:?}",
+                                        thread_step.instruction.addressing_value
+                                    ),
+                                    ellie_vm::utils::Instructions::LDY(_) => format!(
+                                        "LDY {:?}",
+                                        thread_step.instruction.addressing_value
+                                    ),
+                                    ellie_vm::utils::Instructions::STA(_) => format!(
+                                        "STA {:?}",
+                                        thread_step.instruction.addressing_value
+                                    ),
+                                    ellie_vm::utils::Instructions::STB(_) => format!(
+                                        "STB {:?}",
+                                        thread_step.instruction.addressing_value
+                                    ),
+                                    ellie_vm::utils::Instructions::STC(_) => format!(
+                                        "STC {:?}",
+                                        thread_step.instruction.addressing_value
+                                    ),
+                                    ellie_vm::utils::Instructions::STX(_) => format!(
+                                        "STX {:?}",
+                                        thread_step.instruction.addressing_value
+                                    ),
+                                    ellie_vm::utils::Instructions::STY(_) => format!(
+                                        "STY {:?}",
+                                        thread_step.instruction.addressing_value
+                                    ),
+                                    ellie_vm::utils::Instructions::EQ(_) =>
+                                        format!("EQ {:?}", thread_step.instruction.addressing_value),
+                                    ellie_vm::utils::Instructions::NE(_) =>
+                                        format!("NE {:?}", thread_step.instruction.addressing_value),
+                                    ellie_vm::utils::Instructions::GT(_) =>
+                                        format!("GT {:?}", thread_step.instruction.addressing_value),
+                                    ellie_vm::utils::Instructions::LT(_) =>
+                                        format!("LT {:?}", thread_step.instruction.addressing_value),
+                                    ellie_vm::utils::Instructions::GQ(_) =>
+                                        format!("GQ {:?}", thread_step.instruction.addressing_value),
+                                    ellie_vm::utils::Instructions::LQ(_) =>
+                                        format!("LQ {:?}", thread_step.instruction.addressing_value),
+                                    ellie_vm::utils::Instructions::AND(_) => format!(
+                                        "AND {:?}",
+                                        thread_step.instruction.addressing_value
+                                    ),
+                                    ellie_vm::utils::Instructions::OR(_) =>
+                                        format!("OR {:?}", thread_step.instruction.addressing_value),
+                                    ellie_vm::utils::Instructions::ADD(_) => format!(
+                                        "ADD {:?}",
+                                        thread_step.instruction.addressing_value
+                                    ),
+                                    ellie_vm::utils::Instructions::SUB(_) => format!(
+                                        "SUB {:?}",
+                                        thread_step.instruction.addressing_value
+                                    ),
+                                    ellie_vm::utils::Instructions::MUL(_) => format!(
+                                        "MUL {:?}",
+                                        thread_step.instruction.addressing_value
+                                    ),
+                                    ellie_vm::utils::Instructions::EXP(_) => format!(
+                                        "EXP {:?}",
+                                        thread_step.instruction.addressing_value
+                                    ),
+                                    ellie_vm::utils::Instructions::DIV(_) => format!(
+                                        "DIV {:?}",
+                                        thread_step.instruction.addressing_value
+                                    ),
+                                    ellie_vm::utils::Instructions::MOD(_) => format!(
+                                        "MOD {:?}",
+                                        thread_step.instruction.addressing_value
+                                    ),
+                                    ellie_vm::utils::Instructions::INC(_) => format!(
+                                        "INC {:?}",
+                                        thread_step.instruction.addressing_value
+                                    ),
+                                    ellie_vm::utils::Instructions::DEC(_) => format!(
+                                        "DEC {:?}",
+                                        thread_step.instruction.addressing_value
+                                    ),
+                                    ellie_vm::utils::Instructions::JMP(_) => format!(
+                                        "JMP {:?}",
+                                        thread_step.instruction.addressing_value
+                                    ),
+                                    ellie_vm::utils::Instructions::CALL(_) => format!(
+                                        "CALL {:?}",
+                                        thread_step.instruction.addressing_value
+                                    ),
+                                    ellie_vm::utils::Instructions::RET(_) => format!(
+                                        "RET {:?}",
+                                        thread_step.instruction.addressing_value
+                                    ),
+                                    ellie_vm::utils::Instructions::UGR(_) => format!(
+                                        "UGR {:?}",
+                                        thread_step.instruction.addressing_value
+                                    ),
+                                    ellie_vm::utils::Instructions::ULR(_) => format!(
+                                        "ULR {:?}",
+                                        thread_step.instruction.addressing_value
+                                    ),
+                                    ellie_vm::utils::Instructions::PUSH(_) => format!(
+                                        "PUSH {:?}",
+                                        thread_step.instruction.addressing_value
+                                    ),
+                                    ellie_vm::utils::Instructions::LEN(_) => format!(
+                                        "LEN {:?}",
+                                        thread_step.instruction.addressing_value
+                                    ),
+                                    ellie_vm::utils::Instructions::A2I(_) => format!(
+                                        "A2I {:?}",
+                                        thread_step.instruction.addressing_value
+                                    ),
+                                    ellie_vm::utils::Instructions::A2F(_) => format!(
+                                        "A2F {:?}",
+                                        thread_step.instruction.addressing_value
+                                    ),
+                                    ellie_vm::utils::Instructions::A2D(_) => format!(
+                                        "A2D {:?}",
+                                        thread_step.instruction.addressing_value
+                                    ),
+                                    ellie_vm::utils::Instructions::A2B(_) => format!(
+                                        "A2B {:?}",
+                                        thread_step.instruction.addressing_value
+                                    ),
+                                    ellie_vm::utils::Instructions::A2S(_) => format!(
+                                        "A2S {:?}",
+                                        thread_step.instruction.addressing_value
+                                    ),
+                                    ellie_vm::utils::Instructions::A2C(_) => format!(
+                                        "A2C {:?}",
+                                        thread_step.instruction.addressing_value
+                                    ),
+                                    ellie_vm::utils::Instructions::A2O(_) => format!(
+                                        "A2O {:?}",
+                                        thread_step.instruction.addressing_value
+                                    ),
+                                    ellie_vm::utils::Instructions::JMPA(_) => format!(
+                                        "JMPA {:?}",
+                                        thread_step.instruction.addressing_value
+                                    ),
+                                    ellie_vm::utils::Instructions::POPS(_) => format!(
+                                        "POPS {:?}",
+                                        thread_step.instruction.addressing_value
+                                    ),
+                                    ellie_vm::utils::Instructions::ACP(_) => format!(
+                                        "ACP {:?}",
+                                        thread_step.instruction.addressing_value
+                                    ),
+                                    ellie_vm::utils::Instructions::BRK(_) => format!(
+                                        "BRK {:?}",
+                                        thread_step.instruction.addressing_value
+                                    ),
+                                    ellie_vm::utils::Instructions::CALLN(_) => format!(
+                                        "CALLN {:?}",
+                                        thread_step.instruction.addressing_value
+                                    ),
+                                    ellie_vm::utils::Instructions::CO(_) =>
+                                        format!("CO {:?}", thread_step.instruction.addressing_value),
+                                    ellie_vm::utils::Instructions::FN(_) =>
+                                        format!("FN {:?}", thread_step.instruction.addressing_value),
+                                }
+                            );
+                            if let Some(debug_file) = &debug_file {
+                                let coresponding_header =
+                                    debug_file.debug_headers.iter().find(|x| {
+                                        thread_step.stack_pos >= x.start_end.0
+                                            && thread_step.stack_pos <= x.start_end.1
+                                    });
+                                if let Some(e) = &coresponding_header {
+                                    fn get_real_path(
+                                        debug_header: &DebugHeader,
+                                        debug_file: &DebugInfo,
+                                    ) -> String {
+                                        let module_name = debug_header
+                                            .module
+                                            .split("<ellie_module_")
+                                            .nth(1)
+                                            .unwrap()
+                                            .split(">")
+                                            .nth(0)
+                                            .unwrap();
+                                        let module_path = debug_file
+                                            .module_map
+                                            .iter()
+                                            .find(|map| module_name == map.module_name);
+                                        let real_path = match module_path {
+                                            Some(module_path) => match &module_path.module_path {
+                                                Some(module_path) => {
+                                                    let new_path = debug_header.module.clone();
+                                                    let starter_name =
+                                                        format!("<ellie_module_{}>", module_name);
+                                                    new_path.replace(&starter_name, &module_path)
+                                                }
+                                                None => debug_header.module.clone(),
+                                            },
+                                            None => debug_header.module.clone(),
+                                        };
+                                        real_path
+                                    }
+
+                                    let real_path = get_real_path(e, debug_file);
+
+                                    println!("\nLine:");
+                                    println!(
+                                        "{}[~]{}  ╞ {}{real_path}{}:{}:{}",
+                                        Colors::Red,
+                                        Colors::Reset,
+                                        Colors::Green,
+                                        Colors::Reset,
+                                        e.pos.range_start.0 + 1,
+                                        e.pos.range_start.1 + 1,
+                                    );
+                                    let target_file = fs::read_to_string(real_path).unwrap();
+                                    let target_file = target_file.lines().collect::<Vec<&str>>();
+                                    let target_line = target_file[e.pos.range_start.0].to_string();
+                                    println!("{}{}{}  │ {}{}{}", Colors::Yellow, e.pos.range_start.0 + 1, Colors::Reset, Colors::Green, target_line, Colors::Reset,);
+                                }
+                                println!("\nHeap:");
+                                println!("{}\n", vm.heap.dump());
+                                println!("\nRegisters:");
+                                
+                                println!("A: {:?}", vm.threads[0].stack.get(thread_step.stack_id).unwrap().registers.A);
+                                println!("B: {:?}", vm.threads[0].stack.get(thread_step.stack_id).unwrap().registers.B);
+                                println!("C: {:?}", vm.threads[0].stack.get(thread_step.stack_id).unwrap().registers.C);
+                                println!("X: {:?}", vm.threads[0].stack.get(thread_step.stack_id).unwrap().registers.X);
+                                println!("Y: {:?}", vm.threads[0].stack.get(thread_step.stack_id).unwrap().registers.Y);
+                            }
+
                             let mut input = String::new();
                             std::io::stdin().read_line(&mut input).unwrap();
                         }
@@ -261,8 +522,8 @@ fn main() {
                                     Some(debug_file) => {
                                         let coresponding_header =
                                             debug_file.debug_headers.iter().find(|x| {
-                                                frame.pos >= x.start_end.0
-                                                    && frame.pos <= x.start_end.1
+                                                frame.stack_pos >= x.start_end.0
+                                                    && frame.stack_pos <= x.start_end.1
                                             });
 
                                         match coresponding_header {
@@ -322,17 +583,19 @@ fn main() {
                                                     "{}    at {}:{}",
                                                     Colors::Green,
                                                     frame.name,
-                                                    frame.pos
+                                                    frame.stack_pos
                                                 );
                                             }
                                         }
                                     }
                                     None => {
                                         println!(
-                                            "{}    at {}:{}",
+                                            "{}    at {}:{} ({} + {})",
                                             Colors::Green,
                                             frame.name,
-                                            frame.pos
+                                            frame.stack_pos + frame.frame_pos,
+                                            frame.stack_pos,
+                                            frame.frame_pos,
                                         );
                                     }
                                 }

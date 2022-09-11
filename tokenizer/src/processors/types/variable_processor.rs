@@ -31,7 +31,6 @@ impl crate::processors::Processor for variable_type::VariableTypeCollector {
                 self.data.value += &letter_char.to_string();
             }
         } else if letter_char != ' ' {
-            panic!("Unexpected behaviour: {:?}", letter_char);
             errors.push(error::error_list::ERROR_S1.clone().build(
                 vec![error::ErrorBuildField {
                     key: "token".to_string(),

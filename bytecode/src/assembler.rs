@@ -1,4 +1,4 @@
-use crate::instructions;
+use crate::instructions::{self, AddressingModes, Instruction};
 use crate::transpiler::Transpiler;
 use alloc::{
     format,
@@ -8,6 +8,7 @@ use alloc::{
 use ellie_core::defs::{DebugHeader, PlatformArchitecture};
 use ellie_core::utils::ExportPage;
 use ellie_parser::parser::Module;
+use std::println;
 use std::{io::Write, panic};
 
 pub struct Assembler {
@@ -23,8 +24,8 @@ pub struct Assembler {
 pub struct LocalHeader {
     pub name: String,
     pub cursor: usize,
+    pub reference: Instruction,
     pub page_hash: usize,
-    pub reference: Option<usize>,
 }
 
 #[derive(Clone, Debug)]
@@ -67,7 +68,7 @@ pub struct ModuleInfo {
     pub name: String,
     pub modue_maps: Vec<(String, Option<String>)>,
     pub is_library: bool,
-    pub main_function: Option<(usize, usize)>,
+    pub main_function: Option<(usize, usize, usize)>,
     pub platform_attributes: PlatformAttributes,
 }
 
@@ -99,6 +100,7 @@ impl AssembleResult {
             Some(main_fn_cursor) => {
                 binary.write_all(&main_fn_cursor.0.to_le_bytes()).unwrap();
                 binary.write_all(&main_fn_cursor.1.to_le_bytes()).unwrap();
+                binary.write_all(&main_fn_cursor.2.to_le_bytes()).unwrap();
             }
             None => (),
         }
@@ -167,6 +169,7 @@ impl AssembleResult {
             Some(main_fn_cursor) => {
                 writer.write_all(&main_fn_cursor.0.to_le_bytes()).unwrap();
                 writer.write_all(&main_fn_cursor.1.to_le_bytes()).unwrap();
+                writer.write_all(&main_fn_cursor.2.to_le_bytes()).unwrap();
             }
             None => (),
         }
@@ -207,17 +210,15 @@ impl AssembleResult {
         for local in &self.locals {
             output
                 .write_all(
-                    format!(" {} {} {}", local.name, local.cursor, local.page_hash).as_bytes(),
+                    format!(
+                        "{}: {} = {}",
+                        local.cursor,
+                        local.name,
+                        local.reference.addressing_mode.to_string()
+                    )
+                    .as_bytes(),
                 )
                 .unwrap();
-            match local.reference {
-                Some(reference) => {
-                    output
-                        .write_all(format!(" {}", reference).as_bytes())
-                        .unwrap();
-                }
-                None => (),
-            }
             output.write_all("\n".as_bytes()).unwrap();
         }
 
@@ -302,7 +303,7 @@ impl Assembler {
         locals.into_iter().find(|local| &local.name == name)
     }
 
-    pub(crate) fn assemble_dependency(&mut self, hash: &usize) -> Option<(usize, usize)> {
+    pub(crate) fn assemble_dependency(&mut self, hash: &usize) -> Option<(usize, usize, usize)> {
         if self.processed.contains(hash) {
             return None;
         }
@@ -330,10 +331,12 @@ impl Assembler {
                     variable.transpile(self, processed_page.hash as usize, &processed_page)
                 }
                 ellie_core::definite::items::Collecting::Function(function) => {
+                    let start = self.instructions.len();
+                    let transpile_res = function.transpile(self, processed_page.hash as usize, &processed_page);
                     if function.name == "main" {
-                        main_pos = Some((self.instructions.len(), function.hash));
+                        main_pos = Some((start, self.location(), function.hash));
                     }
-                    function.transpile(self, processed_page.hash as usize, &processed_page)
+                    transpile_res
                 }
                 ellie_core::definite::items::Collecting::ForLoop(for_loop) => {
                     for_loop.transpile(self, processed_page.hash as usize, &processed_page)

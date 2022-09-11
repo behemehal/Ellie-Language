@@ -88,7 +88,7 @@ pub enum AddressingModes {
     Absolute(usize),
     AbsoluteIndex(usize, usize),
     AbsoluteProperty(usize, usize),
-    //AbsoluteRef(usize, usize),
+    Parameter(usize),
     IndirectA,
     IndirectB,
     IndirectC,
@@ -109,6 +109,7 @@ impl AddressingModes {
             AddressingModes::IndirectC => "indirect_c",
             AddressingModes::IndirectX => "indirect_x",
             AddressingModes::IndirectY => "indirect_y",
+            AddressingModes::Parameter(_) => "parameter",
         }
         .to_string()
     }
@@ -136,6 +137,7 @@ impl AddressingModes {
                 v.extend_from_slice(&property.to_le_bytes());
                 v
             }
+            AddressingModes::Parameter(idx) => idx.to_le_bytes().to_vec(),
             _ => vec![],
         }
     }
@@ -160,6 +162,9 @@ impl core::fmt::Display for AddressingModes {
             }
             AddressingModes::AbsoluteProperty(value, property) => {
                 write!(f, "${}.{}", value, property)
+            }
+            AddressingModes::Parameter(idx_pointer) => {
+                write!(f, "@X[{idx_pointer}]")
             }
         }
     }
@@ -192,6 +197,12 @@ impl Instruction {
     pub fn absolute_index(pointer: usize, index_pointer: usize) -> Instruction {
         Instruction {
             addressing_mode: AddressingModes::AbsoluteIndex(pointer, index_pointer),
+        }
+    }
+
+    pub fn function_parameter(index: usize) -> Instruction {
+        Instruction {
+            addressing_mode: AddressingModes::Parameter(index),
         }
     }
 
@@ -257,7 +268,7 @@ pub enum Instructions {
     CALLN(Instruction),
     RET(Instruction),
     AOL(Instruction),
-    PUSHA(Instruction),
+    PUSH(Instruction),
     LEN(Instruction),
     A2I(Instruction),
     A2F(Instruction),
@@ -539,7 +550,7 @@ impl Instructions {
                 op_code.extend(e.addressing_mode.arg(platform_size));
                 op_code
             }
-            Instructions::PUSHA(e) => {
+            Instructions::PUSH(e) => {
                 let instruction = crate::instruction_table::INSTRUCTIONS
                     .clone()
                     .drain()
@@ -759,7 +770,7 @@ impl Instructions {
             Instructions::CALLN(e) => e.addressing_mode.clone(),
             Instructions::RET(e) => e.addressing_mode.clone(),
             Instructions::AOL(e) => e.addressing_mode.clone(),
-            Instructions::PUSHA(e) => e.addressing_mode.clone(),
+            Instructions::PUSH(e) => e.addressing_mode.clone(),
             Instructions::LEN(e) => e.addressing_mode.clone(),
             Instructions::A2I(e) => e.addressing_mode.clone(),
             Instructions::A2F(e) => e.addressing_mode.clone(),
@@ -809,7 +820,7 @@ impl Instructions {
             Instructions::CALLN(e) => e.addressing_mode.arg(platform_size),
             Instructions::RET(e) => e.addressing_mode.arg(platform_size),
             Instructions::AOL(e) => e.addressing_mode.arg(platform_size),
-            Instructions::PUSHA(e) => e.addressing_mode.arg(platform_size),
+            Instructions::PUSH(e) => e.addressing_mode.arg(platform_size),
             Instructions::LEN(e) => e.addressing_mode.arg(platform_size),
             Instructions::A2I(e) => e.addressing_mode.arg(platform_size),
             Instructions::A2F(e) => e.addressing_mode.arg(platform_size),
@@ -858,7 +869,7 @@ impl core::fmt::Display for Instructions {
             Instructions::CALL(instruction) => write!(f, "CALL {}", instruction.addressing_mode),
             Instructions::CALLN(instruction) => write!(f, "CALLN {}", instruction.addressing_mode),
             Instructions::AOL(instruction) => write!(f, "AOL {}", instruction.addressing_mode),
-            Instructions::PUSHA(instruction) => write!(f, "PUSH {}", instruction.addressing_mode),
+            Instructions::PUSH(instruction) => write!(f, "PUSH {}", instruction.addressing_mode),
             Instructions::LEN(instruction) => write!(f, "LEN {}", instruction.addressing_mode),
             Instructions::A2I(instruction) => write!(f, "A2I {}", instruction.addressing_mode),
             Instructions::A2F(instruction) => write!(f, "A2F {}", instruction.addressing_mode),

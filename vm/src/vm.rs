@@ -9,7 +9,7 @@ use ellie_core::{
 
 use crate::{
     heap::Heap,
-    program::{Program, ReadInstruction},
+    program::{Program, ReadInstruction, MainProgram},
     thread::{Registers, Stack, Thread},
     utils::{ThreadExit, ThreadStepInfo},
 };
@@ -54,9 +54,9 @@ where
         self.threads.push(thread);
     }
 
-    pub fn build_main_thread(&mut self, main: usize, main_hash: usize) {
+    pub fn build_main_thread(&mut self, main: MainProgram) {
         let mut thread = Thread::new(
-            main,
+            main.hash,
             self.target_arch,
             self.stack.clone(),
             self.native_call_channel,
@@ -64,7 +64,7 @@ where
         thread
             .stack
             .push(Stack {
-                id: main_hash,
+                id: main.hash,
                 name: "<ellie_main>".to_string(),
                 registers: Registers {
                     A: RawType::void(),
@@ -73,8 +73,10 @@ where
                     X: RawType::void(),
                     Y: RawType::void(),
                 },
+                stack_len: main.length,
                 caller: None,
-                pos: main,
+                stack_pos: main.start,
+                frame_pos: main.start,
             })
             .unwrap();
         self.threads.push(thread);

@@ -21,7 +21,7 @@ for (var i = 0; i < _instructions.length; i++) {
     addressing_mode: entries[1],
     op_code: Number(entries[2]),
   };
-  if ((i + 1) != instruction.op_code) {
+  if (i + 1 != instruction.op_code) {
     out_of_order = true;
   }
   _instructions_in_order.push({
@@ -66,7 +66,9 @@ function index_of_addresing_mode(mode) {
     ? 7
     : mode == "indirect_x"
     ? 8
-    : 9;
+    : mode == "indirect_y"
+    ? 9
+    : 10;
 }
 
 function addresing_mode_index(idx) {
@@ -88,8 +90,10 @@ function addresing_mode_index(idx) {
     return "indirect_c";
   } else if (idx === 8) {
     return "indirect_x";
-  } else {
+  } else if (idx === 9) {
     return "indirect_y";
+  } else {
+    return "parameter";
   }
 }
 
@@ -164,15 +168,15 @@ let instruction_table = instructions.map((x) => {
 let md =
   `Rev: ${bytecode_rev}\n` +
   "Auto builded from `instructions.csv` by `reassembler.js`\n" +
-  "| Instruction | Implicit | Immediate | Absolute | Absolute Index | Absolute Property | IndirectA | IndirectB | IndirectC | IndirectX | IndirectY |\n" +
-  "| ----------- | -------- | --------- | -------- | -------------- | ----------------- | --------- | --------- | --------- | --------- | --------- |";
+  "| Instruction | Implicit | Immediate | Absolute | Absolute Index | Absolute Property | IndirectA | IndirectB | IndirectC | IndirectX | IndirectY | Parameter |\n" +
+  "| ----------- | -------- | --------- | -------- | -------------- | ----------------- | --------- | --------- | --------- | --------- | --------- | --------- |";
 
 //bytecode/instructions.md
 let instructions_md = full_instructions.map((x) => {
   let instruction = x.instructionString;
   let addressing_modes = "";
 
-  for (var idx = 0; idx <= 9; idx++) {
+  for (var idx = 0; idx <= 10; idx++) {
     let mode = x.addressing_modes.find(
       (x) => addresing_mode_index(idx) == x[0]
     );
@@ -187,6 +191,8 @@ let instructions_md = full_instructions.map((x) => {
         ? 16
         : idx == 4
         ? 19
+        : idx > 4 && idx <= 9
+        ? 11
         : 11;
 
     if (mode) {
@@ -214,11 +220,11 @@ fs.writeFileSync(
   md + "\n" + instructions_md.join("\n")
 );
 console.log(
-  chalk`{green [Info]:} {yellow Utils writed {cyan './tools/generated_utils.csv'}}`
+  chalk`{green [Info]:} {yellow Utils writed {cyan './tools/generated_utils.rs'}}`
 );
 fs.writeFileSync("./tools/generated_utils.rs", utils.join(line_ending));
 console.log(
-  chalk`{green [Info]:} {yellow Instruction table writed {cyan './tools/generated_instruction_table.csv'}}`
+  chalk`{green [Info]:} {yellow Instruction table writed {cyan '/bytecode/instructions.csv'}}`
 );
 fs.writeFileSync(
   "./tools/generated_instruction_table.rs",

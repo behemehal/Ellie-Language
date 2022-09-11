@@ -67,11 +67,8 @@ pub fn parse_debug_file(dbg_file: String) -> Result<DebugInfo, String> {
             break;
         } else {
             let line = line.split(":").collect::<Vec<_>>();
-            if line.len() != 2 {
-                return Err(format!("Invalid debug file"));
-            }
             let module_name = line[0].to_string();
-            let path = line[1].to_string().trim().to_string();
+            let path = line[1..].join(":").to_string().trim().to_string();
             module_maps.push(ModuleMap {
                 module_name,
                 module_path: if path == "-" { None } else { Some(path) },

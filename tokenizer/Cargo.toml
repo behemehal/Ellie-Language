@@ -7,13 +7,10 @@ edition = "2021"
 license = "GPL-2.0"
 
 [dependencies]
-ellie_core = { path = "../core", version = "*" }
+ellie_core = { path = "../core", version = "*", features = ["compiler_utils"] }
 enum-as-inner = "0.3.3"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
-
-[dev-dependencies]
-ellie_core = { path = "../core", version = "*", features = ["compiler_utils"] }
 
 [features]
 default = []

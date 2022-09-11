@@ -4,6 +4,7 @@ use crate::{
     assembler::{self, LocalHeader},
     instructions::{self, AddressingModes, Instruction, Instructions},
 };
+use alloc::vec;
 use alloc::vec::Vec;
 use ellie_core::{
     definite::items::function,
@@ -27,6 +28,14 @@ impl super::Transpiler for function::Function {
             .instructions
             .push(instructions::Instructions::FN(Instruction::absolute(144)));
 
+        assembler.locals.push(LocalHeader {
+            name: self.name.clone(),
+            cursor: assembler.location(),
+            page_hash: processed_page.hash,
+            reference: Instruction::absolute(assembler.location()),
+        });
+
+        //let mut array_pointers = Vec::new();
         //Reserve memory spaces for parameters
         for hash in 0..self.parameters.len() {
             assembler.debug_headers.push(DebugHeader {
@@ -41,90 +50,52 @@ impl super::Transpiler for function::Function {
                 },
             });
 
-            assembler
-                .instructions
-                .push(Instructions::STA(Instruction::implicit()));
+            assembler.instructions.push(Instructions::LDA(Instruction::function_parameter(hash)));
+            assembler.instructions.push(Instructions::STA(Instruction::implicit()));
+            /*
+            array_pointers.extend(vec![
+                0;
+                assembler.platform_attributes.architecture.usize_len()
+                    as usize
+            ]);
+            */
+
             assembler.locals.push(LocalHeader {
                 name: self.parameters[hash].name.clone(),
-                cursor: assembler.location(),
                 page_hash: processed_page.hash,
-                reference: None,
+                cursor: assembler.location(),
+                reference: Instruction::function_parameter(hash),
             });
         }
+
+        /*
+        //Get the parameters from heap
+        assembler
+            .instructions
+            .push(Instructions::LDX(Instruction::absolute(
+                assembler.location(),
+            )));
+            */
+
         let debug_header_start = if assembler.instructions.len() == 0 {
             0
         } else {
             assembler.location()
         };
 
-        assembler.locals.push(LocalHeader {
-            name: self.name.clone(),
-            cursor: assembler.instructions.len(),
-            page_hash: processed_page.hash,
-            reference: Some(self.inner_page_id as usize),
-        });
-
-        let inner_body_start = assembler.instructions.len();
-
         assembler.assemble_dependency(&self.inner_page_id);
 
-        let inner_body_end = assembler.instructions.len();
-
-        //Search for a call for debug_header_start in inner_body_start to inner_body_end
-
-        // If function has parameter its likely to be calling himself.
-        // If it calls himself it probably will change current parameter values
-        // So we need to save them before calling himself
-
-        if self.parameters.len() != 0 {
-            //Save current parameter values
-            let self_calls: Vec<usize> = assembler.instructions[inner_body_start..inner_body_end]
-                .iter()
-                .enumerate()
-                .filter_map(|(idx, element)| match element {
-                    Instructions::CALL(instruction) => match &instruction.addressing_mode {
-                        AddressingModes::Absolute(addr) => {
-                            if *addr == debug_header_start {
-                                Some(idx)
-                            } else {
-                                None
-                            }
-                        }
-                        _ => unreachable!(),
-                    },
-                    _ => None,
-                })
-                .collect();
-
-            for (call_idx, self_call) in assembler.instructions[inner_body_start..inner_body_end]
-                .iter()
-                .enumerate()
-            {
-                match self_call {
-                    Instructions::CALL(instruction) => match &instruction.addressing_mode {
-                        AddressingModes::Absolute(addr) => {
-                            if *addr == debug_header_start + 1 {
-                                for (idx, parameter) in self.parameters.iter().enumerate() {
-                                    let instruction_idx = addr - (self.parameters.len() - idx);
-                                    let assembler_instruction =
-                                        &assembler.instructions[instruction_idx];
-                                    println!("Call: ${addr}: param: ${:?}: ", assembler_instruction)
-                                }
-                            }
-                        }
-                        _ => unreachable!(),
-                    },
-                    _ => (),
-                }
-            }
+        if self.no_return {
+            assembler
+                .instructions
+                .push(Instructions::RET(Instruction::implicit()));
         }
-
-        assembler
-            .instructions
-            .push(Instructions::RET(Instruction::implicit()));
 
         let mut hash = self.hash.to_le_bytes().to_vec();
         hash.extend_from_slice(&(assembler.instructions.len()).to_le_bytes());
+        //hash.extend_from_slice(
+        //    &(assembler.location() - debug_header_start).to_le_bytes()
+        //);
 
         assembler.instructions[start + 1] = Instructions::FN(Instruction::immediate(
             instructions::Types::String(hash.len()),

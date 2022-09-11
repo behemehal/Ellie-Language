@@ -389,4 +389,12 @@ lazy_static! {
         semi_assist: true,
         ..Default::default()
     };
+
+    pub static ref ERROR_S61: error::Error = error::Error {
+        code: 0x60,
+        title: "ReferenceError".to_owned(),
+        message: "Cannot access variable from this scope".to_owned(),
+        semi_assist: true,
+        ..Default::default()
+    };
 }

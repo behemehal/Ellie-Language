@@ -6,7 +6,9 @@ use alloc::string::ToString;
 use alloc::vec;
 use alloc::vec::Vec;
 use alloc::{borrow::ToOwned, string::String};
+use ellie_tokenizer::tokenizer::PageType;
 use core::panic;
+use std::println;
 use ellie_core::definite::definers::DefinerCollecting;
 use ellie_core::definite::types::Types;
 use ellie_core::defs::Cursor;
@@ -68,6 +70,22 @@ pub fn process(
                         return Err(errors);
                     }
                     crate::parser::DeepSearchItems::Variable(e) => {
+                        let page = parser.find_page(page_id).unwrap().clone();
+                        if !e.constant && page.page_type == PageType::FunctionBody && deep_search_result.found_page.hash != page.hash {
+                            //ERROR_S16
+                            let path = parser.find_page(page_id).unwrap().path.clone();
+                            let mut error = error::error_list::ERROR_S61.clone().build_with_path(
+                                vec![],
+                                alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                                path.clone(),
+                                variable.data.pos,
+                            );
+                            error.reference_block = Some((e.pos, deep_search_result.found_page.path.clone()));
+                            error.reference_message = "Defined here".to_owned();
+                            errors.push(error);
+                            return Err(errors);
+                        }
+
                         Ok(types::Types::VariableType(types::variable::VariableType {
                             value: e.name,
                             reference: e.hash,

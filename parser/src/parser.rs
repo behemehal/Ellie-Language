@@ -1,3 +1,5 @@
+use std::println;
+
 use crate::deep_search_extensions::{self, resolve_deep_type, resolve_type};
 use crate::processors::Processor;
 use alloc::borrow::ToOwned;
@@ -1204,7 +1206,7 @@ impl Parser {
             if hash == 0 { None } else { Some(hash) },
             vec![],
             0,
-            None,
+            Some(pos),
         );
 
         if deep_search.found {
@@ -1724,7 +1726,7 @@ impl Parser {
                                         }
                                     }
                                     Processors::FunctionParameter(e) => {
-                                        if e.name == name && level == 0 || dep.deep_link.is_some() {
+                                        if e.name == name && (level == 0 || dep.deep_link.is_some()) {
                                             found_pos = Some(e.name_pos);
                                             found = true;
                                             found_page = FoundPage::fill(page);
@@ -1733,7 +1735,7 @@ impl Parser {
                                         }
                                     }
                                     Processors::ConstructorParameter(e) => {
-                                        if e.name == name && level == 0 || dep.deep_link.is_some() {
+                                        if e.name == name && (level == 0 || dep.deep_link.is_some()) {
                                             found_pos = Some(e.pos);
                                             found = true;
                                             found_page = FoundPage::fill(&page);

@@ -1,3 +1,5 @@
+use std::println;
+
 use alloc::vec;
 use alloc::vec::Vec;
 use ellie_core::definite::types::{operator, Types};
@@ -131,6 +133,11 @@ pub fn resolve_type(
                     dependencies.clone(),
                 );
 
+                let second_operator_pos = assembler.instructions.len();
+                assembler
+                    .instructions
+                    .push(instructions::Instructions::STC(Instruction::implicit()));
+
                 resolve_type(
                     assembler,
                     &operator.first,
@@ -138,6 +145,10 @@ pub fn resolve_type(
                     target_page,
                     dependencies,
                 );
+
+                assembler.instructions.push(instructions::Instructions::LDC(
+                    Instruction::absolute(second_operator_pos),
+                ));
 
                 assembler.instructions.push(match e {
                     operator::ComparisonOperators::Equal => {
@@ -193,6 +204,12 @@ pub fn resolve_type(
                     target_page,
                     dependencies.clone(),
                 );
+
+                let second_operator_pos = assembler.instructions.len();
+                assembler
+                    .instructions
+                    .push(instructions::Instructions::STC(Instruction::implicit()));
+
                 resolve_type(
                     assembler,
                     &operator.first,
@@ -200,6 +217,11 @@ pub fn resolve_type(
                     target_page,
                     dependencies,
                 );
+
+                assembler.instructions.push(instructions::Instructions::LDC(
+                    Instruction::absolute(second_operator_pos),
+                ));
+
                 assembler.instructions.push(match e {
                     operator::LogicalOperators::And => {
                         instructions::Instructions::AND(Instruction::implicit())
@@ -363,8 +385,25 @@ pub fn resolve_type(
                 .unwrap()
                 .clone();
 
-            let mut parameter_positions = vec![];
-            for param in &function_call.params {
+            assembler
+                .instructions
+                .push(instructions::Instructions::STX(Instruction::implicit()));
+
+            let previous_params_location = assembler.location();
+
+            assembler
+                .instructions
+                .push(instructions::Instructions::LDA(Instruction::immediate(
+                    instructions::Types::Array(0),
+                    vec![],
+                )));
+            assembler
+                .instructions
+                .push(instructions::Instructions::STA(Instruction::implicit()));
+            let params_location = assembler.location();
+
+            for (idx, param) in function_call.params.iter().enumerate() {
+                let _idx = function_call.params.len() - idx;
                 resolve_type(
                     assembler,
                     &param.value,
@@ -372,49 +411,80 @@ pub fn resolve_type(
                     &target_page,
                     dependencies.clone(),
                 );
-                //Functions always reserve parameter spaces we're writing upper locations of function
                 assembler
                     .instructions
                     .push(instructions::Instructions::STA(Instruction::implicit()));
-                parameter_positions.push(assembler.location());
-            }
+                assembler
+                    .instructions
+                    .push(instructions::Instructions::PUSH(Instruction::absolute(
+                        params_location,
+                    )));
 
-            for (idx, param) in parameter_positions.iter().enumerate() {
-                assembler.instructions.push(instructions::Instructions::LDA(
-                    Instruction::absolute(*param),
+                /*
+                //Functions always reserve parameter spaces we're writing upper locations of function
+                assembler.instructions.push(instructions::Instructions::STA(
+                    Instruction::immediate(
+                        instructions::Types::Integer,
+                        idx.to_le_bytes().to_vec(),
+                    ),
                 ));
                 assembler.instructions.push(instructions::Instructions::STA(
-                    Instruction::absolute(target.cursor - (idx + 1)),
+                    Instruction::absolute_index(target.cursor, assembler.location()),
                 ));
+                */
             }
+            assembler
+                .instructions
+                .push(instructions::Instructions::LDX(Instruction::absolute(
+                    params_location,
+                )));
+            /*
+            assembler.instructions.push(instructions::Instructions::LDA(
+                Instruction::immediate(
+                    instructions::Types::Array(array_pointers.len()),
+                    array_pointers,
+                ),
+            ));
+            assembler
+                .instructions
+                .push(instructions::Instructions::STA(Instruction::absolute(
+                    target.cursor,
+                )));
+                */
 
             assembler
                 .instructions
                 .push(instructions::Instructions::CALL(Instruction::absolute(
                     target.cursor,
                 )));
+            assembler
+                .instructions
+                .push(instructions::Instructions::LDX(Instruction::absolute(
+                    previous_params_location,
+                )));
+
             match target_register {
-                instructions::Registers::A => (),
+                instructions::Registers::A => {
+                    assembler
+                        .instructions
+                        .push(instructions::Instructions::LDB(Instruction::indirect_y()));
+                }
                 instructions::Registers::B => {
                     assembler
                         .instructions
-                        .push(instructions::Instructions::LDB(Instruction::indirect_a()));
+                        .push(instructions::Instructions::LDB(Instruction::indirect_y()));
                 }
                 instructions::Registers::C => {
                     assembler
                         .instructions
-                        .push(instructions::Instructions::LDC(Instruction::indirect_a()));
+                        .push(instructions::Instructions::LDC(Instruction::indirect_y()));
                 }
                 instructions::Registers::X => {
                     assembler
                         .instructions
-                        .push(instructions::Instructions::LDX(Instruction::indirect_a()));
+                        .push(instructions::Instructions::LDX(Instruction::indirect_y()));
                 }
-                instructions::Registers::Y => {
-                    assembler
-                        .instructions
-                        .push(instructions::Instructions::LDY(Instruction::indirect_a()));
-                }
+                instructions::Registers::Y => (),
             }
         }
         Types::Void => match target_register {
@@ -460,47 +530,22 @@ pub fn resolve_type(
             let mut instructions = Vec::new();
 
             match target_register {
-                instructions::Registers::A => match pos.reference {
-                    Some(target_page) => instructions.push(instructions::Instructions::LDA(
-                        Instruction::absolute(pos.cursor),
-                    )),
-                    None => instructions.push(instructions::Instructions::LDA(
-                        Instruction::absolute(pos.cursor),
-                    )),
-                },
-                instructions::Registers::B => match pos.reference {
-                    Some(target_page) => instructions.push(instructions::Instructions::LDB(
-                        Instruction::absolute(pos.cursor),
-                    )),
-                    None => instructions.push(instructions::Instructions::LDB(
-                        Instruction::absolute(pos.cursor),
-                    )),
-                },
-                instructions::Registers::C => match pos.reference {
-                    Some(target_page) => instructions.push(instructions::Instructions::LDC(
-                        Instruction::absolute(pos.cursor),
-                    )),
-                    None => instructions.push(instructions::Instructions::LDC(
-                        Instruction::absolute(pos.cursor),
-                    )),
-                },
-                instructions::Registers::X => match pos.reference {
-                    Some(target_page) => instructions.push(instructions::Instructions::LDX(
-                        Instruction::absolute(pos.cursor),
-                    )),
-                    None => instructions.push(instructions::Instructions::LDX(
-                        Instruction::absolute(pos.cursor),
-                    )),
-                },
-                instructions::Registers::Y => match pos.reference {
-                    Some(target_page) => instructions.push(instructions::Instructions::LDY(
-                        Instruction::absolute(pos.cursor),
-                    )),
-                    None => instructions.push(instructions::Instructions::LDY(
-                        Instruction::absolute(pos.cursor),
-                    )),
-                },
-            };
+                instructions::Registers::A => {
+                    instructions.push(instructions::Instructions::LDA(pos.reference.clone()))
+                }
+                instructions::Registers::B => {
+                    instructions.push(instructions::Instructions::LDB(pos.reference.clone()))
+                }
+                instructions::Registers::C => {
+                    instructions.push(instructions::Instructions::LDC(pos.reference.clone()))
+                }
+                instructions::Registers::X => {
+                    instructions.push(instructions::Instructions::LDX(pos.reference.clone()))
+                }
+                instructions::Registers::Y => {
+                    instructions.push(instructions::Instructions::LDY(pos.reference.clone()))
+                }
+            }
 
             assembler.instructions.extend(instructions)
         }
@@ -816,702 +861,3 @@ pub fn resolve_type(
         Types::EnumData(_) => todo!(),
     }
 }
-
-/*
-pub fn _resolve_type(
-    assembler: &mut Assembler,
-    types: &Types,
-    target_register: instructions::Registers,
-    target_page: &usize,
-    dependencies: Option<Vec<usize>>,
-) -> Vec<Instructions> {
-    match types {
-        Types::Collective(_) => todo!(),
-        Types::Reference(_) => todo!(),
-        Types::BraceReference(e) => {
-            let mut instructions = vec![];
-            let target = resolve_type(
-                assembler,
-                &e.reference,
-                instructions::Registers::B,
-                target_page,
-                dependencies.clone(),
-            );
-            instructions.extend(target);
-
-            let val = resolve_type(
-                assembler,
-                &e.value,
-                instructions::Registers::C,
-                target_page,
-                dependencies.clone(),
-            );
-            instructions.extend(val);
-            instructions.push(instructions::Instructions::LDA(
-                instructions::Instruction::absolute_index(),
-            ));
-            match target_register {
-                instructions::Registers::A => (),
-                instructions::Registers::B => {
-                    instructions.push(instructions::Instructions::LDB(Instruction::indirect_a()));
-                }
-                instructions::Registers::C => {
-                    instructions.push(instructions::Instructions::LDC(Instruction::indirect_a()));
-                }
-                instructions::Registers::X => {
-                    instructions.push(instructions::Instructions::LDX(Instruction::indirect_a()));
-                }
-                instructions::Registers::Y => {
-                    instructions.push(instructions::Instructions::LDY(Instruction::indirect_a()));
-                }
-            }
-            instructions
-        }
-        Types::Operator(operator) => match &operator.operator {
-            operator::Operators::ComparisonType(e) => {
-                let mut instructions = Vec::new();
-
-                instructions.extend(resolve_type(
-                    assembler,
-                    &operator.second,
-                    instructions::Registers::C,
-                    target_page,
-                    dependencies.clone(),
-                ));
-
-                instructions.extend(resolve_type(
-                    assembler,
-                    &operator.first,
-                    instructions::Registers::B,
-                    target_page,
-                    dependencies,
-                ));
-
-                instructions.push(match e {
-                    operator::ComparisonOperators::Equal => {
-                        instructions::Instructions::EQ(Instruction::implicit())
-                    }
-                    operator::ComparisonOperators::NotEqual => {
-                        instructions::Instructions::NE(Instruction::implicit())
-                    }
-                    operator::ComparisonOperators::GreaterThan => {
-                        instructions::Instructions::GT(Instruction::implicit())
-                    }
-                    operator::ComparisonOperators::LessThan => {
-                        instructions::Instructions::LT(Instruction::implicit())
-                    }
-                    operator::ComparisonOperators::GreaterThanOrEqual => {
-                        instructions::Instructions::GQ(Instruction::implicit())
-                    }
-                    operator::ComparisonOperators::LessThanOrEqual => {
-                        instructions::Instructions::LQ(Instruction::implicit())
-                    }
-                    operator::ComparisonOperators::Null => unreachable!(),
-                });
-
-                match target_register {
-                    instructions::Registers::A => (),
-                    instructions::Registers::B => {
-                        instructions
-                            .push(instructions::Instructions::LDB(Instruction::indirect_a()));
-                    }
-                    instructions::Registers::C => {
-                        instructions
-                            .push(instructions::Instructions::LDC(Instruction::indirect_a()));
-                    }
-                    instructions::Registers::X => {
-                        instructions
-                            .push(instructions::Instructions::LDX(Instruction::indirect_a()));
-                    }
-                    instructions::Registers::Y => {
-                        instructions
-                            .push(instructions::Instructions::LDY(Instruction::indirect_a()));
-                    }
-                }
-                instructions
-            }
-            operator::Operators::LogicalType(_) => todo!(),
-            operator::Operators::ArithmeticType(e) => {
-                let mut instructions = Vec::new();
-                instructions.extend(resolve_type(
-                    assembler,
-                    &operator.second,
-                    instructions::Registers::C,
-                    target_page,
-                    dependencies.clone(),
-                ));
-
-                instructions.extend(resolve_type(
-                    assembler,
-                    &operator.first,
-                    instructions::Registers::B,
-                    target_page,
-                    dependencies,
-                ));
-
-                instructions.push(match e {
-                    operator::ArithmeticOperators::Addition => {
-                        instructions::Instructions::ADD(Instruction::implicit())
-                    }
-                    operator::ArithmeticOperators::Subtraction => {
-                        instructions::Instructions::SUB(Instruction::implicit())
-                    }
-                    operator::ArithmeticOperators::Multiplication => {
-                        instructions::Instructions::MUL(Instruction::implicit())
-                    }
-                    operator::ArithmeticOperators::Exponentiation => {
-                        instructions::Instructions::EXP(Instruction::implicit())
-                    }
-                    operator::ArithmeticOperators::Division => {
-                        instructions::Instructions::DIV(Instruction::implicit())
-                    }
-                    operator::ArithmeticOperators::Modulus => {
-                        instructions::Instructions::MOD(Instruction::implicit())
-                    }
-                    operator::ArithmeticOperators::Null => unreachable!("Wrong operator"),
-                });
-                match target_register {
-                    instructions::Registers::A => (),
-                    instructions::Registers::B => {
-                        instructions
-                            .push(instructions::Instructions::LDB(Instruction::indirect_a()));
-                    }
-                    instructions::Registers::C => {
-                        instructions
-                            .push(instructions::Instructions::LDC(Instruction::indirect_a()));
-                    }
-                    instructions::Registers::X => {
-                        instructions
-                            .push(instructions::Instructions::LDX(Instruction::indirect_a()));
-                    }
-                    instructions::Registers::Y => {
-                        instructions
-                            .push(instructions::Instructions::LDY(Instruction::indirect_a()));
-                    }
-                }
-                instructions
-            }
-            operator::Operators::AssignmentType(_) => todo!(),
-            operator::Operators::Null => todo!(),
-        },
-        Types::Cloak(_) => todo!(),
-        Types::Array(_) => {
-            let converted_type = convert_type(types, dependencies);
-            match target_register {
-                instructions::Registers::A => vec![instructions::Instructions::LDA(
-                    Instruction::immediate(converted_type.0, converted_type.1),
-                )],
-                instructions::Registers::B => vec![instructions::Instructions::LDB(
-                    Instruction::immediate(converted_type.0, converted_type.1),
-                )],
-                instructions::Registers::C => vec![instructions::Instructions::LDC(
-                    Instruction::immediate(converted_type.0, converted_type.1),
-                )],
-                instructions::Registers::X => vec![instructions::Instructions::LDX(
-                    Instruction::immediate(converted_type.0, converted_type.1),
-                )],
-                instructions::Registers::Y => vec![instructions::Instructions::LDY(
-                    Instruction::immediate(converted_type.0, converted_type.1),
-                )],
-            }
-        }
-        Types::Vector(_) => todo!(),
-        Types::Function(_) => todo!(),
-        Types::ClassCall(_) => {
-            vec![]
-        }
-        Types::FunctionCall(function_call) => {
-            let target_local = match *function_call.target.clone() {
-                Types::VariableType(e) => e.value,
-                _ => unreachable!(),
-            };
-
-            let target = assembler
-                .find_local(&target_local, dependencies.clone())
-                .unwrap()
-                .clone();
-
-            let mut instructions = Vec::new();
-
-            for (idx, param) in function_call.params.iter().enumerate() {
-                let resolved_instructions = resolve_type(
-                    assembler,
-                    &param.value,
-                    instructions::Registers::A,
-                    &target_page,
-                    dependencies.clone(),
-                );
-                instructions.extend(resolved_instructions);
-                //Functions always reserve parameter spaces we're writing upper locations of function
-                instructions.push(instructions::Instructions::STA(Instruction::absolute(
-                    target.cursor - (idx + 1),
-                )));
-            }
-
-            instructions.push(instructions::Instructions::CALL(Instruction::absolute(
-                target.cursor,
-            )));
-            match target_register {
-                instructions::Registers::A => (),
-                instructions::Registers::B => {
-                    instructions.push(instructions::Instructions::LDB(Instruction::indirect_a()));
-                }
-                instructions::Registers::C => {
-                    instructions.push(instructions::Instructions::LDC(Instruction::indirect_a()));
-                }
-                instructions::Registers::X => {
-                    instructions.push(instructions::Instructions::LDX(Instruction::indirect_a()));
-                }
-                instructions::Registers::Y => {
-                    instructions.push(instructions::Instructions::LDY(Instruction::indirect_a()));
-                }
-            }
-            instructions
-        }
-        Types::Void => match target_register {
-            instructions::Registers::A => {
-                vec![instructions::Instructions::LDA(Instruction::immediate(
-                    crate::instructions::Types::Void,
-                    vec![],
-                ))]
-            }
-            instructions::Registers::B => {
-                vec![instructions::Instructions::LDB(Instruction::immediate(
-                    crate::instructions::Types::Void,
-                    vec![],
-                ))]
-            }
-            instructions::Registers::C => {
-                vec![instructions::Instructions::LDC(Instruction::immediate(
-                    crate::instructions::Types::Void,
-                    vec![],
-                ))]
-            }
-            instructions::Registers::X => {
-                vec![instructions::Instructions::LDX(Instruction::immediate(
-                    crate::instructions::Types::Void,
-                    vec![],
-                ))]
-            }
-            instructions::Registers::Y => {
-                vec![instructions::Instructions::LDY(Instruction::immediate(
-                    crate::instructions::Types::Void,
-                    vec![],
-                ))]
-            }
-        },
-        Types::NullResolver(_) => todo!(),
-        Types::Negative(_) => todo!(),
-        Types::VariableType(e) => {
-            let pos = assembler.find_local(&e.value, dependencies).unwrap();
-
-            let mut instructions = Vec::new();
-
-            match target_register {
-                instructions::Registers::A => match pos.reference {
-                    Some(target_page) => {
-                        instructions.push(instructions::Instructions::AOL(Instruction::absolute(
-                            target_page,
-                        )));
-                        instructions.push(instructions::Instructions::LDA(Instruction::absolute(
-                            pos.cursor,
-                        )))
-                    }
-                    None => instructions.push(instructions::Instructions::LDA(
-                        Instruction::absolute(pos.cursor),
-                    )),
-                },
-                instructions::Registers::B => match pos.reference {
-                    Some(target_page) => {
-                        instructions.push(instructions::Instructions::AOL(Instruction::absolute(
-                            target_page,
-                        )));
-                        instructions.push(instructions::Instructions::LDB(Instruction::absolute(
-                            pos.cursor,
-                        )))
-                    }
-                    None => instructions.push(instructions::Instructions::LDB(
-                        Instruction::absolute(pos.cursor),
-                    )),
-                },
-                instructions::Registers::C => match pos.reference {
-                    Some(target_page) => {
-                        instructions.push(instructions::Instructions::AOL(Instruction::absolute(
-                            target_page,
-                        )));
-                        instructions.push(instructions::Instructions::LDC(Instruction::absolute(
-                            pos.cursor,
-                        )))
-                    }
-                    None => instructions.push(instructions::Instructions::LDC(
-                        Instruction::absolute(pos.cursor),
-                    )),
-                },
-                instructions::Registers::X => match pos.reference {
-                    Some(target_page) => {
-                        instructions.push(instructions::Instructions::AOL(Instruction::absolute(
-                            target_page,
-                        )));
-                        instructions.push(instructions::Instructions::LDX(Instruction::absolute(
-                            pos.cursor,
-                        )))
-                    }
-                    None => instructions.push(instructions::Instructions::LDX(
-                        Instruction::absolute(pos.cursor),
-                    )),
-                },
-                instructions::Registers::Y => match pos.reference {
-                    Some(target_page) => {
-                        instructions.push(instructions::Instructions::AOL(Instruction::absolute(
-                            target_page,
-                        )));
-                        instructions.push(instructions::Instructions::LDY(Instruction::absolute(
-                            pos.cursor,
-                        )))
-                    }
-                    None => instructions.push(instructions::Instructions::LDY(
-                        Instruction::absolute(pos.cursor),
-                    )),
-                },
-            };
-
-            instructions
-        }
-        Types::AsKeyword(e) => {
-            let mut instructions = resolve_type(
-                assembler,
-                &e.target,
-                instructions::Registers::A,
-                target_page,
-                dependencies,
-            );
-
-            match &e.rtype {
-                ellie_core::definite::definers::DefinerCollecting::Generic(e) => {
-                    if e.rtype == "int" {
-                        instructions.push(instructions::Instructions::A2I(Instruction::implicit()));
-                    } else if e.rtype == "float" {
-                        instructions.push(instructions::Instructions::A2F(Instruction::implicit()));
-                    } else if e.rtype == "double" {
-                        instructions.push(instructions::Instructions::A2D(Instruction::implicit()));
-                    } else if e.rtype == "bool" {
-                        instructions.push(instructions::Instructions::A2O(Instruction::implicit()));
-                    } else if e.rtype == "string" {
-                        instructions.push(instructions::Instructions::A2S(Instruction::implicit()));
-                    } else if e.rtype == "char" {
-                        instructions.push(instructions::Instructions::A2C(Instruction::implicit()));
-                    } else if e.rtype == "byte" {
-                        instructions.push(instructions::Instructions::A2B(Instruction::implicit()));
-                    }
-                }
-                _ => panic!("As conv parent generic not implemented yet"),
-            };
-
-            instructions.push(instructions::Instructions::LDB(Instruction::indirect_a()));
-
-            match target_register {
-                instructions::Registers::A => {
-                    instructions.push(instructions::Instructions::LDA(Instruction::indirect_b()))
-                }
-                instructions::Registers::B => (),
-                instructions::Registers::C => {
-                    instructions.push(instructions::Instructions::LDC(Instruction::indirect_b()))
-                }
-                instructions::Registers::X => {
-                    instructions.push(instructions::Instructions::LDX(Instruction::indirect_b()))
-                }
-                instructions::Registers::Y => {
-                    instructions.push(instructions::Instructions::LDY(Instruction::indirect_b()))
-                }
-            }
-            instructions
-        }
-        Types::Byte(_) => {
-            let converted_type = convert_type(types, dependencies);
-            match target_register {
-                instructions::Registers::A => {
-                    vec![instructions::Instructions::LDA(Instruction::immediate(
-                        converted_type.0,
-                        converted_type.1,
-                    ))]
-                }
-                instructions::Registers::B => {
-                    vec![instructions::Instructions::LDB(Instruction::immediate(
-                        converted_type.0,
-                        converted_type.1,
-                    ))]
-                }
-                instructions::Registers::C => {
-                    vec![instructions::Instructions::LDC(Instruction::immediate(
-                        converted_type.0,
-                        converted_type.1,
-                    ))]
-                }
-                instructions::Registers::X => {
-                    vec![instructions::Instructions::LDX(Instruction::immediate(
-                        converted_type.0,
-                        converted_type.1,
-                    ))]
-                }
-                instructions::Registers::Y => {
-                    vec![instructions::Instructions::LDY(Instruction::immediate(
-                        converted_type.0,
-                        converted_type.1,
-                    ))]
-                }
-            }
-        }
-        Types::Integer(_) => {
-            let converted_type = convert_type(types, dependencies);
-
-            match target_register {
-                instructions::Registers::A => {
-                    vec![instructions::Instructions::LDA(Instruction::immediate(
-                        converted_type.0,
-                        converted_type.1,
-                    ))]
-                }
-                instructions::Registers::B => {
-                    vec![instructions::Instructions::LDB(Instruction::immediate(
-                        converted_type.0,
-                        converted_type.1,
-                    ))]
-                }
-                instructions::Registers::C => {
-                    vec![instructions::Instructions::LDC(Instruction::immediate(
-                        converted_type.0,
-                        converted_type.1,
-                    ))]
-                }
-                instructions::Registers::X => {
-                    vec![instructions::Instructions::LDX(Instruction::immediate(
-                        converted_type.0,
-                        converted_type.1,
-                    ))]
-                }
-                instructions::Registers::Y => {
-                    vec![instructions::Instructions::LDY(Instruction::immediate(
-                        converted_type.0,
-                        converted_type.1,
-                    ))]
-                }
-            }
-        }
-        Types::Float(_) => {
-            let converted_type = convert_type(types, dependencies);
-
-            match target_register {
-                instructions::Registers::A => {
-                    vec![instructions::Instructions::LDA(Instruction::immediate(
-                        converted_type.0,
-                        converted_type.1,
-                    ))]
-                }
-                instructions::Registers::B => {
-                    vec![instructions::Instructions::LDB(Instruction::immediate(
-                        converted_type.0,
-                        converted_type.1,
-                    ))]
-                }
-                instructions::Registers::C => {
-                    vec![instructions::Instructions::LDC(Instruction::immediate(
-                        converted_type.0,
-                        converted_type.1,
-                    ))]
-                }
-                instructions::Registers::X => {
-                    vec![instructions::Instructions::LDX(Instruction::immediate(
-                        converted_type.0,
-                        converted_type.1,
-                    ))]
-                }
-                instructions::Registers::Y => {
-                    vec![instructions::Instructions::LDY(Instruction::immediate(
-                        converted_type.0,
-                        converted_type.1,
-                    ))]
-                }
-            }
-        }
-        Types::Double(_) => {
-            let converted_type = convert_type(types, dependencies);
-
-            match target_register {
-                instructions::Registers::A => {
-                    vec![instructions::Instructions::LDA(Instruction::immediate(
-                        converted_type.0,
-                        converted_type.1,
-                    ))]
-                }
-                instructions::Registers::B => {
-                    vec![instructions::Instructions::LDB(Instruction::immediate(
-                        converted_type.0,
-                        converted_type.1,
-                    ))]
-                }
-                instructions::Registers::C => {
-                    vec![instructions::Instructions::LDC(Instruction::immediate(
-                        converted_type.0,
-                        converted_type.1,
-                    ))]
-                }
-                instructions::Registers::X => {
-                    vec![instructions::Instructions::LDX(Instruction::immediate(
-                        converted_type.0,
-                        converted_type.1,
-                    ))]
-                }
-                instructions::Registers::Y => {
-                    vec![instructions::Instructions::LDY(Instruction::immediate(
-                        converted_type.0,
-                        converted_type.1,
-                    ))]
-                }
-            }
-        }
-        Types::Bool(_) => {
-            let converted_type = convert_type(types, dependencies);
-
-            match target_register {
-                instructions::Registers::A => {
-                    vec![instructions::Instructions::LDA(Instruction::immediate(
-                        converted_type.0,
-                        converted_type.1,
-                    ))]
-                }
-                instructions::Registers::B => {
-                    vec![instructions::Instructions::LDB(Instruction::immediate(
-                        converted_type.0,
-                        converted_type.1,
-                    ))]
-                }
-                instructions::Registers::C => {
-                    vec![instructions::Instructions::LDC(Instruction::immediate(
-                        converted_type.0,
-                        converted_type.1,
-                    ))]
-                }
-                instructions::Registers::X => {
-                    vec![instructions::Instructions::LDX(Instruction::immediate(
-                        converted_type.0,
-                        converted_type.1,
-                    ))]
-                }
-                instructions::Registers::Y => {
-                    vec![instructions::Instructions::LDY(Instruction::immediate(
-                        converted_type.0,
-                        converted_type.1,
-                    ))]
-                }
-            }
-        }
-        Types::String(_) => {
-            let converted_type = convert_type(types, dependencies);
-
-            match target_register {
-                instructions::Registers::A => {
-                    vec![instructions::Instructions::LDA(Instruction::immediate(
-                        converted_type.0,
-                        converted_type.1,
-                    ))]
-                }
-                instructions::Registers::B => {
-                    vec![instructions::Instructions::LDB(Instruction::immediate(
-                        converted_type.0,
-                        converted_type.1,
-                    ))]
-                }
-                instructions::Registers::C => {
-                    vec![instructions::Instructions::LDC(Instruction::immediate(
-                        converted_type.0,
-                        converted_type.1,
-                    ))]
-                }
-                instructions::Registers::X => {
-                    vec![instructions::Instructions::LDX(Instruction::immediate(
-                        converted_type.0,
-                        converted_type.1,
-                    ))]
-                }
-                instructions::Registers::Y => {
-                    vec![instructions::Instructions::LDY(Instruction::immediate(
-                        converted_type.0,
-                        converted_type.1,
-                    ))]
-                }
-            }
-        }
-        Types::Char(_) => {
-            let converted_type = convert_type(types, dependencies);
-
-            match target_register {
-                instructions::Registers::A => {
-                    vec![instructions::Instructions::LDA(Instruction::immediate(
-                        converted_type.0,
-                        converted_type.1,
-                    ))]
-                }
-                instructions::Registers::B => {
-                    vec![instructions::Instructions::LDB(Instruction::immediate(
-                        converted_type.0,
-                        converted_type.1,
-                    ))]
-                }
-                instructions::Registers::C => {
-                    vec![instructions::Instructions::LDC(Instruction::immediate(
-                        converted_type.0,
-                        converted_type.1,
-                    ))]
-                }
-                instructions::Registers::X => {
-                    vec![instructions::Instructions::LDX(Instruction::immediate(
-                        converted_type.0,
-                        converted_type.1,
-                    ))]
-                }
-                instructions::Registers::Y => {
-                    vec![instructions::Instructions::LDY(Instruction::immediate(
-                        converted_type.0,
-                        converted_type.1,
-                    ))]
-                }
-            }
-        }
-        Types::Null => match target_register {
-            instructions::Registers::A => {
-                vec![instructions::Instructions::LDA(Instruction::immediate(
-                    crate::instructions::Types::Null,
-                    vec![],
-                ))]
-            }
-            instructions::Registers::B => {
-                vec![instructions::Instructions::LDB(Instruction::immediate(
-                    crate::instructions::Types::Null,
-                    vec![],
-                ))]
-            }
-            instructions::Registers::C => {
-                vec![instructions::Instructions::LDC(Instruction::immediate(
-                    crate::instructions::Types::Null,
-                    vec![],
-                ))]
-            }
-            instructions::Registers::X => {
-                vec![instructions::Instructions::LDX(Instruction::immediate(
-                    crate::instructions::Types::Null,
-                    vec![],
-                ))]
-            }
-            instructions::Registers::Y => {
-                vec![instructions::Instructions::LDY(Instruction::immediate(
-                    crate::instructions::Types::Null,
-                    vec![],
-                ))]
-            }
-        },
-        Types::Dynamic => todo!(),
-        Types::SetterCall(_) => todo!(),
-        Types::EnumData(_) => todo!(),
-    }
-}
-*/

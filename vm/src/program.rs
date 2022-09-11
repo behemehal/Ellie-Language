@@ -15,8 +15,15 @@ pub struct ReadInstruction {
 }
 
 #[derive(Debug, Clone)]
+pub struct MainProgram {
+    pub hash: usize,
+    pub start: usize,
+    pub length: usize,
+}
+
+#[derive(Debug, Clone)]
 pub struct Program {
-    pub main: (usize, usize),
+    pub main: MainProgram,
     pub arch: PlatformArchitecture,
     pub instructions: Vec<ReadInstruction>,
 }
@@ -40,18 +47,33 @@ impl Program {
             return Err(3);
         }
 
-        let main = match reader.read_usize(arch.usize_len()) {
+        let start = match reader.read_usize(arch.usize_len()) {
             Some(byte) => byte,
             None => return Err(0),
         };
 
-        let main_hash = match reader.read_usize(arch.usize_len()) {
+        let end = match reader.read_usize(arch.usize_len()) {
             Some(byte) => byte,
             None => return Err(0),
         };
+
+        let hash = match reader.read_usize(arch.usize_len()) {
+            Some(byte) => byte,
+            None => return Err(0),
+        };
+
+        std::println!("Main: {:?}", MainProgram {
+            hash,
+            start,
+            length: end,
+        });
 
         let mut program = Program {
-            main: (main, main_hash),
+            main: MainProgram {
+                hash,
+                start,
+                length: end,
+            },
             arch,
             instructions: Vec::new(),
         };
@@ -140,6 +162,13 @@ impl Program {
                             addressing_value = AddressingValues::AbsoluteIndex(pointer, index);
                         }
                         AddressingModes::AbsoluteProperty => todo!(),
+                        AddressingModes::Parameter => {
+                            let idx = match reader.read_usize(self.arch.usize_len()) {
+                                Some(byte) => byte,
+                                None => return Err(0),
+                            };
+                            addressing_value = AddressingValues::Parameter(idx);
+                        }
                         AddressingModes::Implicit => todo!(),
                         AddressingModes::IndirectA => {
                             addressing_value = AddressingValues::IndirectA;
@@ -168,6 +197,7 @@ impl Program {
                 }
             }
             None => {
+                println!("WRONG OP-CODE: {}", read_byte);
                 return Err(1);
             }
         };

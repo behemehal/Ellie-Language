@@ -18,7 +18,7 @@ impl super::Transpiler for ret::Ret {
         resolve_type(
             assembler,
             &self.value,
-            instructions::Registers::A,
+            instructions::Registers::Y,
             &hash,
             Some(dependencies),
         );
