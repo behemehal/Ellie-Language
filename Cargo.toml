@@ -1,7 +1,7 @@
 [package]
 name = "ellie_engine"
 version_code = "BeautifulTropicalFish"
-version = "0.8.2"
+version = "0.8.3"
 authors = ["Ahmetcan Aksu <ahmetcanaksu@behemehal.net>", "Behemehal <info@behemehal.net>"]
 edition = "2021"
 license-file = "LICENSE"

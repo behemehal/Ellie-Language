@@ -127,10 +127,23 @@ pub fn resolve_type(
             operator::Operators::ComparisonType(e) => {
                 resolve_type(
                     assembler,
+                    &operator.first,
+                    instructions::Registers::B,
+                    target_page,
+                    dependencies.clone(),
+                );
+
+                let first_operator_pos = assembler.instructions.len();
+                assembler
+                    .instructions
+                    .push(instructions::Instructions::STB(Instruction::implicit()));
+
+                resolve_type(
+                    assembler,
                     &operator.second,
                     instructions::Registers::C,
                     target_page,
-                    dependencies.clone(),
+                    dependencies,
                 );
 
                 let second_operator_pos = assembler.instructions.len();
@@ -138,14 +151,9 @@ pub fn resolve_type(
                     .instructions
                     .push(instructions::Instructions::STC(Instruction::implicit()));
 
-                resolve_type(
-                    assembler,
-                    &operator.first,
-                    instructions::Registers::B,
-                    target_page,
-                    dependencies,
-                );
-
+                assembler.instructions.push(instructions::Instructions::LDB(
+                    Instruction::absolute(first_operator_pos),
+                ));
                 assembler.instructions.push(instructions::Instructions::LDC(
                     Instruction::absolute(second_operator_pos),
                 ));
