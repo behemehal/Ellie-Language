@@ -8,7 +8,6 @@ use alloc::{
 use ellie_core::defs::{DebugHeader, PlatformArchitecture};
 use ellie_core::utils::ExportPage;
 use ellie_parser::parser::Module;
-use std::println;
 use std::{io::Write, panic};
 
 pub struct Assembler {
@@ -175,6 +174,7 @@ impl AssembleResult {
         }
 
         for instruction in &self.instructions {
+            std::println!("{:?}", instruction);
             writer
                 .write(&instruction.op_code(&self.module_info.platform_attributes.architecture))
                 .unwrap();

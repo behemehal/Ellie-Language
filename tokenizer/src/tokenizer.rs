@@ -34,7 +34,7 @@ pub enum PageType {
     RawBody,
     LoopBody,
     ClassBody,
-    ValueConditionBody,
+    ConditionBody,
 }
 
 impl Default for PageType {

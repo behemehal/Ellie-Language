@@ -22,6 +22,11 @@ impl super::Transpiler for ret::Ret {
             &hash,
             Some(dependencies),
         );
+        std::println!("RET: {:?}", self.value);
+        std::println!("RET: {:?}", assembler.instructions.last());
+        std::println!("RET: {:?}", assembler.instructions.last().unwrap().get_arg(&ellie_core::defs::PlatformArchitecture::B32));
+        std::println!("RET: {:?}", assembler.instructions.last().unwrap().get_addressing_mode());
+        std::println!("RET: {:?}", assembler.instructions.last().unwrap().op_code(&ellie_core::defs::PlatformArchitecture::B32));
 
         assembler
             .instructions

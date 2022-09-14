@@ -53,7 +53,7 @@ pub struct ThreadStep {
     pub info: ThreadStepInfo,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum ThreadStepInfo {
     /// The thread requires a step.
     StepNext,
@@ -63,6 +63,8 @@ pub enum ThreadStepInfo {
     JMP(usize),
     /// Thread has no more stack to execute
     EndOfStacks,
+    // Droping a stack
+    DropStack,
 }
 
 pub enum ExitCode {

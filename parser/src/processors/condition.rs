@@ -114,7 +114,7 @@ impl super::Processor for Condition {
                 hash: inner_page_id,
                 inner: Some(page.hash),
                 path: page.path.clone(),
-                page_type: PageType::ValueConditionBody,
+                page_type: PageType::ConditionBody,
                 items: chain.code.clone(),
                 dependents: vec![],
                 dependencies,

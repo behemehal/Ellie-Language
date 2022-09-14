@@ -62,12 +62,6 @@ impl Program {
             None => return Err(0),
         };
 
-        std::println!("Main: {:?}", MainProgram {
-            hash,
-            start,
-            length: end,
-        });
-
         let mut program = Program {
             main: MainProgram {
                 hash,

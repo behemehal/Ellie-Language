@@ -959,7 +959,7 @@ where
                 }
                 utils::AddressingValues::Absolute(e) => {
                     heap.set(
-                        &(current_stack.stack_pos + current_stack.frame_pos),
+                        &(e + current_stack.frame_pos),
                         current_stack.registers.A.clone(),
                     );
                 }
@@ -2858,6 +2858,14 @@ where
                 Some(caller) => match self.stack.stack.iter_mut().find(|x| x.id == caller) {
                     Some(caller_stack) => {
                         caller_stack.registers.Y = current_Y;
+                        let stack_id = caller_stack.id;
+                        self.stack.pop();
+                        return Ok(ThreadStep {
+                            instruction: current_instruction.clone(),
+                            stack_pos,
+                            stack_id,
+                            info: ThreadStepInfo::DropStack,
+                        })
                     }
                     None => {
                         return Err(ThreadExit::Panic(ThreadPanic {
@@ -2867,9 +2875,10 @@ where
                         }));
                     }
                 },
-                None => (),
+                None => {
+                    self.stack.pop();
+                },
             }
-            self.stack.pop();
         } else {
             current_stack.stack_pos += 1;
         }

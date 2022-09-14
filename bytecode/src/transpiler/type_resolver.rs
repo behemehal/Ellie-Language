@@ -112,7 +112,7 @@ pub fn resolve_type(
                 instructions::Registers::X => assembler.instructions.push(
                     instructions::Instructions::LDX(instructions::Instruction::absolute_index(
                         location_of_pointer,
-                        assembler.location(),
+                        assembler .location(),
                     )),
                 ),
                 instructions::Registers::Y => assembler.instructions.push(
@@ -266,10 +266,23 @@ pub fn resolve_type(
             operator::Operators::ArithmeticType(e) => {
                 resolve_type(
                     assembler,
+                    &operator.first,
+                    instructions::Registers::B,
+                    target_page,
+                    dependencies.clone(),
+                );
+
+                let first_operator_pos = assembler.instructions.len();
+                assembler
+                    .instructions
+                    .push(instructions::Instructions::STB(Instruction::implicit()));
+
+                resolve_type(
+                    assembler,
                     &operator.second,
                     instructions::Registers::C,
                     target_page,
-                    dependencies.clone(),
+                    dependencies,
                 );
 
                 let second_operator_pos = assembler.instructions.len();
@@ -277,14 +290,9 @@ pub fn resolve_type(
                     .instructions
                     .push(instructions::Instructions::STC(Instruction::implicit()));
 
-                resolve_type(
-                    assembler,
-                    &operator.first,
-                    instructions::Registers::B,
-                    target_page,
-                    dependencies,
-                );
-
+                assembler.instructions.push(instructions::Instructions::LDB(
+                    Instruction::absolute(first_operator_pos),
+                ));
                 assembler.instructions.push(instructions::Instructions::LDC(
                     Instruction::absolute(second_operator_pos),
                 ));
@@ -358,7 +366,6 @@ pub fn resolve_type(
 
             let array_rtype = instructions::Types::Array(entries.len());
 
-            let converted_type = convert_type(types, dependencies);
             match target_register {
                 instructions::Registers::A => assembler.instructions.push(
                     instructions::Instructions::LDA(Instruction::immediate(array_rtype, entries)),
@@ -475,7 +482,7 @@ pub fn resolve_type(
                 instructions::Registers::A => {
                     assembler
                         .instructions
-                        .push(instructions::Instructions::LDB(Instruction::indirect_y()));
+                        .push(instructions::Instructions::LDA(Instruction::indirect_y()));
                 }
                 instructions::Registers::B => {
                     assembler

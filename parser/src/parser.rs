@@ -2323,7 +2323,7 @@ impl Parser {
                             false
                         }
                     },
-                    ellie_tokenizer::tokenizer::PageType::ValueConditionBody => match item {
+                    ellie_tokenizer::tokenizer::PageType::ConditionBody => match item {
                         Processors::Variable(e) => e.process(
                             self,
                             unprocessed_page_idx,
@@ -2396,22 +2396,12 @@ impl Parser {
                             processed_page_idx,
                             unprocessed_page.hash,
                         ),
-                        Processors::Ret(e) => {
-                            self.informations.push(
-                                &error::error_list::ERROR_S22.clone().build_with_path(
-                                    vec![],
-                                    alloc::format!(
-                                        "{}:{}:{}",
-                                        file!().to_owned(),
-                                        line!(),
-                                        column!()
-                                    ),
-                                    unprocessed_page.path.clone(),
-                                    e.pos,
-                                ),
-                            );
-                            false
-                        }
+                        Processors::Ret(e) =>  e.process(
+                            self,
+                            unprocessed_page_idx,
+                            processed_page_idx,
+                            unprocessed_page.hash,
+                        ),
                         Processors::SelfItem(e) => {
                             self.processed_pages
                                 .nth_mut(processed_page_idx)

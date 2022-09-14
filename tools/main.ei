@@ -197,17 +197,21 @@ fn test(f: int) : int {
 
 fn factorial(x: int) : int {
     println("x: " + x);
-    v result : int = 1;
     if x == 1 {
-        result = 1;
+        println("x == 1");
+        ret 1;
     } else {
-        result = x * factorial(x - 1);
+        println("x != 1");
+        v mut = x * factorial(x - 1);
+        println("mut: " + mut);
+        ret mut;
     }
-    ret result;
+    println("Something went wrong");
 }
 
 fn main() {
  
+    v res = factorial(4);
 
   println("Result: " + factorial(4));
 }

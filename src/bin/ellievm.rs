@@ -7,8 +7,13 @@ use ellie_engine::{
     engine_constants,
     vm::{parse_debug_file, read_program, RFile},
 };
+use ellie_vm::{
+    heap::{self, Heap},
+    thread::Stack,
+    utils::ThreadStepInfo,
+};
 use std::{
-    fs::{File, self},
+    fs::{self, File},
     io::{Read, Write},
     path::Path,
     thread,
@@ -225,6 +230,13 @@ fn main() {
                 std::process::exit(1);
             };
 
+            let mut step_into = false;
+            let mut show_heap_dump = false;
+            let mut show_registers = true;
+            let mut wait_pos = None;
+            let mut show_code = false;
+            let mut show_stack_info = false;
+
             let mut vm = ellie_vm::vm::VM::new(vm_settings.architecture, |_, e| {
                 if e.module == "ellieStd" && e.name == "heapDump" {
                     println!(
@@ -251,192 +263,189 @@ fn main() {
 
             vm.build_main_thread(program.main);
 
+            if is_vm_debug {
+                println!(
+                    "{}EllieVM - Interactive Debugger{}: {}Type 'help' for help{}\n",
+                    utils::Colors::Green,
+                    utils::Colors::Reset,
+                    utils::Colors::Yellow,
+                    utils::Colors::Reset
+                );
+                println!(
+                    "{}VM{}: {}Program loaded {}\n",
+                    utils::Colors::Green,
+                    utils::Colors::Reset,
+                    utils::Colors::Yellow,
+                    utils::Colors::Reset
+                );
+            }
+
             let main_thread = thread::spawn(move || loop {
-                match vm.threads[0].step(&mut vm.heap) {
-                    Ok(thread_step) => {
-                        if is_vm_debug {
-                            println!("StackId: {}", thread_step.stack_id);
-                            let coresponding_stack = vm.threads[0].stack.get(thread_step.stack_id).unwrap();
-                            println!("Name: {}, caller: {:?}", coresponding_stack.name, coresponding_stack.caller);
-                            println!("---");
-                            println!("Instruction:");
+                if is_vm_debug {
+                    //clear console
+                    fn step(
+                        heap: &mut Heap,
+                        stack: Stack,
+                        debug_file: Option<DebugInfo>,
+                        thread_step: ellie_vm::utils::ThreadStep,
+                        show_heap_dump: bool,
+                        show_registers: bool,
+                        wait_pos: Option<usize>,
+                        show_code: bool,
+                        show_stack_info: bool,
+                    ) {
+                        if show_stack_info {
                             println!(
-                                "{}: {:?}",
-                                thread_step.stack_pos,
-                                match thread_step.instruction.instruction {
-                                    ellie_vm::utils::Instructions::LDA(_) => format!(
-                                        "LDA {:?}",
-                                        thread_step.instruction.addressing_value
-                                    ),
-                                    ellie_vm::utils::Instructions::LDB(_) => format!(
-                                        "LDB {:?}",
-                                        thread_step.instruction.addressing_value
-                                    ),
-                                    ellie_vm::utils::Instructions::LDC(_) => format!(
-                                        "LDC {:?}",
-                                        thread_step.instruction.addressing_value
-                                    ),
-                                    ellie_vm::utils::Instructions::LDX(_) => format!(
-                                        "LDX {:?}",
-                                        thread_step.instruction.addressing_value
-                                    ),
-                                    ellie_vm::utils::Instructions::LDY(_) => format!(
-                                        "LDY {:?}",
-                                        thread_step.instruction.addressing_value
-                                    ),
-                                    ellie_vm::utils::Instructions::STA(_) => format!(
-                                        "STA {:?}",
-                                        thread_step.instruction.addressing_value
-                                    ),
-                                    ellie_vm::utils::Instructions::STB(_) => format!(
-                                        "STB {:?}",
-                                        thread_step.instruction.addressing_value
-                                    ),
-                                    ellie_vm::utils::Instructions::STC(_) => format!(
-                                        "STC {:?}",
-                                        thread_step.instruction.addressing_value
-                                    ),
-                                    ellie_vm::utils::Instructions::STX(_) => format!(
-                                        "STX {:?}",
-                                        thread_step.instruction.addressing_value
-                                    ),
-                                    ellie_vm::utils::Instructions::STY(_) => format!(
-                                        "STY {:?}",
-                                        thread_step.instruction.addressing_value
-                                    ),
-                                    ellie_vm::utils::Instructions::EQ(_) =>
-                                        format!("EQ {:?}", thread_step.instruction.addressing_value),
-                                    ellie_vm::utils::Instructions::NE(_) =>
-                                        format!("NE {:?}", thread_step.instruction.addressing_value),
-                                    ellie_vm::utils::Instructions::GT(_) =>
-                                        format!("GT {:?}", thread_step.instruction.addressing_value),
-                                    ellie_vm::utils::Instructions::LT(_) =>
-                                        format!("LT {:?}", thread_step.instruction.addressing_value),
-                                    ellie_vm::utils::Instructions::GQ(_) =>
-                                        format!("GQ {:?}", thread_step.instruction.addressing_value),
-                                    ellie_vm::utils::Instructions::LQ(_) =>
-                                        format!("LQ {:?}", thread_step.instruction.addressing_value),
-                                    ellie_vm::utils::Instructions::AND(_) => format!(
-                                        "AND {:?}",
-                                        thread_step.instruction.addressing_value
-                                    ),
-                                    ellie_vm::utils::Instructions::OR(_) =>
-                                        format!("OR {:?}", thread_step.instruction.addressing_value),
-                                    ellie_vm::utils::Instructions::ADD(_) => format!(
-                                        "ADD {:?}",
-                                        thread_step.instruction.addressing_value
-                                    ),
-                                    ellie_vm::utils::Instructions::SUB(_) => format!(
-                                        "SUB {:?}",
-                                        thread_step.instruction.addressing_value
-                                    ),
-                                    ellie_vm::utils::Instructions::MUL(_) => format!(
-                                        "MUL {:?}",
-                                        thread_step.instruction.addressing_value
-                                    ),
-                                    ellie_vm::utils::Instructions::EXP(_) => format!(
-                                        "EXP {:?}",
-                                        thread_step.instruction.addressing_value
-                                    ),
-                                    ellie_vm::utils::Instructions::DIV(_) => format!(
-                                        "DIV {:?}",
-                                        thread_step.instruction.addressing_value
-                                    ),
-                                    ellie_vm::utils::Instructions::MOD(_) => format!(
-                                        "MOD {:?}",
-                                        thread_step.instruction.addressing_value
-                                    ),
-                                    ellie_vm::utils::Instructions::INC(_) => format!(
-                                        "INC {:?}",
-                                        thread_step.instruction.addressing_value
-                                    ),
-                                    ellie_vm::utils::Instructions::DEC(_) => format!(
-                                        "DEC {:?}",
-                                        thread_step.instruction.addressing_value
-                                    ),
-                                    ellie_vm::utils::Instructions::JMP(_) => format!(
-                                        "JMP {:?}",
-                                        thread_step.instruction.addressing_value
-                                    ),
-                                    ellie_vm::utils::Instructions::CALL(_) => format!(
-                                        "CALL {:?}",
-                                        thread_step.instruction.addressing_value
-                                    ),
-                                    ellie_vm::utils::Instructions::RET(_) => format!(
-                                        "RET {:?}",
-                                        thread_step.instruction.addressing_value
-                                    ),
-                                    ellie_vm::utils::Instructions::UGR(_) => format!(
-                                        "UGR {:?}",
-                                        thread_step.instruction.addressing_value
-                                    ),
-                                    ellie_vm::utils::Instructions::ULR(_) => format!(
-                                        "ULR {:?}",
-                                        thread_step.instruction.addressing_value
-                                    ),
-                                    ellie_vm::utils::Instructions::PUSH(_) => format!(
-                                        "PUSH {:?}",
-                                        thread_step.instruction.addressing_value
-                                    ),
-                                    ellie_vm::utils::Instructions::LEN(_) => format!(
-                                        "LEN {:?}",
-                                        thread_step.instruction.addressing_value
-                                    ),
-                                    ellie_vm::utils::Instructions::A2I(_) => format!(
-                                        "A2I {:?}",
-                                        thread_step.instruction.addressing_value
-                                    ),
-                                    ellie_vm::utils::Instructions::A2F(_) => format!(
-                                        "A2F {:?}",
-                                        thread_step.instruction.addressing_value
-                                    ),
-                                    ellie_vm::utils::Instructions::A2D(_) => format!(
-                                        "A2D {:?}",
-                                        thread_step.instruction.addressing_value
-                                    ),
-                                    ellie_vm::utils::Instructions::A2B(_) => format!(
-                                        "A2B {:?}",
-                                        thread_step.instruction.addressing_value
-                                    ),
-                                    ellie_vm::utils::Instructions::A2S(_) => format!(
-                                        "A2S {:?}",
-                                        thread_step.instruction.addressing_value
-                                    ),
-                                    ellie_vm::utils::Instructions::A2C(_) => format!(
-                                        "A2C {:?}",
-                                        thread_step.instruction.addressing_value
-                                    ),
-                                    ellie_vm::utils::Instructions::A2O(_) => format!(
-                                        "A2O {:?}",
-                                        thread_step.instruction.addressing_value
-                                    ),
-                                    ellie_vm::utils::Instructions::JMPA(_) => format!(
-                                        "JMPA {:?}",
-                                        thread_step.instruction.addressing_value
-                                    ),
-                                    ellie_vm::utils::Instructions::POPS(_) => format!(
-                                        "POPS {:?}",
-                                        thread_step.instruction.addressing_value
-                                    ),
-                                    ellie_vm::utils::Instructions::ACP(_) => format!(
-                                        "ACP {:?}",
-                                        thread_step.instruction.addressing_value
-                                    ),
-                                    ellie_vm::utils::Instructions::BRK(_) => format!(
-                                        "BRK {:?}",
-                                        thread_step.instruction.addressing_value
-                                    ),
-                                    ellie_vm::utils::Instructions::CALLN(_) => format!(
-                                        "CALLN {:?}",
-                                        thread_step.instruction.addressing_value
-                                    ),
-                                    ellie_vm::utils::Instructions::CO(_) =>
-                                        format!("CO {:?}", thread_step.instruction.addressing_value),
-                                    ellie_vm::utils::Instructions::FN(_) =>
-                                        format!("FN {:?}", thread_step.instruction.addressing_value),
-                                }
+                                "{}Stack info:{}",
+                                utils::Colors::Green,
+                                utils::Colors::Reset
                             );
+                            println!(
+                                "- {}ID{}: {}",
+                                utils::Colors::Yellow,
+                                utils::Colors::Reset,
+                                stack.id
+                            );
+                            println!(
+                                "- {}NAME{}: {}",
+                                utils::Colors::Yellow,
+                                utils::Colors::Reset,
+                                stack.name
+                            );
+                            println!(
+                                "- {}CALLER{}: {:?}",
+                                utils::Colors::Yellow,
+                                utils::Colors::Reset,
+                                stack.caller
+                            );
+                        } else {
+                            println!(
+                                "{}StackInfo{}: {}Disabled{}",
+                                utils::Colors::Green,
+                                utils::Colors::Reset,
+                                utils::Colors::Red,
+                                utils::Colors::Reset
+                            );
+                        }
+                        println!(
+                            "{}Instruction{}:",
+                            utils::Colors::Green,
+                            utils::Colors::Reset
+                        );
+                        println!(
+                            "{}{}{}: {}{:?}{}",
+                            utils::Colors::Yellow,
+                            thread_step.stack_pos,
+                            utils::Colors::Reset,
+                            utils::Colors::Cyan,
+                            match thread_step.instruction.instruction {
+                                ellie_vm::utils::Instructions::LDA(_) =>
+                                    format!("LDA {:?}", thread_step.instruction.addressing_value),
+                                ellie_vm::utils::Instructions::LDB(_) =>
+                                    format!("LDB {:?}", thread_step.instruction.addressing_value),
+                                ellie_vm::utils::Instructions::LDC(_) =>
+                                    format!("LDC {:?}", thread_step.instruction.addressing_value),
+                                ellie_vm::utils::Instructions::LDX(_) =>
+                                    format!("LDX {:?}", thread_step.instruction.addressing_value),
+                                ellie_vm::utils::Instructions::LDY(_) =>
+                                    format!("LDY {:?}", thread_step.instruction.addressing_value),
+                                ellie_vm::utils::Instructions::STA(_) =>
+                                    format!("STA {:?}", thread_step.instruction.addressing_value),
+                                ellie_vm::utils::Instructions::STB(_) =>
+                                    format!("STB {:?}", thread_step.instruction.addressing_value),
+                                ellie_vm::utils::Instructions::STC(_) =>
+                                    format!("STC {:?}", thread_step.instruction.addressing_value),
+                                ellie_vm::utils::Instructions::STX(_) =>
+                                    format!("STX {:?}", thread_step.instruction.addressing_value),
+                                ellie_vm::utils::Instructions::STY(_) =>
+                                    format!("STY {:?}", thread_step.instruction.addressing_value),
+                                ellie_vm::utils::Instructions::EQ(_) =>
+                                    format!("EQ {:?}", thread_step.instruction.addressing_value),
+                                ellie_vm::utils::Instructions::NE(_) =>
+                                    format!("NE {:?}", thread_step.instruction.addressing_value),
+                                ellie_vm::utils::Instructions::GT(_) =>
+                                    format!("GT {:?}", thread_step.instruction.addressing_value),
+                                ellie_vm::utils::Instructions::LT(_) =>
+                                    format!("LT {:?}", thread_step.instruction.addressing_value),
+                                ellie_vm::utils::Instructions::GQ(_) =>
+                                    format!("GQ {:?}", thread_step.instruction.addressing_value),
+                                ellie_vm::utils::Instructions::LQ(_) =>
+                                    format!("LQ {:?}", thread_step.instruction.addressing_value),
+                                ellie_vm::utils::Instructions::AND(_) =>
+                                    format!("AND {:?}", thread_step.instruction.addressing_value),
+                                ellie_vm::utils::Instructions::OR(_) =>
+                                    format!("OR {:?}", thread_step.instruction.addressing_value),
+                                ellie_vm::utils::Instructions::ADD(_) =>
+                                    format!("ADD {:?}", thread_step.instruction.addressing_value),
+                                ellie_vm::utils::Instructions::SUB(_) =>
+                                    format!("SUB {:?}", thread_step.instruction.addressing_value),
+                                ellie_vm::utils::Instructions::MUL(_) =>
+                                    format!("MUL {:?}", thread_step.instruction.addressing_value),
+                                ellie_vm::utils::Instructions::EXP(_) =>
+                                    format!("EXP {:?}", thread_step.instruction.addressing_value),
+                                ellie_vm::utils::Instructions::DIV(_) =>
+                                    format!("DIV {:?}", thread_step.instruction.addressing_value),
+                                ellie_vm::utils::Instructions::MOD(_) =>
+                                    format!("MOD {:?}", thread_step.instruction.addressing_value),
+                                ellie_vm::utils::Instructions::INC(_) =>
+                                    format!("INC {:?}", thread_step.instruction.addressing_value),
+                                ellie_vm::utils::Instructions::DEC(_) =>
+                                    format!("DEC {:?}", thread_step.instruction.addressing_value),
+                                ellie_vm::utils::Instructions::JMP(_) =>
+                                    format!("JMP {:?}", thread_step.instruction.addressing_value),
+                                ellie_vm::utils::Instructions::CALL(_) =>
+                                    format!("CALL {:?}", thread_step.instruction.addressing_value),
+                                ellie_vm::utils::Instructions::RET(_) =>
+                                    format!("RET {:?}", thread_step.instruction.addressing_value),
+                                ellie_vm::utils::Instructions::UGR(_) =>
+                                    format!("UGR {:?}", thread_step.instruction.addressing_value),
+                                ellie_vm::utils::Instructions::ULR(_) =>
+                                    format!("ULR {:?}", thread_step.instruction.addressing_value),
+                                ellie_vm::utils::Instructions::PUSH(_) =>
+                                    format!("PUSH {:?}", thread_step.instruction.addressing_value),
+                                ellie_vm::utils::Instructions::LEN(_) =>
+                                    format!("LEN {:?}", thread_step.instruction.addressing_value),
+                                ellie_vm::utils::Instructions::A2I(_) =>
+                                    format!("A2I {:?}", thread_step.instruction.addressing_value),
+                                ellie_vm::utils::Instructions::A2F(_) =>
+                                    format!("A2F {:?}", thread_step.instruction.addressing_value),
+                                ellie_vm::utils::Instructions::A2D(_) =>
+                                    format!("A2D {:?}", thread_step.instruction.addressing_value),
+                                ellie_vm::utils::Instructions::A2B(_) =>
+                                    format!("A2B {:?}", thread_step.instruction.addressing_value),
+                                ellie_vm::utils::Instructions::A2S(_) =>
+                                    format!("A2S {:?}", thread_step.instruction.addressing_value),
+                                ellie_vm::utils::Instructions::A2C(_) =>
+                                    format!("A2C {:?}", thread_step.instruction.addressing_value),
+                                ellie_vm::utils::Instructions::A2O(_) =>
+                                    format!("A2O {:?}", thread_step.instruction.addressing_value),
+                                ellie_vm::utils::Instructions::JMPA(_) =>
+                                    format!("JMPA {:?}", thread_step.instruction.addressing_value),
+                                ellie_vm::utils::Instructions::POPS(_) =>
+                                    format!("POPS {:?}", thread_step.instruction.addressing_value),
+                                ellie_vm::utils::Instructions::ACP(_) =>
+                                    format!("ACP {:?}", thread_step.instruction.addressing_value),
+                                ellie_vm::utils::Instructions::BRK(_) =>
+                                    format!("BRK {:?}", thread_step.instruction.addressing_value),
+                                ellie_vm::utils::Instructions::CALLN(_) =>
+                                    format!("CALLN {:?}", thread_step.instruction.addressing_value),
+                                ellie_vm::utils::Instructions::CO(_) =>
+                                    format!("CO {:?}", thread_step.instruction.addressing_value),
+                                ellie_vm::utils::Instructions::FN(_) =>
+                                    format!("FN {:?}", thread_step.instruction.addressing_value),
+                            },
+                            utils::Colors::Reset
+                        );
+
+                        if show_code {
                             if let Some(debug_file) = &debug_file {
+                                println!(
+                                    "{}ShowCode:{} {}Line{}",
+                                    utils::Colors::Green,
+                                    utils::Colors::Reset,
+                                    utils::Colors::Red,
+                                    utils::Colors::Reset
+                                );
                                 let coresponding_header =
                                     debug_file.debug_headers.iter().find(|x| {
                                         thread_step.stack_pos >= x.start_end.0
@@ -476,7 +485,6 @@ fn main() {
 
                                     let real_path = get_real_path(e, debug_file);
 
-                                    println!("\nLine:");
                                     println!(
                                         "{}[~]{}  ╞ {}{real_path}{}:{}:{}",
                                         Colors::Red,
@@ -489,23 +497,465 @@ fn main() {
                                     let target_file = fs::read_to_string(real_path).unwrap();
                                     let target_file = target_file.lines().collect::<Vec<&str>>();
                                     let target_line = target_file[e.pos.range_start.0].to_string();
-                                    println!("{}{}{}  │ {}{}{}", Colors::Yellow, e.pos.range_start.0 + 1, Colors::Reset, Colors::Green, target_line, Colors::Reset,);
+                                    println!(
+                                        "{}{}{}  │ {}{}{}",
+                                        Colors::Yellow,
+                                        e.pos.range_start.0 + 1,
+                                        Colors::Reset,
+                                        Colors::Green,
+                                        target_line,
+                                        Colors::Reset,
+                                    );
                                 }
-                                println!("\nHeap:");
-                                println!("{}\n", vm.heap.dump());
-                                println!("\nRegisters:");
-                                
-                                println!("A: {:?}", vm.threads[0].stack.get(thread_step.stack_id).unwrap().registers.A);
-                                println!("B: {:?}", vm.threads[0].stack.get(thread_step.stack_id).unwrap().registers.B);
-                                println!("C: {:?}", vm.threads[0].stack.get(thread_step.stack_id).unwrap().registers.C);
-                                println!("X: {:?}", vm.threads[0].stack.get(thread_step.stack_id).unwrap().registers.X);
-                                println!("Y: {:?}", vm.threads[0].stack.get(thread_step.stack_id).unwrap().registers.Y);
+                            } else {
+                                println!(
+                                    "{}ShowCode:{}: {}Debug file not found!{}",
+                                    Colors::Green,
+                                    Colors::Reset,
+                                    Colors::Red,
+                                    Colors::Reset,
+                                );
                             }
+                        } else {
+                            println!(
+                                "{}ShowCode:{} {}Disabled{}",
+                                utils::Colors::Green,
+                                utils::Colors::Reset,
+                                utils::Colors::Red,
+                                utils::Colors::Reset
+                            );
+                        }
 
-                            let mut input = String::new();
-                            std::io::stdin().read_line(&mut input).unwrap();
+                        if show_heap_dump {
+                            println!("{}HeapDump:{}", Colors::Green, Colors::Reset);
+                            println!("{}\n", heap.dump());
+                        } else {
+                            println!(
+                                "{}HeapDump:{} {}Disabled{}",
+                                Colors::Green,
+                                Colors::Reset,
+                                Colors::Red,
+                                Colors::Reset,
+                            );
+                        }
+
+                        if show_registers {
+                            println!("{}Registers:{}", Colors::Green, Colors::Reset);
+                            println!("A: {:?}", stack.registers.A);
+                            println!("B: {:?}", stack.registers.B);
+                            println!("C: {:?}", stack.registers.C);
+                            println!("X: {:?}", stack.registers.X);
+                            println!("Y: {:?}", stack.registers.Y);
+                        } else {
+                            println!(
+                                "{}Registers:{} {}Disabled{}",
+                                Colors::Green,
+                                Colors::Reset,
+                                Colors::Red,
+                                Colors::Reset,
+                            );
                         }
                     }
+
+                    if step_into || wait_pos.is_some() {
+                        step_into = false;
+                        match vm.threads[0].step(&mut vm.heap) {
+                            Ok(thread_step) => {
+                                if let Some(pos) = wait_pos {
+                                    if thread_step.stack_pos.clone() == pos {
+                                        println!(
+                                            "{}WaitPos{}: {}BreakPoint Reached{}",
+                                            Colors::Green,
+                                            Colors::Reset,
+                                            Colors::Yellow,
+                                            Colors::Reset
+                                        );
+                                        wait_pos = None;
+                                    } else {
+                                        step(
+                                            &mut vm.heap,
+                                            vm.threads[0]
+                                                .stack
+                                                .get(thread_step.stack_id)
+                                                .unwrap()
+                                                .clone(),
+                                            debug_file.clone(),
+                                            thread_step.clone(),
+                                            show_heap_dump,
+                                            show_registers,
+                                            wait_pos,
+                                            show_code,
+                                            show_stack_info,
+                                        );
+                                    }
+                                } else {
+                                    step(
+                                        &mut vm.heap,
+                                        vm.threads[0]
+                                            .stack
+                                            .get(thread_step.stack_id)
+                                            .unwrap()
+                                            .clone(),
+                                        debug_file.clone(),
+                                        thread_step.clone(),
+                                        show_heap_dump,
+                                        show_registers,
+                                        wait_pos,
+                                        show_code,
+                                        show_stack_info,
+                                    );
+                                }
+                            }
+                            Err(e) => match e {
+                                ellie_vm::utils::ThreadExit::Panic(e) => {
+                                    println!(
+                                        "\n{}ThreadPanic{} : {}{:?}{}",
+                                        Colors::Red,
+                                        Colors::Reset,
+                                        Colors::Cyan,
+                                        e.reason,
+                                        Colors::Reset,
+                                    );
+
+                                    for frame in e.stack_trace {
+                                        match &debug_file {
+                                            Some(debug_file) => {
+                                                let coresponding_header =
+                                                    debug_file.debug_headers.iter().find(|x| {
+                                                        frame.stack_pos >= x.start_end.0
+                                                            && frame.stack_pos <= x.start_end.1
+                                                    });
+
+                                                match coresponding_header {
+                                                    Some(e) => {
+                                                        fn get_real_path(
+                                                            debug_header: &DebugHeader,
+                                                            debug_file: &DebugInfo,
+                                                        ) -> String
+                                                        {
+                                                            let module_name = debug_header
+                                                                .module
+                                                                .split("<ellie_module_")
+                                                                .nth(1)
+                                                                .unwrap()
+                                                                .split(">")
+                                                                .nth(0)
+                                                                .unwrap();
+                                                            let module_path = debug_file
+                                                                .module_map
+                                                                .iter()
+                                                                .find(|map| {
+                                                                    module_name == map.module_name
+                                                                });
+                                                            let real_path = match module_path {
+                                                                Some(module_path) => {
+                                                                    match &module_path.module_path {
+                                                                        Some(module_path) => {
+                                                                            let new_path =
+                                                                                debug_header
+                                                                                    .module
+                                                                                    .clone();
+                                                                            let starter_name = format!(
+                                                                                "<ellie_module_{}>",
+                                                                                module_name
+                                                                            );
+                                                                            new_path.replace(
+                                                                                &starter_name,
+                                                                                &module_path,
+                                                                            )
+                                                                        }
+                                                                        None => debug_header
+                                                                            .module
+                                                                            .clone(),
+                                                                    }
+                                                                }
+                                                                None => debug_header.module.clone(),
+                                                            };
+                                                            real_path
+                                                        }
+
+                                                        let real_path =
+                                                            get_real_path(e, debug_file);
+
+                                                        println!(
+                                                            "{}    at {}:{}:{}",
+                                                            Colors::Green,
+                                                            real_path,
+                                                            e.pos.range_start.0 + 1,
+                                                            e.pos.range_start.1 + 1,
+                                                        );
+                                                    }
+                                                    None => {
+                                                        println!(
+                                                            "{}    at {}:{}",
+                                                            Colors::Green,
+                                                            frame.name,
+                                                            frame.stack_pos
+                                                        );
+                                                    }
+                                                }
+                                            }
+                                            None => {
+                                                println!(
+                                                    "{}    at {}:{} ({} + {})",
+                                                    Colors::Green,
+                                                    frame.name,
+                                                    frame.stack_pos + frame.frame_pos,
+                                                    frame.stack_pos,
+                                                    frame.frame_pos,
+                                                );
+                                            }
+                                        }
+                                    }
+                                    if debug_file.is_none() {
+                                        println!(
+                                                            "\n{}NoDebugFile{} : {}Given error represents stack locations, provide a debug info file to get more readable info{}",
+                                                            Colors::Yellow,
+                                                            Colors::Reset,
+                                                            Colors::Cyan,
+                                                            Colors::Reset,
+                                                        );
+                                    }
+                                    println!("{}    at {}", Colors::Red, e.code_location,);
+                                    if vm_settings.heap_dump {
+                                        println!(
+                                            "{}[VM]{}: Heap Dump\n\n{}",
+                                            Colors::Yellow,
+                                            Colors::Reset,
+                                            vm.heap_dump()
+                                        );
+                                    }
+                                    break;
+                                }
+                                ellie_vm::utils::ThreadExit::ExitGracefully => {
+                                    if vm_settings.heap_dump {
+                                        println!(
+                                            "{}[VM]{}: Heap Dump\n\n{}",
+                                            Colors::Yellow,
+                                            Colors::Reset,
+                                            vm.heap_dump()
+                                        );
+                                    }
+                                    break;
+                                }
+                            },
+                        }
+                    } else {
+                        std::io::stdout().write_all("> ".as_bytes()).unwrap();
+                        std::io::stdout().flush().unwrap();
+                        //clear console
+                        let mut input = String::new();
+                        std::io::stdin().read_line(&mut input).unwrap();
+                        if input.trim() == "exit" {
+                            println!("Bye...");
+                            break;
+                        } else if input.trim() == "clear" {
+                            std::io::stdout()
+                                .write_all("\x1B[2J\x1B[1;1H".as_bytes())
+                                .unwrap();
+                        } else if input.trim() == "heap off" {
+                            show_heap_dump = false;
+                            println!("! HeapDump disabled");
+                        } else if input.trim() == "heap on" {
+                            show_heap_dump = true;
+                            println!("! HeapDump enabled");
+                        } else if input.trim() == "reg off" {
+                            show_registers = false;
+                            println!("! Registers disabled");
+                        } else if input.trim() == "reg on" {
+                            show_registers = true;
+                            println!("! Registers enabled");
+                        } else if input.trim().starts_with("wait pos") {
+                            match input.trim().split(" ").nth(2).unwrap().parse::<usize>() {
+                                Ok(pos) => {
+                                    wait_pos = Some(pos);
+                                    println!("! Waiting at pos {}", pos);
+                                }
+                                Err(_) => {
+                                    println!("!: Invalid position");
+                                }
+                            }
+                        } else if input.trim().starts_with("wait pos disable") {
+                            wait_pos = None;
+                            println!("! Waiting disabled");
+                        } else if input.trim().starts_with("code off") {
+                            show_code = false;
+                            println!("! Code disabled");
+                        } else if input.trim().starts_with("code on") {
+                            show_code = true;
+                            println!("! Code enabled");
+                        } else if input.trim().starts_with("stackinfo on") {
+                            show_stack_info = true;
+                            println!("! StackInfo enabled");
+                        } else if input.trim().starts_with("stackinfo off") {
+                            show_stack_info = false;
+                            println!("! StackInfo disabled");
+                        } else if input.trim().starts_with("help") {
+                            println!("Commands:");
+                            println!("  - run- Start running the program");
+                            println!("  - exit - Exit the debugger");
+                            println!("  - heap on - Show heap dump");
+                            println!("  - heap off - Hide heap dump");
+                            println!("  - reg on - Show registers");
+                            println!("  - reg off - Hide registers");
+                            println!(
+                                "  - wait pos <pos> - Wait until the given stack position executed"
+                            );
+                            println!("  - wait pos disable - Disable waiting");
+                            println!("  - code on - Show code");
+                            println!("  - code off - Hide code");
+                            println!("  - stackinfo on - Show stack info");
+                            println!("  - stackinfo off - Hide stack info");
+                            println!("  - clear - Clear the console");
+                        } else if input.trim() == "" {
+                            std::io::stdout()
+                                .write_all("\x1B[2J\x1B[1;1H".as_bytes())
+                                .unwrap();
+                            println!("---");
+                            step_into = true;
+                        } else {
+                            std::io::stdout()
+                                .write_all("\x1B[2J\x1B[1;1H".as_bytes())
+                                .unwrap();
+                            println!("Unknown command! Type 'help' for help");
+                        }
+                    }
+                } else {
+                    match vm.threads[0].step(&mut vm.heap) {
+                        Ok(_) => (),
+                        Err(e) => match e {
+                            ellie_vm::utils::ThreadExit::Panic(e) => {
+                                println!(
+                                    "\n{}ThreadPanic{} : {}{:?}{}",
+                                    Colors::Red,
+                                    Colors::Reset,
+                                    Colors::Cyan,
+                                    e.reason,
+                                    Colors::Reset,
+                                );
+
+                                for frame in e.stack_trace {
+                                    match &debug_file {
+                                        Some(debug_file) => {
+                                            let coresponding_header =
+                                                debug_file.debug_headers.iter().find(|x| {
+                                                    frame.stack_pos >= x.start_end.0
+                                                        && frame.stack_pos <= x.start_end.1
+                                                });
+
+                                            match coresponding_header {
+                                                Some(e) => {
+                                                    fn get_real_path(
+                                                        debug_header: &DebugHeader,
+                                                        debug_file: &DebugInfo,
+                                                    ) -> String
+                                                    {
+                                                        let module_name = debug_header
+                                                            .module
+                                                            .split("<ellie_module_")
+                                                            .nth(1)
+                                                            .unwrap()
+                                                            .split(">")
+                                                            .nth(0)
+                                                            .unwrap();
+                                                        let module_path = debug_file
+                                                            .module_map
+                                                            .iter()
+                                                            .find(|map| {
+                                                                module_name == map.module_name
+                                                            });
+                                                        let real_path = match module_path {
+                                                            Some(module_path) => match &module_path
+                                                                .module_path
+                                                            {
+                                                                Some(module_path) => {
+                                                                    let new_path =
+                                                                        debug_header.module.clone();
+                                                                    let starter_name = format!(
+                                                                        "<ellie_module_{}>",
+                                                                        module_name
+                                                                    );
+                                                                    new_path.replace(
+                                                                        &starter_name,
+                                                                        &module_path,
+                                                                    )
+                                                                }
+                                                                None => debug_header.module.clone(),
+                                                            },
+                                                            None => debug_header.module.clone(),
+                                                        };
+                                                        real_path
+                                                    }
+
+                                                    let real_path = get_real_path(e, debug_file);
+
+                                                    println!(
+                                                        "{}    at {}:{}:{}",
+                                                        Colors::Green,
+                                                        real_path,
+                                                        e.pos.range_start.0 + 1,
+                                                        e.pos.range_start.1 + 1,
+                                                    );
+                                                }
+                                                None => {
+                                                    println!(
+                                                        "{}    at {}:{}",
+                                                        Colors::Green,
+                                                        frame.name,
+                                                        frame.stack_pos
+                                                    );
+                                                }
+                                            }
+                                        }
+                                        None => {
+                                            println!(
+                                                "{}    at {}:{} ({} + {})",
+                                                Colors::Green,
+                                                frame.name,
+                                                frame.stack_pos + frame.frame_pos,
+                                                frame.stack_pos,
+                                                frame.frame_pos,
+                                            );
+                                        }
+                                    }
+                                }
+                                if debug_file.is_none() {
+                                    println!(
+                                                        "\n{}NoDebugFile{} : {}Given error represents stack locations, provide a debug info file to get more readable info{}",
+                                                        Colors::Yellow,
+                                                        Colors::Reset,
+                                                        Colors::Cyan,
+                                                        Colors::Reset,
+                                                    );
+                                }
+                                println!("{}    at {}", Colors::Red, e.code_location,);
+                                if vm_settings.heap_dump {
+                                    println!(
+                                        "{}[VM]{}: Heap Dump\n\n{}",
+                                        Colors::Yellow,
+                                        Colors::Reset,
+                                        vm.heap_dump()
+                                    );
+                                }
+                                break;
+                            }
+                            ellie_vm::utils::ThreadExit::ExitGracefully => {
+                                if vm_settings.heap_dump {
+                                    println!(
+                                        "{}[VM]{}: Heap Dump\n\n{}",
+                                        Colors::Yellow,
+                                        Colors::Reset,
+                                        vm.heap_dump()
+                                    );
+                                }
+                                break;
+                            }
+                        },
+                    }
+                }
+
+                match vm.threads[0].step(&mut vm.heap) {
+                    Ok(thread_step) => if is_vm_debug {},
                     Err(e) => match e {
                         ellie_vm::utils::ThreadExit::Panic(e) => {
                             println!(
