@@ -112,7 +112,7 @@ pub fn resolve_type(
                 instructions::Registers::X => assembler.instructions.push(
                     instructions::Instructions::LDX(instructions::Instruction::absolute_index(
                         location_of_pointer,
-                        assembler .location(),
+                        assembler.location(),
                     )),
                 ),
                 instructions::Registers::Y => assembler.instructions.push(
@@ -406,53 +406,51 @@ pub fn resolve_type(
 
             let previous_params_location = assembler.location();
 
-            assembler
-                .instructions
-                .push(instructions::Instructions::LDA(Instruction::immediate(
-                    instructions::Types::Array(0),
-                    vec![],
-                )));
-            assembler
-                .instructions
-                .push(instructions::Instructions::STA(Instruction::implicit()));
-            let params_location = assembler.location();
-
-            for (idx, param) in function_call.params.iter().enumerate() {
-                let _idx = function_call.params.len() - idx;
-                resolve_type(
-                    assembler,
-                    &param.value,
-                    instructions::Registers::A,
-                    &target_page,
-                    dependencies.clone(),
-                );
+            if !function_call.params.is_empty() {
+                assembler.instructions.push(instructions::Instructions::LDA(
+                    Instruction::immediate(instructions::Types::Array(0), vec![]),
+                ));
                 assembler
                     .instructions
                     .push(instructions::Instructions::STA(Instruction::implicit()));
-                assembler
-                    .instructions
-                    .push(instructions::Instructions::PUSH(Instruction::absolute(
-                        params_location,
-                    )));
+                let params_location = assembler.location();
 
-                /*
-                //Functions always reserve parameter spaces we're writing upper locations of function
-                assembler.instructions.push(instructions::Instructions::STA(
-                    Instruction::immediate(
-                        instructions::Types::Integer,
-                        idx.to_le_bytes().to_vec(),
-                    ),
+                for (idx, param) in function_call.params.iter().enumerate() {
+                    let _idx = function_call.params.len() - idx;
+                    resolve_type(
+                        assembler,
+                        &param.value,
+                        instructions::Registers::A,
+                        &target_page,
+                        dependencies.clone(),
+                    );
+                    assembler
+                        .instructions
+                        .push(instructions::Instructions::STA(Instruction::implicit()));
+                    assembler
+                        .instructions
+                        .push(instructions::Instructions::PUSH(Instruction::absolute(
+                            params_location,
+                        )));
+
+                    /*
+                    //Functions always reserve parameter spaces we're writing upper locations of function
+                    assembler.instructions.push(instructions::Instructions::STA(
+                        Instruction::immediate(
+                            instructions::Types::Integer,
+                            idx.to_le_bytes().to_vec(),
+                        ),
+                    ));
+                    assembler.instructions.push(instructions::Instructions::STA(
+                        Instruction::absolute_index(target.cursor, assembler.location()),
+                    ));
+                    */
+                }
+                assembler.instructions.push(instructions::Instructions::LDX(
+                    Instruction::absolute(params_location),
                 ));
-                assembler.instructions.push(instructions::Instructions::STA(
-                    Instruction::absolute_index(target.cursor, assembler.location()),
-                ));
-                */
             }
-            assembler
-                .instructions
-                .push(instructions::Instructions::LDX(Instruction::absolute(
-                    params_location,
-                )));
+
             /*
             assembler.instructions.push(instructions::Instructions::LDA(
                 Instruction::immediate(

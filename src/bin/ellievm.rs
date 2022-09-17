@@ -236,6 +236,7 @@ fn main() {
             let mut wait_pos = None;
             let mut show_code = false;
             let mut show_stack_info = false;
+            let mut last_step: Option<ellie_vm::utils::ThreadStep> = None;
 
             let mut vm = ellie_vm::vm::VM::new(vm_settings.architecture, |_, e| {
                 if e.module == "ellieStd" && e.name == "heapDump" {
@@ -557,21 +558,24 @@ fn main() {
                         }
                     }
 
-                    if step_into || wait_pos.is_some() {
+                    if step_into {
                         step_into = false;
                         match vm.threads[0].step(&mut vm.heap) {
                             Ok(thread_step) => {
+                                last_step = Some(thread_step.clone());
                                 if let Some(pos) = wait_pos {
                                     if thread_step.stack_pos.clone() == pos {
+                                        std::io::stdout()
+                                            .write_all("\x1B[2J\x1B[1;1H".as_bytes())
+                                            .unwrap();
                                         println!(
-                                            "{}WaitPos{}: {}BreakPoint Reached{}",
+                                            "{}WaitPos{}: {}BreakPoint Reached{}\n",
                                             Colors::Green,
                                             Colors::Reset,
                                             Colors::Yellow,
                                             Colors::Reset
                                         );
                                         wait_pos = None;
-                                    } else {
                                         step(
                                             &mut vm.heap,
                                             vm.threads[0]
@@ -587,6 +591,8 @@ fn main() {
                                             show_code,
                                             show_stack_info,
                                         );
+                                    } else {
+                                        step_into = true;
                                     }
                                 } else {
                                     step(
@@ -790,14 +796,38 @@ fn main() {
                         } else if input.trim().starts_with("stackinfo off") {
                             show_stack_info = false;
                             println!("! StackInfo disabled");
+                        } else if input.trim().starts_with("step info") {
+                            if last_step.is_some() {
+                                step(
+                                    &mut vm.heap,
+                                    vm.threads[0].stack.last().unwrap().clone(),
+                                    debug_file.clone(),
+                                    last_step.clone().unwrap(),
+                                    show_heap_dump,
+                                    show_registers,
+                                    wait_pos,
+                                    show_code,
+                                    show_stack_info,
+                                );
+                            } else {
+                                println!("! No step info available, step once.");
+                            }
+                        } else if input.trim().starts_with("heap dump") {
+                            println!(
+                                "{}[VM]{}: Heap Dump
+                            ",
+                                Colors::Yellow,
+                                Colors::Reset,
+                            );
+                            println!("{}", vm.heap_dump());
                         } else if input.trim().starts_with("help") {
                             println!("Commands:");
-                            println!("  - run- Start running the program");
-                            println!("  - exit - Exit the debugger");
-                            println!("  - heap on - Show heap dump");
-                            println!("  - heap off - Hide heap dump");
-                            println!("  - reg on - Show registers");
-                            println!("  - reg off - Hide registers");
+                            println!("  - run       - Start running the program");
+                            println!("  - exit      - Exit the debugger");
+                            println!("  - heap on   - Show heap dump");
+                            println!("  - heap off  - Hide heap dump");
+                            println!("  - reg on    - Show registers");
+                            println!("  - reg off   - Hide registers");
                             println!(
                                 "  - wait pos <pos> - Wait until the given stack position executed"
                             );
@@ -807,10 +837,10 @@ fn main() {
                             println!("  - stackinfo on - Show stack info");
                             println!("  - stackinfo off - Hide stack info");
                             println!("  - clear - Clear the console");
+                            println!("  - step info - Show last step info");
+                            println!("  - heap dump - Show heap dump");
                         } else if input.trim() == "" {
-                            std::io::stdout()
-                                .write_all("\x1B[2J\x1B[1;1H".as_bytes())
-                                .unwrap();
+                            std::io::stdout().write_all("\x1B[2J\x1B[1;1H".as_bytes()).unwrap();
                             println!("---");
                             step_into = true;
                         } else {
@@ -952,136 +982,6 @@ fn main() {
                             }
                         },
                     }
-                }
-
-                match vm.threads[0].step(&mut vm.heap) {
-                    Ok(thread_step) => if is_vm_debug {},
-                    Err(e) => match e {
-                        ellie_vm::utils::ThreadExit::Panic(e) => {
-                            println!(
-                                "\n{}ThreadPanic{} : {}{:?}{}",
-                                Colors::Red,
-                                Colors::Reset,
-                                Colors::Cyan,
-                                e.reason,
-                                Colors::Reset,
-                            );
-
-                            for frame in e.stack_trace {
-                                match &debug_file {
-                                    Some(debug_file) => {
-                                        let coresponding_header =
-                                            debug_file.debug_headers.iter().find(|x| {
-                                                frame.stack_pos >= x.start_end.0
-                                                    && frame.stack_pos <= x.start_end.1
-                                            });
-
-                                        match coresponding_header {
-                                            Some(e) => {
-                                                fn get_real_path(
-                                                    debug_header: &DebugHeader,
-                                                    debug_file: &DebugInfo,
-                                                ) -> String
-                                                {
-                                                    let module_name = debug_header
-                                                        .module
-                                                        .split("<ellie_module_")
-                                                        .nth(1)
-                                                        .unwrap()
-                                                        .split(">")
-                                                        .nth(0)
-                                                        .unwrap();
-                                                    let module_path = debug_file
-                                                        .module_map
-                                                        .iter()
-                                                        .find(|map| module_name == map.module_name);
-                                                    let real_path = match module_path {
-                                                        Some(module_path) => {
-                                                            match &module_path.module_path {
-                                                                Some(module_path) => {
-                                                                    let new_path =
-                                                                        debug_header.module.clone();
-                                                                    let starter_name = format!(
-                                                                        "<ellie_module_{}>",
-                                                                        module_name
-                                                                    );
-                                                                    new_path.replace(
-                                                                        &starter_name,
-                                                                        &module_path,
-                                                                    )
-                                                                }
-                                                                None => debug_header.module.clone(),
-                                                            }
-                                                        }
-                                                        None => debug_header.module.clone(),
-                                                    };
-                                                    real_path
-                                                }
-
-                                                let real_path = get_real_path(e, debug_file);
-
-                                                println!(
-                                                    "{}    at {}:{}:{}",
-                                                    Colors::Green,
-                                                    real_path,
-                                                    e.pos.range_start.0 + 1,
-                                                    e.pos.range_start.1 + 1,
-                                                );
-                                            }
-                                            None => {
-                                                println!(
-                                                    "{}    at {}:{}",
-                                                    Colors::Green,
-                                                    frame.name,
-                                                    frame.stack_pos
-                                                );
-                                            }
-                                        }
-                                    }
-                                    None => {
-                                        println!(
-                                            "{}    at {}:{} ({} + {})",
-                                            Colors::Green,
-                                            frame.name,
-                                            frame.stack_pos + frame.frame_pos,
-                                            frame.stack_pos,
-                                            frame.frame_pos,
-                                        );
-                                    }
-                                }
-                            }
-                            if debug_file.is_none() {
-                                println!(
-                                                    "\n{}NoDebugFile{} : {}Given error represents stack locations, provide a debug info file to get more readable info{}",
-                                                    Colors::Yellow,
-                                                    Colors::Reset,
-                                                    Colors::Cyan,
-                                                    Colors::Reset,
-                                                );
-                            }
-                            println!("{}    at {}", Colors::Red, e.code_location,);
-                            if vm_settings.heap_dump {
-                                println!(
-                                    "{}[VM]{}: Heap Dump\n\n{}",
-                                    Colors::Yellow,
-                                    Colors::Reset,
-                                    vm.heap_dump()
-                                );
-                            }
-                            break;
-                        }
-                        ellie_vm::utils::ThreadExit::ExitGracefully => {
-                            if vm_settings.heap_dump {
-                                println!(
-                                    "{}[VM]{}: Heap Dump\n\n{}",
-                                    Colors::Yellow,
-                                    Colors::Reset,
-                                    vm.heap_dump()
-                                );
-                            }
-                            break;
-                        }
-                    },
                 }
             });
 

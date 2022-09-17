@@ -151,11 +151,11 @@ test[0] = 2;
         @dont_fix_variant;
         pub class object {}
 
-        @ellie_deep_cast=true;
-        c true : bool = 1 as bool;
-        @ellie_deep_cast=false;
-        c false : bool = 0 as bool;
-        pub fn println(s: string);
+        //@ellie_deep_cast=true;
+        //c true : bool = 1 as bool;
+        //@ellie_deep_cast=false;
+        //c false : bool = 0 as bool;
+        //pub fn println(s: string);
 
 /*
 fn factorial(x: int) : int {
@@ -195,25 +195,32 @@ fn test(f: int) : int {
 //    }
 //}
 
-fn factorial(x: int) : int {
-    println("x: " + x);
-    if x == 1 {
-        println("x == 1");
-        ret 1;
-    } else {
-        println("x != 1");
-        v mut = x * factorial(x - 1);
-        println("mut: " + mut);
-        ret mut;
-    }
-    println("Something went wrong");
+fn gen1() : int {
+    ret 1;
+}
+
+fn genx(x: int) : int {
+    ret gen1() * x;
+}
+
+fn gen() : int {
+    v num1 = genx(1); // 1
+    v num2 = genx(2); // 2
+    v num3 = genx(3); // 2
+    v qq = num1 + num2 + num3;
+    ret 10 - qq;
 }
 
 fn main() {
- 
-    v res = factorial(4);
+  fn factorial(x: int) : int {
+    if x != 1 {
+        v mul = factorial(x - 1);
+        ret x * mul;
+    }
+    ret 1;
+  }
 
-  println("Result: " + factorial(4));
+  v tes = "Result: " + factorial(10);
 }
 
 /*

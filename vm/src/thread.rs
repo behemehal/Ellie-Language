@@ -139,7 +139,6 @@ pub struct ThreadInfo {
 pub struct Thread<T> {
     pub id: usize,
     pub program: Vec<ReadInstruction>,
-    pub registers: Registers,
     pub stack: StackController,
     pub arch: PlatformArchitecture,
     pub(crate) native_call_channel: T,
@@ -160,13 +159,6 @@ where
             program,
             arch,
             stack: StackController::new(),
-            registers: Registers {
-                A: RawType::void(),
-                B: RawType::void(),
-                C: RawType::void(),
-                X: RawType::void(),
-                Y: RawType::void(),
-            },
             native_call_channel,
         }
     }
@@ -2294,7 +2286,8 @@ where
                             let current_stack_id = current_stack.id.clone();
                             let current_stack_x = current_stack.registers.X.clone();
 
-                            let frame_pos = self.program.len() + (self.stack.calculate_stack_length());
+                            //let frame_pos = self.program.len() + self.stack.calculate_stack_length() + (function_escape_pos - (stack_pos + 1));
+                            let frame_pos = self.program.len() + self.stack.calculate_stack_length();
 
                             match self.stack.push(Stack {
                                 id: hash,
@@ -2399,7 +2392,7 @@ where
                         params: raw_params,
                     };
 
-                    current_stack.registers.A = match (self.native_call_channel)(
+                    current_stack.registers.Y = match (self.native_call_channel)(
                         ThreadInfo {
                             id: self.id,
                             stack_id: current_stack.id,

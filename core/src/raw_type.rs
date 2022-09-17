@@ -266,35 +266,35 @@ impl RawType {
 
     pub fn integer(data: Vec<u8>) -> RawType {
         RawType {
-            type_id: TypeId { id: 1, size: 0 },
+            type_id: TypeId { id: 1, size: 8 },
             data,
         }
     }
 
     pub fn float(data: Vec<u8>) -> RawType {
         RawType {
-            type_id: TypeId { id: 2, size: 0 },
+            type_id: TypeId { id: 2, size: 8 },
             data,
         }
     }
 
     pub fn double(data: Vec<u8>) -> RawType {
         RawType {
-            type_id: TypeId { id: 3, size: 0 },
+            type_id: TypeId { id: 3, size: 8 },
             data,
         }
     }
 
     pub fn byte(data: u8) -> RawType {
         RawType {
-            type_id: TypeId { id: 4, size: 0 },
+            type_id: TypeId { id: 4, size: 1 },
             data: vec![data],
         }
     }
 
     pub fn bool(boolity: bool) -> RawType {
         RawType {
-            type_id: TypeId { id: 5, size: 0 },
+            type_id: TypeId { id: 5, size: 1 },
             data: vec![if boolity { 1 } else { 0 }],
         }
     }

@@ -1,0 +1,15 @@
+ellieStd: /Users/ahmetcanaksu/Desktop/Ellie-Language/tools
+---
+0:2:<ellie_module_ellieStd>/main.ei:gen1:197:0:199:0:12284905172544486383
+3:3:<ellie_module_ellieStd>/main.ei:x:201:8:201:13:0
+5:17:<ellie_module_ellieStd>/main.ei:genx:201:0:203:0:18091927007524274602
+18:29:<ellie_module_ellieStd>/main.ei:num1:206:4:206:20:4656860872669787324
+29:40:<ellie_module_ellieStd>/main.ei:num2:207:4:207:20:18071006368593555557
+40:51:<ellie_module_ellieStd>/main.ei:num3:208:4:208:20:7548131239308357981
+51:66:<ellie_module_ellieStd>/main.ei:qq:209:4:209:29:12123608578371187559
+18:75:<ellie_module_ellieStd>/main.ei:gen:205:0:211:0:706998267529620262
+77:77:<ellie_module_ellieStd>/main.ei:x:214:15:214:20:0
+88:105:<ellie_module_ellieStd>/main.ei:mul:216:8:216:32:18202819412165404031
+79:117:<ellie_module_ellieStd>/main.ei:factorial:214:2:220:2:582677996446026775
+117:134:<ellie_module_ellieStd>/main.ei:tes:222:2:222:36:4093015999933885076
+76:135:<ellie_module_ellieStd>/main.ei:main:213:0:223:0:13907217839178485292

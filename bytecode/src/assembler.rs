@@ -174,7 +174,6 @@ impl AssembleResult {
         }
 
         for instruction in &self.instructions {
-            std::println!("{:?}", instruction);
             writer
                 .write(&instruction.op_code(&self.module_info.platform_attributes.architecture))
                 .unwrap();

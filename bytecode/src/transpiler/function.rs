@@ -22,11 +22,11 @@ impl super::Transpiler for function::Function {
             assembler.assemble_dependency(&dependency.hash);
         }
 
-        let start = assembler.location();
         //Skip to the end of the function
         assembler
             .instructions
             .push(instructions::Instructions::FN(Instruction::absolute(144)));
+        let start = assembler.location();
 
         assembler.locals.push(LocalHeader {
             name: self.name.clone(),
@@ -50,8 +50,12 @@ impl super::Transpiler for function::Function {
                 },
             });
 
-            assembler.instructions.push(Instructions::LDA(Instruction::function_parameter(hash)));
-            assembler.instructions.push(Instructions::STA(Instruction::implicit()));
+            assembler
+                .instructions
+                .push(Instructions::LDA(Instruction::function_parameter(hash)));
+            assembler
+                .instructions
+                .push(Instructions::STA(Instruction::implicit()));
             /*
             array_pointers.extend(vec![
                 0;
@@ -97,7 +101,7 @@ impl super::Transpiler for function::Function {
         //    &(assembler.location() - debug_header_start).to_le_bytes()
         //);
 
-        assembler.instructions[start + 1] = Instructions::FN(Instruction::immediate(
+        assembler.instructions[start] = Instructions::FN(Instruction::immediate(
             instructions::Types::String(hash.len()),
             hash.to_vec(),
         ));
