@@ -1,11 +1,7 @@
-use std::println;
-
 use crate::{
-    assembler::{self, LocalHeader},
-    instructions::{self, AddressingModes, Instruction, Instructions},
+    assembler::LocalHeader,
+    instructions::{self, Instruction, Instructions},
 };
-use alloc::vec;
-use alloc::vec::Vec;
 use ellie_core::{
     definite::items::function,
     defs::{Cursor, DebugHeader, DebugHeaderType},
@@ -89,11 +85,9 @@ impl super::Transpiler for function::Function {
 
         assembler.assemble_dependency(&self.inner_page_id);
 
-        if self.no_return {
-            assembler
-                .instructions
-                .push(Instructions::RET(Instruction::implicit()));
-        }
+        assembler
+            .instructions
+            .push(Instructions::RET(Instruction::implicit()));
 
         let mut hash = self.hash.to_le_bytes().to_vec();
         hash.extend_from_slice(&(assembler.instructions.len()).to_le_bytes());

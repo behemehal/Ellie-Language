@@ -2,8 +2,7 @@ use crate::{
     assembler::LocalHeader,
     instructions::{self, Instruction, Instructions},
 };
-use alloc::vec;
-use alloc::{format, vec::Vec};
+use alloc::format;
 use ellie_core::definite::items::native_function;
 
 impl super::Transpiler for native_function::NativeFunction {
@@ -47,7 +46,7 @@ impl super::Transpiler for native_function::NativeFunction {
 
         }
         */
-        
+
         assembler
             .instructions
             .push(instructions::Instructions::CALLN(

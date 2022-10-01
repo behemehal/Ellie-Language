@@ -195,32 +195,17 @@ fn test(f: int) : int {
 //    }
 //}
 
-fn gen1() : int {
-    ret 1;
-}
-
-fn genx(x: int) : int {
-    ret gen1() * x;
-}
-
-fn gen() : int {
-    v num1 = genx(1); // 1
-    v num2 = genx(2); // 2
-    v num3 = genx(3); // 2
-    v qq = num1 + num2 + num3;
-    ret 10 - qq;
+fn factorial(x: int) : int {
+    if x == 1 {
+        ret 1;
+    } else {
+        ret x * factorial(x - 1);
+    }
 }
 
 fn main() {
-  fn factorial(x: int) : int {
-    if x != 1 {
-        v mul = factorial(x - 1);
-        ret x * mul;
-    }
-    ret 1;
-  }
-
-  v tes = "Result: " + factorial(10);
+    v test = factorial(5);
+    v res = "test: " + test; //test should be 120
 }
 
 /*

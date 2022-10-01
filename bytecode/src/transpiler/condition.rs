@@ -1,5 +1,3 @@
-use std::println;
-
 use alloc::{vec, vec::Vec};
 use ellie_core::definite::items::condition;
 

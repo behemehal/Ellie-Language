@@ -1,5 +1,3 @@
-use std::println;
-
 use alloc::{borrow::ToOwned, vec, vec::Vec};
 use ellie_core::{
     error,

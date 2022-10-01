@@ -25,8 +25,6 @@ use ellie_core::{
 use enum_as_inner::EnumAsInner;
 use serde::{Deserialize, Serialize};
 
-use super::Processor;
-
 #[derive(Debug, Clone, Serialize, Deserialize, EnumAsInner)]
 pub enum Processors {
     Integer(integer_type::IntegerTypeCollector),

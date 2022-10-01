@@ -1,5 +1,3 @@
-use std::println;
-
 use super::type_resolver::resolve_type;
 use crate::instructions::{self, Instruction};
 use alloc::string::ToString;

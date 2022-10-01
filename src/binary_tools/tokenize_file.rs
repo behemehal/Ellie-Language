@@ -67,7 +67,7 @@ pub fn tokenize(target_path: &Path, output_path: &Path, tokenizer_settings: Toke
     struct ColorTerminal;
 
     let color_terminal = ColorTerminal;
-    let mut program_repisotory = Repository {
+    let mut program_repository = Repository {
         target_path: target_path.to_str().unwrap().to_string(),
         tokenizer_settings: tokenizer_settings.clone(),
     };
@@ -211,7 +211,7 @@ pub fn tokenize(target_path: &Path, output_path: &Path, tokenizer_settings: Toke
 
     let starter_name = format!("<ellie_module_{}>", tokenizer_settings.name);
 
-    match crate::tokenizer::tokenize_file(&mut program_repisotory) {
+    match crate::tokenizer::tokenize_file(&mut program_repository) {
         Ok(pages) => {
             let tokenize_end = (tokenize_start.elapsed().as_nanos() as f64 / 1000000_f64) as f64;
             let json = serde_json::to_string(&pages).unwrap();

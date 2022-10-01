@@ -65,3 +65,39 @@ Elliec is compiler for Ellie files, it contains options for compiling and linkin
     ```
     Info: This module is legacy, used ellie_version: 2.0.0 current ellie_version: 3.0.0
     ```
+
+# EllieVM
+EllieVM is virtual machine for Ellie binaries, it contains options for running Ellie binaries.
+
+### Examples
+
+- ### Run
+    `ellievm run [file] -j -c 64`
+
+    Run code from ellie binary. Outputs to `./code.eib`
+
+    - ### Options
+        - `-j | --json-log`: JSON log
+
+            This option is used to enable JSON log.
+        - `-a | --arch`: Targeted architecture
+
+            This option is used to give output path. Default is main file's path.
+
+# EllieFMT
+EllieFMT is formatter for Ellie files, it contains options for formatting and analyzing Ellie files.
+
+### Examples
+
+- ### Run
+    `ellievm run [file] -j -c 64`
+
+    Run code from ellie binary. Outputs to `./code.eib`
+
+    - ### Options
+        - `-j | --json-log`: JSON log
+
+            This option is used to enable JSON log.
+        - `-a | --arch`: Targeted architecture
+
+            This option is used to give output path. Default is main file's path.

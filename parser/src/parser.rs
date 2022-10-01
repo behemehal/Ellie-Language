@@ -1,5 +1,3 @@
-use std::println;
-
 use crate::deep_search_extensions::{self, resolve_deep_type, resolve_type};
 use crate::processors::Processor;
 use alloc::borrow::ToOwned;

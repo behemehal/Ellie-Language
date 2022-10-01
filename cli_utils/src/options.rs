@@ -18,13 +18,27 @@ pub fn generate_elliefmt_options() -> Command<'static> {
                         .help("Output json log")
                         .short('j')
                         .long("-json-log"),
-                ), //FEATURE
-                   //.arg(
-                   //    Arg::new("formatShortType")
-                   //        .help("Convert short types to regular types")
-                   //        .short('l')
-                   //        .long("--log-level")
-                   //),
+                )
+                .arg(
+                    Arg::new("showDebugLines")
+                        .help("Show debugging lines")
+                        .short('s')
+                        .long("--show-debug-lines"),
+                )
+                .arg(
+                    Arg::new("target")
+                        .help("Target file to compile")
+                        .takes_value(true)
+                        .required(true)
+                        .value_hint(ValueHint::FilePath),
+                ),
+            //FEATURE
+            //.arg(
+            //    Arg::new("formatShortType")
+            //        .help("Convert short types to regular types")
+            //        .short('l')
+            //        .long("--log-level")
+            //),
         )
         .subcommand(
             Command::new("analyze")
@@ -40,6 +54,19 @@ pub fn generate_elliefmt_options() -> Command<'static> {
                         .help("Output json log")
                         .short('j')
                         .long("-json-log"),
+                )
+                .arg(
+                    Arg::new("showDebugLines")
+                        .help("Show debugging lines")
+                        .short('s')
+                        .long("--show-debug-lines"),
+                )
+                .arg(
+                    Arg::new("target")
+                        .help("Target file to compile")
+                        .takes_value(true)
+                        .required(true)
+                        .value_hint(ValueHint::FilePath),
                 ),
         )
         .subcommand(

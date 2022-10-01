@@ -1,9 +1,11 @@
 {
     "editor.wordWrap": "off",
-    "editor.ruler": 0,
+    "editor.renderControlCharacters": true,
+    "editor.renderFinalNewline": true,
+    "editor.renderWhitespace": "all",
+    "editor.renderLineHighlight": "all",
     "editor.suggest.preview": true,
+    "editor.matchBrackets": "always",
     "editor.suggest.showStatusBar": true,
-    "workbench.list.smoothScrolling": true,
-    "workbench.editor.highlightModifiedTabs": true,
-    "search.showLineNumbers": true
+    "editor.smoothScrolling": true,
 }

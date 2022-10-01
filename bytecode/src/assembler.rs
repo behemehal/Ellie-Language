@@ -1,4 +1,4 @@
-use crate::instructions::{self, AddressingModes, Instruction};
+use crate::instructions::{self, Instruction};
 use crate::transpiler::Transpiler;
 use alloc::{
     format,
@@ -331,7 +331,8 @@ impl Assembler {
                 }
                 ellie_core::definite::items::Collecting::Function(function) => {
                     let start = self.instructions.len();
-                    let transpile_res = function.transpile(self, processed_page.hash as usize, &processed_page);
+                    let transpile_res =
+                        function.transpile(self, processed_page.hash as usize, &processed_page);
                     if function.name == "main" {
                         main_pos = Some((start, self.location(), function.hash));
                     }

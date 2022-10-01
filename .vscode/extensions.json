@@ -1,0 +1,11 @@
+{
+   "recommendations": [
+      "behemehal.ellie-lang",
+      "ms-vscode.hexeditor",
+      "bungcip.better-toml",
+      "rust-lang.rust-analyzer",
+      "dtsvet.vscode-wasm",
+      "vadimcn.vscode-lldb",
+      "spmeesseman.vscode-taskexplorer"
+   ]
+}

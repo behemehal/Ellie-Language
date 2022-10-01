@@ -1,9 +1,9 @@
 use super::type_resolver::resolve_type;
 use crate::instructions;
-use alloc::{vec, string::ToString};
+use alloc::{string::ToString, vec};
 use ellie_core::{
     definite::items::getter_call,
-    defs::{self, DebugHeader, DebugHeaderType},
+    defs::{DebugHeader, DebugHeaderType},
 };
 
 impl super::Transpiler for getter_call::GetterCall {

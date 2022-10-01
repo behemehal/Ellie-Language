@@ -1,5 +1,3 @@
-use std::println;
-
 use alloc::vec;
 use alloc::vec::Vec;
 use ellie_core::definite::types::{operator, Types};

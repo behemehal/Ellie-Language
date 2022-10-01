@@ -29,6 +29,9 @@ pub struct VmSettings {
 fn main() {
     let app = options::generate_ellievm_options();
     let matches = app.get_matches();
+    let version = format!(
+        "0.1.0",
+    );
 
     match matches.subcommand() {
         Some(("run", matches)) => {
@@ -731,7 +734,13 @@ fn main() {
                                             vm.heap_dump()
                                         );
                                     }
-                                    break;
+                                    println!(
+                                        "{}ThreadPanic{}: {}Program Halted{}\n",
+                                        Colors::Red,
+                                        Colors::Reset,
+                                        Colors::Yellow,
+                                        Colors::Reset
+                                    );
                                 }
                                 ellie_vm::utils::ThreadExit::ExitGracefully => {
                                     if vm_settings.heap_dump {
@@ -742,7 +751,13 @@ fn main() {
                                             vm.heap_dump()
                                         );
                                     }
-                                    break;
+                                    println!(
+                                        "{}ExitGracefully{}: {}ProgramEnded{}\n",
+                                        Colors::Green,
+                                        Colors::Reset,
+                                        Colors::Yellow,
+                                        Colors::Reset
+                                    );
                                 }
                             },
                         }
@@ -752,6 +767,10 @@ fn main() {
                         //clear console
                         let mut input = String::new();
                         std::io::stdin().read_line(&mut input).unwrap();
+
+                        
+
+                        
                         if input.trim() == "exit" {
                             println!("Bye...");
                             break;
@@ -995,11 +1014,16 @@ fn main() {
                     let mut output = outputs::VERSION_DETAILED.clone();
                     output.extra.push(outputs::CliOuputExtraData {
                         key: "version".to_string(),
+                        value: version
+                    });
+
+                    output.extra.push(outputs::CliOuputExtraData {
+                        key: "engine_version".to_string(),
                         value: engine_constants::ELLIE_ENGINE_VERSION.to_owned(),
                     });
 
                     output.extra.push(outputs::CliOuputExtraData {
-                        key: "code".to_string(),
+                        key: "engine_code".to_string(),
                         value: engine_constants::ELLIE_ENGINE_VERSION_NAME.to_owned(),
                     });
 
@@ -1029,17 +1053,11 @@ fn main() {
                         key: "version".to_string(),
                         value: engine_constants::ELLIE_ENGINE_VERSION.to_owned(),
                     });
-
-                    output.extra.push(outputs::CliOuputExtraData {
-                        key: "code".to_string(),
-                        value: engine_constants::ELLIE_ENGINE_VERSION_NAME.to_owned(),
-                    });
                     println!("{}", serde_json::to_string(&output).unwrap());
                 } else {
                     println!(
-                        "Ellie v{} - Code: {}",
-                        engine_constants::ELLIE_ENGINE_VERSION,
-                        engine_constants::ELLIE_ENGINE_VERSION_NAME
+                        "EllieVM v{}",
+                        version
                     );
                 }
             }

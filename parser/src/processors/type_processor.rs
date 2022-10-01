@@ -7,8 +7,6 @@ use alloc::vec;
 use alloc::vec::Vec;
 use alloc::{borrow::ToOwned, string::String};
 use ellie_tokenizer::tokenizer::PageType;
-use core::panic;
-use std::println;
 use ellie_core::definite::definers::DefinerCollecting;
 use ellie_core::definite::types::Types;
 use ellie_core::defs::Cursor;

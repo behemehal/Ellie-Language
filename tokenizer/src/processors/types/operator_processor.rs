@@ -1,17 +1,11 @@
 use crate::{
-    processors::{
-        types::{Processors, TypeProcessor},
-        Processor,
-    },
-    syntax::types::operator_type::{
-        self, ComparisonOperators, OperatorType, OperatorTypeCollector,
-    },
+    processors::{types::Processors, Processor},
+    syntax::types::operator_type::{self, ComparisonOperators},
 };
 use ellie_core::{
     definite::Converter,
-    defs::{self, Cursor},
-    error,
-    utils::{self, colapseable_operator, operator_priority},
+    defs, error,
+    utils::{self, colapseable_operator},
 };
 
 impl Processor for operator_type::OperatorTypeCollector {

@@ -338,13 +338,14 @@ pub fn compile(
                                             match utils::read_file(real_path) {
                                                 Ok(e) => e,
                                                 Err(err) => {
-                                                    panic!(
+                                                    println!(
                                                     "Failed to ouput error. Cannot read file '{}' {}[{}]{}",
                                                     path,
                                                     color_terminal.color(Colors::Red),
                                                     err,
                                                     color_terminal.color(Colors::Reset)
                                                 );
+                                                    std::process::exit(1);
                                                 }
                                             }
                                         } else if let Some((_, module_path)) =
@@ -358,13 +359,14 @@ pub fn compile(
                                             match utils::read_file(real_path) {
                                                 Ok(e) => e,
                                                 Err(err) => {
-                                                    panic!(
+                                                    println!(
                                                     "Failed to ouput error. Cannot read file '{}' {}[{}]{}",
                                                     path,
                                                     color_terminal.color(Colors::Red),
                                                     err,
                                                     color_terminal.color(Colors::Reset)
                                                 );
+                                                    std::process::exit(1);
                                                 }
                                             }
                                         } else {

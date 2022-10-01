@@ -18,15 +18,17 @@ ellie_tokenizer = { path = "tokenizer", version = "*", default-features = false,
 ellie_parser = { path = "parser", version = "*", default-features = false, optional = true }
 ellie_bytecode = { path = "bytecode", version = "*", optional = true }
 ellie_vm = { path = "vm", version = "*", optional = true }
+ellie_fmt = { path = "fmt", version = "*", optional = true }
 ellie_cli_utils = { path = "cli_utils", version = "*", optional = true }
 
 [features]
-default = ["vm", "compiler", "build-cli"]
+default = ["vm", "compiler", "build-cli", "fmt"]
 compiler = ["ellie_tokenizer", "ellie_parser", "ellie_bytecode", "ellie_core/compiler_utils"]
 std = []
 vm = ["ellie_vm"]
 build-cli = ["path-absolutize", "regex", "bincode", "ellie_cli_utils", "serde", "serde_json", "std", "cli-utils"]
 cli-utils = []
+fmt = ["ellie_fmt"]
 ellie_assistant = ["ellie_assist"]
 standard_rules =  ["ellie_parser/standard_rules"]
 

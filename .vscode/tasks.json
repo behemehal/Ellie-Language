@@ -1,0 +1,10 @@
+{
+   "version": "2.0.0",
+   "tasks": [
+      {
+         "label": "Relase Ellie",
+         "type": "shell",
+         "command": "node ./tools/release.js"
+      }
+   ]
+}
