@@ -25,6 +25,8 @@ impl crate::processors::Processor for condition::Condition {
                     }
                 } else if letter_char == '}' && chain.brace_count == 0 {
                     chain.code = chain.iterator.collected.clone();
+                    chain.iterator.finalize();
+                    errors.extend(chain.iterator.errors.clone());
                     chain.complete = true;
                 } else {
                     if letter_char == '{' {
@@ -38,7 +40,7 @@ impl crate::processors::Processor for condition::Condition {
                     {
                         chain.iterator.line_comment = false;
                     }
-                    chain.iterator.iterate(last_char, letter_char);
+                    hang = chain.iterator.iterate(last_char, letter_char);
                 }
             }
             condition::ConditionType::ElseIf => {
@@ -98,6 +100,8 @@ impl crate::processors::Processor for condition::Condition {
                 } else if letter_char == '}' && chain.brace_count == 0 {
                     chain.code = chain.iterator.collected.clone();
                     chain.complete = true;
+                    chain.iterator.finalize();
+                    errors.extend(chain.iterator.errors.clone());
                 } else {
                     if letter_char == '{' {
                         chain.brace_count += 1;
@@ -110,12 +114,14 @@ impl crate::processors::Processor for condition::Condition {
                     {
                         chain.iterator.line_comment = false;
                     }
-                    chain.iterator.iterate(last_char, letter_char);
+                    hang = chain.iterator.iterate(last_char, letter_char);
                 }
             }
             condition::ConditionType::Else => {
                 if letter_char == '}' && chain.brace_count == 0 {
                     chain.code = chain.iterator.collected.clone();
+                    chain.iterator.finalize();
+                    errors.extend(chain.iterator.errors.clone());
                     chain.complete = true;
                 } else {
                     if letter_char == '{' {

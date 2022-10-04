@@ -32,12 +32,21 @@ pub struct Iterator {
 impl Iterator {
     /// After the last char is processed, this method should be called to finish the iterating process
     pub fn finalize(&mut self) {
-        if !self.active.is_complete() && self.active.current.is_initalized() {
-            self.errors.push(error::error_list::ERROR_S26.clone().build(
-                vec![],
-                alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                self.active.current.get_pos(),
-            ));
+        if !self.active.is_complete() && !self.multi_comment {
+            if self.active.current.is_initalized() {
+                self.errors.push(error::error_list::ERROR_S26.clone().build(
+                    vec![],
+                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                    self.active.current.get_pos(),
+                ));
+            } else if matches!(self.active.current.as_getter_call(), Some(getter_call) if !getter_call.cache.current.is_not_initialized())
+            {
+                self.errors.push(error::error_list::ERROR_S26.clone().build(
+                    vec![],
+                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                    self.active.current.get_pos(),
+                ));
+            }
         } else if self.multi_comment {
             self.errors.push(error::error_list::ERROR_S26.clone().build(
                 vec![],
@@ -56,6 +65,8 @@ impl Iterator {
     pub fn iterate(&mut self, last_char: char, letter_char: char) -> bool {
         let mut hang = false;
         let in_str_or_char = matches!(self.active.current.clone(),  items::Processors::GetterCall(e) if e.data.as_string().is_some() || e.data.as_char().is_some());
+
+        let is_escape = letter_char == '\n' || letter_char == '\r' || letter_char == '\t';
 
         if self.comment_start {
             if letter_char == '/' {
@@ -76,10 +87,7 @@ impl Iterator {
             }
         }
 
-        if (letter_char != '\n' && letter_char != '\r' && letter_char != '\t' || in_str_or_char)
-            && !self.line_comment
-            && !self.multi_comment
-        {
+        if !self.line_comment && !self.multi_comment {
             if !self.active.is_complete() {
                 if let items::Processors::GetterCall(e) = self.active.current.clone() {
                     if e.data.is_not_initialized() && (letter_char == '/' && !in_str_or_char) {
@@ -90,8 +98,13 @@ impl Iterator {
             }
 
             if !self.comment_start {
-                self.active
-                    .iterate(&mut self.errors, self.pos, last_char, letter_char);
+                if is_escape && !in_str_or_char {
+                    self.active
+                        .iterate(&mut self.errors, self.pos, last_char, ' ');
+                } else {
+                    self.active
+                        .iterate(&mut self.errors, self.pos, last_char, letter_char);
+                }
             }
             if self.errors.iter().any(|e| e.code == 0x00) {
                 hang = true;

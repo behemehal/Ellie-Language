@@ -456,7 +456,7 @@ impl super::Processor for ItemProcessor {
                 pos: self.current.get_pos(),
                 ..Default::default()
             });
-        } else if self.used_modifier == Modifier::None && keyword == "else" && letter_char == ' ' {
+        } else if self.used_modifier == Modifier::None && keyword == "else" && (letter_char == ' ' || letter_char == '{') {
             self.current = Processors::Condition(condition::Condition {
                 chains: vec![condition::ConditionChain {
                     rtype: condition::ConditionType::ElseIf,
