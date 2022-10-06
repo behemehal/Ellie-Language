@@ -89,8 +89,8 @@ EllieFMT is formatter for Ellie files, it contains options for formatting and an
 
 ### Examples
 
-- ### Run
-    `ellievm run [file] -j -c 64`
+- ### Format
+    `elliefmt format [file] -j -c 64`
 
     Run code from ellie binary. Outputs to `./code.eib`
 

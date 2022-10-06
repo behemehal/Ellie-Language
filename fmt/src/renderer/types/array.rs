@@ -4,7 +4,7 @@ use ellie_tokenizer::syntax::types::array_type::ArrayType;
 
 impl CodeRenderer for ArrayType {
     fn render(&self, state: &State, options: &FormatterOptions) -> String {
-        let state_scope_length = state.render_scope_space();
+        let state_scope_length = state.render_scope_space(options);
         let state_ending_token = &state.ending_token;
         if options.extend_array {
             todo!()

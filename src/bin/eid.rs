@@ -2,7 +2,13 @@ use ellie_cli_utils::{
     options, outputs,
     utils::{self, Colors},
 };
-use std::{collections::HashMap, io::Write, path::Path};
+use ellie_engine::vm::parse_debug_file;
+use std::{
+    collections::HashMap,
+    fs::File,
+    io::{Read, Write},
+    path::Path,
+};
 
 pub enum EidArgTypes {
     String,
@@ -65,7 +71,14 @@ pub enum EidCommands {
     StackPreview,
     RegistersPreview,
 
+    //Tools
+    HexToDec,
+    DecToHex,
+    HexToString,
+    StringToHex,
+
     // Program Management
+    ProgramInfo,
     Load,
     ResetHeap,
     ResetStack,
@@ -177,6 +190,57 @@ fn parse_command(input: &String, args: Vec<BuildEidArgTypes>) -> Result<BuildEid
             args: vec![EidArg {
                 name: "show",
                 value_type: EidArgTypes::Bool,
+                optional: false,
+            }],
+        },
+        EidCommand {
+            short: "pi",
+            long: "program-info",
+            help: "Give info about loaded program",
+            command: EidCommands::ProgramInfo,
+            args: vec![],
+        },
+        EidCommand {
+            short: "ht",
+            long: "hex-to-dec",
+            help: "Convert hex to decimal",
+            command: EidCommands::HexToDec,
+            args: vec![EidArg {
+                name: "hex",
+                value_type: EidArgTypes::String,
+                optional: false,
+            }],
+        },
+        EidCommand {
+            short: "dt",
+            long: "dec-to-hex",
+            help: "Convert decimal to hex",
+            command: EidCommands::DecToHex,
+            args: vec![EidArg {
+                name: "dec",
+                value_type: EidArgTypes::Int,
+                optional: false,
+            }],
+        },
+        EidCommand {
+            short: "hs",
+            long: "hex-to-string",
+            help: "Convert hex to string",
+            command: EidCommands::HexToString,
+            args: vec![EidArg {
+                name: "hex",
+                value_type: EidArgTypes::String,
+                optional: false,
+            }],
+        },
+        EidCommand {
+            short: "sh",
+            long: "string-to-hex",
+            help: "Convert string to hex",
+            command: EidCommands::StringToHex,
+            args: vec![EidArg {
+                name: "string",
+                value_type: EidArgTypes::String,
                 optional: false,
             }],
         },
@@ -360,12 +424,14 @@ fn main() {
         WaitingAtBreakpoint,
         WaitingAtStackPoint,
         Running,
+        ProgramLoaded,
         ProgramCompleted,
     }
 
     let mut state = DebuggerState::WaitingProgram;
 
-    let mut program_loaded = false;
+    let mut debug_info: Option<ellie_core::defs::DebugInfo> = None;
+    let mut program: Option<ellie_vm::program::Program> = None;
 
     let mut options = EidOptions {
         CodePreview: true,
@@ -446,6 +512,57 @@ fn main() {
             args: vec![EidArg {
                 name: "show",
                 value_type: EidArgTypes::Bool,
+                optional: false,
+            }],
+        },
+        EidCommand {
+            short: "pi",
+            long: "program-info",
+            help: "Give info about loaded program",
+            command: EidCommands::ProgramInfo,
+            args: vec![],
+        },
+        EidCommand {
+            short: "ht",
+            long: "hex-to-dec",
+            help: "Convert hex to decimal",
+            command: EidCommands::HexToDec,
+            args: vec![EidArg {
+                name: "hex",
+                value_type: EidArgTypes::String,
+                optional: false,
+            }],
+        },
+        EidCommand {
+            short: "dt",
+            long: "dec-to-hex",
+            help: "Convert decimal to hex",
+            command: EidCommands::DecToHex,
+            args: vec![EidArg {
+                name: "dec",
+                value_type: EidArgTypes::Int,
+                optional: false,
+            }],
+        },
+        EidCommand {
+            short: "hs",
+            long: "hex-to-string",
+            help: "Convert hex to string",
+            command: EidCommands::HexToString,
+            args: vec![EidArg {
+                name: "hex",
+                value_type: EidArgTypes::String,
+                optional: false,
+            }],
+        },
+        EidCommand {
+            short: "sh",
+            long: "string-to-hex",
+            help: "Convert string to hex",
+            command: EidCommands::StringToHex,
+            args: vec![EidArg {
+                name: "string",
+                value_type: EidArgTypes::String,
                 optional: false,
             }],
         },
@@ -707,7 +824,7 @@ fn main() {
                 }
                 EidCommands::Load => {
                     let path = match &e.args[0].value_type {
-                        BuildEidArgTypes::String(path) => path,
+                        BuildEidArgTypes::String(path) => Path::new(path),
                         _ => {
                             println!(
                                 "{}Invalid argument type{}: Expected String",
@@ -717,6 +834,122 @@ fn main() {
                             continue;
                         }
                     };
+                    let debug_file_path = match &e.args[0].value_type {
+                        BuildEidArgTypes::String(path) => {
+                            let path = Path::new(path);
+                            if path.is_file() {
+                                let file_name =
+                                    path.file_name().unwrap().to_str().unwrap().to_string();
+                                let file_name = file_name.split(".").collect::<Vec<&str>>();
+                                let file_name = file_name[0].to_string();
+                                let mut path =
+                                    path.parent().unwrap().to_str().unwrap().to_string().clone();
+                                path.push_str(&format!("/{file_name}.eig"));
+                                Some(path)
+                            } else {
+                                None
+                            }
+                        }
+                        _ => None,
+                    };
+
+                    if path.is_file() {
+                        match File::open(path) {
+                            Ok(mut e) => {
+                                let mut reader = ellie_engine::vm::RFile::new(&mut e);
+                                match ellie_engine::vm::read_program(&mut reader) {
+                                    Ok(e) => {
+                                        program = Some(e);
+                                        state = DebuggerState::ProgramLoaded;
+                                    }
+                                    Err(e) => {
+                                        println!(
+                                            "{}Error:{} Failed to read program, error code: {}{}{}",
+                                            utils::Colors::Red,
+                                            utils::Colors::Reset,
+                                            utils::Colors::Cyan,
+                                            e,
+                                            utils::Colors::Reset
+                                        );
+                                        std::process::exit(1);
+                                    }
+                                }
+                            }
+                            Err(e) => {
+                                println!(
+                                    "{}Error:{} Failed to read file {}[{}]{}",
+                                    utils::Colors::Red,
+                                    utils::Colors::Reset,
+                                    utils::Colors::Cyan,
+                                    e,
+                                    utils::Colors::Reset
+                                );
+                                std::process::exit(1);
+                            }
+                        }
+                    } else {
+                        println!(
+                            "{}Invalid path{}: Not a file",
+                            utils::Colors::Red,
+                            utils::Colors::Reset
+                        );
+                        continue;
+                    }
+                    println!(
+                        "{}Program loaded{}: {}{}{}",
+                        utils::Colors::Green,
+                        utils::Colors::Reset,
+                        utils::Colors::Cyan,
+                        path.to_str().unwrap(),
+                        utils::Colors::Reset
+                    );
+                    match debug_file_path {
+                        Some(path) => {
+                            let path = Path::new(&path);
+                            if path.is_file() {
+                                let mut file_contents = String::new();
+                                match File::open(path) {
+                                    Ok(mut e) => {
+                                        e.read_to_string(&mut file_contents).unwrap();
+                                        match parse_debug_file(file_contents) {
+                                            Ok(e) => {
+                                                debug_info = Some(e);
+                                                println!(
+                                                    "{}Debug file loaded{}: {}{}{}",
+                                                    utils::Colors::Green,
+                                                    utils::Colors::Reset,
+                                                    utils::Colors::Cyan,
+                                                    path.to_str().unwrap(),
+                                                    utils::Colors::Reset
+                                                );
+                                            }
+                                            Err(e) => {
+                                                println!(
+                                                    "{}Error:{} {}",
+                                                    utils::Colors::Red,
+                                                    utils::Colors::Reset,
+                                                    e
+                                                );
+                                                std::process::exit(1);
+                                            }
+                                        }
+                                    }
+                                    Err(e) => {
+                                        println!(
+                                            "{}Error:{} Failed to read file {}[{}]{}",
+                                            utils::Colors::Red,
+                                            utils::Colors::Reset,
+                                            utils::Colors::Cyan,
+                                            e,
+                                            utils::Colors::Reset
+                                        );
+                                        std::process::exit(1);
+                                    }
+                                }
+                            }
+                        }
+                        None => (),
+                    }
                 }
                 EidCommands::ResetHeap => todo!(),
                 EidCommands::ResetStack => todo!(),
@@ -732,6 +965,60 @@ fn main() {
                 EidCommands::GetHeap => todo!(),
                 EidCommands::GetCodePos => todo!(),
                 EidCommands::StepChanges => todo!(),
+                EidCommands::ProgramInfo => match &program {
+                    Some(e) => {
+                        println!(
+                            "{}Program info{}:",
+                            utils::Colors::Green,
+                            utils::Colors::Reset,
+                        );
+                        println!(
+                            "{}- Arch{}: {}",
+                            utils::Colors::Yellow,
+                            utils::Colors::Reset,
+                            e.arch
+                        );
+                        println!(
+                            "{}- Debug Info{}: {}{}{}",
+                            utils::Colors::Yellow,
+                            utils::Colors::Reset,
+                            match debug_info {
+                                Some(_) => utils::Colors::Green,
+                                None => utils::Colors::Red,
+                            },
+                            match debug_info {
+                                Some(_) => "Available",
+                                None => "Not available",
+                            },
+                            utils::Colors::Reset
+                        );
+                    }
+                    None => {
+                        println!(
+                            "{}Error:{} No program loaded",
+                            utils::Colors::Red,
+                            utils::Colors::Reset
+                        );
+                    }
+                },
+                EidCommands::HexToDec => {
+                    let hex = match &e.args[0].value_type {
+                        BuildEidArgTypes::String(e) => e,
+                        _ => {
+                            println!(
+                                "{}Error:{} Invalid argument type, expected string",
+                                utils::Colors::Red,
+                                utils::Colors::Reset
+                            );
+                            continue;
+                        }
+                    };
+                    //Check if hex is valid
+                    if 
+                }
+                EidCommands::DecToHex => todo!(),
+                EidCommands::HexToString => todo!(),
+                EidCommands::StringToHex => todo!(),
             },
             Err(e) => {
                 if e == 0 {

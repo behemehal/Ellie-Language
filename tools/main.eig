@@ -1,7 +1,7 @@
 ellieStd: C:\Users\ahmet\Desktop\Projects\Ellie-Language\tools
 ---
 0:0:<ellie_module_ellieStd>/main.ei:x:197:13:197:18:0
-2:41:<ellie_module_ellieStd>/main.ei:factorial:197:0:203:0:9749893824805017583
-42:53:<ellie_module_ellieStd>/main.ei:test:206:4:206:25:4321518423105619739
-53:61:<ellie_module_ellieStd>/main.ei:res:207:4:207:27:1532358783562896984
-42:62:<ellie_module_ellieStd>/main.ei:main:205:0:208:0:4984069153963541439
+2:41:<ellie_module_ellieStd>/main.ei:factorial:197:0:203:0:7759170422391555402
+42:53:<ellie_module_ellieStd>/main.ei:test:206:4:206:25:14631319726441570961
+53:61:<ellie_module_ellieStd>/main.ei:res:207:4:207:27:9880684909166794574
+42:62:<ellie_module_ellieStd>/main.ei:main:205:0:208:0:634841012969326074

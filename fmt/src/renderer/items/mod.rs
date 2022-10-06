@@ -27,7 +27,7 @@ impl CodeRenderer for Processors {
     fn render(&self, state: &State, options: &FormatterOptions) -> String {
         match self {
             Processors::Variable(e) => e.data.render(state, options),
-            Processors::GetterCall(e) => e.data.render(state, options),
+            Processors::GetterCall(e) => e.render(state, options),
             Processors::SetterCall(e) => e.render(state, options),
             Processors::Function(e) => e.data.render(state, options),
             Processors::FileKey(e) => e.render(state, options),

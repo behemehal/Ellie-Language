@@ -4,13 +4,45 @@ use ellie_core::utils::PageExport;
 pub use ellie_tokenizer;
 use ellie_tokenizer::tokenizer::Page;
 
-#[derive(Default, Clone, Debug, Copy)]
+#[derive(Clone, Debug, Copy)]
 pub struct FormatterOptions {
     pub float_starts_with_dot: bool,
     pub extend_array: bool,
     pub leave_space_after_comma: bool,
-    pub use_long_variable_names: bool,
+    pub use_shorts: bool,
     pub space_before_type_colon: bool,
+    pub space_between_operators: bool,
+    pub render_brace_next_line: bool,
+    pub is_cr_lf: bool,
+    pub tab_size: usize,
+    pub use_tabs: bool,
+}
+
+impl Default for FormatterOptions {
+    fn default() -> Self {
+        Self {
+            float_starts_with_dot: false,
+            extend_array: false,
+            leave_space_after_comma: true,
+            use_shorts: true,
+            space_before_type_colon: false,
+            render_brace_next_line: true,
+            space_between_operators: true,
+            is_cr_lf: false,
+            tab_size: 4,
+            use_tabs: true,
+        }
+    }
+}
+
+impl FormatterOptions {
+    pub fn render_line_ending(&self) -> String {
+        if self.is_cr_lf {
+            String::from("\r\n")
+        } else {
+            String::from("\n")
+        }
+    }
 }
 
 pub struct Formatter {

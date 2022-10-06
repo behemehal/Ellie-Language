@@ -239,32 +239,8 @@ pub fn format_file(target_path: &Path, output_path: &Path, formatter_settings: F
                             .unwrap(),
                     )
                     .clone();
-                let file = OpenOptions::new()
-                    .read(false)
-                    .write(true)
-                    .create(true)
-                    .append(false)
-                    .open(&real_path);
-                let mut file = match file {
-                    Ok(file) => file,
-                    Err(err) => {
-                        println!(
-                            "{}[Internal Error]{} Cannot find file '{}' {}[{}]{}",
-                            utils::Colors::Red,
-                            utils::Colors::Reset,
-                            real_path,
-                            utils::Colors::Red,
-                            err,
-                            utils::Colors::Reset,
-                        );
-                        std::process::exit(1);
-                    }
-                };
-                println!("Write: {}:{:?}", real_path, page.content);
-                match write!(file, "{}", page.content) {
-                    Ok(_) => {
-                        file.rewind().unwrap();
-                    }
+                match fs::write(&real_path, page.content) {
+                    Ok(_) => {}
                     Err(err) => {
                         println!(
                             "{}[Internal Error]{} Cannot write to file '{}' {}[{}]{}",

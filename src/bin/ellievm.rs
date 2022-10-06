@@ -29,9 +29,7 @@ pub struct VmSettings {
 fn main() {
     let app = options::generate_ellievm_options();
     let matches = app.get_matches();
-    let version = format!(
-        "0.1.0",
-    );
+    let version = format!("0.1.0",);
 
     match matches.subcommand() {
         Some(("run", matches)) => {
@@ -177,44 +175,35 @@ fn main() {
             let path = Path::new(matches.value_of("target").unwrap().clone());
             let program = if path.exists() {
                 if path.is_file() {
-                    if path.is_file() {
-                        match File::open(path) {
-                            Ok(mut e) => {
-                                let mut reader = RFile::new(&mut e);
-                                match read_program(&mut reader) {
-                                    Ok(e) => e,
-                                    Err(e) => {
-                                        println!(
-                                            "{}Error:{} Failed to read program, error code: {}{}{}",
-                                            utils::Colors::Red,
-                                            utils::Colors::Reset,
-                                            utils::Colors::Cyan,
-                                            e,
-                                            utils::Colors::Reset
-                                        );
-                                        std::process::exit(1);
-                                    }
+                    match File::open(path) {
+                        Ok(mut e) => {
+                            let mut reader = RFile::new(&mut e);
+                            match read_program(&mut reader) {
+                                Ok(e) => e,
+                                Err(e) => {
+                                    println!(
+                                        "{}Error:{} Failed to read program, error code: {}{}{}",
+                                        utils::Colors::Red,
+                                        utils::Colors::Reset,
+                                        utils::Colors::Cyan,
+                                        e,
+                                        utils::Colors::Reset
+                                    );
+                                    std::process::exit(1);
                                 }
                             }
-                            Err(e) => {
-                                println!(
-                                    "{}Error:{} Failed to read file {}[{}]{}",
-                                    utils::Colors::Red,
-                                    utils::Colors::Reset,
-                                    utils::Colors::Cyan,
-                                    e,
-                                    utils::Colors::Reset
-                                );
-                                std::process::exit(1);
-                            }
                         }
-                    } else {
-                        println!(
-                            "{}Error:{} Given path is not a file",
-                            utils::Colors::Red,
-                            utils::Colors::Reset
-                        );
-                        std::process::exit(1);
+                        Err(e) => {
+                            println!(
+                                "{}Error:{} Failed to read file {}[{}]{}",
+                                utils::Colors::Red,
+                                utils::Colors::Reset,
+                                utils::Colors::Cyan,
+                                e,
+                                utils::Colors::Reset
+                            );
+                            std::process::exit(1);
+                        }
                     }
                 } else {
                     println!(
@@ -768,9 +757,6 @@ fn main() {
                         let mut input = String::new();
                         std::io::stdin().read_line(&mut input).unwrap();
 
-                        
-
-                        
                         if input.trim() == "exit" {
                             println!("Bye...");
                             break;
@@ -859,7 +845,9 @@ fn main() {
                             println!("  - step info - Show last step info");
                             println!("  - heap dump - Show heap dump");
                         } else if input.trim() == "" {
-                            std::io::stdout().write_all("\x1B[2J\x1B[1;1H".as_bytes()).unwrap();
+                            std::io::stdout()
+                                .write_all("\x1B[2J\x1B[1;1H".as_bytes())
+                                .unwrap();
                             println!("---");
                             step_into = true;
                         } else {
@@ -1014,7 +1002,7 @@ fn main() {
                     let mut output = outputs::VERSION_DETAILED.clone();
                     output.extra.push(outputs::CliOuputExtraData {
                         key: "version".to_string(),
-                        value: version
+                        value: version,
                     });
 
                     output.extra.push(outputs::CliOuputExtraData {
@@ -1055,10 +1043,7 @@ fn main() {
                     });
                     println!("{}", serde_json::to_string(&output).unwrap());
                 } else {
-                    println!(
-                        "EllieVM v{}",
-                        version
-                    );
+                    println!("EllieVM v{}", version);
                 }
             }
         }

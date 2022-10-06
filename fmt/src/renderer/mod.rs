@@ -4,8 +4,8 @@ use crate::fmt::FormatterOptions;
 pub mod items;
 
 //Language Types
-pub mod types;
 pub mod defs;
+pub mod types;
 
 #[derive(Default, Clone, Debug)]
 pub struct State {
@@ -15,10 +15,16 @@ pub struct State {
 
 impl State {
     // Render state's scope length as spaces
-    pub fn render_scope_space(&self) -> String {
+    pub fn render_scope_space(&self, settings: &FormatterOptions) -> String {
         let mut scope_space = String::new();
         for _ in 0..self.scope_length {
-            scope_space.push_str(" ");
+            if settings.use_tabs {
+                scope_space += "\t";
+            } else {
+                for _ in 0..settings.tab_size {
+                    scope_space += " ";
+                }
+            }
         }
         scope_space
     }
