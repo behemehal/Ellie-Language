@@ -532,13 +532,29 @@ fn main() {
                             );
                         }
 
+                        fn render_raw_type(raw_type: &ellie_core::raw_type::RawType) -> String {
+                            match raw_type.type_id.id {
+                                1 => return format!("Int({})", raw_type.to_int()),
+                                2 => return format!("Float({})", raw_type.to_float()),
+                                3 => return format!("Double({})", raw_type.to_double()),
+                                4 => return format!("Byte({})", raw_type.to_byte()),
+                                5 => return format!("Bool({})", raw_type.to_bool()),
+                                6 => return format!("String({})", raw_type.to_string()),
+                                7 => return format!("Char({})", raw_type.to_char()),
+                                8 => return format!("Void"),
+                                9 => return format!("Array"),
+                                10 => return format!("Void"),
+                                _ => return format!("Unknown"),
+                            }
+                        }
+
                         if show_registers {
                             println!("{}Registers:{}", Colors::Green, Colors::Reset);
-                            println!("A: {:?}", stack.registers.A);
-                            println!("B: {:?}", stack.registers.B);
-                            println!("C: {:?}", stack.registers.C);
-                            println!("X: {:?}", stack.registers.X);
-                            println!("Y: {:?}", stack.registers.Y);
+                            println!("A: {:?}: {}", stack.registers.A, render_raw_type(&stack.registers.A));
+                            println!("B: {:?}: {}", stack.registers.B, render_raw_type(&stack.registers.B));
+                            println!("C: {:?}: {}", stack.registers.C, render_raw_type(&stack.registers.C));
+                            println!("X: {:?}: {}", stack.registers.X, render_raw_type(&stack.registers.X));
+                            println!("Y: {:?}: {}", stack.registers.Y, render_raw_type(&stack.registers.Y));
                         } else {
                             println!(
                                 "{}Registers:{} {}Disabled{}",

@@ -66,25 +66,6 @@ impl StackController {
         None
     }
 
-    //This function finds current stack and registers its ret register(Y) to parent stack
-    pub fn ret(&mut self, current_stack_id: usize) -> Result<(), u8> {
-        match self.stack.iter().find(|x| x.id == current_stack_id) {
-            Some(current_stack) => {
-                let current_Y = current_stack.registers.Y.clone();
-                match current_stack.caller {
-                    Some(caller) => match self.stack.iter_mut().find(|x| x.id == caller) {
-                        Some(caller_stack) => {
-                            caller_stack.registers.Y = current_Y;
-                            Ok(())
-                        }
-                        None => Err(0),
-                    },
-                    None => Err(1),
-                }
-            }
-            None => Err(0),
-        }
-    }
 
     pub fn len(&self) -> usize {
         self.stack.len()
@@ -115,7 +96,7 @@ impl StackController {
         {
             Err(1)
         } else {
-           
+
         }
         */
         self.stack.push(stack);
@@ -2285,13 +2266,15 @@ where
                             current_stack.stack_pos += 1;
                             let current_stack_id = current_stack.id.clone();
                             let current_stack_x = current_stack.registers.X.clone();
+                            let name = format!("{}>fn<{}>", current_stack.name, stack_pos);
 
                             //let frame_pos = self.program.len() + self.stack.calculate_stack_length() + (function_escape_pos - (stack_pos + 1));
-                            let frame_pos = self.program.len() + self.stack.calculate_stack_length();
+                            let frame_pos =
+                                self.program.len() + self.stack.calculate_stack_length();
 
                             match self.stack.push(Stack {
                                 id: hash,
-                                name: format!("fn<{}>", stack_pos),
+                                name,
                                 stack_len: function_escape_pos - (stack_pos + 1),
                                 registers: Registers {
                                     A: RawType::void(),
@@ -2320,21 +2303,6 @@ where
                                     }));
                                 }
                             };
-
-                            /*
-                            match self.program.len().checked_mul(function_escape_pos - (stack_pos + 1)) {
-                                Some(frame_pos) => {
-                                    
-                                }
-                                None => {
-                                    return Err(ThreadExit::Panic(ThreadPanic {
-                                        reason: ThreadPanicReason::StackOverflow,
-                                        stack_trace: self.stack.stack.clone(),
-                                        code_location: format!("{}:{}", file!(), line!()),
-                                    }));
-                                }
-                            }
-                            */
                         }
                         _ => panic!("Illegal addressing value"),
                     }
@@ -2848,29 +2816,22 @@ where
         if drop_current_stack {
             let current_Y = current_stack.registers.Y.clone();
             match current_stack.caller {
-                Some(caller) => match self.stack.stack.iter_mut().find(|x| x.id == caller) {
-                    Some(caller_stack) => {
-                        caller_stack.registers.Y = current_Y;
-                        let stack_id = caller_stack.id;
-                        self.stack.pop();
-                        return Ok(ThreadStep {
-                            instruction: current_instruction.clone(),
-                            stack_pos,
-                            stack_id,
-                            info: ThreadStepInfo::DropStack,
-                        })
-                    }
-                    None => {
-                        return Err(ThreadExit::Panic(ThreadPanic {
-                            reason: ThreadPanicReason::BrokenStackTree(0),
-                            stack_trace: self.stack.stack.clone(),
-                            code_location: format!("{}:{}", file!(), line!()),
-                        }));
-                    }
-                },
+                Some(_) => {
+                    let last_scope_idx = self.stack.stack.len() - 2;
+                    let last_scope = &mut self.stack.stack[last_scope_idx];
+                    last_scope.registers.Y = current_Y;
+                    let stack_id = last_scope.id;
+                    self.stack.pop();
+                    return Ok(ThreadStep {
+                        instruction: current_instruction.clone(),
+                        stack_pos,
+                        stack_id,
+                        info: ThreadStepInfo::DropStack,
+                    });
+                }
                 None => {
                     self.stack.pop();
-                },
+                }
             }
         } else {
             current_stack.stack_pos += 1;
