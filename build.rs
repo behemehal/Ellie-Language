@@ -320,7 +320,7 @@ pub static ELLIE_FMT_VERSION : &'static str = &{ellie_fmt_version};"#
     let git_hash = String::from_utf8(git_hash).unwrap();
     let git_hash = git_hash.trim();
     output += &format!("\npub static ELLIE_BUILD_DATE : &'static str = &\"{date}\";");
-    output += &format!("\npub static ELLIE_BUILD_GIT_HASH : &'static str = &\"{git_hash}\";");
+    output += &format!("\npub static ELLIE_BUILD_GIT_HASH : &'static str = &\"{git_hash}\";\n");
 
     fs::write(
         env!("CARGO_MANIFEST_DIR").to_owned() + &"/src/engine_constants.rs",

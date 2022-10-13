@@ -8,6 +8,7 @@ use std::{
     io::Read,
     path::Path,
 };
+#[cfg(feature = "cli-utils")]
 extern crate path_absolutize;
 
 pub enum TextStyles {

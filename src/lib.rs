@@ -20,7 +20,7 @@ pub extern crate ellie_core;
 pub extern crate ellie_fmt;
 #[cfg(feature = "compiler")]
 pub extern crate ellie_parser;
-#[cfg(feature = "cli-utils")]
+#[cfg(any(feature = "renderer_utils", feature = "cli-utils"))]
 pub extern crate ellie_renderer_utils;
 #[cfg(feature = "compiler")]
 pub extern crate ellie_tokenizer;
