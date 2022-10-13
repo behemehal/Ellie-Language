@@ -83,42 +83,6 @@ mod definer_tests {
     }
 
     #[test]
-    fn vector_collected_with_no_error() {
-        let code = "[int, *]";
-        let mut pos = defs::CursorPosition::default();
-        let mut errors: Vec<error::Error> = Vec::new();
-        let mut processor: definers::DefinerCollector = definers::DefinerCollector::default();
-        let mut last_char = '\0';
-        for letter_char in code.chars() {
-            processor.iterate(&mut errors, pos, last_char, letter_char);
-            pos.1 += 1;
-            last_char = letter_char;
-        }
-
-        let mut result_hash = DefaultHasher::new();
-        format!("{:?}", processor).hash(&mut result_hash);
-        assert!(errors.is_empty() && result_hash.finish() == 16066019330082801417);
-    }
-
-    #[test]
-    fn nullable_vector_collected_with_no_error() {
-        let code = "?[int, *]";
-        let mut pos = defs::CursorPosition::default();
-        let mut errors: Vec<error::Error> = Vec::new();
-        let mut processor: definers::DefinerCollector = definers::DefinerCollector::default();
-        let mut last_char = '\0';
-        for letter_char in code.chars() {
-            processor.iterate(&mut errors, pos, last_char, letter_char);
-            pos.1 += 1;
-            last_char = letter_char;
-        }
-
-        let mut result_hash = DefaultHasher::new();
-        format!("{:?}", processor).hash(&mut result_hash);
-        assert!(errors.is_empty() && result_hash.finish() == 16100666307933433542);
-    }
-
-    #[test]
     fn cloak_collected_with_no_error() {
         let code = "(int, int)";
         let mut pos = defs::CursorPosition::default();

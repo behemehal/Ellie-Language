@@ -37,7 +37,6 @@ pub fn convert_type(
         Types::Operator(_) => todo!(),
         Types::Cloak(_) => todo!(),
         Types::Array(array) => (instructions::Types::Array(array.collective.len()), vec![]),
-        Types::Vector(_) => todo!(),
         Types::Function(_) => todo!(),
         Types::ClassCall(_) => todo!(),
         Types::FunctionCall(_) => todo!(),
@@ -341,9 +340,46 @@ pub fn resolve_type(
                 }
             }
             operator::Operators::AssignmentType(_) => todo!(),
-            operator::Operators::Null => todo!(),
+            operator::Operators::Null => unreachable!(),
         },
-        Types::Cloak(_) => todo!(),
+        Types::Cloak(e) => {
+            let mut entries = vec![];
+
+            for entry in &e.collective {
+                resolve_type(
+                    assembler,
+                    &entry.value,
+                    instructions::Registers::A,
+                    target_page,
+                    dependencies.clone(),
+                );
+                assembler
+                    .instructions
+                    .push(instructions::Instructions::STA(Instruction::implicit()));
+                let location_of_data = assembler.instructions.len() - 1;
+                entries.extend(location_of_data.to_le_bytes());
+            }
+
+            let array_rtype = instructions::Types::Array(entries.len());
+
+            match target_register {
+                instructions::Registers::A => assembler.instructions.push(
+                    instructions::Instructions::LDA(Instruction::immediate(array_rtype, entries)),
+                ),
+                instructions::Registers::B => assembler.instructions.push(
+                    instructions::Instructions::LDB(Instruction::immediate(array_rtype, entries)),
+                ),
+                instructions::Registers::C => assembler.instructions.push(
+                    instructions::Instructions::LDC(Instruction::immediate(array_rtype, entries)),
+                ),
+                instructions::Registers::X => assembler.instructions.push(
+                    instructions::Instructions::LDX(Instruction::immediate(array_rtype, entries)),
+                ),
+                instructions::Registers::Y => assembler.instructions.push(
+                    instructions::Instructions::LDY(Instruction::immediate(array_rtype, entries)),
+                ),
+            }
+        }
         Types::Array(e) => {
             let mut entries = vec![];
 
@@ -382,7 +418,6 @@ pub fn resolve_type(
                 ),
             }
         }
-        Types::Vector(_) => todo!(),
         Types::Function(_) => todo!(),
         Types::ClassCall(_) => {
             todo!()

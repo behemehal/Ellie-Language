@@ -82,7 +82,6 @@ pub enum Types {
     String,
     Char,
     Array,
-    Vector,
     Void,
 }
 
@@ -97,7 +96,6 @@ impl Types {
             Types::String => String::from("String"),
             Types::Char => String::from("Char"),
             Types::Array => String::from("Array"),
-            Types::Vector => String::from("Vector"),
             Types::Void => String::from("Void"),
         }
     }
@@ -191,8 +189,6 @@ pub enum Instructions {
 
 impl Instructions {
     pub fn from(op_code: &u8) -> Option<Instructions> {
-        let c = vec![1, 2, 3];
-        let q = c.iter().map(|x| x.to_string());
         match op_code {
             1 => Some(Instructions::LDA(Instruction {
                 addressing_mode: AddressingModes::Immediate,

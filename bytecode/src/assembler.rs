@@ -284,7 +284,11 @@ impl Assembler {
     }
 
     pub fn location(&self) -> usize {
-        self.instructions.len() - 1
+        if self.instructions.len() == 0 {
+            0
+        } else {
+            self.instructions.len() - 1
+        }
     }
 
     pub fn find_local(&self, name: &String, page_hash: Option<Vec<usize>>) -> Option<&LocalHeader> {

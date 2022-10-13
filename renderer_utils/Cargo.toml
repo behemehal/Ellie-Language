@@ -1,0 +1,18 @@
+[package]
+name = "ellie_renderer_utils"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+lazy_static = { version = "1.4.0", optional = true }
+clap = { version = "3.1.1", optional = true }
+clap_complete = { version = "3.0.0", optional = true }
+ellie_core = { path = "../core", version = "*" }
+serde = { version = "1.0", features = ["derive"], optional = true }
+serde_json = { version = "1.0", default-features = false, optional = true }
+path-absolutize = { version = "3.0.10", optional = true }
+
+[features]
+default = ["cli-utils", "std"]
+cli-utils = ["clap", "clap_complete", "serde", "serde_json", "path-absolutize", "lazy_static"]
+std= []

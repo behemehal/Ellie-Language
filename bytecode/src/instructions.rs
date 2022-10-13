@@ -42,7 +42,6 @@ pub enum Types {
     String(usize),
     Char,
     Array(usize),
-    //Vector,
     Void,
     Null,
 }

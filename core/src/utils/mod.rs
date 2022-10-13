@@ -58,7 +58,6 @@ pub fn is_reserved(value: &str, allow_core_naming: bool) -> bool {
         || (value == "array" && !allow_core_naming)
         || (value == "collective" && !allow_core_naming)
         || (value == "cloak" && !allow_core_naming)
-        || (value == "vector" && !allow_core_naming)
         || (value == "string" && !allow_core_naming)
         || (value == "char" && !allow_core_naming)
         || (value == "int" && !allow_core_naming)

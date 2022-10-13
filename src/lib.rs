@@ -2,9 +2,10 @@
 #![allow(unused_assignments)]
 #![allow(unknown_lints)]
 #![warn(clippy::all)]
-/*
-    Copyright (c) 2020 Behemehal. See license file for details
-*/
+//! Ellie Engine
+//! This is the main repository for the Ellie Language.
+//!
+//! Copyright (c) 2020 Behemehal. See license file for details
 
 #[cfg(feature = "build-cli")]
 extern crate std;
@@ -15,15 +16,18 @@ extern crate alloc;
 pub extern crate ellie_bytecode;
 /// EllieCore contains various functions and structs used by Ellie.
 pub extern crate ellie_core;
+#[cfg(feature = "fmt")]
+pub extern crate ellie_fmt;
 #[cfg(feature = "compiler")]
 pub extern crate ellie_parser;
+#[cfg(feature = "cli-utils")]
+pub extern crate ellie_renderer_utils;
 #[cfg(feature = "compiler")]
 pub extern crate ellie_tokenizer;
 #[cfg(feature = "vm")]
 pub extern crate ellie_vm;
 
 #[doc(hidden)]
-#[cfg(feature = "cli-utils")]
 pub mod engine_constants;
 
 #[cfg(feature = "compiler")]
@@ -34,11 +38,3 @@ pub mod tokenizer;
 pub mod vm;
 
 pub mod utils;
-
-#[cfg(feature = "cli-utils")]
-pub mod terminal_utils;
-
-/// Virtual channels for communication between compiler and code
-
-#[cfg(feature = "build-cli")]
-pub mod binary_tools;

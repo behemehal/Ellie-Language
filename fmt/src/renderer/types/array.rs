@@ -16,7 +16,7 @@ impl CodeRenderer for ArrayType {
                         scope_length: 0,
                         ending_token: String::new(),
                     },
-                    options
+                    options,
                 );
 
                 if index != self.collective.len() - 1 {

@@ -1,5 +1,3 @@
-use std::fmt::format;
-
 use super::super::{CodeRenderer, State};
 use crate::fmt::FormatterOptions;
 use ellie_tokenizer::syntax::types::function_call_type::FunctionCall;

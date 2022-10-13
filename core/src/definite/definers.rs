@@ -9,13 +9,8 @@ use serde::{Deserialize, Serialize};
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct ArrayType {
     pub rtype: Box<DefinerCollecting>,
-    pub size: Box<Types>,
-    pub pos: defs::Cursor,
-}
-
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-pub struct VectorType {
-    pub rtype: Box<DefinerCollecting>,
+    pub has_size: bool,
+    pub size: Option<Box<Types>>,
     pub pos: defs::Cursor,
 }
 
@@ -82,7 +77,6 @@ pub struct EnumField {
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize, EnumAsInner)]
 pub enum DefinerCollecting {
     Array(ArrayType),
-    Vector(VectorType),
     Generic(GenericType),
     ParentGeneric(ParentGenericType),
     Function(FunctionType),
@@ -97,7 +91,6 @@ impl DefinerCollecting {
     pub fn to_string(&self) -> String {
         match self {
             DefinerCollecting::Array(_) => "array".to_owned(),
-            DefinerCollecting::Vector(_) => "vector".to_owned(),
             DefinerCollecting::Generic(generic) => generic.rtype.to_owned(),
             DefinerCollecting::ParentGeneric(parent_generic) => format!(
                 "{}<{}>",
@@ -138,15 +131,6 @@ impl DefinerCollecting {
             DefinerCollecting::Array(data) => {
                 if let DefinerCollecting::Array(other_data) = other {
                     other_data.size == data.size && other_data.rtype.same_as(*data.rtype.clone())
-                } else if DefinerCollecting::Dynamic == other {
-                    true
-                } else {
-                    false
-                }
-            }
-            DefinerCollecting::Vector(data) => {
-                if let DefinerCollecting::Vector(other_data) = other {
-                    other_data.rtype.same_as(*data.rtype.clone())
                 } else if DefinerCollecting::Dynamic == other {
                     true
                 } else {

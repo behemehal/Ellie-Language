@@ -38,7 +38,6 @@ pub fn convert_to_raw_type(types: Types) -> RawType {
         Types::Operator(_) => todo!(),
         Types::Cloak(_) => todo!(),
         Types::Array(_) => todo!(),
-        Types::Vector(_) => todo!(),
         Types::Function(_) => todo!(),
         Types::ClassCall(_) => todo!(),
         Types::FunctionCall(_) => todo!(),

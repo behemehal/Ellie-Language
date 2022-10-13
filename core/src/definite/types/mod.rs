@@ -19,7 +19,6 @@ pub mod operator;
 pub mod reference;
 pub mod string;
 pub mod variable;
-pub mod vector;
 
 use super::definers;
 use serde::{Deserialize, Serialize};
@@ -40,7 +39,6 @@ pub enum Types {
     Operator(operator::OperatorType),
     Cloak(cloak::CloakType),
     Array(array::ArrayType),
-    Vector(vector::VectorType),
     Function(function::Function),
     ClassCall(class_call::ClassCall),
     FunctionCall(function_call::FunctionCall),

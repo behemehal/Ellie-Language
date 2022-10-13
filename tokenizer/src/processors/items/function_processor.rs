@@ -188,10 +188,12 @@ impl crate::processors::Processor for function::FunctionCollector {
             self.data.body = self.iterator.collected.clone();
             let contains_ret = self.data.body.iter().any(|x| match x {
                 super::Processors::Ret(_) => true,
-                super::Processors::Condition(e) => e.chains.iter().any(|x| x.code.iter().any(|x| match x {
-                    super::Processors::Ret(_) => true,
-                    _ => false,
-                })),
+                super::Processors::Condition(e) => e.chains.iter().any(|x| {
+                    x.code.iter().any(|x| match x {
+                        super::Processors::Ret(_) => true,
+                        _ => false,
+                    })
+                }),
                 _ => false,
             });
 

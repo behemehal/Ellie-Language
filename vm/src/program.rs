@@ -1,7 +1,7 @@
 use crate::utils::{AddressingModes, AddressingValues, Instructions, ProgramReader};
 use alloc::vec::Vec;
 use ellie_core::{
-    defs::{DebugInfo, PlatformArchitecture},
+    defs::PlatformArchitecture,
     raw_type::{RawType, TypeId},
 };
 

@@ -114,7 +114,7 @@ impl super::Processor for ForLoop {
 
             match &target_iterator {
                 ellie_core::definite::definers::DefinerCollecting::ParentGeneric(e) => {
-                    if e.rtype != "array" && e.rtype != "vector" {
+                    if e.rtype != "array" {
                         parser.informations.push(
                             &error::error_list::ERROR_S29.clone().build_with_path(
                                 vec![error::ErrorBuildField {

@@ -6,7 +6,6 @@ use alloc::string::ToString;
 use alloc::vec;
 use alloc::vec::Vec;
 use alloc::{borrow::ToOwned, string::String};
-use ellie_tokenizer::tokenizer::PageType;
 use ellie_core::definite::definers::DefinerCollecting;
 use ellie_core::definite::types::Types;
 use ellie_core::defs::Cursor;
@@ -15,6 +14,7 @@ use ellie_core::{
     error,
 };
 use ellie_tokenizer::processors::types::Processors;
+use ellie_tokenizer::tokenizer::PageType;
 
 pub fn process(
     from: Processors,
@@ -69,7 +69,10 @@ pub fn process(
                     }
                     crate::parser::DeepSearchItems::Variable(e) => {
                         let page = parser.find_page(page_id).unwrap().clone();
-                        if !e.constant && page.page_type == PageType::FunctionBody && deep_search_result.found_page.hash != page.hash {
+                        if !e.constant
+                            && page.page_type == PageType::FunctionBody
+                            && deep_search_result.found_page.hash != page.hash
+                        {
                             //ERROR_S16
                             let path = parser.find_page(page_id).unwrap().path.clone();
                             let mut error = error::error_list::ERROR_S61.clone().build_with_path(
@@ -78,7 +81,8 @@ pub fn process(
                                 path.clone(),
                                 variable.data.pos,
                             );
-                            error.reference_block = Some((e.pos, deep_search_result.found_page.path.clone()));
+                            error.reference_block =
+                                Some((e.pos, deep_search_result.found_page.path.clone()));
                             error.reference_message = "Defined here".to_owned();
                             errors.push(error);
                             return Err(errors);
@@ -191,7 +195,13 @@ pub fn process(
                     crate::parser::DeepSearchItems::BrokenPageGraph => todo!(),
                     crate::parser::DeepSearchItems::MixUp(_) => todo!(),
                     crate::parser::DeepSearchItems::None => todo!(),
-                    crate::parser::DeepSearchItems::SelfItem(_) => todo!(),
+                    crate::parser::DeepSearchItems::SelfItem(_) => {
+                        Ok(types::Types::VariableType(types::variable::VariableType {
+                            value: String::from("self"),
+                            reference: 0,
+                            pos: from.get_pos(),
+                        }))
+                    }
                     crate::parser::DeepSearchItems::GenericItem(_) => todo!(),
                     crate::parser::DeepSearchItems::FunctionParameter(e) => {
                         Ok(types::Types::VariableType(types::variable::VariableType {
@@ -526,25 +536,6 @@ pub fn process(
                                         )),
                                             None => None,
                                         }
-                                } else if parent_generic.rtype == "vector" {
-                                    match generate_type_from_defining(
-                                        parent_generic.generics[0].value.clone(),
-                                        page_id,
-                                        parser,
-                                    ) {
-                                        Some(t) => Some(types::Types::Vector(
-                                            ellie_core::definite::types::vector::VectorType {
-                                                collective: vec![
-                                                    ellie_core::definite::types::vector::VectorEntry {
-                                                        value: t,
-                                                        location: ellie_core::defs::Cursor::default(),
-                                                    },
-                                                ],
-                                                pos: ellie_core::defs::Cursor::default(),
-                                            },
-                                        )),
-                                        None => None,
-                                    }
                                 } else {
                                     let hash_deep_search =
                                         crate::deep_search_extensions::deep_search_hash(
@@ -617,7 +608,6 @@ pub fn process(
                         let mut errors: Vec<error::Error> = Vec::new();
                         match reference_type.clone() {
                             ellie_core::definite::definers::DefinerCollecting::Array(_) => todo!(),
-                            ellie_core::definite::definers::DefinerCollecting::Vector(_) => todo!(),
                             ellie_core::definite::definers::DefinerCollecting::Generic(generic) => {
                                 let hash_deep_search =
                                     crate::deep_search_extensions::deep_search_hash(
@@ -1049,7 +1039,48 @@ pub fn process(
                                                     }
                                                 }
                                             } else if reference_generic.rtype == "cloak" {
-                                                todo!("cloak index queries type not yet implemented")
+                                                match index_type.clone() {
+                                                    ellie_core::definite::definers::DefinerCollecting::Generic(index_generic_type) => {
+                                                        if index_generic_type.rtype == "int" {
+                                                            Ok(types::Types::BraceReference(types::brace_reference::BraceReferenceType {
+                                                                reference: Box::new(found_reference),
+                                                                reference_pos: brace_reference.data.reference_pos,
+                                                                brace_pos: brace_reference.data.brace_pos,
+                                                                value: Box::new(index),
+                                                                pos: brace_reference.data.pos,
+                                                            }))
+                                                        } else {
+                                                            errors.push(error::error_list::ERROR_S49.clone().build_with_path(
+                                                                vec![error::ErrorBuildField {
+                                                                    key: "target".to_string(),
+                                                                    value: reference_type.to_string(),
+                                                                },error::ErrorBuildField {
+                                                                    key: "token".to_string(),
+                                                                    value: index_type.to_string(),
+                                                                }],
+                                                                alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                                                                parser.find_page(page_id).unwrap().path.clone(),
+                                                                brace_reference.data.brace_pos
+                                                            ));
+                                                            Err(errors)
+                                                        }
+                                                    },
+                                                    _ => {
+                                                        errors.push(error::error_list::ERROR_S49.clone().build_with_path(
+                                                            vec![error::ErrorBuildField {
+                                                                key: "target".to_string(),
+                                                                value: reference_type.to_string(),
+                                                            },error::ErrorBuildField {
+                                                                key: "token".to_string(),
+                                                                value: index_type.to_string(),
+                                                            }],
+                                                            alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                                                            parser.find_page(page_id).unwrap().path.clone(),
+                                                            brace_reference.data.brace_pos
+                                                        ));
+                                                        Err(errors)
+                                                    }
+                                                }
                                             } else if reference_generic.rtype == "collective" {
                                                 todo!("collective index queries type not yet implemented")
                                             } else {
@@ -1971,16 +2002,62 @@ pub fn process(
             }
         }
         Processors::Cloak(e) => {
-            errors.push(error::error_list::ERROR_S59.clone().build_with_path(
-                vec![error::ErrorBuildField {
-                    key: "token".to_string(),
-                    value: "cloak".to_string(),
-                }],
-                alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                parser.find_page(page_id).unwrap().path.clone(),
-                e.data.pos,
-            ));
-            Err(errors)
+            if e.data.collective.len() == 1 {
+                let first_entry = e.data.collective.first().unwrap();
+                process(
+                    first_entry.value.clone(),
+                    parser,
+                    page_id,
+                    ignore_hash.clone(),
+                    false,
+                    false,
+                    false,
+                    variable_pos,
+                )
+            } else {
+                let mut collective = vec![];
+
+                for i in e.data.collective {
+                    let response = process(
+                        i.value,
+                        parser,
+                        page_id,
+                        ignore_hash,
+                        false,
+                        false,
+                        ignore_type,
+                        variable_pos,
+                    );
+                    if response.is_err() {
+                        errors.append(&mut response.unwrap_err());
+                    } else {
+                        collective.push(types::cloak::CloakEntry {
+                            value: response.unwrap(),
+                            location: i.location,
+                        });
+                    }
+                }
+
+                if errors.len() == 0 {
+                    //TODO: Type helper
+                    //if collective.len() == 0 && !ignore_type {
+                    //    errors.push(error::error_list::ERROR_S55.clone().build_with_path(
+                    //        vec![],
+                    //        alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                    //        parser.find_page(page_id).unwrap().path.clone(),
+                    //        from.get_pos(),
+                    //    ));
+                    //    return Err(errors);
+                    //}
+
+                    Ok(types::Types::Cloak(types::cloak::CloakType {
+                        collective,
+                        pos: from.get_pos(),
+                    }))
+                } else {
+                    Err(errors)
+                }
+            }
         }
         Processors::Collective(e) => {
             errors.push(error::error_list::ERROR_S59.clone().build_with_path(

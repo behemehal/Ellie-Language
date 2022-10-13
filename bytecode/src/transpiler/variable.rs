@@ -77,7 +77,7 @@ impl super::Transpiler for variable::Variable {
             name: self.name.clone(),
             cursor: assembler.location(),
             page_hash: processed_page.hash,
-            reference: Instruction::absolute(assembler.location())
+            reference: Instruction::absolute(assembler.location()),
         });
 
         true

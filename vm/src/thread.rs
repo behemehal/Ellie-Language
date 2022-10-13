@@ -66,7 +66,6 @@ impl StackController {
         None
     }
 
-
     pub fn len(&self) -> usize {
         self.stack.len()
     }

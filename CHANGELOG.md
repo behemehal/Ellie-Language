@@ -84,3 +84,5 @@
   Add tools && local registers [fb7a2797afa9d6b88b781d3120f0b7b0df9fdadb](https://github.com/behemehal/Ellie-Language/commit/fb7a2797afa9d6b88b781d3120f0b7b0df9fdadb)
 - Tokenizer v0.4.6
   Fix operator errors [38415a241962103f05ee47090b0a3946ee65bcac](https://github.com/behemehal/Ellie-Language/commit/38415a241962103f05ee47090b0a3946ee65bcac)
+
+# v0.9.0

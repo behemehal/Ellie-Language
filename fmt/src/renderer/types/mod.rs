@@ -17,13 +17,12 @@ pub mod reference;
 pub mod string;
 pub mod variable;
 
-
 use super::{CodeRenderer, State};
 use crate::fmt::FormatterOptions;
 use ellie_tokenizer::processors::types::Processors;
 
 impl CodeRenderer for Processors {
-        fn render(&self, state: &State, options: &FormatterOptions) -> String {
+    fn render(&self, state: &State, options: &FormatterOptions) -> String {
         match self {
             Processors::Integer(e) => e.data.render(state, options),
             Processors::Byte(e) => e.render(state, options),

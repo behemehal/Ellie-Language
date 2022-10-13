@@ -5,8 +5,6 @@ use alloc::{borrow::ToOwned, vec};
 use ellie_core::{definite::definers, definite::definers::DefinerCollecting, error};
 use ellie_tokenizer::syntax::items::definers::DefinerTypes;
 
-use crate::deep_search_extensions::DeepTypeResult;
-
 pub fn process(
     from: DefinerTypes,
     parser: &mut super::Parser,
@@ -90,116 +88,77 @@ pub fn process(
                 match deep_search_result.found_item {
                     crate::parser::DeepSearchItems::Class(array_class) => {
                         match process(*array_type.rtype.clone(), parser, page_id, ignore_hash) {
-                            Ok(inner_type) => {
-                                if array_class.generic_definings.len() != 1 {
-                                    let mut error =
-                                        error::error_list::ERROR_S44.clone().build_with_path(
-                                            vec![
-                                                error::ErrorBuildField {
-                                                    key: "token".to_string(),
-                                                    value: array_class
-                                                        .generic_definings
-                                                        .len()
-                                                        .to_string(),
-                                                },
-                                                error::ErrorBuildField {
-                                                    key: "token2".to_string(),
-                                                    value: "1".to_string(),
-                                                },
-                                            ],
-                                            alloc::format!(
-                                                "{}:{}:{}",
-                                                file!().to_owned(),
-                                                line!(),
-                                                column!()
-                                            ),
-                                            parser.find_page(page_id).unwrap().path.clone(),
-                                            array_type.rtype.get_pos(),
-                                        );
-                                    error.reference_message =
-                                        "Does not have required generic parameters".to_string();
-                                    error.reference_block = Some((
-                                        array_class.name_pos,
-                                        deep_search_result.found_page.path,
-                                    ));
-                                    errors.push(error);
-                                } else {
-                                    let found_type =
-                                        crate::deep_search_extensions::resolve_deep_type(
-                                            parser,
+                            Ok(inner_type) => match array_type.size {
+                                Some(array_size) => {
+                                    let resolved_deep_size =
+                                        match crate::deep_search_extensions::resolve_type(
+                                            *array_size,
                                             page_id,
-                                            *array_type.size.clone(),
+                                            parser,
                                             &mut errors,
+                                            Some(array_type.size_pos),
+                                        ) {
+                                            Some(e) => e,
+                                            None => return Err(errors),
+                                        };
+
+                                    if matches!(resolved_deep_size.clone(), DefinerCollecting::Generic(x) if x.rtype == "int")
+                                    {
+                                        found = DefinerCollecting::ParentGeneric(
+                                            definers::ParentGenericType {
+                                                parent_pos: array_class.pos,
+                                                generics: vec![definers::GenericParameter {
+                                                    value: inner_type,
+                                                    pos: deep_search_result.found_pos.unwrap_or(
+                                                        ellie_core::defs::Cursor::default(),
+                                                    ),
+                                                }],
+                                                hash: array_class.hash,
+                                                rtype: "array".to_string(),
+                                            },
                                         );
-
-                                    match found_type {
-                                        DeepTypeResult::NotFound => {
-                                            return Err(errors);
-                                        }
-                                        _ => {
-                                            let resolved_deep_size =
-                                                match crate::deep_search_extensions::resolve_type(
-                                                    *array_type.size,
-                                                    page_id,
-                                                    parser,
-                                                    &mut errors,
-                                                    Some(array_type.size_pos),
-                                                ) {
-                                                    Some(e) => e,
-                                                    None => return Err(errors),
-                                                };
-
-                                            if matches!(resolved_deep_size.clone(), DefinerCollecting::Generic(x) if x.rtype == "int")
-                                            {
-                                                found = DefinerCollecting::ParentGeneric(
-                                                    definers::ParentGenericType {
-                                                        parent_pos: array_class.pos,
-                                                        generics: vec![definers::GenericParameter {
+                                    } else {
+                                        errors.push(
+                                            error::error_list::ERROR_S3.clone().build_with_path(
+                                                vec![
+                                                    error::ErrorBuildField {
+                                                        key: "token1".to_string(),
+                                                        value: "int".to_string(),
+                                                    },
+                                                    error::ErrorBuildField {
+                                                        key: "token2".to_string(),
+                                                        value: resolved_deep_size.to_string(),
+                                                    },
+                                                ],
+                                                alloc::format!(
+                                                    "{}:{}:{}",
+                                                    file!().to_owned(),
+                                                    line!(),
+                                                    column!()
+                                                ),
+                                                parser.find_page(page_id).unwrap().path.clone(),
+                                                array_type.size_pos,
+                                            ),
+                                        );
+                                        return Err(errors);
+                                    }
+                                }
+                                None => {
+                                    found = DefinerCollecting::ParentGeneric(
+                                        definers::ParentGenericType {
+                                            parent_pos: array_class.pos,
+                                            generics: vec![definers::GenericParameter {
                                                 value: inner_type,
                                                 pos: deep_search_result
                                                     .found_pos
                                                     .unwrap_or(ellie_core::defs::Cursor::default()),
                                             }],
-                                                        hash: array_class.hash,
-                                                        rtype: "array".to_string(),
-                                                    },
-                                                );
-                                            } else {
-                                                errors.push(
-                                                    error::error_list::ERROR_S3
-                                                        .clone()
-                                                        .build_with_path(
-                                                            vec![
-                                                                error::ErrorBuildField {
-                                                                    key: "token1".to_string(),
-                                                                    value: "int".to_string(),
-                                                                },
-                                                                error::ErrorBuildField {
-                                                                    key: "token2".to_string(),
-                                                                    value: resolved_deep_size
-                                                                        .to_string(),
-                                                                },
-                                                            ],
-                                                            alloc::format!(
-                                                                "{}:{}:{}",
-                                                                file!().to_owned(),
-                                                                line!(),
-                                                                column!()
-                                                            ),
-                                                            parser
-                                                                .find_page(page_id)
-                                                                .unwrap()
-                                                                .path
-                                                                .clone(),
-                                                            array_type.size_pos,
-                                                        ),
-                                                );
-                                                return Err(errors);
-                                            }
-                                        }
-                                    }
+                                            hash: array_class.hash,
+                                            rtype: "array".to_string(),
+                                        },
+                                    );
                                 }
-                            }
+                            },
                             Err(e) => errors.extend(e),
                         }
                     }
@@ -325,113 +284,6 @@ pub fn process(
                     vec![error::ErrorBuildField {
                         key: "token".to_string(),
                         value: "collective".to_string(),
-                    }],
-                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                    parser.find_page(page_id).unwrap().path.clone(),
-                    e.pos,
-                ));
-            }
-        }
-        DefinerTypes::Vector(e) => {
-            let deep_search_result = parser.deep_search(
-                page_id,
-                "vector".to_string(),
-                ignore_hash.clone(),
-                vec![],
-                0,
-                None,
-            );
-
-            if deep_search_result.found {
-                match deep_search_result.found_item {
-                    crate::parser::DeepSearchItems::Class(vector_class) => {
-                        match process(*e.rtype.clone(), parser, page_id, ignore_hash) {
-                            Ok(inner_type) => {
-                                if vector_class.generic_definings.len() != 1 {
-                                    let mut error =
-                                        error::error_list::ERROR_S44.clone().build_with_path(
-                                            vec![
-                                                error::ErrorBuildField {
-                                                    key: "token".to_string(),
-                                                    value: vector_class
-                                                        .generic_definings
-                                                        .len()
-                                                        .to_string(),
-                                                },
-                                                error::ErrorBuildField {
-                                                    key: "token2".to_string(),
-                                                    value: 1.to_string(),
-                                                },
-                                            ],
-                                            alloc::format!(
-                                                "{}:{}:{}",
-                                                file!().to_owned(),
-                                                line!(),
-                                                column!()
-                                            ),
-                                            parser.find_page(page_id).unwrap().path.clone(),
-                                            e.rtype.get_pos(),
-                                        );
-                                    error.reference_message =
-                                        "Does not have required generic parameters".to_string();
-                                    error.reference_block = Some((
-                                        vector_class.pos,
-                                        deep_search_result.found_page.path,
-                                    ));
-                                    errors.push(error);
-                                } else {
-                                    found = DefinerCollecting::ParentGeneric(
-                                        definers::ParentGenericType {
-                                            parent_pos: vector_class.pos,
-                                            generics: vec![definers::GenericParameter {
-                                                value: inner_type,
-                                                pos: deep_search_result
-                                                    .found_pos
-                                                    .unwrap_or(ellie_core::defs::Cursor::default()),
-                                            }],
-                                            hash: vector_class.hash,
-                                            rtype: "vector".to_string(),
-                                        },
-                                    );
-                                }
-                            }
-                            Err(e) => errors.extend(e),
-                        }
-                    }
-                    _ => match deep_search_result.found_pos {
-                        Some(ref_pos) => {
-                            let mut error = error::error_list::ERROR_S45.clone().build_with_path(
-                                vec![error::ErrorBuildField {
-                                    key: "token".to_string(),
-                                    value: "vector".to_string(),
-                                }],
-                                alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                                parser.find_page(page_id).unwrap().path.clone(),
-                                e.pos,
-                            );
-                            error.reference_message = "Defined here".to_string();
-                            error.reference_block =
-                                Some((ref_pos, deep_search_result.found_page.path));
-                            errors.push(error);
-                        }
-                        None => {
-                            errors.push(error::error_list::ERROR_S45.clone().build_with_path(
-                                vec![error::ErrorBuildField {
-                                    key: "token".to_string(),
-                                    value: "vector".to_string(),
-                                }],
-                                alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                                parser.find_page(page_id).unwrap().path.clone(),
-                                e.pos,
-                            ));
-                        }
-                    },
-                }
-            } else {
-                errors.push(error::error_list::ERROR_S6.clone().build_with_path(
-                    vec![error::ErrorBuildField {
-                        key: "token".to_string(),
-                        value: "vector".to_string(),
                     }],
                     alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                     parser.find_page(page_id).unwrap().path.clone(),

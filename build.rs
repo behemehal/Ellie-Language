@@ -2,38 +2,10 @@
 #![allow(unused_variables)]
 #![allow(unused_imports)]
 
+use chrono::Local;
 use path_absolutize::Absolutize;
 use regex::Regex;
 use toml::Value;
-
-pub enum Colors {
-    Black,
-    Red,
-    Green,
-    Yellow,
-    Blue,
-    Magenta,
-    Cyan,
-    White,
-    Reset,
-}
-
-impl Display for Colors {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let color_id = match self {
-            Colors::Black => "[30m",
-            Colors::Red => "[31m",
-            Colors::Green => "[32m",
-            Colors::Yellow => "[33m",
-            Colors::Blue => "[34m",
-            Colors::Magenta => "[35m",
-            Colors::Cyan => "[36m",
-            Colors::White => "[37m",
-            Colors::Reset => "[0m",
-        };
-        write!(f, "{}{}", '\u{001b}', color_id)
-    }
-}
 
 pub fn read_file<P: AsRef<Path>>(file_dir: P) -> Result<String, String> {
     let file_read = File::open(file_dir);
@@ -63,16 +35,22 @@ use std::{
     hash::{Hash, Hasher},
     io::Read,
     path::Path,
+    process::Command,
 };
 
 fn main() {
     let ellie_engine_version: Value;
     let ellie_engine_version_name: Value;
     let ellie_core_version: Value;
+    #[cfg(any(feature = "compiler", feature = "fmt"))]
     let ellie_tokenizer_version: Value;
+    #[cfg(feature = "compiler")]
     let ellie_parser_version: Value;
+    #[cfg(feature = "compiler")]
     let ellie_bytecode_version: Value;
+    #[cfg(feature = "vm")]
     let ellie_vm_version: Value;
+    #[cfg(feature = "fmt")]
     let ellie_fmt_version: Value;
 
     match read_file(env!("CARGO_MANIFEST_DIR").to_owned() + &"/Cargo.toml".to_owned()) {
@@ -82,11 +60,7 @@ fn main() {
             ellie_engine_version_name = toml["package"]["version_code"].clone();
         }
         Err(_) => {
-            panic!(
-                "Failed to build ellie constants, cannot read {}Cargo.toml{}",
-                Colors::Yellow,
-                Colors::Reset,
-            )
+            panic!("Failed to build ellie constants, cannot read Cargo.toml",)
         }
     }
 
@@ -96,81 +70,62 @@ fn main() {
             ellie_core_version = toml["package"]["version"].clone();
         }
         Err(_) => {
-            panic!(
-                "Failed to build ellie constants, cannot read {}core/Cargo.toml{}",
-                Colors::Yellow,
-                Colors::Reset,
-            )
+            panic!("Failed to build ellie constants, cannot read core/Cargo.toml",)
         }
     }
 
+    #[cfg(any(feature = "compiler", feature = "fmt"))]
     match read_file(env!("CARGO_MANIFEST_DIR").to_owned() + &"/tokenizer/Cargo.toml".to_owned()) {
         Ok(cargo_toml) => {
             let toml = cargo_toml.parse::<Value>().unwrap();
             ellie_tokenizer_version = toml["package"]["version"].clone();
         }
         Err(_) => {
-            panic!(
-                "Failed to build ellie constants, cannot read {}tokenizer/Cargo.toml{}",
-                Colors::Yellow,
-                Colors::Reset,
-            )
+            panic!("Failed to build ellie constants, cannot read tokenizer/Cargo.toml",)
         }
     }
 
+    #[cfg(feature = "compiler")]
     match read_file(env!("CARGO_MANIFEST_DIR").to_owned() + &"/parser/Cargo.toml".to_owned()) {
         Ok(cargo_toml) => {
             let toml = cargo_toml.parse::<Value>().unwrap();
             ellie_parser_version = toml["package"]["version"].clone();
         }
         Err(_) => {
-            panic!(
-                "Failed to build ellie constants, cannot read {}parser/Cargo.toml{}",
-                Colors::Yellow,
-                Colors::Reset,
-            )
+            panic!("Failed to build ellie constants, cannot read parser/Cargo.toml",)
         }
     }
 
+    #[cfg(feature = "compiler")]
     match read_file(env!("CARGO_MANIFEST_DIR").to_owned() + &"/bytecode/Cargo.toml".to_owned()) {
         Ok(cargo_toml) => {
             let toml = cargo_toml.parse::<Value>().unwrap();
             ellie_bytecode_version = toml["package"]["version"].clone();
         }
         Err(_) => {
-            panic!(
-                "Failed to build ellie constants, cannot read {}bytecode/Cargo.toml{}",
-                Colors::Yellow,
-                Colors::Reset,
-            )
+            panic!("Failed to build ellie constants, cannot read bytecode/Cargo.toml",)
         }
     }
 
+    #[cfg(feature = "vm")]
     match read_file(env!("CARGO_MANIFEST_DIR").to_owned() + &"/vm/Cargo.toml".to_owned()) {
         Ok(cargo_toml) => {
             let toml = cargo_toml.parse::<Value>().unwrap();
             ellie_vm_version = toml["package"]["version"].clone();
         }
         Err(_) => {
-            panic!(
-                "Failed to build ellie constants, cannot read {}vm/Cargo.toml{}",
-                Colors::Yellow,
-                Colors::Reset,
-            )
+            panic!("Failed to build ellie constants, cannot read vm/Cargo.toml",)
         }
     }
 
+    #[cfg(feature = "fmt")]
     match read_file(env!("CARGO_MANIFEST_DIR").to_owned() + &"/fmt/Cargo.toml".to_owned()) {
         Ok(cargo_toml) => {
             let toml = cargo_toml.parse::<Value>().unwrap();
             ellie_fmt_version = toml["package"]["version"].clone();
         }
         Err(_) => {
-            panic!(
-                "Failed to build ellie constants, cannot read {}vm/Cargo.toml{}",
-                Colors::Yellow,
-                Colors::Reset,
-            )
+            panic!("Failed to build ellie constants, cannot read vm/Cargo.toml",)
         }
     }
 
@@ -321,18 +276,55 @@ fn main() {
 
     */
 
-    fs::write(
-        env!("CARGO_MANIFEST_DIR").to_owned() + &"/src/engine_constants.rs",
-        format!(
-            r#"pub static ELLIE_ENGINE_VERSION : &'static str = &{ellie_engine_version};
+    let mut output = format!(
+        r#"pub static ELLIE_ENGINE_VERSION : &'static str = &{ellie_engine_version};
 pub static ELLIE_ENGINE_VERSION_NAME : &'static str = &{ellie_engine_version_name};
-pub static ELLIE_CORE_VERSION : &'static str = &{ellie_core_version};
+pub static ELLIE_CORE_VERSION : &'static str = &{ellie_core_version};"#
+    );
+
+    if cfg!(feature = "compiler") {
+        output += &format!(
+            r#"
+pub static ELLIE_TOKENIZER_VERSION : &'static str = &{ellie_tokenizer_version};
+pub static ELLIE_PARSER_VERSION : &'static str = &{ellie_parser_version};
+pub static ELLIE_BYTECODE_VERSION : &'static str = &{ellie_bytecode_version};"#
+        );
+    }
+    //git show HEAD~2 --pretty=format:"%h" --no-patch
+    if cfg!(feature = "fmt") {
+        if cfg!(feature = "compiler") {
+            output +=
+                &format!("\npub static ELLIE_FMT_VERSION : &'static str = &{ellie_fmt_version};");
+        } else {
+            output += &format!(
+                r#"
 pub static ELLIE_TOKENIZER_VERSION : &'static str = &{ellie_tokenizer_version};
 pub static ELLIE_PARSER_VERSION : &'static str = &{ellie_parser_version};
 pub static ELLIE_BYTECODE_VERSION : &'static str = &{ellie_bytecode_version};
-pub static ELLIE_VM_VERSION : &'static str = &{ellie_vm_version};
-pub static ELLIE_FMT_VERSION : &'static str = &{ellie_fmt_version};"#,
-        ),
+pub static ELLIE_FMT_VERSION : &'static str = &{ellie_fmt_version};"#
+            );
+        }
+    }
+
+    if cfg!(feature = "vm") {
+        output += &format!("\npub static ELLIE_VM_VERSION : &'static str = &{ellie_vm_version};");
+    }
+
+    //Add date and git show HEAD~2 --pretty=format:"%h" --no-patch
+    let date = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
+    let git_hash = Command::new("git")
+        .args(&["show", "HEAD~2", "--pretty=format:%h", "--no-patch"])
+        .output()
+        .expect("Failed to execute 'git' command. Ellie requires git to be installed to build.")
+        .stdout;
+    let git_hash = String::from_utf8(git_hash).unwrap();
+    let git_hash = git_hash.trim();
+    output += &format!("\npub static ELLIE_BUILD_DATE : &'static str = &\"{date}\";");
+    output += &format!("\npub static ELLIE_BUILD_GIT_HASH : &'static str = &\"{git_hash}\";");
+
+    fs::write(
+        env!("CARGO_MANIFEST_DIR").to_owned() + &"/src/engine_constants.rs",
+        output,
     )
     .unwrap();
 }

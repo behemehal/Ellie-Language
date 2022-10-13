@@ -4,7 +4,7 @@ use ellie_tokenizer::syntax::items::file_key::FileKey;
 
 impl CodeRenderer for FileKey {
     //Renderer Options
-    fn render(&self, state: &State, options: &FormatterOptions) -> String {
+    fn render(&self, _state: &State, _options: &FormatterOptions) -> String {
         todo!()
     }
 }

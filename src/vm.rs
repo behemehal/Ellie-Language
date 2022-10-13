@@ -7,10 +7,10 @@ use alloc::{
     vec::Vec,
 };
 use ellie_core::defs::{CursorPosition, DebugHeader, DebugHeaderType};
-use ellie_vm::{
-    program::Program,
-    utils::{ProgramReader, Reader},
-};
+use ellie_vm::{program::Program, utils::ProgramReader};
+
+#[cfg(feature = "std")]
+use ellie_vm::utils::Reader;
 
 #[cfg(feature = "std")]
 pub struct RFile<'a, T> {

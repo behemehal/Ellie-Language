@@ -17,8 +17,6 @@ impl CodeRenderer for CollectiveType {
             ","
         };
         //{[type], [size]}
-        format!(
-            "{state_scope_length}{{{key_type}{comment}{value_type}}}{state_ending_token}"
-        )
+        format!("{state_scope_length}{{{key_type}{comment}{value_type}}}{state_ending_token}")
     }
 }

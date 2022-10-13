@@ -9,9 +9,8 @@ use ellie_core::{
 
 use crate::{
     heap::Heap,
-    program::{Program, ReadInstruction, MainProgram},
+    program::{MainProgram, Program, ReadInstruction},
     thread::{Registers, Stack, Thread},
-    utils::{ThreadExit, ThreadStepInfo},
 };
 
 pub struct VM<T> {
@@ -44,7 +43,7 @@ where
         Ok(())
     }
 
-    pub fn build_thread(&mut self, heap: &mut Heap, main: usize) {
+    pub fn build_thread(&mut self, main: usize) {
         let thread = Thread::new(
             main,
             self.target_arch,

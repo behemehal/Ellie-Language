@@ -167,23 +167,6 @@ pub fn generate_type_from_defining(
                     )),
                     None => None,
                 }
-            } else if parent_generic.rtype == "vector" {
-                match generate_type_from_defining(
-                    parent_generic.generics[0].value.clone(),
-                    page_id,
-                    parser,
-                ) {
-                    Some(t) => Some(Types::Vector(
-                        ellie_core::definite::types::vector::VectorType {
-                            collective: vec![ellie_core::definite::types::vector::VectorEntry {
-                                value: t,
-                                location: defs::Cursor::default(),
-                            }],
-                            pos: defs::Cursor::default(),
-                        },
-                    )),
-                    None => None,
-                }
             } else {
                 let hash_deep_search = crate::deep_search_extensions::deep_search_hash(
                     parser,
@@ -295,7 +278,6 @@ pub enum DeepTypeResult {
     Operator(ellie_core::definite::types::operator::OperatorType),
     Cloak(ellie_core::definite::types::cloak::CloakType),
     Array(ellie_core::definite::types::array::ArrayType),
-    Vector(ellie_core::definite::types::vector::VectorType),
     ClassCall(ellie_core::definite::types::class_call::ClassCall),
     Function(ellie_core::definite::types::function::Function),
     FunctionCall(ellie_core::definite::types::function_call::FunctionCall),
@@ -692,7 +674,6 @@ fn iterate_deep_type(
                             DeepTypeResult::Operator(e) => Types::Operator(e),
                             DeepTypeResult::Cloak(e) => Types::Cloak(e),
                             DeepTypeResult::Array(e) => Types::Array(e),
-                            DeepTypeResult::Vector(e) => Types::Vector(e),
                             DeepTypeResult::ClassCall(e) => Types::ClassCall(e),
                             DeepTypeResult::FunctionCall(e) => Types::FunctionCall(e),
                             DeepTypeResult::BraceReference(e) => Types::BraceReference(e),
@@ -720,7 +701,6 @@ fn iterate_deep_type(
                             DeepTypeResult::Operator(e) => Types::Operator(e),
                             DeepTypeResult::Cloak(e) => Types::Cloak(e),
                             DeepTypeResult::Array(e) => Types::Array(e),
-                            DeepTypeResult::Vector(e) => Types::Vector(e),
                             DeepTypeResult::ClassCall(e) => Types::ClassCall(e),
                             DeepTypeResult::FunctionCall(e) => Types::FunctionCall(e),
                             DeepTypeResult::BraceReference(e) => Types::BraceReference(e),
@@ -750,7 +730,6 @@ fn iterate_deep_type(
                 DeepTypeResult::Operator(e) => Types::Operator(e),
                 DeepTypeResult::Cloak(e) => Types::Cloak(e),
                 DeepTypeResult::Array(e) => Types::Array(e),
-                DeepTypeResult::Vector(e) => Types::Vector(e),
                 DeepTypeResult::ClassCall(e) => Types::ClassCall(e),
                 DeepTypeResult::Function(e) => Types::Function(e),
                 DeepTypeResult::FunctionCall(e) => Types::FunctionCall(e),
@@ -775,7 +754,6 @@ fn iterate_deep_type(
                 DeepTypeResult::Operator(e) => Types::Operator(e),
                 DeepTypeResult::Cloak(e) => Types::Cloak(e),
                 DeepTypeResult::Array(e) => Types::Array(e),
-                DeepTypeResult::Vector(e) => Types::Vector(e),
                 DeepTypeResult::ClassCall(e) => Types::ClassCall(e),
                 DeepTypeResult::Function(e) => Types::Function(e),
                 DeepTypeResult::FunctionCall(e) => Types::FunctionCall(e),
@@ -882,12 +860,6 @@ fn iterate_deep_type(
                             location: i.location,
                         });
                     }
-                    DeepTypeResult::Vector(vector_type) => {
-                        collective.push(ellie_core::definite::types::array::ArrayEntry {
-                            value: Types::Vector(vector_type),
-                            location: i.location,
-                        });
-                    }
                     DeepTypeResult::ClassCall(class_call) => {
                         collective.push(ellie_core::definite::types::array::ArrayEntry {
                             value: Types::ClassCall(class_call),
@@ -937,7 +909,6 @@ fn iterate_deep_type(
                 pos: array.pos,
             })
         }
-        Types::Vector(_) => todo!(),
         Types::ClassCall(class_call) => DeepTypeResult::ClassCall(class_call),
         Types::FunctionCall(e) => DeepTypeResult::FunctionCall(e),
         Types::NullResolver(null_resolver) => {
@@ -969,7 +940,6 @@ fn iterate_deep_type(
                                 Types::Collective(e) => DeepTypeResult::Collective(e),
                                 Types::Cloak(e) => DeepTypeResult::Cloak(e),
                                 Types::Array(e) => DeepTypeResult::Array(e),
-                                Types::Vector(e) => DeepTypeResult::Vector(e),
                                 Types::Dynamic => DeepTypeResult::Dynamic,
                                 Types::ClassCall(e) => DeepTypeResult::ClassCall(e),
                                 Types::Function(e) => DeepTypeResult::Function(e),
@@ -1079,7 +1049,6 @@ fn iterate_deep_type(
                                 Types::Operator(e) => DeepTypeResult::Operator(e),
                                 Types::Cloak(e) => DeepTypeResult::Cloak(e),
                                 Types::Array(e) => DeepTypeResult::Array(e),
-                                Types::Vector(e) => DeepTypeResult::Vector(e),
                                 Types::Function(e) => DeepTypeResult::Function(e),
                                 Types::ClassCall(e) => DeepTypeResult::ClassCall(e),
                                 Types::FunctionCall(e) => DeepTypeResult::FunctionCall(e),
@@ -1106,7 +1075,6 @@ fn iterate_deep_type(
                                 Types::Operator(e) => DeepTypeResult::Operator(e),
                                 Types::Cloak(e) => DeepTypeResult::Cloak(e),
                                 Types::Array(e) => DeepTypeResult::Array(e),
-                                Types::Vector(e) => DeepTypeResult::Vector(e),
                                 Types::Function(e) => DeepTypeResult::Function(e),
                                 Types::ClassCall(e) => DeepTypeResult::ClassCall(e),
                                 Types::FunctionCall(e) => DeepTypeResult::FunctionCall(e),
@@ -1133,7 +1101,6 @@ fn iterate_deep_type(
                                 Types::Operator(e) => DeepTypeResult::Operator(e),
                                 Types::Cloak(e) => DeepTypeResult::Cloak(e),
                                 Types::Array(e) => DeepTypeResult::Array(e),
-                                Types::Vector(e) => DeepTypeResult::Vector(e),
                                 Types::Function(e) => DeepTypeResult::Function(e),
                                 Types::ClassCall(e) => DeepTypeResult::ClassCall(e),
                                 Types::FunctionCall(e) => DeepTypeResult::FunctionCall(e),
@@ -1367,23 +1334,6 @@ fn iterate_deep_type(
                                         )),
                                             None => None,
                                         }
-                                    } else if parent_generic.rtype == "vector" {
-                                        match generate_type_from_defining(
-                                            parent_generic.generics[0].value.clone(),
-                                        ) {
-                                            Some(t) => Some(Types::Vector(
-                                                ellie_core::definite::types::vector::VectorType {
-                                                    collective: vec![
-                                                        ellie_core::definite::types::vector::VectorEntry {
-                                                            value: t,
-                                                            location: defs::Cursor::default(),
-                                                        },
-                                                    ],
-                                                    pos: defs::Cursor::default(),
-                                                },
-                                            )),
-                                            None => None,
-                                        }
                                     } else if parent_generic.rtype == "function" {
                                         Some(Types::Function(
                                             ellie_core::definite::types::function::Function {
@@ -1418,7 +1368,6 @@ fn iterate_deep_type(
                                 Types::Collective(e) => DeepTypeResult::Collective(e),
                                 Types::Cloak(e) => DeepTypeResult::Cloak(e),
                                 Types::Array(e) => DeepTypeResult::Array(e),
-                                Types::Vector(e) => DeepTypeResult::Vector(e),
                                 Types::Function(e) => DeepTypeResult::Function(e),
                                 Types::Dynamic => DeepTypeResult::Dynamic,
                                 _ => unreachable!("Unexpected return: {:#?}", types),
@@ -1503,39 +1452,6 @@ pub fn resolve_absolute_definer(
                         pos: e.pos,
                     }],
                     hash: array_type.hash,
-                },
-            ))
-        }
-        definers::DefinerCollecting::Vector(e) => {
-            let inner_type = match resolve_absolute_definer(parser, page_id, *e.rtype) {
-                Ok(e) => e,
-                Err(e) => return Err(e),
-            };
-
-            let vector_type = match find_type("vector".to_string(), page_id, parser) {
-                Some(e) => e,
-                None => {
-                    return Err(vec![error::error_list::ERROR_S38.clone().build_with_path(
-                        vec![error::ErrorBuildField {
-                            key: "token".to_owned(),
-                            value: "vector".to_string(),
-                        }],
-                        alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                        parser.find_page(page_id).unwrap().path.clone(),
-                        e.pos,
-                    )])
-                }
-            };
-
-            Ok(definers::DefinerCollecting::ParentGeneric(
-                definers::ParentGenericType {
-                    rtype: "vector".to_string(),
-                    parent_pos: vector_type.pos,
-                    generics: vec![definers::GenericParameter {
-                        value: inner_type,
-                        pos: e.pos,
-                    }],
-                    hash: vector_type.hash,
                 },
             ))
         }
@@ -2408,7 +2324,76 @@ pub fn resolve_type(
                 }
             }
         }
-        DeepTypeResult::Cloak(_) => todo!(),
+        DeepTypeResult::Cloak(cloak_type) => {
+            #[derive(PartialEq, EnumAsInner, Clone)]
+            enum GenericExists {
+                Generic(definers::DefinerCollecting),
+                Null,
+            }
+            let mut child_generic = GenericExists::Null;
+            for entry in cloak_type.collective {
+                match resolve_type(entry.value, target_page, parser, errors, pos) {
+                    Some(resolved) => {
+                        if child_generic != GenericExists::Null
+                            && resolved != *child_generic.as_generic().unwrap()
+                        {
+                            let dyn_type = find_type("dyn".to_string(), target_page, parser);
+                            match dyn_type {
+                                Some(dynamic_type) => {
+                                    child_generic = GenericExists::Generic(
+                                        definers::DefinerCollecting::Generic(dynamic_type),
+                                    );
+                                }
+                                None => {
+                                    panic!("Unhandled behaviour, failed to find string type");
+                                }
+                            }
+
+                            break;
+                        }
+                        child_generic = GenericExists::Generic(resolved);
+                    }
+                    None => {
+                        return None;
+                    }
+                }
+            }
+            let cloak_type = find_type("cloak".to_string(), target_page, parser);
+            match cloak_type {
+                Some(cloak_generic) => {
+                    let val = child_generic
+                        .as_generic()
+                        .unwrap_or(&definers::DefinerCollecting::Dynamic)
+                        .clone();
+                    Some(definers::DefinerCollecting::ParentGeneric(
+                        definers::ParentGenericType {
+                            rtype: "cloak".to_string(),
+                            generics: vec![definers::GenericParameter {
+                                value: val,
+                                pos: defs::Cursor::default(),
+                            }],
+                            hash: cloak_generic.hash,
+                            parent_pos: defs::Cursor::default(),
+                        },
+                    ))
+                }
+                None => {
+                    errors.push(error::error_list::ERROR_S38.clone().build_with_path(
+                        vec![error::ErrorBuildField {
+                            key: "token".to_owned(),
+                            value: "cloak".to_string(),
+                        }],
+                        alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                        parser.find_page(target_page).unwrap().path.clone(),
+                        match pos {
+                            Some(e) => e,
+                            None => unreachable!(),
+                        },
+                    ));
+                    None
+                }
+            }
+        }
         DeepTypeResult::Array(array_type) => {
             #[derive(PartialEq, EnumAsInner, Clone)]
             enum GenericExists {
@@ -2480,7 +2465,6 @@ pub fn resolve_type(
                 }
             }
         }
-        DeepTypeResult::Vector(_) => todo!(),
         DeepTypeResult::ClassCall(class_call) => match (*class_call.target).clone() {
             Types::Cloak(cloak) => {
                 if cloak.collective.len() == 1 {
@@ -2646,6 +2630,21 @@ pub fn resolve_type(
                                 None => return None,
                             };
                             array_type.as_parent_generic().unwrap().generics[0]
+                                .value
+                                .clone()
+                        }
+                        Types::Cloak(_) => {
+                            let cloak_type = match resolve_type(
+                                *e.reference,
+                                target_page,
+                                parser,
+                                errors,
+                                Some(e.reference_pos),
+                            ) {
+                                Some(e) => e,
+                                None => return None,
+                            };
+                            cloak_type.as_parent_generic().unwrap().generics[0]
                                 .value
                                 .clone()
                         }

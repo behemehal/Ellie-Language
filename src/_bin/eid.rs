@@ -72,10 +72,10 @@ pub enum EidCommands {
     RegistersPreview,
 
     //Tools
-    HexToDec,
-    DecToHex,
-    HexToString,
-    StringToHex,
+    //HexToDec,
+    //DecToHex,
+    //HexToString,
+    //StringToHex,
 
     // Program Management
     ProgramInfo,
@@ -199,50 +199,6 @@ fn parse_command(input: &String, args: Vec<BuildEidArgTypes>) -> Result<BuildEid
             help: "Give info about loaded program",
             command: EidCommands::ProgramInfo,
             args: vec![],
-        },
-        EidCommand {
-            short: "ht",
-            long: "hex-to-dec",
-            help: "Convert hex to decimal",
-            command: EidCommands::HexToDec,
-            args: vec![EidArg {
-                name: "hex",
-                value_type: EidArgTypes::String,
-                optional: false,
-            }],
-        },
-        EidCommand {
-            short: "dt",
-            long: "dec-to-hex",
-            help: "Convert decimal to hex",
-            command: EidCommands::DecToHex,
-            args: vec![EidArg {
-                name: "dec",
-                value_type: EidArgTypes::Int,
-                optional: false,
-            }],
-        },
-        EidCommand {
-            short: "hs",
-            long: "hex-to-string",
-            help: "Convert hex to string",
-            command: EidCommands::HexToString,
-            args: vec![EidArg {
-                name: "hex",
-                value_type: EidArgTypes::String,
-                optional: false,
-            }],
-        },
-        EidCommand {
-            short: "sh",
-            long: "string-to-hex",
-            help: "Convert string to hex",
-            command: EidCommands::StringToHex,
-            args: vec![EidArg {
-                name: "string",
-                value_type: EidArgTypes::String,
-                optional: false,
-            }],
         },
         EidCommand {
             short: "l",
@@ -521,50 +477,6 @@ fn main() {
             help: "Give info about loaded program",
             command: EidCommands::ProgramInfo,
             args: vec![],
-        },
-        EidCommand {
-            short: "ht",
-            long: "hex-to-dec",
-            help: "Convert hex to decimal",
-            command: EidCommands::HexToDec,
-            args: vec![EidArg {
-                name: "hex",
-                value_type: EidArgTypes::String,
-                optional: false,
-            }],
-        },
-        EidCommand {
-            short: "dt",
-            long: "dec-to-hex",
-            help: "Convert decimal to hex",
-            command: EidCommands::DecToHex,
-            args: vec![EidArg {
-                name: "dec",
-                value_type: EidArgTypes::Int,
-                optional: false,
-            }],
-        },
-        EidCommand {
-            short: "hs",
-            long: "hex-to-string",
-            help: "Convert hex to string",
-            command: EidCommands::HexToString,
-            args: vec![EidArg {
-                name: "hex",
-                value_type: EidArgTypes::String,
-                optional: false,
-            }],
-        },
-        EidCommand {
-            short: "sh",
-            long: "string-to-hex",
-            help: "Convert string to hex",
-            command: EidCommands::StringToHex,
-            args: vec![EidArg {
-                name: "string",
-                value_type: EidArgTypes::String,
-                optional: false,
-            }],
         },
         EidCommand {
             short: "l",
@@ -1001,28 +913,11 @@ fn main() {
                         );
                     }
                 },
-                EidCommands::HexToDec => {
-                    let hex = match &e.args[0].value_type {
-                        BuildEidArgTypes::String(e) => e,
-                        _ => {
-                            println!(
-                                "{}Error:{} Invalid argument type, expected string",
-                                utils::Colors::Red,
-                                utils::Colors::Reset
-                            );
-                            continue;
-                        }
-                    };
-                    //Check if hex is valid
-                    if 
-                }
-                EidCommands::DecToHex => todo!(),
-                EidCommands::HexToString => todo!(),
-                EidCommands::StringToHex => todo!(),
             },
             Err(e) => {
                 if e == 0 {
                     if _command == "" {
+                        println!("TODO STEP FORWARD")
                     } else {
                         println!(
                             "{}Unknown command: {}{}\n",

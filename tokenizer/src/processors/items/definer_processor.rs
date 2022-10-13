@@ -1,4 +1,4 @@
-use crate::processors::types::{Processors, TypeProcessor};
+use crate::processors::types::TypeProcessor;
 
 use crate::syntax::items::definers::*;
 use ellie_core::{defs, error, utils};
@@ -60,7 +60,14 @@ impl crate::processors::Processor for DefinerCollector {
                     array_type.pos.range_end = cursor.clone();
                 }
                 if !array_type.type_collected {
-                    if array_type.child_cache.complete && letter_char == ',' {
+                    if array_type.child_cache.complete && letter_char == ']' {
+                        array_type.type_collected = true;
+                        array_type.has_size = false;
+                        array_type.rtype = Box::new(array_type.child_cache.definer_type.clone());
+                        array_type.size = None;
+                        array_type.child_cache = Box::new(DefinerCollector::default());
+                        self.complete = true;
+                    } else if array_type.child_cache.complete && letter_char == ',' {
                         array_type.type_collected = true;
                         array_type.rtype = Box::new(array_type.child_cache.definer_type.clone());
                         array_type.child_cache = Box::new(DefinerCollector::default());
@@ -74,16 +81,9 @@ impl crate::processors::Processor for DefinerCollector {
                 } else if !array_type.size_collected {
                     if array_type.size_child_cache.is_complete() && letter_char == ']' {
                         array_type.size =
-                            Box::new(array_type.size_child_cache.current.to_definite());
+                            Some(Box::new(array_type.size_child_cache.current.to_definite()));
                         array_type.size_child_cache = Box::new(TypeProcessor::default());
                         self.complete = true;
-                    } else if matches!(array_type.size_child_cache.current.clone(), Processors::Variable(x) if x.data.value == "")
-                        && letter_char == '*'
-                    {
-                        self.definer_type = DefinerTypes::Vector(VectorType {
-                            rtype: array_type.rtype.clone(),
-                            pos: array_type.pos.clone(),
-                        });
                     } else {
                         hang = array_type.size_child_cache.iterate(
                             errors,
@@ -93,7 +93,7 @@ impl crate::processors::Processor for DefinerCollector {
                         );
                         if array_type.size_child_cache.is_complete() {
                             array_type.size =
-                                Box::new(array_type.size_child_cache.current.to_definite());
+                                Some(Box::new(array_type.size_child_cache.current.to_definite()));
                         }
                         if array_type.size_pos.range_start.is_zero() && letter_char != ' ' {
                             array_type.size_pos.range_start = cursor;
@@ -132,23 +132,6 @@ impl crate::processors::Processor for DefinerCollector {
                             letter_char,
                         );
                     }
-                }
-            }
-            DefinerTypes::Vector(ref mut vector_type) => {
-                //Vector type resolved in array, if another character is found after brace
-                //it's a syntax error
-                if !self.complete && letter_char != '*' {
-                    vector_type.pos.range_end = cursor.clone();
-                    self.complete = true;
-                } else if letter_char != ' ' {
-                    errors.push(error::error_list::ERROR_S1.clone().build(
-                        vec![error::ErrorBuildField {
-                            key: "token".to_string(),
-                            value: letter_char.to_string(),
-                        }],
-                        "0x00257".to_owned(),
-                        defs::Cursor::build_from_cursor(cursor),
-                    ));
                 }
             }
             DefinerTypes::Nullable(ref mut nullable_type) => {
@@ -376,10 +359,3 @@ impl crate::processors::Processor for DefinerCollector {
         hang
     }
 }
-
-//Cloak     : (int, string)
-//Collective: {int, string}
-//Array     : [int, 3]
-//Vector    : [int, *]
-//Future    : >int
-//Nullable  : ?int

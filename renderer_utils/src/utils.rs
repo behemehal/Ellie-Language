@@ -1,30 +1,14 @@
-use alloc::{
-    format,
-    string::{String, ToString},
-    vec::Vec,
-};
-use ellie_core::{
-    defs, error,
-    warning::{self},
-};
+use ellie_core::{defs, error, warning};
 
-#[derive(Debug, Clone, PartialEq)]
-pub enum OutputTypesSelector {
-    /// Outputs module in binary format. This is the default export mode for modules.
-    Bin,
-    /// Not supported yet
-    DependencyAnalysis,
-    /// Compiled module as json
-    Json,
-    /// ByteCode binary format
-    ByteCode,
-    /// ByteCode assembly text
-    ByteCodeAsm,
-    /// ByteCode debug file
-    ByteCodeDebug,
-    /// No output
-    Nop,
-}
+#[cfg(feature = "cli-utils")]
+use std::{
+    collections::hash_map::DefaultHasher,
+    fs::File,
+    hash::{Hash, Hasher},
+    io::Read,
+    path::Path,
+};
+extern crate path_absolutize;
 
 pub enum TextStyles {
     Bold,
@@ -56,6 +40,84 @@ pub trait ColorDisplay: Copy {
     fn text_style(&self, text_style: TextStyles) -> String;
 }
 
+#[cfg(feature = "cli-utils")]
+#[derive(Debug, Clone, Copy)]
+pub struct CliColor;
+
+#[cfg(feature = "cli-utils")]
+impl ColorDisplay for CliColor {
+    fn color(&self, color: Colors) -> String {
+        let color_id = match color {
+            Colors::Black => "[30m",
+            Colors::Red => "[31m",
+            Colors::Green => "[32m",
+            Colors::Yellow => "[33m",
+            Colors::Blue => "[34m",
+            Colors::Magenta => "[35m",
+            Colors::Cyan => "[36m",
+            Colors::White => "[37m",
+            Colors::Reset => "[0m",
+        };
+        format!("{}{}", '\u{001b}', color_id)
+    }
+
+    fn text_style(&self, text_style: TextStyles) -> String {
+        let type_id = match text_style {
+            TextStyles::Bold => "[1m",
+            TextStyles::Dim => "[2m",
+            TextStyles::Italic => "[3m",
+            TextStyles::Underline => "[4m",
+        };
+        format!("{}{}", '\u{001b}', type_id)
+    }
+}
+
+#[cfg(feature = "cli-utils")]
+pub fn file_exists(path: String) -> bool {
+    Path::new(&path).exists()
+}
+
+#[cfg(feature = "cli-utils")]
+pub fn read_file<P: AsRef<Path>>(file_dir: P) -> Result<String, String> {
+    let file_read = File::open(file_dir);
+    match file_read {
+        Err(r) => Err(r.to_string()),
+        Ok(mut file) => {
+            let mut file_content = Vec::new();
+            match file.read_to_end(&mut file_content) {
+                Ok(_) => match String::from_utf8(file_content) {
+                    Ok(code_string) => Ok(code_string),
+                    Err(e) => Err(e.to_string()),
+                },
+                Err(e) => Err(e.to_string()),
+            }
+        }
+    }
+}
+
+#[cfg(feature = "cli-utils")]
+pub fn read_file_bin<P: AsRef<Path>>(file_dir: P) -> Result<Vec<u8>, String> {
+    let file_read = File::open(file_dir);
+    match file_read {
+        Err(r) => Err(r.to_string()),
+        Ok(file) => Ok(file.bytes().collect::<Result<Vec<u8>, _>>().unwrap()),
+    }
+}
+
+#[cfg(feature = "cli-utils")]
+pub fn hash_error(error: &error::Error) -> String {
+    let mut hasher = DefaultHasher::new();
+    format!("E{:?}", error).hash(&mut hasher);
+    hasher.finish().to_string()
+}
+
+#[cfg(feature = "cli-utils")]
+pub fn hash_warning(warning: &warning::Warning) -> String {
+    let mut hasher = DefaultHasher::new();
+    format!("W{:?}", warning).hash(&mut hasher);
+    hasher.finish().to_string()
+}
+
 /// Check if given two errors are equal
 /// ## Parameters
 /// * `a` - First error [`Error`]
@@ -64,7 +126,7 @@ pub trait ColorDisplay: Copy {
 /// If errors are equal, return [`true`]. Otherwise, return [`false`].
 /// ## Todo
 /// Implementing in PartialEq would be better.
-pub(crate) fn is_errors_same(first: error::Error, second: error::Error) -> bool {
+pub fn is_errors_same(first: error::Error, second: error::Error) -> bool {
     first.code == second.code
         && first.message == second.message
         && first.pos.range_start.0 == second.pos.range_start.0
@@ -76,7 +138,7 @@ pub(crate) fn is_errors_same(first: error::Error, second: error::Error) -> bool 
 /// * `code` - Code to escape [`String`]
 /// ## Returns
 /// Escaped code [`String`]
-pub(crate) fn clean_up_escape(code: String) -> String {
+pub fn clean_up_escape(code: String) -> String {
     code.replace("\\n", "\n")
         .replace("\\t", "\t")
         .replace("\\r", "\r")
@@ -87,7 +149,7 @@ pub(crate) fn clean_up_escape(code: String) -> String {
 /// * `errors` - Errors to be collapsed [`Vec<error::Error>`]
 /// ## Returns
 /// Collapsed errors [`Vec<error::Error>`]
-pub(crate) fn zip_errors(errors: Vec<error::Error>) -> Vec<error::Error> {
+pub fn zip_errors(errors: Vec<error::Error>) -> Vec<error::Error> {
     let mut clone_errors: Vec<error::Error> = errors.clone();
     let mut zipped_errors: Vec<error::Error> = Vec::new();
     for i in 0..clone_errors.len() {
@@ -138,7 +200,7 @@ pub(crate) fn zip_errors(errors: Vec<error::Error>) -> Vec<error::Error> {
 /// * `color_output` - Color output [`ColorDisplay`]
 /// ## Returns
 /// [`String`]
-pub(crate) fn draw_error<T: ColorDisplay>(
+pub fn draw_error<T: ColorDisplay>(
     line: String,
     pos: defs::CursorPosition,
     color_output: T,
@@ -172,7 +234,7 @@ pub(crate) fn draw_error<T: ColorDisplay>(
 /// * `count` - Count of blank spaces [`usize`]
 /// ## Returns
 /// [`String`] with blank spaces you provided
-pub(crate) fn generate_blank(size: usize) -> String {
+pub fn generate_blank(size: usize) -> String {
     let mut blank: String = String::new();
     for _ in 0..size + 1 {
         blank += &" ".to_string();
@@ -187,11 +249,7 @@ pub(crate) fn generate_blank(size: usize) -> String {
 /// * `color_output` - Color output [`ColorDisplay`]
 /// ## Returns
 /// Colorized and line number filled [`String`]
-pub(crate) fn get_lines<T: ColorDisplay>(
-    code: String,
-    lines: defs::Cursor,
-    color_output: T,
-) -> String {
+pub fn _get_lines<T: ColorDisplay>(code: String, lines: defs::Cursor, color_output: T) -> String {
     let v: Vec<&str> = code.split('\n').collect();
     let mut render = String::new();
     for i in lines.range_start.0..lines.range_end.0 + 1 {

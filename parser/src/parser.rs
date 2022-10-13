@@ -382,48 +382,6 @@ impl Parser {
                 "dyn".to_string(),
                 "dyn".to_string(),
             ));
-        } else if matches!(&defining, ellie_core::definite::definers::DefinerCollecting::ParentGeneric(e) if e.rtype == "vector")
-        {
-            if matches!(&found_type, deep_search_extensions::DeepTypeResult::Array(e) if e.collective.len() == 0)
-            {
-                return Ok(CompareResult::result_with_cast(
-                    true,
-                    "vector".to_string(),
-                    "vector".to_string(),
-                    "vector".to_string(),
-                ));
-            } else {
-                let array_type = match &found_type {
-                    deep_search_extensions::DeepTypeResult::Array(e) => {
-                        let mut array_type = String::new();
-                        for t in &e.collective {
-                            let rtype =
-                                resolve_type(t.value.clone(), target_page, self, &mut errors, None)
-                                    .unwrap()
-                                    .to_string();
-                            if array_type != "" && array_type != rtype {
-                                array_type = "dyn".to_string();
-                                break;
-                            } else {
-                                array_type = rtype;
-                            }
-                        }
-                        array_type
-                    }
-                    _ => unreachable!(),
-                };
-                let vector_inner = defining.to_string();
-                let vector_inner = vector_inner.split("vector<").collect::<Vec<_>>()[1]
-                    .split(">")
-                    .collect::<Vec<_>>()[0]
-                    .to_string();
-                return Ok(CompareResult::result_with_cast(
-                    array_type == vector_inner,
-                    defining.to_string(),
-                    array_type,
-                    "vector".to_string(),
-                ));
-            }
         }
 
         match found_type {
@@ -746,7 +704,6 @@ impl Parser {
                     }
                 }
             }
-            deep_search_extensions::DeepTypeResult::Vector(_) => todo!(),
             deep_search_extensions::DeepTypeResult::ClassCall(class_call) => {
                 let class_call_type = match resolve_type(
                     ellie_core::definite::types::Types::ClassCall(class_call.clone()),
@@ -829,9 +786,6 @@ impl Parser {
                             }
                             deep_search_extensions::DeepTypeResult::Array(e) => {
                                 ellie_core::definite::types::Types::Array(e)
-                            }
-                            deep_search_extensions::DeepTypeResult::Vector(e) => {
-                                ellie_core::definite::types::Types::Vector(e)
                             }
                             deep_search_extensions::DeepTypeResult::ClassCall(e) => {
                                 ellie_core::definite::types::Types::ClassCall(e)
@@ -1155,7 +1109,6 @@ impl Parser {
     ) -> String {
         match definer {
             ellie_core::definite::definers::DefinerCollecting::Array(_) => "Array".to_string(),
-            ellie_core::definite::definers::DefinerCollecting::Vector(_) => "Vector".to_string(),
             ellie_core::definite::definers::DefinerCollecting::Generic(e) => e.rtype,
             ellie_core::definite::definers::DefinerCollecting::ParentGeneric(e) => e.rtype,
             ellie_core::definite::definers::DefinerCollecting::Function(_) => {
@@ -1724,7 +1677,8 @@ impl Parser {
                                         }
                                     }
                                     Processors::FunctionParameter(e) => {
-                                        if e.name == name && (level == 0 || dep.deep_link.is_some()) {
+                                        if e.name == name && (level == 0 || dep.deep_link.is_some())
+                                        {
                                             found_pos = Some(e.name_pos);
                                             found = true;
                                             found_page = FoundPage::fill(page);
@@ -1733,7 +1687,8 @@ impl Parser {
                                         }
                                     }
                                     Processors::ConstructorParameter(e) => {
-                                        if e.name == name && (level == 0 || dep.deep_link.is_some()) {
+                                        if e.name == name && (level == 0 || dep.deep_link.is_some())
+                                        {
                                             found_pos = Some(e.pos);
                                             found = true;
                                             found_page = FoundPage::fill(&page);
@@ -2394,7 +2349,7 @@ impl Parser {
                             processed_page_idx,
                             unprocessed_page.hash,
                         ),
-                        Processors::Ret(e) =>  e.process(
+                        Processors::Ret(e) => e.process(
                             self,
                             unprocessed_page_idx,
                             processed_page_idx,

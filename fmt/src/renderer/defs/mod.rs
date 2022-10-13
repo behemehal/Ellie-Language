@@ -5,7 +5,6 @@ pub mod function;
 pub mod generic;
 pub mod nullable;
 pub mod parent_generic;
-pub mod vector;
 
 use super::{CodeRenderer, State};
 use crate::fmt::FormatterOptions;
@@ -17,7 +16,6 @@ impl CodeRenderer for DefinerTypes {
             DefinerTypes::Cloak(_) => todo!(),
             DefinerTypes::Array(e) => e.render(state, options),
             DefinerTypes::Collective(e) => e.render(state, options),
-            DefinerTypes::Vector(e) => e.render(state, options),
             DefinerTypes::Nullable(e) => e.render(state, options),
             DefinerTypes::ParentGeneric(e) => e.render(state, options),
             DefinerTypes::Generic(e) => e.render(state, options),

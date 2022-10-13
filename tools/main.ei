@@ -2,6 +2,7 @@
 
 
 
+
 /*
 
 
@@ -124,8 +125,29 @@ test[0] = 2;
         @dont_fix_variant;
         pub class char {}
 
+        pub class TypeId {
+            v id: int;
+            v size: int;
+        }
+
+        pub class rawType {
+            v typeId: TypeId;
+            v data: [int];
+        }
+
         @dont_fix_variant;
-        pub class array {}
+        pub class array {
+            co(data, length);
+            v data: rawType;
+            //0 if no limit has set
+            v length: int;
+        }
+
+        @dont_fix_variant;
+        pub class cloak {
+            co(data);
+            v data: rawType;
+        }
         
         @dont_fix_variant;
         pub class int {}
@@ -151,11 +173,11 @@ test[0] = 2;
         @dont_fix_variant;
         pub class object {}
 
-        //@ellie_deep_cast=true;
-        //c true : bool = 1 as bool;
-        //@ellie_deep_cast=false;
-        //c false : bool = 0 as bool;
-        //pub fn println(s: string);
+        @ellie_deep_cast=true;
+        c true : bool = 1 as bool;
+        @ellie_deep_cast=false;
+        c false : bool = 0 as bool;
+        pub fn println(s: string);
 
 /*
 fn factorial(x: int) : int {
@@ -204,8 +226,8 @@ fn factorial(x: int) : int {
 }
 
 fn main() {
-    v test = factorial(5);
-    v res = "test: " + test; //test should be 120
+    v ccloak = (1, 2, 3);
+    println("ccloak: " + (ccloak[0]!));
 }
 
 /*

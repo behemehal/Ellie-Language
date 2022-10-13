@@ -1,0 +1,13 @@
+[package]
+name = "InteractiveDebugger"
+description = "Interactive debugger for Ellie"
+version = "0.1.0"
+authors = ["Ahmetcan Aksu <ahmetcanaksu@behemehal.net>"]
+edition = "2021"
+license = "GPL-2.0"
+
+[dependencies]
+ellie_core = { path = "../core", version = "*" }
+serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
+serde = { version = "1.0", features = ["derive"] }
+lazy_static = "1.4.0"

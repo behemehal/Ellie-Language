@@ -17,7 +17,8 @@ pub struct CloakType {
 pub struct ArrayType {
     pub rtype: Box<DefinerTypes>,
     pub rtype_pos: defs::Cursor,
-    pub size: Box<definite::types::Types>,
+    pub has_size: bool,
+    pub size: Option<Box<definite::types::Types>>,
     pub size_pos: defs::Cursor,
     pub size_collected: bool,
     pub raw_size: String,
@@ -35,12 +36,6 @@ pub struct CollectiveType {
     pub key_collected: bool,
     pub at_comma: bool,
     pub child_cache: Box<DefinerCollector>,
-    pub pos: defs::Cursor,
-}
-
-#[derive(Default, Clone, Debug, Serialize, Deserialize)]
-pub struct VectorType {
-    pub rtype: Box<DefinerTypes>,
     pub pos: defs::Cursor,
 }
 
@@ -96,7 +91,6 @@ pub enum DefinerTypes {
     Cloak(CloakType),
     Array(ArrayType),
     Collective(CollectiveType),
-    Vector(VectorType),
     Nullable(NullableType),
     ParentGeneric(ParentGenericType),
     Generic(GenericType),
@@ -110,7 +104,6 @@ impl DefinerTypes {
             DefinerTypes::Cloak(e) => e.pos,
             DefinerTypes::Array(e) => e.pos,
             DefinerTypes::Collective(e) => e.pos,
-            DefinerTypes::Vector(e) => e.pos,
             DefinerTypes::Nullable(e) => e.pos,
             DefinerTypes::ParentGeneric(e) => e.pos,
             DefinerTypes::Generic(e) => e.pos,
@@ -138,6 +131,7 @@ impl definite::Converter<DefinerTypes, definite::definers::DefinerCollecting> fo
             DefinerTypes::Array(e) => {
                 definite::definers::DefinerCollecting::Array(definite::definers::ArrayType {
                     rtype: Box::new(e.rtype.to_definite()),
+                    has_size: e.has_size,
                     size: e.size,
                     pos: e.pos,
                 })
@@ -149,12 +143,6 @@ impl definite::Converter<DefinerTypes, definite::definers::DefinerCollecting> fo
                     pos: e.pos,
                 },
             ),
-            DefinerTypes::Vector(e) => {
-                definite::definers::DefinerCollecting::Vector(definite::definers::VectorType {
-                    rtype: Box::new(e.rtype.to_definite()),
-                    pos: e.pos,
-                })
-            }
             DefinerTypes::Nullable(e) => {
                 definite::definers::DefinerCollecting::Nullable(definite::definers::NullableType {
                     value: Box::new(e.rtype.to_definite()),
@@ -197,13 +185,10 @@ impl definite::Converter<DefinerTypes, definite::definers::DefinerCollecting> fo
         match from {
             definite::definers::DefinerCollecting::Array(e) => DefinerTypes::Array(ArrayType {
                 rtype: Box::new(DefinerTypes::default().from_definite(*e.rtype)),
+                has_size: e.has_size,
                 size: e.size,
                 pos: e.pos,
                 ..Default::default()
-            }),
-            definite::definers::DefinerCollecting::Vector(e) => DefinerTypes::Vector(VectorType {
-                rtype: Box::new(DefinerTypes::default().from_definite(*e.rtype)),
-                pos: e.pos,
             }),
             definite::definers::DefinerCollecting::Generic(e) => {
                 DefinerTypes::Generic(GenericType {

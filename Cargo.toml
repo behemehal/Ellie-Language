@@ -1,7 +1,7 @@
 [package]
 name = "ellie_engine"
 version_code = "BeautifulTropicalFish"
-version = "0.8.3"
+version = "0.9.0"
 authors = ["Ahmetcan Aksu <ahmetcanaksu@behemehal.net>", "Behemehal <info@behemehal.net>"]
 edition = "2021"
 license-file = "LICENSE"
@@ -10,8 +10,6 @@ license-file = "LICENSE"
 serde = { version = "1.0", features = ["derive"], optional = true }
 serde_json = { version = "1.0", default-features = false, features = ["alloc"], optional = true }
 path-absolutize = { version = "3.0.10", optional = true }
-regex = { version = "1.1.7", optional = true }
-bincode = { version = "1.0", optional = true }
 ellie_core = { path = "core", version = "*" }
 ellie_assist = { path = "EllieAssist", version = "*", optional = true }
 ellie_tokenizer = { path = "tokenizer", version = "*", default-features = false, optional = true }
@@ -19,43 +17,24 @@ ellie_parser = { path = "parser", version = "*", default-features = false, optio
 ellie_bytecode = { path = "bytecode", version = "*", optional = true }
 ellie_vm = { path = "vm", version = "*", optional = true }
 ellie_fmt = { path = "fmt", version = "*", optional = true }
-ellie_cli_utils = { path = "cli_utils", version = "*", optional = true }
+ellie_renderer_utils = { path = "renderer_utils", version = "*", optional = true,  default-features = false }
 
 [features]
-default = ["vm", "compiler", "build-cli", "fmt"]
+default = ["vm", "compiler", "fmt"]
 compiler = ["ellie_tokenizer", "ellie_parser", "ellie_bytecode", "ellie_core/compiler_utils"]
 std = []
 vm = ["ellie_vm"]
-build-cli = ["path-absolutize", "regex", "bincode", "ellie_cli_utils", "serde", "serde_json", "std", "cli-utils"]
-cli-utils = []
+renderer_utils = ["ellie_renderer_utils"]
 fmt = ["ellie_fmt"]
 ellie_assistant = ["ellie_assist"]
 standard_rules =  ["ellie_parser/standard_rules"]
-
-
-[[bin]]
-name = "elliec"
-test = false
-bench = false
-required-features = ["build-cli"]
-
-[[bin]]
-name = "ellievm"
-test = false
-bench = false
-required-features = ["build-cli"]
-
-[[bin]]
-name = "elliefmt"
-test = false
-bench = false
-required-features = ["build-cli"]
+cli-utils = ["ellie_renderer_utils/cli-utils"]
 
 [build-dependencies]
 path-absolutize = { version = "3.0.10" }
 toml = "0.5.8"
 regex = { version = "1.1.7" }
-
+chrono = "0.4.22"
 
 [profile.release]
 opt-level = "z"  # Optimize for size.
