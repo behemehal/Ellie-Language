@@ -24,7 +24,7 @@ pub struct FormatterSettings {
     pub name: String,
     pub file_name: String,
     pub show_debug_lines: bool,
-    pub analyze: bool,
+    pub format_all: bool,
 }
 
 pub fn format_file(target_path: &Path, output_path: &Path, formatter_settings: FormatterSettings) {
