@@ -263,7 +263,7 @@ pub fn compile(
     }
     let starter_name = format!("<ellie_module_{}>", cli_settings.compiler_settings.name);
 
-    match tokenize_file(&mut program_repisotory) {
+    match crate::tokenize_file::tokenize(&mut program_repisotory) {
         Ok(pages) => {
             match parse_pages(
                 program_repisotory.main_hash,

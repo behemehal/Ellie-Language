@@ -36,8 +36,5 @@ toml = "0.5.8"
 regex = { version = "1.1.7" }
 chrono = "0.4.22"
 
-[lib]
-crate-type = ["cdylib"]
-
 [profile.release]
 opt-level = "z"

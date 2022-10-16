@@ -595,7 +595,7 @@ pub fn read_error_text(error: u8) -> &'static str {
 /// );
 /// println!("{}", error);
 ///
-pub fn print_errors<E, F, T: ColorDisplay>(
+pub fn print_errors<E, F, T>(
     errors: &Vec<error::Error>,
     file_reader: E,
     show_debug_lines: bool,
@@ -605,6 +605,7 @@ pub fn print_errors<E, F, T: ColorDisplay>(
 where
     E: FnOnce(String) -> String + Clone + Copy + Sized,
     F: FnOnce(String) -> String + Clone + Copy + Sized,
+    T: ColorDisplay,
 {
     let mut output = String::new();
     for error in errors {
