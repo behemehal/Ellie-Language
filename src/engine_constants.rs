@@ -6,5 +6,5 @@ pub static ELLIE_PARSER_VERSION : &'static str = &"0.5.3";
 pub static ELLIE_BYTECODE_VERSION : &'static str = &"0.1.1";
 pub static ELLIE_FMT_VERSION : &'static str = &"0.3.0";
 pub static ELLIE_VM_VERSION : &'static str = &"0.3.0";
-pub static ELLIE_BUILD_DATE : &'static str = &"2022-10-14 01:55:14";
-pub static ELLIE_BUILD_GIT_HASH : &'static str = &"0ec9383";
+pub static ELLIE_BUILD_DATE : &'static str = &"2022-10-16 19:17:37";
+pub static ELLIE_BUILD_GIT_HASH : &'static str = &"437792b";

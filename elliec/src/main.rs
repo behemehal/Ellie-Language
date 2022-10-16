@@ -1,13 +1,14 @@
 use ellie_engine::{
-    ellie_core, ellie_parser,
+    ellie_core::defs::{PlatformArchitecture, Version},
+    ellie_parser,
     ellie_renderer_utils::{
-        options, outputs, utils as cli_utils,
-        utils::{CliColor, ColorDisplay, Colors, TextStyles},
+        options, outputs,
+        utils::{read_file, read_file_bin, CliColor, ColorDisplay, Colors, TextStyles},
     },
     engine_constants,
+    tokenizer::tokenize_file,
 };
-use path_absolutize::Absolutize;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 mod compile_file;
 mod tokenize_file;
 mod view_module;
@@ -30,46 +31,15 @@ pub enum OutputTypesSelector {
     Nop,
 }
 
-pub fn get_output_path(
-    target_path: &Path,
-    output_path: &Path,
-    output_type: OutputTypesSelector,
-) -> PathBuf {
-    if output_path.is_dir() {
-        let path = output_path
-            .absolutize()
-            .unwrap()
-            .to_str()
-            .unwrap()
-            .to_string();
-        let mut file_name = target_path.file_name().unwrap().to_str().unwrap();
-
-        if file_name.contains(".") {
-            file_name = file_name.split(".").nth(0).unwrap();
-        }
-
-        Path::new(
-            &(path
-                + "/"
-                + file_name
-                + match output_type {
-                    OutputTypesSelector::Bin => ".eib",
-                    OutputTypesSelector::ByteCode => ".eic",
-                    OutputTypesSelector::ByteCodeAsm => ".eia",
-                    OutputTypesSelector::ByteCodeDebug => ".eig",
-                    _ => ".json",
-                }),
-        )
-        .to_owned()
-    } else {
-        output_path.to_owned()
-    }
-}
-
-#[derive(PartialEq, Eq, Debug)]
-pub enum CliOutputType {
+#[derive(Debug, Clone, PartialEq)]
+pub enum OutputTypes {
+    Bin,
+    DependencyAnalysis,
     Json,
-    ConsoleOutput,
+    ByteCode,
+    ByteCodeAsm,
+    ByteCodeDebug,
+    Nop,
 }
 
 fn main() {
@@ -262,7 +232,7 @@ fn main() {
                     std::process::exit(1);
                 }));
             }
-            let version = ellie_core::defs::Version::build_from_string_checked(
+            let version = Version::build_from_string_checked(
                 matches.value_of("binaryVersion").unwrap().to_string(),
             )
             .unwrap_or_else(|_| {
@@ -357,7 +327,7 @@ fn main() {
                     //If module path is file
                     if module_path.is_file() {
                         //If module path is file
-                        match cli_utils::read_file_bin(module_path) {
+                        match read_file_bin(module_path) {
                             Ok(file_content) => {
                                 match bincode::deserialize::<ellie_parser::parser::Module>(
                                     file_content.as_slice(),
@@ -366,11 +336,9 @@ fn main() {
                                         if code_path.is_none()
                                             || Path::new(&code_path.clone().unwrap()).is_dir()
                                         {
-                                            let current_ellie_version =
-                                                ellie_core::defs::Version::build_from_string(
-                                                    engine_constants::ELLIE_ENGINE_VERSION
-                                                        .to_owned(),
-                                                );
+                                            let current_ellie_version = Version::build_from_string(
+                                                engine_constants::ELLIE_ENGINE_VERSION.to_owned(),
+                                            );
                                             if current_ellie_version != module.ellie_version {
                                                 if matches.is_present("jsonLog") {
                                                     let mut cli_module_output =
@@ -530,11 +498,11 @@ fn main() {
                     byte_code_architecture: match matches.value_of("targetArchitecture") {
                         Some(e) => {
                             if e == "64" {
-                                ellie_core::defs::PlatformArchitecture::B64
+                                PlatformArchitecture::B64
                             } else if e == "32" {
-                                ellie_core::defs::PlatformArchitecture::B32
+                                PlatformArchitecture::B32
                             } else if e == "16" {
-                                ellie_core::defs::PlatformArchitecture::B16
+                                PlatformArchitecture::B16
                             } else {
                                 println!(
                                     "{}Error:{} Unknown architecture '{}{}{}'",
@@ -570,25 +538,14 @@ fn main() {
             );
         }
         Some(("version", matches)) => {
-            let mut output = outputs::VERSION_DETAILED.clone();
             if matches.is_present("detailed") {
                 if matches.is_present("jsonLog") {
+                    let mut output = outputs::VERSION_DETAILED.clone();
                     output.extra.push(outputs::CliOuputExtraData {
                         key: "version".to_string(),
-                        value: version.to_string(),
-                    });
-                    output.extra.push(outputs::CliOuputExtraData {
-                        key: "git_hash".to_string(),
-                        value: engine_constants::ELLIE_BUILD_GIT_HASH.to_owned(),
-                    });
-                    output.extra.push(outputs::CliOuputExtraData {
-                        key: "build_date".to_string(),
-                        value: engine_constants::ELLIE_BUILD_DATE.to_owned(),
-                    });
-                    output.extra.push(outputs::CliOuputExtraData {
-                        key: "engine_version".to_string(),
                         value: engine_constants::ELLIE_ENGINE_VERSION.to_owned(),
                     });
+
                     output.extra.push(outputs::CliOuputExtraData {
                         key: "code".to_string(),
                         value: engine_constants::ELLIE_ENGINE_VERSION_NAME.to_owned(),
@@ -598,14 +555,17 @@ fn main() {
                         key: "tokenizer_version".to_string(),
                         value: engine_constants::ELLIE_TOKENIZER_VERSION.to_owned(),
                     });
+
                     output.extra.push(outputs::CliOuputExtraData {
                         key: "parser_version".to_string(),
                         value: engine_constants::ELLIE_PARSER_VERSION.to_owned(),
                     });
+
                     output.extra.push(outputs::CliOuputExtraData {
                         key: "bytecode_version".to_string(),
                         value: engine_constants::ELLIE_BYTECODE_VERSION.to_owned(),
                     });
+
                     output.extra.push(outputs::CliOuputExtraData {
                         key: "core_version".to_string(),
                         value: engine_constants::ELLIE_CORE_VERSION.to_owned(),
@@ -613,10 +573,7 @@ fn main() {
                     println!("{}", serde_json::to_string(&output).unwrap());
                 } else {
                     println!(
-                        "EllieC v{} ({}: {}) \nEllie v{} - Code: {}\n\nBytecode Version: v{}\nTokenizer Version: v{}\nParser Version: v{}\nCore version: v{}\n",
-                        version,
-                        engine_constants::ELLIE_BUILD_GIT_HASH,
-                        engine_constants::ELLIE_BUILD_DATE,
+                        "Ellie v{} - Code: {}\n\nBytecode Version: v{}\nTokenizer Version: v{}\nParser Version: v{}\nCore version: v{}\n",
                         engine_constants::ELLIE_ENGINE_VERSION,
                         engine_constants::ELLIE_ENGINE_VERSION_NAME,
                         engine_constants::ELLIE_BYTECODE_VERSION,
@@ -630,24 +587,19 @@ fn main() {
                     let mut output = outputs::VERSION.clone();
                     output.extra.push(outputs::CliOuputExtraData {
                         key: "version".to_string(),
-                        value: version.to_string(),
-                    });
-                    output.extra.push(outputs::CliOuputExtraData {
-                        key: "git_hash".to_string(),
-                        value: engine_constants::ELLIE_BUILD_GIT_HASH.to_owned(),
-                    });
-                    output.extra.push(outputs::CliOuputExtraData {
-                        key: "build_date".to_string(),
-                        value: engine_constants::ELLIE_BUILD_DATE.to_owned(),
+                        value: engine_constants::ELLIE_ENGINE_VERSION.to_owned(),
                     });
 
+                    output.extra.push(outputs::CliOuputExtraData {
+                        key: "code".to_string(),
+                        value: engine_constants::ELLIE_ENGINE_VERSION_NAME.to_owned(),
+                    });
                     println!("{}", serde_json::to_string(&output).unwrap());
                 } else {
                     println!(
-                        "EllieC v{} ({} : {}) ",
-                        version,
-                        engine_constants::ELLIE_BUILD_GIT_HASH,
-                        engine_constants::ELLIE_BUILD_DATE
+                        "Ellie v{} - Code: {}",
+                        engine_constants::ELLIE_ENGINE_VERSION,
+                        engine_constants::ELLIE_ENGINE_VERSION_NAME
                     );
                 }
             }

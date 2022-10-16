@@ -282,7 +282,8 @@ pub static ELLIE_ENGINE_VERSION_NAME : &'static str = &{ellie_engine_version_nam
 pub static ELLIE_CORE_VERSION : &'static str = &{ellie_core_version};"#
     );
 
-    if cfg!(feature = "compiler") {
+    #[cfg(feature = "compiler")]
+    {
         output += &format!(
             r#"
 pub static ELLIE_TOKENIZER_VERSION : &'static str = &{ellie_tokenizer_version};
@@ -291,11 +292,15 @@ pub static ELLIE_BYTECODE_VERSION : &'static str = &{ellie_bytecode_version};"#
         );
     }
     //git show HEAD~2 --pretty=format:"%h" --no-patch
-    if cfg!(feature = "fmt") {
-        if cfg!(feature = "compiler") {
+    #[cfg(feature = "fmt")]
+    {
+        #[cfg(feature = "compiler")]
+        {
             output +=
                 &format!("\npub static ELLIE_FMT_VERSION : &'static str = &{ellie_fmt_version};");
-        } else {
+        }
+        #[cfg(not(feature = "compiler"))]
+        {
             output += &format!(
                 r#"
 pub static ELLIE_TOKENIZER_VERSION : &'static str = &{ellie_tokenizer_version};
@@ -306,7 +311,8 @@ pub static ELLIE_FMT_VERSION : &'static str = &{ellie_fmt_version};"#
         }
     }
 
-    if cfg!(feature = "vm") {
+    #[cfg(feature = "vm")]
+    {
         output += &format!("\npub static ELLIE_VM_VERSION : &'static str = &{ellie_vm_version};");
     }
 

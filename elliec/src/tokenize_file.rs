@@ -1,9 +1,9 @@
-use crate::{get_output_path, OutputTypesSelector};
+use crate::OutputTypes;
 use ellie_engine::{
-    ellie_core,
+    ellie_core::module_path::parse_module_import,
     ellie_renderer_utils::{
         outputs,
-        utils::{self, print_errors, CliColor, ColorDisplay, Colors, TextStyles},
+        utils::{self, print_errors, read_file, CliColor, ColorDisplay, Colors},
     },
     ellie_tokenizer::tokenizer::{ImportType, ResolvedImport},
     tokenizer::tokenize_file,
@@ -11,10 +11,10 @@ use ellie_engine::{
 };
 use path_absolutize::Absolutize;
 use std::collections::hash_map::DefaultHasher;
+use std::fs;
 use std::hash::{Hash, Hasher};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::time::Instant;
-use std::{fs, println};
 
 #[derive(Clone)]
 pub struct TokenizerSettings {
@@ -24,19 +24,47 @@ pub struct TokenizerSettings {
     pub show_debug_lines: bool,
 }
 
+pub fn get_output_path(
+    target_path: &Path,
+    output_path: &Path,
+    output_type: OutputTypes,
+) -> PathBuf {
+    if output_path.is_dir() {
+        let path = output_path
+            .absolutize()
+            .unwrap()
+            .to_str()
+            .unwrap()
+            .to_string();
+        let mut file_name = target_path.file_name().unwrap().to_str().unwrap();
+
+        if file_name.contains(".") {
+            file_name = file_name.split(".").nth(0).unwrap();
+        }
+
+        Path::new(
+            &(path
+                + "/"
+                + file_name
+                + match output_type {
+                    OutputTypes::Bin => ".bin",
+                    _ => ".json",
+                }),
+        )
+        .to_owned()
+    } else {
+        output_path.to_owned()
+    }
+}
+
 pub fn tokenize(target_path: &Path, output_path: &Path, tokenizer_settings: TokenizerSettings) {
-    let cli_color = CliColor;
+    let cli_color = &CliColor;
 
     #[derive(Clone)]
     struct Repository {
         target_path: String,
         tokenizer_settings: TokenizerSettings,
     }
-
-    #[derive(Copy, Clone)]
-    struct ColorTerminal;
-
-    let color_terminal = ColorTerminal;
     let mut program_repository = Repository {
         target_path: target_path.to_str().unwrap().to_string(),
         tokenizer_settings: tokenizer_settings.clone(),
@@ -44,7 +72,7 @@ pub fn tokenize(target_path: &Path, output_path: &Path, tokenizer_settings: Toke
 
     impl ProgramRepository for Repository {
         fn read_main(&mut self) -> MainProgram {
-            match utils::read_file(self.target_path.clone()) {
+            match read_file(self.target_path.clone()) {
                 Ok(main_file_content) => {
                     let mut main_file_hasher = DefaultHasher::new();
                     main_file_content.hash(&mut main_file_hasher);
@@ -93,7 +121,7 @@ pub fn tokenize(target_path: &Path, output_path: &Path, tokenizer_settings: Toke
                     ..Default::default()
                 }
             } else {
-                match ellie_core::module_path::parse_module_import(&current_path, &requested_path) {
+                match parse_module_import(&current_path, &requested_path) {
                     Ok(path) => {
                         let real_path = path
                             .replace(
@@ -150,33 +178,6 @@ pub fn tokenize(target_path: &Path, output_path: &Path, tokenizer_settings: Toke
         }
     }
 
-    impl ColorDisplay for ColorTerminal {
-        fn color(&self, color: Colors) -> String {
-            let color_id = match color {
-                Colors::Black => "[30m",
-                Colors::Red => "[31m",
-                Colors::Green => "[32m",
-                Colors::Yellow => "[33m",
-                Colors::Blue => "[34m",
-                Colors::Magenta => "[35m",
-                Colors::Cyan => "[36m",
-                Colors::White => "[37m",
-                Colors::Reset => "[0m",
-            };
-            format!("{}{}", '\u{001b}', color_id)
-        }
-
-        fn text_style(&self, text_style: TextStyles) -> String {
-            let type_id = match text_style {
-                TextStyles::Bold => "[1m",
-                TextStyles::Dim => "[2m",
-                TextStyles::Italic => "[3m",
-                TextStyles::Underline => "[4m",
-            };
-            format!("{}{}", '\u{001b}', type_id)
-        }
-    }
-
     let tokenize_start = Instant::now();
 
     let starter_name = format!("<ellie_module_{}>", tokenizer_settings.name);
@@ -185,7 +186,7 @@ pub fn tokenize(target_path: &Path, output_path: &Path, tokenizer_settings: Toke
         Ok(pages) => {
             let tokenize_end = (tokenize_start.elapsed().as_nanos() as f64 / 1000000_f64) as f64;
             let json = serde_json::to_string(&pages).unwrap();
-            let output_path = &get_output_path(target_path, output_path, OutputTypesSelector::Json);
+            let output_path = &get_output_path(target_path, output_path, OutputTypes::Json);
 
             if let Err(write_error) = fs::write(&output_path, json) {
                 if tokenizer_settings.json_log {
@@ -303,7 +304,7 @@ pub fn tokenize(target_path: &Path, output_path: &Path, tokenizer_settings: Toke
                             )
                             .to_string()
                         },
-                        color_terminal
+                        cli_color
                     )
                 );
             }

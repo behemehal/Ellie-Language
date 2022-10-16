@@ -1,14 +1,13 @@
 [package]
 name = "elliec"
 version = "0.1.0"
-authors = ["Ahmetcan Aksu <ahmetcanaksu@behemehal.net>", "Behemehal <info@behemehal.net>"]
 edition = "2021"
+authors = ["Ahmetcan Aksu <ahmetcanaksu@behemehal.net>", "Behemehal <info@behemehal.net>"]
 license = "GPL-2.0"
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
 path-absolutize = { version = "3.0.10" }
-regex = { version = "1.1.7" }
-bincode = { version = "1.0" }
 ellie_engine = { path = "../", features = [ "compiler", "cli-utils" ] }
+bincode = { version = "1.0" }

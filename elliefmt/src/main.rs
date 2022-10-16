@@ -119,7 +119,7 @@ fn main() {
                     .unwrap()
                     .to_string(),
                 show_debug_lines: matches.is_present("showDebugLines"),
-                analyze: false,
+                format_all: true,
             };
 
             format_file::format_file(

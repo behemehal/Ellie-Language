@@ -1,20 +1,21 @@
 use ellie_engine::{
-    ellie_core,
+    ellie_core::defs::Version,
     ellie_parser::parser,
-    ellie_renderer_utils::{outputs, utils, utils::CliColor, utils::ColorDisplay, utils::Colors},
+    ellie_renderer_utils::{
+        outputs,
+        utils::{self, read_file_bin, CliColor, ColorDisplay, Colors},
+    },
     engine_constants,
 };
-
 use std::path::Path;
 
 pub fn parse(target_path: &Path, json_log: bool) {
-    let cli_color = CliColor;
-    match utils::read_file_bin(target_path) {
+    let cli_color = &CliColor;
+    match read_file_bin(target_path) {
         Ok(file_content) => match bincode::deserialize::<parser::Module>(file_content.as_slice()) {
             Ok(module) => {
-                let current_ellie_version = ellie_core::defs::Version::build_from_string(
-                    engine_constants::ELLIE_ENGINE_VERSION.to_owned(),
-                );
+                let current_ellie_version =
+                    Version::build_from_string(engine_constants::ELLIE_ENGINE_VERSION.to_owned());
                 if current_ellie_version != module.ellie_version {
                     if json_log {
                         let mut cli_module_output = outputs::LEGACY_MODULE.clone();

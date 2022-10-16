@@ -1,25 +1,23 @@
+use crate::{tokenize_file, OutputTypesSelector};
+use ellie_engine::compiler::parse_pages;
+use ellie_engine::ellie_bytecode::assembler::{Assembler, PlatformAttributes};
+use ellie_engine::ellie_core::defs::PlatformArchitecture;
+use ellie_engine::ellie_core::module_path::parse_module_import;
+use ellie_engine::ellie_renderer_utils::utils::{
+    print_errors, print_warnings, CliColor, ColorDisplay, Colors,
+};
+use ellie_engine::ellie_tokenizer::tokenizer::ImportType;
+use ellie_engine::utils::{CompilerSettings, MainProgram, ProgramRepository};
 use ellie_engine::{
-    compiler::parse_pages,
-    ellie_bytecode,
-    ellie_core::{self, module_path::parse_module_import},
-    ellie_parser::parser,
-    ellie_renderer_utils::{
-        outputs,
-        utils::{self, print_errors, print_warnings, CliColor, ColorDisplay, Colors, TextStyles},
-    },
-    ellie_tokenizer::tokenizer::{ImportType, ResolvedImport},
-    tokenizer::tokenize_file,
-    utils::{CompilerSettings, MainProgram, ProgramRepository},
+    ellie_parser::parser, ellie_renderer_utils::*, ellie_tokenizer::tokenizer::ResolvedImport,
 };
 use path_absolutize::Absolutize;
 use std::collections::hash_map::DefaultHasher;
+use std::fs;
 use std::fs::File;
 use std::hash::{Hash, Hasher};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::sync::Mutex;
-use std::{fs, println};
-
-use crate::{get_output_path, OutputTypesSelector};
 
 #[derive(Clone)]
 pub struct CliCompilerSettings {
@@ -30,6 +28,42 @@ pub struct CliCompilerSettings {
     pub show_debug_lines: bool,
     pub exclude_std: bool,
     pub compiler_settings: CompilerSettings,
+}
+
+pub fn get_output_path(
+    target_path: &Path,
+    output_path: &Path,
+    output_type: OutputTypesSelector,
+) -> PathBuf {
+    if output_path.is_dir() {
+        let path = output_path
+            .absolutize()
+            .unwrap()
+            .to_str()
+            .unwrap()
+            .to_string();
+        let mut file_name = target_path.file_name().unwrap().to_str().unwrap();
+
+        if file_name.contains(".") {
+            file_name = file_name.split(".").nth(0).unwrap();
+        }
+
+        Path::new(
+            &(path
+                + "/"
+                + file_name
+                + match output_type {
+                    OutputTypesSelector::Bin => ".eib",
+                    OutputTypesSelector::ByteCode => ".eic",
+                    OutputTypesSelector::ByteCodeAsm => ".eia",
+                    OutputTypesSelector::ByteCodeDebug => ".eig",
+                    _ => ".json",
+                }),
+        )
+        .to_owned()
+    } else {
+        output_path.to_owned()
+    }
 }
 
 pub fn compile(
@@ -54,38 +88,6 @@ pub fn compile(
             cli_color.color(Colors::Red),
             cli_color.color(Colors::Reset),
         );
-    }
-
-    #[derive(Copy, Clone)]
-    struct ColorTerminal;
-
-    let color_terminal = ColorTerminal;
-
-    impl ColorDisplay for ColorTerminal {
-        fn color(&self, color: Colors) -> String {
-            let color_id = match color {
-                Colors::Black => "[30m",
-                Colors::Red => "[31m",
-                Colors::Green => "[32m",
-                Colors::Yellow => "[33m",
-                Colors::Blue => "[34m",
-                Colors::Magenta => "[35m",
-                Colors::Cyan => "[36m",
-                Colors::White => "[37m",
-                Colors::Reset => "[0m",
-            };
-            format!("{}{}", '\u{001b}', color_id)
-        }
-
-        fn text_style(&self, text_style: TextStyles) -> String {
-            let type_id = match text_style {
-                TextStyles::Bold => "[1m",
-                TextStyles::Dim => "[2m",
-                TextStyles::Italic => "[3m",
-                TextStyles::Underline => "[4m",
-            };
-            format!("{}{}", '\u{001b}', type_id)
-        }
     }
 
     #[derive(Clone)]
@@ -249,11 +251,11 @@ pub fn compile(
             } else {
                 println!(
                     "{}[Internal Error]{}: Could not find imported module {}'{}'{}",
-                    color_terminal.color(Colors::Red),
-                    color_terminal.color(Colors::Reset),
-                    color_terminal.color(Colors::Cyan),
+                    cli_color.color(Colors::Red),
+                    cli_color.color(Colors::Reset),
+                    cli_color.color(Colors::Cyan),
                     module_name,
-                    color_terminal.color(Colors::Reset),
+                    cli_color.color(Colors::Reset),
                 );
             }
             std::process::exit(1);
@@ -309,9 +311,9 @@ pub fn compile(
                                                     println!(
                                                     "Failed to ouput error. Cannot read file '{}' {}[{}]{}",
                                                     path,
-                                                    color_terminal.color(Colors::Red),
+                                                    cli_color.color(Colors::Red),
                                                     err,
-                                                    color_terminal.color(Colors::Reset)
+                                                    cli_color.color(Colors::Reset)
                                                 );
                                                     std::process::exit(1);
                                                 }
@@ -330,9 +332,9 @@ pub fn compile(
                                                     println!(
                                                     "Failed to ouput error. Cannot read file '{}' {}[{}]{}",
                                                     path,
-                                                    color_terminal.color(Colors::Red),
+                                                    cli_color.color(Colors::Red),
                                                     err,
-                                                    color_terminal.color(Colors::Reset)
+                                                    cli_color.color(Colors::Reset)
                                                 );
                                                     std::process::exit(1);
                                                 }
@@ -377,7 +379,7 @@ pub fn compile(
                                         );
                                         }
                                     },
-                                    color_terminal,
+                                    cli_color,
                                 )
                             );
                         }
@@ -433,9 +435,9 @@ pub fn compile(
                                 } else {
                                     println!(
                                         "\nFailed to write output. [{}{:?}{}]",
-                                        color_terminal.color(Colors::Red),
+                                        cli_color.color(Colors::Red),
                                         write_error,
-                                        color_terminal.color(Colors::Reset),
+                                        cli_color.color(Colors::Reset),
                                     );
                                 }
                             } else {
@@ -454,11 +456,11 @@ pub fn compile(
                                 } else {
                                     println!(
                                         "{}[!]{}: Binary output written to {}{}{}",
-                                        color_terminal.color(Colors::Green),
-                                        color_terminal.color(Colors::Reset),
-                                        color_terminal.color(Colors::Yellow),
+                                        cli_color.color(Colors::Green),
+                                        cli_color.color(Colors::Reset),
+                                        cli_color.color(Colors::Yellow),
                                         output_path.absolutize().unwrap().to_str().unwrap(),
-                                        color_terminal.color(Colors::Reset)
+                                        cli_color.color(Colors::Reset)
                                     );
                                 }
                             }
@@ -466,8 +468,8 @@ pub fn compile(
                         OutputTypesSelector::DependencyAnalysis => {
                             println!(
                                 "{}[Error]{}: Dependency analysis output is not supported yet.",
-                                color_terminal.color(Colors::Red),
-                                color_terminal.color(Colors::Reset),
+                                cli_color.color(Colors::Red),
+                                cli_color.color(Colors::Reset),
                             );
                             std::process::exit(1);
                         }
@@ -485,9 +487,9 @@ pub fn compile(
                                 } else {
                                     println!(
                                         "\nFailed to write output. [{}{:?}{}]",
-                                        color_terminal.color(Colors::Red),
+                                        cli_color.color(Colors::Red),
                                         write_error,
-                                        color_terminal.color(Colors::Reset),
+                                        cli_color.color(Colors::Reset),
                                     );
                                 }
                             } else {
@@ -506,11 +508,11 @@ pub fn compile(
                                 } else {
                                     println!(
                                         "{}[!]{}: JSON output written to {}{}{}",
-                                        color_terminal.color(Colors::Green),
-                                        color_terminal.color(Colors::Reset),
-                                        color_terminal.color(Colors::Yellow),
+                                        cli_color.color(Colors::Green),
+                                        cli_color.color(Colors::Reset),
+                                        cli_color.color(Colors::Yellow),
                                         output_path.absolutize().unwrap().to_str().unwrap(),
-                                        color_terminal.color(Colors::Reset),
+                                        cli_color.color(Colors::Reset),
                                     );
                                 }
                             }
@@ -519,20 +521,20 @@ pub fn compile(
                             if !cli_settings.json_log {
                                 println!(
                                     "{}[?]{}: ByteCode compiling to {} bit architecture",
-                                    color_terminal.color(Colors::Green),
-                                    color_terminal.color(Colors::Reset),
+                                    cli_color.color(Colors::Green),
+                                    cli_color.color(Colors::Reset),
                                     match cli_settings.compiler_settings.byte_code_architecture {
-                                        ellie_core::defs::PlatformArchitecture::B16 => "16",
-                                        ellie_core::defs::PlatformArchitecture::B32 => "32",
-                                        ellie_core::defs::PlatformArchitecture::B64 => "64",
+                                        PlatformArchitecture::B16 => "16",
+                                        PlatformArchitecture::B32 => "32",
+                                        PlatformArchitecture::B64 => "64",
                                     }
                                 );
                             }
-                            let mut assembler = ellie_bytecode::assembler::Assembler::new(
+                            let mut assembler = Assembler::new(
                                 compile_output.module,
-                                ellie_bytecode::assembler::PlatformAttributes {
-                                    architecture: ellie_core::defs::PlatformArchitecture::B64, //64 Bit Limit
-                                    memory_size: 512000, //512kb memory limit
+                                PlatformAttributes {
+                                    architecture: PlatformArchitecture::B64, //64 Bit Limit
+                                    memory_size: 512000,                     //512kb memory limit
                                 },
                             );
                             let assembler_result = assembler.assemble(module_maps);
@@ -547,12 +549,12 @@ pub fn compile(
                                 } else {
                                     println!(
                                         "\nFailed to create file {}{}{}. [{}{:?}{}]",
-                                        color_terminal.color(Colors::Cyan),
+                                        cli_color.color(Colors::Cyan),
                                         output_path.absolutize().unwrap().to_str().unwrap(),
-                                        color_terminal.color(Colors::Reset),
-                                        color_terminal.color(Colors::Red),
+                                        cli_color.color(Colors::Reset),
+                                        cli_color.color(Colors::Red),
                                         err,
-                                        color_terminal.color(Colors::Reset),
+                                        cli_color.color(Colors::Reset),
                                     );
                                 }
                                 std::process::exit(1);
@@ -569,12 +571,12 @@ pub fn compile(
                                     } else {
                                         println!(
                                             "\nFailed to create file {}{}{}. [{}{:?}{}]",
-                                            color_terminal.color(Colors::Cyan),
+                                            cli_color.color(Colors::Cyan),
                                             dbg_output_path.absolutize().unwrap().to_str().unwrap(),
-                                            color_terminal.color(Colors::Reset),
-                                            color_terminal.color(Colors::Red),
+                                            cli_color.color(Colors::Reset),
+                                            cli_color.color(Colors::Red),
                                             err,
-                                            color_terminal.color(Colors::Reset),
+                                            cli_color.color(Colors::Reset),
                                         );
                                     }
                                     std::process::exit(1);
@@ -595,19 +597,19 @@ pub fn compile(
                             } else {
                                 println!(
                                     "{}[!]{}: ByteCode output written to {}{}{}",
-                                    color_terminal.color(Colors::Green),
-                                    color_terminal.color(Colors::Reset),
-                                    color_terminal.color(Colors::Yellow),
+                                    cli_color.color(Colors::Green),
+                                    cli_color.color(Colors::Reset),
+                                    cli_color.color(Colors::Yellow),
                                     output_path.absolutize().unwrap().to_str().unwrap(),
-                                    color_terminal.color(Colors::Reset),
+                                    cli_color.color(Colors::Reset),
                                 );
                                 println!(
                                     "{}[!]{}: ByteCode debug file written to {}{}{}",
-                                    color_terminal.color(Colors::Green),
-                                    color_terminal.color(Colors::Reset),
-                                    color_terminal.color(Colors::Yellow),
+                                    cli_color.color(Colors::Green),
+                                    cli_color.color(Colors::Reset),
+                                    cli_color.color(Colors::Yellow),
                                     dbg_output_path.absolutize().unwrap().to_str().unwrap(),
-                                    color_terminal.color(Colors::Reset),
+                                    cli_color.color(Colors::Reset),
                                 );
                             }
                         }
@@ -615,20 +617,20 @@ pub fn compile(
                             if !cli_settings.json_log {
                                 println!(
                                     "{}[?]{}: ByteCode compiling to {} bit architecture",
-                                    color_terminal.color(Colors::Green),
-                                    color_terminal.color(Colors::Reset),
+                                    cli_color.color(Colors::Green),
+                                    cli_color.color(Colors::Reset),
                                     match cli_settings.compiler_settings.byte_code_architecture {
-                                        ellie_core::defs::PlatformArchitecture::B16 => "16",
-                                        ellie_core::defs::PlatformArchitecture::B32 => "32",
-                                        ellie_core::defs::PlatformArchitecture::B64 => "64",
+                                        PlatformArchitecture::B16 => "16",
+                                        PlatformArchitecture::B32 => "32",
+                                        PlatformArchitecture::B64 => "64",
                                     }
                                 );
                             }
-                            let mut assembler = ellie_bytecode::assembler::Assembler::new(
+                            let mut assembler = Assembler::new(
                                 compile_output.module,
-                                ellie_bytecode::assembler::PlatformAttributes {
-                                    architecture: ellie_core::defs::PlatformArchitecture::B64, //64 Bit Limit
-                                    memory_size: 512000, //512kb memory limit
+                                PlatformAttributes {
+                                    architecture: PlatformArchitecture::B64, //64 Bit Limit
+                                    memory_size: 512000,                     //512kb memory limit
                                 },
                             );
                             let assembler_result = assembler.assemble(module_maps);
@@ -643,12 +645,12 @@ pub fn compile(
                                 } else {
                                     println!(
                                         "\nFailed to create file {}{}{}. [{}{:?}{}]",
-                                        color_terminal.color(Colors::Cyan),
+                                        cli_color.color(Colors::Cyan),
                                         output_path.absolutize().unwrap().to_str().unwrap(),
-                                        color_terminal.color(Colors::Reset),
-                                        color_terminal.color(Colors::Red),
+                                        cli_color.color(Colors::Reset),
+                                        cli_color.color(Colors::Red),
                                         err,
-                                        color_terminal.color(Colors::Reset),
+                                        cli_color.color(Colors::Reset),
                                     );
                                 }
                                 std::process::exit(1);
@@ -670,11 +672,11 @@ pub fn compile(
                             } else {
                                 println!(
                                     "{}[!]{}: ByteCodeAsm output written to {}{}{}",
-                                    color_terminal.color(Colors::Green),
-                                    color_terminal.color(Colors::Reset),
-                                    color_terminal.color(Colors::Yellow),
+                                    cli_color.color(Colors::Green),
+                                    cli_color.color(Colors::Reset),
+                                    cli_color.color(Colors::Yellow),
                                     output_path.absolutize().unwrap().to_str().unwrap(),
-                                    color_terminal.color(Colors::Reset),
+                                    cli_color.color(Colors::Reset),
                                 );
                             }
                         }
@@ -822,7 +824,7 @@ pub fn compile(
                                         );
                                     }
                                 },
-                                color_terminal,
+                                cli_color,
                             )
                         );
                         for message in exit_messages.lock().unwrap().iter() {
@@ -861,12 +863,12 @@ pub fn compile(
                             Err(err) => {
                                 println!(
                                     "{}[Internal Error]{} Cannot build error, read file failed '{}' {}[{}]{}",
-                                    color_terminal.color(Colors::Red),
-                                    color_terminal.color(Colors::Reset),
+                                    cli_color.color(Colors::Red),
+                                    cli_color.color(Colors::Reset),
                                     path,
-                                    color_terminal.color(Colors::Red),
+                                    cli_color.color(Colors::Red),
                                     err,
-                                    color_terminal.color(Colors::Reset),
+                                    cli_color.color(Colors::Reset),
                                 );
                                 std::process::exit(1);
                             }
@@ -885,7 +887,7 @@ pub fn compile(
                             )
                             .to_string()
                         },
-                        color_terminal
+                        cli_color
                     )
                 );
                 for message in exit_messages.lock().unwrap().iter() {
