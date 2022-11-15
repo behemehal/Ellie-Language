@@ -611,14 +611,6 @@ where
 
     /// Push page with binary search in mind
     pub fn push_page(&mut self, page: T) {
-        //self.page_hashs.0.push(self.pages.len());
-        //self.page_hashs.1.push(page.get_hash());
-        //match self.page_hashs.1.binary_search(&page.get_hash()) {
-        //    Ok(e) => {
-        //        panic!("Page hash already exists at index: {}", e);
-        //    } // element already in vector @ `pos`
-        //    Err(pos) => self.page_hashs.1.insert(pos, page.get_hash()),
-        //}
         self.pages.push(page);
     }
 

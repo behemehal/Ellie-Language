@@ -247,6 +247,7 @@ impl definite::Converter<DefinerTypes, definite::definers::DefinerCollecting> fo
                 })
             }
             definite::definers::DefinerCollecting::EnumField(_) => todo!(),
+            definite::definers::DefinerCollecting::ClassInstance(_) => todo!(),
         }
     }
 }

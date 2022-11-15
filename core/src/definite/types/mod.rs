@@ -4,6 +4,7 @@ pub mod bool;
 pub mod brace_reference;
 pub mod byte;
 pub mod class_call;
+pub mod class_instance;
 pub mod cloak;
 pub mod collective;
 pub mod double;
@@ -48,6 +49,7 @@ pub enum Types {
     Negative(negative::Negative),
     VariableType(variable::VariableType),
     AsKeyword(as_keyword::AsKeyword),
+    ClassInstance(class_instance::ClassInstance),
     Null,
     Dynamic,
 }

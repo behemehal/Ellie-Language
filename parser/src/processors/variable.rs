@@ -192,10 +192,6 @@ impl super::Processor for VariableCollector {
                 );
 
                 if self.data.has_value && self.data.has_type {
-                    //panic!("{:#?}\n{:#?}", resolved_defining.unwrap(), resolved_type.unwrap());
-                    //let defined = parser.resolve_definer_name(resolved_defining.unwrap());
-                    //let given = parser.resolve_type_name(resolved_type.unwrap());
-
                     let comperable = parser.compare_defining_with_type(
                         resolved_defining.unwrap(),
                         resolved_type.unwrap().clone(),

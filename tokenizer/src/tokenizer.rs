@@ -1,5 +1,6 @@
 use crate::processors::items;
 use ellie_core::{
+    definite::types::class_instance::{Attribute, AttributeType, ClassInstance},
     defs, error,
     utils::{ExportPage, PageExport},
 };
@@ -25,6 +26,13 @@ pub struct Dependency {
     pub public: bool,
 }
 
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
+pub struct ClassPageType {
+    pub name: String,
+    pub hash: usize,
+    pub page_hash: usize,
+}
+
 /// `PageType` is gives us hint about the type of the page
 /// Check [`Page`]
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
@@ -33,7 +41,7 @@ pub enum PageType {
     ConstructorBody,
     RawBody,
     LoopBody,
-    ClassBody,
+    ClassBody(ClassPageType),
     ConditionBody,
 }
 
@@ -90,6 +98,58 @@ impl Page {
             .iter()
             .position(|x| x.hash == hash)
             .is_some()
+    }
+
+    pub fn generate_instance(&self) -> ClassInstance {
+        let class_page = match &self.page_type {
+            PageType::ClassBody(class_page) => class_page,
+            _ => {
+                panic!("Cannot generate instance from non-class body");
+            }
+        };
+
+        let attributes = self
+            .items
+            .iter()
+            .filter_map(|i| match i {
+                items::Processors::Variable(variable) => Some(Attribute {
+                    _rtype: AttributeType::Property,
+                    name: variable.data.name.clone(),
+                    page: self.hash,
+                    hash: variable.data.hash,
+                    class_hash: class_page.hash,
+                }),
+                items::Processors::Function(function) => Some(Attribute {
+                    _rtype: AttributeType::Property,
+                    name: function.data.name.clone(),
+                    page: self.hash,
+                    hash: function.data.hash,
+                    class_hash: class_page.hash,
+                }),
+                items::Processors::Getter(getter) => Some(Attribute {
+                    _rtype: AttributeType::Property,
+                    name: getter.name.clone(),
+                    page: self.hash,
+                    hash: getter.hash,
+                    class_hash: class_page.hash,
+                }),
+                items::Processors::Setter(setter) => Some(Attribute {
+                    _rtype: AttributeType::Property,
+                    name: setter.name.clone(),
+                    page: self.hash,
+                    hash: setter.hash,
+                    class_hash: class_page.hash,
+                }),
+                _ => None,
+            })
+            .collect();
+
+        ClassInstance {
+            class_name: class_page.name.clone(),
+            class_hash: class_page.hash,
+            class_page: class_page.page_hash,
+            attributes,
+        }
     }
 }
 

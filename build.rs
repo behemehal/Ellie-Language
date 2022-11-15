@@ -317,7 +317,7 @@ pub static ELLIE_FMT_VERSION : &'static str = &{ellie_fmt_version};"#
     }
 
     //Add date and git show HEAD~2 --pretty=format:"%h" --no-patch
-    let date = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
+    let date = Local::now().format("%Y-%m-%d").to_string();
     let git_hash = Command::new("git")
         .args(&["show", "HEAD~2", "--pretty=format:%h", "--no-patch"])
         .output()

@@ -3,10 +3,9 @@ use ellie_engine::{
     ellie_parser,
     ellie_renderer_utils::{
         options, outputs,
-        utils::{read_file, read_file_bin, CliColor, ColorDisplay, Colors, TextStyles},
+        utils::{read_file_bin, CliColor, ColorDisplay, Colors, TextStyles},
     },
     engine_constants,
-    tokenizer::tokenize_file,
 };
 use std::path::Path;
 mod compile_file;
@@ -543,14 +542,24 @@ fn main() {
                     let mut output = outputs::VERSION_DETAILED.clone();
                     output.extra.push(outputs::CliOuputExtraData {
                         key: "version".to_string(),
+                        value: version.to_string(),
+                    });
+                    output.extra.push(outputs::CliOuputExtraData {
+                        key: "git_hash".to_string(),
+                        value: engine_constants::ELLIE_BUILD_GIT_HASH.to_owned(),
+                    });
+                    output.extra.push(outputs::CliOuputExtraData {
+                        key: "build_date".to_string(),
+                        value: engine_constants::ELLIE_BUILD_DATE.to_owned(),
+                    });
+                    output.extra.push(outputs::CliOuputExtraData {
+                        key: "engine_version".to_string(),
                         value: engine_constants::ELLIE_ENGINE_VERSION.to_owned(),
                     });
-
                     output.extra.push(outputs::CliOuputExtraData {
-                        key: "code".to_string(),
+                        key: "engine_code".to_string(),
                         value: engine_constants::ELLIE_ENGINE_VERSION_NAME.to_owned(),
                     });
-
                     output.extra.push(outputs::CliOuputExtraData {
                         key: "tokenizer_version".to_string(),
                         value: engine_constants::ELLIE_TOKENIZER_VERSION.to_owned(),
@@ -565,7 +574,6 @@ fn main() {
                         key: "bytecode_version".to_string(),
                         value: engine_constants::ELLIE_BYTECODE_VERSION.to_owned(),
                     });
-
                     output.extra.push(outputs::CliOuputExtraData {
                         key: "core_version".to_string(),
                         value: engine_constants::ELLIE_CORE_VERSION.to_owned(),
@@ -573,7 +581,10 @@ fn main() {
                     println!("{}", serde_json::to_string(&output).unwrap());
                 } else {
                     println!(
-                        "Ellie v{} - Code: {}\n\nBytecode Version: v{}\nTokenizer Version: v{}\nParser Version: v{}\nCore version: v{}\n",
+                        "EllieC v{} ({}: {})\n\nEllie v{} - Code: {}\nBytecode Version: v{}\nTokenizer Version: v{}\nParser Version: v{}\nCore version: v{}\n",
+                        version,
+                        engine_constants::ELLIE_BUILD_GIT_HASH,
+                        engine_constants::ELLIE_BUILD_DATE,
                         engine_constants::ELLIE_ENGINE_VERSION,
                         engine_constants::ELLIE_ENGINE_VERSION_NAME,
                         engine_constants::ELLIE_BYTECODE_VERSION,
@@ -587,19 +598,23 @@ fn main() {
                     let mut output = outputs::VERSION.clone();
                     output.extra.push(outputs::CliOuputExtraData {
                         key: "version".to_string(),
-                        value: engine_constants::ELLIE_ENGINE_VERSION.to_owned(),
+                        value: version.to_string(),
                     });
-
                     output.extra.push(outputs::CliOuputExtraData {
-                        key: "code".to_string(),
-                        value: engine_constants::ELLIE_ENGINE_VERSION_NAME.to_owned(),
+                        key: "git_hash".to_string(),
+                        value: engine_constants::ELLIE_BUILD_GIT_HASH.to_owned(),
+                    });
+                    output.extra.push(outputs::CliOuputExtraData {
+                        key: "build_date".to_string(),
+                        value: engine_constants::ELLIE_BUILD_DATE.to_owned(),
                     });
                     println!("{}", serde_json::to_string(&output).unwrap());
                 } else {
                     println!(
-                        "Ellie v{} - Code: {}",
-                        engine_constants::ELLIE_ENGINE_VERSION,
-                        engine_constants::ELLIE_ENGINE_VERSION_NAME
+                        "EllieC v{} ({} : {}) ",
+                        version,
+                        engine_constants::ELLIE_BUILD_GIT_HASH,
+                        engine_constants::ELLIE_BUILD_DATE
                     );
                 }
             }

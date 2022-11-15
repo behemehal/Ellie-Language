@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 
 use crate::defs;
+
+use super::types::class_instance;
 pub mod class;
 pub mod condition;
 pub mod constructor;
@@ -52,7 +54,7 @@ pub enum Collecting {
     FuctionParameter(function_parameter::FunctionParameter),
     ConstructorParameter(constructor_parameter::ConstructorParameter),
     SelfItem(self_item::SelfItem),
-
+    ClassInstance(class_instance::ClassInstance),
     None,
 }
 
@@ -95,6 +97,20 @@ impl Collecting {
             Collecting::SelfItem(_) => unreachable!(),
             Collecting::Extend(e) => e.pos,
             Collecting::Loop(e) => e.pos,
+            Collecting::ClassInstance(_) => unreachable!(),
+        }
+    }
+
+    pub fn get_hash(&self) -> Option<usize> {
+        match self {
+            Collecting::Variable(e) => Some(e.hash),
+            Collecting::Function(e) => Some(e.hash),
+            Collecting::Class(e) => Some(e.hash),
+            Collecting::Getter(e) => Some(e.hash),
+            Collecting::Setter(e) => Some(e.hash),
+            Collecting::Enum(e) => Some(e.hash),
+            Collecting::NativeFunction(e) => Some(e.hash),
+            _ => None,
         }
     }
 
@@ -124,6 +140,7 @@ impl Collecting {
             Collecting::ConstructorParameter(_) => false,
             Collecting::Extend(_) => false,
             Collecting::Loop(_) => false,
+            Collecting::ClassInstance(_) => true,
         }
     }
 }

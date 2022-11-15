@@ -1,15 +1,19 @@
-use crate::{tokenize_file, OutputTypesSelector};
-use ellie_engine::compiler::parse_pages;
-use ellie_engine::ellie_bytecode::assembler::{Assembler, PlatformAttributes};
-use ellie_engine::ellie_core::defs::PlatformArchitecture;
-use ellie_engine::ellie_core::module_path::parse_module_import;
-use ellie_engine::ellie_renderer_utils::utils::{
-    print_errors, print_warnings, CliColor, ColorDisplay, Colors,
-};
-use ellie_engine::ellie_tokenizer::tokenizer::ImportType;
-use ellie_engine::utils::{CompilerSettings, MainProgram, ProgramRepository};
+use crate::OutputTypesSelector;
+use bincode::Options;
 use ellie_engine::{
-    ellie_parser::parser, ellie_renderer_utils::*, ellie_tokenizer::tokenizer::ResolvedImport,
+    compiler::parse_pages,
+    ellie_bytecode::assembler::{Assembler, PlatformAttributes},
+    ellie_core::{defs::PlatformArchitecture, module_path::parse_module_import},
+    ellie_parser::parser,
+    //ellie_renderer_utils::*,
+    ellie_renderer_utils::outputs,
+    ellie_renderer_utils::utils::{
+        print_errors, print_warnings, read_file, CliColor, ColorDisplay, Colors,
+    },
+    ellie_tokenizer::tokenizer::ImportType,
+    ellie_tokenizer::tokenizer::ResolvedImport,
+    tokenizer,
+    utils::{CompilerSettings, MainProgram, ProgramRepository},
 };
 use path_absolutize::Absolutize;
 use std::collections::hash_map::DefaultHasher;
@@ -113,7 +117,7 @@ pub fn compile(
 
     impl ProgramRepository for Repository {
         fn read_main(&mut self) -> MainProgram {
-            match utils::read_file(self.target_path.clone()) {
+            match read_file(self.target_path.clone()) {
                 Ok(main_file_content) => {
                     let mut main_file_hasher = DefaultHasher::new();
                     main_file_content.hash(&mut main_file_hasher);
@@ -188,7 +192,7 @@ pub fn compile(
                             )
                             .clone();
                         if Path::new(&real_path).exists() {
-                            match utils::read_file(real_path) {
+                            match read_file(real_path) {
                                 Ok(data) => {
                                     let mut hasher = DefaultHasher::new();
                                     data.hash(&mut hasher);
@@ -263,7 +267,7 @@ pub fn compile(
     }
     let starter_name = format!("<ellie_module_{}>", cli_settings.compiler_settings.name);
 
-    match crate::tokenize_file::tokenize(&mut program_repisotory) {
+    match tokenizer::tokenize_file(&mut program_repisotory) {
         Ok(pages) => {
             match parse_pages(
                 program_repisotory.main_hash,
@@ -305,7 +309,7 @@ pub fn compile(
                                                         .unwrap(),
                                                 )
                                                 .clone();
-                                            match utils::read_file(real_path) {
+                                            match read_file(real_path) {
                                                 Ok(e) => e,
                                                 Err(err) => {
                                                     println!(
@@ -326,7 +330,7 @@ pub fn compile(
                                             let module_path = module_path.clone().unwrap();
                                             let real_path =
                                                 path.replace(&path_starter, &module_path).clone();
-                                            match utils::read_file(real_path) {
+                                            match read_file(real_path) {
                                                 Ok(e) => e,
                                                 Err(err) => {
                                                     println!(
@@ -379,7 +383,7 @@ pub fn compile(
                                         );
                                         }
                                     },
-                                    cli_color,
+                                    cli_color.clone(),
                                 )
                             );
                         }
@@ -422,7 +426,9 @@ pub fn compile(
 
                     match cli_settings.output_type {
                         OutputTypesSelector::Bin => {
-                            let bytes = bincode::serialize(&compile_output.module).unwrap();
+                            let config = bincode::options().clone();
+
+                            let bytes = config.serialize(&compile_output.module).unwrap();
                             if let Err(write_error) = fs::write(output_path, bytes) {
                                 if cli_settings.json_log {
                                     let mut output = outputs::WRITE_FILE_ERROR.clone();
@@ -722,7 +728,7 @@ pub fn compile(
                                                     .unwrap(),
                                             )
                                             .clone();
-                                        match utils::read_file(real_path) {
+                                        match read_file(real_path) {
                                             Ok(e) => e,
                                             Err(err) => {
                                                 panic!(
@@ -741,7 +747,7 @@ pub fn compile(
                                         if let Some(module_path) = module_path.clone() {
                                             let real_path =
                                                 path.replace(&path_starter, &module_path).clone();
-                                            match utils::read_file(real_path.clone()) {
+                                            match read_file(real_path.clone()) {
                                                 Ok(e) => e,
                                                 Err(err) => {
                                                     exit_messages.lock().unwrap().push(Box::new(move || {
@@ -824,7 +830,7 @@ pub fn compile(
                                         );
                                     }
                                 },
-                                cli_color,
+                                cli_color.clone(),
                             )
                         );
                         for message in exit_messages.lock().unwrap().iter() {
@@ -847,7 +853,7 @@ pub fn compile(
                     "{}",
                     print_errors(
                         &pager_errors,
-                        |path| match utils::read_file(
+                        |path| match read_file(
                             &path.replace(
                                 &starter_name,
                                 Path::new(target_path)
@@ -887,7 +893,7 @@ pub fn compile(
                             )
                             .to_string()
                         },
-                        cli_color
+                        cli_color.clone()
                     )
                 );
                 for message in exit_messages.lock().unwrap().iter() {

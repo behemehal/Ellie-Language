@@ -7,7 +7,12 @@ use alloc::{
     vec::Vec,
 };
 use ellie_core::{
-    definite::{definers, items::Collecting, types::Types, Converter},
+    definite::{
+        definers::{self, DefinerCollecting},
+        items::Collecting,
+        types::{class_instance::AttributeType, Types},
+        Converter,
+    },
     defs, error,
 };
 use ellie_tokenizer::tokenizer::Dependency;
@@ -282,6 +287,7 @@ pub enum DeepTypeResult {
     Function(ellie_core::definite::types::function::Function),
     FunctionCall(ellie_core::definite::types::function_call::FunctionCall),
     BraceReference(ellie_core::definite::types::brace_reference::BraceReferenceType),
+    ClassInstance(ellie_core::definite::types::class_instance::ClassInstance),
     Void,
     Null,
     Dynamic,
@@ -301,16 +307,6 @@ fn iterate_deep_type(
         Types::Char(char) => DeepTypeResult::Char(char),
         Types::Collective(collective) => DeepTypeResult::Collective(collective),
         Types::Reference(reference) => {
-            #[derive(Debug, Clone, PartialEq)]
-            enum AttributeType {
-                Property,
-                Method,
-                _Setter,
-                _Getter,
-                EnumItemData,
-                EnumItemNoData,
-            }
-
             #[derive(Debug, Clone)]
             struct Attribute {
                 _rtype: AttributeType,
@@ -559,6 +555,88 @@ fn iterate_deep_type(
                             Err(_) => todo!(),
                         }
                     }
+                    ellie_core::definite::definers::DefinerCollecting::ClassInstance(
+                        class_instance,
+                    ) => {
+                        let mut attributes = Vec::new();
+
+                        for attribute in &class_instance.attributes {
+                            let page = parser.find_processed_page(attribute.page).unwrap();
+                            let item = page.find_item_by_hash(attribute.hash).unwrap();
+
+                            match item {
+                                Collecting::Variable(e) => {
+                                    let value = if e.has_type {
+                                        e.rtype
+                                    } else {
+                                        match resolve_type(
+                                            e.value,
+                                            page_id,
+                                            parser,
+                                            &mut errors,
+                                            Some(e.value_pos),
+                                        ) {
+                                            Some(e) => e,
+                                            None => return Err(errors),
+                                        }
+                                    };
+                                    attributes.push(Attribute {
+                                        _rtype: attribute._rtype.clone(),
+                                        name: attribute.name.clone(),
+                                        value,
+                                    });
+                                }
+                                Collecting::Function(e) => {
+                                    attributes.push(Attribute {
+                                        _rtype: attribute._rtype.clone(),
+                                        name: attribute.name.clone(),
+                                        value: DefinerCollecting::Function(
+                                            ellie_core::definite::definers::FunctionType {
+                                                params: e
+                                                    .parameters
+                                                    .iter()
+                                                    .map(|param| param.rtype.clone())
+                                                    .collect::<Vec<_>>(),
+                                                returning: Box::new(e.return_type),
+                                            },
+                                        ),
+                                    });
+                                }
+                                Collecting::Getter(e) => {
+                                    attributes.push(Attribute {
+                                        _rtype: attribute._rtype.clone(),
+                                        name: attribute.name.clone(),
+                                        value: e.return_type,
+                                    });
+                                }
+                                Collecting::Setter(e) => {
+                                    attributes.push(Attribute {
+                                        _rtype: attribute._rtype.clone(),
+                                        name: attribute.name.clone(),
+                                        value: e.rtype,
+                                    });
+                                }
+                                Collecting::NativeFunction(e) => {
+                                    attributes.push(Attribute {
+                                        _rtype: attribute._rtype.clone(),
+                                        name: attribute.name.clone(),
+                                        value: DefinerCollecting::Function(
+                                            ellie_core::definite::definers::FunctionType {
+                                                params: e
+                                                    .parameters
+                                                    .iter()
+                                                    .map(|param| param.rtype.clone())
+                                                    .collect::<Vec<_>>(),
+                                                returning: Box::new(e.return_type),
+                                            },
+                                        ),
+                                    });
+                                }
+                                _ => (),
+                            }
+                        }
+                        Ok(attributes)
+                    }
                     _ => match resolve_absolute_definer(parser, page_id, reference_type) {
                         Ok(e) => resolve_chain(e, reference_pos, page_id, parser),
                         Err(e) => {
@@ -570,7 +648,7 @@ fn iterate_deep_type(
             }
 
             let reference_type = match resolve_type(
-                *reference.reference,
+                *reference.reference.clone(),
                 page_id,
                 parser,
                 errors,
@@ -591,7 +669,7 @@ fn iterate_deep_type(
                 reference_type.clone(),
                 resolve_chain(reference_type, reference.pos, page_id, parser),
             );
-            for chain in reference.chain {
+            for chain in &reference.chain {
                 match last_chain_attributes.1.clone() {
                     Ok(e) => {
                         let attribute = e.iter().find(|a| a.name == chain.value);
@@ -611,7 +689,7 @@ fn iterate_deep_type(
                                     vec![
                                         error::ErrorBuildField {
                                             key: "token".to_owned(),
-                                            value: chain.value,
+                                            value: chain.value.clone(),
                                         },
                                         error::ErrorBuildField {
                                             key: "token1".to_owned(),
@@ -686,6 +764,7 @@ fn iterate_deep_type(
                             DeepTypeResult::Function(_) => todo!(),
                             DeepTypeResult::EnumData(_) => todo!(),
                             DeepTypeResult::Enum(_) => todo!(),
+                            DeepTypeResult::ClassInstance(_) => todo!(),
                         }),
                         reference_pos: e.reference_pos,
                         brace_pos: e.brace_pos,
@@ -711,6 +790,7 @@ fn iterate_deep_type(
                             DeepTypeResult::Function(e) => Types::Function(e),
                             DeepTypeResult::EnumData(_) => todo!(),
                             DeepTypeResult::Enum(_) => todo!(),
+                            DeepTypeResult::ClassInstance(_) => todo!(),
                         }),
                         pos: e.pos,
                     },
@@ -740,6 +820,7 @@ fn iterate_deep_type(
                 DeepTypeResult::NotFound => unreachable!(),
                 DeepTypeResult::EnumData(_) => todo!(),
                 DeepTypeResult::Enum(_) => todo!(),
+                DeepTypeResult::ClassInstance(_) => todo!(),
             };
 
             let second = match resolve_deep_type(parser, page_id, *e.second, errors) {
@@ -764,6 +845,7 @@ fn iterate_deep_type(
                 DeepTypeResult::NotFound => unreachable!(),
                 DeepTypeResult::EnumData(e) => Types::EnumData(e),
                 DeepTypeResult::Enum(_) => todo!(),
+                DeepTypeResult::ClassInstance(_) => todo!(),
             };
 
             DeepTypeResult::Operator(ellie_core::definite::types::operator::OperatorType {
@@ -902,6 +984,7 @@ fn iterate_deep_type(
                     }
                     DeepTypeResult::EnumData(_) => todo!(),
                     DeepTypeResult::Enum(_) => todo!(),
+                    DeepTypeResult::ClassInstance(_) => todo!(),
                 }
             }
             DeepTypeResult::Array(ellie_core::definite::types::array::ArrayType {
@@ -1160,6 +1243,47 @@ fn iterate_deep_type(
                     ProcessedDeepSearchItems::GenericItem(_) => todo!(),
                     ProcessedDeepSearchItems::None => todo!(),
                     ProcessedDeepSearchItems::Enum(enum_data) => DeepTypeResult::Enum(enum_data),
+                    ProcessedDeepSearchItems::SelfItem(self_item) => {
+                        let targeted_class_page = parser.find_page(self_item.class_page).unwrap();
+                        let class_page_hash = targeted_class_page.inner.unwrap();
+                        let class_page = parser.find_page(class_page_hash).unwrap();
+                        let _targeted_class = class_page.items.iter().find(|item| matches!(item, ellie_tokenizer::processors::items::Processors::Class(found_class) if found_class.hash == self_item.class_hash));
+                        let _targeted_class = _targeted_class.unwrap().as_class().unwrap();
+
+                        todo!("TO BE REMOVED");
+
+                        /*
+                        DeepTypeResult::ClassCall(
+                            ellie_core::definite::types::class_call::ClassCall {
+                                target: Box::new(Types::VariableType(
+                                    ellie_core::definite::types::variable::VariableType {
+                                        value: targeted_class.name.clone(),
+                                        reference: targeted_class.hash,
+                                        pos: targeted_class.pos.clone(),
+                                    },
+                                )),
+                                params: vec![],
+                                keyword_pos: defs::Cursor::default(),
+                                target_pos: defs::Cursor::default(),
+                                resolved_generics: vec![],
+                                generic_parameters: vec![],
+                                pos: defs::Cursor::default(),
+                            },
+                        )
+                        */
+                    }
+                    ProcessedDeepSearchItems::ClassInstance(class_instance) => {
+                        //let targeted_class_page =
+                        //    parser.find_page(class_instance.class_page).unwrap();
+                        //println!("{:#?}", targeted_class_page);
+                        //let class_page_hash = targeted_class_page.inner.unwrap();
+                        //let class_page = parser.find_page(class_page_hash).unwrap();
+                        //let _targeted_class = class_page.items.iter().find(|item| matches!(item, ellie_tokenizer::processors::items::Processors::Class(found_class) if found_class.hash == class_instance.class_hash));
+                        //let targeted_class = _targeted_class.unwrap().as_class().unwrap();
+                        //panic!("Not implemented yet: {:#?}", class_instance);
+
+                        DeepTypeResult::ClassInstance(class_instance)
+                    }
                 }
             } else {
                 let path = parser.find_page(page_id).unwrap().path.clone();
@@ -1413,6 +1537,7 @@ fn iterate_deep_type(
         Types::Byte(byte) => DeepTypeResult::Byte(byte),
         Types::Double(_) => todo!(),
         Types::EnumData(e) => DeepTypeResult::EnumData(e),
+        Types::ClassInstance(_) => todo!(),
     }
 }
 
@@ -1614,6 +1739,13 @@ pub fn resolve_absolute_definer(
             }
         }
         definers::DefinerCollecting::EnumField(e) => Ok(definers::DefinerCollecting::EnumField(e)),
+        definers::DefinerCollecting::ClassInstance(e) => Ok(definers::DefinerCollecting::Generic(
+            definers::GenericType {
+                rtype: e.class_name.clone(),
+                pos: defs::Cursor::default(),
+                hash: e.class_hash,
+            },
+        )),
     }
 }
 
@@ -1637,7 +1769,8 @@ pub enum ProcessedDeepSearchItems {
     Getter(ellie_core::definite::items::getter::Getter),
     Setter(ellie_core::definite::items::setter::Setter),
     ImportReference(ellie_core::definite::items::import::Import),
-    //SelfItem(ellie_core::definite::items::::SelfItem),
+    SelfItem(ellie_core::definite::items::self_item::SelfItem),
+    ClassInstance(ellie_core::definite::types::class_instance::ClassInstance),
     GenericItem(ellie_core::definite::items::generic::Generic),
     FunctionParameter(ellie_core::definite::items::function_parameter::FunctionParameter),
     //ConstructorParameter(ellie_tokenizer::syntax::items::constructor_parameter::ConstructorParameter),
@@ -2014,6 +2147,14 @@ pub fn deep_search(
                                     found = true;
                                     found_page = FoundPage::fill_from_processed(&page);
                                     found_type = ProcessedDeepSearchItems::Class(e.clone());
+                                }
+                            }
+                            Collecting::ClassInstance(e) => {
+                                if name == "self" {
+                                    found_pos = None;
+                                    found = true;
+                                    found_page = FoundPage::fill_from_processed(&page);
+                                    found_type = ProcessedDeepSearchItems::ClassInstance(e.clone());
                                 }
                             }
                             _ => (),
@@ -2548,7 +2689,6 @@ pub fn resolve_type(
                                 }
                             }
                         }
-                        crate::parser::DeepSearchItems::SelfItem(_) => todo!(),
                         crate::parser::DeepSearchItems::GenericItem(_) => todo!(),
                         crate::parser::DeepSearchItems::FunctionParameter(_) => {
                             unimplemented!()
@@ -2755,5 +2895,8 @@ pub fn resolve_type(
                 hash: e.hash,
             },
         )),
+        DeepTypeResult::ClassInstance(instance) => {
+            Some(ellie_core::definite::definers::DefinerCollecting::ClassInstance(instance))
+        }
     }
 }

@@ -160,7 +160,7 @@ fn main() {
                     });
 
                     output.extra.push(outputs::CliOuputExtraData {
-                        key: "code".to_string(),
+                        key: "engine_code".to_string(),
                         value: engine_constants::ELLIE_ENGINE_VERSION_NAME.to_owned(),
                     });
 

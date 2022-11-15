@@ -1,6 +1,9 @@
 use alloc::{borrow::ToOwned, vec, vec::Vec};
 use ellie_core::{defs, error, utils, warning};
-use ellie_tokenizer::{syntax::items::class::Class, tokenizer::PageType};
+use ellie_tokenizer::{
+    syntax::items::class::Class,
+    tokenizer::{ClassPageType, PageType},
+};
 
 impl super::Processor for Class {
     fn process(
@@ -161,36 +164,40 @@ impl super::Processor for Class {
                 ));
             }
 
-            items.push(ellie_tokenizer::processors::items::Processors::SelfItem(
-                ellie_tokenizer::syntax::items::self_item::SelfItem {
-                    class_page: page_hash,
-                    class_hash: self.hash.clone(),
-                },
-            ));
-
             let mut dependencies = vec![ellie_tokenizer::tokenizer::Dependency {
                 hash: page.hash.clone(),
                 processed: false,
                 module: None,
-                deep_link: None,
+                deep_link: Some(page.hash.clone()),
                 public: false,
             }];
             dependencies.extend(page.dependencies.clone());
             items.extend(self.body.clone());
 
-            let inner = ellie_tokenizer::tokenizer::Page {
+            let mut inner = ellie_tokenizer::tokenizer::Page {
                 hash: inner_page_id,
                 inner: Some(page.hash),
                 path: page.path.clone(),
                 items,
                 dependents: vec![],
                 dependencies,
-                page_type: PageType::ClassBody,
+                page_type: PageType::ClassBody(ClassPageType {
+                    name: self.name.clone(),
+                    hash: self.hash.clone(),
+                    page_hash: page_hash.clone(),
+                }),
                 unreachable: false,
                 unreachable_range: defs::Cursor::default(),
                 processed: false,
                 module: false,
             };
+
+            inner.items.push(
+                ellie_tokenizer::processors::items::Processors::ClassInstance(
+                    inner.generate_instance(),
+                ),
+            );
+
             parser.pages.push_page(inner);
             let processed_page = parser.processed_pages.nth_mut(processed_page_idx).unwrap();
 

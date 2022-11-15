@@ -388,6 +388,7 @@ impl Assembler {
                 ellie_core::definite::items::Collecting::Loop(loop_type) => {
                     loop_type.transpile(self, processed_page.hash as usize, &processed_page)
                 }
+                ellie_core::definite::items::Collecting::ClassInstance(_) => true,
             };
         }
         main_pos

@@ -43,7 +43,6 @@ impl CodeRenderer for Processors {
             Processors::Enum(e) => e.render(state, options),
             Processors::Getter(e) => e.render(state, options),
             Processors::Setter(e) => e.render(state, options),
-            Processors::SelfItem(e) => e.render(state, options),
             _ => unreachable!("Rest of the items are not required to be rendered"),
         }
     }

@@ -55,5 +55,6 @@ pub fn convert_to_raw_type(types: Types) -> RawType {
         Types::Double(_) => todo!(),
         Types::SetterCall(_) => todo!(),
         Types::EnumData(_) => todo!(),
+        Types::ClassInstance(_) => todo!(),
     }
 }

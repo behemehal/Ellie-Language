@@ -109,7 +109,6 @@ impl Processor for operator_type::OperatorTypeCollector {
                         self.operator_collected = x.operator_collected;
                         return hang;
                     }
-                    //panic!("expected behaviour: {:#?}", x);
                 }
             }
 

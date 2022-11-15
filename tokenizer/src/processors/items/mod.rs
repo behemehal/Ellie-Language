@@ -1,7 +1,7 @@
 use core::panic;
 
 use ellie_core::{
-    definite::{items::Collecting, Converter},
+    definite::{items::Collecting, types::class_instance, Converter},
     defs, error,
 };
 use enum_as_inner::EnumAsInner;
@@ -49,8 +49,8 @@ pub enum Processors {
     Enum(enum_type::EnumType),
     Getter(getter::Getter),
     Setter(setter::Setter),
-    SelfItem(self_item::SelfItem),          //VirtualValues
-    GenericItem(generic_item::GenericItem), //VirtualValues
+    ClassInstance(class_instance::ClassInstance), //VirtualValues
+    GenericItem(generic_item::GenericItem),       //VirtualValues
     FunctionParameter(function_parameter::FunctionParameter), //VirtualValues
     ConstructorParameter(constructor_parameter::ConstructorParameter), //DISABLED
 }
@@ -74,10 +74,10 @@ impl Processors {
             Processors::Constructor(e) => e.complete,
             Processors::Ret(e) => e.complete,
             Processors::Class(e) => e.complete,
-            Processors::SelfItem(_) => panic!("Unexpected behaviour"),
             Processors::GenericItem(_) => panic!("Unexpected behaviour"),
             Processors::FunctionParameter(_) => panic!("Unexpected behaviour"),
             Processors::ConstructorParameter(_) => panic!("Unexpected behaviour"),
+            Processors::ClassInstance(_) => panic!("Unexpected behaviour"),
             Processors::Brk(e) => e.complete,
             Processors::Go(e) => e.complete,
             Processors::Loop(e) => e.complete,
@@ -87,7 +87,6 @@ impl Processors {
     pub fn is_initalized(&self) -> bool {
         match self.clone() {
             Processors::GetterCall(e) => !e.data.is_not_initialized(),
-            Processors::SelfItem(_) => panic!("Unexpected behaviour"),
             Processors::GenericItem(_) => panic!("Unexpected behaviour"),
             Processors::FunctionParameter(_) => panic!("Unexpected behaviour"),
             Processors::ConstructorParameter(_) => panic!("Unexpected behaviour"),
@@ -97,7 +96,6 @@ impl Processors {
 
     pub fn is_virtual(&self) -> bool {
         match self.clone() {
-            Processors::SelfItem(_) => true,
             Processors::GenericItem(_) => true,
             Processors::FunctionParameter(_) => true,
             Processors::ConstructorParameter(_) => true,
@@ -124,7 +122,7 @@ impl Processors {
             Processors::Constructor(e) => e.pos,
             Processors::Ret(e) => e.pos,
             Processors::Class(e) => e.pos,
-            Processors::SelfItem(_) => ellie_core::defs::Cursor::default(),
+            Processors::ClassInstance(_) => ellie_core::defs::Cursor::default(),
             Processors::GenericItem(_) => ellie_core::defs::Cursor::default(),
             Processors::FunctionParameter(e) => ellie_core::defs::Cursor {
                 range_start: e.name_pos.range_start,
@@ -153,7 +151,7 @@ impl Processors {
             Processors::Constructor(e) => Collecting::Constructor(e.to_definite()),
             Processors::Class(e) => Collecting::Class(e.to_definite()),
             Processors::Ret(e) => Collecting::Ret(e.to_definite()),
-            Processors::SelfItem(_) => panic!("Unexpected behaviour"),
+            Processors::ClassInstance(_) => panic!("Unexpected behaviour"),
             Processors::GenericItem(_) => panic!("Unexpected behaviour"),
             Processors::FunctionParameter(_) => panic!("Unexpected behaviour"),
             Processors::ConstructorParameter(_) => panic!("Unexpected behaviour"),
@@ -486,7 +484,7 @@ impl super::Processor for ItemProcessor {
             Processors::Constructor(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::Ret(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::Class(e) => e.iterate(errors, cursor, last_char, letter_char),
-            Processors::SelfItem(_) => unreachable!("Unexpected behaviour"),
+            Processors::ClassInstance(_) => unreachable!("Unexpected behaviour"),
             Processors::GenericItem(_) => unreachable!("Unexpected behaviour"),
             Processors::FunctionParameter(_) => unreachable!("Unexpected behaviour"),
             Processors::ConstructorParameter(_) => unreachable!("Unexpected behaviour"),

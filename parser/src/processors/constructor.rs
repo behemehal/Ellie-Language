@@ -18,18 +18,18 @@ impl super::Processor for Constructor {
         let path = class_body_page.path.clone();
 
         //Class body should have a self which will reference us page of class and class hash
-        let self_element = class_body_page
+        let class_instance_element = class_body_page
             .items
             .iter()
             .find_map(|item| match item {
-                ellie_tokenizer::processors::items::Processors::SelfItem(e) => Some(e),
+                ellie_tokenizer::processors::items::Processors::ClassInstance(e) => Some(e),
                 _ => None,
             })
             .unwrap_or_else(|| panic!("Failed to find self"));
 
         //Get the page class belongs
         let class_page = parser
-            .find_page(self_element.class_page)
+            .find_page(class_instance_element.class_page)
             .unwrap_or_else(|| panic!("Failed to class page"))
             .clone();
 

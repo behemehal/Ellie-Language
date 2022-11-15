@@ -83,7 +83,7 @@ pub fn generate_elliefmt_options() -> Command<'static> {
 }
 
 pub fn generate_elliec_options() -> Command<'static> {
-    Command::new("EllieCompiler")
+    Command::new("EllieC")
         .about("Ellie Compiler")
         .arg_required_else_help(true)
         .subcommand(

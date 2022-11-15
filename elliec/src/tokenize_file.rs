@@ -304,7 +304,7 @@ pub fn tokenize(target_path: &Path, output_path: &Path, tokenizer_settings: Toke
                             )
                             .to_string()
                         },
-                        cli_color
+                        cli_color.clone()
                     )
                 );
             }

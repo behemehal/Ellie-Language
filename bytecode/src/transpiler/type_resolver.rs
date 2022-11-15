@@ -49,6 +49,7 @@ pub fn convert_type(
         Types::Null => todo!(),
         Types::Dynamic => todo!(),
         Types::EnumData(_) => todo!(),
+        Types::ClassInstance(_) => todo!(),
     }
 }
 
@@ -905,5 +906,6 @@ pub fn resolve_type(
         Types::Dynamic => todo!(),
         Types::SetterCall(_) => todo!(),
         Types::EnumData(_) => todo!(),
+        Types::ClassInstance(_) => todo!(),
     }
 }

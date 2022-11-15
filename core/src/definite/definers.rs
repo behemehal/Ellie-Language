@@ -6,6 +6,8 @@ use alloc::{borrow::ToOwned, boxed::Box};
 use enum_as_inner::EnumAsInner;
 use serde::{Deserialize, Serialize};
 
+use super::types::class_instance::ClassInstance;
+
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct ArrayType {
     pub rtype: Box<DefinerCollecting>,
@@ -84,6 +86,7 @@ pub enum DefinerCollecting {
     Collective(CollectiveType),
     Nullable(NullableType),
     EnumField(EnumField),
+    ClassInstance(ClassInstance),
     Dynamic,
 }
 
@@ -123,6 +126,9 @@ impl DefinerCollecting {
                     inner_def.to_string()
                 }
             },
+            DefinerCollecting::ClassInstance(e) => {
+                format!("Object<{}>", e.class_name)
+            }
         }
     }
 
@@ -221,6 +227,7 @@ impl DefinerCollecting {
                     false
                 }
             }
+            DefinerCollecting::ClassInstance(_) => todo!(),
         }
     }
 }

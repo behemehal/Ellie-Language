@@ -3,7 +3,7 @@ use ellie_engine::{
     ellie_parser::parser,
     ellie_renderer_utils::{
         outputs,
-        utils::{self, read_file_bin, CliColor, ColorDisplay, Colors},
+        utils::{read_file_bin, CliColor, ColorDisplay, Colors},
     },
     engine_constants,
 };

@@ -7,6 +7,7 @@ use alloc::vec;
 use alloc::vec::Vec;
 use alloc::{borrow::ToOwned, string::String};
 use ellie_core::definite::definers::DefinerCollecting;
+use ellie_core::definite::types::class_instance::AttributeType;
 use ellie_core::definite::types::Types;
 use ellie_core::defs::Cursor;
 use ellie_core::{
@@ -195,10 +196,10 @@ pub fn process(
                     crate::parser::DeepSearchItems::BrokenPageGraph => todo!(),
                     crate::parser::DeepSearchItems::MixUp(_) => todo!(),
                     crate::parser::DeepSearchItems::None => todo!(),
-                    crate::parser::DeepSearchItems::SelfItem(_) => {
+                    crate::parser::DeepSearchItems::ClassInstance(self_item) => {
                         Ok(types::Types::VariableType(types::variable::VariableType {
                             value: String::from("self"),
-                            reference: 0,
+                            reference: self_item.class_hash,
                             pos: from.get_pos(),
                         }))
                     }
@@ -361,16 +362,6 @@ pub fn process(
             );
             match processed_reference {
                 Ok(found_reference) => {
-                    #[derive(Debug, Clone, PartialEq)]
-                    enum AttributeType {
-                        Property,
-                        Method,
-                        Setter,
-                        Getter,
-                        EnumItemData,
-                        _EnumItemNoData,
-                    }
-
                     #[derive(Debug, Clone)]
                     struct Attribute {
                         _rtype: AttributeType,
@@ -756,6 +747,8 @@ pub fn process(
                                                 }
                                             }).collect())
                                         },
+                                        crate::deep_search_extensions::ProcessedDeepSearchItems::SelfItem(_) => todo!(),
+                                        crate::deep_search_extensions::ProcessedDeepSearchItems::ClassInstance(_) => todo!(),
                                     }
                                 } else {
                                     errors.push(
@@ -779,31 +772,78 @@ pub fn process(
                             }
                             ellie_core::definite::definers::DefinerCollecting::ParentGeneric(
                                 rtype,
-                            ) => {
-                                let rtype = find_type(rtype.rtype, page_id, parser);
-
-                                match resolve_chain(
-                                    DefinerCollecting::Generic(rtype.unwrap()),
-                                    ellie_core::defs::Cursor::default(),
-                                    page_id,
-                                    parser,
-                                    is_setter,
-                                ) {
-                                    Ok(e) => Ok(e),
-                                    Err(_) => todo!(),
+                            ) => match find_type(rtype.rtype, page_id, parser) {
+                                Some(found_rtype) => {
+                                    match resolve_chain(
+                                        DefinerCollecting::Generic(found_rtype),
+                                        ellie_core::defs::Cursor::default(),
+                                        page_id,
+                                        parser,
+                                        is_setter,
+                                    ) {
+                                        Ok(e) => Ok(e),
+                                        Err(e) => {
+                                            errors.extend(e);
+                                            Err(errors)
+                                        }
+                                    }
                                 }
-                            }
+                                None => {
+                                    errors.push(
+                                        error::error_list::ERROR_S38.clone().build_with_path(
+                                            vec![error::ErrorBuildField {
+                                                key: "token".to_owned(),
+                                                value: "function".to_string(),
+                                            }],
+                                            alloc::format!(
+                                                "{}:{}:{}",
+                                                file!().to_owned(),
+                                                line!(),
+                                                column!()
+                                            ),
+                                            parser.find_page(page_id).unwrap().path.clone(),
+                                            reference_pos,
+                                        ),
+                                    );
+                                    Err(errors)
+                                }
+                            },
                             ellie_core::definite::definers::DefinerCollecting::Function(_) => {
-                                let rtype = find_type("function".to_owned(), page_id, parser);
-                                match resolve_chain(
-                                    DefinerCollecting::Generic(rtype.unwrap()),
-                                    ellie_core::defs::Cursor::default(),
-                                    page_id,
-                                    parser,
-                                    is_setter,
-                                ) {
-                                    Ok(e) => Ok(e),
-                                    Err(_) => todo!(),
+                                match find_type("function".to_owned(), page_id, parser) {
+                                    Some(rtype) => {
+                                        match resolve_chain(
+                                            DefinerCollecting::Generic(rtype),
+                                            ellie_core::defs::Cursor::default(),
+                                            page_id,
+                                            parser,
+                                            is_setter,
+                                        ) {
+                                            Ok(e) => Ok(e),
+                                            Err(e) => {
+                                                errors.extend(e);
+                                                Err(errors)
+                                            }
+                                        }
+                                    }
+                                    None => {
+                                        errors.push(
+                                            error::error_list::ERROR_S38.clone().build_with_path(
+                                                vec![error::ErrorBuildField {
+                                                    key: "token".to_owned(),
+                                                    value: "function".to_string(),
+                                                }],
+                                                alloc::format!(
+                                                    "{}:{}:{}",
+                                                    file!().to_owned(),
+                                                    line!(),
+                                                    column!()
+                                                ),
+                                                parser.find_page(page_id).unwrap().path.clone(),
+                                                reference_pos,
+                                            ),
+                                        );
+                                        Err(errors)
+                                    }
                                 }
                             }
                             ellie_core::definite::definers::DefinerCollecting::Cloak(_) => todo!(),
@@ -815,6 +855,114 @@ pub fn process(
                             }
                             ellie_core::definite::definers::DefinerCollecting::Dynamic => todo!(),
                             DefinerCollecting::EnumField(_) => todo!(),
+                            DefinerCollecting::ClassInstance(class_instance) => {
+                                let mut attributes = Vec::new();
+
+                                for attribute in &class_instance.attributes {
+                                    let page = parser.find_processed_page(attribute.page).unwrap();
+                                    let item = page.find_item_by_hash(attribute.hash).unwrap();
+
+                                    match item {
+                                        Collecting::Variable(e) => {
+                                            let value = if e.has_type {
+                                                e.rtype
+                                            } else {
+                                                match resolve_type(
+                                                    e.value,
+                                                    page_id,
+                                                    parser,
+                                                    &mut errors,
+                                                    Some(e.value_pos),
+                                                ) {
+                                                    Some(e) => e,
+                                                    None => return Err(errors),
+                                                }
+                                            };
+                                            attributes.push(Attribute {
+                                                _rtype: attribute._rtype.clone(),
+                                                name: attribute.name.clone(),
+                                                value,
+                                            });
+                                        }
+                                        Collecting::Function(e) => {
+                                            attributes.push(Attribute {
+                                                _rtype: attribute._rtype.clone(),
+                                                name: attribute.name.clone(),
+                                                value: DefinerCollecting::Function(
+                                                    ellie_core::definite::definers::FunctionType {
+                                                        params: e
+                                                            .parameters
+                                                            .iter()
+                                                            .map(|param| param.rtype.clone())
+                                                            .collect::<Vec<_>>(),
+                                                        returning: Box::new(e.return_type),
+                                                    },
+                                                ),
+                                            });
+                                        }
+                                        Collecting::Getter(e) => {
+                                            attributes.push(Attribute {
+                                                _rtype: attribute._rtype.clone(),
+                                                name: attribute.name.clone(),
+                                                value: e.return_type,
+                                            });
+                                        }
+                                        Collecting::Setter(e) => {
+                                            let value = if is_setter {
+                                                e.rtype
+                                            } else {
+                                                //TODO add setter check
+                                                errors.push(
+                                                    error::error_list::ERROR_S6
+                                                        .clone()
+                                                        .build_with_path(
+                                                            vec![error::ErrorBuildField {
+                                                                key: "token".to_owned(),
+                                                                value: reference_type.to_string(),
+                                                            }],
+                                                            alloc::format!(
+                                                                "{}:{}:{}",
+                                                                file!().to_owned(),
+                                                                line!(),
+                                                                column!()
+                                                            ),
+                                                            parser
+                                                                .find_page(page_id)
+                                                                .unwrap()
+                                                                .path
+                                                                .clone(),
+                                                            reference_pos,
+                                                        ),
+                                                );
+                                                return Err(errors);
+                                            };
+                                            attributes.push(Attribute {
+                                                _rtype: attribute._rtype.clone(),
+                                                name: attribute.name.clone(),
+                                                value,
+                                            });
+                                        }
+                                        Collecting::NativeFunction(e) => {
+                                            attributes.push(Attribute {
+                                                _rtype: attribute._rtype.clone(),
+                                                name: attribute.name.clone(),
+                                                value: DefinerCollecting::Function(
+                                                    ellie_core::definite::definers::FunctionType {
+                                                        params: e
+                                                            .parameters
+                                                            .iter()
+                                                            .map(|param| param.rtype.clone())
+                                                            .collect::<Vec<_>>(),
+                                                        returning: Box::new(e.return_type),
+                                                    },
+                                                ),
+                                            });
+                                        }
+                                        _ => (),
+                                    }
+                                }
+                                Ok(attributes)
+                            }
                         }
                     }
 
@@ -828,12 +976,6 @@ pub fn process(
                         Some(e) => e,
                         None => return Err(errors),
                     };
-                    //#[derive(Debug, EnumAsInner)]
-                    //enum LastEntry {
-                    //    Type(types::Types),
-                    //    Null,
-                    //}
-                    //let mut resolved_types = LastEntry::Null;
 
                     let mut last_chain_attributes = (
                         reference_type.clone(),
@@ -904,7 +1046,6 @@ pub fn process(
                     }
 
                     if errors.is_empty() {
-                        //panic!("{:#?}", resolved_types);
                         Ok(types::Types::Reference(types::reference::ReferenceType {
                             reference: Box::new(found_reference),
                             reference_pos: reference.data.reference_pos,
@@ -1833,8 +1974,6 @@ pub fn process(
                                                         }
                                                         Err(err) => errors.extend(err),
                                                     }
-                                                    //let matching_param_type = resolve_type(, belonging_class.inner_page_id, parser, &mut errors);
-                                                    //panic!("{:?}: {:?} - {:?}", index, matching_param, element);
                                                 }
                                             }
                                         }
@@ -1929,7 +2068,7 @@ pub fn process(
                                 ));
                                 Err(errors)
                             }
-                            crate::parser::DeepSearchItems::SelfItem(_) => todo!(),
+                            crate::parser::DeepSearchItems::ClassInstance(_) => todo!(),
                             crate::parser::DeepSearchItems::GenericItem(_) => todo!(),
                             crate::parser::DeepSearchItems::FunctionParameter(_) => {
                                 unimplemented!()

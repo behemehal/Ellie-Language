@@ -1,10 +1,14 @@
+use crate::deep_search_extensions::deep_search;
 use alloc::{borrow::ToOwned, vec, vec::Vec};
 use ellie_core::{
+    definite::types::class_instance::{Attribute, AttributeType},
     error,
     utils::{self, generate_hash_usize},
     warning,
 };
-use ellie_tokenizer::{syntax::items::function, tokenizer::PageType};
+use ellie_tokenizer::{
+    processors::items::Processors, syntax::items::function, tokenizer::PageType,
+};
 
 impl super::Processor for function::FunctionCollector {
     fn process(
@@ -298,8 +302,142 @@ impl super::Processor for function::FunctionCollector {
                     public: false,
                 }];
                 dependencies.extend(page.dependencies);
-                items.extend(self.data.body.clone());
 
+                let function =
+                    deep_search(parser, page.hash, "function".to_owned(), None, vec![], 0);
+
+                if function.found {
+                    match function.found_item {
+                        crate::deep_search_extensions::ProcessedDeepSearchItems::Class(
+                            class_item,
+                        ) => {
+                            let class_page = parser
+                                .pages
+                                .find_page(class_item.inner_page_id)
+                                .unwrap()
+                                .clone();
+                            let mut _instance = class_page.generate_instance();
+                            let processed_page = parser.pages.nth_mut(processed_page_idx).unwrap();
+
+                            match processed_page.page_type {
+                                PageType::ClassBody(_) => {
+                                    let processed_page_instance =
+                                        processed_page.generate_instance();
+                                    _instance
+                                        .attributes
+                                        .extend(processed_page_instance.attributes);
+                                }
+                                _ => (),
+                            }
+
+                            /*
+                            for _item in &processed_page.items {
+                                let item = match _item {
+                                    Processors::Variable(variable) => Some(Attribute {
+                                        _rtype: AttributeType::Property,
+                                        name: variable.data.name.clone(),
+                                        page: processed_page.inner.unwrap(),
+                                        hash: variable.data.hash,
+                                        class_hash: processed_page.hash,
+                                    }),
+                                    Processors::Function(function) => Some(Attribute {
+                                        _rtype: AttributeType::Property,
+                                        name: function.data.name.clone(),
+                                        page: processed_page.inner.unwrap(),
+                                        hash: function.data.hash,
+                                        class_hash: processed_page.hash,
+                                    }),
+                                    Processors::Getter(getter) => Some(Attribute {
+                                        _rtype: AttributeType::Property,
+                                        name: getter.name.clone(),
+                                        page: processed_page.inner.unwrap(),
+                                        hash: getter.hash,
+                                        class_hash: processed_page.hash,
+                                    }),
+                                    Processors::Setter(setter) => Some(Attribute {
+                                        _rtype: AttributeType::Property,
+                                        name: setter.name.clone(),
+                                        page: processed_page.inner.unwrap(),
+                                        hash: setter.hash,
+                                        class_hash: processed_page.hash,
+                                    }),
+                                    _ => None,
+                                };
+
+                                match item {
+                                    Some(item) => {
+                                        _instance.attributes.push(item);
+                                    }
+                                    None => (),
+                                }
+                            }
+
+                            */
+
+                            for _item in &class_page.items {
+                                let item = match _item {
+                                    Processors::Variable(variable) => Some(Attribute {
+                                        _rtype: AttributeType::Property,
+                                        name: variable.data.name.clone(),
+                                        page: class_item.inner_page_id,
+                                        hash: variable.data.hash,
+                                        class_hash: class_item.hash,
+                                    }),
+                                    Processors::Function(function) => Some(Attribute {
+                                        _rtype: AttributeType::Property,
+                                        name: function.data.name.clone(),
+                                        page: class_item.inner_page_id,
+                                        hash: function.data.hash,
+                                        class_hash: class_item.hash,
+                                    }),
+                                    Processors::Getter(getter) => Some(Attribute {
+                                        _rtype: AttributeType::Property,
+                                        name: getter.name.clone(),
+                                        page: class_item.inner_page_id,
+                                        hash: getter.hash,
+                                        class_hash: class_item.hash,
+                                    }),
+                                    Processors::Setter(setter) => Some(Attribute {
+                                        _rtype: AttributeType::Property,
+                                        name: setter.name.clone(),
+                                        page: class_item.inner_page_id,
+                                        hash: setter.hash,
+                                        class_hash: class_item.hash,
+                                    }),
+                                    _ => None,
+                                };
+
+                                match item {
+                                    Some(item) => {
+                                        _instance.attributes.push(item);
+                                    }
+                                    None => (),
+                                }
+                            }
+                            items.push(
+                                ellie_tokenizer::processors::items::Processors::ClassInstance(
+                                    _instance.clone(),
+                                ),
+                            );
+                        }
+                        _ => unreachable!("Function is not a class"),
+                    }
+                } else {
+                    parser.informations.push(
+                        &error::error_list::ERROR_S38.clone().build_with_path(
+                            vec![error::ErrorBuildField {
+                                key: "token".to_owned(),
+                                value: "function".to_owned(),
+                            }],
+                            alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                            page.path,
+                            self.data.pos,
+                        ),
+                    );
+                    return false;
+                };
+
+                items.extend(self.data.body.clone());
                 let inner = ellie_tokenizer::tokenizer::Page {
                     hash: inner_page_id,
                     inner: Some(page.hash),
