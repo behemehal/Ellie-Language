@@ -151,6 +151,10 @@ fn main() {
                         value: engine_constants::ELLIE_BUILD_GIT_HASH.to_owned(),
                     });
                     output.extra.push(outputs::CliOuputExtraData {
+                        key: "git_branch".to_string(),
+                        value: engine_constants::ELLIE_BUILD_GIT_BRANCH.to_owned(),
+                    });
+                    output.extra.push(outputs::CliOuputExtraData {
                         key: "build_date".to_string(),
                         value: engine_constants::ELLIE_BUILD_DATE.to_owned(),
                     });
@@ -186,10 +190,20 @@ fn main() {
                     println!("{}", serde_json::to_string(&output).unwrap());
                 } else {
                     println!(
-                        "EllieFMT v{} ({}: {})\nEllie v{} - Code: {}\nTokenizer Version: v{}\nCore version: v{}\n",
+                        "EllieFMT v{} ({}: {}){}\nEllie v{} - Code: {}\nTokenizer Version: v{}\nCore version: v{}\n",
                         version,
                         engine_constants::ELLIE_BUILD_GIT_HASH,
                         engine_constants::ELLIE_BUILD_DATE,
+                        if engine_constants::ELLIE_BUILD_GIT_BRANCH != "main" {
+                            format!(
+                                " [{}{}{}] ",
+                                cli_color.color(Colors::Yellow),
+                                engine_constants::ELLIE_BUILD_GIT_BRANCH,
+                                cli_color.color(Colors::Reset)
+                            )
+                        } else {
+                            String::new()
+                        },
                         engine_constants::ELLIE_ENGINE_VERSION,
                         engine_constants::ELLIE_ENGINE_VERSION_NAME,
                         engine_constants::ELLIE_TOKENIZER_VERSION,
@@ -214,10 +228,20 @@ fn main() {
                     println!("{}", serde_json::to_string(&output).unwrap());
                 } else {
                     println!(
-                        "EllieFMT v{}({} : {}) ",
+                        "EllieFMT v{}({} : {}){}",
                         version,
                         engine_constants::ELLIE_BUILD_GIT_HASH,
-                        engine_constants::ELLIE_BUILD_DATE
+                        engine_constants::ELLIE_BUILD_DATE,
+                        if engine_constants::ELLIE_BUILD_GIT_BRANCH != "main" {
+                            format!(
+                                " [{}{}{}] ",
+                                cli_color.color(Colors::Yellow),
+                                engine_constants::ELLIE_BUILD_GIT_BRANCH,
+                                cli_color.color(Colors::Reset)
+                            )
+                        } else {
+                            String::new()
+                        },
                     );
                 }
             }

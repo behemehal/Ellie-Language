@@ -325,8 +325,16 @@ pub static ELLIE_FMT_VERSION : &'static str = &{ellie_fmt_version};"#
         .stdout;
     let git_hash = String::from_utf8(git_hash).unwrap();
     let git_hash = git_hash.trim();
+    let git_branch = Command::new("git")
+        .args(&["rev-parse", "--abbrev-ref", "HEAD"])
+        .output()
+        .expect("Failed to execute 'git' command. Ellie requires git to be installed to build.")
+        .stdout;
+    let git_branch = String::from_utf8(git_branch).unwrap().replace('\n', "");
+
     output += &format!("\npub static ELLIE_BUILD_DATE : &'static str = &\"{date}\";");
-    output += &format!("\npub static ELLIE_BUILD_GIT_HASH : &'static str = &\"{git_hash}\";\n");
+    output += &format!("\npub static ELLIE_BUILD_GIT_HASH : &'static str = &\"{git_hash}\";");
+    output += &format!("\npub static ELLIE_BUILD_GIT_BRANCH : &'static str = &\"{git_branch}\";\n");
 
     fs::write(
         env!("CARGO_MANIFEST_DIR").to_owned() + &"/src/engine_constants.rs",

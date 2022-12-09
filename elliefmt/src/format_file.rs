@@ -2,7 +2,7 @@ use ellie_engine::{
     ellie_core::module_path::parse_module_import,
     ellie_fmt::fmt::{Formatter, FormatterOptions},
     ellie_renderer_utils::{
-        outputs,
+        options, outputs,
         utils::{self, print_errors, CliColor, ColorDisplay, Colors},
     },
     ellie_tokenizer::tokenizer::{ImportType, ResolvedImport},
@@ -267,7 +267,7 @@ pub fn format_file(target_path: &Path, output_path: &Path, formatter_settings: F
                             )
                             .to_string()
                         },
-                        cli_color,
+                        cli_color.clone(),
                     )
                 );
             }
