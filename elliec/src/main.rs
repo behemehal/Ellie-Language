@@ -549,8 +549,8 @@ fn main() {
                         value: engine_constants::ELLIE_BUILD_GIT_HASH.to_owned(),
                     });
                     output.extra.push(outputs::CliOuputExtraData {
-                        key: "git_branch".to_string(),
-                        value: engine_constants::ELLIE_BUILD_GIT_BRANCH.to_owned(),
+                        key: "git_hash".to_string(),
+                        value: engine_constants::ELLIE_BUILD_GIT_HASH.to_owned(),
                     });
                     output.extra.push(outputs::CliOuputExtraData {
                         key: "build_date".to_string(),

@@ -1,0 +1,29 @@
+{
+	"folders": [
+		{
+			"path": "ellie_engine",
+			"name": "Ellie Engine (Core Files)"
+		},
+		{
+			"path": "elliec",
+			"name": "elliec (Compiler App)"
+		},
+		{
+			"path": "ellieid",
+			"name": "ellied (Interactive Debugger App)"
+		},
+		{
+			"path": "elliefmt",
+			"name": "elliefmt (Formatter App)"
+		},
+		{
+			"path": "ellievm",
+			"name": "ellievm (Virtual Machine App)"
+		},
+		{
+			"path": "tools",
+			"name": "ellieTools"
+		}
+	],
+	"settings": {}
+}

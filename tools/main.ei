@@ -1,8 +1,3 @@
-
-
-
-
-
 /*
 
 
@@ -117,67 +112,67 @@ test[0] = 2;
 //}
 
 @dont_fix_variant;
-        pub class bool {}
+pub class bool {}
         
-        @dont_fix_variant;
-        pub class string {}
+@dont_fix_variant;
+pub class string {}
+
+@dont_fix_variant;
+pub class char {}
+
+pub class TypeId {
+    v id: int;
+    v size: int;
+}
+
+pub class rawType {
+    v typeId: TypeId;
+    v data: [int];
+}
+
+@dont_fix_variant;
+pub class array {
+    co(data, length);
+    v data: rawType;
+    //0 if no limit has set
+    v length: int;
+}
+
+@dont_fix_variant;
+pub class cloak {
+    co(data);
+    v data: rawType;
+}
         
-        @dont_fix_variant;
-        pub class char {}
-
-        pub class TypeId {
-            v id: int;
-            v size: int;
-        }
-
-        pub class rawType {
-            v typeId: TypeId;
-            v data: [int];
-        }
-
-        @dont_fix_variant;
-        pub class array {
-            co(data, length);
-            v data: rawType;
-            //0 if no limit has set
-            v length: int;
-        }
-
-        @dont_fix_variant;
-        pub class cloak {
-            co(data);
-            v data: rawType;
-        }
+@dont_fix_variant;
+pub class int {}
         
-        @dont_fix_variant;
-        pub class int {}
-        
-        @dont_fix_variant;
-        pub class float {}
+@dont_fix_variant;
+pub class float {}
 
-        @dont_fix_variant;
-        pub class double {}
+@dont_fix_variant;
+pub class double {}
 
-        @dont_fix_variant;
-        pub class void {}
+@dont_fix_variant;
+pub class void {}
 
-        @dont_fix_variant;
-        pub class null {}
+@dont_fix_variant;
+pub class null {}
 
-        @dont_fix_variant;
-        pub class function {}
+@dont_fix_variant;
+pub class function {}
 
-        @dont_fix_variant;
-        pub class nullAble<T> {}
+@dont_fix_variant;
+pub class nullAble<T> {}
 
-        @dont_fix_variant;
-        pub class object {}
+@dont_fix_variant;
+pub class object {}
 
-        @ellie_deep_cast=true;
-        c true : bool = 1 as bool;
-        @ellie_deep_cast=false;
-        c false : bool = 0 as bool;
-        pub fn println(s: string);
+@ellie_deep_cast=true;
+c true : bool = 1 as bool;
+@ellie_deep_cast=false;
+c false : bool = 0 as bool;
+pub fn println(s: string);
 
 /*
 fn factorial(x: int) : int {
@@ -217,17 +212,28 @@ fn test(f: int) : int {
 //    }
 //}
 
-fn factorial(x: int) : int {
-    if x == 1 {
-        ret 1;
-    } else {
-        ret x * factorial(x - 1);
-    }
+//fn factorial(x: int) : int {
+//    if x == 1 {
+//        ret 1;
+//    } else {
+//        ret x * factorial(x - 1);
+//    }
+//}
+
+class Example {
+    co(first_param, second_param);
+
+    v first_param: int;
+    v second_param: int;
 }
 
 fn main() {
-    v ccloak = (1, 2, 3);
-    println("ccloak: " + (ccloak[0]!));
+
+    v test = new Example(1, 2);
+    println("test: " + test.first_param);
+
+    //v ccloak = (1, 2, 3);
+    //println("ccloak: " + (ccloak[0]!));
 }
 
 /*
