@@ -2809,6 +2809,7 @@ where
             }
             Instructions::UGR(_) => todo!(),
             Instructions::ULR(_) => todo!(),
+            Instructions::CALLC(_) => todo!(),
         }
         let stack_id = current_stack.id;
         let stack_pos = current_stack.stack_pos;

@@ -2,7 +2,7 @@
 name = "ellie_engine"
 version_code = "BeautifulTropicalFish"
 version = "0.9.0"
-authors = ["Ahmetcan Aksu <ahmetcanaksu@behemehal.net>", "Behemehal <info@behemehal.net>"]
+authors = ["Ahmetcan Aksu <ahmetcanaksu@behemehal.org>", "Behemehal <info@behemehal.org>"]
 edition = "2021"
 license-file = "LICENSE"
 

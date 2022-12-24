@@ -1036,6 +1036,14 @@ lazy_static! {
                 mode: "immediate",
             },
         );
+        i.insert(
+            "callc_absolute",
+            Instruction {
+                rtype: "callc",
+                code: 129,
+                mode: "absolute",
+            },
+        );
         i
     };
 }

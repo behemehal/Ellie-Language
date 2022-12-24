@@ -62,7 +62,9 @@ pub fn resolve_type(
 ) {
     match types {
         Types::Collective(_) => todo!(),
-        Types::Reference(_) => todo!(),
+        Types::Reference(e) => {
+            panic!("Reference is not supported yet!: {:#?}", e);
+        }
         Types::BraceReference(e) => {
             resolve_type(
                 assembler,
@@ -420,8 +422,98 @@ pub fn resolve_type(
             }
         }
         Types::Function(_) => todo!(),
-        Types::ClassCall(_) => {
-            todo!()
+        Types::ClassInstance(class_instance) => {
+            panic!("Class instance not implemented yet: {:#?}", class_instance)
+        }
+        Types::ClassCall(class_call) => {
+            let target_local = match *class_call.target.clone() {
+                Types::VariableType(e) => {
+                    let target_local = e.value;
+                    let target = assembler
+                        .find_local(&target_local, dependencies.clone())
+                        .unwrap()
+                        .clone();
+                    target.cursor
+                }
+                _ => unreachable!(),
+            };
+            let previous_params_location = assembler.location();
+            if !class_call.params.is_empty() {
+                assembler.instructions.push(instructions::Instructions::LDA(
+                    Instruction::immediate(instructions::Types::Array(0), vec![]),
+                ));
+                assembler
+                    .instructions
+                    .push(instructions::Instructions::STA(Instruction::implicit()));
+                let params_location = assembler.location();
+                for param in &class_call.params {
+                    resolve_type(
+                        assembler,
+                        &param.value,
+                        instructions::Registers::A,
+                        &target_page,
+                        dependencies.clone(),
+                    );
+                    assembler
+                        .instructions
+                        .push(instructions::Instructions::STA(Instruction::implicit()));
+                    assembler
+                        .instructions
+                        .push(instructions::Instructions::PUSH(Instruction::absolute(
+                            params_location,
+                        )));
+
+                    /*
+                    //Functions always reserve parameter spaces we're writing upper locations of function
+                    assembler.instructions.push(instructions::Instructions::STA(
+                        Instruction::immediate(
+                            instructions::Types::Integer,
+                            idx.to_le_bytes().to_vec(),
+                        ),
+                    ));
+                    assembler.instructions.push(instructions::Instructions::STA(
+                        Instruction::absolute_index(target.cursor, assembler.location()),
+                    ));
+                    */
+                }
+                assembler.instructions.push(instructions::Instructions::LDX(
+                    Instruction::absolute(params_location),
+                ));
+            }
+            assembler
+                .instructions
+                .push(instructions::Instructions::CALLC(Instruction::absolute(
+                    target_local,
+                )));
+            assembler
+                .instructions
+                .push(instructions::Instructions::LDX(Instruction::absolute(
+                    previous_params_location,
+                )));
+
+            match target_register {
+                instructions::Registers::A => {
+                    assembler
+                        .instructions
+                        .push(instructions::Instructions::LDA(Instruction::indirect_y()));
+                }
+                instructions::Registers::B => {
+                    assembler
+                        .instructions
+                        .push(instructions::Instructions::LDB(Instruction::indirect_y()));
+                }
+                instructions::Registers::C => {
+                    assembler
+                        .instructions
+                        .push(instructions::Instructions::LDC(Instruction::indirect_y()));
+                }
+                instructions::Registers::X => {
+                    assembler
+                        .instructions
+                        .push(instructions::Instructions::LDX(Instruction::indirect_y()));
+                }
+                instructions::Registers::Y => (),
+            }
         }
         Types::FunctionCall(function_call) => {
             let target_local = match *function_call.target.clone() {
@@ -449,8 +541,7 @@ pub fn resolve_type(
                     .push(instructions::Instructions::STA(Instruction::implicit()));
                 let params_location = assembler.location();
 
-                for (idx, param) in function_call.params.iter().enumerate() {
-                    let _idx = function_call.params.len() - idx;
+                for param in &function_call.params {
                     resolve_type(
                         assembler,
                         &param.value,
@@ -906,6 +997,5 @@ pub fn resolve_type(
         Types::Dynamic => todo!(),
         Types::SetterCall(_) => todo!(),
         Types::EnumData(_) => todo!(),
-        Types::ClassInstance(_) => todo!(),
     }
 }

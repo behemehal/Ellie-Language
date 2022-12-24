@@ -126,3 +126,4 @@ brk,implicit,125
 calln,immediate,126
 co,absolute,127
 fn,immediate,128
+callc,absolute,129

@@ -44,6 +44,7 @@ pub enum Types {
     Array(usize),
     Void,
     Null,
+    Class(usize, usize),
 }
 
 impl Types {
@@ -59,6 +60,9 @@ impl Types {
             Types::Array(len) => alloc::format!("array<{len} / platformSize>"),
             Types::Void => "void".to_string(),
             Types::Null => "null".to_string(),
+            Types::Class(class_location, data_location) => {
+                alloc::format!("class<{class_location}:{data_location}>")
+            }
         }
     }
 
@@ -76,6 +80,7 @@ impl Types {
             Types::Void => (8, 0),
             Types::Array(array_len) => (9, *array_len),
             Types::Null => (10, 0),
+            Types::Class(_, _) => (11, (platform_size.usize_len() * 2) as usize),
         }
     }
 }
@@ -265,6 +270,7 @@ pub enum Instructions {
     JMP(Instruction),
     CALL(Instruction),
     CALLN(Instruction),
+    CALLC(Instruction),
     RET(Instruction),
     AOL(Instruction),
     PUSH(Instruction),
@@ -735,6 +741,16 @@ impl Instructions {
                 op_code.extend(e.addressing_mode.arg(platform_size));
                 op_code
             }
+            Instructions::CALLC(e) => {
+                let instruction = crate::instruction_table::INSTRUCTIONS
+                    .clone()
+                    .drain()
+                    .find(|(k, _)| *k == "callc_".to_string() + &e.addressing_mode.to_string())
+                    .unwrap();
+                let mut op_code: Vec<u8> = vec![instruction.1.code];
+                op_code.extend(e.addressing_mode.arg(platform_size));
+                op_code
+            }
         }
     }
 
@@ -784,6 +800,7 @@ impl Instructions {
             Instructions::BRK(e) => e.addressing_mode.clone(),
             Instructions::CO(e) => e.addressing_mode.clone(),
             Instructions::FN(e) => e.addressing_mode.clone(),
+            Instructions::CALLC(e) => e.addressing_mode.clone(),
         }
         .to_string()
     }
@@ -834,6 +851,7 @@ impl Instructions {
             Instructions::BRK(e) => e.addressing_mode.arg(platform_size),
             Instructions::CO(e) => e.addressing_mode.arg(platform_size),
             Instructions::FN(e) => e.addressing_mode.arg(platform_size),
+            Instructions::CALLC(e) => e.addressing_mode.arg(platform_size),
         }
     }
 }
@@ -885,6 +903,7 @@ impl core::fmt::Display for Instructions {
             Instructions::BRK(_) => write!(f, "BRK"),
             Instructions::CO(instruction) => write!(f, "CO {}", instruction.addressing_mode),
             Instructions::FN(instruction) => write!(f, "FN {}", instruction.addressing_mode),
+            Instructions::CALLC(instruction) => write!(f, "CALLC {}", instruction.addressing_mode),
         }
     }
 }

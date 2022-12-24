@@ -185,6 +185,7 @@ pub enum Instructions {
     CALLN(Instruction),
     CO(Instruction),
     FN(Instruction),
+    CALLC(Instruction),
 }
 
 impl Instructions {
@@ -701,6 +702,9 @@ impl Instructions {
             128 => Some(Instructions::FN(Instruction {
                 addressing_mode: AddressingModes::Immediate,
             })),
+            129 => Some(Instructions::CALLC(Instruction {
+                addressing_mode: AddressingModes::Immediate,
+            })),
             _ => None,
         }
     }
@@ -754,6 +758,7 @@ impl Instructions {
             Instructions::FN(e) => e.addressing_mode.clone(),
             Instructions::UGR(e) => e.addressing_mode.clone(),
             Instructions::ULR(e) => e.addressing_mode.clone(),
+            Instructions::CALLC(e) => e.addressing_mode.clone(),
         }
     }
 }

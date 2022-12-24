@@ -5,7 +5,7 @@
 Why ellie? Ellie is a type-safe programing language that runs on embedded and sandboxed environments. 
 
 ## Docs
-You see detailed docs [here](https://docs.ellie-lang.org)
+You can see detailed docs [here](https://docs.ellie-lang.org)
 
 ## Robotics
 Check [Robotics.md](./Robotics.md)
