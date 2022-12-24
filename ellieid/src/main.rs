@@ -1,10 +1,13 @@
+fn main() {}
+/*
 fn main() {
+    let cli_color = &CliColor;
     println!(
         "{}EllieVM - Interactive Debugger{}: {}Type 'help' for help{}\n",
-        utils::Colors::Green,
-        utils::Colors::Reset,
-        utils::Colors::Yellow,
-        utils::Colors::Reset
+        Colors::Green,
+        Colors::Reset,
+        Colors::Yellow,
+        Colors::Reset
     );
 
     pub struct EidOptions {
@@ -291,8 +294,8 @@ fn main() {
                             _ => {
                                 println!(
                                     "{}Invalid argument type{}: Expected String",
-                                    utils::Colors::Red,
-                                    utils::Colors::Reset
+                                    Colors::Red,
+                                    Colors::Reset
                                 );
                             }
                         }
@@ -310,16 +313,16 @@ fn main() {
                     println!(
                         "Code preview is now {}'{}'{}",
                         if options.CodePreview {
-                            utils::Colors::Green
+                            Colors::Green
                         } else {
-                            utils::Colors::Red
+                            Colors::Red
                         },
                         if options.CodePreview {
                             "enabled"
                         } else {
                             "disabled"
                         },
-                        utils::Colors::Reset
+                        Colors::Reset
                     );
                 }
                 EidCommands::HeapPreview => {
@@ -327,16 +330,16 @@ fn main() {
                     println!(
                         "Heap preview is now {}'{}'{}",
                         if options.HeapPreview {
-                            utils::Colors::Green
+                            Colors::Green
                         } else {
-                            utils::Colors::Red
+                            Colors::Red
                         },
                         if options.HeapPreview {
                             "enabled"
                         } else {
                             "disabled"
                         },
-                        utils::Colors::Reset
+                        Colors::Reset
                     );
                 }
                 EidCommands::StackPreview => {
@@ -344,16 +347,16 @@ fn main() {
                     println!(
                         "Stack preview is now {}'{}'{}",
                         if options.StackPreview {
-                            utils::Colors::Green
+                            Colors::Green
                         } else {
-                            utils::Colors::Red
+                            Colors::Red
                         },
                         if options.StackPreview {
                             "enabled"
                         } else {
                             "disabled"
                         },
-                        utils::Colors::Reset
+                        Colors::Reset
                     );
                 }
                 EidCommands::RegistersPreview => {
@@ -361,16 +364,16 @@ fn main() {
                     println!(
                         "Registers preview is now {}'{}'{}",
                         if options.RegistersPreview {
-                            utils::Colors::Green
+                            Colors::Green
                         } else {
-                            utils::Colors::Red
+                            Colors::Red
                         },
                         if options.RegistersPreview {
                             "enabled"
                         } else {
                             "disabled"
                         },
-                        utils::Colors::Reset
+                        Colors::Reset
                     );
                 }
                 EidCommands::Load => {
@@ -379,8 +382,8 @@ fn main() {
                         _ => {
                             println!(
                                 "{}Invalid argument type{}: Expected String",
-                                utils::Colors::Red,
-                                utils::Colors::Reset
+                                Colors::Red,
+                                Colors::Reset
                             );
                             continue;
                         }
@@ -416,11 +419,11 @@ fn main() {
                                     Err(e) => {
                                         println!(
                                             "{}Error:{} Failed to read program, error code: {}{}{}",
-                                            utils::Colors::Red,
-                                            utils::Colors::Reset,
-                                            utils::Colors::Cyan,
+                                            Colors::Red,
+                                            Colors::Reset,
+                                            Colors::Cyan,
                                             e,
-                                            utils::Colors::Reset
+                                            Colors::Reset
                                         );
                                         std::process::exit(1);
                                     }
@@ -429,11 +432,11 @@ fn main() {
                             Err(e) => {
                                 println!(
                                     "{}Error:{} Failed to read file {}[{}]{}",
-                                    utils::Colors::Red,
-                                    utils::Colors::Reset,
-                                    utils::Colors::Cyan,
+                                    Colors::Red,
+                                    Colors::Reset,
+                                    Colors::Cyan,
                                     e,
-                                    utils::Colors::Reset
+                                    Colors::Reset
                                 );
                                 std::process::exit(1);
                             }
@@ -441,18 +444,18 @@ fn main() {
                     } else {
                         println!(
                             "{}Invalid path{}: Not a file",
-                            utils::Colors::Red,
-                            utils::Colors::Reset
+                            Colors::Red,
+                            Colors::Reset
                         );
                         continue;
                     }
                     println!(
                         "{}Program loaded{}: {}{}{}",
-                        utils::Colors::Green,
-                        utils::Colors::Reset,
-                        utils::Colors::Cyan,
+                        Colors::Green,
+                        Colors::Reset,
+                        Colors::Cyan,
                         path.to_str().unwrap(),
-                        utils::Colors::Reset
+                        Colors::Reset
                     );
                     match debug_file_path {
                         Some(path) => {
@@ -467,18 +470,18 @@ fn main() {
                                                 debug_info = Some(e);
                                                 println!(
                                                     "{}Debug file loaded{}: {}{}{}",
-                                                    utils::Colors::Green,
-                                                    utils::Colors::Reset,
-                                                    utils::Colors::Cyan,
+                                                    Colors::Green,
+                                                    Colors::Reset,
+                                                    Colors::Cyan,
                                                     path.to_str().unwrap(),
-                                                    utils::Colors::Reset
+                                                    Colors::Reset
                                                 );
                                             }
                                             Err(e) => {
                                                 println!(
                                                     "{}Error:{} {}",
-                                                    utils::Colors::Red,
-                                                    utils::Colors::Reset,
+                                                    Colors::Red,
+                                                    Colors::Reset,
                                                     e
                                                 );
                                                 std::process::exit(1);
@@ -488,11 +491,11 @@ fn main() {
                                     Err(e) => {
                                         println!(
                                             "{}Error:{} Failed to read file {}[{}]{}",
-                                            utils::Colors::Red,
-                                            utils::Colors::Reset,
-                                            utils::Colors::Cyan,
+                                            Colors::Red,
+                                            Colors::Reset,
+                                            Colors::Cyan,
                                             e,
-                                            utils::Colors::Reset
+                                            Colors::Reset
                                         );
                                         std::process::exit(1);
                                     }
@@ -520,35 +523,35 @@ fn main() {
                     Some(e) => {
                         println!(
                             "{}Program info{}:",
-                            utils::Colors::Green,
-                            utils::Colors::Reset,
+                            Colors::Green,
+                            Colors::Reset,
                         );
                         println!(
                             "{}- Arch{}: {}",
-                            utils::Colors::Yellow,
-                            utils::Colors::Reset,
+                            Colors::Yellow,
+                            Colors::Reset,
                             e.arch
                         );
                         println!(
                             "{}- Debug Info{}: {}{}{}",
-                            utils::Colors::Yellow,
-                            utils::Colors::Reset,
+                            Colors::Yellow,
+                            Colors::Reset,
                             match debug_info {
-                                Some(_) => utils::Colors::Green,
-                                None => utils::Colors::Red,
+                                Some(_) => Colors::Green,
+                                None => Colors::Red,
                             },
                             match debug_info {
                                 Some(_) => "Available",
                                 None => "Not available",
                             },
-                            utils::Colors::Reset
+                            Colors::Reset
                         );
                     }
                     None => {
                         println!(
                             "{}Error:{} No program loaded",
-                            utils::Colors::Red,
-                            utils::Colors::Reset
+                            Colors::Red,
+                            Colors::Reset
                         );
                     }
                 },
@@ -560,25 +563,26 @@ fn main() {
                     } else {
                         println!(
                             "{}Unknown command: {}{}\n",
-                            utils::Colors::Red,
+                            Colors::Red,
                             _command,
-                            utils::Colors::Reset
+                            Colors::Reset
                         );
                     }
                 } else if e == 1 {
                     println!(
                         "{}Invalid argument length{}: Check syntax of the command",
-                        utils::Colors::Red,
-                        utils::Colors::Reset
+                        Colors::Red,
+                        Colors::Reset
                     );
                 } else if e == 2 {
                     println!(
                         "{}Invalid argument type{}: Check syntax of the command",
-                        utils::Colors::Red,
-                        utils::Colors::Reset
+                        Colors::Red,
+                        Colors::Reset
                     );
                 }
             }
         }
     }
 }
+*/

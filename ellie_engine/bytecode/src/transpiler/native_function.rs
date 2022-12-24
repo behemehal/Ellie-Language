@@ -26,6 +26,7 @@ impl super::Transpiler for native_function::NativeFunction {
             name: self.name.clone(),
             cursor: assembler.location(),
             page_hash: processed_page.hash,
+            hash: Some(self.hash),
             reference: Instruction::absolute(assembler.location()),
         });
 

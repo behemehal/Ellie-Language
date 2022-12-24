@@ -434,6 +434,7 @@ fn main() {
                                     format!("CO {:?}", thread_step.instruction.addressing_value),
                                 Instructions::FN(_) =>
                                     format!("FN {:?}", thread_step.instruction.addressing_value),
+                                Instructions::CALLC(_) => todo!(),
                             },
                             cli_color.color(Colors::Reset)
                         );

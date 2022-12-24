@@ -24,6 +24,7 @@ pub struct LocalHeader {
     pub name: String,
     pub cursor: usize,
     pub reference: Instruction,
+    pub hash: Option<usize>,
     pub page_hash: usize,
 }
 
@@ -53,6 +54,12 @@ impl InstructionPage {
 
     pub fn find_local(&self, name: &String) -> Option<&LocalHeader> {
         self.locals.iter().find(|_local| &_local.name == name)
+    }
+
+    pub fn find_local_by_hash(&self, hash: usize) -> Option<&LocalHeader> {
+        self.locals
+            .iter()
+            .find(|_local| matches!(_local.hash, Some(e) if e == hash))
     }
 }
 
@@ -388,7 +395,7 @@ impl Assembler {
                 ellie_core::definite::items::Collecting::Loop(loop_type) => {
                     loop_type.transpile(self, processed_page.hash as usize, &processed_page)
                 }
-                ellie_core::definite::items::Collecting::ClassInstance(class_instance) =>{
+                ellie_core::definite::items::Collecting::ClassInstance(class_instance) => {
                     class_instance.transpile(self, processed_page.hash as usize, &processed_page)
                 }
             };

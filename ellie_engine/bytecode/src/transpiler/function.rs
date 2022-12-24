@@ -28,6 +28,7 @@ impl super::Transpiler for function::Function {
             name: self.name.clone(),
             cursor: assembler.location(),
             page_hash: processed_page.hash,
+            hash: Some(self.hash),
             reference: Instruction::absolute(assembler.location()),
         });
 
@@ -64,6 +65,7 @@ impl super::Transpiler for function::Function {
                 name: self.parameters[hash].name.clone(),
                 page_hash: processed_page.hash,
                 cursor: assembler.location(),
+                hash: None,
                 reference: Instruction::function_parameter(hash),
             });
         }

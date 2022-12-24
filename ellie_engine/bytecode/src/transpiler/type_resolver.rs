@@ -63,7 +63,18 @@ pub fn resolve_type(
     match types {
         Types::Collective(_) => todo!(),
         Types::Reference(e) => {
-            panic!("Reference is not supported yet!: {:#?}", e);
+            let target_local = match *e.reference.clone() {
+                Types::VariableType(e) => {
+                    let target_local = e.value;
+                    let target = assembler
+                        .find_local(&target_local, dependencies.clone())
+                        .unwrap()
+                        .clone();
+                    target
+                }
+                _ => unreachable!(),
+            };
+            panic!("Reference is not supported yet!: {:#?} {:#?}", target_local, assembler.instructions[target_local.cursor]);
         }
         Types::BraceReference(e) => {
             resolve_type(

@@ -17,6 +17,7 @@ impl super::Transpiler for class::Class {
             name: self.name.clone(),
             cursor: assembler.location(),
             page_hash: processed_page.hash,
+            hash: Some(self.hash),
             reference: Instruction::absolute(assembler.location()),
         });
 

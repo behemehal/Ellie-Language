@@ -18,6 +18,7 @@ impl super::Transpiler for class_instance::ClassInstance {
                 name: format!("self.{}", item.name),
                 cursor: 0,
                 page_hash: processed_page.hash,
+                hash: Some(item.hash),
                 reference: Instruction::absolute(item.hash),
             });
         }
