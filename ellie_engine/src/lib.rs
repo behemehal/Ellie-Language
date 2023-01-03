@@ -7,7 +7,7 @@
 //!
 //! Copyright (c) 2020 Behemehal. See license file for details
 
-#[cfg(feature = "build-cli")]
+#[cfg(any(feature = "std", feature = "cli-utils"))]
 extern crate std;
 
 extern crate alloc;

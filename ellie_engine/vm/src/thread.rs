@@ -161,6 +161,8 @@ where
 
         let current_instruction = &self.program[current_stack.stack_pos];
 
+        println!("{:?}", current_instruction);
+
         match &current_instruction.instruction {
             Instructions::LDA(_) => match &current_instruction.addressing_value {
                 utils::AddressingValues::Implicit => todo!(),

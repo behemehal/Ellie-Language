@@ -336,9 +336,11 @@ pub static ELLIE_FMT_VERSION : &'static str = &{ellie_fmt_version};"#
     output += &format!("\npub static ELLIE_BUILD_GIT_HASH : &'static str = &\"{git_hash}\";");
     output += &format!("\npub static ELLIE_BUILD_GIT_BRANCH : &'static str = &\"{git_branch}\";\n");
 
-    fs::write(
-        env!("CARGO_MANIFEST_DIR").to_owned() + &"/src/engine_constants.rs",
-        output,
-    )
-    .unwrap();
+    if matches!(env::var("PROFILE"), Ok(e) if e == "release") {
+        fs::write(
+            env!("CARGO_MANIFEST_DIR").to_owned() + &"/src/engine_constants.rs",
+            output,
+        )
+        .unwrap();
+    }
 }

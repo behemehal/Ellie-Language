@@ -22,7 +22,11 @@ impl super::Transpiler for class_instance::ClassInstance {
                 reference: Instruction::absolute(item.hash),
             });
         }
-        std::println!("Class instance transpiler is not implemented yet:  {:#?}\n{:#?}", self, assembler.locals);
+        std::println!(
+            "Class instance transpiler is not implemented yet:  {:#?}\n{:#?}",
+            self,
+            assembler.locals
+        );
         true
     }
 }

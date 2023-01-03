@@ -25,5 +25,9 @@
 			"name": "ellieTools"
 		}
 	],
-	"settings": {}
+	"settings": {
+		"workbench.editor.labelFormat": "short",
+		"workbench.startupEditor": "readme",
+		"window.title": "Ellie-Language ${separator}${activeEditorShort}",
+	}
 }

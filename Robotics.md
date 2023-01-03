@@ -7,4 +7,4 @@ While ellie works with low memory devices, standard libraries can power up micro
 EllieUp will provide version updates to libraries and devices. Version control will be handled by github but package repositories will be kept in EllieUp servers.
 
 ### Early prototype of gui
-![icon](./picture/ellieUp.png)
+![icon](https://www.ellie-lang.org/brand/ellieUp.png)

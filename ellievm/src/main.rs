@@ -1,5 +1,3 @@
-pub mod vm;
-use crate::vm::{parse_debug_file, read_program, RFile};
 use ellie_engine::{
     ellie_core::{
         defs::{DebugHeader, DebugInfo, PlatformArchitecture, VmNativeAnswer},
@@ -7,15 +5,16 @@ use ellie_engine::{
     },
     ellie_renderer_utils::{
         options, outputs,
-        utils::{self, CliColor, ColorDisplay, Colors, TextStyles},
+        utils::{CliColor, ColorDisplay, Colors, TextStyles},
     },
     ellie_vm::{
-        heap::{self, Heap},
+        heap::Heap,
         thread::Stack,
-        utils::{Instructions, ThreadExit, ThreadStep, ThreadStepInfo},
+        utils::{Instructions, ThreadExit, ThreadStep},
         vm::VM,
     },
     engine_constants,
+    vm::{parse_debug_file, read_program, RFile},
 };
 
 use std::{
@@ -229,6 +228,8 @@ fn main() {
                 std::process::exit(1);
             };
 
+            println!("Program: {:#?}\n", program.instructions);
+
             let mut step_into = false;
             let mut show_heap_dump = false;
             let mut show_registers = true;
@@ -282,6 +283,7 @@ fn main() {
 
             let main_thread = thread::spawn(move || loop {
                 if is_vm_debug {
+                    panic!("Debugging is moved to 'ellied'");
                     //clear console
                     fn step(
                         heap: &mut Heap,
@@ -290,7 +292,7 @@ fn main() {
                         thread_step: ThreadStep,
                         show_heap_dump: bool,
                         show_registers: bool,
-                        wait_pos: Option<usize>,
+                        _wait_pos: Option<usize>,
                         show_code: bool,
                         show_stack_info: bool,
                     ) {
@@ -434,7 +436,8 @@ fn main() {
                                     format!("CO {:?}", thread_step.instruction.addressing_value),
                                 Instructions::FN(_) =>
                                     format!("FN {:?}", thread_step.instruction.addressing_value),
-                                Instructions::CALLC(_) => todo!(),
+                                Instructions::CALLC(_) =>
+                                    format!("CALLC {:?}", thread_step.instruction.addressing_value),
                             },
                             cli_color.color(Colors::Reset)
                         );

@@ -8,4 +8,6 @@
     "editor.matchBrackets": "always",
     "editor.suggest.showStatusBar": true,
     "editor.smoothScrolling": true,
+    "workbench.editor.labelFormat": "short",
+    "workbench.startupEditor": "readme"
 }
