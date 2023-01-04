@@ -74,7 +74,7 @@ pub fn resolve_type(
                 }
                 _ => unreachable!(),
             };
-            panic!("Reference is not supported yet!: {:#?} {:#?}", target_local, assembler.instructions[target_local.cursor]);
+            std::println!("Reference is not supported yet!: \n\n{:#?}\n{:#?}\n{:#?}\n\n", target_local, assembler.instructions[target_local.cursor], e);
         }
         Types::BraceReference(e) => {
             resolve_type(

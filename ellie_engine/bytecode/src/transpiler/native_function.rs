@@ -16,11 +16,11 @@ impl super::Transpiler for native_function::NativeFunction {
         //module_name>function_name
         let address = format!("{}>{}", self.module_name, self.name);
 
-        let start = assembler.location();
         //Skip to the end of the function
         assembler
             .instructions
             .push(instructions::Instructions::FN(Instruction::absolute(144)));
+        let start = assembler.location();
 
         assembler.locals.push(LocalHeader {
             name: self.name.clone(),
@@ -60,7 +60,7 @@ impl super::Transpiler for native_function::NativeFunction {
         let mut hash = self.hash.to_le_bytes().to_vec();
         hash.extend_from_slice(&(assembler.instructions.len()).to_le_bytes());
 
-        assembler.instructions[start + 1] = Instructions::FN(Instruction::immediate(
+        assembler.instructions[start] = Instructions::FN(Instruction::immediate(
             instructions::Types::String(hash.len()),
             hash.to_vec(),
         ));

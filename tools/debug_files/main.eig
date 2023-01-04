@@ -1,0 +1,8 @@
+ellieStd: C:\Users\ahmet\Desktop\Projects\Ellie-Language\tools\debug_files
+---
+2:4:<ellie_module_ellieStd>/main.ei:first_param:237:4:237:22:6777223600086834839
+4:6:<ellie_module_ellieStd>/main.ei:second_param:238:4:238:23:1333520156103400665
+7:20:<ellie_module_ellieStd>/main.ei:test:243:4:243:30:7120025412695308065
+20:24:<ellie_module_ellieStd>/main.ei:@getter:244:4:244:10:9999999
+24:30:<ellie_module_ellieStd>/main.ei:loco:246:4:246:49:10523111964700310268
+7:31:<ellie_module_ellieStd>/main.ei:main:241:0:248:0:4227901234736000183

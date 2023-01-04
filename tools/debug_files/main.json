@@ -1,0 +1,1265 @@
+{
+    "hash": 17153871779845017529,
+    "name": "ellieStd",
+    "description": "A ellie module",
+    "initial_page": 17153871779845017529,
+    "is_library": false,
+    "ellie_version": {
+        "major": 9,
+        "minor": 0,
+        "bug": 0
+    },
+    "pages": {
+        "pages": [
+            {
+                "hash": 17153871779845017529,
+                "inner": null,
+                "unassigned_file_keys": [],
+                "global_file_keys": [],
+                "path": "<ellie_module_ellieStd>/main.ei",
+                "page_type": "RawBody",
+                "items": [
+                    {
+                        "Class": {
+                            "name": "int",
+                            "public": false,
+                            "inner_page_id": 7533634308838494585,
+                            "generic_definings": [],
+                            "name_pos": {
+                                "range_start": [
+                                    223,
+                                    6
+                                ],
+                                "range_end": [
+                                    223,
+                                    8
+                                ]
+                            },
+                            "pos": {
+                                "range_start": [
+                                    223,
+                                    0
+                                ],
+                                "range_end": [
+                                    223,
+                                    11
+                                ]
+                            },
+                            "file_keys": [
+                                {
+                                    "key_name": "dont_fix_variant",
+                                    "value": {
+                                        "VariableType": {
+                                            "value": "true",
+                                            "reference": 0,
+                                            "pos": {
+                                                "range_start": [
+                                                    0,
+                                                    0
+                                                ],
+                                                "range_end": [
+                                                    0,
+                                                    0
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "key_name_location": {
+                                        "range_start": [
+                                            222,
+                                            1
+                                        ],
+                                        "range_end": [
+                                            222,
+                                            16
+                                        ]
+                                    },
+                                    "is_global": false,
+                                    "value_location": {
+                                        "range_start": [
+                                            222,
+                                            1
+                                        ],
+                                        "range_end": [
+                                            222,
+                                            16
+                                        ]
+                                    },
+                                    "pos": {
+                                        "range_start": [
+                                            0,
+                                            0
+                                        ],
+                                        "range_end": [
+                                            222,
+                                            17
+                                        ]
+                                    }
+                                }
+                            ],
+                            "hash": 10915278773623654903
+                        }
+                    },
+                    {
+                        "Class": {
+                            "name": "void",
+                            "public": false,
+                            "inner_page_id": 3467283010057490757,
+                            "generic_definings": [],
+                            "name_pos": {
+                                "range_start": [
+                                    225,
+                                    6
+                                ],
+                                "range_end": [
+                                    225,
+                                    9
+                                ]
+                            },
+                            "pos": {
+                                "range_start": [
+                                    225,
+                                    0
+                                ],
+                                "range_end": [
+                                    225,
+                                    12
+                                ]
+                            },
+                            "file_keys": [
+                                {
+                                    "key_name": "dont_fix_variant",
+                                    "value": {
+                                        "VariableType": {
+                                            "value": "true",
+                                            "reference": 0,
+                                            "pos": {
+                                                "range_start": [
+                                                    0,
+                                                    0
+                                                ],
+                                                "range_end": [
+                                                    0,
+                                                    0
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "key_name_location": {
+                                        "range_start": [
+                                            224,
+                                            1
+                                        ],
+                                        "range_end": [
+                                            224,
+                                            16
+                                        ]
+                                    },
+                                    "is_global": false,
+                                    "value_location": {
+                                        "range_start": [
+                                            224,
+                                            1
+                                        ],
+                                        "range_end": [
+                                            224,
+                                            16
+                                        ]
+                                    },
+                                    "pos": {
+                                        "range_start": [
+                                            0,
+                                            0
+                                        ],
+                                        "range_end": [
+                                            224,
+                                            17
+                                        ]
+                                    }
+                                }
+                            ],
+                            "hash": 6885071098108903218
+                        }
+                    },
+                    {
+                        "Class": {
+                            "name": "function",
+                            "public": false,
+                            "inner_page_id": 14617199665719432168,
+                            "generic_definings": [],
+                            "name_pos": {
+                                "range_start": [
+                                    227,
+                                    6
+                                ],
+                                "range_end": [
+                                    227,
+                                    13
+                                ]
+                            },
+                            "pos": {
+                                "range_start": [
+                                    227,
+                                    0
+                                ],
+                                "range_end": [
+                                    227,
+                                    16
+                                ]
+                            },
+                            "file_keys": [
+                                {
+                                    "key_name": "dont_fix_variant",
+                                    "value": {
+                                        "VariableType": {
+                                            "value": "true",
+                                            "reference": 0,
+                                            "pos": {
+                                                "range_start": [
+                                                    0,
+                                                    0
+                                                ],
+                                                "range_end": [
+                                                    0,
+                                                    0
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "key_name_location": {
+                                        "range_start": [
+                                            226,
+                                            1
+                                        ],
+                                        "range_end": [
+                                            226,
+                                            16
+                                        ]
+                                    },
+                                    "is_global": false,
+                                    "value_location": {
+                                        "range_start": [
+                                            226,
+                                            1
+                                        ],
+                                        "range_end": [
+                                            226,
+                                            16
+                                        ]
+                                    },
+                                    "pos": {
+                                        "range_start": [
+                                            0,
+                                            0
+                                        ],
+                                        "range_end": [
+                                            226,
+                                            17
+                                        ]
+                                    }
+                                }
+                            ],
+                            "hash": 8763210197181796163
+                        }
+                    },
+                    {
+                        "NativeFunction": {
+                            "name": "wait",
+                            "parameters": [],
+                            "return_type": {
+                                "Generic": {
+                                    "rtype": "void",
+                                    "pos": {
+                                        "range_start": [
+                                            225,
+                                            0
+                                        ],
+                                        "range_end": [
+                                            225,
+                                            12
+                                        ]
+                                    },
+                                    "hash": 6885071098108903218
+                                }
+                            },
+                            "public": true,
+                            "name_pos": {
+                                "range_start": [
+                                    229,
+                                    7
+                                ],
+                                "range_end": [
+                                    229,
+                                    10
+                                ]
+                            },
+                            "parameters_pos": {
+                                "range_start": [
+                                    0,
+                                    0
+                                ],
+                                "range_end": [
+                                    0,
+                                    0
+                                ]
+                            },
+                            "return_pos": {
+                                "range_start": [
+                                    0,
+                                    0
+                                ],
+                                "range_end": [
+                                    0,
+                                    0
+                                ]
+                            },
+                            "pos": {
+                                "range_start": [
+                                    229,
+                                    4
+                                ],
+                                "range_end": [
+                                    229,
+                                    5
+                                ]
+                            },
+                            "hash": 0,
+                            "file_keys": [],
+                            "no_return": true,
+                            "module_name": "ellieStd"
+                        }
+                    },
+                    {
+                        "Class": {
+                            "name": "Example",
+                            "public": false,
+                            "inner_page_id": 1278098851357887798,
+                            "generic_definings": [],
+                            "name_pos": {
+                                "range_start": [
+                                    234,
+                                    6
+                                ],
+                                "range_end": [
+                                    234,
+                                    12
+                                ]
+                            },
+                            "pos": {
+                                "range_start": [
+                                    234,
+                                    0
+                                ],
+                                "range_end": [
+                                    239,
+                                    0
+                                ]
+                            },
+                            "file_keys": [],
+                            "hash": 10841557460936205288
+                        }
+                    },
+                    {
+                        "Function": {
+                            "name": "main",
+                            "parameters": [],
+                            "return_type": {
+                                "Generic": {
+                                    "rtype": "void",
+                                    "pos": {
+                                        "range_start": [
+                                            225,
+                                            0
+                                        ],
+                                        "range_end": [
+                                            225,
+                                            12
+                                        ]
+                                    },
+                                    "hash": 6885071098108903218
+                                }
+                            },
+                            "inner_page_id": 9182609005462959561,
+                            "public": false,
+                            "name_pos": {
+                                "range_start": [
+                                    241,
+                                    3
+                                ],
+                                "range_end": [
+                                    241,
+                                    6
+                                ]
+                            },
+                            "body_pos": {
+                                "range_start": [
+                                    0,
+                                    0
+                                ],
+                                "range_end": [
+                                    248,
+                                    0
+                                ]
+                            },
+                            "file_keys": [],
+                            "no_return": true,
+                            "parameters_pos": {
+                                "range_start": [
+                                    0,
+                                    0
+                                ],
+                                "range_end": [
+                                    0,
+                                    0
+                                ]
+                            },
+                            "return_pos": {
+                                "range_start": [
+                                    0,
+                                    0
+                                ],
+                                "range_end": [
+                                    0,
+                                    0
+                                ]
+                            },
+                            "pos": {
+                                "range_start": [
+                                    241,
+                                    0
+                                ],
+                                "range_end": [
+                                    248,
+                                    0
+                                ]
+                            },
+                            "hash": 315633074997802788
+                        }
+                    }
+                ],
+                "dependents": [],
+                "dependencies": []
+            },
+            {
+                "hash": 7533634308838494585,
+                "inner": 17153871779845017529,
+                "unassigned_file_keys": [],
+                "global_file_keys": [],
+                "path": "<ellie_module_ellieStd>/main.ei",
+                "page_type": {
+                    "ClassBody": {
+                        "name": "int",
+                        "hash": 10915278773623654903,
+                        "page_hash": 17153871779845017529
+                    }
+                },
+                "items": [],
+                "dependents": [],
+                "dependencies": [
+                    {
+                        "hash": 17153871779845017529,
+                        "processed": false,
+                        "module": null,
+                        "deep_link": 17153871779845017529,
+                        "public": false
+                    }
+                ]
+            },
+            {
+                "hash": 3467283010057490757,
+                "inner": 17153871779845017529,
+                "unassigned_file_keys": [],
+                "global_file_keys": [],
+                "path": "<ellie_module_ellieStd>/main.ei",
+                "page_type": {
+                    "ClassBody": {
+                        "name": "void",
+                        "hash": 6885071098108903218,
+                        "page_hash": 17153871779845017529
+                    }
+                },
+                "items": [],
+                "dependents": [],
+                "dependencies": [
+                    {
+                        "hash": 17153871779845017529,
+                        "processed": false,
+                        "module": null,
+                        "deep_link": 17153871779845017529,
+                        "public": false
+                    }
+                ]
+            },
+            {
+                "hash": 14617199665719432168,
+                "inner": 17153871779845017529,
+                "unassigned_file_keys": [],
+                "global_file_keys": [],
+                "path": "<ellie_module_ellieStd>/main.ei",
+                "page_type": {
+                    "ClassBody": {
+                        "name": "function",
+                        "hash": 8763210197181796163,
+                        "page_hash": 17153871779845017529
+                    }
+                },
+                "items": [],
+                "dependents": [],
+                "dependencies": [
+                    {
+                        "hash": 17153871779845017529,
+                        "processed": false,
+                        "module": null,
+                        "deep_link": 17153871779845017529,
+                        "public": false
+                    }
+                ]
+            },
+            {
+                "hash": 1278098851357887798,
+                "inner": 17153871779845017529,
+                "unassigned_file_keys": [],
+                "global_file_keys": [],
+                "path": "<ellie_module_ellieStd>/main.ei",
+                "page_type": {
+                    "ClassBody": {
+                        "name": "Example",
+                        "hash": 10841557460936205288,
+                        "page_hash": 17153871779845017529
+                    }
+                },
+                "items": [
+                    {
+                        "Constructor": {
+                            "parameters": [
+                                {
+                                    "name": "first_param",
+                                    "pos": {
+                                        "range_start": [
+                                            235,
+                                            7
+                                        ],
+                                        "range_end": [
+                                            235,
+                                            17
+                                        ]
+                                    }
+                                },
+                                {
+                                    "name": "second_param",
+                                    "pos": {
+                                        "range_start": [
+                                            235,
+                                            20
+                                        ],
+                                        "range_end": [
+                                            235,
+                                            31
+                                        ]
+                                    }
+                                }
+                            ],
+                            "inner_page_id": 754983814604441922,
+                            "name_pos": {
+                                "range_start": [
+                                    0,
+                                    0
+                                ],
+                                "range_end": [
+                                    0,
+                                    0
+                                ]
+                            },
+                            "parameters_pos": {
+                                "range_start": [
+                                    0,
+                                    0
+                                ],
+                                "range_end": [
+                                    0,
+                                    0
+                                ]
+                            },
+                            "pos": {
+                                "range_start": [
+                                    235,
+                                    4
+                                ],
+                                "range_end": [
+                                    235,
+                                    33
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "Variable": {
+                            "name": "first_param",
+                            "constant": false,
+                            "public": false,
+                            "has_type": true,
+                            "has_value": false,
+                            "value": "Null",
+                            "pos": {
+                                "range_start": [
+                                    237,
+                                    4
+                                ],
+                                "range_end": [
+                                    237,
+                                    22
+                                ]
+                            },
+                            "name_pos": {
+                                "range_start": [
+                                    237,
+                                    6
+                                ],
+                                "range_end": [
+                                    237,
+                                    16
+                                ]
+                            },
+                            "value_pos": {
+                                "range_start": [
+                                    0,
+                                    0
+                                ],
+                                "range_end": [
+                                    0,
+                                    0
+                                ]
+                            },
+                            "type_pos": {
+                                "range_start": [
+                                    237,
+                                    19
+                                ],
+                                "range_end": [
+                                    237,
+                                    21
+                                ]
+                            },
+                            "rtype": {
+                                "Generic": {
+                                    "rtype": "int",
+                                    "pos": {
+                                        "range_start": [
+                                            223,
+                                            0
+                                        ],
+                                        "range_end": [
+                                            223,
+                                            11
+                                        ]
+                                    },
+                                    "hash": 10915278773623654903
+                                }
+                            },
+                            "file_keys": [],
+                            "hash": 16341294866694509141
+                        }
+                    },
+                    {
+                        "Variable": {
+                            "name": "second_param",
+                            "constant": false,
+                            "public": false,
+                            "has_type": true,
+                            "has_value": false,
+                            "value": "Null",
+                            "pos": {
+                                "range_start": [
+                                    238,
+                                    4
+                                ],
+                                "range_end": [
+                                    238,
+                                    23
+                                ]
+                            },
+                            "name_pos": {
+                                "range_start": [
+                                    238,
+                                    6
+                                ],
+                                "range_end": [
+                                    238,
+                                    17
+                                ]
+                            },
+                            "value_pos": {
+                                "range_start": [
+                                    0,
+                                    0
+                                ],
+                                "range_end": [
+                                    0,
+                                    0
+                                ]
+                            },
+                            "type_pos": {
+                                "range_start": [
+                                    238,
+                                    20
+                                ],
+                                "range_end": [
+                                    238,
+                                    22
+                                ]
+                            },
+                            "rtype": {
+                                "Generic": {
+                                    "rtype": "int",
+                                    "pos": {
+                                        "range_start": [
+                                            223,
+                                            0
+                                        ],
+                                        "range_end": [
+                                            223,
+                                            11
+                                        ]
+                                    },
+                                    "hash": 10915278773623654903
+                                }
+                            },
+                            "file_keys": [],
+                            "hash": 18152454127150480843
+                        }
+                    }
+                ],
+                "dependents": [],
+                "dependencies": [
+                    {
+                        "hash": 17153871779845017529,
+                        "processed": false,
+                        "module": null,
+                        "deep_link": 17153871779845017529,
+                        "public": false
+                    }
+                ]
+            },
+            {
+                "hash": 754983814604441922,
+                "inner": 1278098851357887798,
+                "unassigned_file_keys": [],
+                "global_file_keys": [],
+                "path": "<ellie_module_ellieStd>/main.ei",
+                "page_type": "ConstructorBody",
+                "items": [
+                    {
+                        "ConstructorParameter": {
+                            "name": "first_param",
+                            "pos": {
+                                "range_start": [
+                                    235,
+                                    7
+                                ],
+                                "range_end": [
+                                    235,
+                                    17
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "ConstructorParameter": {
+                            "name": "second_param",
+                            "pos": {
+                                "range_start": [
+                                    235,
+                                    20
+                                ],
+                                "range_end": [
+                                    235,
+                                    31
+                                ]
+                            }
+                        }
+                    }
+                ],
+                "dependents": [],
+                "dependencies": [
+                    {
+                        "hash": 1278098851357887798,
+                        "processed": false,
+                        "module": null,
+                        "deep_link": null,
+                        "public": false
+                    }
+                ]
+            },
+            {
+                "hash": 9182609005462959561,
+                "inner": 17153871779845017529,
+                "unassigned_file_keys": [],
+                "global_file_keys": [],
+                "path": "<ellie_module_ellieStd>/main.ei",
+                "page_type": "FunctionBody",
+                "items": [
+                    {
+                        "ClassInstance": {
+                            "class_name": "function",
+                            "class_hash": 8763210197181796163,
+                            "class_page": 17153871779845017529,
+                            "attributes": []
+                        }
+                    },
+                    {
+                        "Variable": {
+                            "name": "test",
+                            "constant": false,
+                            "public": false,
+                            "has_type": false,
+                            "has_value": true,
+                            "value": {
+                                "ClassCall": {
+                                    "target": {
+                                        "VariableType": {
+                                            "value": "Example",
+                                            "reference": 10841557460936205288,
+                                            "pos": {
+                                                "range_start": [
+                                                    243,
+                                                    13
+                                                ],
+                                                "range_end": [
+                                                    243,
+                                                    23
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "keyword_pos": {
+                                        "range_start": [
+                                            0,
+                                            0
+                                        ],
+                                        "range_end": [
+                                            0,
+                                            0
+                                        ]
+                                    },
+                                    "target_pos": {
+                                        "range_start": [
+                                            243,
+                                            13
+                                        ],
+                                        "range_end": [
+                                            243,
+                                            23
+                                        ]
+                                    },
+                                    "resolved_generics": [],
+                                    "generic_parameters": [],
+                                    "params": [
+                                        {
+                                            "value": {
+                                                "Integer": {
+                                                    "value": 1,
+                                                    "pos": {
+                                                        "range_start": [
+                                                            243,
+                                                            25
+                                                        ],
+                                                        "range_end": [
+                                                            243,
+                                                            25
+                                                        ]
+                                                    }
+                                                }
+                                            },
+                                            "pos": {
+                                                "range_start": [
+                                                    243,
+                                                    25
+                                                ],
+                                                "range_end": [
+                                                    243,
+                                                    25
+                                                ]
+                                            }
+                                        },
+                                        {
+                                            "value": {
+                                                "Integer": {
+                                                    "value": 2,
+                                                    "pos": {
+                                                        "range_start": [
+                                                            243,
+                                                            28
+                                                        ],
+                                                        "range_end": [
+                                                            243,
+                                                            28
+                                                        ]
+                                                    }
+                                                }
+                                            },
+                                            "pos": {
+                                                "range_start": [
+                                                    243,
+                                                    28
+                                                ],
+                                                "range_end": [
+                                                    243,
+                                                    28
+                                                ]
+                                            }
+                                        }
+                                    ],
+                                    "pos": {
+                                        "range_start": [
+                                            243,
+                                            16
+                                        ],
+                                        "range_end": [
+                                            243,
+                                            16
+                                        ]
+                                    }
+                                }
+                            },
+                            "pos": {
+                                "range_start": [
+                                    243,
+                                    4
+                                ],
+                                "range_end": [
+                                    243,
+                                    30
+                                ]
+                            },
+                            "name_pos": {
+                                "range_start": [
+                                    243,
+                                    6
+                                ],
+                                "range_end": [
+                                    243,
+                                    9
+                                ]
+                            },
+                            "value_pos": {
+                                "range_start": [
+                                    243,
+                                    13
+                                ],
+                                "range_end": [
+                                    243,
+                                    29
+                                ]
+                            },
+                            "type_pos": {
+                                "range_start": [
+                                    0,
+                                    0
+                                ],
+                                "range_end": [
+                                    0,
+                                    0
+                                ]
+                            },
+                            "rtype": "Dynamic",
+                            "file_keys": [],
+                            "hash": 8464271993582025238
+                        }
+                    },
+                    {
+                        "GetterCall": {
+                            "data": {
+                                "FunctionCall": {
+                                    "target": {
+                                        "VariableType": {
+                                            "value": "wait",
+                                            "reference": 0,
+                                            "pos": {
+                                                "range_start": [
+                                                    0,
+                                                    0
+                                                ],
+                                                "range_end": [
+                                                    0,
+                                                    0
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "target_pos": {
+                                        "range_start": [
+                                            0,
+                                            0
+                                        ],
+                                        "range_end": [
+                                            0,
+                                            0
+                                        ]
+                                    },
+                                    "returning": {
+                                        "Generic": {
+                                            "rtype": "void",
+                                            "pos": {
+                                                "range_start": [
+                                                    225,
+                                                    0
+                                                ],
+                                                "range_end": [
+                                                    225,
+                                                    12
+                                                ]
+                                            },
+                                            "hash": 6885071098108903218
+                                        }
+                                    },
+                                    "generic_parameters": [],
+                                    "params": [],
+                                    "pos": {
+                                        "range_start": [
+                                            0,
+                                            0
+                                        ],
+                                        "range_end": [
+                                            0,
+                                            0
+                                        ]
+                                    }
+                                }
+                            },
+                            "pos": {
+                                "range_start": [
+                                    244,
+                                    4
+                                ],
+                                "range_end": [
+                                    244,
+                                    10
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "Variable": {
+                            "name": "loco",
+                            "constant": false,
+                            "public": false,
+                            "has_type": false,
+                            "has_value": true,
+                            "value": {
+                                "Operator": {
+                                    "cloaked": false,
+                                    "first": {
+                                        "Reference": {
+                                            "reference": {
+                                                "VariableType": {
+                                                    "value": "test",
+                                                    "reference": 8464271993582025238,
+                                                    "pos": {
+                                                        "range_start": [
+                                                            246,
+                                                            13
+                                                        ],
+                                                        "range_end": [
+                                                            246,
+                                                            16
+                                                        ]
+                                                    }
+                                                }
+                                            },
+                                            "reference_pos": {
+                                                "range_start": [
+                                                    246,
+                                                    13
+                                                ],
+                                                "range_end": [
+                                                    246,
+                                                    16
+                                                ]
+                                            },
+                                            "chain": [
+                                                {
+                                                    "pos": {
+                                                        "range_start": [
+                                                            246,
+                                                            17
+                                                        ],
+                                                        "range_end": [
+                                                            246,
+                                                            28
+                                                        ]
+                                                    },
+                                                    "value": "first_param"
+                                                }
+                                            ],
+                                            "pos": {
+                                                "range_start": [
+                                                    246,
+                                                    17
+                                                ],
+                                                "range_end": [
+                                                    246,
+                                                    17
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "first_pos": {
+                                        "range_start": [
+                                            246,
+                                            17
+                                        ],
+                                        "range_end": [
+                                            246,
+                                            17
+                                        ]
+                                    },
+                                    "second_pos": {
+                                        "range_start": [
+                                            246,
+                                            32
+                                        ],
+                                        "range_end": [
+                                            246,
+                                            48
+                                        ]
+                                    },
+                                    "second": {
+                                        "Reference": {
+                                            "reference": {
+                                                "VariableType": {
+                                                    "value": "test",
+                                                    "reference": 8464271993582025238,
+                                                    "pos": {
+                                                        "range_start": [
+                                                            246,
+                                                            32
+                                                        ],
+                                                        "range_end": [
+                                                            246,
+                                                            35
+                                                        ]
+                                                    }
+                                                }
+                                            },
+                                            "reference_pos": {
+                                                "range_start": [
+                                                    246,
+                                                    32
+                                                ],
+                                                "range_end": [
+                                                    246,
+                                                    35
+                                                ]
+                                            },
+                                            "chain": [
+                                                {
+                                                    "pos": {
+                                                        "range_start": [
+                                                            246,
+                                                            36
+                                                        ],
+                                                        "range_end": [
+                                                            246,
+                                                            48
+                                                        ]
+                                                    },
+                                                    "value": "second_param"
+                                                }
+                                            ],
+                                            "pos": {
+                                                "range_start": [
+                                                    246,
+                                                    36
+                                                ],
+                                                "range_end": [
+                                                    246,
+                                                    36
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "operator": {
+                                        "ArithmeticType": "Addition"
+                                    },
+                                    "pos": {
+                                        "range_start": [
+                                            246,
+                                            30
+                                        ],
+                                        "range_end": [
+                                            246,
+                                            30
+                                        ]
+                                    }
+                                }
+                            },
+                            "pos": {
+                                "range_start": [
+                                    246,
+                                    4
+                                ],
+                                "range_end": [
+                                    246,
+                                    49
+                                ]
+                            },
+                            "name_pos": {
+                                "range_start": [
+                                    246,
+                                    6
+                                ],
+                                "range_end": [
+                                    246,
+                                    9
+                                ]
+                            },
+                            "value_pos": {
+                                "range_start": [
+                                    246,
+                                    13
+                                ],
+                                "range_end": [
+                                    246,
+                                    48
+                                ]
+                            },
+                            "type_pos": {
+                                "range_start": [
+                                    0,
+                                    0
+                                ],
+                                "range_end": [
+                                    0,
+                                    0
+                                ]
+                            },
+                            "rtype": "Dynamic",
+                            "file_keys": [],
+                            "hash": 2447986155908397758
+                        }
+                    }
+                ],
+                "dependents": [],
+                "dependencies": [
+                    {
+                        "hash": 17153871779845017529,
+                        "processed": false,
+                        "module": null,
+                        "deep_link": 17153871779845017529,
+                        "public": false
+                    }
+                ]
+            }
+        ],
+        "page_hashs": [
+            [],
+            []
+        ]
+    },
+    "version": {
+        "major": 1,
+        "minor": 0,
+        "bug": 0
+    },
+    "modules": []
+}
