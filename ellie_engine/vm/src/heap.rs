@@ -1,8 +1,4 @@
-use alloc::{
-    format,
-    string::{String, ToString},
-    vec::Vec,
-};
+use alloc::{collections::BTreeMap, format};
 use ellie_core::raw_type::RawType;
 
 #[derive(Clone, Debug)]
@@ -13,79 +9,58 @@ pub struct Entry {
 
 #[derive(Clone)]
 pub struct Heap {
-    pub data: Vec<Entry>,
+    pub data: BTreeMap<usize, RawType>,
 }
 
 impl Heap {
     pub fn new() -> Heap {
-        Heap { data: Vec::new() }
+        Heap {
+            data: BTreeMap::new(),
+        }
     }
 
     pub fn get(&self, key: &usize) -> Option<&RawType> {
-        for entry in self.data.iter() {
-            if &entry.key == key {
-                return Some(&entry.value);
-            }
-        }
-        None
+        self.data.get(key)
     }
 
     pub fn get_mut(&mut self, key: &usize) -> Option<&mut RawType> {
-        for entry in self.data.iter_mut() {
-            if &entry.key == key {
-                return Some(&mut entry.value);
-            }
-        }
-        None
+        self.data.get_mut(key)
     }
 
     pub fn set(&mut self, key: &usize, value: RawType) {
-        for entry in self.data.iter_mut() {
-            if &entry.key == key {
-                entry.value = value;
-                return;
-            }
-        }
-
-        self.data.push(Entry {
-            key: key.clone(),
-            value,
-        });
+        self.data.insert(*key, value);
     }
 
     pub fn push(&mut self, value: RawType) {
-        self.data.push(Entry {
-            key: self.data.len(),
-            value,
-        });
+        let key = self.data.len();
+        self.data.insert(key, value);
     }
 
     pub fn dump(&self) -> String {
         let mut result = String::new();
-        for entry in &self.data {
+        for (key, value) in &self.data {
             result.push_str(&format!(
                 "{:02x} : {} = {:?} =! {:?}\n",
-                entry.key,
-                entry.value.type_id,
-                match entry.value.type_id.id {
+                key,
+                value.type_id,
+                match value.type_id.id {
                     1 => {
-                        isize::from_le_bytes(entry.value.data.clone().try_into().unwrap())
-                            .to_string()
+                        isize::from_le_bytes(value.data.clone().try_into().unwrap()).to_string()
                     }
                     2 => {
-                        f64::from_le_bytes(entry.value.data.clone().try_into().unwrap()).to_string()
+                        f64::from_le_bytes(value.data.clone().try_into().unwrap()).to_string()
                     }
                     3 => {
-                        f32::from_le_bytes(entry.value.data.clone().try_into().unwrap()).to_string()
+                        f32::from_le_bytes(value.data.clone().try_into().unwrap()).to_string()
                     }
                     4 => {
-                        u8::from_le_bytes(entry.value.data.clone().try_into().unwrap()).to_string()
+                        u8::from_le_bytes(value.data.clone().try_into().unwrap()).to_string()
                     }
                     5 => {
-                        (entry.value.data[0] == 1).to_string()
+                        (value.data[0] == 1).to_string()
                     }
                     6 => {
-                        String::from_utf8(entry.value.data.clone()).unwrap()
+                        String::from_utf8(value.data.clone()).unwrap()
                     }
                     7 => {
                         todo!("Todo")
@@ -93,9 +68,10 @@ impl Heap {
                     8 => String::from("void"),
                     9 => String::from("arr"),
                     10 => String::from("null"),
+                    11 => String::from("class"),
                     _ => unreachable!("Wrong typeid"),
                 },
-                entry.value.data,
+                value.data,
             ));
         }
         result

@@ -5,7 +5,7 @@ use alloc::vec::Vec;
 use alloc::{string::String, vec};
 use core::fmt::{Display, Error, Formatter};
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Copy)]
 /// TypeId
 /// TypeId is a unique identifier for a type.
 /// ## ID list
@@ -46,6 +46,8 @@ impl Display for TypeId {
             8 => write!(f, "Void"),
             9 => write!(f, "Array"),
             10 => write!(f, "Null"),
+            11 => write!(f, "Class"),
+            12 => write!(f, "Function"),
             _ => panic!("Unexpected type_id"),
         }
     }
@@ -58,6 +60,13 @@ impl TypeId {
 }
 
 #[derive(Clone, Debug)]
+pub struct Function {
+    pub hash: usize,
+    pub start: usize,
+    pub escape: usize,
+}
+
+#[derive(Clone, Debug)]
 /// RawType
 /// This is the representation of a type in the language.
 /// ## Fields
@@ -65,6 +74,12 @@ impl TypeId {
 pub struct RawType {
     pub type_id: TypeId,
     pub data: Vec<u8>, //This is platfform dependent
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct NewRawType {
+    pub type_id: TypeId,
+    pub data: [u8; 8],
 }
 
 impl From<RawType> for String {
@@ -257,7 +272,26 @@ impl RawType {
     }
 
     pub fn to_string(&self) -> String {
-        String::from_utf8(self.data.clone()).unwrap()
+        match String::from_utf8(self.data.clone()) {
+            Ok(e) => e,
+            Err(_) => "Invalid UTF-8 sequence".to_string(),
+        }
+    }
+
+    pub fn to_function(&self, arch: PlatformArchitecture) -> Function {
+        let data = self
+            .data
+            .chunks(arch.usize_len() as usize)
+            .collect::<Vec<_>>();
+        let hash = usize::from_le_bytes(data[0].try_into().unwrap());
+        let escape = usize::from_le_bytes(data[1].try_into().unwrap());
+        let start = usize::from_le_bytes(data[2].try_into().unwrap());
+
+        Function {
+            hash,
+            escape,
+            start,
+        }
     }
 
     pub fn to_char(&self) -> char {
@@ -397,5 +431,9 @@ impl RawType {
                 _ => unreachable!("Non static"),
             },
         }
+    }
+
+    pub fn from_bytes(bytes: Vec<u8>, type_id: TypeId) -> RawType {
+        RawType { type_id, data: bytes }
     }
 }

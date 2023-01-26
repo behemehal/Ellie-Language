@@ -59,9 +59,10 @@ impl super::Transpiler for native_function::NativeFunction {
 
         let mut hash = self.hash.to_le_bytes().to_vec();
         hash.extend_from_slice(&(assembler.instructions.len()).to_le_bytes());
+        hash.extend_from_slice(&start.to_le_bytes());
 
         assembler.instructions[start] = Instructions::FN(Instruction::immediate(
-            instructions::Types::String(hash.len()),
+            instructions::Types::Function(hash.len()),
             hash.to_vec(),
         ));
 

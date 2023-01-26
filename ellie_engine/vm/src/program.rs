@@ -191,7 +191,6 @@ impl Program {
                 }
             }
             None => {
-                println!("WRONG OP-CODE: {}", read_byte);
                 return Err(1);
             }
         };

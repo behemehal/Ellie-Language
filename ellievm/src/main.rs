@@ -39,6 +39,7 @@ fn main() {
 
     match matches.subcommand() {
         Some(("run", matches)) => {
+            let mut debugger_wait = false;
             let is_vm_debug = matches.is_present("vmDebug");
             if !matches.is_present("allowPanics") {
                 std::panic::set_hook(Box::new(|e| {
@@ -228,8 +229,6 @@ fn main() {
                 std::process::exit(1);
             };
 
-            println!("Program: {:#?}\n", program.instructions);
-
             let mut step_into = false;
             let mut show_heap_dump = false;
             let mut show_registers = true;
@@ -238,7 +237,7 @@ fn main() {
             let mut show_stack_info = false;
             let mut last_step: Option<ThreadStep> = None;
 
-            let mut vm = VM::new(vm_settings.architecture, |_, e| {
+            let mut vm = VM::new(vm_settings.architecture, move |i, e| {
                 if e.module == "ellieStd" && e.name == "heapDump" {
                     println!(
                         "{}HeapDump{}: {}Queued: heapDump.txt{}",
@@ -248,12 +247,20 @@ fn main() {
                         cli_color.color(Colors::Reset)
                     );
                     VmNativeAnswer::Ok(().into())
+                } else if e.module == "ellieStd" && e.name == "thread_spawn" {
+                    println!("{:?}", e);
+                    println!("{:?}", e.params[0].to_string());
+                    println!("{:?}", e.params[0].to_function(vm_settings.architecture));
+                    VmNativeAnswer::Ok(().into())
+                } else if e.module == "ellieStd" && e.name == "readln" {
+                    println!("Thread: {} is waiting because of 'readln'", i.id);
+                    let mut input = String::new();
+                    std::io::stdin().read_line(&mut input).unwrap();
+                    VmNativeAnswer::Ok(input.into())
                 } else if e.module == "ellieStd" && e.name == "println" {
                     let string = String::from_utf8(e.params[0].data.clone());
-                    println!("println: {:?}", string.unwrap());
+                    println!("{:?}", string.unwrap());
                     VmNativeAnswer::Ok(().into())
-                } else if e.module == "main" && e.name == "get_val_n" {
-                    VmNativeAnswer::Ok("Cevaaap".into())
                 } else {
                     VmNativeAnswer::RuntimeError("Call to unknown function".into())
                 }
@@ -281,9 +288,9 @@ fn main() {
                 );
             }
 
-            let main_thread = thread::spawn(move || loop {
+            let main_thread = thread::spawn(move || {
                 if is_vm_debug {
-                    panic!("Debugging is moved to 'ellied'");
+                    //panic!("Debugging is moved to 'ellieid'");
                     //clear console
                     fn step(
                         heap: &mut Heap,
@@ -606,24 +613,44 @@ fn main() {
                         }
                     }
 
-                    if step_into {
-                        step_into = false;
-                        match vm.threads[0].step(&mut vm.heap) {
-                            Ok(thread_step) => {
-                                last_step = Some(thread_step.clone());
-                                if let Some(pos) = wait_pos {
-                                    if thread_step.stack_pos.clone() == pos {
-                                        std::io::stdout()
-                                            .write_all("\x1B[2J\x1B[1;1H".as_bytes())
-                                            .unwrap();
-                                        println!(
-                                            "{}WaitPos{}: {}BreakPoint Reached{}\n",
-                                            cli_color.color(Colors::Green),
-                                            cli_color.color(Colors::Reset),
-                                            cli_color.color(Colors::Yellow),
-                                            cli_color.color(Colors::Reset)
-                                        );
-                                        wait_pos = None;
+                    loop {
+                        if step_into {
+                            step_into = false;
+                            match vm.threads[0].step(&mut vm.heap) {
+                                Ok(thread_step) => {
+                                    last_step = Some(thread_step.clone());
+                                    if let Some(pos) = wait_pos {
+                                        if thread_step.stack_pos.clone() == pos {
+                                            std::io::stdout()
+                                                .write_all("\x1B[2J\x1B[1;1H".as_bytes())
+                                                .unwrap();
+                                            println!(
+                                                "{}WaitPos{}: {}BreakPoint Reached{}\n",
+                                                cli_color.color(Colors::Green),
+                                                cli_color.color(Colors::Reset),
+                                                cli_color.color(Colors::Yellow),
+                                                cli_color.color(Colors::Reset)
+                                            );
+                                            wait_pos = None;
+                                            step(
+                                                &mut vm.heap,
+                                                vm.threads[0]
+                                                    .stack
+                                                    .get(thread_step.stack_id)
+                                                    .unwrap()
+                                                    .clone(),
+                                                debug_file.clone(),
+                                                thread_step.clone(),
+                                                show_heap_dump,
+                                                show_registers,
+                                                wait_pos,
+                                                show_code,
+                                                show_stack_info,
+                                            );
+                                        } else {
+                                            step_into = true;
+                                        }
+                                    } else {
                                         step(
                                             &mut vm.heap,
                                             vm.threads[0]
@@ -639,288 +666,275 @@ fn main() {
                                             show_code,
                                             show_stack_info,
                                         );
-                                    } else {
-                                        step_into = true;
                                     }
-                                } else {
+                                }
+                                Err(e) => match e {
+                                    ThreadExit::Panic(e) => {
+                                        println!(
+                                            "\n{}ThreadPanic{} : {}{:?}{}",
+                                            cli_color.color(Colors::Red),
+                                            cli_color.color(Colors::Reset),
+                                            cli_color.color(Colors::Cyan),
+                                            e.reason,
+                                            cli_color.color(Colors::Reset),
+                                        );
+
+                                        for frame in e.stack_trace {
+                                            match &debug_file {
+                                                Some(debug_file) => {
+                                                    let coresponding_header =
+                                                        debug_file.debug_headers.iter().find(|x| {
+                                                            frame.stack_pos >= x.start_end.0
+                                                                && frame.stack_pos <= x.start_end.1
+                                                        });
+
+                                                    match coresponding_header {
+                                                        Some(e) => {
+                                                            fn get_real_path(
+                                                                debug_header: &DebugHeader,
+                                                                debug_file: &DebugInfo,
+                                                            ) -> String
+                                                            {
+                                                                let module_name = debug_header
+                                                                    .module
+                                                                    .split("<ellie_module_")
+                                                                    .nth(1)
+                                                                    .unwrap()
+                                                                    .split(">")
+                                                                    .nth(0)
+                                                                    .unwrap();
+                                                                let module_path = debug_file
+                                                                    .module_map
+                                                                    .iter()
+                                                                    .find(|map| {
+                                                                        module_name
+                                                                            == map.module_name
+                                                                    });
+                                                                let real_path = match module_path {
+                                                                    Some(module_path) => {
+                                                                        match &module_path
+                                                                            .module_path
+                                                                        {
+                                                                            Some(module_path) => {
+                                                                                let new_path =
+                                                                                    debug_header
+                                                                                        .module
+                                                                                        .clone();
+                                                                                let starter_name = format!(
+                                                                                    "<ellie_module_{}>",
+                                                                                    module_name
+                                                                                );
+                                                                                new_path.replace(
+                                                                                    &starter_name,
+                                                                                    &module_path,
+                                                                                )
+                                                                            }
+                                                                            None => debug_header
+                                                                                .module
+                                                                                .clone(),
+                                                                        }
+                                                                    }
+                                                                    None => {
+                                                                        debug_header.module.clone()
+                                                                    }
+                                                                };
+                                                                real_path
+                                                            }
+
+                                                            let real_path =
+                                                                get_real_path(e, debug_file);
+
+                                                            println!(
+                                                                "{}    at {}:{}:{}",
+                                                                cli_color.color(Colors::Green),
+                                                                real_path,
+                                                                e.pos.range_start.0 + 1,
+                                                                e.pos.range_start.1 + 1,
+                                                            );
+                                                        }
+                                                        None => {
+                                                            println!(
+                                                                "{}    at {}:{}",
+                                                                cli_color.color(Colors::Green),
+                                                                frame.name,
+                                                                frame.stack_pos
+                                                            );
+                                                        }
+                                                    }
+                                                }
+                                                None => {
+                                                    println!(
+                                                        "{}    at {}:{} ({} + {})",
+                                                        cli_color.color(Colors::Green),
+                                                        frame.name,
+                                                        frame.stack_pos + frame.frame_pos,
+                                                        frame.stack_pos,
+                                                        frame.frame_pos,
+                                                    );
+                                                }
+                                            }
+                                        }
+                                        if debug_file.is_none() {
+                                            println!(
+                                                                "\n{}NoDebugFile{} : {}Given error represents stack locations, provide a debug info file to get more readable info{}",
+                                                                cli_color.color(Colors::Yellow),
+                                                                cli_color.color(Colors::Reset),
+                                                                cli_color.color(Colors::Cyan),
+                                                                cli_color.color(Colors::Reset),
+                                                            );
+                                        }
+                                        println!(
+                                            "{}    at {}",
+                                            cli_color.color(Colors::Red),
+                                            e.code_location,
+                                        );
+                                        if vm_settings.heap_dump {
+                                            println!(
+                                                "{}[VM]{}: Heap Dump\n\n{}",
+                                                cli_color.color(Colors::Yellow),
+                                                cli_color.color(Colors::Reset),
+                                                vm.heap_dump()
+                                            );
+                                        }
+                                        println!(
+                                            "{}ThreadPanic{}: {}Program Halted{}\n",
+                                            cli_color.color(Colors::Red),
+                                            cli_color.color(Colors::Reset),
+                                            cli_color.color(Colors::Yellow),
+                                            cli_color.color(Colors::Reset)
+                                        );
+                                    }
+                                    ThreadExit::ExitGracefully => {
+                                        if vm_settings.heap_dump {
+                                            println!(
+                                                "{}[VM]{}: Heap Dump\n\n{}",
+                                                cli_color.color(Colors::Yellow),
+                                                cli_color.color(Colors::Reset),
+                                                vm.heap_dump()
+                                            );
+                                        }
+                                        println!(
+                                            "{}ExitGracefully{}: {}ProgramEnded{}\n",
+                                            cli_color.color(Colors::Green),
+                                            cli_color.color(Colors::Reset),
+                                            cli_color.color(Colors::Yellow),
+                                            cli_color.color(Colors::Reset)
+                                        );
+                                    }
+                                },
+                            }
+                        } else {
+                            std::io::stdout().write_all("> ".as_bytes()).unwrap();
+                            std::io::stdout().flush().unwrap();
+                            //clear console
+                            let mut input = String::new();
+                            std::io::stdin().read_line(&mut input).unwrap();
+
+                            if input.trim() == "exit" {
+                                println!("Bye...");
+                                break;
+                            } else if input.trim() == "clear" {
+                                std::io::stdout()
+                                    .write_all("\x1B[2J\x1B[1;1H".as_bytes())
+                                    .unwrap();
+                            } else if input.trim() == "heap off" {
+                                show_heap_dump = false;
+                                println!("! HeapDump disabled");
+                            } else if input.trim() == "heap on" {
+                                show_heap_dump = true;
+                                println!("! HeapDump enabled");
+                            } else if input.trim() == "reg off" {
+                                show_registers = false;
+                                println!("! Registers disabled");
+                            } else if input.trim() == "reg on" {
+                                show_registers = true;
+                                println!("! Registers enabled");
+                            } else if input.trim().starts_with("wait pos") {
+                                match input.trim().split(" ").nth(2).unwrap().parse::<usize>() {
+                                    Ok(pos) => {
+                                        wait_pos = Some(pos);
+                                        println!("! Waiting at pos {}", pos);
+                                    }
+                                    Err(_) => {
+                                        println!("!: Invalid position");
+                                    }
+                                }
+                            } else if input.trim().starts_with("wait pos disable") {
+                                wait_pos = None;
+                                println!("! Waiting disabled");
+                            } else if input.trim().starts_with("code off") {
+                                show_code = false;
+                                println!("! Code disabled");
+                            } else if input.trim().starts_with("code on") {
+                                show_code = true;
+                                println!("! Code enabled");
+                            } else if input.trim().starts_with("stackinfo on") {
+                                show_stack_info = true;
+                                println!("! StackInfo enabled");
+                            } else if input.trim().starts_with("stackinfo off") {
+                                show_stack_info = false;
+                                println!("! StackInfo disabled");
+                            } else if input.trim().starts_with("step info") {
+                                if last_step.is_some() {
                                     step(
                                         &mut vm.heap,
-                                        vm.threads[0]
-                                            .stack
-                                            .get(thread_step.stack_id)
-                                            .unwrap()
-                                            .clone(),
+                                        vm.threads[0].stack.last().unwrap().clone(),
                                         debug_file.clone(),
-                                        thread_step.clone(),
+                                        last_step.clone().unwrap(),
                                         show_heap_dump,
                                         show_registers,
                                         wait_pos,
                                         show_code,
                                         show_stack_info,
                                     );
+                                } else {
+                                    println!("! No step info available, step once.");
                                 }
-                            }
-                            Err(e) => match e {
-                                ThreadExit::Panic(e) => {
-                                    println!(
-                                        "\n{}ThreadPanic{} : {}{:?}{}",
-                                        cli_color.color(Colors::Red),
-                                        cli_color.color(Colors::Reset),
-                                        cli_color.color(Colors::Cyan),
-                                        e.reason,
-                                        cli_color.color(Colors::Reset),
-                                    );
-
-                                    for frame in e.stack_trace {
-                                        match &debug_file {
-                                            Some(debug_file) => {
-                                                let coresponding_header =
-                                                    debug_file.debug_headers.iter().find(|x| {
-                                                        frame.stack_pos >= x.start_end.0
-                                                            && frame.stack_pos <= x.start_end.1
-                                                    });
-
-                                                match coresponding_header {
-                                                    Some(e) => {
-                                                        fn get_real_path(
-                                                            debug_header: &DebugHeader,
-                                                            debug_file: &DebugInfo,
-                                                        ) -> String
-                                                        {
-                                                            let module_name = debug_header
-                                                                .module
-                                                                .split("<ellie_module_")
-                                                                .nth(1)
-                                                                .unwrap()
-                                                                .split(">")
-                                                                .nth(0)
-                                                                .unwrap();
-                                                            let module_path = debug_file
-                                                                .module_map
-                                                                .iter()
-                                                                .find(|map| {
-                                                                    module_name == map.module_name
-                                                                });
-                                                            let real_path = match module_path {
-                                                                Some(module_path) => {
-                                                                    match &module_path.module_path {
-                                                                        Some(module_path) => {
-                                                                            let new_path =
-                                                                                debug_header
-                                                                                    .module
-                                                                                    .clone();
-                                                                            let starter_name = format!(
-                                                                                "<ellie_module_{}>",
-                                                                                module_name
-                                                                            );
-                                                                            new_path.replace(
-                                                                                &starter_name,
-                                                                                &module_path,
-                                                                            )
-                                                                        }
-                                                                        None => debug_header
-                                                                            .module
-                                                                            .clone(),
-                                                                    }
-                                                                }
-                                                                None => debug_header.module.clone(),
-                                                            };
-                                                            real_path
-                                                        }
-
-                                                        let real_path =
-                                                            get_real_path(e, debug_file);
-
-                                                        println!(
-                                                            "{}    at {}:{}:{}",
-                                                            cli_color.color(Colors::Green),
-                                                            real_path,
-                                                            e.pos.range_start.0 + 1,
-                                                            e.pos.range_start.1 + 1,
-                                                        );
-                                                    }
-                                                    None => {
-                                                        println!(
-                                                            "{}    at {}:{}",
-                                                            cli_color.color(Colors::Green),
-                                                            frame.name,
-                                                            frame.stack_pos
-                                                        );
-                                                    }
-                                                }
-                                            }
-                                            None => {
-                                                println!(
-                                                    "{}    at {}:{} ({} + {})",
-                                                    cli_color.color(Colors::Green),
-                                                    frame.name,
-                                                    frame.stack_pos + frame.frame_pos,
-                                                    frame.stack_pos,
-                                                    frame.frame_pos,
-                                                );
-                                            }
-                                        }
-                                    }
-                                    if debug_file.is_none() {
-                                        println!(
-                                                            "\n{}NoDebugFile{} : {}Given error represents stack locations, provide a debug info file to get more readable info{}",
-                                                            cli_color.color(Colors::Yellow),
-                                                            cli_color.color(Colors::Reset),
-                                                            cli_color.color(Colors::Cyan),
-                                                            cli_color.color(Colors::Reset),
-                                                        );
-                                    }
-                                    println!(
-                                        "{}    at {}",
-                                        cli_color.color(Colors::Red),
-                                        e.code_location,
-                                    );
-                                    if vm_settings.heap_dump {
-                                        println!(
-                                            "{}[VM]{}: Heap Dump\n\n{}",
-                                            cli_color.color(Colors::Yellow),
-                                            cli_color.color(Colors::Reset),
-                                            vm.heap_dump()
-                                        );
-                                    }
-                                    println!(
-                                        "{}ThreadPanic{}: {}Program Halted{}\n",
-                                        cli_color.color(Colors::Red),
-                                        cli_color.color(Colors::Reset),
-                                        cli_color.color(Colors::Yellow),
-                                        cli_color.color(Colors::Reset)
-                                    );
-                                }
-                                ThreadExit::ExitGracefully => {
-                                    if vm_settings.heap_dump {
-                                        println!(
-                                            "{}[VM]{}: Heap Dump\n\n{}",
-                                            cli_color.color(Colors::Yellow),
-                                            cli_color.color(Colors::Reset),
-                                            vm.heap_dump()
-                                        );
-                                    }
-                                    println!(
-                                        "{}ExitGracefully{}: {}ProgramEnded{}\n",
-                                        cli_color.color(Colors::Green),
-                                        cli_color.color(Colors::Reset),
-                                        cli_color.color(Colors::Yellow),
-                                        cli_color.color(Colors::Reset)
-                                    );
-                                }
-                            },
-                        }
-                    } else {
-                        std::io::stdout().write_all("> ".as_bytes()).unwrap();
-                        std::io::stdout().flush().unwrap();
-                        //clear console
-                        let mut input = String::new();
-                        std::io::stdin().read_line(&mut input).unwrap();
-
-                        if input.trim() == "exit" {
-                            println!("Bye...");
-                            break;
-                        } else if input.trim() == "clear" {
-                            std::io::stdout()
-                                .write_all("\x1B[2J\x1B[1;1H".as_bytes())
-                                .unwrap();
-                        } else if input.trim() == "heap off" {
-                            show_heap_dump = false;
-                            println!("! HeapDump disabled");
-                        } else if input.trim() == "heap on" {
-                            show_heap_dump = true;
-                            println!("! HeapDump enabled");
-                        } else if input.trim() == "reg off" {
-                            show_registers = false;
-                            println!("! Registers disabled");
-                        } else if input.trim() == "reg on" {
-                            show_registers = true;
-                            println!("! Registers enabled");
-                        } else if input.trim().starts_with("wait pos") {
-                            match input.trim().split(" ").nth(2).unwrap().parse::<usize>() {
-                                Ok(pos) => {
-                                    wait_pos = Some(pos);
-                                    println!("! Waiting at pos {}", pos);
-                                }
-                                Err(_) => {
-                                    println!("!: Invalid position");
-                                }
-                            }
-                        } else if input.trim().starts_with("wait pos disable") {
-                            wait_pos = None;
-                            println!("! Waiting disabled");
-                        } else if input.trim().starts_with("code off") {
-                            show_code = false;
-                            println!("! Code disabled");
-                        } else if input.trim().starts_with("code on") {
-                            show_code = true;
-                            println!("! Code enabled");
-                        } else if input.trim().starts_with("stackinfo on") {
-                            show_stack_info = true;
-                            println!("! StackInfo enabled");
-                        } else if input.trim().starts_with("stackinfo off") {
-                            show_stack_info = false;
-                            println!("! StackInfo disabled");
-                        } else if input.trim().starts_with("step info") {
-                            if last_step.is_some() {
-                                step(
-                                    &mut vm.heap,
-                                    vm.threads[0].stack.last().unwrap().clone(),
-                                    debug_file.clone(),
-                                    last_step.clone().unwrap(),
-                                    show_heap_dump,
-                                    show_registers,
-                                    wait_pos,
-                                    show_code,
-                                    show_stack_info,
+                            } else if input.trim().starts_with("heap dump") {
+                                println!(
+                                    "{}[VM]{}: Heap Dump
+                                ",
+                                    cli_color.color(Colors::Yellow),
+                                    cli_color.color(Colors::Reset),
                                 );
+                                println!("{}", vm.heap_dump());
+                            } else if input.trim().starts_with("help") {
+                                println!("Commands:");
+                                println!("  - run       - Start running the program");
+                                println!("  - exit      - Exit the debugger");
+                                println!("  - heap on   - Show heap dump");
+                                println!("  - heap off  - Hide heap dump");
+                                println!("  - reg on    - Show registers");
+                                println!("  - reg off   - Hide registers");
+                                println!(
+                                    "  - wait pos <pos> - Wait until the given stack position executed"
+                                );
+                                println!("  - wait pos disable - Disable waiting");
+                                println!("  - code on - Show code");
+                                println!("  - code off - Hide code");
+                                println!("  - stackinfo on - Show stack info");
+                                println!("  - stackinfo off - Hide stack info");
+                                println!("  - clear - Clear the console");
+                                println!("  - step info - Show last step info");
+                                println!("  - heap dump - Show heap dump");
+                            } else if input.trim() == "" {
+                                std::io::stdout()
+                                    .write_all("\x1B[2J\x1B[1;1H".as_bytes())
+                                    .unwrap();
+                                println!("---");
+                                step_into = true;
                             } else {
-                                println!("! No step info available, step once.");
+                                std::io::stdout()
+                                    .write_all("\x1B[2J\x1B[1;1H".as_bytes())
+                                    .unwrap();
+                                println!("Unknown command! Type 'help' for help");
                             }
-                        } else if input.trim().starts_with("heap dump") {
-                            println!(
-                                "{}[VM]{}: Heap Dump
-                            ",
-                                cli_color.color(Colors::Yellow),
-                                cli_color.color(Colors::Reset),
-                            );
-                            println!("{}", vm.heap_dump());
-                        } else if input.trim().starts_with("help") {
-                            println!("Commands:");
-                            println!("  - run       - Start running the program");
-                            println!("  - exit      - Exit the debugger");
-                            println!("  - heap on   - Show heap dump");
-                            println!("  - heap off  - Hide heap dump");
-                            println!("  - reg on    - Show registers");
-                            println!("  - reg off   - Hide registers");
-                            println!(
-                                "  - wait pos <pos> - Wait until the given stack position executed"
-                            );
-                            println!("  - wait pos disable - Disable waiting");
-                            println!("  - code on - Show code");
-                            println!("  - code off - Hide code");
-                            println!("  - stackinfo on - Show stack info");
-                            println!("  - stackinfo off - Hide stack info");
-                            println!("  - clear - Clear the console");
-                            println!("  - step info - Show last step info");
-                            println!("  - heap dump - Show heap dump");
-                        } else if input.trim() == "" {
-                            std::io::stdout()
-                                .write_all("\x1B[2J\x1B[1;1H".as_bytes())
-                                .unwrap();
-                            println!("---");
-                            step_into = true;
-                        } else {
-                            std::io::stdout()
-                                .write_all("\x1B[2J\x1B[1;1H".as_bytes())
-                                .unwrap();
-                            println!("Unknown command! Type 'help' for help");
                         }
                     }
                 } else {
-                    match vm.threads[0].step(&mut vm.heap) {
-                        Ok(_) => (),
-                        Err(e) => match e {
+                    match vm.threads[0].run(&mut vm.heap) {
+                        None => (),
+                        Some(e) => match e {
                             ThreadExit::Panic(e) => {
                                 println!(
                                     "\n{}ThreadPanic{} : {}{:?}{}",
@@ -1038,7 +1052,6 @@ fn main() {
                                         vm.heap_dump()
                                     );
                                 }
-                                break;
                             }
                             ThreadExit::ExitGracefully => {
                                 if vm_settings.heap_dump {
@@ -1049,7 +1062,6 @@ fn main() {
                                         vm.heap_dump()
                                     );
                                 }
-                                break;
                             }
                         },
                     }

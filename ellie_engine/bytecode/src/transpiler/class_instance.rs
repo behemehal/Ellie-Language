@@ -1,11 +1,8 @@
-use alloc::{format, vec};
+use alloc::format;
 use ellie_core::definite::types::class_instance;
 
-use crate::{
-    assembler::LocalHeader,
-    instructions::{self, Instruction},
-};
-
+use crate::{assembler::LocalHeader, instructions::Instruction};
+//TODO: TO BE REMOVED
 impl super::Transpiler for class_instance::ClassInstance {
     fn transpile(
         &self,

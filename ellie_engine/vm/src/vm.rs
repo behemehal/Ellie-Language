@@ -23,7 +23,7 @@ pub struct VM<T> {
 
 impl<T> VM<T>
 where
-    T: Fn(crate::thread::ThreadInfo, VmNativeCall) -> VmNativeAnswer + Clone + Copy + Sized,
+    T: FnOnce(crate::thread::ThreadInfo, VmNativeCall) -> VmNativeAnswer + Clone + Copy + Sized,
 {
     pub fn new(target_arch: PlatformArchitecture, native_call_channel: T) -> Self {
         VM {

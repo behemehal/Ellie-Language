@@ -62,8 +62,8 @@ pub fn resolve_type(
 ) {
     match types {
         Types::Collective(_) => todo!(),
-        Types::Reference(e) => {
-            let target_local = match *e.reference.clone() {
+        Types::Reference(reference) => {
+            let target_local = match *reference.reference.clone() {
                 Types::VariableType(e) => {
                     let target_local = e.value;
                     let target = assembler
@@ -74,7 +74,54 @@ pub fn resolve_type(
                 }
                 _ => unreachable!(),
             };
-            std::println!("Reference is not supported yet!: \n\n{:#?}\n{:#?}\n{:#?}\n\n", target_local, assembler.instructions[target_local.cursor], e);
+
+            let mut last_location = target_local.cursor;
+            for reference in reference.index_chain.clone() {
+                match reference.rtype {
+                    ellie_core::definite::types::class_instance::AttributeType::Property => {
+                        assembler.instructions.push(instructions::Instructions::STC(
+                            Instruction::immediate(
+                                instructions::Types::Integer,
+                                reference.idx.to_le_bytes().to_vec(),
+                            ),
+                        ));
+                        assembler.instructions.push(instructions::Instructions::LDY(
+                            Instruction::absolute_index(last_location, assembler.location()),
+                        ));
+                        assembler
+                            .instructions
+                            .push(instructions::Instructions::STY(Instruction::implicit()));
+                        last_location = assembler.location();
+                    }
+                    ellie_core::definite::types::class_instance::AttributeType::Method => todo!(),
+                    ellie_core::definite::types::class_instance::AttributeType::Setter => todo!(),
+                    ellie_core::definite::types::class_instance::AttributeType::Getter => todo!(),
+                    ellie_core::definite::types::class_instance::AttributeType::EnumItemData => {
+                        todo!()
+                    }
+                    ellie_core::definite::types::class_instance::AttributeType::EnumItemNoData => {
+                        todo!()
+                    }
+                }
+            }
+
+            match target_register {
+                instructions::Registers::A => assembler.instructions.push(
+                    instructions::Instructions::LDA(instructions::Instruction::indirect_y()),
+                ),
+                instructions::Registers::B => assembler.instructions.push(
+                    instructions::Instructions::LDB(instructions::Instruction::indirect_y()),
+                ),
+                instructions::Registers::C => assembler.instructions.push(
+                    instructions::Instructions::LDC(instructions::Instruction::indirect_y()),
+                ),
+                instructions::Registers::X => assembler.instructions.push(
+                    instructions::Instructions::LDX(instructions::Instruction::indirect_y()),
+                ),
+                instructions::Registers::Y => assembler.instructions.push(
+                    instructions::Instructions::LDY(instructions::Instruction::indirect_y()),
+                ),
+            }
         }
         Types::BraceReference(e) => {
             resolve_type(
@@ -437,26 +484,9 @@ pub fn resolve_type(
             panic!("Class instance not implemented yet: {:#?}", class_instance)
         }
         Types::ClassCall(class_call) => {
-            let target_local = match *class_call.target.clone() {
-                Types::VariableType(e) => {
-                    let target_local = e.value;
-                    let target = assembler
-                        .find_local(&target_local, dependencies.clone())
-                        .unwrap()
-                        .clone();
-                    target.cursor
-                }
-                _ => unreachable!(),
-            };
-            let previous_params_location = assembler.location();
+            let mut entries = vec![];
+
             if !class_call.params.is_empty() {
-                assembler.instructions.push(instructions::Instructions::LDA(
-                    Instruction::immediate(instructions::Types::Array(0), vec![]),
-                ));
-                assembler
-                    .instructions
-                    .push(instructions::Instructions::STA(Instruction::implicit()));
-                let params_location = assembler.location();
                 for param in &class_call.params {
                     resolve_type(
                         assembler,
@@ -468,62 +498,27 @@ pub fn resolve_type(
                     assembler
                         .instructions
                         .push(instructions::Instructions::STA(Instruction::implicit()));
-                    assembler
-                        .instructions
-                        .push(instructions::Instructions::PUSH(Instruction::absolute(
-                            params_location,
-                        )));
-
-                    /*
-                    //Functions always reserve parameter spaces we're writing upper locations of function
-                    assembler.instructions.push(instructions::Instructions::STA(
-                        Instruction::immediate(
-                            instructions::Types::Integer,
-                            idx.to_le_bytes().to_vec(),
-                        ),
-                    ));
-                    assembler.instructions.push(instructions::Instructions::STA(
-                        Instruction::absolute_index(target.cursor, assembler.location()),
-                    ));
-                    */
+                    entries.extend((assembler.instructions.len() - 1).to_le_bytes());
                 }
-                assembler.instructions.push(instructions::Instructions::LDX(
-                    Instruction::absolute(params_location),
-                ));
             }
-            assembler
-                .instructions
-                .push(instructions::Instructions::CALLC(Instruction::absolute(
-                    target_local,
-                )));
-            assembler
-                .instructions
-                .push(instructions::Instructions::LDX(Instruction::absolute(
-                    previous_params_location,
-                )));
+            let class_rtype = instructions::Types::Class(entries.len());
 
             match target_register {
-                instructions::Registers::A => {
-                    assembler
-                        .instructions
-                        .push(instructions::Instructions::LDA(Instruction::indirect_y()));
-                }
-                instructions::Registers::B => {
-                    assembler
-                        .instructions
-                        .push(instructions::Instructions::LDB(Instruction::indirect_y()));
-                }
-                instructions::Registers::C => {
-                    assembler
-                        .instructions
-                        .push(instructions::Instructions::LDC(Instruction::indirect_y()));
-                }
-                instructions::Registers::X => {
-                    assembler
-                        .instructions
-                        .push(instructions::Instructions::LDX(Instruction::indirect_y()));
-                }
-                instructions::Registers::Y => (),
+                instructions::Registers::A => assembler.instructions.push(
+                    instructions::Instructions::LDA(Instruction::immediate(class_rtype, entries)),
+                ),
+                instructions::Registers::B => assembler.instructions.push(
+                    instructions::Instructions::LDB(Instruction::immediate(class_rtype, entries)),
+                ),
+                instructions::Registers::C => assembler.instructions.push(
+                    instructions::Instructions::LDC(Instruction::immediate(class_rtype, entries)),
+                ),
+                instructions::Registers::X => assembler.instructions.push(
+                    instructions::Instructions::LDX(Instruction::immediate(class_rtype, entries)),
+                ),
+                instructions::Registers::Y => assembler.instructions.push(
+                    instructions::Instructions::LDY(Instruction::immediate(class_rtype, entries)),
+                ),
             }
         }
         Types::FunctionCall(function_call) => {

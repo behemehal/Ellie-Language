@@ -44,7 +44,8 @@ pub enum Types {
     Array(usize),
     Void,
     Null,
-    Class(usize, usize),
+    Class(usize),
+    Function(usize),
 }
 
 impl Types {
@@ -60,8 +61,11 @@ impl Types {
             Types::Array(len) => alloc::format!("array<{len} / platformSize>"),
             Types::Void => "void".to_string(),
             Types::Null => "null".to_string(),
-            Types::Class(class_location, data_location) => {
-                alloc::format!("class<{class_location}:{data_location}>")
+            Types::Class(class_len) => {
+                alloc::format!("class<{class_len}>")
+            }
+            Types::Function(func_location) => {
+                alloc::format!("function<{func_location}>")
             }
         }
     }
@@ -80,7 +84,8 @@ impl Types {
             Types::Void => (8, 0),
             Types::Array(array_len) => (9, *array_len),
             Types::Null => (10, 0),
-            Types::Class(_, _) => (11, (platform_size.usize_len() * 2) as usize),
+            Types::Class(class_len) => (11, *class_len),
+            Types::Function(func_location) => (12, *func_location),
         }
     }
 }

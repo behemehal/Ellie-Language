@@ -181,7 +181,6 @@ impl AssembleResult {
         }
 
         for instruction in &self.instructions {
-            std::println!("Writing instruction: {:?} {:?}", instruction, &instruction.op_code(&self.module_info.platform_attributes.architecture));
             writer
                 .write(&instruction.op_code(&self.module_info.platform_attributes.architecture))
                 .unwrap();
@@ -218,7 +217,7 @@ impl AssembleResult {
             output
                 .write_all(
                     format!(
-                        "{}: {} = {}",
+                        "\n{}: {} = {}",
                         local.cursor,
                         local.name,
                         local.reference.addressing_mode.to_string()
@@ -226,16 +225,15 @@ impl AssembleResult {
                     .as_bytes(),
                 )
                 .unwrap();
-            output.write_all("\n".as_bytes()).unwrap();
         }
 
-        output.write_all(".debugHeader".as_bytes()).unwrap();
+        output.write_all("\n.debugHeader".as_bytes()).unwrap();
 
         for debug_header in &self.debug_headers {
             output
                 .write_all(
                     format!(
-                        "\n\t{:?} = {} : {}",
+                        "\n{:?} = {} : {}",
                         debug_header.rtype,
                         {
                             if debug_header.start_end.1 == (debug_header.start_end.0 + 1) {
@@ -251,13 +249,13 @@ impl AssembleResult {
                 .unwrap()
         }
 
-        output.write_all("\n".as_bytes()).unwrap();
+        output.write_all("\n.instructions".as_bytes()).unwrap();
 
         let mut count = 0;
 
         for instruction in &self.instructions {
             let code = format!(
-                "{}: {} = {} : {:?}\n",
+                "\n{}: {} = {} : {:?}",
                 count,
                 instruction,
                 instruction.op_code(&self.module_info.platform_attributes.architecture)[0],

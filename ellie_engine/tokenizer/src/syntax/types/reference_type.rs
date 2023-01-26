@@ -40,6 +40,7 @@ impl definite::Converter<ReferenceTypeCollector, definite::types::reference::Ref
                 })
                 .collect::<Vec<_>>(),
             pos: self.data.pos,
+            index_chain: Vec::new(),
         }
     }
 
