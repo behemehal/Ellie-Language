@@ -140,6 +140,7 @@ impl crate::processors::Processor for function::FunctionCollector {
                 self.return_collected = true;
                 self.complete = true;
                 self.data.no_return = true;
+                self.data.body_pos.range_end = cursor;
                 self.data.return_type.definer_type =
                     crate::syntax::items::definers::DefinerTypes::Generic(
                         crate::syntax::items::definers::GenericType {
@@ -162,6 +163,7 @@ impl crate::processors::Processor for function::FunctionCollector {
                 self.return_collected = true;
                 self.data.body_pos.range_start = cursor;
             } else if self.data.return_type.complete && letter_char == ';' {
+                self.data.body_pos.range_end = cursor;
                 self.data.hash = ellie_core::utils::generate_hash_usize();
                 self.data.defining = true;
                 self.return_collected = true;
@@ -215,10 +217,10 @@ impl crate::processors::Processor for function::FunctionCollector {
             } else if letter_char == '}' && self.brace_count != 0 {
                 self.brace_count -= 1;
             }
-            self.iterator.pos = cursor;
-            if cursor.0 != self.iterator.comment_pos.range_start.0 && self.iterator.line_comment {
-                self.iterator.line_comment = false;
+            if cursor.0 != self.iterator.pos.0 {
+                self.iterator.iterate(last_char, '\n');
             }
+            self.iterator.pos = cursor;
             hang = self.iterator.iterate(last_char, letter_char);
         }
         hang

@@ -2,7 +2,7 @@ use ellie_engine::{
     ellie_core::module_path::parse_module_import,
     ellie_fmt::fmt::{Formatter, FormatterOptions},
     ellie_renderer_utils::{
-        options, outputs,
+        outputs,
         utils::{self, print_errors, CliColor, ColorDisplay, Colors},
     },
     ellie_tokenizer::tokenizer::{ImportType, ResolvedImport},
@@ -11,10 +11,10 @@ use ellie_engine::{
 };
 
 use path_absolutize::Absolutize;
-use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 use std::path::Path;
 use std::time::Instant;
+use std::{collections::hash_map::DefaultHasher, fs::File, io::Read};
 use std::{fs, println};
 
 #[derive(Clone)]
@@ -24,9 +24,10 @@ pub struct FormatterSettings {
     pub file_name: String,
     pub show_debug_lines: bool,
     pub format_all: bool,
+    pub exclude_files: Vec<String>,
 }
 
-pub fn format_file(target_path: &Path, output_path: &Path, formatter_settings: FormatterSettings) {
+pub fn format_file(target_path: &Path, formatter_settings: FormatterSettings) {
     #[derive(Clone)]
     struct Repository {
         target_path: String,
@@ -151,17 +152,18 @@ pub fn format_file(target_path: &Path, output_path: &Path, formatter_settings: F
     let tokenize_start = Instant::now();
 
     let starter_name = format!("<ellie_module_{}>", formatter_settings.name);
+    let requested_format_file_name = Path::new(&target_path)
+        .file_name()
+        .unwrap()
+        .to_str()
+        .unwrap();
 
     match tokenize_file(&mut program_repository) {
         Ok(page_export) => {
             let tokenize_end = (tokenize_start.elapsed().as_nanos() as f64 / 1000000_f64) as f64;
-            let json = serde_json::to_string(&page_export).unwrap();
+            let formatter = Formatter::new(FormatterOptions::default());
 
-            let formatter = Formatter::new(FormatterOptions::default(), page_export.clone());
-
-            let pages = formatter.format();
-
-            for page in pages {
+            for page in page_export.pages {
                 let real_path = page
                     .path
                     .replace(
@@ -175,19 +177,35 @@ pub fn format_file(target_path: &Path, output_path: &Path, formatter_settings: F
                             .unwrap(),
                     )
                     .clone();
-                match fs::write(&real_path, page.content) {
-                    Ok(_) => {}
-                    Err(err) => {
-                        println!(
-                            "{}[Internal Error]{} Cannot write to file '{}' {}[{}]{}",
-                            cli_color.color(Colors::Red),
-                            cli_color.color(Colors::Reset),
-                            real_path,
-                            cli_color.color(Colors::Red),
-                            err,
-                            cli_color.color(Colors::Reset),
-                        );
-                        std::process::exit(1);
+
+                let file_name = Path::new(&real_path)
+                    .file_name()
+                    .unwrap()
+                    .to_str()
+                    .unwrap()
+                    .to_string();
+
+                let mut file = File::open(&real_path).unwrap();
+                let mut file_content = String::new();
+                file.read_to_string(&mut file_content).unwrap();
+                let formated = formatter.format_page(&page);
+                if (formatter_settings.format_all || requested_format_file_name == file_name)
+                    && !formatter_settings.exclude_files.contains(&file_name)
+                {
+                    match fs::write(&real_path, formated) {
+                        Ok(_) => {}
+                        Err(err) => {
+                            println!(
+                                "{}[Internal Error]{} Cannot write to file '{}' {}[{}]{}",
+                                cli_color.color(Colors::Red),
+                                cli_color.color(Colors::Reset),
+                                real_path,
+                                cli_color.color(Colors::Red),
+                                err,
+                                cli_color.color(Colors::Reset),
+                            );
+                            std::process::exit(1);
+                        }
                     }
                 }
             }

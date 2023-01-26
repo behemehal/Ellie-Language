@@ -20,6 +20,7 @@ pub struct Constructor {
     pub name_pos: defs::Cursor,
     pub parameters_pos: defs::Cursor,
     pub brace_count: usize,
+    #[serde(skip)]
     pub iterator: Box<crate::iterator::Iterator>,
     pub pos: defs::Cursor,
     pub complete: bool,

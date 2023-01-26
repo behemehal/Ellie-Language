@@ -12,8 +12,8 @@ pub struct Setter {
     pub brace_count: usize,
     pub parameters_collected: bool,
     pub code_start_collected: bool,
+    #[serde(skip)]
     pub iterator: Box<crate::iterator::Iterator>,
-
     pub key_collected: bool,
     pub complete: bool,
     pub name: String,
@@ -21,7 +21,6 @@ pub struct Setter {
     pub public: bool,
     pub parameters: Vec<FunctionParameter>,
     pub parameters_pos: defs::Cursor,
-
     pub body_pos: defs::Cursor,
     pub body: Vec<Processors>,
     pub pos: defs::Cursor,

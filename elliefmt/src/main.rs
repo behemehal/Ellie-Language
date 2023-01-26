@@ -5,7 +5,7 @@ use ellie_engine::{
     },
     engine_constants,
 };
-use std::path::Path;
+use std::{path::Path, process};
 mod format_file;
 
 fn main() {
@@ -109,6 +109,12 @@ fn main() {
                 }
             };
 
+            let exclude_files = matches
+                .values_of("excludeFiles")
+                .unwrap_or_default()
+                .map(str::to_string)
+                .collect::<Vec<String>>();
+
             let formatter_settings = format_file::FormatterSettings {
                 json_log: matches.is_present("jsonLog"),
                 name: project_name,
@@ -120,23 +126,18 @@ fn main() {
                     .to_string(),
                 show_debug_lines: matches.is_present("showDebugLines"),
                 format_all: true,
+                exclude_files,
             };
 
-            format_file::format_file(
-                Path::new(&target_path),
-                Path::new(
-                    &Path::new(&target_path)
-                        .parent()
-                        .unwrap()
-                        .to_str()
-                        .unwrap()
-                        .to_string(),
-                ),
-                formatter_settings,
-            )
+            format_file::format_file(Path::new(&target_path), formatter_settings)
         }
-        Some(("analyze", matches)) => {
-            todo!()
+        Some(("analyze", _matches)) => {
+            println!(
+                "{}[Info]{}: File analyze is not implemented yet.",
+                cli_color.color(Colors::Red),
+                cli_color.color(Colors::Reset)
+            );
+            process::exit(1);
         }
         Some(("version", matches)) => {
             let mut output = outputs::VERSION_DETAILED.clone();

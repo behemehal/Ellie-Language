@@ -25,6 +25,7 @@ pub struct ConditionChain {
     pub condition_filled: bool,
     pub code: Vec<items::Processors>,
     pub brace_count: usize,
+    #[serde(skip)]
     pub iterator: Box<crate::iterator::Iterator>,
     pub complete: bool,
     pub keyword_pos: defs::Cursor,

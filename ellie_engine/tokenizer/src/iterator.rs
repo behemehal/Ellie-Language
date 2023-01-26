@@ -23,22 +23,22 @@ pub struct Iterator {
     pub collected: Vec<items::Processors>,
     pub errors: Vec<error::Error>,
     pub active: items::ItemProcessor,
-    pub comment_pos: defs::Cursor,
-    pub comment_start: bool,
-    pub line_comment: bool,
-    pub multi_comment: bool,
 }
 
 impl Iterator {
     /// After the last char is processed, this method should be called to finish the iterating process
     pub fn finalize(&mut self) {
-        if !self.active.is_complete() && !self.multi_comment {
+        if !self.active.is_complete() {
             if self.active.current.is_initalized() {
-                self.errors.push(error::error_list::ERROR_S26.clone().build(
-                    vec![],
-                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                    self.active.current.get_pos(),
-                ));
+                if matches!(self.active.current.clone(), items::Processors::Comment(e) if e.line_comment) {
+                    self.collected.push(self.active.current.clone());
+                } else {
+                    self.errors.push(error::error_list::ERROR_S26.clone().build(
+                        vec![],
+                        alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                        self.active.current.get_pos(),
+                    ));
+                }
             } else if matches!(self.active.current.as_getter_call(), Some(getter_call) if !getter_call.cache.current.is_not_initialized())
             {
                 self.errors.push(error::error_list::ERROR_S26.clone().build(
@@ -47,12 +47,6 @@ impl Iterator {
                     self.active.current.get_pos(),
                 ));
             }
-        } else if self.multi_comment {
-            self.errors.push(error::error_list::ERROR_S26.clone().build(
-                vec![],
-                alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                self.comment_pos,
-            ));
         }
     }
 
@@ -67,56 +61,20 @@ impl Iterator {
         let in_str_or_char = matches!(self.active.current.clone(),  items::Processors::GetterCall(e) if e.data.as_string().is_some() || e.data.as_char().is_some());
 
         let is_escape = letter_char == '\n' || letter_char == '\r' || letter_char == '\t';
-
-        if self.comment_start {
-            if letter_char == '/' {
-                self.comment_start = false;
-                self.line_comment = true;
-            } else if letter_char == '*' {
-                self.comment_start = false;
-                self.multi_comment = true;
-            } else {
-                self.errors.push(error::error_list::ERROR_S1.clone().build(
-                    vec![error::ErrorBuildField {
-                        key: "token".to_string(),
-                        value: letter_char.to_string(),
-                    }],
-                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                    defs::Cursor::build_from_cursor(self.pos),
-                ));
-            }
+        if is_escape && !in_str_or_char {
+            self.active
+                .iterate(&mut self.errors, self.pos, last_char, ' ');
+        } else {
+            self.active
+                .iterate(&mut self.errors, self.pos, last_char, letter_char);
         }
-
-        if !self.line_comment && !self.multi_comment {
-            if !self.active.is_complete() {
-                if let items::Processors::GetterCall(e) = self.active.current.clone() {
-                    if e.data.is_not_initialized() && (letter_char == '/' && !in_str_or_char) {
-                        self.comment_pos.range_start = self.pos;
-                        self.comment_start = true;
-                    }
-                }
-            }
-
-            if !self.comment_start {
-                if is_escape && !in_str_or_char {
-                    self.active
-                        .iterate(&mut self.errors, self.pos, last_char, ' ');
-                } else {
-                    self.active
-                        .iterate(&mut self.errors, self.pos, last_char, letter_char);
-                }
-            }
-            if self.errors.iter().any(|e| e.code == 0x00) {
-                hang = true;
-            }
+        if self.errors.iter().any(|e| e.code == 0x00) {
+            hang = true;
         }
 
         let mut dont_inc_column = false;
 
         if letter_char == '\n' && !in_str_or_char {
-            if self.line_comment {
-                self.line_comment = false;
-            }
             self.pos.0 += 1;
             self.pos.1 = 0;
             dont_inc_column = true;
@@ -130,6 +88,13 @@ impl Iterator {
                         ));
                         self.active = items::ItemProcessor::default();
                     }
+                } else if let items::Processors::Comment(e) = &mut self.active.current {
+                    if e.line_comment {
+                        self.collected.push(self.active.current.clone());
+                        self.active = items::ItemProcessor::default();
+                    } else {
+                        e.content.push(String::new());
+                    }
                 }
             }
         } else if letter_char == '\t' && !in_str_or_char {
@@ -141,14 +106,6 @@ impl Iterator {
             self.pos.1 += 1;
         } else {
             dont_inc_column = false;
-        }
-
-        if self.multi_comment {
-            if letter_char == '/' && last_char == '*' {
-                self.multi_comment = false;
-            } else {
-                self.comment_pos.range_end = self.pos;
-            }
         }
 
         if self.active.is_complete() {

@@ -26,6 +26,14 @@ pub fn generate_elliefmt_options() -> Command<'static> {
                         .long("--show-debug-lines"),
                 )
                 .arg(
+                    Arg::new("excludeFiles")
+                        .help("Exclude files")
+                        .short('e')
+                        .long("--exclude-files")
+                        .takes_value(true)
+                        .multiple_values(true),
+                )
+                .arg(
                     Arg::new("target")
                         .help("Target file to compile")
                         .takes_value(true)
@@ -60,6 +68,14 @@ pub fn generate_elliefmt_options() -> Command<'static> {
                         .help("Show debugging lines")
                         .short('s')
                         .long("--show-debug-lines"),
+                )
+                .arg(
+                    Arg::new("excludeFiles")
+                        .help("Exclude files")
+                        .short('e')
+                        .long("--exclude-files")
+                        .takes_value(true)
+                        .multiple_values(true),
                 )
                 .arg(
                     Arg::new("target")

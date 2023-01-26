@@ -22,6 +22,7 @@ pub mod self_item;
 pub mod setter;
 pub mod setter_call;
 pub mod variable;
+pub mod comment;
 
 impl CodeRenderer for Processors {
     fn render(&self, state: &State, options: &FormatterOptions) -> String {
@@ -43,6 +44,7 @@ impl CodeRenderer for Processors {
             Processors::Enum(e) => e.render(state, options),
             Processors::Getter(e) => e.render(state, options),
             Processors::Setter(e) => e.render(state, options),
+            Processors::Comment(e) => e.render(state, options),
             _ => unreachable!("Rest of the items are not required to be rendered"),
         }
     }

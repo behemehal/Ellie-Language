@@ -36,6 +36,7 @@ pub struct FunctionCollector {
     pub key_collected: bool,
     pub return_collected: bool,
     pub return_keyword_collected: bool,
+    #[serde(skip)]
     pub iterator: Box<crate::iterator::Iterator>,
     pub brace_count: usize,
     pub complete: bool,

@@ -2007,6 +2007,7 @@ impl Parser {
                             ));
                             true
                         }
+                        Processors::Comment(_) => true,
                         unexpected_element => {
                             self.informations.push(
                                 &error::error_list::ERROR_S22.clone().build_with_path(
@@ -2119,6 +2120,7 @@ impl Parser {
                             ));
                             true
                         }
+                        Processors::Comment(_) => true,
                         unexpected_element => {
                             self.informations.push(
                                 &error::error_list::ERROR_S22.clone().build_with_path(
@@ -2249,6 +2251,7 @@ impl Parser {
                                 ));
                             true
                         }
+                        Processors::Comment(_) => true,
                         unexpected_element => {
                             self.informations.push(
                                 &error::error_list::ERROR_S22.clone().build_with_path(
@@ -2312,6 +2315,7 @@ impl Parser {
                         Processors::ClassInstance(_) => true,
                         Processors::FunctionParameter(_) => true,
                         Processors::ConstructorParameter(_) => true,
+                        Processors::Comment(_) => true,
                         unexpected_element => {
                             self.informations.push(
                                 &error::error_list::ERROR_S22.clone().build_with_path(
@@ -2439,6 +2443,7 @@ impl Parser {
                             ));
                             true
                         }
+                        Processors::Comment(_) => true,
                         unexpected_element => {
                             self.informations.push(
                                 &error::error_list::ERROR_S22.clone().build_with_path(
@@ -2600,6 +2605,7 @@ impl Parser {
                             ));
                             true
                         }
+                        Processors::Comment(_) => true,
                         unexpected_element => {
                             self.informations.push(
                                 &error::error_list::ERROR_S22.clone().build_with_path(

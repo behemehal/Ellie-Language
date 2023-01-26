@@ -35,11 +35,6 @@ impl crate::processors::Processor for condition::Condition {
                         chain.brace_count -= 1;
                     }
                     chain.iterator.pos = cursor;
-                    if cursor.0 != chain.iterator.comment_pos.range_start.0
-                        && chain.iterator.line_comment
-                    {
-                        chain.iterator.line_comment = false;
-                    }
                     hang = chain.iterator.iterate(last_char, letter_char);
                 }
             }
@@ -109,11 +104,6 @@ impl crate::processors::Processor for condition::Condition {
                         chain.brace_count -= 1;
                     }
                     chain.iterator.pos = cursor;
-                    if cursor.0 != chain.iterator.comment_pos.range_start.0
-                        && chain.iterator.line_comment
-                    {
-                        chain.iterator.line_comment = false;
-                    }
                     hang = chain.iterator.iterate(last_char, letter_char);
                 }
             }
@@ -130,11 +120,6 @@ impl crate::processors::Processor for condition::Condition {
                         chain.brace_count -= 1;
                     }
                     chain.iterator.pos = cursor;
-                    if cursor.0 != chain.iterator.comment_pos.range_start.0
-                        && chain.iterator.line_comment
-                    {
-                        chain.iterator.line_comment = false;
-                    }
                     hang = chain.iterator.iterate(last_char, letter_char);
                 }
             }

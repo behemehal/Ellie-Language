@@ -19,6 +19,7 @@ pub struct Class {
     pub generic_definings: Vec<GenericDefining>,
     pub continuum_collected: bool,
     pub name_pos: defs::Cursor,
+    #[serde(skip)]
     pub iterator: Box<crate::iterator::Iterator>,
     pub body: Vec<Processors>,
     pub brace_count: usize,

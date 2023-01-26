@@ -8,6 +8,7 @@ use alloc::vec::Vec;
 use alloc::{borrow::ToOwned, string::String};
 use ellie_core::definite::definers::DefinerCollecting;
 use ellie_core::definite::types::class_instance::AttributeType;
+use ellie_core::definite::types::reference::IndexChainAttribute;
 use ellie_core::definite::types::Types;
 use ellie_core::defs::Cursor;
 use ellie_core::{
@@ -364,7 +365,7 @@ pub fn process(
                 Ok(found_reference) => {
                     #[derive(Debug, Clone)]
                     struct Attribute {
-                        _rtype: AttributeType,
+                        rtype: AttributeType,
                         name: String,
                         value: DefinerCollecting,
                     }
@@ -622,14 +623,14 @@ pub fn process(
                                                                     None => return None,
                                                                 } };
                                                                 Some(Attribute {
-                                                                    _rtype: AttributeType::Property,
+                                                                    rtype: AttributeType::Property,
                                                                     name: e.name.clone(),
-                                                                    value: resolved_type
+                                                                    value: resolved_type,
                                                                 })
                                                             },
                                                             Collecting::Function(e) => {
                                                                 Some(Attribute {
-                                                                    _rtype: AttributeType::Method,
+                                                                    rtype: AttributeType::Method,
                                                                     name: e.name.clone(),
                                                                     value: DefinerCollecting::Function(
                                                                         ellie_core::definite::definers::FunctionType {
@@ -638,12 +639,12 @@ pub fn process(
                                                                             }).collect::<Vec<_>>(),
                                                                             returning: Box::new(e.return_type),
                                                                         }
-                                                                    )
+                                                                    ),
                                                                 })
                                                             },
                                                             Collecting::NativeFunction(e) => {
                                                                 Some(Attribute {
-                                                                    _rtype: AttributeType::Method,
+                                                                    rtype: AttributeType::Method,
                                                                     name: e.name.clone(),
                                                                     value: DefinerCollecting::Function(
                                                                         ellie_core::definite::definers::FunctionType {
@@ -652,22 +653,22 @@ pub fn process(
                                                                             }).collect::<Vec<_>>(),
                                                                             returning: Box::new(e.return_type),
                                                                         }
-                                                                    )
+                                                                    ),
                                                                 })
                                                             }
                                                             Collecting::Getter(e) => {
                                                                 Some(Attribute {
-                                                                    _rtype: AttributeType::Getter,
+                                                                    rtype: AttributeType::Getter,
                                                                     name: e.name.clone(),
-                                                                    value: e.return_type
+                                                                    value: e.return_type,
                                                                 })
                                                             }
                                                             Collecting::Setter(e) => {
                                                                 if is_setter {
                                                                     Some(Attribute {
-                                                                        _rtype: AttributeType::Setter,
+                                                                        rtype: AttributeType::Setter,
                                                                         name: e.name.clone(),
-                                                                        value: e.rtype
+                                                                        value: e.rtype,
                                                                     })
                                                                 } else {
                                                                     //TODO add setter check
@@ -710,9 +711,9 @@ pub fn process(
                                         crate::deep_search_extensions::ProcessedDeepSearchItems::GenericItem(_) => todo!(),
                                         crate::deep_search_extensions::ProcessedDeepSearchItems::None => todo!(),
                                         crate::deep_search_extensions::ProcessedDeepSearchItems::Enum(enum_data) => {
-                                            Ok(enum_data.items.iter().map(|item| {
+                                            Ok(enum_data.items.iter().map(| item| {
                                                 Attribute {
-                                                    _rtype: match item.value {
+                                                    rtype: match item.value {
                                                         ellie_core::definite::items::enum_type::EnumValue::NoValue => AttributeType::EnumItemData,
                                                         ellie_core::definite::items::enum_type::EnumValue::Value(_) => AttributeType::EnumItemData,
                                                     },
@@ -857,7 +858,6 @@ pub fn process(
                             DefinerCollecting::EnumField(_) => todo!(),
                             DefinerCollecting::ClassInstance(class_instance) => {
                                 let mut attributes = Vec::new();
-
                                 for attribute in &class_instance.attributes {
                                     let page = parser.find_processed_page(attribute.page).unwrap();
                                     let item = page.find_item_by_hash(attribute.hash).unwrap();
@@ -879,14 +879,14 @@ pub fn process(
                                                 }
                                             };
                                             attributes.push(Attribute {
-                                                _rtype: attribute._rtype.clone(),
+                                                rtype: attribute._rtype.clone(),
                                                 name: attribute.name.clone(),
                                                 value,
                                             });
                                         }
                                         Collecting::Function(e) => {
                                             attributes.push(Attribute {
-                                                _rtype: attribute._rtype.clone(),
+                                                rtype: attribute._rtype.clone(),
                                                 name: attribute.name.clone(),
                                                 value: DefinerCollecting::Function(
                                                     ellie_core::definite::definers::FunctionType {
@@ -902,7 +902,7 @@ pub fn process(
                                         }
                                         Collecting::Getter(e) => {
                                             attributes.push(Attribute {
-                                                _rtype: attribute._rtype.clone(),
+                                                rtype: attribute._rtype.clone(),
                                                 name: attribute.name.clone(),
                                                 value: e.return_type,
                                             });
@@ -937,14 +937,14 @@ pub fn process(
                                                 return Err(errors);
                                             };
                                             attributes.push(Attribute {
-                                                _rtype: attribute._rtype.clone(),
+                                                rtype: attribute._rtype.clone(),
                                                 name: attribute.name.clone(),
                                                 value,
                                             });
                                         }
                                         Collecting::NativeFunction(e) => {
                                             attributes.push(Attribute {
-                                                _rtype: attribute._rtype.clone(),
+                                                rtype: attribute._rtype.clone(),
                                                 name: attribute.name.clone(),
                                                 value: DefinerCollecting::Function(
                                                     ellie_core::definite::definers::FunctionType {
@@ -988,20 +988,22 @@ pub fn process(
                         ),
                     );
 
+                    let mut index_chain = Vec::new();
+
                     for chain in reference.data.chain.clone() {
                         match last_chain_attributes.1.clone() {
                             Ok(e) => {
-                                let attribute = e.iter().find(|a| a.name == chain.value);
+                                let attribute_index = e.iter().position(|a| a.name == chain.value);
+                                let attribute = match attribute_index {
+                                    Some(a) => Some(e[a].clone()),
+                                    None => None,
+                                };
                                 match attribute {
                                     Some(a) => {
-                                        //resolved_types = LastEntry::Type(
-                                        //    generate_type_from_defining(
-                                        //        a.value.clone(),
-                                        //        page_id,
-                                        //        parser,
-                                        //    )
-                                        //    .unwrap(),
-                                        //);
+                                        index_chain.push(IndexChainAttribute {
+                                            rtype: a.rtype.clone(),
+                                            idx: attribute_index.unwrap(),
+                                        });
                                         last_chain_attributes = (
                                             a.value.clone(),
                                             resolve_chain(
@@ -1058,6 +1060,7 @@ pub fn process(
                                     value: chain.value.clone(),
                                 })
                                 .collect::<Vec<_>>(),
+                            index_chain,
                             pos: reference.data.pos,
                         }))
                     } else {

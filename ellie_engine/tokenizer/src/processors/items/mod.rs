@@ -25,7 +25,7 @@ mod ret_processor;
 mod setter_call;
 mod setter_processor;
 mod variable_processor;
-
+mod comment_processor;
 mod brk_processor;
 mod go_processor;
 pub mod loop_processor;
@@ -52,6 +52,7 @@ pub enum Processors {
     ClassInstance(class_instance::ClassInstance), //VirtualValues
     GenericItem(generic_item::GenericItem),       //VirtualValues
     FunctionParameter(function_parameter::FunctionParameter), //VirtualValues
+    Comment(comment::Comment),
     ConstructorParameter(constructor_parameter::ConstructorParameter), //DISABLED
 }
 
@@ -81,6 +82,7 @@ impl Processors {
             Processors::Brk(e) => e.complete,
             Processors::Go(e) => e.complete,
             Processors::Loop(e) => e.complete,
+            Processors::Comment(e) => e.complete
         }
     }
 
@@ -132,6 +134,7 @@ impl Processors {
             Processors::Brk(e) => e.pos,
             Processors::Go(e) => e.pos,
             Processors::Loop(e) => e.pos,
+            Processors::Comment(e) => e.pos,
         }
     }
 
@@ -158,6 +161,7 @@ impl Processors {
             Processors::Brk(e) => Collecting::Brk(e.to_definite()),
             Processors::Go(e) => Collecting::Go(e.to_definite()),
             Processors::Loop(e) => Collecting::Loop(e.to_definite()),
+            Processors::Comment(_) => panic!("Unexpected behaviour"),
         }
     }
 
@@ -312,6 +316,11 @@ impl super::Processor for ItemProcessor {
                 self.used_modifier = Modifier::Pub;
             }
             self.current = Processors::default();
+        } else if letter_char == '/' && !self.current.is_initalized() {
+            self.current = Processors::Comment(comment::Comment {
+                pos: self.current.get_pos(),
+                ..Default::default()
+            });
         } else if (keyword == "v" || keyword == "c") && letter_char == ' ' {
             self.current = Processors::Variable(variable::VariableCollector {
                 data: variable::Variable {
@@ -491,6 +500,7 @@ impl super::Processor for ItemProcessor {
             Processors::Brk(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::Go(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::Loop(e) => e.iterate(errors, cursor, last_char, letter_char),
+            Processors::Comment(e) => e.iterate(errors, cursor, last_char, letter_char),
         }
     }
 }

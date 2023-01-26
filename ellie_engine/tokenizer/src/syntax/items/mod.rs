@@ -22,3 +22,4 @@ pub mod function_parameter; //Virtual
 pub mod generic_item; //Virtual
 pub mod loop_type;
 pub mod self_item; //Virtual
+pub mod comment;

@@ -1,6 +1,5 @@
 use crate::renderer::CodeRenderer;
 use crate::renderer::State;
-use ellie_core::utils::PageExport;
 pub use ellie_tokenizer;
 use ellie_tokenizer::tokenizer::Page;
 
@@ -30,7 +29,7 @@ impl Default for FormatterOptions {
             space_between_operators: true,
             is_cr_lf: false,
             tab_size: 4,
-            use_tabs: true,
+            use_tabs: false,
         }
     }
 }
@@ -47,7 +46,6 @@ impl FormatterOptions {
 
 pub struct Formatter {
     pub options: FormatterOptions,
-    pub export: PageExport<Page>,
 }
 
 pub struct FormattedPage {
@@ -55,29 +53,50 @@ pub struct FormattedPage {
     pub content: String,
 }
 
-impl Formatter {
-    pub fn new(options: FormatterOptions, export: PageExport<Page>) -> Formatter {
-        Formatter { options, export }
+struct FormatedFile {
+    pub lines: Vec<String>,
+    pub line_ending: String,
+}
+
+impl FormatedFile {
+    pub fn new(line_ending: String) -> FormatedFile {
+        FormatedFile {
+            lines: vec![],
+            line_ending,
+        }
     }
 
-    fn format_page(&self, page: &Page) -> String {
-        let mut output = String::new();
+    fn insert_element_to_line(&mut self, line: usize, element: String) {
+        if self.lines.len() < line {
+            self.lines.resize(line, self.line_ending.clone());
+        }
+        let lines = element
+            .split(&self.line_ending)
+            .map(str::to_string)
+            .filter(|x| x != &"")
+            .collect::<Vec<String>>();
+        self.lines.extend(lines);
+    }
+
+    fn render_out(&self) -> String {
+        self.lines.join(&self.line_ending)
+    }
+}
+
+impl Formatter {
+    pub fn new(options: FormatterOptions) -> Formatter {
+        Formatter { options }
+    }
+
+    pub fn format_page(&self, page: &Page) -> String {
+        let mut output = FormatedFile::new(self.options.render_line_ending());
 
         for item in page.items.iter() {
-            output += &item.render(&State::empty_state(), &self.options);
-        }
-        output
-    }
+            let item_pos = item.get_pos();
 
-    pub fn format(&self) -> Vec<FormattedPage> {
-        let mut formatted_pages = Vec::new();
-        for page in self.export.pages.iter() {
-            let content = self.format_page(page);
-            formatted_pages.push(FormattedPage {
-                path: page.path.clone(),
-                content,
-            });
+            let formated_item = item.render(&State::empty_state(), &self.options);
+            output.insert_element_to_line(item_pos.range_start.0, formated_item);
         }
-        formatted_pages
+        output.render_out()
     }
 }

@@ -15,6 +15,7 @@ pub struct ForLoop {
     pub parameter: defs::Cursor,
     pub body_pos: defs::Cursor,
     pub body: Vec<Processors>,
+    #[serde(skip)]
     pub iterator: Box<crate::iterator::Iterator>,
     pub iterator_pos: Cursor,
     pub brace_count: usize,
