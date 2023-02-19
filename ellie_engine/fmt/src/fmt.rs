@@ -5,7 +5,8 @@ use ellie_tokenizer::tokenizer::Page;
 
 #[derive(Clone, Debug, Copy)]
 pub struct FormatterOptions {
-    pub float_starts_with_dot: bool,
+    pub decimal_starts_with_dot: bool,
+    pub decorate_float_with_f_tag: bool,
     pub extend_array: bool,
     pub leave_space_after_comma: bool,
     pub use_shorts: bool,
@@ -20,7 +21,8 @@ pub struct FormatterOptions {
 impl Default for FormatterOptions {
     fn default() -> Self {
         Self {
-            float_starts_with_dot: false,
+            decimal_starts_with_dot: true,
+            decorate_float_with_f_tag: true,
             extend_array: false,
             leave_space_after_comma: true,
             use_shorts: true,

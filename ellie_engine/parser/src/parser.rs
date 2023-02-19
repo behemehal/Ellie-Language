@@ -168,6 +168,7 @@ pub struct ParserSettings {
     pub nullables: (bool, String),
     pub integers: (bool, String),
     pub floats: (bool, String),
+    pub doubles: (bool, String),
     pub strings: (bool, String),
     pub chars: (bool, String),
     pub booleans: (bool, String),
@@ -186,6 +187,7 @@ impl Default for ParserSettings {
             nullables: (true, String::new()),
             integers: (true, String::new()),
             floats: (true, String::new()),
+            doubles: (true, String::new()),
             strings: (true, String::new()),
             chars: (true, String::new()),
             booleans: (true, String::new()),
@@ -205,7 +207,13 @@ impl ParserSettings {
         type_: ellie_tokenizer::processors::types::Processors,
     ) -> (bool, String) {
         match type_ {
-            ellie_tokenizer::processors::types::Processors::Float(_) => self.floats.clone(),
+            ellie_tokenizer::processors::types::Processors::Decimal(decimal_type) => {
+                if decimal_type.data.is_double {
+                    self.floats.clone()
+                } else {
+                    self.doubles.clone()
+                }
+            }
             ellie_tokenizer::processors::types::Processors::Char(_) => self.chars.clone(),
             ellie_tokenizer::processors::types::Processors::String(_) => self.strings.clone(),
             ellie_tokenizer::processors::types::Processors::Array(_) => self.arrays.clone(),
@@ -529,14 +537,19 @@ impl Parser {
                     }
                 }
             }
-            deep_search_extensions::DeepTypeResult::Float(_) => {
+            deep_search_extensions::DeepTypeResult::Decimal(decimal_type) => {
+                let generic_name = if decimal_type.is_double {
+                    "double"
+                } else {
+                    "float"
+                };
                 if let ellie_core::definite::definers::DefinerCollecting::Generic(_) = defining {
-                    if defining.to_string() == "float" {
+                    if defining.to_string() == generic_name {
                         if errors.is_empty() {
                             Ok(CompareResult::result(
                                 true,
                                 defining.to_string(),
-                                "float".to_owned(),
+                                generic_name.to_owned(),
                             ))
                         } else {
                             Err(errors)
@@ -546,7 +559,7 @@ impl Parser {
                             Ok(CompareResult::result(
                                 false,
                                 defining.to_string(),
-                                "float".to_owned(),
+                                generic_name.to_owned(),
                             ))
                         } else {
                             Err(errors)
@@ -557,42 +570,7 @@ impl Parser {
                         Ok(CompareResult::result(
                             false,
                             defining.to_string(),
-                            "float".to_owned(),
-                        ))
-                    } else {
-                        Err(errors)
-                    }
-                }
-            }
-            deep_search_extensions::DeepTypeResult::Double(_) => {
-                if let ellie_core::definite::definers::DefinerCollecting::Generic(_) = defining {
-                    if defining.to_string() == "double" {
-                        if errors.is_empty() {
-                            Ok(CompareResult::result(
-                                true,
-                                defining.to_string(),
-                                "double".to_owned(),
-                            ))
-                        } else {
-                            Err(errors)
-                        }
-                    } else {
-                        if errors.is_empty() {
-                            Ok(CompareResult::result(
-                                false,
-                                defining.to_string(),
-                                "double".to_owned(),
-                            ))
-                        } else {
-                            Err(errors)
-                        }
-                    }
-                } else {
-                    if errors.is_empty() {
-                        Ok(CompareResult::result(
-                            false,
-                            defining.to_string(),
-                            "double".to_owned(),
+                            generic_name.to_owned(),
                         ))
                     } else {
                         Err(errors)
@@ -834,11 +812,8 @@ impl Parser {
                             deep_search_extensions::DeepTypeResult::Byte(e) => {
                                 ellie_core::definite::types::Types::Byte(e)
                             }
-                            deep_search_extensions::DeepTypeResult::Float(e) => {
-                                ellie_core::definite::types::Types::Float(e)
-                            }
-                            deep_search_extensions::DeepTypeResult::Double(e) => {
-                                ellie_core::definite::types::Types::Double(e)
+                            deep_search_extensions::DeepTypeResult::Decimal(e) => {
+                                ellie_core::definite::types::Types::Decimal(e)
                             }
                             deep_search_extensions::DeepTypeResult::Bool(e) => {
                                 ellie_core::definite::types::Types::Bool(e)

@@ -6,8 +6,8 @@ pub mod char_processor;
 pub mod class_call_processor;
 pub mod cloak_processor;
 pub mod collective_processor;
+pub mod decimal_processor;
 pub mod enum_data_processor;
-pub mod float_processor;
 pub mod function_call_processor;
 pub mod integer_processor;
 pub mod negative_processor;
@@ -29,7 +29,7 @@ use serde::{Deserialize, Serialize};
 pub enum Processors {
     Integer(integer_type::IntegerTypeCollector),
     Byte(byte_type::ByteType),
-    Float(float_type::FloatTypeCollector),
+    Decimal(decimal_type::DecimalTypeCollector),
     Char(char_type::CharType),
     String(string_type::StringTypeCollector),
     Variable(variable_type::VariableTypeCollector),
@@ -52,7 +52,7 @@ impl Processors {
         match self.clone() {
             Processors::Integer(e) => ellie_core::definite::types::Types::Integer(e.to_definite()),
             Processors::Byte(e) => ellie_core::definite::types::Types::Byte(e.to_definite()),
-            Processors::Float(e) => ellie_core::definite::types::Types::Float(e.to_definite()),
+            Processors::Decimal(e) => ellie_core::definite::types::Types::Decimal(e.to_definite()),
             Processors::Char(e) => ellie_core::definite::types::Types::Char(e.to_definite()),
             Processors::String(e) => ellie_core::definite::types::Types::String(e.to_definite()),
             Processors::Variable(e) => {
@@ -101,8 +101,8 @@ impl Processors {
             definite::types::Types::Byte(e) => {
                 Processors::Byte(byte_type::ByteType::default().from_definite(e))
             }
-            definite::types::Types::Float(e) => {
-                Processors::Float(float_type::FloatTypeCollector::default().from_definite(e))
+            definite::types::Types::Decimal(e) => {
+                Processors::Decimal(decimal_type::DecimalTypeCollector::default().from_definite(e))
             }
             definite::types::Types::String(e) => {
                 Processors::String(string_type::StringTypeCollector::default().from_definite(e))
@@ -158,7 +158,7 @@ impl Processors {
         match self {
             Processors::Integer(_) => true,
             Processors::Byte(_) => true,
-            Processors::Float(_) => true,
+            Processors::Decimal(_) => true,
             Processors::Char(_) => true,
             Processors::String(_) => true,
             Processors::FunctionCall(_) => false,
@@ -198,7 +198,7 @@ impl Processors {
             Processors::Char(e) => e.complete,
             Processors::String(e) => e.complete,
             Processors::Variable(e) => e.complete,
-            Processors::Float(e) => e.complete,
+            Processors::Decimal(e) => e.complete,
             Processors::Array(e) => e.complete,
             Processors::Negative(e) => e.value.is_complete(),
             Processors::Operator(e) => e.data.second.is_complete(),
@@ -218,7 +218,7 @@ impl Processors {
         match self.clone() {
             Processors::Integer(_) => false,
             Processors::Byte(_) => false,
-            Processors::Float(_) => false,
+            Processors::Decimal(_) => false,
             Processors::Char(_) => false,
             Processors::String(_) => false,
             Processors::Variable(e) => e.data.value == "",
@@ -241,7 +241,7 @@ impl Processors {
         match self.clone() {
             Processors::Integer(e) => e.data.pos,
             Processors::Byte(e) => e.pos,
-            Processors::Float(e) => e.data.pos,
+            Processors::Decimal(e) => e.data.pos,
             Processors::Char(e) => e.pos,
             Processors::String(e) => e.data.pos,
             Processors::Variable(e) => e.data.pos,
@@ -422,7 +422,7 @@ impl super::Processor for TypeProcessor {
         } else if letter_char == '.'
             && (not_initalized || matches!(&self.current, Processors::Integer(_)))
         {
-            self.current = Processors::Float(float_type::FloatTypeCollector {
+            self.current = Processors::Decimal(decimal_type::DecimalTypeCollector {
                 base: if let Processors::Integer(e) = &self.current {
                     e.raw.to_string()
                 } else {
@@ -433,7 +433,7 @@ impl super::Processor for TypeProcessor {
                 } else {
                     self.current.as_integer().unwrap().clone()
                 },
-                data: float_type::FloatType {
+                data: decimal_type::DecimalType {
                     raw: if let Processors::Integer(e) = &self.current {
                         e.raw.to_string() + "."
                     } else {
@@ -454,7 +454,7 @@ impl super::Processor for TypeProcessor {
                 },
                 ..Default::default()
             });
-        } else if matches!(self.current.clone(), Processors::Float(e) if e.no_base)
+        } else if matches!(self.current.clone(), Processors::Decimal(e) if e.no_base)
             && last_char == '.'
             && letter_char.to_string().parse::<i8>().is_err()
             && utils::reliable_name_range(utils::ReliableNameRanges::VariableName, letter_char)
@@ -464,7 +464,7 @@ impl super::Processor for TypeProcessor {
                 self.current = Processors::Reference(reference_type::ReferenceTypeCollector {
                     data: reference_type::ReferenceType {
                         reference: Box::new(Processors::Integer(
-                            self.current.as_float().unwrap().base_p.clone(),
+                            self.current.as_decimal().unwrap().base_p.clone(),
                         )),
                         reference_pos: self.current.get_pos(),
                         chain: vec![reference_type::Chain {
@@ -544,7 +544,7 @@ impl super::Processor for TypeProcessor {
             Processors::Char(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::String(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::Variable(e) => e.iterate(errors, cursor, last_char, letter_char),
-            Processors::Float(e) => e.iterate(errors, cursor, last_char, letter_char),
+            Processors::Decimal(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::Negative(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::Array(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::Operator(e) => e.iterate(errors, cursor, last_char, letter_char),

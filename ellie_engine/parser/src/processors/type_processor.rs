@@ -385,11 +385,16 @@ pub fn process(
                                             pos: ellie_core::defs::Cursor::default(),
                                         },
                                     ))
-                                } else if generic.rtype == "float" {
-                                    Some(types::Types::Float(
-                                        ellie_core::definite::types::float::FloatType {
-                                            value: 0.0,
+                                } else if generic.rtype == "float" || generic.rtype == "double" {
+                                    Some(types::Types::Decimal(
+                                        ellie_core::definite::types::decimal::DecimalType {
+                                            value: if generic.rtype == "float" {
+                                                ellie_core::definite::types::decimal::DecimalTypeEnum::Float(0.0)
+                                            } else {
+                                                ellie_core::definite::types::decimal::DecimalTypeEnum::Double(0.0)
+                                            },
                                             pos: ellie_core::defs::Cursor::default(),
+                                            is_double: generic.rtype == "double",
                                         },
                                     ))
                                 } else if generic.rtype == "string" {
@@ -1576,11 +1581,15 @@ pub fn process(
                     ));
                     Err(errors)
                 }
-                Processors::Float(_) => {
+                Processors::Decimal(e) => {
                     errors.push(error::error_list::ERROR_S11.clone().build_with_path(
                         vec![error::ErrorBuildField {
                             key: "token".to_string(),
-                            value: "float".to_string(),
+                            value: if e.data.is_double {
+                                "double".to_string()
+                            } else {
+                                "float".to_string()
+                            },
                         }],
                         alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                         parser.find_page(page_id).unwrap().path.clone(),

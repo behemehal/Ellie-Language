@@ -63,8 +63,7 @@ impl super::Processor for VariableCollector {
                         value: match key.value {
                             Types::Byte(e) => Types::Byte(e),
                             Types::Integer(e) => Types::Integer(e),
-                            Types::Float(e) => Types::Float(e),
-                            Types::Double(e) => Types::Double(e),
+                            Types::Decimal(e) => Types::Decimal(e),
                             Types::Bool(e) => Types::Bool(e),
                             Types::String(e) => Types::String(e),
                             Types::Char(e) => Types::Char(e),

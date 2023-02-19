@@ -1,7 +1,7 @@
-use crate::syntax::types::float_type;
-use ellie_core::{defs, error};
+use crate::syntax::types::decimal_type;
+use ellie_core::{definite::types::decimal::DecimalTypeEnum, defs, error};
 
-impl crate::processors::Processor for float_type::FloatTypeCollector {
+impl crate::processors::Processor for decimal_type::DecimalTypeCollector {
     fn iterate(
         &mut self,
         errors: &mut Vec<error::Error>,
@@ -36,7 +36,7 @@ impl crate::processors::Processor for float_type::FloatTypeCollector {
                 self.point += &letter_char.to_string();
                 self.data.raw += &letter_char.to_string();
                 if let Ok(nm) = self.data.raw.parse::<f32>() {
-                    self.data.value = nm;
+                    self.data.value = DecimalTypeEnum::Float(nm);
                     self.complete = true;
                 } else {
                     errors.push(error::error_list::ERROR_S16.clone().build(
@@ -49,6 +49,37 @@ impl crate::processors::Processor for float_type::FloatTypeCollector {
                     ));
                 }
                 self.data.pos.range_end = cursor;
+            } else if letter_char == 'd' {
+                self.data.pos.range_end = cursor;
+                if let Ok(nm) = self.data.raw.parse::<f64>() {
+                    self.data.value = DecimalTypeEnum::Double(nm);
+                    self.data.is_double = true;
+                    self.complete = true;
+                } else {
+                    errors.push(error::error_list::ERROR_S17.clone().build(
+                        vec![error::ErrorBuildField {
+                            key: "val".to_owned(),
+                            value: self.data.raw.clone(),
+                        }],
+                        alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                        defs::Cursor::build_from_cursor(cursor),
+                    ));
+                }
+            } else if letter_char == 'f' {
+                self.data.pos.range_end = cursor;
+                if let Ok(nm) = self.data.raw.parse::<f32>() {
+                    self.data.value = DecimalTypeEnum::Float(nm);
+                    self.complete = true;
+                } else {
+                    errors.push(error::error_list::ERROR_S17.clone().build(
+                        vec![error::ErrorBuildField {
+                            key: "val".to_owned(),
+                            value: self.data.raw.clone(),
+                        }],
+                        alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                        defs::Cursor::build_from_cursor(cursor),
+                    ));
+                }
             } else if letter_char != ' ' {
                 errors.push(error::error_list::ERROR_S1.clone().build(
                     vec![error::ErrorBuildField {

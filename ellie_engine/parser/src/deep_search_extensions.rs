@@ -37,10 +37,11 @@ pub fn generate_type_from_defining(
                     },
                 ))
             } else if generic.rtype == "float" {
-                Some(Types::Float(
-                    ellie_core::definite::types::float::FloatType {
-                        value: 0.0,
+                Some(Types::Decimal(
+                    ellie_core::definite::types::decimal::DecimalType {
+                        value: ellie_core::definite::types::decimal::DecimalTypeEnum::Float(0.0),
                         pos: defs::Cursor::default(),
+                        is_double: false,
                     },
                 ))
             } else if generic.rtype == "string" {
@@ -272,8 +273,7 @@ pub fn generate_type_from_defining(
 pub enum DeepTypeResult {
     Integer(ellie_core::definite::types::integer::IntegerType),
     Byte(ellie_core::definite::types::byte::ByteType),
-    Float(ellie_core::definite::types::float::FloatType),
-    Double(ellie_core::definite::types::double::DoubleType),
+    Decimal(ellie_core::definite::types::decimal::DecimalType),
     Bool(ellie_core::definite::types::bool::BoolType),
     String(ellie_core::definite::types::string::StringType),
     Char(ellie_core::definite::types::ellie_char::CharType),
@@ -302,7 +302,7 @@ fn iterate_deep_type(
 ) -> DeepTypeResult {
     match rtype.clone() {
         Types::Integer(integer) => DeepTypeResult::Integer(integer),
-        Types::Float(float) => DeepTypeResult::Float(float),
+        Types::Decimal(float) => DeepTypeResult::Decimal(float),
         Types::String(string) => DeepTypeResult::String(string),
         Types::Char(char) => DeepTypeResult::Char(char),
         Types::Collective(collective) => DeepTypeResult::Collective(collective),
@@ -743,8 +743,7 @@ fn iterate_deep_type(
                         reference: Box::new(match resolved_reference {
                             DeepTypeResult::Integer(e) => Types::Integer(e),
                             DeepTypeResult::Byte(e) => Types::Byte(e),
-                            DeepTypeResult::Float(e) => Types::Float(e),
-                            DeepTypeResult::Double(e) => Types::Double(e),
+                            DeepTypeResult::Decimal(e) => Types::Decimal(e),
                             DeepTypeResult::Bool(e) => Types::Bool(e),
                             DeepTypeResult::String(e) => Types::String(e),
                             DeepTypeResult::Char(e) => Types::Char(e),
@@ -771,8 +770,7 @@ fn iterate_deep_type(
                         value: Box::new(match resolved_index {
                             DeepTypeResult::Integer(e) => Types::Integer(e),
                             DeepTypeResult::Byte(e) => Types::Byte(e),
-                            DeepTypeResult::Float(e) => Types::Float(e),
-                            DeepTypeResult::Double(e) => Types::Double(e),
+                            DeepTypeResult::Decimal(e) => Types::Decimal(e),
                             DeepTypeResult::Bool(e) => Types::Bool(e),
                             DeepTypeResult::String(e) => Types::String(e),
                             DeepTypeResult::Char(e) => Types::Char(e),
@@ -801,8 +799,7 @@ fn iterate_deep_type(
             let first = match resolve_deep_type(parser, page_id, *e.first, errors) {
                 DeepTypeResult::Integer(e) => Types::Integer(e),
                 DeepTypeResult::Byte(e) => Types::Byte(e),
-                DeepTypeResult::Float(e) => Types::Float(e),
-                DeepTypeResult::Double(e) => Types::Double(e),
+                DeepTypeResult::Decimal(e) => Types::Decimal(e),
                 DeepTypeResult::Bool(e) => Types::Bool(e),
                 DeepTypeResult::String(e) => Types::String(e),
                 DeepTypeResult::Char(e) => Types::Char(e),
@@ -826,8 +823,7 @@ fn iterate_deep_type(
             let second = match resolve_deep_type(parser, page_id, *e.second, errors) {
                 DeepTypeResult::Integer(e) => Types::Integer(e),
                 DeepTypeResult::Byte(e) => Types::Byte(e),
-                DeepTypeResult::Float(e) => Types::Float(e),
-                DeepTypeResult::Double(e) => Types::Double(e),
+                DeepTypeResult::Decimal(e) => Types::Decimal(e),
                 DeepTypeResult::Bool(e) => Types::Bool(e),
                 DeepTypeResult::String(e) => Types::String(e),
                 DeepTypeResult::Char(e) => Types::Char(e),
@@ -888,15 +884,9 @@ fn iterate_deep_type(
                             location: i.location,
                         });
                     }
-                    DeepTypeResult::Float(float_type) => {
+                    DeepTypeResult::Decimal(decimal_type) => {
                         collective.push(ellie_core::definite::types::array::ArrayEntry {
-                            value: Types::Float(float_type),
-                            location: i.location,
-                        });
-                    }
-                    DeepTypeResult::Double(double_type) => {
-                        collective.push(ellie_core::definite::types::array::ArrayEntry {
-                            value: Types::Double(double_type),
+                            value: Types::Decimal(decimal_type),
                             location: i.location,
                         });
                     }
@@ -1016,7 +1006,7 @@ fn iterate_deep_type(
                         match resolved_type {
                             Some(types) => match types {
                                 Types::Integer(e) => DeepTypeResult::Integer(e),
-                                Types::Float(e) => DeepTypeResult::Float(e),
+                                Types::Decimal(e) => DeepTypeResult::Decimal(e),
                                 Types::Bool(e) => DeepTypeResult::Bool(e),
                                 Types::String(e) => DeepTypeResult::String(e),
                                 Types::Char(e) => DeepTypeResult::Char(e),
@@ -1122,8 +1112,7 @@ fn iterate_deep_type(
                             Some(e) => match e {
                                 Types::Byte(e) => DeepTypeResult::Byte(e),
                                 Types::Integer(e) => DeepTypeResult::Integer(e),
-                                Types::Float(e) => DeepTypeResult::Float(e),
-                                Types::Double(e) => DeepTypeResult::Double(e),
+                                Types::Decimal(e) => DeepTypeResult::Decimal(e),
                                 Types::Bool(e) => DeepTypeResult::Bool(e),
                                 Types::String(e) => DeepTypeResult::String(e),
                                 Types::Char(e) => DeepTypeResult::Char(e),
@@ -1148,8 +1137,7 @@ fn iterate_deep_type(
                             Some(e) => match e {
                                 Types::Byte(e) => DeepTypeResult::Byte(e),
                                 Types::Integer(e) => DeepTypeResult::Integer(e),
-                                Types::Float(e) => DeepTypeResult::Float(e),
-                                Types::Double(e) => DeepTypeResult::Double(e),
+                                Types::Decimal(e) => DeepTypeResult::Decimal(e),
                                 Types::Bool(e) => DeepTypeResult::Bool(e),
                                 Types::String(e) => DeepTypeResult::String(e),
                                 Types::Char(e) => DeepTypeResult::Char(e),
@@ -1174,8 +1162,7 @@ fn iterate_deep_type(
                             Some(e) => match e {
                                 Types::Byte(e) => DeepTypeResult::Byte(e),
                                 Types::Integer(e) => DeepTypeResult::Integer(e),
-                                Types::Float(e) => DeepTypeResult::Float(e),
-                                Types::Double(e) => DeepTypeResult::Double(e),
+                                Types::Decimal(e) => DeepTypeResult::Decimal(e),
                                 Types::Bool(e) => DeepTypeResult::Bool(e),
                                 Types::String(e) => DeepTypeResult::String(e),
                                 Types::Char(e) => DeepTypeResult::Char(e),
@@ -1361,10 +1348,19 @@ fn iterate_deep_type(
                                             },
                                         ))
                                     } else if generic.rtype == "float" {
-                                        Some(Types::Float(
-                                            ellie_core::definite::types::float::FloatType {
-                                                value: 0.0,
+                                        Some(Types::Decimal(
+                                            ellie_core::definite::types::decimal::DecimalType {
+                                                value: ellie_core::definite::types::decimal::DecimalTypeEnum::Float(0.0),
                                                 pos: defs::Cursor::default(),
+                                                is_double: false
+                                            },
+                                        ))
+                                    } else if generic.rtype == "double" {
+                                        Some(Types::Decimal(
+                                            ellie_core::definite::types::decimal::DecimalType {
+                                                value: ellie_core::definite::types::decimal::DecimalTypeEnum::Double(0.0),
+                                                pos: defs::Cursor::default(),
+                                                is_double: true
                                             },
                                         ))
                                     } else if generic.rtype == "string" {
@@ -1485,7 +1481,7 @@ fn iterate_deep_type(
                         match resolved_type {
                             Some(types) => match types {
                                 Types::Integer(e) => DeepTypeResult::Integer(e),
-                                Types::Float(e) => DeepTypeResult::Float(e),
+                                Types::Decimal(e) => DeepTypeResult::Decimal(e),
                                 Types::Bool(e) => DeepTypeResult::Bool(e),
                                 Types::String(e) => DeepTypeResult::String(e),
                                 Types::Char(e) => DeepTypeResult::Char(e),
@@ -1535,7 +1531,7 @@ fn iterate_deep_type(
         Types::Dynamic => DeepTypeResult::Dynamic,
         Types::Function(f) => DeepTypeResult::Function(f),
         Types::Byte(byte) => DeepTypeResult::Byte(byte),
-        Types::Double(_) => todo!(),
+        Types::Decimal(decimal) => DeepTypeResult::Decimal(decimal),
         Types::EnumData(e) => DeepTypeResult::EnumData(e),
         Types::ClassInstance(_) => todo!(),
     }
@@ -2280,16 +2276,22 @@ pub fn resolve_type(
                 }
             }
         }
-        DeepTypeResult::Float(_) => {
-            let float_type = find_type("float".to_string(), target_page, parser);
-            match float_type {
+        DeepTypeResult::Decimal(decimal_type) => {
+            let generic = if decimal_type.is_double {
+                "double"
+            } else {
+                "float"
+            };
+
+            let decimal_type = find_type(generic.to_string(), target_page, parser);
+            match decimal_type {
                 Some(e) => Some(definers::DefinerCollecting::Generic(e)),
                 None => {
                     if let Some(pos) = pos {
                         errors.push(error::error_list::ERROR_S38.clone().build_with_path(
                             vec![error::ErrorBuildField {
                                 key: "token".to_owned(),
-                                value: "float".to_string(),
+                                value: generic.to_string(),
                             }],
                             alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                             parser.find_page(target_page).unwrap().path.clone(),
@@ -2297,29 +2299,7 @@ pub fn resolve_type(
                         ));
                         return None;
                     } else {
-                        panic!("Unhandled behaviour, failed to find float type");
-                    }
-                }
-            }
-        }
-        DeepTypeResult::Double(_) => {
-            let double_type = find_type("double".to_string(), target_page, parser);
-            match double_type {
-                Some(e) => Some(definers::DefinerCollecting::Generic(e)),
-                None => {
-                    if let Some(pos) = pos {
-                        errors.push(error::error_list::ERROR_S38.clone().build_with_path(
-                            vec![error::ErrorBuildField {
-                                key: "token".to_owned(),
-                                value: "double".to_string(),
-                            }],
-                            alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                            parser.find_page(target_page).unwrap().path.clone(),
-                            pos,
-                        ));
-                        return None;
-                    } else {
-                        panic!("Unhandled behaviour, failed to find double type");
+                        panic!("Unhandled behaviour, failed to find {generic} type");
                     }
                 }
             }

@@ -7,10 +7,9 @@ pub mod class_call;
 pub mod class_instance;
 pub mod cloak;
 pub mod collective;
-pub mod double;
 pub mod ellie_char;
 pub mod enum_data;
-pub mod float;
+pub mod decimal;
 pub mod function;
 pub mod function_call;
 pub mod integer;
@@ -28,8 +27,7 @@ use serde::{Deserialize, Serialize};
 pub enum Types {
     Byte(byte::ByteType),
     Integer(integer::IntegerType),
-    Float(float::FloatType),
-    Double(double::DoubleType),
+    Decimal(decimal::DecimalType),
     Bool(bool::BoolType),
     String(string::StringType),
     Char(ellie_char::CharType),

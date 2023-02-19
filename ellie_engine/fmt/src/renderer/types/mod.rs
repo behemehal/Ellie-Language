@@ -26,7 +26,7 @@ impl CodeRenderer for Processors {
         match self {
             Processors::Integer(e) => e.data.render(state, options),
             Processors::Byte(e) => e.render(state, options),
-            Processors::Float(e) => e.data.render(state, options),
+            Processors::Decimal(e) => e.data.render(state, options),
             Processors::Char(e) => e.render(state, options),
             Processors::String(e) => e.data.render(state, options),
             Processors::Variable(e) => e.data.render(state, options),
