@@ -7,10 +7,9 @@ use alloc::{
     vec::Vec,
 };
 use ellie_core::defs::{CursorPosition, DebugHeader, DebugHeaderType};
-use ellie_vm::{program::Program, utils::ProgramReader};
-
 #[cfg(feature = "std")]
 use ellie_vm::utils::Reader;
+use ellie_vm::{program::Program, utils::ProgramReader};
 
 #[cfg(feature = "std")]
 pub struct RFile<'a, T> {
@@ -161,7 +160,15 @@ pub fn parse_debug_file(dbg_file: String) -> Result<DebugInfo, String> {
     })
 }
 
+//Deprecated
+#[deprecated]
 pub fn read_program<T: ellie_vm::utils::Reader>(program_reader: &mut T) -> Result<Program, u8> {
     let mut program_reader = ProgramReader::new(program_reader);
-    Program::build_from_reader(&mut program_reader)
+    let mut program = Program::new();
+    match program.build_from_reader(&mut program_reader) {
+        Ok(_) => {
+            Ok(program)
+        },
+        Err(e) => Err(e)
+    }
 }

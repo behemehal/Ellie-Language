@@ -4,7 +4,12 @@ version = "0.3.0"
 edition = "2021"
 
 [dependencies]
-ellie_core = { path = "../core", version = "*" }
+ellie_core = { path = "../core", version = "*", default-features = false }
+mimalloc = "0.1.34"
 
 [features]
 default = []
+std = ["ellie_core/std"]
+B64 = ["ellie_core/B64"]
+B32 = ["ellie_core/B32"]
+B16 = ["ellie_core/B16"]

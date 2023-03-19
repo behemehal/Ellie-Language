@@ -1,6 +1,9 @@
 use core::fmt::{Display, Error, Formatter};
 
-use crate::{alloc::borrow::ToOwned, raw_type::RawType};
+use crate::{
+    alloc::borrow::ToOwned,
+    raw_type::{RawType, StaticRawType},
+};
 use alloc::{string::String, vec::Vec};
 use serde::{Deserialize, Serialize};
 
@@ -317,16 +320,28 @@ impl PlatformArchitecture {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug)]
+pub enum VmNativeCallParameters {
+    Static(StaticRawType),
+    Dynamic(RawType),
+}
+
+#[derive(Clone, Debug)]
 pub struct VmNativeCall {
-    pub module: String,
-    pub name: String,
-    pub params: Vec<RawType>,
+    /// Native function's hash
+    pub hash: usize,
+    /// Parameter array
+    pub params: Vec<VmNativeCallParameters>,
+    /// Return heap position is location of the ret instruction
+    /// If a non static value want to be returned, it will be stored in the heap,
+    /// and Y register will be referencing to this position,
+    /// so set the location of your dynamic value here
+    pub return_heap_position: usize,
 }
 
 #[derive(Clone, Debug)]
 pub enum VmNativeAnswer {
-    Ok(RawType),
+    Ok(VmNativeCallParameters),
     RuntimeError(String),
 }
 

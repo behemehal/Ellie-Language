@@ -1,87 +1,146 @@
-use alloc::{
-    string::{String, ToString},
-    vec::Vec,
-};
-use ellie_core::{
-    defs::{PlatformArchitecture, VmNativeAnswer, VmNativeCall},
-    raw_type::RawType,
-};
+#[cfg(feature = "std")]
+use alloc::sync::Arc;
+#[cfg(feature = "std")]
+use std::sync::Mutex;
+
+use alloc::{string::String, vec::Vec};
+use ellie_core::{defs::PlatformArchitecture, raw_type::StaticRawType};
 
 use crate::{
-    heap::Heap,
-    program::{MainProgram, Program, ReadInstruction},
-    thread::{Registers, Stack, Thread},
+    channel::ModuleManager,
+    heap_memory::HeapMemory,
+    program::{MainProgram, Program},
+    stack::Stack,
+    stack_memory::StackMemory,
+    thread::{Registers, Thread},
+    utils::ThreadExit,
 };
 
-pub struct VM<T> {
-    pub stack: Vec<ReadInstruction>,
-    pub threads: Vec<Thread<T>>,
-    pub heap: Heap,
-    native_call_channel: T,
+pub struct VM<'a> {
+    pub program: &'a Program,
+    pub threads: Vec<Thread>,
+    #[cfg(feature = "std")]
+    pub heap_memory: Arc<Mutex<HeapMemory>>,
+    #[cfg(feature = "std")]
+    pub stack_memory: Arc<Mutex<StackMemory>>,
+    //Unified memory
+    #[cfg(not(feature = "std"))]
+    pub heap_memory: HeapMemory,
+    #[cfg(not(feature = "std"))]
+    pub stack_memory: StackMemory,
+    module_manager: ModuleManager,
     target_arch: PlatformArchitecture,
 }
 
-impl<T> VM<T>
-where
-    T: FnOnce(crate::thread::ThreadInfo, VmNativeCall) -> VmNativeAnswer + Clone + Copy + Sized,
-{
-    pub fn new(target_arch: PlatformArchitecture, native_call_channel: T) -> Self {
+impl<'a> VM<'a> {
+    #[cfg(feature = "std")]
+    pub fn new(
+        target_arch: PlatformArchitecture,
+        module_manager: ModuleManager,
+        program: &'a Program,
+    ) -> Self {
         VM {
-            stack: Vec::new(),
+            program,
             threads: Vec::new(),
-            heap: Heap::new(),
+            heap_memory: Arc::new(Mutex::new(HeapMemory::new())),
+            stack_memory: Arc::new(Mutex::new(StackMemory::new())),
+            module_manager,
             target_arch,
-            native_call_channel,
         }
     }
 
-    pub fn load(&mut self, program: &Program) -> Result<(), u8> {
-        if self.target_arch != program.arch {
-            return Err(1);
+    #[cfg(not(feature = "std"))]
+    pub fn new(
+        target_arch: PlatformArchitecture,
+        module_manager: ModuleManager,
+        program: &'a Program,
+    ) -> Self {
+        VM {
+            program,
+            threads: Vec::new(),
+            heap_memory: HeapMemory::new(),
+            stack_memory: StackMemory::new(),
+            target_arch,
+            module_manager,
         }
-        self.stack = program.instructions.clone();
+    }
+
+    pub fn create_thread(&mut self, main: MainProgram) -> Result<(), u8> {
+        let mut thread = Thread::new(main.hash, self.target_arch);
+        thread.stack.push(Stack {
+            id: main.hash,
+            registers: Registers {
+                A: StaticRawType::void(),
+                B: StaticRawType::void(),
+                C: StaticRawType::void(),
+                X: StaticRawType::void(),
+                Y: StaticRawType::void(),
+            },
+            stack_len: main.length,
+            caller: None,
+            pos: main.start,
+            frame_pos: thread.frame_pos,
+        });
+        self.threads.push(thread);
         Ok(())
     }
 
-    pub fn build_thread(&mut self, main: usize) {
-        let thread = Thread::new(
-            main,
-            self.target_arch,
-            self.stack.clone(),
-            self.native_call_channel,
-        );
-        self.threads.push(thread);
-    }
-
-    pub fn build_main_thread(&mut self, main: MainProgram) {
-        let mut thread = Thread::new(
-            main.hash,
-            self.target_arch,
-            self.stack.clone(),
-            self.native_call_channel,
-        );
-        thread
-            .stack
-            .push(Stack {
-                id: main.hash,
-                name: "<ellie_main>".to_string(),
-                registers: Registers {
-                    A: RawType::void(),
-                    B: RawType::void(),
-                    C: RawType::void(),
-                    X: RawType::void(),
-                    Y: RawType::void(),
-                },
-                stack_len: main.length,
-                caller: None,
-                stack_pos: main.start,
-                frame_pos: main.start,
-            })
+    #[cfg(feature = "std")]
+    pub fn run_thread(&mut self, thread_id: usize) -> Option<ThreadExit> {
+        let thread_idx = self
+            .threads
+            .iter()
+            .position(|thread| thread.id == thread_id)
             .unwrap();
-        self.threads.push(thread);
+        let thread = &mut self.threads[thread_idx];
+        let mut heap_memory = self.heap_memory.lock().unwrap();
+        let mut stack_memory = self.stack_memory.lock().unwrap();
+        let mut module_manager = &mut self.module_manager;
+        let thread_exit = thread.run(
+            &mut heap_memory,
+            &mut stack_memory,
+            &mut module_manager,
+            &self.program,
+        );
+        self.threads.remove(thread_idx);
+        thread_exit
     }
 
+    #[cfg(not(feature = "std"))]
+    pub fn run_thread(&mut self, thread_id: usize) -> Option<ThreadExit> {
+        let thread_idx = self
+            .threads
+            .iter()
+            .position(|thread| thread.id == thread_id)
+            .unwrap();
+        let thread = &mut self.threads[thread_idx];
+        let thread_exit = thread.run(
+            &mut self.heap_memory,
+            &mut self.stack_memory,
+            &mut self.module_manager,
+            &self.program,
+        );
+        self.threads.remove(thread_idx);
+        thread_exit
+    }
+
+    #[cfg(not(feature = "std"))]
+    pub fn stack_dump(&mut self) -> String {
+        self.stack_memory.dump()
+    }
+
+    #[cfg(not(feature = "std"))]
     pub fn heap_dump(&mut self) -> String {
-        self.heap.dump()
+        self.heap_memory.dump()
+    }
+
+    #[cfg(feature = "std")]
+    pub fn stack_dump(&mut self) -> String {
+        self.stack_memory.lock().unwrap().dump()
+    }
+
+    #[cfg(feature = "std")]
+    pub fn heap_dump(&mut self) -> String {
+        self.heap_memory.lock().unwrap().dump()
     }
 }

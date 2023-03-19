@@ -1,5 +1,6 @@
 #[cfg(feature = "compiler_utils")]
-use crate::{definite::types::Types, defs::PlatformArchitecture};
+use crate::definite::types::Types;
+use crate::defs::PlatformArchitecture;
 use alloc::string::ToString;
 use alloc::vec::Vec;
 use alloc::{string::String, vec};
@@ -19,6 +20,9 @@ use core::fmt::{Display, Error, Formatter};
 /// * `8`: `void`
 /// * `9`: `array`
 /// * `10`: `null`
+/// * `11`: `class`
+/// * `12`: `function`
+/// * `13`: `reference`
 /// ## Fields
 /// * `id`: The ID of the type.
 /// * `size`: The size of the type.
@@ -48,12 +52,138 @@ impl Display for TypeId {
             10 => write!(f, "Null"),
             11 => write!(f, "Class"),
             12 => write!(f, "Function"),
+            13 => write!(f, "Reference"),
             _ => panic!("Unexpected type_id"),
         }
     }
 }
 
 impl TypeId {
+    pub fn to_bytes(&self) -> [u8; 9] {
+        [
+            self.id,
+            self.size as u8,
+            (self.size >> 8) as u8,
+            (self.size >> 16) as u8,
+            (self.size >> 24) as u8,
+            (self.size >> 32) as u8,
+            (self.size >> 40) as u8,
+            (self.size >> 48) as u8,
+            (self.size >> 56) as u8,
+        ]
+    }
+
+    pub fn from_bytes(bytes: &[u8; 9]) -> Self {
+        Self {
+            id: bytes[0],
+            size: usize::from_le_bytes(bytes[1..].try_into().unwrap()),
+        }
+    }
+
+    pub fn is_int(&self) -> bool {
+        self.id == 1
+    }
+
+    pub fn is_float(&self) -> bool {
+        self.id == 2
+    }
+
+    pub fn is_double(&self) -> bool {
+        self.id == 3
+    }
+
+    pub fn is_byte(&self) -> bool {
+        self.id == 4
+    }
+
+    pub fn is_bool(&self) -> bool {
+        self.id == 5
+    }
+
+    pub fn is_string(&self) -> bool {
+        self.id == 6
+    }
+
+    pub fn is_char(&self) -> bool {
+        self.id == 7
+    }
+
+    pub fn is_void(&self) -> bool {
+        self.id == 8
+    }
+
+    pub fn is_array(&self) -> bool {
+        self.id == 9
+    }
+
+    pub fn is_null(&self) -> bool {
+        self.id == 10
+    }
+
+    pub fn is_class(&self) -> bool {
+        self.id == 11
+    }
+
+    pub fn is_function(&self) -> bool {
+        self.id == 12
+    }
+
+    pub fn is_reference(&self) -> bool {
+        self.id == 13
+    }
+
+    pub fn integer() -> Self {
+        Self { id: 1, size: 8 }
+    }
+
+    pub fn float() -> Self {
+        Self { id: 2, size: 4 }
+    }
+
+    pub fn double() -> Self {
+        Self { id: 3, size: 8 }
+    }
+
+    pub fn byte() -> Self {
+        Self { id: 4, size: 1 }
+    }
+
+    pub fn bool() -> Self {
+        Self { id: 5, size: 1 }
+    }
+
+    pub fn string(size: usize) -> Self {
+        Self { id: 6, size }
+    }
+
+    pub fn char() -> Self {
+        Self { id: 7, size: 1 }
+    }
+
+    pub fn void() -> Self {
+        Self { id: 8, size: 0 }
+    }
+
+    pub fn array(size: usize) -> Self {
+        Self { id: 9, size }
+    }
+
+    pub fn null() -> Self {
+        Self { id: 10, size: 0 }
+    }
+
+    pub fn class(size: usize) -> Self {
+        Self { id: 11, size }
+    }
+
+    pub fn function() -> Self {
+        Self { id: 12, size: 8 }
+    }
+
+    pub fn reference() -> Self {
+        Self { id: 13, size: 8 }
+    }
+
     pub fn from(id: u8, size: usize) -> Self {
         Self { id, size }
     }
@@ -62,8 +192,28 @@ impl TypeId {
 #[derive(Clone, Debug)]
 pub struct Function {
     pub hash: usize,
-    pub start: usize,
-    pub escape: usize,
+}
+
+pub struct MutatableRawType<'a> {
+    pub data: &'a mut Vec<u8>,
+}
+
+impl MutatableRawType<'_> {
+    pub fn get_type_id(&self) -> TypeId {
+        TypeId::from_bytes(self.data[0..9].try_into().unwrap())
+    }
+
+    pub fn set_type_id(&mut self, type_id: TypeId) {
+        self.data[0..9].copy_from_slice(&type_id.to_bytes());
+    }
+
+    pub fn get_raw_type(&self) -> RawType {
+        RawType::from_bytes(&self.data)
+    }
+
+    pub fn set_data(&mut self, data: Vec<u8>) {
+        self.data[9..].copy_from_slice(&data);
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -74,12 +224,6 @@ pub struct Function {
 pub struct RawType {
     pub type_id: TypeId,
     pub data: Vec<u8>, //This is platfform dependent
-}
-
-#[derive(Debug, Clone, Copy)]
-pub struct NewRawType {
-    pub type_id: TypeId,
-    pub data: [u8; 8],
 }
 
 impl From<RawType> for String {
@@ -251,6 +395,40 @@ impl PartialEq for RawType {
 }
 
 impl RawType {
+    pub fn to_bytes(&self) -> Vec<u8> {
+        let type_id = self.type_id.to_bytes();
+        let mut bytes = Vec::from(type_id);
+        bytes.extend(self.data.clone());
+        bytes
+    }
+
+    pub fn from_bytes(bytes: &[u8]) -> RawType {
+        let type_id = TypeId::from_bytes(&bytes[..9].try_into().unwrap());
+        let data = bytes[9..].to_vec();
+        RawType { type_id, data }
+    }
+
+    pub fn to_register_raw(&self) -> Result<StaticRawType, u8> {
+        match self.type_id.id {
+            0..=5 | 7 | 8 | 10 | 13 => Ok(StaticRawType {
+                type_id: TypeId {
+                    id: self.type_id.id,
+                    size: self.type_id.size,
+                },
+                data: {
+                    if self.data.len() < 8 {
+                        let mut data = [0; 8];
+                        data[..self.data.len()].copy_from_slice(&self.data);
+                        data
+                    } else {
+                        self.data.clone().try_into().unwrap()
+                    }
+                },
+            }),
+            id => Err(id),
+        }
+    }
+
     pub fn to_int(&self) -> isize {
         isize::from_le_bytes(self.data.clone().try_into().unwrap())
     }
@@ -284,14 +462,8 @@ impl RawType {
             .chunks(arch.usize_len() as usize)
             .collect::<Vec<_>>();
         let hash = usize::from_le_bytes(data[0].try_into().unwrap());
-        let escape = usize::from_le_bytes(data[1].try_into().unwrap());
-        let start = usize::from_le_bytes(data[2].try_into().unwrap());
 
-        Function {
-            hash,
-            escape,
-            start,
-        }
+        Function { hash }
     }
 
     pub fn to_char(&self) -> char {
@@ -307,7 +479,7 @@ impl RawType {
 
     pub fn float(data: Vec<u8>) -> RawType {
         RawType {
-            type_id: TypeId { id: 2, size: 8 },
+            type_id: TypeId { id: 2, size: 4 },
             data,
         }
     }
@@ -333,7 +505,27 @@ impl RawType {
         }
     }
 
-    pub fn string(data: Vec<u8>) -> RawType {
+
+    pub fn string(data: Vec<char>) -> RawType {
+        let mut char_arr = Vec::new();
+        for char in data {
+            char_arr.extend((char as u32).to_le_bytes().to_vec());
+        }
+        RawType {
+            type_id: TypeId {
+                id: 6,
+                size: char_arr.len(),
+            },
+            data: char_arr,
+        }
+    }
+
+    pub fn generate_string(data: String) -> RawType {
+        let chars = data.chars().collect::<Vec<_>>();
+        let mut data = Vec::new();
+        for char in chars {
+            data.extend((char as u32).to_le_bytes().to_vec());
+        }
         RawType {
             type_id: TypeId {
                 id: 6,
@@ -391,13 +583,9 @@ impl RawType {
                 id: 1,
                 size: platform.usize_len() as usize,
             },
-            Types::Float(_) => TypeId {
-                id: 2,
-                size: platform.usize_len() as usize,
-            },
-            Types::Double(_) => TypeId {
-                id: 3,
-                size: platform.usize_len() as usize,
+            Types::Decimal(e) => TypeId {
+                id: if e.is_double { 3 } else { 2 },
+                size: if e.is_double { 8 } else { 4 },
             },
             Types::Byte(_) => TypeId { id: 4, size: 1 },
             Types::Bool(_) => TypeId { id: 5, size: 1 },
@@ -423,8 +611,14 @@ impl RawType {
                 Types::Bool(bool) => vec![bool.value as u8],
                 Types::Byte(byte) => vec![byte.value as u8],
                 Types::Integer(integer) => integer.value.to_le_bytes().to_vec(),
-                Types::Float(float) => float.value.to_be_bytes().to_vec(),
-                Types::Double(double) => double.value.to_be_bytes().to_vec(),
+                Types::Decimal(decimal) => match decimal.value {
+                    crate::definite::types::decimal::DecimalTypeEnum::Float(e) => {
+                        e.to_le_bytes().to_vec()
+                    }
+                    crate::definite::types::decimal::DecimalTypeEnum::Double(e) => {
+                        e.to_le_bytes().to_vec()
+                    }
+                },
                 Types::Char(char) => vec![char.value as u8],
                 Types::String(string) => string.value.clone().as_bytes().to_vec(),
                 Types::Array(array) => array.collective.len().to_le_bytes().to_vec(),
@@ -432,8 +626,109 @@ impl RawType {
             },
         }
     }
+}
 
-    pub fn from_bytes(bytes: Vec<u8>, type_id: TypeId) -> RawType {
-        RawType { type_id, data: bytes }
+#[derive(Debug, Copy, Clone)]
+pub struct StaticRawType {
+    pub type_id: TypeId,
+    pub data: [u8; 8],
+}
+
+impl StaticRawType {
+    pub fn to_raw(&self) -> RawType {
+        RawType {
+            type_id: TypeId {
+                id: self.type_id.id,
+                size: self.type_id.size,
+            },
+            data: self.data.to_vec(),
+        }
+    }
+
+    pub fn to_int(&self) -> isize {
+        isize::from_le_bytes(self.data)
+    }
+
+    pub fn to_float(&self) -> f32 {
+        f32::from_le_bytes(self.data[0..4].try_into().unwrap())
+    }
+
+    pub fn to_double(&self) -> f64 {
+        f64::from_le_bytes(self.data)
+    }
+
+    pub fn to_byte(&self) -> u8 {
+        self.data[0]
+    }
+
+    pub fn to_bool(&self) -> bool {
+        self.data[0] == 1
+    }
+
+    pub fn to_char(&self) -> char {
+        char::from_u32(u32::from_le_bytes(self.data[0..4].try_into().unwrap())).unwrap()
+    }
+
+    pub fn integer(data: Vec<u8>) -> StaticRawType {
+        StaticRawType {
+            type_id: TypeId { id: 1, size: 8 },
+            data: data.try_into().unwrap(),
+        }
+    }
+
+    pub fn function(data: Vec<u8>) -> StaticRawType {
+        StaticRawType {
+            type_id: TypeId { id: 12, size: 8 },
+            data: data.try_into().unwrap(),
+        }
+    }
+
+    pub fn float(data: Vec<u8>) -> StaticRawType {
+        StaticRawType {
+            type_id: TypeId { id: 2, size: 4 },
+            data: data.try_into().unwrap(),
+        }
+    }
+
+    pub fn double(data: Vec<u8>) -> StaticRawType {
+        StaticRawType {
+            type_id: TypeId { id: 3, size: 8 },
+            data: data.try_into().unwrap(),
+        }
+    }
+
+    pub fn byte(data: u8) -> StaticRawType {
+        StaticRawType {
+            type_id: TypeId { id: 1, size: 1 },
+            data: [data; 8],
+        }
+    }
+
+    pub fn bool(boolity: bool) -> StaticRawType {
+        StaticRawType {
+            type_id: TypeId { id: 5, size: 1 },
+            data: [if boolity { 1 } else { 0 }; 8],
+        }
+    }
+
+    pub fn char(data: Vec<u8>) -> StaticRawType {
+        StaticRawType {
+            type_id: TypeId { id: 7, size: 4 },
+            data: data.try_into().unwrap(),
+        }
+    }
+
+    pub fn void() -> StaticRawType {
+        StaticRawType {
+            type_id: TypeId { id: 8, size: 0 },
+            data: [0; 8],
+        }
+    }
+
+    pub fn reference(data: [u8; 8]) -> StaticRawType {
+        StaticRawType {
+            type_id: TypeId { id: 13, size: 8 },
+            data,
+        }
     }
 }
