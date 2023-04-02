@@ -22,7 +22,11 @@
 		},
 		{
 			"path": "tools",
-			"name": "ellieTools"
+			"name": "tools"
+		},
+		{
+			"path": "./",
+			"name": "Project Root",
 		}
 	],
 	"settings": {

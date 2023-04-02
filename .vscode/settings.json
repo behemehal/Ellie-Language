@@ -1,7 +1,7 @@
 {
     "editor.wordWrap": "off",
     "editor.renderControlCharacters": true,
-    "editor.renderFinalNewline": true,
+    "editor.renderFinalNewline": "on",
     "editor.renderWhitespace": "all",
     "editor.renderLineHighlight": "all",
     "editor.suggest.preview": true,
@@ -9,5 +9,13 @@
     "editor.suggest.showStatusBar": true,
     "editor.smoothScrolling": true,
     "workbench.editor.labelFormat": "short",
-    "workbench.startupEditor": "readme"
+    "workbench.startupEditor": "readme",
+    "files.exclude": {
+        "**/ellie_engine": true,
+        "**/elliec": true,
+        "**/elliefmt": true,
+        "**/ellieid": true,
+        "**/ellievm": true,
+        "**/tools": true
+    }
 }

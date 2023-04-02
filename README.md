@@ -14,6 +14,10 @@ You can see detailed docs [here](https://docs.ellie-lang.org)
 
 You can read ellie blog [here](https://www.ellie-lang.org/blog)
 
+## Discord
+
+Do you have a question or feature to ask? join [here](https://discord.gg/CpxCzQ9y8S)
+
 ## Robotics
 
 Check [Robotics.md](./Robotics.md)
