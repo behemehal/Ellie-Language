@@ -9,6 +9,5 @@ cargo clean
 cd ..\ellievm
 cargo clean
 cd ..\tools
-rm -r .\node_modules
 cd ..\
 echo "Cleaned up!"

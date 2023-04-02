@@ -7,6 +7,8 @@
                 "Immediate",
                 "Absolute",
                 "AbsoluteIndex",
+                "AbsoluteProperty",
+                "AbsoluteStatic",
                 "IndirectB",
                 "IndirectC",
                 "IndirectX",
@@ -19,6 +21,8 @@
                 "Immediate",
                 "Absolute",
                 "AbsoluteIndex",
+                "AbsoluteProperty",
+                "AbsoluteStatic",
                 "IndirectA",
                 "IndirectC",
                 "IndirectX",
@@ -31,6 +35,8 @@
                 "Immediate",
                 "Absolute",
                 "AbsoluteIndex",
+                "AbsoluteProperty",
+                "AbsoluteStatic",
                 "IndirectA",
                 "IndirectB",
                 "IndirectX",
@@ -43,6 +49,8 @@
                 "Immediate",
                 "Absolute",
                 "AbsoluteIndex",
+                "AbsoluteProperty",
+                "AbsoluteStatic",
                 "IndirectA",
                 "IndirectB",
                 "IndirectC",
@@ -55,6 +63,8 @@
                 "Immediate",
                 "Absolute",
                 "AbsoluteIndex",
+                "AbsoluteProperty",
+                "AbsoluteStatic",
                 "IndirectA",
                 "IndirectB",
                 "IndirectC",
@@ -67,7 +77,8 @@
                 "Implicit",
                 "Immediate",
                 "Absolute",
-                "AbsoluteIndex"
+                "AbsoluteIndex",
+                "AbsoluteProperty"
             ]
         },
         {
@@ -76,7 +87,8 @@
                 "Implicit",
                 "Immediate",
                 "Absolute",
-                "AbsoluteIndex"
+                "AbsoluteIndex",
+                "AbsoluteProperty"
             ]
         },
         {
@@ -85,7 +97,8 @@
                 "Implicit",
                 "Immediate",
                 "Absolute",
-                "AbsoluteIndex"
+                "AbsoluteIndex",
+                "AbsoluteProperty"
             ]
         },
         {
@@ -94,7 +107,8 @@
                 "Implicit",
                 "Immediate",
                 "Absolute",
-                "AbsoluteIndex"
+                "AbsoluteIndex",
+                "AbsoluteProperty"
             ]
         },
         {
@@ -103,7 +117,8 @@
                 "Implicit",
                 "Immediate",
                 "Absolute",
-                "AbsoluteIndex"
+                "AbsoluteIndex",
+                "AbsoluteProperty"
             ]
         },
         {
@@ -332,6 +347,12 @@
             "instruction": "FN",
             "addressingModes": [
                 "Immediate"
+            ]
+        },
+        {
+            "instruction": "DEA",
+            "addressingModes": [
+                "Absolute"
             ]
         }
     ]

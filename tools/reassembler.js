@@ -64,6 +64,8 @@ for (const instruction of byteCodeFile.instructions) {
     "Immediate",
     "Absolute",
     "AbsoluteIndex",
+    "AbsoluteProperty",
+    "AbsoluteStatic",
     "IndirectA",
     "IndirectB",
     "IndirectC",
@@ -78,7 +80,7 @@ for (const instruction of byteCodeFile.instructions) {
         ?.code || -1
     );
   });
-  instruction_table += `                let op_code_list: [isize; 9] = [${op_code_list.join(
+  instruction_table += `                let op_code_list: [isize; 11] = [${op_code_list.join(
     ", "
   )}];\n`;
   instruction_table += `                let real_op_code: isize = op_code_list[e.addressing_mode.idx()];\n`;
@@ -140,15 +142,15 @@ let instruction_utils =
   "//Auto generated from `instructions.json` by `reAssembler.js rev: " +
   (bytecodeRev + 1) +
   "\n";
-instruction_utils += `use crate::{
-  channel::ModuleManager,
-  config::PROGRAM_MAX_SIZE,
-  heap_memory::HeapMemory,
-  instructions::{ExecuterPanic, ExecuterResult, InstructionExecuter},
-  program::ReadInstruction,
-  stack_memory::StackMemory,
-  stack::Stack,
-  utils::{AddressingModes, AddressingValues},
+instruction_utils += `
+use ellie_core::defs::PlatformArchitecture;
+use crate::{
+    channel::ModuleManager,
+    heap_memory::HeapMemory,
+    instructions::{ExecuterPanic, ExecuterResult, InstructionExecuter, StaticProgram},
+    stack_memory::StackMemory,
+    stack::Stack,
+    utils::{AddressingModes, AddressingValues},
 };\n\n`
 for (const instruction of byteCodeFile.instructions) {
   instruction_utils += `#[derive(Clone, Copy, Debug)]\n`;
@@ -185,11 +187,11 @@ instruction_utils += `    }\n\n`;
 instruction_utils += `    pub fn execute(
         &self,
         heap_memory: &mut HeapMemory,
-        program: &[ReadInstruction; PROGRAM_MAX_SIZE],
+        program: StaticProgram,
         current_stack: &mut Stack,
         stack_memory: &mut StackMemory,
-        module_manager: &ModuleManager,
         addressing_value: &AddressingValues,
+        arch: PlatformArchitecture,
     ) -> Result<ExecuterResult, ExecuterPanic> {\n`;
 instruction_utils += "        match &self {\n";
 
@@ -199,8 +201,8 @@ for (const instruction of byteCodeFile.instructions) {
                 program,
                 current_stack,
                 stack_memory,
-                module_manager,
                 addressing_value,
+                arch,
             ),\n`;
 }
 instruction_utils += `        }\n`;
@@ -238,6 +240,8 @@ let header_names = [
   "Immediate",
   "Absolute",
   "AbsoluteIndex",
+  "AbsoluteProperty",
+  "AbsoluteStatic",
   "IndirectA",
   "IndirectB",
   "IndirectC",

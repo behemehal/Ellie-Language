@@ -1,3 +1,4 @@
 node_modules
 #debug_files/*
 package-lock.json
+debug_files
