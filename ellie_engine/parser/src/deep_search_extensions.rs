@@ -1260,15 +1260,6 @@ fn iterate_deep_type(
                         */
                     }
                     ProcessedDeepSearchItems::ClassInstance(class_instance) => {
-                        //let targeted_class_page =
-                        //    parser.find_page(class_instance.class_page).unwrap();
-                        //println!("{:#?}", targeted_class_page);
-                        //let class_page_hash = targeted_class_page.inner.unwrap();
-                        //let class_page = parser.find_page(class_page_hash).unwrap();
-                        //let _targeted_class = class_page.items.iter().find(|item| matches!(item, ellie_tokenizer::processors::items::Processors::Class(found_class) if found_class.hash == class_instance.class_hash));
-                        //let targeted_class = _targeted_class.unwrap().as_class().unwrap();
-                        //panic!("Not implemented yet: {:#?}", class_instance);
-
                         DeepTypeResult::ClassInstance(class_instance)
                     }
                 }
@@ -1531,7 +1522,6 @@ fn iterate_deep_type(
         Types::Dynamic => DeepTypeResult::Dynamic,
         Types::Function(f) => DeepTypeResult::Function(f),
         Types::Byte(byte) => DeepTypeResult::Byte(byte),
-        Types::Decimal(decimal) => DeepTypeResult::Decimal(decimal),
         Types::EnumData(e) => DeepTypeResult::EnumData(e),
         Types::ClassInstance(_) => todo!(),
     }

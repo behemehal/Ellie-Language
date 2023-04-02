@@ -163,6 +163,31 @@ pub struct Module {
     pub modules: Vec<ellie_tokenizer::tokenizer::Module>,
 }
 
+#[derive(Debug, Clone)]
+pub struct NativeCall {
+    pub name: String,
+    pub hash: usize,
+}
+
+impl Module {
+    pub fn get_natives(&self) -> Vec<NativeCall> {
+        let mut natives = vec![];
+        for page in &self.pages.pages {
+            for item in &page.items {
+                match item {
+                    Collecting::NativeFunction(native_function) => {
+                        natives.push(NativeCall {
+                            name: native_function.name.clone(),
+                            hash: native_function.hash,
+                        });
+                    }
+                    _ => (),
+                }
+            }
+        }
+        natives
+    }
+}
 pub struct ParserSettings {
     pub dynamics: (bool, String),
     pub nullables: (bool, String),
@@ -1410,6 +1435,7 @@ impl Parser {
                                                     name_pos: x.name_pos,
                                                     rtype_pos: x.rtype_pos,
                                                     multi_capture: x.multi_capture,
+                                                    is_mut: x.is_mut,
                                                 })
                                                 .collect::<Vec<_>>(),
                                                 parameters_pos: e.parameters_pos,
@@ -1568,6 +1594,7 @@ impl Parser {
                                                     name_pos: x.name_pos,
                                                     rtype_pos: x.rtype_pos,
                                                     multi_capture: x.multi_capture,
+                                                    is_mut: x.is_mut,
                                                 })
                                                 .collect::<Vec<_>>(),
                                                 parameters_pos: e.parameters_pos,

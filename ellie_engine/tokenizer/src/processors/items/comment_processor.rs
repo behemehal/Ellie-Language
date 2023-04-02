@@ -6,7 +6,7 @@ impl crate::processors::Processor for Comment {
         &mut self,
         errors: &mut Vec<error::Error>,
         cursor: defs::CursorPosition,
-        last_char: char,
+        _last_char: char,
         letter_char: char,
     ) -> bool {
         if !self.type_collected {

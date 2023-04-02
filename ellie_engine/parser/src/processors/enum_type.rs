@@ -16,17 +16,15 @@ impl super::Processor for EnumType {
         page_hash: usize,
     ) -> bool {
         let path = parser.pages.nth(page_idx).unwrap().path.clone();
-        if !parser.experimental_features {
-            parser
-                .informations
-                .push(&error::error_list::ERROR_S58.clone().build_with_path(
-                    vec![error::ErrorBuildField::new("token", &"enum".to_owned())],
-                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                    path,
-                    self.name_pos,
-                ));
-            return false;
-        }
+        parser
+            .informations
+            .push(&error::error_list::ERROR_S58.clone().build_with_path(
+                vec![error::ErrorBuildField::new("token", &"enum".to_owned())],
+                alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                path,
+                self.name_pos,
+            ));
+        return false;
         let mut halt = true;
         let (duplicate, found) =
             parser.is_duplicate(page_hash, self.name.clone(), self.hash.clone(), self.pos);

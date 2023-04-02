@@ -30,7 +30,8 @@ impl Iterator {
     pub fn finalize(&mut self) {
         if !self.active.is_complete() {
             if self.active.current.is_initalized() {
-                if matches!(self.active.current.clone(), items::Processors::Comment(e) if e.line_comment) {
+                if matches!(self.active.current.clone(), items::Processors::Comment(e) if e.line_comment)
+                {
                     self.collected.push(self.active.current.clone());
                 } else {
                     self.errors.push(error::error_list::ERROR_S26.clone().build(

@@ -331,10 +331,13 @@ pub fn process(
                 None => return Err(errors),
             };
 
+            let first = _first_value.to_string();
+            let second = _second_value.to_string();
+
             match ellie_core::utils::operator_control(
                 operator.data.operator.clone().to_definite(),
-                _first_value,
-                _second_value,
+                first,
+                second,
                 parser.find_page(page_id).unwrap().path.clone(),
                 operator.data.pos,
             ) {
@@ -1840,7 +1843,7 @@ pub fn process(
                                                     parser,
                                                     belonging_class.inner_page_id,
                                                     x.name.clone(),
-                                                    None,
+                                                    Some(belonging_class.hash),
                                                     vec![],
                                                     0,
                                                 );
@@ -1870,7 +1873,10 @@ pub fn process(
                                                             }
                                                     },
                                                         crate::deep_search_extensions::ProcessedDeepSearchItems::Function(_) => todo!(),
-                                                        e => unreachable!("Parser should have prevented this: {:?}", e),
+                                                        crate::deep_search_extensions::ProcessedDeepSearchItems::Class(e) => {
+                                                            Some(DefinerCollecting::Generic( ellie_core::definite::definers::GenericType { rtype: e.name, pos: e.pos, hash: e.hash }))
+                                                        }
+                                                        _ => unreachable!("Parser should have prevented this: {:?}", attribute_search)
                                                     }
                                                 } else {
                                                     None

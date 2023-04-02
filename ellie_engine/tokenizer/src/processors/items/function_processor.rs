@@ -137,6 +137,7 @@ impl crate::processors::Processor for function::FunctionCollector {
             } else if letter_char == ';' {
                 self.data.defining = true;
                 self.return_keyword_collected = true;
+                self.data.hash = ellie_core::utils::generate_hash_usize();
                 self.return_collected = true;
                 self.complete = true;
                 self.data.no_return = true;

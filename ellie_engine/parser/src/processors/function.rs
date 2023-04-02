@@ -236,6 +236,7 @@ impl super::Processor for function::FunctionCollector {
                                         multi_capture: parameter.multi_capture,
                                         name_pos: parameter.name_pos,
                                         rtype_pos: parameter.rtype_pos,
+                                        is_mut: parameter.is_mut,
                                     },
                                 );
                             }

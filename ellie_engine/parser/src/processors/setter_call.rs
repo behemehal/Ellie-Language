@@ -1,8 +1,8 @@
 use crate::deep_search_extensions::{deep_search_hash, resolve_type};
 use alloc::{borrow::ToOwned, vec, vec::Vec};
-use ellie_core::error;
+use ellie_core::{error, definite::Converter};
 use ellie_tokenizer::syntax::{
-    items::setter_call::SetterCall, types::operator_type::AssignmentOperators,
+    items::setter_call::SetterCall, types::operator_type::{AssignmentOperators, Operators},
 };
 
 impl super::Processor for SetterCall {
@@ -61,83 +61,36 @@ impl super::Processor for SetterCall {
                                 return true;
                             }
 
-                            let comperable = parser.compare_defining_with_type(
-                                target_type,
+                            let value_defining = match resolve_type(
                                 processed_value_type.clone(),
                                 page_hash,
-                            );
+                                parser,
+                                &mut errors,
+                                Some(self.target_pos),
+                            ) {
+                                Some(e) => e,
+                                None => {
+                                    parser.informations.extend(&errors);
+                                    return false;
+                                }
+                            };
 
-                            match comperable {
-                                Ok(result) => {
-                                    if result.requires_cast {
-                                        parser.informations.push(
-                                            &error::error_list::ERROR_S41.clone().build_with_path(
-                                                vec![error::ErrorBuildField {
-                                                    key: "token".to_owned(),
-                                                    value: "Type helpers are not completely implemented yet. Next error is result of this. Follow progress here (https://github.com/behemehal/EllieWorks/issues/8)".to_owned(),
-                                                }],
-                                                alloc::format!(
-                                                    "{}:{}:{}",
-                                                    file!().to_owned(),
-                                                    line!(),
-                                                    column!()
-                                                ),
-                                                current_page.path.clone(),
-                                                self.value_pos,
-                                            ),
-                                        );
+                            let first = target_type.to_string();
+                            let second = value_defining.to_string();
 
-                                        parser.informations.push(
-                                            &error::error_list::ERROR_S3.clone().build_with_path(
-                                                vec![
-                                                    error::ErrorBuildField {
-                                                        key: "token1".to_owned(),
-                                                        value: result.first,
-                                                    },
-                                                    error::ErrorBuildField {
-                                                        key: "token2".to_owned(),
-                                                        value: result.second,
-                                                    },
-                                                ],
-                                                alloc::format!(
-                                                    "{}:{}:{}",
-                                                    file!().to_owned(),
-                                                    line!(),
-                                                    column!()
-                                                ),
-                                                current_page.path.clone(),
-                                                self.value_pos,
-                                            ),
-                                        );
-                                        return false;
-                                    }
-
-                                    if !result.same {
-                                        parser.informations.push(
-                                            &error::error_list::ERROR_S3.clone().build_with_path(
-                                                vec![
-                                                    error::ErrorBuildField {
-                                                        key: "token1".to_owned(),
-                                                        value: result.first,
-                                                    },
-                                                    error::ErrorBuildField {
-                                                        key: "token2".to_owned(),
-                                                        value: result.second,
-                                                    },
-                                                ],
-                                                alloc::format!(
-                                                    "{}:{}:{}",
-                                                    file!().to_owned(),
-                                                    line!(),
-                                                    column!()
-                                                ),
-                                                current_page.path.clone(),
-                                                self.value_pos,
-                                            ),
-                                        );
-                                        return false;
-                                    } else {
-                                        let page = parser
+                            match ellie_core::utils::operator_control(
+                                Operators::AssignmentType(self.operator.clone()).to_definite(),
+                                first,
+                                second,
+                                current_page.path,
+                                self.value_pos,
+                            ) {
+                                Some(e) => {
+                                    parser.informations.push(&e);
+                                    return false;
+                                }
+                                None => {
+                                    let page = parser
                                             .processed_pages
                                             .nth_mut(processed_page_idx)
                                             .unwrap();
@@ -159,10 +112,6 @@ impl super::Processor for SetterCall {
                                                 },
                                             },
                                         ));
-                                    }
-                                }
-                                Err(e) => {
-                                    parser.informations.extend(&e);
                                 }
                             }
                         }

@@ -64,6 +64,7 @@ impl Converter<Setter, ellie_core::definite::items::setter::Setter> for Setter {
                     complete: true,
                 },
                 multi_capture: false,
+                is_mut: false,
             }],
             parameters_pos: from.parameters_pos,
             ..Default::default()

@@ -9,6 +9,7 @@ pub struct FunctionParameter {
     pub name_pos: defs::Cursor,
     pub rtype_pos: defs::Cursor,
     pub multi_capture: bool,
+    pub is_mut: bool,
 }
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
@@ -59,6 +60,7 @@ impl Converter<FunctionCollector, ellie_core::definite::items::function::Functio
                         rtype_pos: x.rtype_pos,
                         name_pos: x.name_pos,
                         multi_capture: x.multi_capture,
+                        is_mut: x.is_mut,
                     },
                 )
                 .collect(),
@@ -97,6 +99,7 @@ impl Converter<FunctionCollector, ellie_core::definite::items::function::Functio
                         name_pos: x.name_pos,
                         rtype_pos: x.rtype_pos,
                         multi_capture: x.multi_capture,
+                        is_mut: x.is_mut,
                     })
                     .collect(),
                 parameters_pos: from.parameters_pos,

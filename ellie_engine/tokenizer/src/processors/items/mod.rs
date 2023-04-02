@@ -10,7 +10,9 @@ use serde::{Deserialize, Serialize};
 use crate::syntax::items::*;
 
 use super::types::TypeProcessor;
+mod brk_processor;
 mod class_processor;
+mod comment_processor;
 mod condition_processor;
 mod constructor_processor;
 mod definer_processor;
@@ -20,15 +22,13 @@ mod for_loop_processor;
 mod function_processor;
 mod getter_call;
 mod getter_processor;
+mod go_processor;
 mod import_processor;
+pub mod loop_processor;
 mod ret_processor;
 mod setter_call;
 mod setter_processor;
 mod variable_processor;
-mod comment_processor;
-mod brk_processor;
-mod go_processor;
-pub mod loop_processor;
 
 #[derive(Debug, Clone, Serialize, Deserialize, EnumAsInner)]
 pub enum Processors {
@@ -82,7 +82,7 @@ impl Processors {
             Processors::Brk(e) => e.complete,
             Processors::Go(e) => e.complete,
             Processors::Loop(e) => e.complete,
-            Processors::Comment(e) => e.complete
+            Processors::Comment(e) => e.complete,
         }
     }
 
@@ -216,6 +216,7 @@ impl Processors {
                             name_pos: x.name_pos,
                             rtype_pos: x.rtype_pos,
                             multi_capture: x.multi_capture,
+                            is_mut: false,
                         })
                         .collect(),
                     parameters_pos: e.parameters_pos,

@@ -17,9 +17,9 @@ pub mod setter;
 pub mod setter_call;
 pub mod variable;
 
+pub mod comment;
 pub mod constructor_parameter; //Virtual
 pub mod function_parameter; //Virtual
 pub mod generic_item; //Virtual
 pub mod loop_type;
 pub mod self_item; //Virtual
-pub mod comment;

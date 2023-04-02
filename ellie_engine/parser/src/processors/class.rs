@@ -128,6 +128,28 @@ impl super::Processor for Class {
                 }
             }
 
+            let non_constants = self.body.iter().filter_map(|item| match item {
+                ellie_tokenizer::processors::items::Processors::Variable(e) => {
+                    if !e.data.constant && e.data.has_value {
+                        Some(e)
+                    } else {
+                        None
+                    }
+                }
+                _ => None,
+            });
+
+            for non_constant in non_constants {
+                parser
+                    .informations
+                    .push(&error::error_list::ERROR_S62.clone().build_with_path(
+                        vec![],
+                        alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                        path.clone(),
+                        non_constant.data.pos,
+                    ));
+            }
+
             for (index, generic) in self.generic_definings.iter().enumerate() {
                 if let Some(other_index) = self
                     .generic_definings

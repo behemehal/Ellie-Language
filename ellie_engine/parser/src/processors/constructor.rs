@@ -38,13 +38,34 @@ impl super::Processor for Constructor {
             .items
             .iter()
             .find_map(|item| match item {
-                ellie_tokenizer::processors::items::Processors::Class(e) => Some(e),
+                ellie_tokenizer::processors::items::Processors::Class(e) => {
+                    if e.hash == class_instance_element.class_hash {
+                        Some(e)
+                    } else {
+                        None
+                    }
+                }
                 _ => None,
             })
             .unwrap_or_else(|| panic!("Failed to find class"));
+
         let mut items = Vec::new();
 
         for (index, parameter) in self.parameters.clone().iter().enumerate() {
+            if class_element.name == parameter.name {
+                let mut err = error::error_list::ERROR_S24.clone().build_with_path(
+                    vec![],
+                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                    path.clone(),
+                    parameter.pos,
+                );
+                err.reference_block = Some((class_element.pos, path.clone()));
+                err.reference_message = "Prime is here".to_owned();
+                err.semi_assist = true;
+                parser.informations.push(&err);
+                return false;
+            }
+
             let deep_search =
                 parser.deep_search(page_hash, parameter.name.clone(), None, vec![], 0, None);
 
@@ -75,15 +96,22 @@ impl super::Processor for Constructor {
                     },
                 ));
                 match deep_search.found_item {
-                    crate::parser::DeepSearchItems::Variable(_) => (),
-                    crate::parser::DeepSearchItems::BrokenPageGraph => (),
-                    crate::parser::DeepSearchItems::MixUp(_) => (),
                     crate::parser::DeepSearchItems::Class(_) => (),
-                    crate::parser::DeepSearchItems::ImportReference(_) => (),
-                    crate::parser::DeepSearchItems::None => (),
+                    crate::parser::DeepSearchItems::Variable(e) => {
+                        if e.constant {
+                            parser.informations.push(
+                                &error::error_list::ERROR_S18.clone().build_with_path(
+                                    vec![],
+                                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                                    class_body_page.path.clone(),
+                                    parameter.pos,
+                                ),
+                            );
+                        }
+                    }
                     _ => {
                         parser.informations.push(
-                            &error::error_list::ERROR_S11.clone().build_with_path(
+                            &error::error_list::ERROR_S63.clone().build_with_path(
                                 vec![error::ErrorBuildField {
                                     key: "token".to_owned(),
                                     value: parameter.name.clone(),
