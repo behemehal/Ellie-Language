@@ -1,6 +1,9 @@
 #![allow(non_snake_case)]
 use alloc::format;
-use ellie_core::{defs::PlatformArchitecture, raw_type::StaticRawType};
+use ellie_core::{
+    defs::{PlatformArchitecture, VmNativeCallParameters},
+    raw_type::StaticRawType,
+};
 
 use crate::{
     channel::ModuleManager,
@@ -9,6 +12,7 @@ use crate::{
     stack::{Stack, StackArray},
     stack_memory::StackMemory,
     utils::{ThreadExit, ThreadInfo, ThreadPanic, ThreadPanicReason},
+    vm::VmProgram,
 };
 
 #[derive(Debug, Copy, Clone)]
@@ -65,14 +69,14 @@ impl Thread {
         heap_memory: &mut HeapMemory,
         stack_memory: &mut StackMemory,
         module_manager: &mut ModuleManager,
-        loaded_program: &Program,
+        loaded_program: &mut VmProgram,
     ) -> Option<ThreadExit> {
         loop {
             if self.stack.len() == 0 {
                 return Some(ThreadExit::ExitGracefully);
             }
             let current_stack = self.stack.last_mut().unwrap();
-            if current_stack.pos >= loaded_program.program_len {
+            if current_stack.pos >= loaded_program.length {
                 return Some(ThreadExit::Panic(ThreadPanic {
                     reason: ThreadPanicReason::OutOfInstructions,
                     stack_trace: self.stack.clone(),
@@ -85,8 +89,8 @@ impl Thread {
                 &loaded_program.instructions,
                 current_stack,
                 stack_memory,
-                module_manager,
                 &current_instruction.addressing_value,
+                self.arch,
             );
             match execute_result {
                 Ok(result) => match result {
@@ -97,7 +101,6 @@ impl Thread {
                         let current_y = current_stack.registers.Y.clone();
                         match current_stack.caller {
                             Some(_) => {
-                                //let last_scope = self.stack.get(self.stack.idx - 1);
                                 self.stack.pop();
                                 self.stack.last_mut().unwrap().registers.Y = current_y;
                             }
@@ -150,7 +153,7 @@ impl Thread {
                                                     }
                                                     ellie_core::defs::VmNativeCallParameters::Dynamic(dynamic_value) => {
                                                         heap_memory.set(&native_call.return_heap_position, dynamic_value);
-                                                        current_stack.registers.Y = StaticRawType::reference(native_call.return_heap_position.to_le_bytes())
+                                                        current_stack.registers.Y = StaticRawType::heap_reference(native_call.return_heap_position.to_le_bytes())
                                                     }
                                                 }
                                                 current_stack.pos += 1;

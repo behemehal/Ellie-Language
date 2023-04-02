@@ -54,6 +54,10 @@ impl HeapMemory {
         self.data.insert(*key, value.to_bytes());
     }
 
+    pub fn dea(&mut self, key: &usize) {
+        self.data.remove(key);
+    }
+
     pub fn dump(&self) -> String {
         let mut result = String::new();
         for key in &self.data {
@@ -94,7 +98,8 @@ impl HeapMemory {
                     10 => String::from("null"),
                     11 => String::from("class"),
                     12 => String::from("function"),
-                    13 => String::from("reference"),
+                    13 => String::from("stack_reference"),
+                    14 => String::from("heap_reference"),
                     _ => unreachable!("Wrong typeid"),
                 },
                 value.data,

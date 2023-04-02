@@ -1,11 +1,11 @@
-/*
-    Copyright (c) 2020 Behemehal. See license file for details
-*/
-
 #![no_std]
 #![allow(unused_assignments)]
 #![allow(unknown_lints)]
 #![warn(clippy::all)]
+//! Ellie Core
+//! This is the core utilities for the Ellie Language.
+//!
+//! Copyright (c) 2020 Behemehal. See license file for details
 extern crate alloc;
 
 #[cfg(feature = "std")]
@@ -14,7 +14,6 @@ extern crate std;
 #[cfg(feature = "compiler_utils")]
 #[macro_use]
 extern crate lazy_static;
-pub mod com;
 #[doc(hidden)]
 #[cfg(feature = "compiler_utils")]
 pub mod definite;

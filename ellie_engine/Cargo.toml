@@ -4,7 +4,7 @@ version_code = "BeautifulTropicalFish"
 version = "0.9.0"
 authors = ["Ahmetcan Aksu <ahmetcanaksu@behemehal.org>", "Behemehal <info@behemehal.org>"]
 edition = "2021"
-license-file = "LICENSE"
+license-file = "../LICENSE"
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"], optional = true }
@@ -20,10 +20,10 @@ ellie_fmt = { path = "fmt", version = "*", optional = true }
 ellie_renderer_utils = { path = "renderer_utils", version = "*", optional = true,  default-features = false }
 
 [features]
-default = ["vm", "compiler", "fmt"]
+default = ["vm", "compiler", "fmt", "std"]
 compiler = ["ellie_tokenizer", "ellie_parser", "ellie_bytecode", "ellie_core/compiler_utils"]
-std = []
 vm = ["ellie_vm"]
+std = ["ellie_vm/std"]
 renderer_utils = ["ellie_renderer_utils"]
 fmt = ["ellie_fmt"]
 #ellie_assistant = ["ellie_assist"]
@@ -35,6 +35,3 @@ path-absolutize = { version = "3.0.10" }
 toml = "0.5.8"
 regex = { version = "1.1.7" }
 chrono = "0.4.22"
-
-[profile.release]
-opt-level = "z"

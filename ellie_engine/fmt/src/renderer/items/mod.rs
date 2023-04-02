@@ -6,6 +6,7 @@ use crate::fmt::FormatterOptions;
 //Return
 pub mod brk;
 pub mod class;
+pub mod comment;
 pub mod condition;
 pub mod constructor;
 pub mod enum_type;
@@ -22,7 +23,6 @@ pub mod self_item;
 pub mod setter;
 pub mod setter_call;
 pub mod variable;
-pub mod comment;
 
 impl CodeRenderer for Processors {
     fn render(&self, state: &State, options: &FormatterOptions) -> String {

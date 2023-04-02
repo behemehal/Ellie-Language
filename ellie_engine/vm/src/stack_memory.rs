@@ -37,6 +37,10 @@ impl StackMemory {
         self.data[*key] = value;
     }
 
+    pub fn dea(&mut self, key: &usize) {
+        self.data[*key] = StaticRawType::void();
+    }
+
     pub fn dump(&self) -> String {
         let mut result = String::new();
         for (key, data) in self.data.iter().enumerate() {
@@ -58,7 +62,8 @@ impl StackMemory {
                 10 => String::from("null"),
                 11 => String::from("class"),
                 12 => String::from("function"),
-                13 => String::from("reference"),
+                13 => String::from("stack_reference"),
+                14 => String::from("heap_reference"),
                 _ => unreachable!("Wrong typeid"),
             };
             result.push_str(&format!(

@@ -9,7 +9,10 @@ impl CodeRenderer for Comment {
         let line_ending = &options.render_line_ending();
 
         if self.line_comment {
-            format!("{state_scope_length}//{comment}{line_ending}", comment = self.content.last().unwrap())
+            format!(
+                "{state_scope_length}//{comment}{line_ending}",
+                comment = self.content.last().unwrap()
+            )
         } else {
             todo!()
             //format!("{state_scope_length}/*{comment}*/{line_ending}", state_scope_length = state_scope_length, comment = self.comment, line_ending = line_ending)

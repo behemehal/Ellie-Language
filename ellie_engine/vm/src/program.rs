@@ -1,17 +1,32 @@
-use crate::utils::{AddressingModes, AddressingValues, Instructions, ProgramReader};
+use crate::{
+    instruction_utils::{Instructions, A2B},
+    utils::{AddressingModes, AddressingValues, ProgramReader},
+};
 use alloc::vec::Vec;
 use ellie_core::{
     defs::PlatformArchitecture,
-    raw_type::{RawType, TypeId},
+    raw_type::{StaticRawType, TypeId},
 };
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct ReadInstruction {
     pub instruction: Instructions,
     pub addressing_mode: AddressingModes,
     pub addressing_value: AddressingValues,
     pub op_code: u8,
-    pub args: Vec<u8>,
+    pub args: [u8; 8],
+}
+
+impl Default for ReadInstruction {
+    fn default() -> Self {
+        Self {
+            instruction: Instructions::A2B(A2B { addressing_mode: AddressingModes::Implicit }),
+            addressing_mode: AddressingModes::Implicit,
+            addressing_value: AddressingValues::Implicit,
+            op_code: 0,
+            args: [0_u8; 8],
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -29,7 +44,68 @@ pub struct Program {
 }
 
 impl Program {
-    pub fn build_from_reader(reader: &mut ProgramReader) -> Result<Self, u8> {
+
+    pub fn new() -> Self {
+        Self {
+            main: MainProgram {
+                hash: 0,
+                start: 0,
+                length: 0,
+            },
+            arch: PlatformArchitecture::B32,
+            instructions: Vec::new(),
+        }
+    }
+
+    /// Generate main struct from function hash.
+    /// This function will return an error if the function is not found or the instruction is malformed
+    /// Err 1: Wrong addresing value
+    /// Err 2: Wrong immediate type
+    /// Err 3: Not found
+    pub fn generate_main_from_function(&self, target_hash: usize) -> Result<MainProgram, u8> {
+        let mut i = 0;
+        while i < self.instructions.len() {
+            let instruction = self.instructions[i];
+            match instruction.instruction {
+                Instructions::FN(_) => {
+                    match instruction.addressing_value {
+                        AddressingValues::Immediate(static_raw_type) => {
+                            if static_raw_type.type_id.id == 1 {
+                                let hash = static_raw_type.to_int();
+                                if static_raw_type.to_int() as usize == target_hash {
+                                    let program_len_instruction = self.instructions[i + 1];
+                                    let program_len = match program_len_instruction.instruction {
+                                        Instructions::STA(_) => {
+                                            match program_len_instruction.addressing_value {
+                                                AddressingValues::Immediate(e) => e.to_int(),
+                                                _ => return Err(2),
+                                            }
+                                        },
+                                        _ => return Err(1),
+                                    };
+                                    return Ok(MainProgram {
+                                        hash: hash as usize,
+                                        start: i,
+                                        length: program_len as usize,
+                                    });
+                                }
+                            } else {
+                                return Err(2)
+                            }
+                        }
+                        _ => {
+                            return Err(1)
+                        }
+                    }
+                },
+                _ => ()
+            }
+            i += 1;
+        }
+        Err(3)
+    }
+
+    pub fn build_from_reader(&mut self, reader: &mut ProgramReader) -> Result<(), u8> {
         let arch = match reader.read_u8() {
             Some(byte) => match PlatformArchitecture::from_byte(byte) {
                 Some(e) => e,
@@ -61,21 +137,18 @@ impl Program {
             Some(byte) => byte,
             None => return Err(0),
         };
-
-        let mut program = Program {
-            main: MainProgram {
-                hash,
-                start,
-                length: end,
-            },
-            arch,
-            instructions: Vec::new(),
+        self.main = MainProgram {
+            hash,
+            start,
+            length: end,
         };
-
+        self.arch = arch;
         loop {
-            let read_instruction = program.read_instruction(reader);
+            let read_instruction = self.read_instruction(reader);
             match read_instruction {
-                Ok(instruction) => program.instructions.push(instruction),
+                Ok(instruction) => {
+                    self.instructions.push(instruction);
+                }
                 Err(error) => {
                     if error != 0 {
                         return Err(error);
@@ -85,7 +158,7 @@ impl Program {
                 }
             }
         }
-        Ok(program)
+        Ok(())
     }
 
     /// Read instruction
@@ -113,32 +186,29 @@ impl Program {
                         addressing_mode,
                         addressing_value,
                         op_code: read_byte,
-                        args: Vec::new(),
+                        args: [0_u8; 8],
                     });
                 } else {
-                    let mut args: Vec<u8> = Vec::new();
+                    let mut args: [u8; 8] = [0; 8];
                     match addressing_mode {
                         AddressingModes::Immediate => {
                             let id = reader.read_u8().unwrap();
                             let size = reader.read_usize(self.arch.usize_len()).unwrap();
                             let type_id = TypeId::from(id, size);
-                            let mut data = Vec::new();
-                            for _ in 0..size {
-                                data.push(match reader.read_u8() {
-                                    Some(e) => e,
-                                    None => return Err(0),
-                                })
+                            let mut data: [u8; 8] = [0; 8];
+                            for i in 0..8 {
+                                data[i] = reader.read_u8().unwrap();
                             }
                             addressing_value =
-                                AddressingValues::Immediate(RawType { type_id, data });
+                                AddressingValues::Immediate(StaticRawType { type_id, data });
                         }
                         AddressingModes::Absolute => {
-                            for _ in 0..self.arch.usize_len() {
+                            for i in 0..self.arch.usize_len() {
                                 let read_byte = match reader.read_u8() {
                                     Some(byte) => byte,
                                     None => return Err(0),
                                 };
-                                args.push(read_byte);
+                                args[i as usize] = read_byte;
                             }
                             addressing_value = AddressingValues::Absolute(usize::from_le_bytes(
                                 args.clone().try_into().unwrap(),
@@ -155,13 +225,28 @@ impl Program {
                             };
                             addressing_value = AddressingValues::AbsoluteIndex(pointer, index);
                         }
-                        AddressingModes::AbsoluteProperty => todo!(),
-                        AddressingModes::Parameter => {
-                            let idx = match reader.read_usize(self.arch.usize_len()) {
+                        AddressingModes::AbsoluteProperty => {
+                            let pointer = match reader.read_usize(self.arch.usize_len()) {
                                 Some(byte) => byte,
                                 None => return Err(0),
                             };
-                            addressing_value = AddressingValues::Parameter(idx);
+                            let index = match reader.read_usize(self.arch.usize_len()) {
+                                Some(byte) => byte,
+                                None => return Err(0),
+                            };
+                            addressing_value = AddressingValues::AbsoluteProperty(pointer, index);
+                        }
+                        AddressingModes::AbsoluteStatic => {
+                            for i in 0..self.arch.usize_len() {
+                                let read_byte = match reader.read_u8() {
+                                    Some(byte) => byte,
+                                    None => return Err(0),
+                                };
+                                args[i as usize] = read_byte;
+                            }
+                            addressing_value = AddressingValues::AbsoluteStatic(usize::from_le_bytes(
+                                args.clone().try_into().unwrap(),
+                            ));
                         }
                         AddressingModes::Implicit => todo!(),
                         AddressingModes::IndirectA => {

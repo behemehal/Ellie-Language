@@ -344,16 +344,13 @@ pub fn operator_priority(operator: &str) -> usize {
 
 pub fn operator_control(
     operator: Operators,
-    first: DefinerCollecting,
-    second: DefinerCollecting,
+    first: String,
+    second: String,
     path: String,
     pos: defs::Cursor,
 ) -> Option<crate::error::Error> {
-    let first = first.clone().to_string();
     let first = first.as_str();
-    let second = second.clone().to_string();
     let second = second.as_str();
-
     let operator = match operator {
         Operators::ComparisonType(operator) => match operator {
             crate::definite::types::operator::ComparisonOperators::Equal

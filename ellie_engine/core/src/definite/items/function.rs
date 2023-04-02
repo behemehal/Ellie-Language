@@ -13,6 +13,7 @@ pub struct FunctionParameter {
     pub name_pos: defs::Cursor,
     pub rtype_pos: defs::Cursor,
     pub multi_capture: bool,
+    pub is_mut: bool,
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]

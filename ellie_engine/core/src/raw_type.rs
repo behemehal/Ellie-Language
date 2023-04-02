@@ -6,6 +6,23 @@ use alloc::vec::Vec;
 use alloc::{string::String, vec};
 use core::fmt::{Display, Error, Formatter};
 
+pub enum TypeIds {
+    Integer,
+    Float,
+    Double,
+    Byte,
+    Bool,
+    String,
+    Char,
+    Void,
+    Array,
+    Null,
+    Class,
+    Function,
+    StackReference,
+    HeapReference,
+}
+
 #[derive(Clone, Debug, Copy)]
 /// TypeId
 /// TypeId is a unique identifier for a type.
@@ -22,7 +39,8 @@ use core::fmt::{Display, Error, Formatter};
 /// * `10`: `null`
 /// * `11`: `class`
 /// * `12`: `function`
-/// * `13`: `reference`
+/// * `13`: `stack_reference`
+/// * `14`: `heap_reference`
 /// ## Fields
 /// * `id`: The ID of the type.
 /// * `size`: The size of the type.
@@ -52,7 +70,8 @@ impl Display for TypeId {
             10 => write!(f, "Null"),
             11 => write!(f, "Class"),
             12 => write!(f, "Function"),
-            13 => write!(f, "Reference"),
+            13 => write!(f, "StackReference"),
+            14 => write!(f, "HeapReference"),
             _ => panic!("Unexpected type_id"),
         }
     }
@@ -78,6 +97,30 @@ impl TypeId {
             id: bytes[0],
             size: usize::from_le_bytes(bytes[1..].try_into().unwrap()),
         }
+    }
+
+    pub fn id(&self) -> TypeIds {
+        match self.id {
+            1 => TypeIds::Integer,
+            2 => TypeIds::Float,
+            3 => TypeIds::Double,
+            4 => TypeIds::Byte,
+            5 => TypeIds::Bool,
+            6 => TypeIds::String,
+            7 => TypeIds::Char,
+            8 => TypeIds::Void,
+            9 => TypeIds::Array,
+            10 => TypeIds::Null,
+            11 => TypeIds::Class,
+            12 => TypeIds::Function,
+            13 => TypeIds::StackReference,
+            14 => TypeIds::HeapReference,
+            _ => panic!("Unexpected type_id"),
+        }
+    }
+
+    pub fn is_stack_storable(&self) -> bool {
+        self.id != 6 || self.id != 9
     }
 
     pub fn is_int(&self) -> bool {
@@ -128,8 +171,12 @@ impl TypeId {
         self.id == 12
     }
 
-    pub fn is_reference(&self) -> bool {
+    pub fn is_stack_reference(&self) -> bool {
         self.id == 13
+    }
+
+    pub fn is_heap_reference(&self) -> bool {
+        self.id == 14
     }
 
     pub fn integer() -> Self {
@@ -180,8 +227,12 @@ impl TypeId {
         Self { id: 12, size: 8 }
     }
 
-    pub fn reference() -> Self {
+    pub fn stack_reference() -> Self {
         Self { id: 13, size: 8 }
+    }
+
+    pub fn heap_reference() -> Self {
+        Self { id: 14, size: 8 }
     }
 
     pub fn from(id: u8, size: usize) -> Self {
@@ -200,10 +251,12 @@ pub struct MutatableRawType<'a> {
 
 impl MutatableRawType<'_> {
     pub fn get_type_id(&self) -> TypeId {
+        //TODO: This is not platform safe 0x00
         TypeId::from_bytes(self.data[0..9].try_into().unwrap())
     }
 
     pub fn set_type_id(&mut self, type_id: TypeId) {
+        //TODO: This is not platform safe 0x00
         self.data[0..9].copy_from_slice(&type_id.to_bytes());
     }
 
@@ -212,6 +265,7 @@ impl MutatableRawType<'_> {
     }
 
     pub fn set_data(&mut self, data: Vec<u8>) {
+        //TODO: This is not platform safe 0x00
         self.data[9..].copy_from_slice(&data);
     }
 }
@@ -410,7 +464,7 @@ impl RawType {
 
     pub fn to_register_raw(&self) -> Result<StaticRawType, u8> {
         match self.type_id.id {
-            0..=5 | 7 | 8 | 10 | 13 => Ok(StaticRawType {
+            0..=5 | 7 | 8 | 10 | 13 | 14 => Ok(StaticRawType {
                 type_id: TypeId {
                     id: self.type_id.id,
                     size: self.type_id.size,
@@ -504,7 +558,6 @@ impl RawType {
             data: vec![if boolity { 1 } else { 0 }],
         }
     }
-
 
     pub fn string(data: Vec<char>) -> RawType {
         let mut char_arr = Vec::new();
@@ -645,6 +698,19 @@ impl StaticRawType {
         }
     }
 
+    pub fn to_bytes(&self) -> Vec<u8> {
+        let type_id = self.type_id.to_bytes();
+        let mut bytes = Vec::from(type_id);
+        bytes.extend(self.data.clone());
+        bytes
+    }
+
+    pub fn from_bytes(bytes: &[u8]) -> StaticRawType {
+        let type_id = TypeId::from_bytes(&bytes[..9].try_into().unwrap());
+        let data: [u8; 8] = bytes[9..].try_into().unwrap();
+        StaticRawType { type_id, data }
+    }
+
     pub fn to_int(&self) -> isize {
         isize::from_le_bytes(self.data)
     }
@@ -725,9 +791,16 @@ impl StaticRawType {
         }
     }
 
-    pub fn reference(data: [u8; 8]) -> StaticRawType {
+    pub fn stack_reference(data: [u8; 8]) -> StaticRawType {
         StaticRawType {
             type_id: TypeId { id: 13, size: 8 },
+            data,
+        }
+    }
+
+    pub fn heap_reference(data: [u8; 8]) -> StaticRawType {
+        StaticRawType {
+            type_id: TypeId { id: 14, size: 8 },
             data,
         }
     }

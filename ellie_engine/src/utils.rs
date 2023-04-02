@@ -8,6 +8,9 @@ use ellie_parser::parser::Module;
 use ellie_tokenizer::tokenizer::ResolvedImport;
 
 #[cfg(feature = "compiler")]
+/// Compiler output
+/// * warnings `[Vec<Warning>]`
+/// * module `[Module]`
 pub struct CompileOutput {
     pub warnings: Vec<Warning>,
     pub module: Module,
