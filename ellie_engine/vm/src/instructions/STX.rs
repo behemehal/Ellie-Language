@@ -1,27 +1,25 @@
 use alloc::format;
+use ellie_core::defs::PlatformArchitecture;
 
 use crate::{
-    channel::ModuleManager,
-    config::PROGRAM_MAX_SIZE,
     heap_memory::HeapMemory,
     instruction_utils::STX,
-    program::ReadInstruction,
     stack::Stack,
     stack_memory::StackMemory,
     utils::{AddressingValues, ThreadPanicReason},
 };
 
-use super::{ExecuterPanic, ExecuterResult};
+use super::{ExecuterPanic, ExecuterResult, StaticProgram};
 
 impl super::InstructionExecuter for STX {
     fn execute(
         &self,
-        _heap_memory: &mut HeapMemory,
-        _program: &[ReadInstruction; PROGRAM_MAX_SIZE],
+        heap_memory: &mut HeapMemory,
+        _program: StaticProgram,
         current_stack: &mut Stack,
         stack_memory: &mut StackMemory,
-        _module_manager: &ModuleManager,
         addressing_value: &AddressingValues,
+        arch: PlatformArchitecture,
     ) -> Result<ExecuterResult, ExecuterPanic> {
         match &addressing_value {
             AddressingValues::Implicit => {
@@ -33,9 +31,209 @@ impl super::InstructionExecuter for STX {
             AddressingValues::Absolute(e) => {
                 stack_memory.set(&(e + current_stack.frame_pos), current_stack.registers.X);
             }
-            AddressingValues::AbsoluteIndex(_, _) => {
-                todo!("Implementation is missing")
+            AddressingValues::AbsoluteIndex(pointer, index) => {
+                let index = match stack_memory.get(index) {
+                    Some(stack_data) => {
+                        if stack_data.type_id.is_int() {
+                            let data = stack_data.to_int();
+                            if data < 0 {
+                                return Err(ExecuterPanic {
+                                    reason: ThreadPanicReason::CannotIndexWithNegative(data),
+                                    code_location: format!("{}:{}", file!(), line!()),
+                                });
+                            } else {
+                                data as usize
+                            }
+                        } else {
+                            return Err(ExecuterPanic {
+                                reason: ThreadPanicReason::UnexpectedType(stack_data.type_id.id),
+                                code_location: format!("{}:{}", file!(), line!()),
+                            });
+                        }
+                    }
+                    None => {
+                        return Err(ExecuterPanic {
+                            reason: ThreadPanicReason::NullReference(*index),
+                            code_location: format!("{}:{}", file!(), line!()),
+                        });
+                    }
+                };
+                match stack_memory.get(pointer) {
+                    Some(stack_data) => {
+                        if stack_data.type_id.is_heap_reference() {
+                            match heap_memory.get_mut(&(stack_data.to_int() as usize)) {
+                                Some(heap_data) => {
+                                    let type_id = heap_data.get_type_id();
+                                    if type_id.is_array() {
+                                        let usize_len = arch.usize_len() as usize;
+                                        let type_id_len =
+                                            arch.type_id_size() as usize;
+                                        let entry_size = {
+                                            if heap_data.data.len() == 0 {
+                                                0
+                                            } else {
+                                                usize::from_le_bytes(
+                                                    heap_data.data
+                                                        [type_id_len..(usize_len + type_id_len)]
+                                                        .try_into()
+                                                        .unwrap(),
+                                                )
+                                            }
+                                        };
+
+                                        let register_bytes = current_stack.registers.X.to_bytes();
+
+                                        if entry_size != register_bytes.len() {
+                                            return Err(ExecuterPanic {
+                                                reason: ThreadPanicReason::WrongEntryLength(
+                                                    entry_size,
+                                                    register_bytes.len(),
+                                                ),
+                                                code_location: format!("{}:{}", file!(), line!()),
+                                            });
+                                        }
+
+                                        let array_size = {
+                                            if entry_size == 0 {
+                                                0
+                                            } else {
+                                                (heap_data.data.len() - (usize_len + (type_id_len)))
+                                                    / entry_size
+                                            }
+                                        };
+
+                                        if index > array_size {
+                                            return Err(ExecuterPanic {
+                                                reason: ThreadPanicReason::IndexOutOfBounds(index),
+                                                code_location: format!("{}:{}", file!(), line!()),
+                                            });
+                                        } else {
+                                            let data_start_idx = usize_len + type_id_len;
+                                            let index_range = {
+                                                let start = (entry_size * index) + data_start_idx;
+                                                start..start + entry_size
+                                            };
+                                            heap_data.data[index_range.clone()]
+                                                .copy_from_slice(&register_bytes);
+                                            return Ok(ExecuterResult::Continue);
+                                        }
+                                    } else {
+                                        return Err(ExecuterPanic {
+                                            reason: ThreadPanicReason::UnexpectedType(type_id.id),
+                                            code_location: format!("{}:{}", file!(), line!()),
+                                        });
+                                    }
+                                }
+                                None => {
+                                    return Err(ExecuterPanic {
+                                        reason: ThreadPanicReason::NullReference(
+                                            stack_data.to_int() as usize,
+                                        ),
+                                        code_location: format!("{}:{}", file!(), line!()),
+                                    });
+                                }
+                            }
+                        } else {
+                            return Err(ExecuterPanic {
+                                reason: ThreadPanicReason::UnexpectedType(stack_data.type_id.id),
+                                code_location: format!("{}:{}", file!(), line!()),
+                            });
+                        }
+                    }
+                    None => {
+                        return Err(ExecuterPanic {
+                            reason: ThreadPanicReason::NullReference(*pointer),
+                            code_location: format!("{}:{}", file!(), line!()),
+                        });
+                    }
+                }
             }
+            AddressingValues::AbsoluteProperty(pointer, index) => match stack_memory.get(pointer) {
+                Some(e) => {
+                    if e.type_id.is_class() {
+                        match heap_memory.get_mut(&(e.to_int() as usize)) {
+                            Some(heap_data) => {
+                                let type_id = heap_data.get_type_id();
+                                if type_id.is_array() {
+                                    let usize_len = arch.usize_len() as usize;
+                                    let type_id_len = arch.type_id_size() as usize;
+                                    let entry_size = {
+                                        if heap_data.data.len() == 0 {
+                                            0
+                                        } else {
+                                            usize::from_le_bytes(
+                                                heap_data.data
+                                                    [type_id_len..(usize_len + type_id_len)]
+                                                    .try_into()
+                                                    .unwrap(),
+                                            )
+                                        }
+                                    };
+
+                                    let register_bytes = current_stack.registers.X.to_bytes();
+
+                                    if entry_size != register_bytes.len() {
+                                        return Err(ExecuterPanic {
+                                            reason: ThreadPanicReason::WrongEntryLength(
+                                                entry_size,
+                                                register_bytes.len(),
+                                            ),
+                                            code_location: format!("{}:{}", file!(), line!()),
+                                        });
+                                    }
+
+                                    let array_size = {
+                                        if entry_size == 0 {
+                                            0
+                                        } else {
+                                            (heap_data.data.len() - (usize_len + (type_id_len)))
+                                                / entry_size
+                                        }
+                                    };
+
+                                    if *index > array_size {
+                                        return Err(ExecuterPanic {
+                                            reason: ThreadPanicReason::IndexOutOfBounds(*index),
+                                            code_location: format!("{}:{}", file!(), line!()),
+                                        });
+                                    } else {
+                                        let data_start_idx = usize_len + type_id_len;
+                                        let index_range = {
+                                            let start = (entry_size * index) + data_start_idx;
+                                            start..start + entry_size
+                                        };
+                                        heap_data.data[index_range.clone()]
+                                            .copy_from_slice(&register_bytes);
+                                        return Ok(ExecuterResult::Continue);
+                                    }
+                                } else {
+                                    return Err(ExecuterPanic {
+                                        reason: ThreadPanicReason::UnexpectedType(type_id.id),
+                                        code_location: format!("{}:{}", file!(), line!()),
+                                    });
+                                }
+                            }
+                            None => {
+                                return Err(ExecuterPanic {
+                                    reason: ThreadPanicReason::NullReference(e.to_int() as usize),
+                                    code_location: format!("{}:{}", file!(), line!()),
+                                });
+                            }
+                        }
+                    } else {
+                        return Err(ExecuterPanic {
+                            reason: ThreadPanicReason::UnexpectedType(e.type_id.id),
+                            code_location: format!("{}:{}", file!(), line!()),
+                        });
+                    }
+                }
+                None => {
+                    return Err(ExecuterPanic {
+                        reason: ThreadPanicReason::IllegalAddressingValue,
+                        code_location: format!("{}:{}", file!(), line!()),
+                    })
+                }
+            },
             _ => {
                 return Err(ExecuterPanic {
                     reason: ThreadPanicReason::IllegalAddressingValue,

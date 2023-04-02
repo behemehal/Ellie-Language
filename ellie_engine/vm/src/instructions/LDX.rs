@@ -1,60 +1,53 @@
-use super::{ExecuterPanic, ExecuterResult};
+use super::{ExecuterPanic, ExecuterResult, StaticProgram};
 use crate::{
-    channel::ModuleManager,
-    config::PROGRAM_MAX_SIZE,
     heap_memory::HeapMemory,
     instruction_utils::LDX,
-    program::ReadInstruction,
     stack::Stack,
     stack_memory::StackMemory,
     utils::{AddressingValues, ThreadPanicReason},
 };
-use alloc::format;
-use ellie_core::raw_type::{StaticRawType, TypeId};
+use alloc::{format, vec::Vec};
+use ellie_core::{defs::PlatformArchitecture, raw_type::StaticRawType};
 
 impl super::InstructionExecuter for LDX {
     fn execute(
         &self,
-        _heap_memory: &mut HeapMemory,
-        _program: &[ReadInstruction; PROGRAM_MAX_SIZE],
+        heap_memory: &mut HeapMemory,
+        program: StaticProgram,
         current_stack: &mut Stack,
         stack_memory: &mut StackMemory,
-        _module_manager: &ModuleManager,
         addressing_value: &AddressingValues,
+        arch: PlatformArchitecture,
     ) -> Result<super::ExecuterResult, super::ExecuterPanic> {
         match &addressing_value {
             AddressingValues::Immediate(raw_type) => {
-                current_stack.registers.X = match raw_type.type_id.id {
-                    0..=5 | 7 | 8 | 10 | 13 => *raw_type,
-                    id => {
-                        return Err(ExecuterPanic {
-                            reason: ThreadPanicReason::ImmediateUseViolation(id),
-                            code_location: format!("{}:{}", file!(), line!()),
-                        });
-                    }
-                };
+                current_stack.registers.X = if raw_type.type_id.is_stack_storable() {
+                    *raw_type
+                } else {
+                    return Err(ExecuterPanic {
+                        reason: ThreadPanicReason::ImmediateUseViolation(raw_type.type_id.id),
+                        code_location: format!("{}:{}", file!(), line!()),
+                    });
+                }
             }
             AddressingValues::Absolute(e) => {
                 current_stack.registers.X = match stack_memory.get(&(e + current_stack.frame_pos)) {
-                    Some(raw_type) => match raw_type.type_id.id {
-                        0..=5 | 7 | 10 | 13 => raw_type,
-                        8 => {
+                    Some(raw_type) => {
+                        if raw_type.type_id.is_void() {
                             return Err(ExecuterPanic {
                                 reason: ThreadPanicReason::NullReference(
                                     e + current_stack.frame_pos,
                                 ),
                                 code_location: format!("{}:{}", file!(), line!()),
                             });
+                        } else if raw_type.type_id.is_stack_storable() {
+                            raw_type
+                        } else {
+                            StaticRawType::heap_reference(
+                                (e + current_stack.frame_pos).to_le_bytes(),
+                            )
                         }
-                        _ => StaticRawType {
-                            type_id: TypeId {
-                                id: 13,
-                                // ! TODO: Platform size should be used here
-                                size: 8,
-                            },
-                            data: (e + current_stack.frame_pos).to_le_bytes(),
-                        },
-                    },
+                    }
                     None => {
                         return Err(ExecuterPanic {
                             reason: ThreadPanicReason::MemoryAccessViolation(
@@ -66,8 +59,202 @@ impl super::InstructionExecuter for LDX {
                     }
                 };
             }
-            AddressingValues::AbsoluteIndex(_, _) => {
-                todo!("Implementation is missing")
+            AddressingValues::AbsoluteIndex(pointer, index) => {
+                let index = match stack_memory.get(index) {
+                    Some(stack_data) => {
+                        if stack_data.type_id.is_int() {
+                            let data = stack_data.to_int();
+                            if data < 0 {
+                                return Err(ExecuterPanic {
+                                    reason: ThreadPanicReason::CannotIndexWithNegative(data),
+                                    code_location: format!("{}:{}", file!(), line!()),
+                                });
+                            } else {
+                                data as usize
+                            }
+                        } else {
+                            return Err(ExecuterPanic {
+                                reason: ThreadPanicReason::UnexpectedType(stack_data.type_id.id),
+                                code_location: format!("{}:{}", file!(), line!()),
+                            });
+                        }
+                    }
+                    None => {
+                        return Err(ExecuterPanic {
+                            reason: ThreadPanicReason::NullReference(*index),
+                            code_location: format!("{}:{}", file!(), line!()),
+                        });
+                    }
+                };
+                match stack_memory.get(pointer) {
+                    Some(stack_data) => {
+                        if stack_data.type_id.is_heap_reference() {
+                            match heap_memory.get(&(stack_data.to_int() as usize)) {
+                                Some(heap_data) => {
+                                    if heap_data.type_id.is_array() {
+                                        let array_entry_size = usize::from_le_bytes(
+                                            heap_data.data[..arch.usize_len() as usize]
+                                                .try_into()
+                                                .unwrap(),
+                                        );
+                                        let array_data =
+                                            &heap_data.data[arch.usize_len() as usize..];
+                                        let array_entries =
+                                            array_data.chunks(array_entry_size).collect::<Vec<_>>();
+                                        if index > array_entries.len() {
+                                            return Err(ExecuterPanic {
+                                                reason: ThreadPanicReason::IndexOutOfBounds(index),
+                                                code_location: format!("{}:{}", file!(), line!()),
+                                            });
+                                        } else {
+                                            let array_entry = array_entries[index];
+                                            current_stack.registers.X =
+                                                StaticRawType::from_bytes(array_entry);
+                                            return Ok(ExecuterResult::Continue);
+                                        }
+                                    } else {
+                                        return Err(ExecuterPanic {
+                                            reason: ThreadPanicReason::UnexpectedType(
+                                                heap_data.type_id.id,
+                                            ),
+                                            code_location: format!("{}:{}", file!(), line!()),
+                                        });
+                                    }
+                                }
+                                None => {
+                                    return Err(ExecuterPanic {
+                                        reason: ThreadPanicReason::NullReference(
+                                            stack_data.to_int() as usize,
+                                        ),
+                                        code_location: format!("{}:{}", file!(), line!()),
+                                    });
+                                }
+                            }
+                        } else {
+                            return Err(ExecuterPanic {
+                                reason: ThreadPanicReason::UnexpectedType(stack_data.type_id.id),
+                                code_location: format!("{}:{}", file!(), line!()),
+                            });
+                        }
+                    }
+                    None => {
+                        return Err(ExecuterPanic {
+                            reason: ThreadPanicReason::NullReference(*pointer),
+                            code_location: format!("{}:{}", file!(), line!()),
+                        });
+                    }
+                }
+            }
+            AddressingValues::AbsoluteProperty(pointer, index) => match stack_memory.get(pointer) {
+                Some(e) => {
+                    if e.type_id.is_class() {
+                        match heap_memory.get(&(e.to_int() as usize)) {
+                            Some(e) => {
+                                if e.type_id.is_array() {
+                                    // Increase size of array
+                                    let array_size = e.type_id.size;
+                                    if *index < array_size && *index > array_size {
+                                        return Err(ExecuterPanic {
+                                            reason: ThreadPanicReason::IndexOutOfBounds(*index),
+                                            code_location: format!("{}:{}", file!(), line!()),
+                                        });
+                                    } else {
+                                        let platform_size = arch.usize_len() as usize;
+                                        let array_entry_len = {
+                                            if e.data.len() < (platform_size + 1) {
+                                                return Err(ExecuterPanic {
+                                                    reason: ThreadPanicReason::ArraySizeCorruption,
+                                                    code_location: format!(
+                                                        "{}:{}",
+                                                        file!(),
+                                                        line!()
+                                                    ),
+                                                });
+                                            } else {
+                                                usize::from_le_bytes(
+                                                    e.data[0..platform_size].try_into().unwrap(),
+                                                )
+                                            }
+                                        };
+
+                                        if array_entry_len == 0 {
+                                            return Err(ExecuterPanic {
+                                                reason: ThreadPanicReason::ArraySizeCorruption,
+                                                code_location: format!("{}:{}", file!(), line!()),
+                                            });
+                                        }
+
+                                        let array_size = if (e.data.len() - platform_size) == 0 {
+                                            0
+                                        } else {
+                                            (e.data.len() - platform_size) / array_entry_len
+                                        };
+                                        if index > &array_size {
+                                            return Err(ExecuterPanic {
+                                                reason: ThreadPanicReason::IndexOutOfBounds(*index),
+                                                code_location: format!("{}:{}", file!(), line!()),
+                                            });
+                                        } else {
+                                            let absolute_position_start =
+                                                8 + (array_entry_len * index);
+                                            let absolute_position_end =
+                                                absolute_position_start + array_entry_len;
+                                            let array_entry = &e.data
+                                                [absolute_position_start..absolute_position_end];
+                                            current_stack.registers.X =
+                                                StaticRawType::from_bytes(array_entry);
+                                        }
+                                    }
+                                } else {
+                                    return Err(ExecuterPanic {
+                                        reason: ThreadPanicReason::UnexpectedType(e.type_id.id),
+                                        code_location: format!("{}:{}", file!(), line!()),
+                                    });
+                                }
+                            }
+                            None => {
+                                return Err(ExecuterPanic {
+                                    reason: ThreadPanicReason::NullReference(e.to_int() as usize),
+                                    code_location: format!("{}:{}", file!(), line!()),
+                                });
+                            }
+                        }
+                    } else {
+                        return Err(ExecuterPanic {
+                            reason: ThreadPanicReason::UnexpectedType(e.type_id.id),
+                            code_location: format!("{}:{}", file!(), line!()),
+                        });
+                    }
+                }
+                None => {
+                    return Err(ExecuterPanic {
+                        reason: ThreadPanicReason::IllegalAddressingValue,
+                        code_location: format!("{}:{}", file!(), line!()),
+                    })
+                }
+            },
+            AddressingValues::AbsoluteStatic(e) => {
+                let instruction = program[*e];
+                current_stack.registers.X = match instruction.addressing_value {
+                    AddressingValues::Immediate(static_raw_type) => {
+                        if static_raw_type.type_id.is_stack_storable() {
+                            static_raw_type
+                        } else {
+                            return Err(ExecuterPanic {
+                                reason: ThreadPanicReason::ImmediateUseViolation(
+                                    static_raw_type.type_id.id,
+                                ),
+                                code_location: format!("{}:{}", file!(), line!()),
+                            });
+                        }
+                    }
+                    _ => {
+                        return Err(ExecuterPanic {
+                            reason: ThreadPanicReason::IllegalAddressingValue,
+                            code_location: format!("{}:{}", file!(), line!()),
+                        })
+                    }
+                }
             }
             AddressingValues::IndirectA => {
                 current_stack.registers.X = current_stack.registers.C;
