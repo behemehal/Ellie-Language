@@ -34,9 +34,6 @@ impl super::InstructionExecuter for PUSH {
                             }
 
                             let data = stack_data.to_bytes();
-                            std::println!("push: {:?}", stack_data);
-                            std::println!("push: {:?}", data);
-                            std::println!("heap_value.data: {:?}", heap_value.data);
                             let entry_len = {
                                 if heap_value.data.len() == (arch.usize_len() as usize + 1) {
                                     //platform safety:
@@ -58,16 +55,8 @@ impl super::InstructionExecuter for PUSH {
                                         }
                                         ellie_core::defs::PlatformArchitecture::B64 => len,
                                     });
-                                    std::println!("PUSH TO NEW ALLOCATED ARRAY: {}", data.len());
                                     data.len()
                                 } else {
-                                    std::println!(
-                                        "PUSH TO PREALLOCATED ARRAY: {} {:?}",
-                                        usize::from_le_bytes(
-                                            heap_value.data[9..17].try_into().unwrap()
-                                        ),
-                                        heap_value.data
-                                    );
                                     let array_len_range = {
                                         let type_id_size = arch.type_id_size() as usize;
                                         let usize_len = arch.usize_len() as usize;
@@ -92,7 +81,6 @@ impl super::InstructionExecuter for PUSH {
                             type_id.size += heap_value.data.len() + data.len();
                             heap_value.set_type_id(type_id);
                             heap_value.data.extend(data);
-                            std::println!("new heap_value.data  {:?}", heap_value.data);
                         }
                         None => {
                             return Err(ExecuterPanic {
