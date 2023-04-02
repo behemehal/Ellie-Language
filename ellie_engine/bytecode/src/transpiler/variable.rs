@@ -1,6 +1,7 @@
 use super::type_resolver::resolve_type;
 use crate::{
     assembler::LocalHeader,
+    instruction_table,
     instructions::{self, Instruction},
 };
 use alloc::vec;
@@ -36,9 +37,9 @@ impl super::Transpiler for variable::Variable {
         );
 
         if self.constant {
-            assembler.instructions[first_instruction_index] = instructions::Instructions::STA(
+            assembler.instructions[first_instruction_index] = instruction_table::Instructions::STA(
                 match assembler.instructions[first_instruction_index].clone() {
-                    instructions::Instructions::LDA(e) => e,
+                    instruction_table::Instructions::LDA(e) => e,
                     _ => panic!("Constant variable must have ben a LDA"),
                 },
             );
@@ -63,7 +64,7 @@ impl super::Transpiler for variable::Variable {
 
         assembler
             .instructions
-            .push(instructions::Instructions::STA(Instruction::implicit()));
+            .push(instruction_table::Instructions::STA(Instruction::implicit()));
 
         assembler.debug_headers.push(DebugHeader {
             rtype: DebugHeaderType::Variable,

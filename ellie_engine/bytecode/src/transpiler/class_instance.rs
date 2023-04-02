@@ -1,4 +1,4 @@
-use alloc::format;
+use alloc::{format, string::ToString};
 use ellie_core::definite::types::class_instance;
 
 use crate::{assembler::LocalHeader, instructions::Instruction};
@@ -10,6 +10,13 @@ impl super::Transpiler for class_instance::ClassInstance {
         _hash: usize,
         processed_page: &ellie_parser::parser::ProcessedPage,
     ) -> bool {
+        assembler.locals.push(LocalHeader {
+            name: "self".to_string(),
+            cursor: 0,
+            page_hash: processed_page.hash,
+            hash: Some(self.class_hash),
+            reference: Instruction::absolute(self.class_hash),
+        });
         for item in &self.attributes {
             assembler.locals.push(LocalHeader {
                 name: format!("self.{}", item.name),
@@ -19,11 +26,6 @@ impl super::Transpiler for class_instance::ClassInstance {
                 reference: Instruction::absolute(item.hash),
             });
         }
-        std::println!(
-            "Class instance transpiler is not implemented yet:  {:#?}\n{:#?}",
-            self,
-            assembler.locals
-        );
         true
     }
 }

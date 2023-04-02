@@ -1,10 +1,11 @@
-/*
-    Copyright (c) 2020 Behemehal. See license file for details
-*/
 #![no_std]
 #![allow(unused_assignments)]
 #![allow(unknown_lints)]
 #![warn(clippy::all)]
+//! Ellie Bytecode
+//! This is the bytecode assembler for the Ellie Language.
+//!
+//! Copyright (c) 2020 Behemehal. See license file for details
 
 extern crate alloc;
 #[cfg(feature = "std")]
@@ -23,7 +24,7 @@ pub mod instructions;
 pub mod utils;
 
 //Transpilers
+pub mod addressing_modes;
+pub mod macros;
 pub mod transpiler;
-
-#[macro_use]
-extern crate lazy_static;
+pub mod types;

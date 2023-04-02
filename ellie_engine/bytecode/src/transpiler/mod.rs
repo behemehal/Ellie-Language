@@ -1,4 +1,5 @@
 mod class;
+mod class_instance;
 mod condition;
 mod constructor;
 mod for_loop;
@@ -11,7 +12,6 @@ mod ret;
 mod setter_call;
 pub mod type_resolver;
 mod variable;
-mod class_instance;
 
 use ellie_parser::parser::ProcessedPage;
 

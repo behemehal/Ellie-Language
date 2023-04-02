@@ -1,4 +1,6 @@
 use super::type_resolver::resolve_type;
+use crate::addressing_modes::AddressingModes;
+use crate::instruction_table;
 use crate::instructions::{self, Instruction};
 use alloc::string::ToString;
 use alloc::vec;
@@ -13,27 +15,10 @@ impl super::Transpiler for setter_call::SetterCall {
         hash: usize,
         processed_page: &ellie_parser::parser::ProcessedPage,
     ) -> bool {
-        let debug_header_start = assembler.location();
         let mut dependencies = vec![processed_page.hash];
         dependencies.extend(processed_page.dependencies.iter().map(|d| d.hash));
 
-        let mut instructions = Vec::new();
-
-        resolve_type(
-            assembler,
-            &self.target,
-            instructions::Registers::B,
-            &hash,
-            Some(dependencies.clone()),
-        );
-
-        let mut assignment = match &self.target {
-            ellie_core::definite::types::Types::BraceReference(_) => true,
-            _ => false,
-        };
-
-        let target_last_instruction = assembler.instructions.last().unwrap().clone();
-
+        //Resolve the value to be inserted
         resolve_type(
             assembler,
             &self.value,
@@ -42,74 +27,168 @@ impl super::Transpiler for setter_call::SetterCall {
             Some(dependencies.clone()),
         );
 
-        match self.operator {
-        ellie_core::definite::types::operator::AssignmentOperators::Assignment => {
-            match &target_last_instruction {
-                instructions::Instructions::LDB(e) => match e.addressing_mode {
-                    instructions::AddressingModes::Absolute(e) => {
-                        instructions.push(instructions::Instructions::STC(Instruction::absolute(e)));
-                        assembler.instructions.extend(instructions.clone());
-                        assignment = true;
-                    }
-                    instructions::AddressingModes::AbsoluteIndex(pointer_address, index_address) => {
-                        instructions.push(instructions::Instructions::STC(Instruction::absolute_index(pointer_address, index_address)));
-                        assembler.instructions.extend(instructions.clone());
-                    }
-                    _ => unreachable!(
-                        "Since this is setter its impossible to get a no absolute addressing mode"
-                    ),
-                },
-                _ => unreachable!(),
-            }
-        },
-        ellie_core::definite::types::operator::AssignmentOperators::AdditionAssignment => {
-            instructions.push(instructions::Instructions::ADD(Instruction::implicit()));
-        },
-        ellie_core::definite::types::operator::AssignmentOperators::SubtractionAssignment => {
-            instructions.push(instructions::Instructions::SUB(Instruction::implicit()));
-        },
-        ellie_core::definite::types::operator::AssignmentOperators::MultiplicationAssignment => {
-            instructions.push(instructions::Instructions::MUL(Instruction::implicit()));
-        },
-        ellie_core::definite::types::operator::AssignmentOperators::DivisionAssignment => {
-            instructions.push(instructions::Instructions::DIV(Instruction::implicit()));
-        },
-        ellie_core::definite::types::operator::AssignmentOperators::ModulusAssignment => {
-            instructions.push(instructions::Instructions::MOD(Instruction::implicit()));
-        },
-        ellie_core::definite::types::operator::AssignmentOperators::ExponentiationAssignment => {
-            instructions.push(instructions::Instructions::EXP(Instruction::implicit()));
-        },
-        ellie_core::definite::types::operator::AssignmentOperators::Null => unreachable!(),
-    }
+        //Store it in the stack
+        assembler
+            .instructions
+            .push(instruction_table::Instructions::STC(
+                instructions::Instruction::implicit(),
+            ));
+        //Reserve value location
+        let value_pos = assembler.location();
 
-        if !assignment {
-            match target_last_instruction {
-                instructions::Instructions::LDB(e) => match e.addressing_mode {
-                    instructions::AddressingModes::Absolute(e) => {
-                        instructions
-                            .push(instructions::Instructions::STA(Instruction::absolute(e)));
+        match &self.operator {
+            ellie_core::definite::types::operator::AssignmentOperators::Assignment => {
+                //Resolve the target
+                resolve_type(
+                    assembler,
+                    &self.target,
+                    instructions::Registers::B,
+                    &hash,
+                    Some(dependencies.clone()),
+                );
+                let target_last_instruction = assembler.instructions.last().unwrap().clone();
+                match target_last_instruction {
+                    instruction_table::Instructions::LDB(ldb_in) => {
+                        match ldb_in.addressing_mode {
+                            AddressingModes::Absolute(e) => {
+                                //Load the value from `value_pos` to `b`
+                                assembler.instructions.last_mut().unwrap().clone_from(
+                                    &instruction_table::Instructions::LDB(
+                                        instructions::Instruction::absolute(value_pos),
+                                    ),
+                                );
+                                //Store the value from `b` to `e`
+                                assembler.instructions.push(
+                                    instruction_table::Instructions::STB(
+                                        instructions::Instruction::absolute(e),
+                                    ),
+                                );
+                            }
+                            AddressingModes::AbsoluteIndex(pointer, index) => {
+                                //Load the value from `value_pos` to `b`
+                                assembler.instructions.last_mut().unwrap().clone_from(
+                                    &instruction_table::Instructions::LDB(
+                                        instructions::Instruction::absolute(value_pos),
+                                    ),
+                                );
+                                //Load the value from `value_pos` to `b`
+                                assembler.instructions.push(
+                                    instruction_table::Instructions::STB(
+                                        instructions::Instruction::absolute_index(pointer, index),
+                                    ),
+                                );
+                            }
+                            AddressingModes::AbsoluteProperty(pointer, index) => {
+                                //Load the value from `value_pos` to `b`
+                                assembler.instructions.last_mut().unwrap().clone_from(
+                                    &instruction_table::Instructions::LDB(
+                                        instructions::Instruction::absolute(value_pos),
+                                    ),
+                                );
+                                //Load the value from `value_pos` to `b`
+                                assembler.instructions.push(
+                                    instruction_table::Instructions::STB(
+                                        instructions::Instruction::absolute_property(pointer, index),
+                                    ),
+                                );
+
+                            }
+                            _ => unreachable!(
+                                "Since this is setter its impossible to get a no absolute addressing mode"
+                            ),
+                        }
                     }
-                    _ => unreachable!(
-                        "Since this is setter its impossible to get a no absolute addressing mode"
-                    ),
-                },
-                _ => unreachable!(),
+                    _ => {
+                        unreachable!()
+                    }
+                }
+            }
+            e => {
+                let operation_instruction = {
+                    match e {
+                            ellie_core::definite::types::operator::AssignmentOperators::AdditionAssignment => {
+                                instruction_table::Instructions::ADD(
+                                    instructions::Instruction::implicit(),
+                                )
+                            }
+                            ellie_core::definite::types::operator::AssignmentOperators::SubtractionAssignment => {
+                                instruction_table::Instructions::SUB(
+                                    instructions::Instruction::implicit(),
+                                )
+                            },
+                            ellie_core::definite::types::operator::AssignmentOperators::MultiplicationAssignment => {
+                                instruction_table::Instructions::MUL(
+                                    instructions::Instruction::implicit(),
+                                )
+                            },
+                            ellie_core::definite::types::operator::AssignmentOperators::DivisionAssignment => {
+                                instruction_table::Instructions::DIV(
+                                    instructions::Instruction::implicit(),
+                                )
+                            },
+                            ellie_core::definite::types::operator::AssignmentOperators::ModulusAssignment => {
+                                instruction_table::Instructions::MOD(
+                                    instructions::Instruction::implicit(),
+                                )
+                            },
+                            ellie_core::definite::types::operator::AssignmentOperators::ExponentiationAssignment => {
+                                instruction_table::Instructions::EXP(
+                                    instructions::Instruction::implicit(),
+                                )
+                            },
+                            _ => unreachable!(),
+                        }
+                };
+                resolve_type(
+                    assembler,
+                    &self.target,
+                    instructions::Registers::B,
+                    &hash,
+                    Some(dependencies.clone()),
+                );
+                let left_last_instruction = assembler.instructions.last().unwrap().clone();
+                assembler
+                    .instructions
+                    .push(instruction_table::Instructions::LDC(
+                        instructions::Instruction::absolute(value_pos),
+                    ));
+                assembler.instructions.push(operation_instruction);
+
+                match left_last_instruction {
+                    instruction_table::Instructions::LDB(ldb_in) => {
+                        match ldb_in.addressing_mode {
+                            AddressingModes::Absolute(e) => {
+                                assembler.instructions.push(
+                                    instruction_table::Instructions::STA(
+                                        instructions::Instruction::absolute(e),
+                                    ),
+                                );
+                            }
+                            AddressingModes::AbsoluteIndex(pointer, index) => {
+                                assembler.instructions.push(
+                                    instruction_table::Instructions::STA(
+                                        instructions::Instruction::absolute_index(pointer, index),
+                                    ),
+                                );
+                            }
+                            AddressingModes::AbsoluteProperty(pointer, index) => {
+                                assembler.instructions.push(
+                                    instruction_table::Instructions::STA(
+                                        instructions::Instruction::absolute_property(pointer, index),
+                                    ),
+                                );
+                            }
+                            _ => unreachable!(
+                                "Since this is setter its impossible to get a no absolute addressing mode"
+                            ),
+                        }
+                    }
+                    _ => {
+                        unreachable!()
+                    }
+                }
             }
         }
-
-        assembler.instructions.extend(instructions);
-        assembler.debug_headers.push(DebugHeader {
-            rtype: DebugHeaderType::SetterCall,
-            hash: 00009999999,
-            module: processed_page.path.clone(),
-            name: "@setter".to_string(),
-            start_end: (debug_header_start, assembler.location()),
-            pos: defs::Cursor {
-                range_start: self.target_pos.range_start,
-                range_end: self.value_pos.range_end,
-            },
-        });
         true
     }
 }

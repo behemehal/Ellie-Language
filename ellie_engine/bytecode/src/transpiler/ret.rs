@@ -1,7 +1,10 @@
 use alloc::vec;
 use ellie_core::definite::items::ret;
 
-use crate::instructions::{self, Instruction};
+use crate::{
+    instruction_table,
+    instructions::{self, Instruction},
+};
 
 use super::type_resolver::resolve_type;
 
@@ -24,7 +27,7 @@ impl super::Transpiler for ret::Ret {
         );
         assembler
             .instructions
-            .push(instructions::Instructions::RET(Instruction::implicit()));
+            .push(instruction_table::Instructions::RET(Instruction::implicit()));
         true
     }
 }

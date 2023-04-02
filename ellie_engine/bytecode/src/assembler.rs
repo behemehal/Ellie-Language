@@ -1,4 +1,5 @@
-use crate::instructions::{self, Instruction};
+use crate::instruction_table;
+use crate::instructions::Instruction;
 use crate::transpiler::Transpiler;
 use alloc::{
     format,
@@ -14,7 +15,7 @@ pub struct Assembler {
     pub(crate) module: Module,
     pub(crate) processed: Vec<usize>,
     pub(crate) platform_attributes: PlatformAttributes,
-    pub(crate) instructions: Vec<instructions::Instructions>,
+    pub(crate) instructions: Vec<instruction_table::Instructions>,
     pub(crate) locals: Vec<LocalHeader>,
     pub(crate) debug_headers: Vec<DebugHeader>,
 }
@@ -32,7 +33,7 @@ pub struct LocalHeader {
 pub struct InstructionPage {
     pub is_main: bool,
     pub hash: usize,
-    pub instructions: Vec<instructions::Instructions>,
+    pub instructions: Vec<instruction_table::Instructions>,
     pub locals: Vec<LocalHeader>,
     pub debug_headers: Vec<DebugHeader>,
 }
@@ -44,11 +45,11 @@ impl ExportPage for InstructionPage {
 }
 
 impl InstructionPage {
-    pub fn assign_instruction(&mut self, instruction: instructions::Instructions) {
+    pub fn assign_instruction(&mut self, instruction: instruction_table::Instructions) {
         self.instructions.push(instruction)
     }
 
-    pub fn extend_instructions(&mut self, instruction: Vec<instructions::Instructions>) {
+    pub fn extend_instructions(&mut self, instruction: Vec<instruction_table::Instructions>) {
         self.instructions.extend(instruction)
     }
 
@@ -70,11 +71,18 @@ pub struct PlatformAttributes {
 }
 
 #[derive(Clone, Debug)]
+pub struct MainFunction {
+    pub hash: usize,
+    pub start: usize,
+    pub end: usize,
+}
+
+#[derive(Clone, Debug)]
 pub struct ModuleInfo {
     pub name: String,
     pub modue_maps: Vec<(String, Option<String>)>,
     pub is_library: bool,
-    pub main_function: Option<(usize, usize, usize)>,
+    pub main_function: Option<MainFunction>,
     pub platform_attributes: PlatformAttributes,
 }
 
@@ -82,7 +90,7 @@ pub struct AssembleResult {
     pub module_info: ModuleInfo,
     pub debug_headers: Vec<DebugHeader>,
     pub locals: Vec<LocalHeader>,
-    pub instructions: Vec<instructions::Instructions>,
+    pub instructions: Vec<instruction_table::Instructions>,
 }
 
 impl AssembleResult {
@@ -102,13 +110,10 @@ impl AssembleResult {
                 0
             }])
             .unwrap();
-        match self.module_info.main_function {
-            Some(main_fn_cursor) => {
-                binary.write_all(&main_fn_cursor.0.to_le_bytes()).unwrap();
-                binary.write_all(&main_fn_cursor.1.to_le_bytes()).unwrap();
-                binary.write_all(&main_fn_cursor.2.to_le_bytes()).unwrap();
-            }
-            None => (),
+        if let Some(main_fn) = &self.module_info.main_function {
+            binary.write_all(&main_fn.start.to_le_bytes()).unwrap();
+            binary.write_all(&main_fn.end.to_le_bytes()).unwrap();
+            binary.write_all(&main_fn.hash.to_le_bytes()).unwrap();
         }
 
         for instruction in &self.instructions {
@@ -171,13 +176,10 @@ impl AssembleResult {
                 0
             }])
             .unwrap();
-        match self.module_info.main_function {
-            Some(main_fn_cursor) => {
-                writer.write_all(&main_fn_cursor.0.to_le_bytes()).unwrap();
-                writer.write_all(&main_fn_cursor.1.to_le_bytes()).unwrap();
-                writer.write_all(&main_fn_cursor.2.to_le_bytes()).unwrap();
-            }
-            None => (),
+        if let Some(main_fn) = &self.module_info.main_function {
+            writer.write_all(&main_fn.start.to_le_bytes()).unwrap();
+            writer.write_all(&main_fn.end.to_le_bytes()).unwrap();
+            writer.write_all(&main_fn.hash.to_le_bytes()).unwrap();
         }
 
         for instruction in &self.instructions {
@@ -187,7 +189,7 @@ impl AssembleResult {
         }
     }
 
-    pub fn alternate_render<T: Write>(&self, mut output: T) {
+    pub fn alternate_render<T: Write>(&self, output: &mut T) {
         output
             .write_all(
                 format!(
@@ -201,12 +203,10 @@ impl AssembleResult {
                 .as_bytes(),
             )
             .unwrap();
-        match self.module_info.main_function {
-            Some(main_fn_cursor) => {
+        match &self.module_info.main_function {
+            Some(main_fn) => {
                 output
-                    .write_all(
-                        format!(".main {}: {}\n", main_fn_cursor.0, main_fn_cursor.1).as_bytes(),
-                    )
+                    .write_all(format!(".main {}: {}\n", main_fn.start, main_fn.end).as_bytes())
                     .unwrap();
             }
             None => (),
@@ -312,7 +312,7 @@ impl Assembler {
         locals.into_iter().find(|local| &local.name == name)
     }
 
-    pub(crate) fn assemble_dependency(&mut self, hash: &usize) -> Option<(usize, usize, usize)> {
+    pub(crate) fn assemble_dependency(&mut self, hash: &usize) -> Option<MainFunction> {
         if self.processed.contains(hash) {
             return None;
         }
@@ -332,7 +332,7 @@ impl Assembler {
             self.assemble_dependency(&dependency.hash);
         }
 
-        let mut main_pos = None;
+        let mut main_function = None;
 
         for item in &processed_page.items {
             match item {
@@ -344,7 +344,11 @@ impl Assembler {
                     let transpile_res =
                         function.transpile(self, processed_page.hash as usize, &processed_page);
                     if function.name == "main" {
-                        main_pos = Some((start, self.location(), function.hash));
+                        main_function = Some(MainFunction {
+                            hash: function.hash,
+                            start,
+                            end: self.location(),
+                        });
                     }
                     transpile_res
                 }
@@ -389,7 +393,9 @@ impl Assembler {
                     )
                 }
                 ellie_core::definite::items::Collecting::ConstructorParameter(_) => true,
-                ellie_core::definite::items::Collecting::SelfItem(_) => true,
+                ellie_core::definite::items::Collecting::SelfItem(e) => {
+                    panic!("Unexpected self item in assembler: {:?}", e)
+                }
                 ellie_core::definite::items::Collecting::Extend(_) => true,
                 ellie_core::definite::items::Collecting::Loop(loop_type) => {
                     loop_type.transpile(self, processed_page.hash as usize, &processed_page)
@@ -399,7 +405,7 @@ impl Assembler {
                 }
             };
         }
-        main_pos
+        main_function
     }
 
     pub fn assemble(&mut self, modue_maps: Vec<(String, Option<String>)>) -> AssembleResult {

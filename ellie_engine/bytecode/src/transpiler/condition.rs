@@ -1,7 +1,10 @@
+use crate::{
+    instruction_table,
+    instructions::{self, Instruction},
+    types::Types,
+};
 use alloc::{vec, vec::Vec};
 use ellie_core::definite::items::condition;
-
-use crate::instructions::{self, Instruction, Types};
 
 use super::type_resolver::resolve_type;
 
@@ -29,20 +32,26 @@ impl super::Transpiler for condition::Condition {
                     Some(dependencies.clone()),
                 );
             } else {
-                assembler.instructions.push(instructions::Instructions::LDA(
-                    Instruction::immediate(Types::Bool, vec![1]),
-                ));
+                assembler
+                    .instructions
+                    .push(instruction_table::Instructions::LDA(
+                        Instruction::immediate(Types::Bool, [1, 0, 0, 0, 0, 0, 0, 0]),
+                    ));
             }
             assembler
                 .instructions
-                .push(instructions::Instructions::JMPA(Instruction::absolute(144)));
+                .push(instruction_table::Instructions::JMPA(
+                    Instruction::absolute(144),
+                ));
             condition_body_start_requests.push(assembler.location());
         }
 
         if self.chains.last().unwrap().rtype != condition::ConditionType::Else {
             assembler
                 .instructions
-                .push(instructions::Instructions::JMP(Instruction::absolute(133)));
+                .push(instruction_table::Instructions::JMP(Instruction::absolute(
+                    133,
+                )));
             condition_end_requests.push(assembler.location());
         }
 
@@ -52,7 +61,9 @@ impl super::Transpiler for condition::Condition {
             assembler.assemble_dependency(&chain.inner_page_id);
             assembler
                 .instructions
-                .push(instructions::Instructions::JMPA(Instruction::absolute(123)));
+                .push(instruction_table::Instructions::JMPA(
+                    Instruction::absolute(123),
+                ));
             let end = assembler.location();
             condition_end_requests.push(end);
             //}
@@ -61,20 +72,20 @@ impl super::Transpiler for condition::Condition {
 
         for location in &condition_end_requests {
             if assembler.instructions[*location]
-                == instructions::Instructions::JMPA(Instruction::absolute(133))
+                == instruction_table::Instructions::JMPA(Instruction::absolute(133))
             {
                 assembler.instructions[*location] =
-                    instructions::Instructions::JMPA(Instruction::absolute(end));
+                    instruction_table::Instructions::JMPA(Instruction::absolute(end));
             } else {
                 assembler.instructions[*location] =
-                    instructions::Instructions::JMP(Instruction::absolute(end));
+                    instruction_table::Instructions::JMP(Instruction::absolute(end));
             }
         }
 
         for (idx, location) in condition_body_starts.iter().enumerate() {
             let pos = condition_body_start_requests[idx];
             assembler.instructions[pos] =
-                instructions::Instructions::JMPA(Instruction::absolute(*location));
+                instruction_table::Instructions::JMPA(Instruction::absolute(*location));
         }
         true
     }

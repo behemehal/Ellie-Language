@@ -9,8 +9,7 @@ pub fn is_static_type(type_: &Types) -> bool {
     match type_ {
         Types::Integer(..) => true,
         Types::Byte(..) => true,
-        Types::Float(..) => true,
-        Types::Double(..) => true,
+        Types::Decimal(..) => true,
         Types::Bool(..) => true,
         Types::String(..) => true,
         Types::Char(..) => true,
@@ -25,8 +24,7 @@ pub fn convert_to_raw_type(types: Types) -> RawType {
             size: std::mem::size_of::<isize>(),
             data: x.value.to_le(),
         },
-        Types::Float(_) => todo!(),
-        Types::Bool(_) => todo!(),
+        Types::Decimal(_) => todo!(),
         Types::String(_) => RawType {
             size: std::mem::size_of::<isize>(),
             data: 1_isize.to_le(),
@@ -52,9 +50,9 @@ pub fn convert_to_raw_type(types: Types) -> RawType {
         Types::Null => todo!(),
         Types::Dynamic => todo!(),
         Types::Byte(_) => todo!(),
-        Types::Double(_) => todo!(),
         Types::SetterCall(_) => todo!(),
         Types::EnumData(_) => todo!(),
         Types::ClassInstance(_) => todo!(),
+        Types::Bool(_) => todo!(),
     }
 }

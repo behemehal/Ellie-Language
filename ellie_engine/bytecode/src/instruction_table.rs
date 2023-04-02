@@ -1,1049 +1,693 @@
-//Auto builded from `instructions.csv` by `build.rs`
-use lazy_static;
-use std::collections::HashMap;
+//Auto builded from `instructions.json` by `reAssembler.js` rev: 3
+use alloc::{vec::Vec, vec};
+use alloc::string::String;
+use crate::instructions::Instruction;
+use ellie_core::defs::PlatformArchitecture;
 
-#[derive(Clone)]
-pub struct Instruction {
-    pub rtype: &'static str,
-    pub code: u8,
-    pub mode: &'static str,
+#[derive(Clone, Debug, PartialEq)]
+pub enum Instructions {
+    LDA(Instruction),
+    LDB(Instruction),
+    LDC(Instruction),
+    LDX(Instruction),
+    LDY(Instruction),
+    STA(Instruction),
+    STB(Instruction),
+    STC(Instruction),
+    STX(Instruction),
+    STY(Instruction),
+    EQ(Instruction),
+    NE(Instruction),
+    GT(Instruction),
+    LT(Instruction),
+    GQ(Instruction),
+    LQ(Instruction),
+    AND(Instruction),
+    OR(Instruction),
+    ADD(Instruction),
+    SUB(Instruction),
+    MUL(Instruction),
+    EXP(Instruction),
+    DIV(Instruction),
+    MOD(Instruction),
+    JMP(Instruction),
+    JMPA(Instruction),
+    CALL(Instruction),
+    RET(Instruction),
+    PUSH(Instruction),
+    SPUS(Instruction),
+    LEN(Instruction),
+    A2I(Instruction),
+    A2F(Instruction),
+    A2D(Instruction),
+    A2B(Instruction),
+    A2S(Instruction),
+    A2C(Instruction),
+    A2O(Instruction),
+    ARR(Instruction),
+    STR(Instruction),
+    SAR(Instruction),
+    POPS(Instruction),
+    BRK(Instruction),
+    CALLN(Instruction),
+    CO(Instruction),
+    FN(Instruction),
+    DEA(Instruction),
 }
 
-lazy_static! {
-    pub static ref INSTRUCTIONS: HashMap<&'static str, Instruction> = {
-        let mut i = HashMap::new();
-        i.insert(
-            "lda_immediate",
-            Instruction {
-                rtype: "lda",
-                code: 1,
-                mode: "immediate",
-            },
-        );
-        i.insert(
-            "lda_absolute",
-            Instruction {
-                rtype: "lda",
-                code: 2,
-                mode: "absolute",
-            },
-        );
-        i.insert(
-            "lda_indirect_b",
-            Instruction {
-                rtype: "lda",
-                code: 3,
-                mode: "indirect_b",
-            },
-        );
-        i.insert(
-            "lda_indirect_c",
-            Instruction {
-                rtype: "lda",
-                code: 4,
-                mode: "indirect_c",
-            },
-        );
-        i.insert(
-            "lda_indirect_x",
-            Instruction {
-                rtype: "lda",
-                code: 5,
-                mode: "indirect_x",
-            },
-        );
-        i.insert(
-            "lda_indirect_y",
-            Instruction {
-                rtype: "lda",
-                code: 6,
-                mode: "indirect_y",
-            },
-        );
-        i.insert(
-            "lda_absolute_index",
-            Instruction {
-                rtype: "lda",
-                code: 7,
-                mode: "absolute_index",
-            },
-        );
-        i.insert(
-            "lda_absolute_property",
-            Instruction {
-                rtype: "lda",
-                code: 8,
-                mode: "absolute_property",
-            },
-        );
-        i.insert(
-            "lda_parameter",
-            Instruction {
-                rtype: "lda",
-                code: 9,
-                mode: "parameter",
-            },
-        );
-        i.insert(
-            "ldb_immediate",
-            Instruction {
-                rtype: "ldb",
-                code: 10,
-                mode: "immediate",
-            },
-        );
-        i.insert(
-            "ldb_absolute",
-            Instruction {
-                rtype: "ldb",
-                code: 11,
-                mode: "absolute",
-            },
-        );
-        i.insert(
-            "ldb_indirect_a",
-            Instruction {
-                rtype: "ldb",
-                code: 12,
-                mode: "indirect_a",
-            },
-        );
-        i.insert(
-            "ldb_indirect_c",
-            Instruction {
-                rtype: "ldb",
-                code: 13,
-                mode: "indirect_c",
-            },
-        );
-        i.insert(
-            "ldb_indirect_x",
-            Instruction {
-                rtype: "ldb",
-                code: 14,
-                mode: "indirect_x",
-            },
-        );
-        i.insert(
-            "ldb_indirect_y",
-            Instruction {
-                rtype: "ldb",
-                code: 15,
-                mode: "indirect_y",
-            },
-        );
-        i.insert(
-            "ldb_absolute_index",
-            Instruction {
-                rtype: "ldb",
-                code: 16,
-                mode: "absolute_index",
-            },
-        );
-        i.insert(
-            "ldb_absolute_property",
-            Instruction {
-                rtype: "ldb",
-                code: 17,
-                mode: "absolute_property",
-            },
-        );
-        i.insert(
-            "ldb_parameter",
-            Instruction {
-                rtype: "ldb",
-                code: 18,
-                mode: "parameter",
-            },
-        );
-        i.insert(
-            "ldc_immediate",
-            Instruction {
-                rtype: "ldc",
-                code: 19,
-                mode: "immediate",
-            },
-        );
-        i.insert(
-            "ldc_absolute",
-            Instruction {
-                rtype: "ldc",
-                code: 20,
-                mode: "absolute",
-            },
-        );
-        i.insert(
-            "ldc_indirect_a",
-            Instruction {
-                rtype: "ldc",
-                code: 21,
-                mode: "indirect_a",
-            },
-        );
-        i.insert(
-            "ldc_indirect_b",
-            Instruction {
-                rtype: "ldc",
-                code: 22,
-                mode: "indirect_b",
-            },
-        );
-        i.insert(
-            "ldc_indirect_x",
-            Instruction {
-                rtype: "ldc",
-                code: 23,
-                mode: "indirect_x",
-            },
-        );
-        i.insert(
-            "ldc_indirect_y",
-            Instruction {
-                rtype: "ldc",
-                code: 24,
-                mode: "indirect_y",
-            },
-        );
-        i.insert(
-            "ldc_absolute_index",
-            Instruction {
-                rtype: "ldc",
-                code: 25,
-                mode: "absolute_index",
-            },
-        );
-        i.insert(
-            "ldc_absolute_property",
-            Instruction {
-                rtype: "ldc",
-                code: 26,
-                mode: "absolute_property",
-            },
-        );
-        i.insert(
-            "ldc_parameter",
-            Instruction {
-                rtype: "ldc",
-                code: 27,
-                mode: "parameter",
-            },
-        );
-        i.insert(
-            "ldx_immediate",
-            Instruction {
-                rtype: "ldx",
-                code: 28,
-                mode: "immediate",
-            },
-        );
-        i.insert(
-            "ldx_absolute",
-            Instruction {
-                rtype: "ldx",
-                code: 29,
-                mode: "absolute",
-            },
-        );
-        i.insert(
-            "ldx_indirect_a",
-            Instruction {
-                rtype: "ldx",
-                code: 30,
-                mode: "indirect_a",
-            },
-        );
-        i.insert(
-            "ldx_indirect_b",
-            Instruction {
-                rtype: "ldx",
-                code: 31,
-                mode: "indirect_b",
-            },
-        );
-        i.insert(
-            "ldx_indirect_c",
-            Instruction {
-                rtype: "ldx",
-                code: 32,
-                mode: "indirect_c",
-            },
-        );
-        i.insert(
-            "ldx_indirect_y",
-            Instruction {
-                rtype: "ldx",
-                code: 33,
-                mode: "indirect_y",
-            },
-        );
-        i.insert(
-            "ldx_absolute_index",
-            Instruction {
-                rtype: "ldx",
-                code: 34,
-                mode: "absolute_index",
-            },
-        );
-        i.insert(
-            "ldx_absolute_property",
-            Instruction {
-                rtype: "ldx",
-                code: 35,
-                mode: "absolute_property",
-            },
-        );
-        i.insert(
-            "ldx_parameter",
-            Instruction {
-                rtype: "ldx",
-                code: 36,
-                mode: "parameter",
-            },
-        );
-        i.insert(
-            "ldy_immediate",
-            Instruction {
-                rtype: "ldy",
-                code: 37,
-                mode: "immediate",
-            },
-        );
-        i.insert(
-            "ldy_absolute",
-            Instruction {
-                rtype: "ldy",
-                code: 38,
-                mode: "absolute",
-            },
-        );
-        i.insert(
-            "ldy_indirect_a",
-            Instruction {
-                rtype: "ldy",
-                code: 39,
-                mode: "indirect_a",
-            },
-        );
-        i.insert(
-            "ldy_indirect_b",
-            Instruction {
-                rtype: "ldy",
-                code: 40,
-                mode: "indirect_b",
-            },
-        );
-        i.insert(
-            "ldy_indirect_c",
-            Instruction {
-                rtype: "ldy",
-                code: 41,
-                mode: "indirect_c",
-            },
-        );
-        i.insert(
-            "ldy_indirect_x",
-            Instruction {
-                rtype: "ldy",
-                code: 42,
-                mode: "indirect_x",
-            },
-        );
-        i.insert(
-            "ldy_absolute_index",
-            Instruction {
-                rtype: "ldy",
-                code: 43,
-                mode: "absolute_index",
-            },
-        );
-        i.insert(
-            "ldy_absolute_property",
-            Instruction {
-                rtype: "ldy",
-                code: 44,
-                mode: "absolute_property",
-            },
-        );
-        i.insert(
-            "ldy_parameter",
-            Instruction {
-                rtype: "ldy",
-                code: 45,
-                mode: "parameter",
-            },
-        );
-        i.insert(
-            "sta_implicit",
-            Instruction {
-                rtype: "sta",
-                code: 46,
-                mode: "implicit",
-            },
-        );
-        i.insert(
-            "sta_immediate",
-            Instruction {
-                rtype: "sta",
-                code: 47,
-                mode: "immediate",
-            },
-        );
-        i.insert(
-            "sta_absolute",
-            Instruction {
-                rtype: "sta",
-                code: 48,
-                mode: "absolute",
-            },
-        );
-        i.insert(
-            "sta_absolute_index",
-            Instruction {
-                rtype: "sta",
-                code: 49,
-                mode: "absolute_index",
-            },
-        );
-        i.insert(
-            "sta_absolute_property",
-            Instruction {
-                rtype: "sta",
-                code: 50,
-                mode: "absolute_property",
-            },
-        );
-        i.insert(
-            "sta_parameter",
-            Instruction {
-                rtype: "sta",
-                code: 51,
-                mode: "parameter",
-            },
-        );
-        i.insert(
-            "stb_implicit",
-            Instruction {
-                rtype: "stb",
-                code: 52,
-                mode: "implicit",
-            },
-        );
-        i.insert(
-            "stb_immediate",
-            Instruction {
-                rtype: "stb",
-                code: 53,
-                mode: "immediate",
-            },
-        );
-        i.insert(
-            "stb_absolute",
-            Instruction {
-                rtype: "stb",
-                code: 54,
-                mode: "absolute",
-            },
-        );
-        i.insert(
-            "stb_absolute_index",
-            Instruction {
-                rtype: "stb",
-                code: 55,
-                mode: "absolute_index",
-            },
-        );
-        i.insert(
-            "stb_absolute_property",
-            Instruction {
-                rtype: "stb",
-                code: 56,
-                mode: "absolute_property",
-            },
-        );
-        i.insert(
-            "stb_parameter",
-            Instruction {
-                rtype: "stb",
-                code: 57,
-                mode: "parameter",
-            },
-        );
-        i.insert(
-            "stc_implicit",
-            Instruction {
-                rtype: "stc",
-                code: 58,
-                mode: "implicit",
-            },
-        );
-        i.insert(
-            "stc_immediate",
-            Instruction {
-                rtype: "stc",
-                code: 59,
-                mode: "immediate",
-            },
-        );
-        i.insert(
-            "stc_absolute",
-            Instruction {
-                rtype: "stc",
-                code: 60,
-                mode: "absolute",
-            },
-        );
-        i.insert(
-            "stc_absolute_index",
-            Instruction {
-                rtype: "stc",
-                code: 61,
-                mode: "absolute_index",
-            },
-        );
-        i.insert(
-            "stc_absolute_property",
-            Instruction {
-                rtype: "stc",
-                code: 62,
-                mode: "absolute_property",
-            },
-        );
-        i.insert(
-            "stc_parameter",
-            Instruction {
-                rtype: "stc",
-                code: 63,
-                mode: "parameter",
-            },
-        );
-        i.insert(
-            "stx_implicit",
-            Instruction {
-                rtype: "stx",
-                code: 64,
-                mode: "implicit",
-            },
-        );
-        i.insert(
-            "stx_immediate",
-            Instruction {
-                rtype: "stx",
-                code: 65,
-                mode: "immediate",
-            },
-        );
-        i.insert(
-            "stx_absolute",
-            Instruction {
-                rtype: "stx",
-                code: 66,
-                mode: "absolute",
-            },
-        );
-        i.insert(
-            "stx_absolute_index",
-            Instruction {
-                rtype: "stx",
-                code: 67,
-                mode: "absolute_index",
-            },
-        );
-        i.insert(
-            "stx_absolute_property",
-            Instruction {
-                rtype: "stx",
-                code: 68,
-                mode: "absolute_property",
-            },
-        );
-        i.insert(
-            "sty_implicit",
-            Instruction {
-                rtype: "sty",
-                code: 69,
-                mode: "implicit",
-            },
-        );
-        i.insert(
-            "sty_immediate",
-            Instruction {
-                rtype: "sty",
-                code: 70,
-                mode: "immediate",
-            },
-        );
-        i.insert(
-            "sty_absolute",
-            Instruction {
-                rtype: "sty",
-                code: 71,
-                mode: "absolute",
-            },
-        );
-        i.insert(
-            "sty_absolute_index",
-            Instruction {
-                rtype: "sty",
-                code: 72,
-                mode: "absolute_index",
-            },
-        );
-        i.insert(
-            "sty_absolute_property",
-            Instruction {
-                rtype: "sty",
-                code: 73,
-                mode: "absolute_property",
-            },
-        );
-        i.insert(
-            "sty_parameter",
-            Instruction {
-                rtype: "sty",
-                code: 74,
-                mode: "parameter",
-            },
-        );
-        i.insert(
-            "eq_implicit",
-            Instruction {
-                rtype: "eq",
-                code: 75,
-                mode: "implicit",
-            },
-        );
-        i.insert(
-            "ne_implicit",
-            Instruction {
-                rtype: "ne",
-                code: 76,
-                mode: "implicit",
-            },
-        );
-        i.insert(
-            "gt_implicit",
-            Instruction {
-                rtype: "gt",
-                code: 77,
-                mode: "implicit",
-            },
-        );
-        i.insert(
-            "lt_implicit",
-            Instruction {
-                rtype: "lt",
-                code: 78,
-                mode: "implicit",
-            },
-        );
-        i.insert(
-            "gq_implicit",
-            Instruction {
-                rtype: "gq",
-                code: 79,
-                mode: "implicit",
-            },
-        );
-        i.insert(
-            "lq_implicit",
-            Instruction {
-                rtype: "lq",
-                code: 80,
-                mode: "implicit",
-            },
-        );
-        i.insert(
-            "and_implicit",
-            Instruction {
-                rtype: "and",
-                code: 81,
-                mode: "implicit",
-            },
-        );
-        i.insert(
-            "or_implicit",
-            Instruction {
-                rtype: "or",
-                code: 82,
-                mode: "implicit",
-            },
-        );
-        i.insert(
-            "add_implicit",
-            Instruction {
-                rtype: "add",
-                code: 83,
-                mode: "implicit",
-            },
-        );
-        i.insert(
-            "sub_implicit",
-            Instruction {
-                rtype: "sub",
-                code: 84,
-                mode: "implicit",
-            },
-        );
-        i.insert(
-            "mul_implicit",
-            Instruction {
-                rtype: "mul",
-                code: 85,
-                mode: "implicit",
-            },
-        );
-        i.insert(
-            "exp_implicit",
-            Instruction {
-                rtype: "exp",
-                code: 86,
-                mode: "implicit",
-            },
-        );
-        i.insert(
-            "div_implicit",
-            Instruction {
-                rtype: "div",
-                code: 87,
-                mode: "implicit",
-            },
-        );
-        i.insert(
-            "mod_implicit",
-            Instruction {
-                rtype: "mod",
-                code: 88,
-                mode: "implicit",
-            },
-        );
-        i.insert(
-            "inc_implicit",
-            Instruction {
-                rtype: "inc",
-                code: 89,
-                mode: "implicit",
-            },
-        );
-        i.insert(
-            "dec_implicit",
-            Instruction {
-                rtype: "dec",
-                code: 90,
-                mode: "implicit",
-            },
-        );
-        i.insert(
-            "jmp_absolute",
-            Instruction {
-                rtype: "jmp",
-                code: 91,
-                mode: "absolute",
-            },
-        );
-        i.insert(
-            "call_absolute",
-            Instruction {
-                rtype: "call",
-                code: 92,
-                mode: "absolute",
-            },
-        );
-        i.insert(
-            "ret_implicit",
-            Instruction {
-                rtype: "ret",
-                code: 93,
-                mode: "implicit",
-            },
-        );
-        i.insert(
-            "ret_immediate",
-            Instruction {
-                rtype: "ret",
-                code: 94,
-                mode: "immediate",
-            },
-        );
-        i.insert(
-            "ret_absolute",
-            Instruction {
-                rtype: "ret",
-                code: 95,
-                mode: "absolute",
-            },
-        );
-        i.insert(
-            "ret_indirect_a",
-            Instruction {
-                rtype: "ret",
-                code: 96,
-                mode: "indirect_a",
-            },
-        );
-        i.insert(
-            "ret_indirect_b",
-            Instruction {
-                rtype: "ret",
-                code: 97,
-                mode: "indirect_b",
-            },
-        );
-        i.insert(
-            "ret_indirect_c",
-            Instruction {
-                rtype: "ret",
-                code: 98,
-                mode: "indirect_c",
-            },
-        );
-        i.insert(
-            "ret_indirect_x",
-            Instruction {
-                rtype: "ret",
-                code: 99,
-                mode: "indirect_x",
-            },
-        );
-        i.insert(
-            "ret_indirect_y",
-            Instruction {
-                rtype: "ret",
-                code: 100,
-                mode: "indirect_y",
-            },
-        );
-        i.insert(
-            "ret_absolute_index",
-            Instruction {
-                rtype: "ret",
-                code: 101,
-                mode: "absolute_index",
-            },
-        );
-        i.insert(
-            "ret_absolute_property",
-            Instruction {
-                rtype: "ret",
-                code: 102,
-                mode: "absolute_property",
-            },
-        );
-        i.insert(
-            "ugr_implicit",
-            Instruction {
-                rtype: "ugr",
-                code: 103,
-                mode: "implicit",
-            },
-        );
-        i.insert(
-            "ulr_implicit",
-            Instruction {
-                rtype: "ulr",
-                code: 104,
-                mode: "implicit",
-            },
-        );
-        i.insert(
-            "ulr_absolute",
-            Instruction {
-                rtype: "ulr",
-                code: 105,
-                mode: "absolute",
-            },
-        );
-        i.insert(
-            "push_absolute",
-            Instruction {
-                rtype: "push",
-                code: 106,
-                mode: "absolute",
-            },
-        );
-        i.insert(
-            "push_indirect_a",
-            Instruction {
-                rtype: "push",
-                code: 107,
-                mode: "indirect_a",
-            },
-        );
-        i.insert(
-            "push_indirect_b",
-            Instruction {
-                rtype: "push",
-                code: 108,
-                mode: "indirect_b",
-            },
-        );
-        i.insert(
-            "push_indirect_c",
-            Instruction {
-                rtype: "push",
-                code: 109,
-                mode: "indirect_c",
-            },
-        );
-        i.insert(
-            "push_indirect_x",
-            Instruction {
-                rtype: "push",
-                code: 110,
-                mode: "indirect_x",
-            },
-        );
-        i.insert(
-            "push_indirect_y",
-            Instruction {
-                rtype: "push",
-                code: 111,
-                mode: "indirect_y",
-            },
-        );
-        i.insert(
-            "push_absolute_index",
-            Instruction {
-                rtype: "push",
-                code: 112,
-                mode: "absolute_index",
-            },
-        );
-        i.insert(
-            "push_absolute_property",
-            Instruction {
-                rtype: "push",
-                code: 113,
-                mode: "absolute_property",
-            },
-        );
-        i.insert(
-            "len_implicit",
-            Instruction {
-                rtype: "len",
-                code: 114,
-                mode: "implicit",
-            },
-        );
-        i.insert(
-            "a2i_implicit",
-            Instruction {
-                rtype: "a2i",
-                code: 115,
-                mode: "implicit",
-            },
-        );
-        i.insert(
-            "a2f_implicit",
-            Instruction {
-                rtype: "a2f",
-                code: 116,
-                mode: "implicit",
-            },
-        );
-        i.insert(
-            "a2d_implicit",
-            Instruction {
-                rtype: "a2d",
-                code: 117,
-                mode: "implicit",
-            },
-        );
-        i.insert(
-            "a2b_implicit",
-            Instruction {
-                rtype: "a2b",
-                code: 118,
-                mode: "implicit",
-            },
-        );
-        i.insert(
-            "a2s_implicit",
-            Instruction {
-                rtype: "a2s",
-                code: 119,
-                mode: "implicit",
-            },
-        );
-        i.insert(
-            "a2c_implicit",
-            Instruction {
-                rtype: "a2c",
-                code: 120,
-                mode: "implicit",
-            },
-        );
-        i.insert(
-            "a2o_implicit",
-            Instruction {
-                rtype: "a2o",
-                code: 121,
-                mode: "implicit",
-            },
-        );
-        i.insert(
-            "jmpa_absolute",
-            Instruction {
-                rtype: "jmpa",
-                code: 122,
-                mode: "absolute",
-            },
-        );
-        i.insert(
-            "pops_implicit",
-            Instruction {
-                rtype: "pops",
-                code: 123,
-                mode: "implicit",
-            },
-        );
-        i.insert(
-            "acp_absolute",
-            Instruction {
-                rtype: "acp",
-                code: 124,
-                mode: "absolute",
-            },
-        );
-        i.insert(
-            "brk_implicit",
-            Instruction {
-                rtype: "brk",
-                code: 125,
-                mode: "implicit",
-            },
-        );
-        i.insert(
-            "calln_immediate",
-            Instruction {
-                rtype: "calln",
-                code: 126,
-                mode: "immediate",
-            },
-        );
-        i.insert(
-            "co_absolute",
-            Instruction {
-                rtype: "co",
-                code: 127,
-                mode: "absolute",
-            },
-        );
-        i.insert(
-            "fn_immediate",
-            Instruction {
-                rtype: "fn",
-                code: 128,
-                mode: "immediate",
-            },
-        );
-        i.insert(
-            "callc_absolute",
-            Instruction {
-                rtype: "callc",
-                code: 129,
-                mode: "absolute",
-            },
-        );
-        i
-    };
+impl Instructions {
+    pub fn op_code(&self, platform_size: &PlatformArchitecture) -> Vec<u8> {
+        match &self {
+            Instructions::LDA(e) => {
+                let op_code_list: [isize; 11] = [-1, 1, 2, 3, 4, 5, -1, 6, 7, 8, 9];
+                let real_op_code: isize = op_code_list[e.addressing_mode.idx()];
+                if real_op_code == -1 {
+                  panic!("Wrong addresing_mode accessed");
+                }
+                let mut op_code = vec![real_op_code as u8];
+                op_code.extend(e.addressing_mode.arg(platform_size));
+                op_code
+            },
+            Instructions::LDB(e) => {
+                let op_code_list: [isize; 11] = [-1, 10, 11, 12, 13, 14, 15, -1, 16, 17, 18];
+                let real_op_code: isize = op_code_list[e.addressing_mode.idx()];
+                if real_op_code == -1 {
+                  panic!("Wrong addresing_mode accessed");
+                }
+                let mut op_code = vec![real_op_code as u8];
+                op_code.extend(e.addressing_mode.arg(platform_size));
+                op_code
+            },
+            Instructions::LDC(e) => {
+                let op_code_list: [isize; 11] = [-1, 19, 20, 21, 22, 23, 24, 25, -1, 26, 27];
+                let real_op_code: isize = op_code_list[e.addressing_mode.idx()];
+                if real_op_code == -1 {
+                  panic!("Wrong addresing_mode accessed");
+                }
+                let mut op_code = vec![real_op_code as u8];
+                op_code.extend(e.addressing_mode.arg(platform_size));
+                op_code
+            },
+            Instructions::LDX(e) => {
+                let op_code_list: [isize; 11] = [-1, 28, 29, 30, 31, 32, 33, 34, 35, -1, 36];
+                let real_op_code: isize = op_code_list[e.addressing_mode.idx()];
+                if real_op_code == -1 {
+                  panic!("Wrong addresing_mode accessed");
+                }
+                let mut op_code = vec![real_op_code as u8];
+                op_code.extend(e.addressing_mode.arg(platform_size));
+                op_code
+            },
+            Instructions::LDY(e) => {
+                let op_code_list: [isize; 11] = [-1, 37, 38, 39, 40, 41, 42, 43, 44, 45, -1];
+                let real_op_code: isize = op_code_list[e.addressing_mode.idx()];
+                if real_op_code == -1 {
+                  panic!("Wrong addresing_mode accessed");
+                }
+                let mut op_code = vec![real_op_code as u8];
+                op_code.extend(e.addressing_mode.arg(platform_size));
+                op_code
+            },
+            Instructions::STA(e) => {
+                let op_code_list: [isize; 11] = [46, 47, 48, 49, 50, -1, -1, -1, -1, -1, -1];
+                let real_op_code: isize = op_code_list[e.addressing_mode.idx()];
+                if real_op_code == -1 {
+                  panic!("Wrong addresing_mode accessed");
+                }
+                let mut op_code = vec![real_op_code as u8];
+                op_code.extend(e.addressing_mode.arg(platform_size));
+                op_code
+            },
+            Instructions::STB(e) => {
+                let op_code_list: [isize; 11] = [51, 52, 53, 54, 55, -1, -1, -1, -1, -1, -1];
+                let real_op_code: isize = op_code_list[e.addressing_mode.idx()];
+                if real_op_code == -1 {
+                  panic!("Wrong addresing_mode accessed");
+                }
+                let mut op_code = vec![real_op_code as u8];
+                op_code.extend(e.addressing_mode.arg(platform_size));
+                op_code
+            },
+            Instructions::STC(e) => {
+                let op_code_list: [isize; 11] = [56, 57, 58, 59, 60, -1, -1, -1, -1, -1, -1];
+                let real_op_code: isize = op_code_list[e.addressing_mode.idx()];
+                if real_op_code == -1 {
+                  panic!("Wrong addresing_mode accessed");
+                }
+                let mut op_code = vec![real_op_code as u8];
+                op_code.extend(e.addressing_mode.arg(platform_size));
+                op_code
+            },
+            Instructions::STX(e) => {
+                let op_code_list: [isize; 11] = [61, 62, 63, 64, 65, -1, -1, -1, -1, -1, -1];
+                let real_op_code: isize = op_code_list[e.addressing_mode.idx()];
+                if real_op_code == -1 {
+                  panic!("Wrong addresing_mode accessed");
+                }
+                let mut op_code = vec![real_op_code as u8];
+                op_code.extend(e.addressing_mode.arg(platform_size));
+                op_code
+            },
+            Instructions::STY(e) => {
+                let op_code_list: [isize; 11] = [66, 67, 68, 69, 70, -1, -1, -1, -1, -1, -1];
+                let real_op_code: isize = op_code_list[e.addressing_mode.idx()];
+                if real_op_code == -1 {
+                  panic!("Wrong addresing_mode accessed");
+                }
+                let mut op_code = vec![real_op_code as u8];
+                op_code.extend(e.addressing_mode.arg(platform_size));
+                op_code
+            },
+            Instructions::EQ(e) => {
+                let op_code_list: [isize; 11] = [71, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1];
+                let real_op_code: isize = op_code_list[e.addressing_mode.idx()];
+                if real_op_code == -1 {
+                  panic!("Wrong addresing_mode accessed");
+                }
+                let mut op_code = vec![real_op_code as u8];
+                op_code.extend(e.addressing_mode.arg(platform_size));
+                op_code
+            },
+            Instructions::NE(e) => {
+                let op_code_list: [isize; 11] = [72, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1];
+                let real_op_code: isize = op_code_list[e.addressing_mode.idx()];
+                if real_op_code == -1 {
+                  panic!("Wrong addresing_mode accessed");
+                }
+                let mut op_code = vec![real_op_code as u8];
+                op_code.extend(e.addressing_mode.arg(platform_size));
+                op_code
+            },
+            Instructions::GT(e) => {
+                let op_code_list: [isize; 11] = [73, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1];
+                let real_op_code: isize = op_code_list[e.addressing_mode.idx()];
+                if real_op_code == -1 {
+                  panic!("Wrong addresing_mode accessed");
+                }
+                let mut op_code = vec![real_op_code as u8];
+                op_code.extend(e.addressing_mode.arg(platform_size));
+                op_code
+            },
+            Instructions::LT(e) => {
+                let op_code_list: [isize; 11] = [74, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1];
+                let real_op_code: isize = op_code_list[e.addressing_mode.idx()];
+                if real_op_code == -1 {
+                  panic!("Wrong addresing_mode accessed");
+                }
+                let mut op_code = vec![real_op_code as u8];
+                op_code.extend(e.addressing_mode.arg(platform_size));
+                op_code
+            },
+            Instructions::GQ(e) => {
+                let op_code_list: [isize; 11] = [75, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1];
+                let real_op_code: isize = op_code_list[e.addressing_mode.idx()];
+                if real_op_code == -1 {
+                  panic!("Wrong addresing_mode accessed");
+                }
+                let mut op_code = vec![real_op_code as u8];
+                op_code.extend(e.addressing_mode.arg(platform_size));
+                op_code
+            },
+            Instructions::LQ(e) => {
+                let op_code_list: [isize; 11] = [76, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1];
+                let real_op_code: isize = op_code_list[e.addressing_mode.idx()];
+                if real_op_code == -1 {
+                  panic!("Wrong addresing_mode accessed");
+                }
+                let mut op_code = vec![real_op_code as u8];
+                op_code.extend(e.addressing_mode.arg(platform_size));
+                op_code
+            },
+            Instructions::AND(e) => {
+                let op_code_list: [isize; 11] = [77, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1];
+                let real_op_code: isize = op_code_list[e.addressing_mode.idx()];
+                if real_op_code == -1 {
+                  panic!("Wrong addresing_mode accessed");
+                }
+                let mut op_code = vec![real_op_code as u8];
+                op_code.extend(e.addressing_mode.arg(platform_size));
+                op_code
+            },
+            Instructions::OR(e) => {
+                let op_code_list: [isize; 11] = [78, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1];
+                let real_op_code: isize = op_code_list[e.addressing_mode.idx()];
+                if real_op_code == -1 {
+                  panic!("Wrong addresing_mode accessed");
+                }
+                let mut op_code = vec![real_op_code as u8];
+                op_code.extend(e.addressing_mode.arg(platform_size));
+                op_code
+            },
+            Instructions::ADD(e) => {
+                let op_code_list: [isize; 11] = [79, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1];
+                let real_op_code: isize = op_code_list[e.addressing_mode.idx()];
+                if real_op_code == -1 {
+                  panic!("Wrong addresing_mode accessed");
+                }
+                let mut op_code = vec![real_op_code as u8];
+                op_code.extend(e.addressing_mode.arg(platform_size));
+                op_code
+            },
+            Instructions::SUB(e) => {
+                let op_code_list: [isize; 11] = [80, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1];
+                let real_op_code: isize = op_code_list[e.addressing_mode.idx()];
+                if real_op_code == -1 {
+                  panic!("Wrong addresing_mode accessed");
+                }
+                let mut op_code = vec![real_op_code as u8];
+                op_code.extend(e.addressing_mode.arg(platform_size));
+                op_code
+            },
+            Instructions::MUL(e) => {
+                let op_code_list: [isize; 11] = [81, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1];
+                let real_op_code: isize = op_code_list[e.addressing_mode.idx()];
+                if real_op_code == -1 {
+                  panic!("Wrong addresing_mode accessed");
+                }
+                let mut op_code = vec![real_op_code as u8];
+                op_code.extend(e.addressing_mode.arg(platform_size));
+                op_code
+            },
+            Instructions::EXP(e) => {
+                let op_code_list: [isize; 11] = [82, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1];
+                let real_op_code: isize = op_code_list[e.addressing_mode.idx()];
+                if real_op_code == -1 {
+                  panic!("Wrong addresing_mode accessed");
+                }
+                let mut op_code = vec![real_op_code as u8];
+                op_code.extend(e.addressing_mode.arg(platform_size));
+                op_code
+            },
+            Instructions::DIV(e) => {
+                let op_code_list: [isize; 11] = [83, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1];
+                let real_op_code: isize = op_code_list[e.addressing_mode.idx()];
+                if real_op_code == -1 {
+                  panic!("Wrong addresing_mode accessed");
+                }
+                let mut op_code = vec![real_op_code as u8];
+                op_code.extend(e.addressing_mode.arg(platform_size));
+                op_code
+            },
+            Instructions::MOD(e) => {
+                let op_code_list: [isize; 11] = [84, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1];
+                let real_op_code: isize = op_code_list[e.addressing_mode.idx()];
+                if real_op_code == -1 {
+                  panic!("Wrong addresing_mode accessed");
+                }
+                let mut op_code = vec![real_op_code as u8];
+                op_code.extend(e.addressing_mode.arg(platform_size));
+                op_code
+            },
+            Instructions::JMP(e) => {
+                let op_code_list: [isize; 11] = [-1, -1, 85, -1, -1, -1, -1, -1, -1, -1, -1];
+                let real_op_code: isize = op_code_list[e.addressing_mode.idx()];
+                if real_op_code == -1 {
+                  panic!("Wrong addresing_mode accessed");
+                }
+                let mut op_code = vec![real_op_code as u8];
+                op_code.extend(e.addressing_mode.arg(platform_size));
+                op_code
+            },
+            Instructions::JMPA(e) => {
+                let op_code_list: [isize; 11] = [-1, -1, 86, -1, -1, -1, -1, -1, -1, -1, -1];
+                let real_op_code: isize = op_code_list[e.addressing_mode.idx()];
+                if real_op_code == -1 {
+                  panic!("Wrong addresing_mode accessed");
+                }
+                let mut op_code = vec![real_op_code as u8];
+                op_code.extend(e.addressing_mode.arg(platform_size));
+                op_code
+            },
+            Instructions::CALL(e) => {
+                let op_code_list: [isize; 11] = [-1, -1, 87, -1, -1, -1, -1, -1, -1, -1, -1];
+                let real_op_code: isize = op_code_list[e.addressing_mode.idx()];
+                if real_op_code == -1 {
+                  panic!("Wrong addresing_mode accessed");
+                }
+                let mut op_code = vec![real_op_code as u8];
+                op_code.extend(e.addressing_mode.arg(platform_size));
+                op_code
+            },
+            Instructions::RET(e) => {
+                let op_code_list: [isize; 11] = [88, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1];
+                let real_op_code: isize = op_code_list[e.addressing_mode.idx()];
+                if real_op_code == -1 {
+                  panic!("Wrong addresing_mode accessed");
+                }
+                let mut op_code = vec![real_op_code as u8];
+                op_code.extend(e.addressing_mode.arg(platform_size));
+                op_code
+            },
+            Instructions::PUSH(e) => {
+                let op_code_list: [isize; 11] = [-1, -1, 89, 90, -1, -1, 91, 92, 93, 94, 95];
+                let real_op_code: isize = op_code_list[e.addressing_mode.idx()];
+                if real_op_code == -1 {
+                  panic!("Wrong addresing_mode accessed");
+                }
+                let mut op_code = vec![real_op_code as u8];
+                op_code.extend(e.addressing_mode.arg(platform_size));
+                op_code
+            },
+            Instructions::SPUS(e) => {
+                let op_code_list: [isize; 11] = [-1, -1, 96, 97, -1, -1, 98, 99, 100, 101, 102];
+                let real_op_code: isize = op_code_list[e.addressing_mode.idx()];
+                if real_op_code == -1 {
+                  panic!("Wrong addresing_mode accessed");
+                }
+                let mut op_code = vec![real_op_code as u8];
+                op_code.extend(e.addressing_mode.arg(platform_size));
+                op_code
+            },
+            Instructions::LEN(e) => {
+                let op_code_list: [isize; 11] = [-1, -1, 103, -1, -1, -1, -1, -1, -1, -1, -1];
+                let real_op_code: isize = op_code_list[e.addressing_mode.idx()];
+                if real_op_code == -1 {
+                  panic!("Wrong addresing_mode accessed");
+                }
+                let mut op_code = vec![real_op_code as u8];
+                op_code.extend(e.addressing_mode.arg(platform_size));
+                op_code
+            },
+            Instructions::A2I(e) => {
+                let op_code_list: [isize; 11] = [104, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1];
+                let real_op_code: isize = op_code_list[e.addressing_mode.idx()];
+                if real_op_code == -1 {
+                  panic!("Wrong addresing_mode accessed");
+                }
+                let mut op_code = vec![real_op_code as u8];
+                op_code.extend(e.addressing_mode.arg(platform_size));
+                op_code
+            },
+            Instructions::A2F(e) => {
+                let op_code_list: [isize; 11] = [105, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1];
+                let real_op_code: isize = op_code_list[e.addressing_mode.idx()];
+                if real_op_code == -1 {
+                  panic!("Wrong addresing_mode accessed");
+                }
+                let mut op_code = vec![real_op_code as u8];
+                op_code.extend(e.addressing_mode.arg(platform_size));
+                op_code
+            },
+            Instructions::A2D(e) => {
+                let op_code_list: [isize; 11] = [106, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1];
+                let real_op_code: isize = op_code_list[e.addressing_mode.idx()];
+                if real_op_code == -1 {
+                  panic!("Wrong addresing_mode accessed");
+                }
+                let mut op_code = vec![real_op_code as u8];
+                op_code.extend(e.addressing_mode.arg(platform_size));
+                op_code
+            },
+            Instructions::A2B(e) => {
+                let op_code_list: [isize; 11] = [107, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1];
+                let real_op_code: isize = op_code_list[e.addressing_mode.idx()];
+                if real_op_code == -1 {
+                  panic!("Wrong addresing_mode accessed");
+                }
+                let mut op_code = vec![real_op_code as u8];
+                op_code.extend(e.addressing_mode.arg(platform_size));
+                op_code
+            },
+            Instructions::A2S(e) => {
+                let op_code_list: [isize; 11] = [108, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1];
+                let real_op_code: isize = op_code_list[e.addressing_mode.idx()];
+                if real_op_code == -1 {
+                  panic!("Wrong addresing_mode accessed");
+                }
+                let mut op_code = vec![real_op_code as u8];
+                op_code.extend(e.addressing_mode.arg(platform_size));
+                op_code
+            },
+            Instructions::A2C(e) => {
+                let op_code_list: [isize; 11] = [109, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1];
+                let real_op_code: isize = op_code_list[e.addressing_mode.idx()];
+                if real_op_code == -1 {
+                  panic!("Wrong addresing_mode accessed");
+                }
+                let mut op_code = vec![real_op_code as u8];
+                op_code.extend(e.addressing_mode.arg(platform_size));
+                op_code
+            },
+            Instructions::A2O(e) => {
+                let op_code_list: [isize; 11] = [110, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1];
+                let real_op_code: isize = op_code_list[e.addressing_mode.idx()];
+                if real_op_code == -1 {
+                  panic!("Wrong addresing_mode accessed");
+                }
+                let mut op_code = vec![real_op_code as u8];
+                op_code.extend(e.addressing_mode.arg(platform_size));
+                op_code
+            },
+            Instructions::ARR(e) => {
+                let op_code_list: [isize; 11] = [111, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1];
+                let real_op_code: isize = op_code_list[e.addressing_mode.idx()];
+                if real_op_code == -1 {
+                  panic!("Wrong addresing_mode accessed");
+                }
+                let mut op_code = vec![real_op_code as u8];
+                op_code.extend(e.addressing_mode.arg(platform_size));
+                op_code
+            },
+            Instructions::STR(e) => {
+                let op_code_list: [isize; 11] = [112, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1];
+                let real_op_code: isize = op_code_list[e.addressing_mode.idx()];
+                if real_op_code == -1 {
+                  panic!("Wrong addresing_mode accessed");
+                }
+                let mut op_code = vec![real_op_code as u8];
+                op_code.extend(e.addressing_mode.arg(platform_size));
+                op_code
+            },
+            Instructions::SAR(e) => {
+                let op_code_list: [isize; 11] = [-1, 113, -1, -1, -1, -1, -1, -1, -1, -1, -1];
+                let real_op_code: isize = op_code_list[e.addressing_mode.idx()];
+                if real_op_code == -1 {
+                  panic!("Wrong addresing_mode accessed");
+                }
+                let mut op_code = vec![real_op_code as u8];
+                op_code.extend(e.addressing_mode.arg(platform_size));
+                op_code
+            },
+            Instructions::POPS(e) => {
+                let op_code_list: [isize; 11] = [-1, -1, 114, -1, -1, -1, -1, -1, -1, -1, -1];
+                let real_op_code: isize = op_code_list[e.addressing_mode.idx()];
+                if real_op_code == -1 {
+                  panic!("Wrong addresing_mode accessed");
+                }
+                let mut op_code = vec![real_op_code as u8];
+                op_code.extend(e.addressing_mode.arg(platform_size));
+                op_code
+            },
+            Instructions::BRK(e) => {
+                let op_code_list: [isize; 11] = [115, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1];
+                let real_op_code: isize = op_code_list[e.addressing_mode.idx()];
+                if real_op_code == -1 {
+                  panic!("Wrong addresing_mode accessed");
+                }
+                let mut op_code = vec![real_op_code as u8];
+                op_code.extend(e.addressing_mode.arg(platform_size));
+                op_code
+            },
+            Instructions::CALLN(e) => {
+                let op_code_list: [isize; 11] = [-1, -1, 116, -1, -1, -1, -1, -1, -1, -1, -1];
+                let real_op_code: isize = op_code_list[e.addressing_mode.idx()];
+                if real_op_code == -1 {
+                  panic!("Wrong addresing_mode accessed");
+                }
+                let mut op_code = vec![real_op_code as u8];
+                op_code.extend(e.addressing_mode.arg(platform_size));
+                op_code
+            },
+            Instructions::CO(e) => {
+                let op_code_list: [isize; 11] = [-1, -1, 117, -1, -1, -1, -1, -1, -1, -1, -1];
+                let real_op_code: isize = op_code_list[e.addressing_mode.idx()];
+                if real_op_code == -1 {
+                  panic!("Wrong addresing_mode accessed");
+                }
+                let mut op_code = vec![real_op_code as u8];
+                op_code.extend(e.addressing_mode.arg(platform_size));
+                op_code
+            },
+            Instructions::FN(e) => {
+                let op_code_list: [isize; 11] = [-1, 118, -1, -1, -1, -1, -1, -1, -1, -1, -1];
+                let real_op_code: isize = op_code_list[e.addressing_mode.idx()];
+                if real_op_code == -1 {
+                  panic!("Wrong addresing_mode accessed");
+                }
+                let mut op_code = vec![real_op_code as u8];
+                op_code.extend(e.addressing_mode.arg(platform_size));
+                op_code
+            },
+            Instructions::DEA(e) => {
+                let op_code_list: [isize; 11] = [-1, -1, 119, -1, -1, -1, -1, -1, -1, -1, -1];
+                let real_op_code: isize = op_code_list[e.addressing_mode.idx()];
+                if real_op_code == -1 {
+                  panic!("Wrong addresing_mode accessed");
+                }
+                let mut op_code = vec![real_op_code as u8];
+                op_code.extend(e.addressing_mode.arg(platform_size));
+                op_code
+            },
+        }
+    }
+
+    pub fn get_addressing_mode(&self) -> String {
+        match &self {
+            Instructions::LDA(e) => e.addressing_mode.clone(),
+            Instructions::LDB(e) => e.addressing_mode.clone(),
+            Instructions::LDC(e) => e.addressing_mode.clone(),
+            Instructions::LDX(e) => e.addressing_mode.clone(),
+            Instructions::LDY(e) => e.addressing_mode.clone(),
+            Instructions::STA(e) => e.addressing_mode.clone(),
+            Instructions::STB(e) => e.addressing_mode.clone(),
+            Instructions::STC(e) => e.addressing_mode.clone(),
+            Instructions::STX(e) => e.addressing_mode.clone(),
+            Instructions::STY(e) => e.addressing_mode.clone(),
+            Instructions::EQ(e) => e.addressing_mode.clone(),
+            Instructions::NE(e) => e.addressing_mode.clone(),
+            Instructions::GT(e) => e.addressing_mode.clone(),
+            Instructions::LT(e) => e.addressing_mode.clone(),
+            Instructions::GQ(e) => e.addressing_mode.clone(),
+            Instructions::LQ(e) => e.addressing_mode.clone(),
+            Instructions::AND(e) => e.addressing_mode.clone(),
+            Instructions::OR(e) => e.addressing_mode.clone(),
+            Instructions::ADD(e) => e.addressing_mode.clone(),
+            Instructions::SUB(e) => e.addressing_mode.clone(),
+            Instructions::MUL(e) => e.addressing_mode.clone(),
+            Instructions::EXP(e) => e.addressing_mode.clone(),
+            Instructions::DIV(e) => e.addressing_mode.clone(),
+            Instructions::MOD(e) => e.addressing_mode.clone(),
+            Instructions::JMP(e) => e.addressing_mode.clone(),
+            Instructions::JMPA(e) => e.addressing_mode.clone(),
+            Instructions::CALL(e) => e.addressing_mode.clone(),
+            Instructions::RET(e) => e.addressing_mode.clone(),
+            Instructions::PUSH(e) => e.addressing_mode.clone(),
+            Instructions::SPUS(e) => e.addressing_mode.clone(),
+            Instructions::LEN(e) => e.addressing_mode.clone(),
+            Instructions::A2I(e) => e.addressing_mode.clone(),
+            Instructions::A2F(e) => e.addressing_mode.clone(),
+            Instructions::A2D(e) => e.addressing_mode.clone(),
+            Instructions::A2B(e) => e.addressing_mode.clone(),
+            Instructions::A2S(e) => e.addressing_mode.clone(),
+            Instructions::A2C(e) => e.addressing_mode.clone(),
+            Instructions::A2O(e) => e.addressing_mode.clone(),
+            Instructions::ARR(e) => e.addressing_mode.clone(),
+            Instructions::STR(e) => e.addressing_mode.clone(),
+            Instructions::SAR(e) => e.addressing_mode.clone(),
+            Instructions::POPS(e) => e.addressing_mode.clone(),
+            Instructions::BRK(e) => e.addressing_mode.clone(),
+            Instructions::CALLN(e) => e.addressing_mode.clone(),
+            Instructions::CO(e) => e.addressing_mode.clone(),
+            Instructions::FN(e) => e.addressing_mode.clone(),
+            Instructions::DEA(e) => e.addressing_mode.clone(),
+        }
+        .to_string()
+    }
+
+    pub fn get_arg(&self, platform_size: &PlatformArchitecture) -> Vec<u8> {
+        match &self {
+            Instructions::LDA(e) => e.addressing_mode.arg(platform_size),
+            Instructions::LDB(e) => e.addressing_mode.arg(platform_size),
+            Instructions::LDC(e) => e.addressing_mode.arg(platform_size),
+            Instructions::LDX(e) => e.addressing_mode.arg(platform_size),
+            Instructions::LDY(e) => e.addressing_mode.arg(platform_size),
+            Instructions::STA(e) => e.addressing_mode.arg(platform_size),
+            Instructions::STB(e) => e.addressing_mode.arg(platform_size),
+            Instructions::STC(e) => e.addressing_mode.arg(platform_size),
+            Instructions::STX(e) => e.addressing_mode.arg(platform_size),
+            Instructions::STY(e) => e.addressing_mode.arg(platform_size),
+            Instructions::EQ(e) => e.addressing_mode.arg(platform_size),
+            Instructions::NE(e) => e.addressing_mode.arg(platform_size),
+            Instructions::GT(e) => e.addressing_mode.arg(platform_size),
+            Instructions::LT(e) => e.addressing_mode.arg(platform_size),
+            Instructions::GQ(e) => e.addressing_mode.arg(platform_size),
+            Instructions::LQ(e) => e.addressing_mode.arg(platform_size),
+            Instructions::AND(e) => e.addressing_mode.arg(platform_size),
+            Instructions::OR(e) => e.addressing_mode.arg(platform_size),
+            Instructions::ADD(e) => e.addressing_mode.arg(platform_size),
+            Instructions::SUB(e) => e.addressing_mode.arg(platform_size),
+            Instructions::MUL(e) => e.addressing_mode.arg(platform_size),
+            Instructions::EXP(e) => e.addressing_mode.arg(platform_size),
+            Instructions::DIV(e) => e.addressing_mode.arg(platform_size),
+            Instructions::MOD(e) => e.addressing_mode.arg(platform_size),
+            Instructions::JMP(e) => e.addressing_mode.arg(platform_size),
+            Instructions::JMPA(e) => e.addressing_mode.arg(platform_size),
+            Instructions::CALL(e) => e.addressing_mode.arg(platform_size),
+            Instructions::RET(e) => e.addressing_mode.arg(platform_size),
+            Instructions::PUSH(e) => e.addressing_mode.arg(platform_size),
+            Instructions::SPUS(e) => e.addressing_mode.arg(platform_size),
+            Instructions::LEN(e) => e.addressing_mode.arg(platform_size),
+            Instructions::A2I(e) => e.addressing_mode.arg(platform_size),
+            Instructions::A2F(e) => e.addressing_mode.arg(platform_size),
+            Instructions::A2D(e) => e.addressing_mode.arg(platform_size),
+            Instructions::A2B(e) => e.addressing_mode.arg(platform_size),
+            Instructions::A2S(e) => e.addressing_mode.arg(platform_size),
+            Instructions::A2C(e) => e.addressing_mode.arg(platform_size),
+            Instructions::A2O(e) => e.addressing_mode.arg(platform_size),
+            Instructions::ARR(e) => e.addressing_mode.arg(platform_size),
+            Instructions::STR(e) => e.addressing_mode.arg(platform_size),
+            Instructions::SAR(e) => e.addressing_mode.arg(platform_size),
+            Instructions::POPS(e) => e.addressing_mode.arg(platform_size),
+            Instructions::BRK(e) => e.addressing_mode.arg(platform_size),
+            Instructions::CALLN(e) => e.addressing_mode.arg(platform_size),
+            Instructions::CO(e) => e.addressing_mode.arg(platform_size),
+            Instructions::FN(e) => e.addressing_mode.arg(platform_size),
+            Instructions::DEA(e) => e.addressing_mode.arg(platform_size),
+        }
+    }
 }
+
+impl core::fmt::Display for Instructions {
+    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+        match &self {
+            Instructions::LDA(e) => write!(f, "LDA {}", e.addressing_mode),
+            Instructions::LDB(e) => write!(f, "LDB {}", e.addressing_mode),
+            Instructions::LDC(e) => write!(f, "LDC {}", e.addressing_mode),
+            Instructions::LDX(e) => write!(f, "LDX {}", e.addressing_mode),
+            Instructions::LDY(e) => write!(f, "LDY {}", e.addressing_mode),
+            Instructions::STA(e) => write!(f, "STA {}", e.addressing_mode),
+            Instructions::STB(e) => write!(f, "STB {}", e.addressing_mode),
+            Instructions::STC(e) => write!(f, "STC {}", e.addressing_mode),
+            Instructions::STX(e) => write!(f, "STX {}", e.addressing_mode),
+            Instructions::STY(e) => write!(f, "STY {}", e.addressing_mode),
+            Instructions::EQ(e) => write!(f, "EQ {}", e.addressing_mode),
+            Instructions::NE(e) => write!(f, "NE {}", e.addressing_mode),
+            Instructions::GT(e) => write!(f, "GT {}", e.addressing_mode),
+            Instructions::LT(e) => write!(f, "LT {}", e.addressing_mode),
+            Instructions::GQ(e) => write!(f, "GQ {}", e.addressing_mode),
+            Instructions::LQ(e) => write!(f, "LQ {}", e.addressing_mode),
+            Instructions::AND(e) => write!(f, "AND {}", e.addressing_mode),
+            Instructions::OR(e) => write!(f, "OR {}", e.addressing_mode),
+            Instructions::ADD(e) => write!(f, "ADD {}", e.addressing_mode),
+            Instructions::SUB(e) => write!(f, "SUB {}", e.addressing_mode),
+            Instructions::MUL(e) => write!(f, "MUL {}", e.addressing_mode),
+            Instructions::EXP(e) => write!(f, "EXP {}", e.addressing_mode),
+            Instructions::DIV(e) => write!(f, "DIV {}", e.addressing_mode),
+            Instructions::MOD(e) => write!(f, "MOD {}", e.addressing_mode),
+            Instructions::JMP(e) => write!(f, "JMP {}", e.addressing_mode),
+            Instructions::JMPA(e) => write!(f, "JMPA {}", e.addressing_mode),
+            Instructions::CALL(e) => write!(f, "CALL {}", e.addressing_mode),
+            Instructions::RET(e) => write!(f, "RET {}", e.addressing_mode),
+            Instructions::PUSH(e) => write!(f, "PUSH {}", e.addressing_mode),
+            Instructions::SPUS(e) => write!(f, "SPUS {}", e.addressing_mode),
+            Instructions::LEN(e) => write!(f, "LEN {}", e.addressing_mode),
+            Instructions::A2I(e) => write!(f, "A2I {}", e.addressing_mode),
+            Instructions::A2F(e) => write!(f, "A2F {}", e.addressing_mode),
+            Instructions::A2D(e) => write!(f, "A2D {}", e.addressing_mode),
+            Instructions::A2B(e) => write!(f, "A2B {}", e.addressing_mode),
+            Instructions::A2S(e) => write!(f, "A2S {}", e.addressing_mode),
+            Instructions::A2C(e) => write!(f, "A2C {}", e.addressing_mode),
+            Instructions::A2O(e) => write!(f, "A2O {}", e.addressing_mode),
+            Instructions::ARR(e) => write!(f, "ARR {}", e.addressing_mode),
+            Instructions::STR(e) => write!(f, "STR {}", e.addressing_mode),
+            Instructions::SAR(e) => write!(f, "SAR {}", e.addressing_mode),
+            Instructions::POPS(e) => write!(f, "POPS {}", e.addressing_mode),
+            Instructions::BRK(e) => write!(f, "BRK {}", e.addressing_mode),
+            Instructions::CALLN(e) => write!(f, "CALLN {}", e.addressing_mode),
+            Instructions::CO(e) => write!(f, "CO {}", e.addressing_mode),
+            Instructions::FN(e) => write!(f, "FN {}", e.addressing_mode),
+            Instructions::DEA(e) => write!(f, "DEA {}", e.addressing_mode),
+        }
+    }
+}
+
