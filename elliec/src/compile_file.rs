@@ -640,7 +640,7 @@ pub fn compile(
                                 },
                             );
                             let assembler_result = assembler.assemble(module_maps);
-                            let output_file = File::create(output_path).unwrap_or_else(|err| {
+                            let mut output_file = File::create(output_path).unwrap_or_else(|err| {
                                 if cli_settings.json_log {
                                     let mut output = outputs::WRITE_FILE_ERROR.clone();
                                     output.extra.push(outputs::CliOuputExtraData {
@@ -661,7 +661,7 @@ pub fn compile(
                                 }
                                 std::process::exit(1);
                             });
-                            assembler_result.alternate_render(output_file);
+                            assembler_result.alternate_render(&mut output_file);
 
                             if cli_settings.json_log {
                                 let mut output = outputs::WRITE_BYTE_CODE_ASM_SUCCEDED.clone();
