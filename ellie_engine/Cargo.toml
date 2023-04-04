@@ -1,10 +1,14 @@
 [package]
 name = "ellie_engine"
-version_code = "BeautifulTropicalFish"
 version = "0.9.0"
 authors = ["Ahmetcan Aksu <ahmetcanaksu@behemehal.org>", "Behemehal <info@behemehal.org>"]
 edition = "2021"
 license-file = "../LICENSE"
+keywords = ["ellie", "language", "compiler", "vm",  "embeddable"]
+categories = ["compilers", "embedded", "no-std"]
+repository = "https://github.com/behemehal/Ellie-Language"
+documentation = "https://docs.rs/ellie_engine"
+homepage = "https://www.ellie-lang.org"
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"], optional = true }
