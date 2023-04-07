@@ -302,7 +302,6 @@ impl PlatformArchitecture {
         }
     }
 
-
     pub fn type_id_size(&self) -> u8 {
         match self {
             PlatformArchitecture::B16 => 3,

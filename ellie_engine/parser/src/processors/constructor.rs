@@ -102,7 +102,12 @@ impl super::Processor for Constructor {
                             parser.informations.push(
                                 &error::error_list::ERROR_S18.clone().build_with_path(
                                     vec![],
-                                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                                    alloc::format!(
+                                        "{}:{}:{}",
+                                        file!().to_owned(),
+                                        line!(),
+                                        column!()
+                                    ),
                                     class_body_page.path.clone(),
                                     parameter.pos,
                                 ),

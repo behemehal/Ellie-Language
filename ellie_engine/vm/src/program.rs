@@ -20,7 +20,9 @@ pub struct ReadInstruction {
 impl Default for ReadInstruction {
     fn default() -> Self {
         Self {
-            instruction: Instructions::A2B(A2B { addressing_mode: AddressingModes::Implicit }),
+            instruction: Instructions::A2B(A2B {
+                addressing_mode: AddressingModes::Implicit,
+            }),
             addressing_mode: AddressingModes::Implicit,
             addressing_value: AddressingValues::Implicit,
             op_code: 0,
@@ -44,7 +46,6 @@ pub struct Program {
 }
 
 impl Program {
-
     pub fn new() -> Self {
         Self {
             main: MainProgram {
@@ -67,38 +68,34 @@ impl Program {
         while i < self.instructions.len() {
             let instruction = self.instructions[i];
             match instruction.instruction {
-                Instructions::FN(_) => {
-                    match instruction.addressing_value {
-                        AddressingValues::Immediate(static_raw_type) => {
-                            if static_raw_type.type_id.id == 1 {
-                                let hash = static_raw_type.to_int();
-                                if static_raw_type.to_int() as usize == target_hash {
-                                    let program_len_instruction = self.instructions[i + 1];
-                                    let program_len = match program_len_instruction.instruction {
-                                        Instructions::STA(_) => {
-                                            match program_len_instruction.addressing_value {
-                                                AddressingValues::Immediate(e) => e.to_int(),
-                                                _ => return Err(2),
-                                            }
-                                        },
-                                        _ => return Err(1),
-                                    };
-                                    return Ok(MainProgram {
-                                        hash: hash as usize,
-                                        start: i,
-                                        length: program_len as usize,
-                                    });
-                                }
-                            } else {
-                                return Err(2)
+                Instructions::FN(_) => match instruction.addressing_value {
+                    AddressingValues::Immediate(static_raw_type) => {
+                        if static_raw_type.type_id.id == 1 {
+                            let hash = static_raw_type.to_int();
+                            if static_raw_type.to_int() as usize == target_hash {
+                                let program_len_instruction = self.instructions[i + 1];
+                                let program_len = match program_len_instruction.instruction {
+                                    Instructions::STA(_) => {
+                                        match program_len_instruction.addressing_value {
+                                            AddressingValues::Immediate(e) => e.to_int(),
+                                            _ => return Err(2),
+                                        }
+                                    }
+                                    _ => return Err(1),
+                                };
+                                return Ok(MainProgram {
+                                    hash: hash as usize,
+                                    start: i,
+                                    length: program_len as usize,
+                                });
                             }
-                        }
-                        _ => {
-                            return Err(1)
+                        } else {
+                            return Err(2);
                         }
                     }
+                    _ => return Err(1),
                 },
-                _ => ()
+                _ => (),
             }
             i += 1;
         }
@@ -244,9 +241,9 @@ impl Program {
                                 };
                                 args[i as usize] = read_byte;
                             }
-                            addressing_value = AddressingValues::AbsoluteStatic(usize::from_le_bytes(
-                                args.clone().try_into().unwrap(),
-                            ));
+                            addressing_value = AddressingValues::AbsoluteStatic(
+                                usize::from_le_bytes(args.clone().try_into().unwrap()),
+                            );
                         }
                         AddressingModes::Implicit => todo!(),
                         AddressingModes::IndirectA => {

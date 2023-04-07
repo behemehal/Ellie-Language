@@ -1,5 +1,5 @@
 use alloc::format;
-use ellie_core::{raw_type::StaticRawType, defs::PlatformArchitecture};
+use ellie_core::{defs::PlatformArchitecture, raw_type::StaticRawType};
 
 use crate::{
     heap_memory::HeapMemory,
@@ -19,7 +19,7 @@ impl super::InstructionExecuter for A2B {
         current_stack: &mut Stack,
         _stack_memory: &mut StackMemory,
         addressing_value: &AddressingValues,
-        _arch: PlatformArchitecture
+        _arch: PlatformArchitecture,
     ) -> Result<super::ExecuterResult, super::ExecuterPanic> {
         match addressing_value {
             AddressingValues::Implicit => {

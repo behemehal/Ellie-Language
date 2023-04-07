@@ -4,9 +4,8 @@ use alloc::sync::Arc;
 use std::sync::Mutex;
 
 use alloc::boxed::Box;
-use ellie_core::defs::VmNativeCall;
 use ellie_core::defs::VmNativeAnswer;
-
+use ellie_core::defs::VmNativeCall;
 
 use alloc::{string::String, vec::Vec};
 use ellie_core::{defs::PlatformArchitecture, raw_type::StaticRawType};
@@ -112,8 +111,6 @@ impl VM {
         thread_id: usize,
         module_manager: &mut ModuleManager,
     ) -> Option<ThreadExit> {
-
-
         let thread_idx = self
             .threads
             .iter()

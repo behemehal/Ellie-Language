@@ -6,7 +6,7 @@ use crate::{
     utils::{AddressingValues, ThreadPanicReason},
 };
 use alloc::format;
-use ellie_core::{raw_type::StaticRawType, defs::PlatformArchitecture};
+use ellie_core::{defs::PlatformArchitecture, raw_type::StaticRawType};
 
 use super::{ExecuterPanic, ExecuterResult, StaticProgram};
 

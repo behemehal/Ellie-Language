@@ -123,22 +123,23 @@ impl core::fmt::Display for AddressingModes {
                     match rtype {
                         Types::Integer => isize::from_le_bytes(*value).to_string(),
                         Types::Float =>
-                        f32::from_le_bytes(value[0..4].try_into().unwrap()).to_string(),
+                            f32::from_le_bytes(value[0..4].try_into().unwrap()).to_string(),
                         Types::Double => f64::from_le_bytes(*value).to_string(),
                         Types::Byte => format!("0x{}", value[0]),
                         Types::Bool =>
-                        if value[0] == 1 {
-                            "true".to_string()
+                            if value[0] == 1 {
+                                "true".to_string()
                             } else {
                                 "false".to_string()
                             },
                         Types::String(_) => format!("string[{:?}]", isize::from_le_bytes(*value)),
                         Types::Char => format!(
                             "'{:?}'",
-                            char::from_u32(u32::from_le_bytes(value[3..7].try_into().unwrap())).unwrap()
+                            char::from_u32(u32::from_le_bytes(value[3..7].try_into().unwrap()))
+                                .unwrap()
                         ),
                         Types::StaticArray(_) =>
-                        format!("static_array[{:?}]", isize::from_le_bytes(*value)),
+                            format!("static_array[{:?}]", isize::from_le_bytes(*value)),
                         Types::Array(_) => format!("array[{:?}]", isize::from_le_bytes(*value)),
                         Types::Void => String::new(),
                         Types::Null => String::new(),

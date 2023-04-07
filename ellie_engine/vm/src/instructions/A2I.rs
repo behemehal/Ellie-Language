@@ -1,11 +1,11 @@
 use alloc::{format, string::String};
-use ellie_core::{raw_type::StaticRawType, defs::PlatformArchitecture};
+use ellie_core::{defs::PlatformArchitecture, raw_type::StaticRawType};
 
 use crate::{
     heap_memory::HeapMemory,
     instruction_utils::A2I,
-    stack_memory::StackMemory,
     stack::Stack,
+    stack_memory::StackMemory,
     utils::{AddressingValues, ThreadPanicReason},
 };
 

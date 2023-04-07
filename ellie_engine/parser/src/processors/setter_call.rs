@@ -1,8 +1,9 @@
 use crate::deep_search_extensions::{deep_search_hash, resolve_type};
 use alloc::{borrow::ToOwned, vec, vec::Vec};
-use ellie_core::{error, definite::Converter};
+use ellie_core::{definite::Converter, error};
 use ellie_tokenizer::syntax::{
-    items::setter_call::SetterCall, types::operator_type::{AssignmentOperators, Operators},
+    items::setter_call::SetterCall,
+    types::operator_type::{AssignmentOperators, Operators},
 };
 
 impl super::Processor for SetterCall {
@@ -90,11 +91,9 @@ impl super::Processor for SetterCall {
                                     return false;
                                 }
                                 None => {
-                                    let page = parser
-                                            .processed_pages
-                                            .nth_mut(processed_page_idx)
-                                            .unwrap();
-                                        page.items.push(ellie_core::definite::items::Collecting::SetterCall(
+                                    let page =
+                                        parser.processed_pages.nth_mut(processed_page_idx).unwrap();
+                                    page.items.push(ellie_core::definite::items::Collecting::SetterCall(
                                             ellie_core::definite::items::setter_call::SetterCall {
                                                 target,
                                                 value: processed_value_type,

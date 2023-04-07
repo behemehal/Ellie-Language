@@ -1,14 +1,14 @@
 //Auto generated from `instructions.json` by `reAssembler.js rev: 3
 
-use ellie_core::defs::PlatformArchitecture;
 use crate::{
     channel::ModuleManager,
     heap_memory::HeapMemory,
     instructions::{ExecuterPanic, ExecuterResult, InstructionExecuter, StaticProgram},
-    stack_memory::StackMemory,
     stack::Stack,
+    stack_memory::StackMemory,
     utils::{AddressingModes, AddressingValues},
 };
+use ellie_core::defs::PlatformArchitecture;
 
 #[derive(Clone, Copy, Debug)]
 pub struct LDA {
@@ -1100,4 +1100,3 @@ impl Instructions {
         }
     }
 }
-

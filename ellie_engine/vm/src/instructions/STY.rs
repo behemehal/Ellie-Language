@@ -66,8 +66,7 @@ impl super::InstructionExecuter for STY {
                                     let type_id = heap_data.get_type_id();
                                     if type_id.is_array() {
                                         let usize_len = arch.usize_len() as usize;
-                                        let type_id_len =
-                                            arch.type_id_size() as usize;
+                                        let type_id_len = arch.type_id_size() as usize;
                                         let entry_size = {
                                             if heap_data.data.len() == 0 {
                                                 0

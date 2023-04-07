@@ -1,5 +1,5 @@
 use alloc::format;
-use ellie_core::{raw_type::StaticRawType, defs::PlatformArchitecture};
+use ellie_core::{defs::PlatformArchitecture, raw_type::StaticRawType};
 
 use crate::{
     heap_memory::HeapMemory,
@@ -26,7 +26,7 @@ impl super::InstructionExecuter for FN {
                 let hash = usize::from_le_bytes(e.data);
                 stack_memory.set(
                     &current_stack.get_pos(),
-                    StaticRawType::function(e.data.to_vec())
+                    StaticRawType::function(e.data.to_vec()),
                 );
                 let end_point = match &program[current_stack.pos + 1].addressing_value {
                     AddressingValues::Immediate(e) => usize::from_le_bytes(e.data),

@@ -166,9 +166,7 @@ pub fn read_program<T: ellie_vm::utils::Reader>(program_reader: &mut T) -> Resul
     let mut program_reader = ProgramReader::new(program_reader);
     let mut program = Program::new();
     match program.build_from_reader(&mut program_reader) {
-        Ok(_) => {
-            Ok(program)
-        },
-        Err(e) => Err(e)
+        Ok(_) => Ok(program),
+        Err(e) => Err(e),
     }
 }

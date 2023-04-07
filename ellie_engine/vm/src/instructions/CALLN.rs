@@ -1,5 +1,5 @@
 use alloc::{format, vec::Vec};
-use ellie_core::defs::{VmNativeCallParameters, VmNativeCall, PlatformArchitecture};
+use ellie_core::defs::{PlatformArchitecture, VmNativeCall, VmNativeCallParameters};
 
 use crate::{
     heap_memory::HeapMemory,
@@ -54,7 +54,8 @@ impl super::InstructionExecuter for CALLN {
                 let start_position_of_params = current_stack.get_pos() - 2;
 
                 for i in 0..params_length {
-                    let pos = current_stack.get_pos() - (params_length - ((i as isize * -1) as usize));
+                    let pos =
+                        current_stack.get_pos() - (params_length - ((i as isize * -1) as usize));
                     let paramater = match stack_memory.get(&pos) {
                         Some(raw_type) => match raw_type.type_id.id {
                             0..=5 | 7 | 10 => VmNativeCallParameters::Static(raw_type),
@@ -72,9 +73,7 @@ impl super::InstructionExecuter for CALLN {
                             }
                             8 => {
                                 return Err(ExecuterPanic {
-                                    reason: ThreadPanicReason::NullReference(
-                                        pos,
-                                    ),
+                                    reason: ThreadPanicReason::NullReference(pos),
                                     code_location: format!("{}:{}", file!(), line!()),
                                 });
                             }
@@ -89,7 +88,11 @@ impl super::InstructionExecuter for CALLN {
                     };
                     params.push(paramater);
                 }
-                Ok(ExecuterResult::CallNativeFunction(VmNativeCall { hash, params,return_heap_position  }))
+                Ok(ExecuterResult::CallNativeFunction(VmNativeCall {
+                    hash,
+                    params,
+                    return_heap_position,
+                }))
             }
             _ => Err(ExecuterPanic {
                 reason: ThreadPanicReason::IllegalAddressingValue,

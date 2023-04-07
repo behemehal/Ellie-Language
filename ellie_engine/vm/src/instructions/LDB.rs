@@ -95,13 +95,12 @@ impl super::InstructionExecuter for LDB {
                                 Some(heap_data) => {
                                     if heap_data.type_id.is_array() {
                                         let array_entry_size = usize::from_le_bytes(
-                                            heap_data.data
-                                                [..arch.usize_len() as usize]
+                                            heap_data.data[..arch.usize_len() as usize]
                                                 .try_into()
                                                 .unwrap(),
                                         );
-                                        let array_data = &heap_data.data
-                                            [arch.usize_len() as usize..];
+                                        let array_data =
+                                            &heap_data.data[arch.usize_len() as usize..];
                                         let array_entries =
                                             array_data.chunks(array_entry_size).collect::<Vec<_>>();
                                         if index > array_entries.len() {

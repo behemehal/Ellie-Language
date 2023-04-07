@@ -86,9 +86,11 @@ impl super::Transpiler for function::Function {
             .instructions
             .push(Instructions::RET(Instruction::implicit()));
 
-        assembler.instructions[escape_pos_instruction_location] = instruction_table::Instructions::STA(
-            Instruction::immediate(Types::Integer, assembler.location().to_le_bytes()),
-        );
+        assembler.instructions[escape_pos_instruction_location] =
+            instruction_table::Instructions::STA(Instruction::immediate(
+                Types::Integer,
+                assembler.location().to_le_bytes(),
+            ));
 
         assembler.debug_headers.push(DebugHeader {
             rtype: DebugHeaderType::Function,

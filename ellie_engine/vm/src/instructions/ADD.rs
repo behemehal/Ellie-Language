@@ -1,5 +1,8 @@
 use alloc::{format, string::String};
-use ellie_core::{raw_type::{RawType, StaticRawType}, defs::PlatformArchitecture};
+use ellie_core::{
+    defs::PlatformArchitecture,
+    raw_type::{RawType, StaticRawType},
+};
 
 use crate::{
     heap_memory::HeapMemory,
