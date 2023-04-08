@@ -1,28 +1,15 @@
 use ellie_engine::{
-    ellie_core::{
-        defs::{DebugHeader, DebugInfo, PlatformArchitecture, VmNativeAnswer},
-        raw_type,
-    },
+    ellie_core::defs::{PlatformArchitecture, VmNativeAnswer},
     ellie_renderer_utils::{
         options, outputs,
         utils::{CliColor, ColorDisplay, Colors, TextStyles},
     },
-    ellie_vm::{
-        heap::Heap,
-        thread::Stack,
-        utils::{Instructions, ThreadExit, ThreadStep},
-        vm::VM,
-    },
+    ellie_vm::{utils::ThreadStep, vm::VM},
     engine_constants,
-    vm::{parse_debug_file, read_program, RFile},
+    vm::{parse_debug_file, RFile},
 };
 
-use std::{
-    fs::{self, File},
-    io::{Read, Write},
-    path::Path,
-    thread,
-};
+use std::{fs::File, io::Read, path::Path};
 
 pub struct VmSettings {
     pub json_log: bool,
@@ -39,7 +26,7 @@ fn main() {
 
     match matches.subcommand() {
         Some(("run", matches)) => {
-            let mut debugger_wait = false;
+            let mut _debugger_wait = false;
             let is_vm_debug = matches.is_present("vmDebug");
             if !matches.is_present("allowPanics") {
                 std::panic::set_hook(Box::new(|e| {
@@ -232,7 +219,7 @@ fn main() {
             let mut step_into = false;
             let mut show_heap_dump = false;
             let mut show_registers = true;
-            let mut wait_pos = None;
+            //let mut wait_pos :  = None;
             let mut show_code = false;
             let mut show_stack_info = false;
             let mut last_step: Option<ThreadStep> = None;
@@ -265,8 +252,36 @@ fn main() {
                     VmNativeAnswer::RuntimeError("Call to unknown function".into())
                 }
             });
-            vm.load(&program).unwrap();
 
+            /* let mut vm = VM::new(vm_settings.architecture, move |i, e| {
+                if e.module == "ellieStd" && e.name == "heapDump" {
+                    println!(
+                        "{}HeapDump{}: {}Queued: heapDump.txt{}",
+                        cli_color.color(Colors::Green),
+                        cli_color.color(Colors::Reset),
+                        cli_color.color(Colors::Cyan),
+                        cli_color.color(Colors::Reset)
+                    );
+                    VmNativeAnswer::Ok(().into())
+                } else if e.module == "ellieStd" && e.name == "thread_spawn" {
+                    println!("{:?}", e);
+                    println!("{:?}", e.params[0].to_string());
+                    println!("{:?}", e.params[0].to_function(vm_settings.architecture));
+                    VmNativeAnswer::Ok(().into())
+                } else if e.module == "ellieStd" && e.name == "readln" {
+                    println!("Thread: {} is waiting because of 'readln'", i.id);
+                    let mut input = String::new();
+                    std::io::stdin().read_line(&mut input).unwrap();
+                    VmNativeAnswer::Ok(input.into())
+                } else if e.module == "ellieStd" && e.name == "println" {
+                    let string = String::from_utf8(e.params[0].data.clone());
+                    println!("{:?}", string.unwrap());
+                    VmNativeAnswer::Ok(().into())
+                } else {
+                    VmNativeAnswer::RuntimeError("Call to unknown function".into())
+                }
+            });
+            vm.load(&program).unwrap();
             //let (tx, rx) = mpsc::channel();
 
             vm.build_main_thread(program.main);
@@ -555,18 +570,17 @@ fn main() {
                             );
                         }
 
-                        fn render_raw_type(raw_type: &raw_type::RawType) -> String {
+                        fn render_raw_type(raw_type: &RegisterRawType) -> String {
                             match raw_type.type_id.id {
-                                1 => return format!("Int({})", raw_type.to_int()),
-                                2 => return format!("Float({})", raw_type.to_float()),
-                                3 => return format!("Double({})", raw_type.to_double()),
-                                4 => return format!("Byte({})", raw_type.to_byte()),
-                                5 => return format!("Bool({})", raw_type.to_bool()),
-                                6 => return format!("String({})", raw_type.to_string()),
-                                7 => return format!("Char({})", raw_type.to_char()),
+                                1 => return format!("Int({:?})", raw_type.data),
+                                2 => return format!("Float({:?})", raw_type.data),
+                                3 => return format!("Double({:?})", raw_type.data),
+                                4 => return format!("Byte({:?})", raw_type.data),
+                                5 => return format!("Bool({:?})", raw_type.data),
+                                6 => return format!("String({:?})", raw_type.data),
+                                7 => return format!("Char({:?})", raw_type.data),
                                 8 => return format!("Void"),
-                                9 => return format!("Array"),
-                                10 => return format!("Void"),
+                                9 => return format!("MemoryReference({:?})", raw_type.data),
                                 _ => return format!("Unknown"),
                             }
                         }
@@ -932,7 +946,7 @@ fn main() {
                         }
                     }
                 } else {
-                    match vm.threads[0].run(&mut vm.heap) {
+                    match vm.threads[0].run() {
                         None => (),
                         Some(e) => match e {
                             ThreadExit::Panic(e) => {
@@ -1070,7 +1084,7 @@ fn main() {
 
             main_thread.join().unwrap();
 
-            if matches.is_present("vmDebug") {}
+            if matches.is_present("vmDebug") {} */
         }
         Some(("version", matches)) => {
             if matches.is_present("detailed") {

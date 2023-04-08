@@ -2,7 +2,7 @@
 name = "ellie_parser"
 description = "Parser for ellie language"
 version = "0.5.3"
-authors = ["Ahmetcan Aksu <ahmetcanaksu@behemehal.net>"]
+authors = ["Ahmetcan Aksu <ahmetcanaksu@behemehal.org>", "Behemehal <info@behemehal.org>"]
 edition = "2021"
 license = "GPL-2.0"
 

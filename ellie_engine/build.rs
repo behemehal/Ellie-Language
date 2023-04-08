@@ -40,7 +40,7 @@ use std::{
 
 fn main() {
     let ellie_engine_version: Value;
-    let ellie_engine_version_name: Value;
+    let ellie_engine_version_name ="\"BeautifulTropicalFish\"".to_string();
     let ellie_core_version: Value;
     #[cfg(any(feature = "compiler", feature = "fmt"))]
     let ellie_tokenizer_version: Value;
@@ -57,7 +57,6 @@ fn main() {
         Ok(cargo_toml) => {
             let toml = cargo_toml.parse::<Value>().unwrap();
             ellie_engine_version = toml["package"]["version"].clone();
-            ellie_engine_version_name = toml["package"]["version_code"].clone();
         }
         Err(_) => {
             panic!("Failed to build ellie constants, cannot read Cargo.toml",)

@@ -2,7 +2,7 @@
 name = "ellie_tokenizer"
 description = "Tokenizer for ellie language"
 version = "0.4.6"
-authors = ["Ahmetcan Aksu <ahmetcanaksu@behemehal.net>"]
+authors = ["Ahmetcan Aksu <ahmetcanaksu@behemehal.org>", "Behemehal <info@behemehal.org>"]
 edition = "2021"
 license = "GPL-2.0"
 

@@ -1220,6 +1220,74 @@ impl Parser {
         }
     }
 
+    pub fn is_variable_duplicate(
+        &mut self,
+        page_id: usize,
+        name: String,
+        hash: usize,
+        pos: defs::Cursor,
+    ) -> (bool, Option<(FoundPage, defs::Cursor)>) {
+        let deep_search = deep_search_extensions::deep_search(
+            self,
+            page_id,
+            name.clone(),
+            if hash == 0 { None } else { Some(hash) },
+            vec![],
+            0,
+        );
+
+        if deep_search.found {
+            match deep_search.found_item {
+                deep_search_extensions::ProcessedDeepSearchItems::Variable(e) => {
+                    if deep_search.found_page.hash == page_id {
+                        (
+                            pos.range_start.is_bigger(&e.pos.range_start),
+                            Some((deep_search.found_page, e.pos)),
+                        )
+                    } else {
+                        (false, None)
+                    }
+                }
+                deep_search_extensions::ProcessedDeepSearchItems::GenericItem(e) => {
+                    (true, Some((deep_search.found_page, e.pos)))
+                }
+                deep_search_extensions::ProcessedDeepSearchItems::None
+                | deep_search_extensions::ProcessedDeepSearchItems::FunctionParameter(_)
+                | deep_search_extensions::ProcessedDeepSearchItems::ClassInstance(_) => {
+                    (false, None)
+                }
+                e => {
+                    let pos = match e {
+                        deep_search_extensions::ProcessedDeepSearchItems::Class(e) => e.pos,
+                        deep_search_extensions::ProcessedDeepSearchItems::Variable(e) => e.pos,
+                        deep_search_extensions::ProcessedDeepSearchItems::Function(e) => e.pos,
+                        deep_search_extensions::ProcessedDeepSearchItems::Enum(e) => e.pos,
+                        deep_search_extensions::ProcessedDeepSearchItems::NativeFunction(e) => {
+                            e.pos
+                        }
+                        deep_search_extensions::ProcessedDeepSearchItems::Getter(e) => e.pos,
+                        deep_search_extensions::ProcessedDeepSearchItems::Setter(e) => e.pos,
+                        deep_search_extensions::ProcessedDeepSearchItems::ImportReference(e) => {
+                            e.pos
+                        }
+                        deep_search_extensions::ProcessedDeepSearchItems::SelfItem(e) => e.pos,
+                        _ => unreachable!(),
+                    };
+                    if deep_search.found_page.hash == page_id {
+                        (
+                            pos.range_start.is_bigger(&pos.range_start),
+                            Some((deep_search.found_page, pos)),
+                        )
+                    } else {
+                        (true, Some((deep_search.found_page, pos)))
+                    }
+                }
+            }
+        } else {
+            (false, None)
+        }
+    }
+
     pub fn is_duplicate(
         &mut self,
         page_id: usize,

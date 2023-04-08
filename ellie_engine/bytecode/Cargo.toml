@@ -3,7 +3,7 @@ name = "ellie_bytecode"
 description = "Bytecode assembler/encoder/decoder for ellie language"
 version = "0.1.1"
 edition = "2021"
-authors = ["Ahmetcan Aksu <ahmetcanaksu@behemehal.net>"]
+authors = ["Ahmetcan Aksu <ahmetcanaksu@behemehal.org>", "Behemehal <info@behemehal.org>"]
 license = "GPL-2.0"
 
 [dependencies]

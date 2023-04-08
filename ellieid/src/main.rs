@@ -5,15 +5,10 @@ use std::{
 };
 
 use ellie_engine::{
-    ellie_core::defs::{DebugInfo, PlatformArchitecture, Version},
-    ellie_parser,
-    ellie_renderer_utils::{
-        options, outputs,
-        utils::{read_file_bin, CliColor, ColorDisplay, Colors, TextStyles},
-    },
-    ellie_vm::{program::Program, vm},
-    engine_constants,
-    vm::{parse_debug_file, read_program, RFile},
+    ellie_core::defs::DebugInfo,
+    ellie_renderer_utils::utils::{CliColor, ColorDisplay, Colors},
+    ellie_vm::program::Program,
+    vm::{parse_debug_file, RFile},
 };
 
 pub enum EidArgTypes {
@@ -376,31 +371,31 @@ fn main() {
     );
 
     pub struct EidOptions {
-        CodePreview: bool,
-        HeapPreview: bool,
-        StackPreview: bool,
-        RegistersPreview: bool,
+        code_preview: bool,
+        heap_preview: bool,
+        stack_preview: bool,
+        registers_preview: bool,
     }
 
     pub enum DebuggerState {
         WaitingProgram,
-        WaitingAtBreakpoint,
-        WaitingAtStackPoint,
-        Running,
+        _WaitingAtBreakpoint,
+        _WaitingAtStackPoint,
+        _Running,
         ProgramLoaded,
-        ProgramCompleted,
+        _ProgramCompleted,
     }
 
-    let mut state = DebuggerState::WaitingProgram;
+    let mut _state = DebuggerState::WaitingProgram;
 
     let mut debug_info: Option<DebugInfo> = None;
     let mut program: Option<Program> = None;
 
     let mut options = EidOptions {
-        CodePreview: true,
-        HeapPreview: true,
-        StackPreview: true,
-        RegistersPreview: true,
+        code_preview: true,
+        heap_preview: true,
+        stack_preview: true,
+        registers_preview: true,
     };
 
     fn new_prompt() {
@@ -674,15 +669,15 @@ fn main() {
                     print!("{}[2J", 27 as char);
                 }
                 EidCommands::CodePreview => {
-                    options.CodePreview = !options.CodePreview;
+                    options.code_preview = !options.code_preview;
                     println!(
                         "Code preview is now {}'{}'{}",
-                        if options.CodePreview {
+                        if options.code_preview {
                             cli_color.color(Colors::Green)
                         } else {
                             cli_color.color(Colors::Red)
                         },
-                        if options.CodePreview {
+                        if options.code_preview {
                             "enabled"
                         } else {
                             "disabled"
@@ -691,15 +686,15 @@ fn main() {
                     );
                 }
                 EidCommands::HeapPreview => {
-                    options.HeapPreview = !options.HeapPreview;
+                    options.heap_preview = !options.heap_preview;
                     println!(
                         "Heap preview is now {}'{}'{}",
-                        if options.HeapPreview {
+                        if options.heap_preview {
                             cli_color.color(Colors::Green)
                         } else {
                             cli_color.color(Colors::Red)
                         },
-                        if options.HeapPreview {
+                        if options.heap_preview {
                             "enabled"
                         } else {
                             "disabled"
@@ -708,15 +703,15 @@ fn main() {
                     );
                 }
                 EidCommands::StackPreview => {
-                    options.StackPreview = !options.StackPreview;
+                    options.stack_preview = !options.stack_preview;
                     println!(
                         "Stack preview is now {}'{}'{}",
-                        if options.StackPreview {
+                        if options.stack_preview {
                             cli_color.color(Colors::Green)
                         } else {
                             cli_color.color(Colors::Red)
                         },
-                        if options.StackPreview {
+                        if options.stack_preview {
                             "enabled"
                         } else {
                             "disabled"
@@ -725,15 +720,15 @@ fn main() {
                     );
                 }
                 EidCommands::RegistersPreview => {
-                    options.RegistersPreview = !options.RegistersPreview;
+                    options.registers_preview = !options.registers_preview;
                     println!(
                         "Registers preview is now {}'{}'{}",
-                        if options.RegistersPreview {
+                        if options.registers_preview {
                             cli_color.color(Colors::Green)
                         } else {
                             cli_color.color(Colors::Red)
                         },
-                        if options.RegistersPreview {
+                        if options.registers_preview {
                             "enabled"
                         } else {
                             "disabled"
@@ -779,7 +774,7 @@ fn main() {
                                 match read_program(&mut reader) {
                                     Ok(e) => {
                                         program = Some(e);
-                                        state = DebuggerState::ProgramLoaded;
+                                        _state = DebuggerState::ProgramLoaded;
                                     }
                                     Err(e) => {
                                         println!(

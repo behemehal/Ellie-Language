@@ -1,5 +1,6 @@
 [package]
 name = "ellie_engine"
+description = "Why ellie? Ellie is a type-safe programing language that runs on embedded and sandboxed environments."
 version = "0.9.0"
 authors = ["Ahmetcan Aksu <ahmetcanaksu@behemehal.org>", "Behemehal <info@behemehal.org>"]
 edition = "2021"

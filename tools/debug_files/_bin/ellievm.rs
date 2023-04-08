@@ -240,6 +240,9 @@ fn main() {
                         utils::Colors::Reset
                     );
                     VmNativeAnswer::Ok(().into())
+                } else if e.module == "ellieStd" && e.name == "thread_spawn" {
+                    println!("{:?}", e);
+                    VmNativeAnswer::Ok(().into())
                 } else if e.module == "ellieStd" && e.name == "println" {
                     let string = String::from_utf8(e.params[0].data.clone());
                     println!("println: {:?}", string.unwrap());
@@ -247,7 +250,9 @@ fn main() {
                 } else if e.module == "main" && e.name == "get_val_n" {
                     VmNativeAnswer::Ok("Cevaaap".into())
                 } else {
-                    VmNativeAnswer::RuntimeError("Call to unknown function".into())
+                    VmNativeAnswer::RuntimeError(
+                        format!("Call to unknown function: '{}'", e.name).into(),
+                    )
                 }
             });
             vm.load(&program).unwrap();
@@ -550,11 +555,31 @@ fn main() {
 
                         if show_registers {
                             println!("{}Registers:{}", Colors::Green, Colors::Reset);
-                            println!("A: {:?}: {}", stack.registers.A, render_raw_type(&stack.registers.A));
-                            println!("B: {:?}: {}", stack.registers.B, render_raw_type(&stack.registers.B));
-                            println!("C: {:?}: {}", stack.registers.C, render_raw_type(&stack.registers.C));
-                            println!("X: {:?}: {}", stack.registers.X, render_raw_type(&stack.registers.X));
-                            println!("Y: {:?}: {}", stack.registers.Y, render_raw_type(&stack.registers.Y));
+                            println!(
+                                "A: {:?}: {}",
+                                stack.registers.A,
+                                render_raw_type(&stack.registers.A)
+                            );
+                            println!(
+                                "B: {:?}: {}",
+                                stack.registers.B,
+                                render_raw_type(&stack.registers.B)
+                            );
+                            println!(
+                                "C: {:?}: {}",
+                                stack.registers.C,
+                                render_raw_type(&stack.registers.C)
+                            );
+                            println!(
+                                "X: {:?}: {}",
+                                stack.registers.X,
+                                render_raw_type(&stack.registers.X)
+                            );
+                            println!(
+                                "Y: {:?}: {}",
+                                stack.registers.Y,
+                                render_raw_type(&stack.registers.Y)
+                            );
                         } else {
                             println!(
                                 "{}Registers:{} {}Disabled{}",

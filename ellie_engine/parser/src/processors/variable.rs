@@ -14,7 +14,7 @@ impl super::Processor for VariableCollector {
         page_hash: usize,
     ) -> bool {
         let path = parser.pages.nth(page_idx).unwrap().path.clone();
-        let (duplicate, found) = parser.is_duplicate(
+        let (duplicate, found) = parser.is_variable_duplicate(
             page_hash,
             self.data.name.clone(),
             self.data.hash.clone(),
