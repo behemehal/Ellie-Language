@@ -1,3 +1,5 @@
+#![allow(unused_variables)]
+#![allow(unreachable_code)]
 use alloc::vec::Vec;
 use alloc::{borrow::ToOwned, vec};
 use ellie_core::{
@@ -13,6 +15,7 @@ impl super::Processor for EnumType {
         parser: &mut super::Parser,
         page_idx: usize,
         processed_page_idx: usize,
+        //Ignore unused variables warning
         page_hash: usize,
     ) -> bool {
         let path = parser.pages.nth(page_idx).unwrap().path.clone();
@@ -25,7 +28,7 @@ impl super::Processor for EnumType {
                 self.name_pos,
             ));
         return false;
-        let mut halt = true;
+        let halt = true;
         let (duplicate, found) =
             parser.is_duplicate(page_hash, self.name.clone(), self.hash.clone(), self.pos);
 
