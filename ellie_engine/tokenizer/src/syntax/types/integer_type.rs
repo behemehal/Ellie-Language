@@ -3,7 +3,7 @@ use alloc::string::String;
 use ellie_core::{definite, defs};
 use serde::{Deserialize, Serialize};
 
-#[derive(PartialEq, Default, Debug, Clone, Serialize, Deserialize)]
+#[derive(PartialEq, Default, Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct IntegerType {
     pub value: isize,
     pub pos: defs::Cursor,

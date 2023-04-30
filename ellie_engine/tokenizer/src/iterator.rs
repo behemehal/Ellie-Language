@@ -30,7 +30,7 @@ impl Iterator {
     pub fn finalize(&mut self) {
         if !self.active.is_complete() {
             if self.active.current.is_initalized() {
-                if matches!(self.active.current.clone(), items::Processors::Comment(e) if e.line_comment)
+                if matches!(&self.active.current, items::Processors::Comment(e) if e.line_comment)
                 {
                     self.collected.push(self.active.current.clone());
                 } else {
@@ -59,7 +59,7 @@ impl Iterator {
     /// * `bool` - Returns true if the iterating process is hang
     pub fn iterate(&mut self, last_char: char, letter_char: char) -> bool {
         let mut hang = false;
-        let in_str_or_char = matches!(self.active.current.clone(),  items::Processors::GetterCall(e) if e.data.as_string().is_some() || e.data.as_char().is_some());
+        let in_str_or_char = matches!(&self.active.current,  items::Processors::GetterCall(e) if e.data.as_string().is_some() || e.data.as_char().is_some());
 
         let is_escape = letter_char == '\n' || letter_char == '\r' || letter_char == '\t';
         if is_escape && !in_str_or_char {
@@ -80,7 +80,7 @@ impl Iterator {
             self.pos.1 = 0;
             dont_inc_column = true;
             if !self.active.is_complete() {
-                if let items::Processors::GetterCall(e) = self.active.current.clone() {
+                if let items::Processors::GetterCall(e) = &self.active.current {
                     if !e.cache.current.is_not_initialized() {
                         self.errors.push(error::error_list::ERROR_S26.clone().build(
                             vec![],
@@ -110,9 +110,9 @@ impl Iterator {
         }
 
         if self.active.is_complete() {
-            if matches!(self.active.current.clone(), items::Processors::Condition(e) if (e.chains.clone()[e.chains.len() - 1].rtype == crate::syntax::items::condition::ConditionType::ElseIf || e.chains.clone()[e.chains.len() - 1].rtype == crate::syntax::items::condition::ConditionType::Else))
+            if matches!(&self.active.current, items::Processors::Condition(e) if (e.chains[e.chains.len() - 1].rtype == crate::syntax::items::condition::ConditionType::ElseIf || e.chains[e.chains.len() - 1].rtype == crate::syntax::items::condition::ConditionType::Else))
             {
-                let condition = self.active.current.as_condition().unwrap().clone();
+                let condition = self.active.current.as_condition().unwrap();
                 let last_chain = &condition.chains[condition.chains.len() - 1];
 
                 let collected_len = self.collected.len();

@@ -29,7 +29,6 @@ impl crate::processors::Processor for enum_data::EnumDataCollector {
                 self.data.brace_pos.range_end = cursor;
                 self.data.pos.range_end = cursor;
                 self.complete = true;
-                //self.data.value = Box::new(self.itered_cache.current.clone());
             } else {
                 hang = self
                     .itered_cache

@@ -10,7 +10,7 @@ impl crate::processors::Processor for condition::Condition {
         letter_char: char,
     ) -> bool {
         let mut hang = false;
-        let chain_len = self.chains.clone().len();
+        let chain_len = self.chains.len();
         let mut chain = &mut self.chains[chain_len - 1];
 
         match chain.rtype {

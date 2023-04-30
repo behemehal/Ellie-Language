@@ -20,7 +20,7 @@ impl crate::processors::Processor for constructor::Constructor {
                     self.parameters.push(constructor::ConstructorParameter {
                         name: letter_char.to_string(),
                         pos: defs::Cursor {
-                            range_start: cursor.clone(),
+                            range_start: cursor,
                             ..Default::default()
                         },
                     })

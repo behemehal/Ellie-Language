@@ -192,7 +192,7 @@ impl Processors {
     }
 
     pub fn is_complete(&self) -> bool {
-        match self.clone() {
+        match &self {
             Processors::Integer(e) => e.complete,
             Processors::Byte(e) => e.complete,
             Processors::Char(e) => e.complete,
@@ -215,7 +215,7 @@ impl Processors {
     }
 
     pub fn is_not_initialized(&self) -> bool {
-        match self.clone() {
+        match &self {
             Processors::Integer(_) => false,
             Processors::Byte(_) => false,
             Processors::Decimal(_) => false,
@@ -238,7 +238,7 @@ impl Processors {
     }
 
     pub fn get_pos(&self) -> defs::Cursor {
-        match self.clone() {
+        match self {
             Processors::Integer(e) => e.data.pos,
             Processors::Byte(e) => e.pos,
             Processors::Decimal(e) => e.data.pos,
@@ -292,7 +292,7 @@ impl super::Processor for TypeProcessor {
         if letter_char == '{' && not_initalized {
             self.current = Processors::Collective(collective_type::CollectiveTypeCollector {
                 data: collective_type::CollectiveType {
-                    pos: defs::Cursor::build_from_cursor(cursor.clone()),
+                    pos: defs::Cursor::build_from_cursor(cursor),
                     ..Default::default()
                 },
                 ..Default::default()
@@ -302,7 +302,7 @@ impl super::Processor for TypeProcessor {
         {
             self.current = Processors::ClassCall(class_call_type::ClassCallCollector {
                 data: class_call_type::ClassCall {
-                    pos: defs::Cursor::build_from_cursor(cursor.clone()),
+                    pos: defs::Cursor::build_from_cursor(cursor),
                     target_pos: self.current.get_pos(),
                     ..Default::default()
                 },
@@ -312,7 +312,7 @@ impl super::Processor for TypeProcessor {
             if not_initalized {
                 self.current = Processors::Array(array_type::ArrayTypeCollector {
                     data: array_type::ArrayType {
-                        pos: defs::Cursor::build_from_cursor(cursor.clone()),
+                        pos: defs::Cursor::build_from_cursor(cursor),
                         ..Default::default()
                     },
                     ..Default::default()
@@ -333,7 +333,7 @@ impl super::Processor for TypeProcessor {
             if not_initalized {
                 self.current = Processors::Cloak(cloak_type::CloakTypeCollector {
                     data: cloak_type::CloakType {
-                        pos: defs::Cursor::build_from_cursor(cursor.clone()),
+                        pos: defs::Cursor::build_from_cursor(cursor),
                         ..Default::default()
                     },
                     ..Default::default()
@@ -346,7 +346,7 @@ impl super::Processor for TypeProcessor {
                                 first: operator.data.first.clone(),
                                 first_pos: self.current.get_pos(),
                                 operator: operator.data.operator.clone(),
-                                pos: defs::Cursor::build_from_cursor(cursor.clone()),
+                                pos: defs::Cursor::build_from_cursor(cursor),
                                 ..Default::default()
                             },
                             itered_cache: Box::new(TypeProcessor {
@@ -384,12 +384,12 @@ impl super::Processor for TypeProcessor {
             }
         } else if letter_char == '\'' && not_initalized {
             self.current = Processors::Char(char_type::CharType {
-                pos: defs::Cursor::build_from_cursor(cursor.clone()),
+                pos: defs::Cursor::build_from_cursor(cursor),
                 ..Default::default()
             });
         } else if letter_char == '!' && not_initalized {
             self.current = Processors::Negative(negative_type::Negative {
-                pos: defs::Cursor::build_from_cursor(cursor.clone()),
+                pos: defs::Cursor::build_from_cursor(cursor),
                 ..Default::default()
             });
         } else if letter_char == '!' && last_char != ' ' && self.current.is_complete() {
@@ -404,7 +404,7 @@ impl super::Processor for TypeProcessor {
         } else if letter_char == '"' && not_initalized {
             self.current = Processors::String(string_type::StringTypeCollector {
                 data: string_type::StringType {
-                    pos: defs::Cursor::build_from_cursor(cursor.clone()),
+                    pos: defs::Cursor::build_from_cursor(cursor),
                     ..Default::default()
                 },
                 ..Default::default()
@@ -439,7 +439,7 @@ impl super::Processor for TypeProcessor {
                     } else {
                         "0.".to_string()
                     },
-                    pos: defs::Cursor::build_from_cursor(cursor.clone()),
+                    pos: defs::Cursor::build_from_cursor(cursor),
                     ..Default::default()
                 },
                 ..Default::default()
@@ -449,12 +449,12 @@ impl super::Processor for TypeProcessor {
         {
             self.current = Processors::Integer(integer_type::IntegerTypeCollector {
                 data: integer_type::IntegerType {
-                    pos: defs::Cursor::build_from_cursor(cursor.clone()),
+                    pos: defs::Cursor::build_from_cursor(cursor),
                     ..Default::default()
                 },
                 ..Default::default()
             });
-        } else if matches!(self.current.clone(), Processors::Decimal(e) if e.no_base)
+        } else if matches!(&self.current, Processors::Decimal(e) if e.no_base)
             && last_char == '.'
             && letter_char.to_string().parse::<i8>().is_err()
             && utils::reliable_name_range(utils::ReliableNameRanges::VariableName, letter_char)
@@ -474,7 +474,7 @@ impl super::Processor for TypeProcessor {
                             },
                             ..Default::default()
                         }],
-                        pos: defs::Cursor::build_from_cursor(cursor.clone()),
+                        pos: defs::Cursor::build_from_cursor(cursor),
                         ..Default::default()
                     },
                     on_dot: false,
@@ -498,7 +498,7 @@ impl super::Processor for TypeProcessor {
                     data: reference_type::ReferenceType {
                         reference: Box::new(self.current.clone()),
                         reference_pos: self.current.get_pos(),
-                        pos: defs::Cursor::build_from_cursor(cursor.clone()),
+                        pos: defs::Cursor::build_from_cursor(cursor),
                         ..Default::default()
                     },
                     on_dot: false,
@@ -508,7 +508,7 @@ impl super::Processor for TypeProcessor {
         } else if self.is_complete()
             && utils::is_operator_start(letter_char)
             && self.current.as_operator().is_none()
-            && !(matches!(self.current.clone(), Processors::AsKeyword(e) if matches!(e.data.rtype.definer_type, crate::syntax::items::definers::DefinerTypes::Generic(_))))
+            && !(matches!(&self.current, Processors::AsKeyword(e) if matches!(e.data.rtype.definer_type, crate::syntax::items::definers::DefinerTypes::Generic(_))))
         {
             //Operator priority
             if self.current.as_null_resolver().is_some() && last_char != ' ' && letter_char == '=' {
@@ -517,7 +517,7 @@ impl super::Processor for TypeProcessor {
                     data: operator_type::OperatorType {
                         first: Box::new(*null_r.target.clone()),
                         first_pos: null_r.target_pos,
-                        pos: defs::Cursor::build_from_cursor(cursor.clone()),
+                        pos: defs::Cursor::build_from_cursor(cursor),
                         ..Default::default()
                     },
                     operator_collect: "!".to_string(),
@@ -529,7 +529,7 @@ impl super::Processor for TypeProcessor {
                     data: operator_type::OperatorType {
                         first: Box::new(self.current.clone()),
                         first_pos: self.current.get_pos(),
-                        pos: defs::Cursor::build_from_cursor(cursor.clone()),
+                        pos: defs::Cursor::build_from_cursor(cursor),
                         ..Default::default()
                     },
                     first_filled: true,

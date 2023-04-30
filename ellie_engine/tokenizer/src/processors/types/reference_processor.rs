@@ -9,11 +9,11 @@ impl crate::processors::Processor for reference_type::ReferenceTypeCollector {
         last_char: char,
         letter_char: char,
     ) -> bool {
-        let chain_len = self.data.chain.clone().len();
+        let chain_len = self.data.chain.len();
         if letter_char == '.' && !self.on_dot {
             self.complete = false;
             self.data.chain.push(reference_type::Chain::default());
-            let chain_len = self.data.chain.clone().len();
+            let chain_len = self.data.chain.len();
             self.data.chain[chain_len - 1].pos.range_start = cursor;
             self.on_dot = true;
         } else if utils::reliable_name_range(utils::ReliableNameRanges::VariableName, letter_char)

@@ -58,7 +58,7 @@ pub enum Processors {
 
 impl Processors {
     pub fn is_complete(&self) -> bool {
-        match self.clone() {
+        match &self {
             Processors::GetterCall(e) => e.complete,
             Processors::Variable(e) => e.complete,
             Processors::SetterCall(e) => e.complete,
@@ -87,7 +87,7 @@ impl Processors {
     }
 
     pub fn is_initalized(&self) -> bool {
-        match self.clone() {
+        match &self {
             Processors::GetterCall(e) => !e.data.is_not_initialized(),
             Processors::GenericItem(_) => panic!("Unexpected behaviour"),
             Processors::FunctionParameter(_) => panic!("Unexpected behaviour"),
@@ -97,7 +97,7 @@ impl Processors {
     }
 
     pub fn is_virtual(&self) -> bool {
-        match self.clone() {
+        match &self {
             Processors::GenericItem(_) => true,
             Processors::FunctionParameter(_) => true,
             Processors::ConstructorParameter(_) => true,
@@ -278,9 +278,9 @@ impl super::Processor for ItemProcessor {
         last_char: char,
         letter_char: char,
     ) -> bool {
-        let (is_var, keyword) = if let Processors::GetterCall(x) = self.current.clone() {
-            match x.cache.current {
-                super::types::Processors::Variable(e) => (true, e.data.value),
+        let (is_var, keyword) = if let Processors::GetterCall(x) = &self.current {
+            match &x.cache.current {
+                super::types::Processors::Variable(e) => (true, e.data.value.clone()),
                 super::types::Processors::Operator(e) => {
                     if e.first_filled
                         && e.operator_collected
@@ -290,9 +290,9 @@ impl super::Processor for ItemProcessor {
                         )
                     {
                         self.current = Processors::SetterCall(setter_call::SetterCall {
-                            target: *e.data.first,
+                            target: *e.data.first.clone(),
                             operator: e.data.operator.as_assignment_type().unwrap().clone(),
-                            cache: *e.itered_cache,
+                            cache: *e.itered_cache.clone(),
                             target_pos: e.data.first_pos,
                             ..Default::default()
                         })

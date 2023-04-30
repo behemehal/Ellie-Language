@@ -47,7 +47,7 @@ impl Converter<Class, ellie_core::definite::items::class::Class> for Class {
                 .iter()
                 .map(|x| GenericDefining {
                     name: x.name.clone(),
-                    hash: x.hash.clone(),
+                    hash: x.hash,
                     pos: x.pos,
                 })
                 .collect::<Vec<_>>(),

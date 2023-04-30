@@ -38,7 +38,7 @@ impl crate::processors::Processor for Comment {
             self.complete = true;
             self.pos.range_end = cursor;
             let last_idx = self.content.len() - 1;
-            let last = self.content[last_idx].clone();
+            let last = &self.content[last_idx];
             self.content[last_idx] = last[..last.len() - 1].to_string();
         } else {
             self.pos.range_end = cursor;

@@ -214,29 +214,29 @@ impl crate::processors::Processor for DefinerCollector {
                         });
                     } else if letter_char == '{' && generic_type.rtype.is_empty() {
                         self.definer_type = DefinerTypes::Collective(CollectiveType {
-                            pos: defs::Cursor::build_from_cursor(cursor.clone()),
+                            pos: defs::Cursor::build_from_cursor(cursor),
                             ..Default::default()
                         });
                     } else if letter_char == '@' && generic_type.rtype.is_empty() {
                         self.definer_type = DefinerTypes::Function(FunctionType {
-                            pos: defs::Cursor::build_from_cursor(cursor.clone()),
+                            pos: defs::Cursor::build_from_cursor(cursor),
                             ..Default::default()
                         });
                     } else if letter_char == '(' && generic_type.rtype.is_empty() {
                         self.definer_type = DefinerTypes::Cloak(CloakType {
-                            pos: defs::Cursor::build_from_cursor(cursor.clone()),
+                            pos: defs::Cursor::build_from_cursor(cursor),
                             ..Default::default()
                         });
                     } else if letter_char == '[' && generic_type.rtype.is_empty() {
                         self.definer_type = DefinerTypes::Array(ArrayType {
-                            pos: defs::Cursor::build_from_cursor(cursor.clone()),
+                            pos: defs::Cursor::build_from_cursor(cursor),
                             ..Default::default()
                         });
                     } else if letter_char == '<' && !generic_type.rtype.is_empty() {
                         self.definer_type = DefinerTypes::ParentGeneric(ParentGenericType {
                             parent: generic_type.rtype.clone(),
-                            parent_pos: generic_type.pos.clone(),
-                            pos: generic_type.pos.clone(),
+                            parent_pos: generic_type.pos,
+                            pos: generic_type.pos,
                             generics: vec![GenericParameter::default()],
                             ..Default::default()
                         });

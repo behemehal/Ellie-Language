@@ -94,7 +94,7 @@ impl Processor for operator_type::OperatorTypeCollector {
                                     second: x.data.first.clone(),
                                     second_pos: x.data.first_pos,
                                     operator: self.data.operator.clone(),
-                                    pos: defs::Cursor::build_from_cursor(cursor.clone()),
+                                    pos: defs::Cursor::build_from_cursor(cursor),
                                     ..Default::default()
                                 },
                                 operator_collected: true,
@@ -113,11 +113,11 @@ impl Processor for operator_type::OperatorTypeCollector {
             }
 
             if letter_char != ' ' && self.data.second_pos.range_start.is_zero() {
-                self.data.second_pos.range_start = cursor.clone();
+                self.data.second_pos.range_start = cursor;
             }
 
             if self.itered_cache.is_complete() {
-                self.data.second_pos.range_end = cursor.clone();
+                self.data.second_pos.range_end = cursor;
                 self.data.second = Box::new(self.itered_cache.current.clone());
                 match *self.data.first.clone() {
                     crate::processors::types::Processors::Operator(e) => {
