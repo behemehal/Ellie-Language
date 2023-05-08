@@ -24,7 +24,7 @@ impl super::InstructionExecuter for CALL {
         match &addressing_value {
             AddressingValues::Absolute(start_location) => {
                 let hash = match &program[*start_location].addressing_value {
-                    AddressingValues::Immediate(e) => usize::from_le_bytes(e.data),
+                    AddressingValues::Immediate(e) => e.to_int() as usize,
                     _ => {
                         return Err(ExecuterPanic {
                             reason: ThreadPanicReason::IllegalAddressingValue,
@@ -33,7 +33,7 @@ impl super::InstructionExecuter for CALL {
                     }
                 };
                 let escape_pos = match &program[start_location + 1].addressing_value {
-                    AddressingValues::Immediate(e) => usize::from_le_bytes(e.data),
+                    AddressingValues::Immediate(e) => e.to_int() as usize,
                     _ => {
                         return Err(ExecuterPanic {
                             reason: ThreadPanicReason::IllegalAddressingValue,

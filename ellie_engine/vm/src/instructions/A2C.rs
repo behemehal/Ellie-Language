@@ -1,9 +1,10 @@
 use alloc::{format, string::String};
-use ellie_core::{defs::PlatformArchitecture, raw_type::StaticRawType};
+use ellie_core::defs::PlatformArchitecture;
 
 use crate::{
     heap_memory::HeapMemory,
     instruction_utils::A2C,
+    raw_type::StaticRawType,
     stack::Stack,
     stack_memory::StackMemory,
     utils::{AddressingValues, ThreadPanicReason},
@@ -26,7 +27,7 @@ impl super::InstructionExecuter for A2C {
                 match current_stack.registers.A.type_id.id {
                     7 => (),
                     13 => {
-                        let pointer = usize::from_le_bytes(current_stack.registers.B.data);
+                        let pointer = current_stack.registers.B.to_int() as usize;
                         let mref = match heap_memory.get(&pointer) {
                             Some(e) => e.clone(),
                             None => {
@@ -38,13 +39,15 @@ impl super::InstructionExecuter for A2C {
                         };
                         match mref.type_id.id {
                             6 => {
-                                let a_value = String::from_utf8(mref.data)
-                                    .unwrap()
-                                    .chars()
-                                    .next()
-                                    .unwrap();
-                                current_stack.registers.A =
-                                    StaticRawType::char((a_value as u32).to_le_bytes().to_vec());
+                                let a_value = String::from_utf8(mref.data).unwrap();
+                                match a_value.chars().next() {
+                                    Some(e) => {
+                                        current_stack.registers.A = StaticRawType::from_char(e);
+                                    }
+                                    None => {
+                                        current_stack.registers.A = StaticRawType::from_char('\0');
+                                    }
+                                }
                             }
                             e => {
                                 return Err(ExecuterPanic {

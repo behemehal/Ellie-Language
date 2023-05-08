@@ -3,6 +3,7 @@ use crate::{
     instruction_table::{self, Instructions},
     instructions::{self, Instruction},
     types::Types,
+    utils::{limit_platform_size, usize_to_le_bytes},
 };
 use ellie_core::{
     definite::items::native_function,
@@ -20,7 +21,16 @@ impl super::Transpiler for native_function::NativeFunction {
             .instructions
             .push(instruction_table::Instructions::FN(Instruction::immediate(
                 Types::Integer,
-                self.hash.to_le_bytes(),
+                {
+                    assembler.locals.push(LocalHeader {
+                        name: self.name.clone(),
+                        cursor: assembler.location(),
+                        page_hash: processed_page.hash,
+                        hash: Some(self.hash),
+                        reference: Instruction::absolute(assembler.location()),
+                    });
+                    usize_to_le_bytes(self.hash, assembler.platform_attributes.architecture)
+                },
             ))); //Function hash
         assembler.locals.push(LocalHeader {
             name: self.name.clone(),
@@ -42,13 +52,19 @@ impl super::Transpiler for native_function::NativeFunction {
         assembler
             .instructions
             .push(instruction_table::Instructions::STA(
-                Instruction::immediate(Types::Integer, self.parameters.len().to_le_bytes()),
+                Instruction::immediate(
+                    Types::Integer,
+                    usize_to_le_bytes(
+                        self.parameters.len(),
+                        assembler.platform_attributes.architecture,
+                    ),
+                ),
             ));
         //Reserve memory spaces for parameters
         for (idx, parameter) in self.parameters.iter().enumerate() {
             assembler.debug_headers.push(DebugHeader {
                 rtype: DebugHeaderType::Parameter,
-                hash: idx,
+                hash: limit_platform_size(idx, assembler.platform_attributes.architecture),
                 module: processed_page.path.clone(),
                 name: parameter.name.clone(),
                 start_end: (assembler.location(), assembler.location()),
@@ -87,14 +103,16 @@ impl super::Transpiler for native_function::NativeFunction {
             .push(Instructions::RET(Instruction::implicit()));
 
         assembler.instructions[escape_pos_instruction_location] =
-            instruction_table::Instructions::STA(Instruction::immediate(
-                Types::Integer,
-                assembler.location().to_le_bytes(),
-            ));
+            instruction_table::Instructions::STA(Instruction::immediate(Types::Integer, {
+                usize_to_le_bytes(
+                    assembler.location(),
+                    assembler.platform_attributes.architecture,
+                )
+            }));
 
         assembler.debug_headers.push(DebugHeader {
-            rtype: DebugHeaderType::Function,
-            hash: self.hash,
+            rtype: DebugHeaderType::NativeFunction,
+            hash: limit_platform_size(self.hash, assembler.platform_attributes.architecture),
             module: processed_page.path.clone(),
             name: self.name.clone(),
             start_end: (debug_header_start, assembler.location()),

@@ -38,7 +38,7 @@ pub enum Types {
 impl Types {
     //(type_id, size)
     // (1, platform_size) Integer
-    pub fn code(&self, platform_size: &PlatformArchitecture) -> (u8, usize) {
+    pub fn code(&self, platform_size: PlatformArchitecture) -> (u8, usize) {
         match &self {
             Types::Integer => (1, platform_size.usize_len() as usize),
             Types::Float => (2, platform_size.usize_len() as usize),
@@ -50,7 +50,7 @@ impl Types {
             Types::Void => (8, 0),
             Types::Array(array_len) => (9, *array_len),
             Types::Null => (10, 0),
-            Types::Class(class_len) => (11, *class_len),
+            Types::Class(_) => (11, platform_size.usize_len() as usize),
             Types::Function => (12, platform_size.usize_len() as usize),
             Types::HeapReference => (13, platform_size.usize_len() as usize),
             Types::StackReference => (13, platform_size.usize_len() as usize),

@@ -1,10 +1,10 @@
 use alloc::{format, string::String};
-use ellie_core::{defs::PlatformArchitecture, raw_type::StaticRawType};
+use ellie_core::defs::PlatformArchitecture;
 
 use crate::{
-    channel::ModuleManager,
     heap_memory::HeapMemory,
     instruction_utils::A2F,
+    raw_type::StaticRawType,
     stack::Stack,
     stack_memory::StackMemory,
     utils::{AddressingValues, ThreadPanicReason},
@@ -20,29 +20,26 @@ impl super::InstructionExecuter for A2F {
         current_stack: &mut Stack,
         _stack_memory: &mut StackMemory,
         addressing_value: &AddressingValues,
-        arch: PlatformArchitecture,
+        _arch: PlatformArchitecture,
     ) -> Result<super::ExecuterResult, super::ExecuterPanic> {
         match addressing_value {
             AddressingValues::Implicit => {
                 match current_stack.registers.A.type_id.id {
                     1 => {
                         let data = current_stack.registers.A.to_int();
-                        current_stack.registers.A =
-                            StaticRawType::float((data as f32).to_le_bytes().to_vec());
+                        current_stack.registers.A = StaticRawType::from_float(data as f32);
                     }
                     2 => (),
                     3 => {
                         let data = current_stack.registers.A.to_byte();
-                        current_stack.registers.A =
-                            StaticRawType::float((data as f32).to_le_bytes().to_vec());
+                        current_stack.registers.A = StaticRawType::from_float(data as f32);
                     }
                     4 => {
                         let data = current_stack.registers.A.to_byte();
-                        current_stack.registers.A =
-                            StaticRawType::float((data as f32).to_le_bytes().to_vec());
+                        current_stack.registers.A = StaticRawType::from_float(data as f32);
                     }
                     13 => {
-                        let pointer = usize::from_le_bytes(current_stack.registers.B.data);
+                        let pointer = current_stack.registers.B.to_int() as usize;
                         let mref = match heap_memory.get(&pointer) {
                             Some(e) => e.clone(),
                             None => {
@@ -56,8 +53,7 @@ impl super::InstructionExecuter for A2F {
                             6 => {
                                 let a_value = String::from_utf8(mref.data).unwrap();
                                 let float_value = a_value.parse::<f32>().unwrap();
-                                current_stack.registers.A =
-                                    StaticRawType::float(float_value.to_le_bytes().to_vec());
+                                current_stack.registers.A = StaticRawType::from_float(float_value);
                             }
                             e => {
                                 return Err(ExecuterPanic {

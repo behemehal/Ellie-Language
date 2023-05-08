@@ -19,7 +19,7 @@ impl super::InstructionExecuter for SPUS {
         current_stack: &mut Stack,
         stack_memory: &mut StackMemory,
         addressing_value: &AddressingValues,
-        arch: PlatformArchitecture,
+        _arch: PlatformArchitecture,
     ) -> Result<ExecuterResult, ExecuterPanic> {
         match addressing_value {
             AddressingValues::Absolute(absolute_address) => {

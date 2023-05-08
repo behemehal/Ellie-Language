@@ -1,3 +1,5 @@
+use core::mem;
+
 use alloc::{
     format,
     string::{String, ToString},
@@ -6,7 +8,7 @@ use alloc::{
 };
 use ellie_core::defs::PlatformArchitecture;
 
-use crate::types::Types;
+use crate::{types::Types, utils::usize_to_le_bytes};
 
 #[derive(Clone, Debug)]
 pub struct Immediate;
@@ -35,7 +37,7 @@ pub struct IndirectY;
 #[derive(Clone, Debug, PartialEq)]
 pub enum AddressingModes {
     Implicit,
-    Immediate(Types, [u8; 8]),
+    Immediate(Types, Vec<u8>),
     Absolute(usize),
     AbsoluteIndex(usize, usize),
     AbsoluteProperty(usize, usize),
@@ -81,30 +83,30 @@ impl AddressingModes {
         }
     }
 
-    pub fn arg(&self, platform_size: &PlatformArchitecture) -> Vec<u8> {
+    pub fn arg(&self, platform_size: PlatformArchitecture) -> Vec<u8> {
         match self {
             AddressingModes::Immediate(rtype, x) => {
                 let mut v = vec![];
-                let code = rtype.code(platform_size);
-                v.extend(code.0.to_le_bytes().to_vec());
-                v.extend(code.1.to_le_bytes().to_vec());
+                let (type_size, type_data) = rtype.code(platform_size);
+                v.push(type_size);
+                v.extend(usize_to_le_bytes(type_data, platform_size));
                 v.extend(x);
                 v
             }
-            AddressingModes::Absolute(x) => x.to_le_bytes().to_vec(),
+            AddressingModes::Absolute(x) => usize_to_le_bytes(*x, platform_size),
             AddressingModes::AbsoluteIndex(array_pointer, index_pointer) => {
                 let mut v = vec![];
-                v.extend_from_slice(&array_pointer.to_le_bytes());
-                v.extend_from_slice(&index_pointer.to_le_bytes());
+                v.extend(usize_to_le_bytes(*array_pointer, platform_size));
+                v.extend(usize_to_le_bytes(*index_pointer, platform_size));
                 v
             }
             AddressingModes::AbsoluteProperty(array_pointer, index_pointer) => {
                 let mut v = vec![];
-                v.extend_from_slice(&array_pointer.to_le_bytes());
-                v.extend_from_slice(&index_pointer.to_le_bytes());
+                v.extend(usize_to_le_bytes(*array_pointer, platform_size));
+                v.extend(usize_to_le_bytes(*index_pointer, platform_size));
                 v
             }
-            AddressingModes::AbsoluteStatic(x) => x.to_le_bytes().to_vec(),
+            AddressingModes::AbsoluteStatic(x) => usize_to_le_bytes(*x, platform_size),
             _ => vec![],
         }
     }
@@ -121,10 +123,16 @@ impl core::fmt::Display for AddressingModes {
                     "#({}){}",
                     rtype.display(),
                     match rtype {
-                        Types::Integer => isize::from_le_bytes(*value).to_string(),
+                        Types::Integer => {
+                            let mut array = [0; mem::size_of::<isize>()];
+                            array[0..value.len()].copy_from_slice(&value[..]);
+                            isize::from_le_bytes(array)
+                        }
+                        .to_string(),
                         Types::Float =>
                             f32::from_le_bytes(value[0..4].try_into().unwrap()).to_string(),
-                        Types::Double => f64::from_le_bytes(*value).to_string(),
+                        Types::Double =>
+                            f64::from_le_bytes(value[..].try_into().unwrap()).to_string(),
                         Types::Byte => format!("0x{}", value[0]),
                         Types::Bool =>
                             if value[0] == 1 {
@@ -132,22 +140,50 @@ impl core::fmt::Display for AddressingModes {
                             } else {
                                 "false".to_string()
                             },
-                        Types::String(_) => format!("string[{:?}]", isize::from_le_bytes(*value)),
-                        Types::Char => format!(
-                            "'{:?}'",
-                            char::from_u32(u32::from_le_bytes(value[3..7].try_into().unwrap()))
-                                .unwrap()
-                        ),
-                        Types::StaticArray(_) =>
-                            format!("static_array[{:?}]", isize::from_le_bytes(*value)),
-                        Types::Array(_) => format!("array[{:?}]", isize::from_le_bytes(*value)),
+                        Types::String(_) => format!("string[{:?}]", {
+                            let mut array = [0; mem::size_of::<isize>()];
+                            array.copy_from_slice(&value[0..mem::size_of::<isize>()]);
+                            isize::from_le_bytes(array)
+                        }),
+                        Types::Char => {
+                            format!(
+                                "'{:?}'",
+                                char::from_u32(u32::from_le_bytes(value[0..4].try_into().unwrap()))
+                                    .unwrap()
+                            )
+                        }
+                        Types::StaticArray(_) => format!("static_array[{:?}]", {
+                            let mut array = [0; mem::size_of::<isize>()];
+                            array.copy_from_slice(&value[0..mem::size_of::<isize>()]);
+                            isize::from_le_bytes(array)
+                        }),
+                        Types::Array(_) => format!("array[{:?}]", {
+                            let mut array = [0; mem::size_of::<isize>()];
+                            array.copy_from_slice(&value[0..mem::size_of::<isize>()]);
+                            isize::from_le_bytes(array)
+                        }),
                         Types::Void => String::new(),
                         Types::Null => String::new(),
-                        Types::Class(_) => format!("class({:?})", isize::from_le_bytes(*value)),
-                        Types::Function => format!("fn({:?})", usize::from_le_bytes(*value)),
-                        Types::HeapReference => format!("href({:?})", isize::from_le_bytes(*value)),
-                        Types::StackReference =>
-                            format!("sref({:?})", isize::from_le_bytes(*value)),
+                        Types::Class(_) => format!("class({:?})", {
+                            let mut array = [0; mem::size_of::<isize>()];
+                            array.copy_from_slice(&value[0..mem::size_of::<isize>()]);
+                            usize::from_le_bytes(array)
+                        }),
+                        Types::Function => format!("fn({:?})", {
+                            let mut array = [0; mem::size_of::<isize>()];
+                            array.copy_from_slice(&value[0..mem::size_of::<isize>()]);
+                            usize::from_le_bytes(array)
+                        }),
+                        Types::HeapReference => format!("href({:?})", {
+                            let mut array = [0; mem::size_of::<isize>()];
+                            array.copy_from_slice(&value[0..mem::size_of::<isize>()]);
+                            usize::from_le_bytes(array)
+                        }),
+                        Types::StackReference => format!("sref({:?})", {
+                            let mut array = [0; mem::size_of::<isize>()];
+                            array.copy_from_slice(&value[0..mem::size_of::<isize>()]);
+                            usize::from_le_bytes(array)
+                        }),
                     }
                 )
             }

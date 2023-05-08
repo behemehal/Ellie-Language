@@ -3,10 +3,10 @@ use crate::{
     instruction_utils::OR,
     stack::Stack,
     stack_memory::StackMemory,
-    utils::{AddressingValues, ThreadPanicReason},
+    utils::{AddressingValues, ThreadPanicReason}, raw_type::StaticRawType,
 };
 use alloc::format;
-use ellie_core::{defs::PlatformArchitecture, raw_type::StaticRawType};
+use ellie_core::defs::PlatformArchitecture;
 
 use super::{ExecuterPanic, ExecuterResult, StaticProgram};
 
@@ -29,7 +29,7 @@ impl super::InstructionExecuter for OR {
                     (5, 5) => {
                         let b_value = current_stack.registers.B.to_bool();
                         let c_value = current_stack.registers.C.to_bool();
-                        current_stack.registers.A = StaticRawType::bool(b_value || c_value);
+                        current_stack.registers.A = StaticRawType::from_bool(b_value || c_value);
                     }
                     _ => {
                         return Err(ExecuterPanic {

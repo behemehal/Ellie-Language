@@ -35,7 +35,7 @@ impl super::Transpiler for condition::Condition {
                 assembler
                     .instructions
                     .push(instruction_table::Instructions::LDA(
-                        Instruction::immediate(Types::Bool, [1, 0, 0, 0, 0, 0, 0, 0]),
+                        Instruction::immediate(Types::Bool, vec![1]),
                     ));
             }
             assembler

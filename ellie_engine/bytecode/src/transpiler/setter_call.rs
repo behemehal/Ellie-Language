@@ -1,12 +1,9 @@
 use super::type_resolver::resolve_type;
 use crate::addressing_modes::AddressingModes;
 use crate::instruction_table;
-use crate::instructions::{self, Instruction};
-use alloc::string::ToString;
+use crate::instructions;
 use alloc::vec;
-use alloc::vec::Vec;
 use ellie_core::definite::items::setter_call;
-use ellie_core::defs::{self, DebugHeader, DebugHeaderType};
 
 impl super::Transpiler for setter_call::SetterCall {
     fn transpile(

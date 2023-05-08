@@ -1,80 +1,37 @@
+use alloc::vec;
 use alloc::vec::Vec;
-use ellie_core::definite::{types::operator, types::Types as CoreTypes};
+use ellie_core::{
+    definite::{types::operator, types::Types as CoreTypes},
+    defs::PlatformArchitecture,
+};
 
 use crate::{
     assembler::Assembler,
     instruction_table,
     instructions::{self, Instruction},
     types::Types,
+    utils::{f32_to_le_bytes, f64_to_le_bytes, isize_to_le_bytes, usize_to_le_bytes},
 };
 
-pub fn convert_type(types: &CoreTypes, _page_hash: Option<Vec<usize>>) -> (Types, [u8; 8]) {
+pub fn convert_type(
+    types: &CoreTypes,
+    _page_hash: Option<Vec<usize>>,
+    arch: PlatformArchitecture,
+) -> (Types, Vec<u8>) {
     match types {
-        CoreTypes::Byte(byte) => (
-            Types::Byte,
-            [byte.value.to_le_bytes()[0], 0, 0, 0, 0, 0, 0, 0],
-        ),
-        CoreTypes::Integer(integer) => (Types::Integer, integer.value.to_le_bytes()),
+        CoreTypes::Byte(byte) => (Types::Byte, byte.value.to_le_bytes().to_vec()),
+        CoreTypes::Integer(integer) => (Types::Integer, isize_to_le_bytes(integer.value, arch)),
         CoreTypes::Decimal(decimal) => match decimal.value {
             ellie_core::definite::types::decimal::DecimalTypeEnum::Float(float_value) => {
-                let float_bytes = float_value.to_le_bytes();
-                (
-                    Types::Float,
-                    [
-                        float_bytes[0],
-                        float_bytes[1],
-                        float_bytes[2],
-                        float_bytes[3],
-                        0,
-                        0,
-                        0,
-                        0,
-                    ],
-                )
+                (Types::Float, f32_to_le_bytes(float_value, arch))
             }
             ellie_core::definite::types::decimal::DecimalTypeEnum::Double(double_value) => {
-                (Types::Double, double_value.to_le_bytes())
+                (Types::Double, f64_to_le_bytes(double_value, arch))
             }
         },
-        CoreTypes::Bool(bool) => (Types::Bool, [bool.value as u8, 0, 0, 0, 0, 0, 0, 0]),
-        CoreTypes::String(_) => {
-            todo!()
-        }
-        CoreTypes::Char(e) => {
-            let char_bytes = (e.value as u32).to_le_bytes();
-            (
-                Types::Char,
-                [
-                    char_bytes[0],
-                    char_bytes[1],
-                    char_bytes[2],
-                    char_bytes[3],
-                    0,
-                    0,
-                    0,
-                    0,
-                ],
-            )
-        }
-        CoreTypes::Collective(_) => todo!(),
-        CoreTypes::Reference(_) => todo!(),
-        CoreTypes::BraceReference(_) => todo!(),
-        CoreTypes::Operator(_) => todo!(),
-        CoreTypes::Cloak(_) => todo!(),
-        CoreTypes::Array(_) => todo!(),
-        CoreTypes::Function(_) => todo!(),
-        CoreTypes::ClassCall(_) => todo!(),
-        CoreTypes::FunctionCall(_) => todo!(),
-        CoreTypes::SetterCall(_) => todo!(),
-        CoreTypes::Void => todo!(),
-        CoreTypes::NullResolver(_) => todo!(),
-        CoreTypes::Negative(_) => todo!(),
-        CoreTypes::VariableType(_) => todo!(),
-        CoreTypes::AsKeyword(_) => todo!(),
-        CoreTypes::Null => todo!(),
-        CoreTypes::Dynamic => todo!(),
-        CoreTypes::EnumData(_) => todo!(),
-        CoreTypes::ClassInstance(_) => todo!(),
+        CoreTypes::Bool(bool) => (Types::Bool, (bool.value as u8).to_le_bytes().to_vec()),
+        CoreTypes::Char(e) => (Types::Char, (e.value as u32).to_le_bytes().to_vec()),
+        _ => unreachable!("This type is not convertable to raw type"),
     }
 }
 
@@ -106,13 +63,6 @@ pub fn resolve_type(
                 .push(instruction_table::Instructions::STB(Instruction::implicit()));
             let mut last_pos = assembler.location();
             for (idx, chain) in e.index_chain.iter().enumerate() {
-                /// first index's reference defined above
-                //if idx == 0 {
-                //    assembler
-                //        .instructions
-                //        .push(instruction_table::Instructions::STC(Instruction::implicit()));
-                //    last_pos = assembler.location();
-                //}
                 match chain.rtype {
                     ellie_core::definite::types::class_instance::AttributeType::Property => {
                         match target_register {
@@ -584,7 +534,10 @@ pub fn resolve_type(
             assembler
                 .instructions
                 .push(instruction_table::Instructions::SAR(
-                    Instruction::immediate(Types::StaticArray(size), size.to_le_bytes()),
+                    Instruction::immediate(
+                        Types::StaticArray(size),
+                        usize_to_le_bytes(size, assembler.platform_attributes.architecture),
+                    ),
                 ));
 
             match target_register {
@@ -720,7 +673,10 @@ pub fn resolve_type(
                         .push(instruction_table::Instructions::LDA(
                             Instruction::immediate(
                                 Types::Class(class_call.params.len()),
-                                class_location.to_le_bytes(),
+                                usize_to_le_bytes(
+                                    class_location,
+                                    assembler.platform_attributes.architecture,
+                                ),
                             ),
                         ))
                 }
@@ -730,7 +686,10 @@ pub fn resolve_type(
                         .push(instruction_table::Instructions::LDB(
                             Instruction::immediate(
                                 Types::Class(class_call.params.len()),
-                                class_location.to_le_bytes(),
+                                usize_to_le_bytes(
+                                    class_location,
+                                    assembler.platform_attributes.architecture,
+                                ),
                             ),
                         ))
                 }
@@ -740,7 +699,10 @@ pub fn resolve_type(
                         .push(instruction_table::Instructions::LDC(
                             Instruction::immediate(
                                 Types::Class(class_call.params.len()),
-                                class_location.to_le_bytes(),
+                                usize_to_le_bytes(
+                                    class_location,
+                                    assembler.platform_attributes.architecture,
+                                ),
                             ),
                         ))
                 }
@@ -750,7 +712,10 @@ pub fn resolve_type(
                         .push(instruction_table::Instructions::LDX(
                             Instruction::immediate(
                                 Types::Class(class_call.params.len()),
-                                class_location.to_le_bytes(),
+                                usize_to_le_bytes(
+                                    class_location,
+                                    assembler.platform_attributes.architecture,
+                                ),
                             ),
                         ))
                 }
@@ -760,23 +725,30 @@ pub fn resolve_type(
                         .push(instruction_table::Instructions::LDY(
                             Instruction::immediate(
                                 Types::Class(class_call.params.len()),
-                                class_location.to_le_bytes(),
+                                usize_to_le_bytes(
+                                    class_location,
+                                    assembler.platform_attributes.architecture,
+                                ),
                             ),
                         ))
                 }
             }
         }
         CoreTypes::FunctionCall(function_call) => {
-            let target_local = match *function_call.target.clone() {
-                CoreTypes::VariableType(e) => e.value,
-                CoreTypes::Reference(e) => e.chain.last().unwrap().value.clone(),
+            let target = match *function_call.target.clone() {
+                CoreTypes::VariableType(e) => assembler
+                    .find_local(&e.value, dependencies.clone())
+                    .unwrap()
+                    .clone(),
+                CoreTypes::Reference(e) => {
+                    let hash = e.index_chain.last().unwrap();
+                    assembler.find_local_by_hash(
+                        e.index_chain.last().unwrap().hash,
+                        Some(vec![hash.page_hash]),
+                    ).unwrap().clone()
+                }
                 _ => unreachable!("{:?}", function_call.target),
             };
-
-            let target = assembler
-                .find_local(&target_local, dependencies.clone())
-                .unwrap()
-                .clone();
 
             let previous_params_location = assembler.location() + 1;
             for _ in &function_call.params {
@@ -806,7 +778,13 @@ pub fn resolve_type(
             assembler
                 .instructions
                 .push(instruction_table::Instructions::LDX(
-                    Instruction::immediate(Types::Integer, previous_params_location.to_le_bytes()),
+                    Instruction::immediate(
+                        Types::Integer,
+                        usize_to_le_bytes(
+                            previous_params_location,
+                            assembler.platform_attributes.architecture,
+                        ),
+                    ),
                 ));
 
             assembler
@@ -852,35 +830,35 @@ pub fn resolve_type(
                 assembler
                     .instructions
                     .push(instruction_table::Instructions::LDA(
-                        Instruction::immediate(Types::Void, [0, 0, 0, 0, 0, 0, 0, 0]),
+                        Instruction::immediate(Types::Void, Vec::new()),
                     ))
             }
             instructions::Registers::B => {
                 assembler
                     .instructions
                     .push(instruction_table::Instructions::LDB(
-                        Instruction::immediate(Types::Void, [0, 0, 0, 0, 0, 0, 0, 0]),
+                        Instruction::immediate(Types::Void, Vec::new()),
                     ))
             }
             instructions::Registers::C => {
                 assembler
                     .instructions
                     .push(instruction_table::Instructions::LDC(
-                        Instruction::immediate(Types::Void, [0, 0, 0, 0, 0, 0, 0, 0]),
+                        Instruction::immediate(Types::Void, Vec::new()),
                     ))
             }
             instructions::Registers::X => {
                 assembler
                     .instructions
                     .push(instruction_table::Instructions::LDX(
-                        Instruction::immediate(Types::Void, [0, 0, 0, 0, 0, 0, 0, 0]),
+                        Instruction::immediate(Types::Void, Vec::new()),
                     ))
             }
             instructions::Registers::Y => {
                 assembler
                     .instructions
                     .push(instruction_table::Instructions::LDY(
-                        Instruction::immediate(Types::Void, [0, 0, 0, 0, 0, 0, 0, 0]),
+                        Instruction::immediate(Types::Void, Vec::new()),
                     ))
             }
         },
@@ -1001,7 +979,11 @@ pub fn resolve_type(
             }
         }
         CoreTypes::Byte(_) => {
-            let converted_type = convert_type(types, dependencies);
+            let converted_type = convert_type(
+                types,
+                dependencies,
+                assembler.platform_attributes.architecture,
+            );
             match target_register {
                 instructions::Registers::A => {
                     assembler
@@ -1041,7 +1023,11 @@ pub fn resolve_type(
             }
         }
         CoreTypes::Integer(_) => {
-            let converted_type = convert_type(types, dependencies);
+            let converted_type = convert_type(
+                types,
+                dependencies,
+                assembler.platform_attributes.architecture,
+            );
             match target_register {
                 instructions::Registers::A => {
                     assembler
@@ -1081,7 +1067,11 @@ pub fn resolve_type(
             }
         }
         CoreTypes::Decimal(_) => {
-            let converted_type = convert_type(types, dependencies);
+            let converted_type = convert_type(
+                types,
+                dependencies,
+                assembler.platform_attributes.architecture,
+            );
 
             match target_register {
                 instructions::Registers::A => {
@@ -1122,7 +1112,11 @@ pub fn resolve_type(
             }
         }
         CoreTypes::Bool(_) => {
-            let converted_type = convert_type(types, dependencies);
+            let converted_type = convert_type(
+                types,
+                dependencies,
+                assembler.platform_attributes.architecture,
+            );
 
             match target_register {
                 instructions::Registers::A => {
@@ -1170,21 +1164,10 @@ pub fn resolve_type(
             let array_location = assembler.location();
 
             for char in e.value.chars() {
-                let char_bytes = (char as u32).to_le_bytes();
-                let bytes = [
-                    char_bytes[0],
-                    char_bytes[1],
-                    char_bytes[2],
-                    char_bytes[3],
-                    0,
-                    0,
-                    0,
-                    0,
-                ];
                 assembler
                     .instructions
                     .push(instruction_table::Instructions::STA(
-                        Instruction::immediate(Types::Char, bytes),
+                        Instruction::immediate(Types::Char, (char as u32).to_le_bytes().to_vec()),
                     ));
                 assembler
                     .instructions
@@ -1232,7 +1215,11 @@ pub fn resolve_type(
             }
         }
         CoreTypes::Char(_) => {
-            let converted_type = convert_type(types, dependencies);
+            let converted_type = convert_type(
+                types,
+                dependencies,
+                assembler.platform_attributes.architecture,
+            );
 
             match target_register {
                 instructions::Registers::A => {
@@ -1277,35 +1264,35 @@ pub fn resolve_type(
                 assembler
                     .instructions
                     .push(instruction_table::Instructions::LDA(
-                        Instruction::immediate(Types::Null, [0, 0, 0, 0, 0, 0, 0, 0]),
+                        Instruction::immediate(Types::Null, Vec::new()),
                     ))
             }
             instructions::Registers::B => {
                 assembler
                     .instructions
                     .push(instruction_table::Instructions::LDB(
-                        Instruction::immediate(Types::Null, [0, 0, 0, 0, 0, 0, 0, 0]),
+                        Instruction::immediate(Types::Null, Vec::new()),
                     ))
             }
             instructions::Registers::C => {
                 assembler
                     .instructions
                     .push(instruction_table::Instructions::LDC(
-                        Instruction::immediate(Types::Null, [0, 0, 0, 0, 0, 0, 0, 0]),
+                        Instruction::immediate(Types::Null, Vec::new()),
                     ))
             }
             instructions::Registers::X => {
                 assembler
                     .instructions
                     .push(instruction_table::Instructions::LDX(
-                        Instruction::immediate(Types::Null, [0, 0, 0, 0, 0, 0, 0, 0]),
+                        Instruction::immediate(Types::Null, Vec::new()),
                     ))
             }
             instructions::Registers::Y => {
                 assembler
                     .instructions
                     .push(instruction_table::Instructions::LDY(
-                        Instruction::immediate(Types::Null, [0, 0, 0, 0, 0, 0, 0, 0]),
+                        Instruction::immediate(Types::Null, Vec::new()),
                     ))
             }
         },

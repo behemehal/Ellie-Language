@@ -1,12 +1,10 @@
 use alloc::format;
-use ellie_core::{defs::PlatformArchitecture, raw_type::StaticRawType};
+use ellie_core::defs::PlatformArchitecture;
 
 use crate::{
-    channel::ModuleManager,
-    config::PROGRAM_MAX_SIZE,
     heap_memory::HeapMemory,
     instruction_utils::AND,
-    program::ReadInstruction,
+    raw_type::StaticRawType,
     stack::Stack,
     stack_memory::StackMemory,
     utils::{AddressingValues, ThreadPanicReason},
@@ -33,7 +31,7 @@ impl super::InstructionExecuter for AND {
                     (5, 5) => {
                         let b_value = current_stack.registers.B.to_bool();
                         let c_value = current_stack.registers.C.to_bool();
-                        current_stack.registers.A = StaticRawType::bool(b_value && c_value);
+                        current_stack.registers.A = StaticRawType::from_bool(b_value && c_value);
                     }
                     _ => {
                         return Err(ExecuterPanic {

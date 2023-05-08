@@ -1,12 +1,12 @@
 use alloc::format;
-use ellie_core::{defs::PlatformArchitecture, raw_type::StaticRawType};
+use ellie_core::defs::PlatformArchitecture;
 
 use crate::{
     heap_memory::HeapMemory,
     instruction_utils::FN,
     stack::Stack,
     stack_memory::StackMemory,
-    utils::{AddressingValues, ThreadPanicReason},
+    utils::{AddressingValues, ThreadPanicReason}, raw_type::StaticRawType,
 };
 
 use super::{ExecuterPanic, ExecuterResult, StaticProgram};
@@ -23,13 +23,13 @@ impl super::InstructionExecuter for FN {
     ) -> Result<super::ExecuterResult, super::ExecuterPanic> {
         match &addressing_value {
             AddressingValues::Immediate(e) => {
-                let hash = usize::from_le_bytes(e.data);
+                let hash: usize = e.to_int() as usize;
                 stack_memory.set(
                     &current_stack.get_pos(),
-                    StaticRawType::function(e.data.to_vec()),
+                    StaticRawType::from_function(hash),
                 );
                 let end_point = match &program[current_stack.pos + 1].addressing_value {
-                    AddressingValues::Immediate(e) => usize::from_le_bytes(e.data),
+                    AddressingValues::Immediate(e) => e.to_int() as usize,
                     _ => {
                         return Err(ExecuterPanic {
                             reason: ThreadPanicReason::IllegalAddressingValue,
@@ -38,7 +38,7 @@ impl super::InstructionExecuter for FN {
                     }
                 };
                 let parameter_count = match &program[current_stack.pos + 2].addressing_value {
-                    AddressingValues::Immediate(e) => usize::from_le_bytes(e.data),
+                    AddressingValues::Immediate(e) => e.to_int() as usize,
                     _ => {
                         return Err(ExecuterPanic {
                             reason: ThreadPanicReason::IllegalAddressingValue,
@@ -48,7 +48,7 @@ impl super::InstructionExecuter for FN {
                 };
                 if hash != current_stack.id {
                     //Reduce by one to pass the stack_pos increase in thread
-                    current_stack.pos = current_stack.pos + end_point;
+                    current_stack.pos = end_point;
                 } else {
                     //skip the function len, the parameter count and paramaters
                     if parameter_count > 0 {

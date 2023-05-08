@@ -56,7 +56,7 @@ pub enum Instructions {
 }
 
 impl Instructions {
-    pub fn op_code(&self, platform_size: &PlatformArchitecture) -> Vec<u8> {
+    pub fn op_code(&self, platform_size: PlatformArchitecture) -> Vec<u8> {
         match &self {
             Instructions::LDA(e) => {
                 let op_code_list: [isize; 11] = [-1, 1, 2, 3, 4, 5, -1, 6, 7, 8, 9];
@@ -584,7 +584,7 @@ impl Instructions {
         .to_string()
     }
 
-    pub fn get_arg(&self, platform_size: &PlatformArchitecture) -> Vec<u8> {
+    pub fn get_arg(&self, platform_size: PlatformArchitecture) -> Vec<u8> {
         match &self {
             Instructions::LDA(e) => e.addressing_mode.arg(platform_size),
             Instructions::LDB(e) => e.addressing_mode.arg(platform_size),

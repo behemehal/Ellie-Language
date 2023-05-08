@@ -1,9 +1,10 @@
 use alloc::format;
-use ellie_core::{defs::PlatformArchitecture, raw_type::StaticRawType};
+use ellie_core::defs::PlatformArchitecture;
 
 use crate::{
     heap_memory::HeapMemory,
     instruction_utils::DIV,
+    raw_type::StaticRawType,
     stack::Stack,
     stack_memory::StackMemory,
     utils::{AddressingValues, ThreadPanicReason},
@@ -28,8 +29,8 @@ impl super::InstructionExecuter for DIV {
                     current_stack.registers.C.type_id.id,
                 ) {
                     (1, 1) => {
-                        let b_value = isize::from_le_bytes(current_stack.registers.B.data);
-                        let c_value = isize::from_le_bytes(current_stack.registers.C.data);
+                        let b_value = current_stack.registers.B.to_int();
+                        let c_value = current_stack.registers.C.to_int();
                         let result = match b_value.checked_div(c_value) {
                             Some(e) => e,
                             None => {
@@ -39,8 +40,7 @@ impl super::InstructionExecuter for DIV {
                                 });
                             }
                         };
-                        current_stack.registers.A =
-                            StaticRawType::integer(result.to_le_bytes().to_vec());
+                        current_stack.registers.A = StaticRawType::from_int(result);
                     }
                     (2, 2) => {
                         let b_value = f32::from_le_bytes(
@@ -51,8 +51,7 @@ impl super::InstructionExecuter for DIV {
                         );
                         let result = b_value / c_value;
                         if result.is_finite() {
-                            current_stack.registers.A =
-                                StaticRawType::float(result.to_le_bytes().to_vec());
+                            current_stack.registers.A = StaticRawType::from_float(result);
                         } else {
                             return Err(ExecuterPanic {
                                 reason: ThreadPanicReason::FloatOverflow,
@@ -65,8 +64,7 @@ impl super::InstructionExecuter for DIV {
                         let c_value = f64::from_le_bytes(current_stack.registers.C.data);
                         let result = b_value / c_value;
                         if result.is_finite() {
-                            current_stack.registers.A =
-                                StaticRawType::double(result.to_le_bytes().to_vec());
+                            current_stack.registers.A = StaticRawType::from_double(result);
                         } else {
                             return Err(ExecuterPanic {
                                 reason: ThreadPanicReason::DoubleOverflow,
@@ -76,11 +74,11 @@ impl super::InstructionExecuter for DIV {
                     }
                     // Byte + Byte
                     (4, 4) => {
-                        let b_value = isize::from_le_bytes(current_stack.registers.B.data);
-                        let c_value = isize::from_le_bytes(current_stack.registers.C.data);
+                        let b_value = current_stack.registers.B.to_int();
+                        let c_value = current_stack.registers.C.to_int();
                         let result = b_value / c_value;
                         if result > -128 && result < 127 {
-                            current_stack.registers.A = StaticRawType::byte(result as u8);
+                            current_stack.registers.A = StaticRawType::from_byte(result as u8);
                         } else {
                             return Err(ExecuterPanic {
                                 reason: ThreadPanicReason::ByteOverflow,

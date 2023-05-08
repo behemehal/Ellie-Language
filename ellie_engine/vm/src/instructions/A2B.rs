@@ -1,12 +1,12 @@
 use alloc::format;
-use ellie_core::{defs::PlatformArchitecture, raw_type::StaticRawType};
+use ellie_core::defs::PlatformArchitecture;
 
 use crate::{
     heap_memory::HeapMemory,
     instruction_utils::A2B,
     stack::Stack,
     stack_memory::StackMemory,
-    utils::{AddressingValues, ThreadPanicReason},
+    utils::{AddressingValues, ThreadPanicReason}, raw_type::StaticRawType,
 };
 
 use super::{ExecuterPanic, ExecuterResult, StaticProgram};
@@ -27,7 +27,7 @@ impl super::InstructionExecuter for A2B {
                     1 => {
                         let data = current_stack.registers.A.to_int();
                         if data < 255 {
-                            current_stack.registers.A = StaticRawType::byte(data as u8);
+                            current_stack.registers.A = StaticRawType::from_byte(data as u8);
                         } else {
                             return Err(ExecuterPanic {
                                 reason: ThreadPanicReason::IntegerOverflow,
@@ -38,7 +38,7 @@ impl super::InstructionExecuter for A2B {
                     2 => {
                         let data = current_stack.registers.A.to_float();
                         current_stack.registers.A =
-                            StaticRawType::byte(if data.is_sign_negative() {
+                            StaticRawType::from_byte(if data.is_sign_negative() {
                                 data.to_le_bytes()[0]
                             } else {
                                 data.to_le_bytes()[0]
@@ -47,7 +47,7 @@ impl super::InstructionExecuter for A2B {
                     3 => {
                         let data = current_stack.registers.A.to_double();
                         current_stack.registers.A =
-                            StaticRawType::byte(if data.is_sign_negative() {
+                            StaticRawType::from_byte(if data.is_sign_negative() {
                                 data.to_le_bytes()[0]
                             } else {
                                 data.to_le_bytes()[0]
@@ -56,7 +56,7 @@ impl super::InstructionExecuter for A2B {
                     4 => (),
                     5 => {
                         let data = current_stack.registers.A.to_bool();
-                        current_stack.registers.A = StaticRawType::byte(if data { 1 } else { 0 });
+                        current_stack.registers.A = StaticRawType::from_byte(if data { 1 } else { 0 });
                     }
                     e => {
                         return Err(ExecuterPanic {

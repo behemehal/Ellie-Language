@@ -1,12 +1,10 @@
 use alloc::{format, vec::Vec};
-use ellie_core::{
-    defs::PlatformArchitecture,
-    raw_type::{RawType, StaticRawType, TypeId},
-};
+use ellie_core::defs::PlatformArchitecture;
 
 use crate::{
     heap_memory::HeapMemory,
     instruction_utils::STR,
+    raw_type::{RawType, StaticRawType, TypeId},
     stack::Stack,
     stack_memory::StackMemory,
     utils::{AddressingValues, ThreadPanicReason},
@@ -35,7 +33,7 @@ impl super::InstructionExecuter for STR {
                 );
                 stack_memory.set(
                     &current_stack.get_pos(),
-                    StaticRawType::heap_reference(current_stack.get_pos().to_le_bytes()),
+                    StaticRawType::from_heap_reference(current_stack.get_pos()),
                 );
             }
             _ => {

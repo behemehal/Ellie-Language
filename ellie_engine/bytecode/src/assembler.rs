@@ -1,12 +1,13 @@
-use crate::instruction_table;
 use crate::instructions::Instruction;
 use crate::transpiler::Transpiler;
+use crate::utils::usize_to_le_bytes;
+use crate::{instruction_table, utils::limit_platform_size};
 use alloc::{
     format,
     string::{String, ToString},
     vec::Vec,
 };
-use ellie_core::defs::{DebugHeader, PlatformArchitecture};
+use ellie_core::defs::{DebugHeader, PlatformArchitecture, ModuleMap};
 use ellie_core::utils::ExportPage;
 use ellie_parser::parser::Module;
 use std::{io::Write, panic};
@@ -80,10 +81,16 @@ pub struct MainFunction {
 #[derive(Clone, Debug)]
 pub struct ModuleInfo {
     pub name: String,
-    pub modue_maps: Vec<(String, Option<String>)>,
+    pub modue_maps: Vec<ModuleMap>,
     pub is_library: bool,
     pub main_function: Option<MainFunction>,
     pub platform_attributes: PlatformAttributes,
+}
+
+#[derive(Debug, Clone)]
+pub struct NativeCall {
+    pub name: String,
+    pub hash: usize,
 }
 
 pub struct AssembleResult {
@@ -91,10 +98,12 @@ pub struct AssembleResult {
     pub debug_headers: Vec<DebugHeader>,
     pub locals: Vec<LocalHeader>,
     pub instructions: Vec<instruction_table::Instructions>,
+    pub native_exports: Vec<NativeCall>,
 }
 
 impl AssembleResult {
     pub fn render_binary_to_vector(&self) -> Vec<u8> {
+        let arch = self.module_info.platform_attributes.architecture;
         let mut binary = Vec::new();
         binary
             .write(&[match self.module_info.platform_attributes.architecture {
@@ -111,27 +120,34 @@ impl AssembleResult {
             }])
             .unwrap();
         if let Some(main_fn) = &self.module_info.main_function {
-            binary.write_all(&main_fn.start.to_le_bytes()).unwrap();
-            binary.write_all(&main_fn.end.to_le_bytes()).unwrap();
-            binary.write_all(&main_fn.hash.to_le_bytes()).unwrap();
+            binary
+                .write_all(&usize_to_le_bytes(main_fn.start, arch))
+                .unwrap();
+            binary
+                .write_all(&usize_to_le_bytes(main_fn.end, arch))
+                .unwrap();
+            binary
+                .write_all(&usize_to_le_bytes(main_fn.hash, arch))
+                .unwrap();
         }
 
         for instruction in &self.instructions {
             binary
-                .write(&instruction.op_code(&self.module_info.platform_attributes.architecture))
+                .write(&instruction.op_code(self.module_info.platform_attributes.architecture))
                 .unwrap();
         }
         binary
     }
 
     pub fn render_binary<T: Write, E: Write>(&self, writer: &mut T, dbg_w: &mut E) {
-        for (module_name, path) in &self.module_info.modue_maps {
+        let arch = self.module_info.platform_attributes.architecture;
+        for module_map in &self.module_info.modue_maps {
             dbg_w
                 .write_all(
                     format!(
                         "{}: {}\n",
-                        module_name,
-                        path.clone().unwrap_or("-   ".to_string())
+                        module_map.module_name,
+                        module_map.module_path.clone().unwrap_or("-   ".to_string())
                     )
                     .as_bytes(),
                 )
@@ -177,14 +193,20 @@ impl AssembleResult {
             }])
             .unwrap();
         if let Some(main_fn) = &self.module_info.main_function {
-            writer.write_all(&main_fn.start.to_le_bytes()).unwrap();
-            writer.write_all(&main_fn.end.to_le_bytes()).unwrap();
-            writer.write_all(&main_fn.hash.to_le_bytes()).unwrap();
+            writer
+                .write_all(&usize_to_le_bytes(main_fn.start, arch))
+                .unwrap();
+            writer
+                .write_all(&usize_to_le_bytes(main_fn.end, arch))
+                .unwrap();
+            writer
+                .write_all(&usize_to_le_bytes(main_fn.hash, arch))
+                .unwrap();
         }
 
         for instruction in &self.instructions {
             writer
-                .write(&instruction.op_code(&self.module_info.platform_attributes.architecture))
+                .write(&instruction.op_code(self.module_info.platform_attributes.architecture))
                 .unwrap();
         }
     }
@@ -206,7 +228,24 @@ impl AssembleResult {
         match &self.module_info.main_function {
             Some(main_fn) => {
                 output
-                    .write_all(format!(".main {}: {}\n", main_fn.start, main_fn.end).as_bytes())
+                    .write_all(
+                        format!(
+                            ".main {}: {} @ {}\n",
+                            limit_platform_size(
+                                main_fn.start,
+                                self.module_info.platform_attributes.architecture
+                            ),
+                            limit_platform_size(
+                                main_fn.end,
+                                self.module_info.platform_attributes.architecture
+                            ),
+                            limit_platform_size(
+                                main_fn.hash,
+                                self.module_info.platform_attributes.architecture
+                            )
+                        )
+                        .as_bytes(),
+                    )
                     .unwrap();
             }
             None => (),
@@ -258,8 +297,8 @@ impl AssembleResult {
                 "\n{}: {} = {} : {:?}",
                 count,
                 instruction,
-                instruction.op_code(&self.module_info.platform_attributes.architecture)[0],
-                instruction.op_code(&self.module_info.platform_attributes.architecture)[1..]
+                instruction.op_code(self.module_info.platform_attributes.architecture)[0],
+                instruction.op_code(self.module_info.platform_attributes.architecture)[1..]
                     .to_vec(),
             );
             output.write_all(&code.as_bytes()).unwrap();
@@ -295,6 +334,20 @@ impl Assembler {
         } else {
             self.instructions.len() - 1
         }
+    }
+
+    pub fn find_local_by_hash(&self, hash: usize, page_hash: Option<Vec<usize>>) -> Option<&LocalHeader> {
+        let mut locals: Vec<&LocalHeader> = self
+            .locals
+            .iter()
+            .filter(|filter| match &page_hash {
+                Some(page_hash) => page_hash.contains(&filter.page_hash),
+                None => true,
+            })
+            .collect();
+        locals.sort_by(|a, b| a.cursor.cmp(&b.cursor));
+        locals.reverse();
+        locals.into_iter().find(|local| matches!(local.hash, Some(local_hash) if local_hash == hash))
     }
 
     pub fn find_local(&self, name: &String, page_hash: Option<Vec<usize>>) -> Option<&LocalHeader> {
@@ -385,7 +438,7 @@ impl Assembler {
                 ellie_core::definite::items::Collecting::None => todo!(),
                 ellie_core::definite::items::Collecting::Brk(_) => todo!(),
                 ellie_core::definite::items::Collecting::Go(_) => todo!(),
-                ellie_core::definite::items::Collecting::FuctionParameter(function_parameter) => {
+                ellie_core::definite::items::Collecting::FunctionParameter(function_parameter) => {
                     function_parameter.transpile(
                         self,
                         processed_page.hash as usize,
@@ -408,8 +461,23 @@ impl Assembler {
         main_function
     }
 
-    pub fn assemble(&mut self, modue_maps: Vec<(String, Option<String>)>) -> AssembleResult {
+    pub fn assemble(&mut self, modue_maps: Vec<ModuleMap>) -> AssembleResult {
         let main_function = self.assemble_dependency(&self.module.initial_page.clone());
+        //self.instructions.push(instruction_table::Instructions::RET(Instruction { addressing_mode: AddressingModes::Implicit }));
+        let mut native_exports = Vec::new();
+
+        for native_header in &self.debug_headers {
+            match native_header.rtype {
+                ellie_core::defs::DebugHeaderType::NativeFunction => {
+                    native_exports.push(NativeCall {
+                        name: native_header.name.clone(),
+                        hash: native_header.hash,
+                    });
+                }
+                _ => (),
+            }
+        }
+
         AssembleResult {
             module_info: ModuleInfo {
                 name: self.module.name.clone(),
@@ -421,6 +489,7 @@ impl Assembler {
             locals: self.locals.clone(),
             debug_headers: self.debug_headers.clone(),
             instructions: self.instructions.clone(),
+            native_exports,
         }
     }
 }

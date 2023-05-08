@@ -9,7 +9,7 @@ use crate::{
     types::Types,
 };
 
-fn parse_type_text(text: String) -> Option<(Types, [u8; 8])> {
+fn parse_type_text(text: String) -> Option<(Types, Vec<u8>)> {
     //#(typeText)value
     //#(int)10
     //#(float)10.0

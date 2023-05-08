@@ -1,9 +1,10 @@
 use alloc::{format, string::String};
-use ellie_core::{defs::PlatformArchitecture, raw_type::StaticRawType};
+use ellie_core::defs::PlatformArchitecture;
 
 use crate::{
     heap_memory::HeapMemory,
     instruction_utils::A2I,
+    raw_type::StaticRawType,
     stack::Stack,
     stack_memory::StackMemory,
     utils::{AddressingValues, ThreadPanicReason},
@@ -26,29 +27,24 @@ impl super::InstructionExecuter for A2I {
                 match current_stack.registers.A.type_id.id {
                     1 => (),
                     2 => {
-                        let data = current_stack.registers.A.to_float();
-                        current_stack.registers.A =
-                            StaticRawType::integer(data.to_le_bytes().to_vec());
+                        let data = current_stack.registers.A.to_float() as isize;
+                        current_stack.registers.A = StaticRawType::from_int(data);
                     }
                     3 => {
-                        let data = current_stack.registers.A.to_double();
-                        current_stack.registers.A =
-                            StaticRawType::integer(data.to_le_bytes().to_vec());
+                        let data = current_stack.registers.A.to_double() as isize;
+                        current_stack.registers.A = StaticRawType::from_int(data);
                     }
                     4 => {
-                        let data = current_stack.registers.A.to_byte();
-                        current_stack.registers.A = StaticRawType::byte(data);
+                        let data = current_stack.registers.A.to_byte() as isize;
+                        current_stack.registers.A = StaticRawType::from_int(data);
                     }
                     5 => {
                         let data = current_stack.registers.A.to_bool();
-                        current_stack.registers.A = StaticRawType::integer(if data {
-                            1_isize.to_le_bytes().to_vec()
-                        } else {
-                            0_isize.to_le_bytes().to_vec()
-                        });
+                        current_stack.registers.A =
+                            StaticRawType::from_int(if data { 1_isize } else { 0_isize });
                     }
                     13 => {
-                        let pointer = usize::from_le_bytes(current_stack.registers.B.data);
+                        let pointer = current_stack.registers.B.to_int() as usize;
                         let mref = match heap_memory.get(&pointer) {
                             Some(e) => e.clone(),
                             None => {
@@ -62,8 +58,7 @@ impl super::InstructionExecuter for A2I {
                             6 => {
                                 let a_value = String::from_utf8(mref.data).unwrap();
                                 let integer_value = a_value.parse::<isize>().unwrap();
-                                current_stack.registers.A =
-                                    StaticRawType::integer(integer_value.to_le_bytes().to_vec());
+                                current_stack.registers.A = StaticRawType::from_int(integer_value);
                             }
                             e => {
                                 return Err(ExecuterPanic {

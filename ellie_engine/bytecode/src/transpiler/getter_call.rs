@@ -1,5 +1,5 @@
 use super::type_resolver::resolve_type;
-use crate::instructions;
+use crate::{instructions, utils::limit_platform_size};
 use alloc::{string::ToString, vec};
 use ellie_core::{
     definite::items::getter_call,
@@ -24,8 +24,8 @@ impl super::Transpiler for getter_call::GetterCall {
             Some(dependencies),
         );
         assembler.debug_headers.push(DebugHeader {
-            rtype: DebugHeaderType::Function,
-            hash: 00009999999,
+            rtype: DebugHeaderType::GetterCall,
+            hash: limit_platform_size(00099999999, assembler.platform_attributes.architecture),
             module: processed_page.path.clone(),
             name: "@getter".to_string(),
             start_end: (debug_header_start, assembler.location()),

@@ -1,12 +1,10 @@
 use alloc::{format, string::ToString};
-use ellie_core::{
-    defs::PlatformArchitecture,
-    raw_type::{RawType, StaticRawType},
-};
+use ellie_core::defs::PlatformArchitecture;
 
 use crate::{
     heap_memory::HeapMemory,
     instruction_utils::A2S,
+    raw_type::{RawType, StaticRawType},
     stack::Stack,
     stack_memory::StackMemory,
     utils::{AddressingValues, ThreadPanicReason},
@@ -31,25 +29,25 @@ impl super::InstructionExecuter for A2S {
                         let data = current_stack.registers.A.to_int().to_string();
                         heap_memory.set(&current_stack.get_pos(), RawType::generate_string(data));
                         current_stack.registers.A =
-                            StaticRawType::heap_reference((current_stack.get_pos()).to_le_bytes());
+                            StaticRawType::from_heap_reference(current_stack.get_pos());
                     }
                     2 => {
                         let data = current_stack.registers.A.to_float().to_string();
                         heap_memory.set(&current_stack.get_pos(), RawType::generate_string(data));
                         current_stack.registers.A =
-                            StaticRawType::heap_reference((current_stack.get_pos()).to_le_bytes());
+                            StaticRawType::from_heap_reference(current_stack.get_pos());
                     }
                     3 => {
                         let data = current_stack.registers.A.to_double().to_string();
                         heap_memory.set(&current_stack.get_pos(), RawType::generate_string(data));
                         current_stack.registers.A =
-                            StaticRawType::heap_reference((current_stack.get_pos()).to_le_bytes());
+                            StaticRawType::from_heap_reference(current_stack.get_pos());
                     }
                     4 => {
                         let data = current_stack.registers.A.to_byte().to_string();
                         heap_memory.set(&current_stack.get_pos(), RawType::generate_string(data));
                         current_stack.registers.A =
-                            StaticRawType::heap_reference((current_stack.get_pos()).to_le_bytes());
+                            StaticRawType::from_heap_reference(current_stack.get_pos());
                     }
                     e => {
                         return Err(ExecuterPanic {

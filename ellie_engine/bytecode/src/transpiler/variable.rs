@@ -2,7 +2,7 @@ use super::type_resolver::resolve_type;
 use crate::{
     assembler::LocalHeader,
     instruction_table,
-    instructions::{self, Instruction},
+    instructions::{self, Instruction}, utils::limit_platform_size,
 };
 use alloc::vec;
 use ellie_core::{
@@ -45,7 +45,7 @@ impl super::Transpiler for variable::Variable {
             );
             assembler.debug_headers.push(DebugHeader {
                 rtype: DebugHeaderType::Variable,
-                hash: self.hash,
+                hash: limit_platform_size(self.hash, assembler.platform_attributes.architecture),
                 start_end: (location, assembler.location()),
                 module: processed_page.path.clone(),
                 name: self.name.clone(),
@@ -68,7 +68,7 @@ impl super::Transpiler for variable::Variable {
 
         assembler.debug_headers.push(DebugHeader {
             rtype: DebugHeaderType::Variable,
-            hash: self.hash,
+            hash: limit_platform_size(self.hash, assembler.platform_attributes.architecture),
             start_end: (location, assembler.location()),
             module: processed_page.path.clone(),
             name: self.name.clone(),

@@ -1,12 +1,12 @@
 use alloc::format;
-use ellie_core::{defs::PlatformArchitecture, raw_type::StaticRawType};
+use ellie_core::defs::PlatformArchitecture;
 
 use crate::{
     heap_memory::HeapMemory,
     instruction_utils::GQ,
     stack::Stack,
     stack_memory::StackMemory,
-    utils::{AddressingValues, ThreadPanicReason},
+    utils::{AddressingValues, ThreadPanicReason}, raw_type::StaticRawType,
 };
 
 use super::{ExecuterPanic, ExecuterResult, StaticProgram};
@@ -30,27 +30,27 @@ impl super::InstructionExecuter for GQ {
                     (1, 1) => {
                         let b_value = current_stack.registers.B.to_int();
                         let c_value = current_stack.registers.C.to_int();
-                        current_stack.registers.A = StaticRawType::bool(b_value >= c_value);
+                        current_stack.registers.A = StaticRawType::from_bool(b_value >= c_value);
                     }
                     (2, 2) => {
                         let b_value = current_stack.registers.B.to_float();
                         let c_value = current_stack.registers.C.to_float();
-                        current_stack.registers.A = StaticRawType::bool(b_value >= c_value);
+                        current_stack.registers.A = StaticRawType::from_bool(b_value >= c_value);
                     }
                     (3, 3) => {
                         let b_value = current_stack.registers.B.to_double();
                         let c_value = current_stack.registers.C.to_double();
-                        current_stack.registers.A = StaticRawType::bool(b_value >= c_value);
+                        current_stack.registers.A = StaticRawType::from_bool(b_value >= c_value);
                     }
                     (2, 3) | (3, 2) => {
                         let b_value = current_stack.registers.B.to_double();
                         let c_value = current_stack.registers.C.to_double();
-                        current_stack.registers.A = StaticRawType::bool(b_value >= c_value);
+                        current_stack.registers.A = StaticRawType::from_bool(b_value >= c_value);
                     }
                     (4, 4) => {
                         let b_value = current_stack.registers.B.to_byte();
                         let c_value = current_stack.registers.C.to_byte();
-                        current_stack.registers.A = StaticRawType::bool(b_value >= c_value);
+                        current_stack.registers.A = StaticRawType::from_bool(b_value >= c_value);
                     }
                     _ => {
                         return Err(ExecuterPanic {

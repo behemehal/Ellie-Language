@@ -15,7 +15,7 @@ impl super::InstructionExecuter for DEA {
     fn execute(
         &self,
         heap_memory: &mut HeapMemory,
-        program: StaticProgram,
+        _program: StaticProgram,
         current_stack: &mut Stack,
         stack_memory: &mut StackMemory,
         addressing_value: &AddressingValues,

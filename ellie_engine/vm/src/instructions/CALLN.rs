@@ -1,12 +1,12 @@
 use alloc::{format, vec::Vec};
-use ellie_core::defs::{PlatformArchitecture, VmNativeCall, VmNativeCallParameters};
+use ellie_core::defs::PlatformArchitecture;
 
 use crate::{
     heap_memory::HeapMemory,
     instruction_utils::CALLN,
     stack::Stack,
     stack_memory::StackMemory,
-    utils::{AddressingValues, ThreadPanicReason},
+    utils::{AddressingValues, ThreadPanicReason, VmNativeCall, VmNativeCallParameters},
 };
 
 use super::{ExecuterPanic, ExecuterResult, StaticProgram};
@@ -24,7 +24,7 @@ impl super::InstructionExecuter for CALLN {
         match addressing_value {
             AddressingValues::Absolute(start_location) => {
                 let hash = match &program[*start_location].addressing_value {
-                    AddressingValues::Immediate(e) => usize::from_le_bytes(e.data),
+                    AddressingValues::Immediate(e) => e.to_int() as usize,
                     _ => {
                         return Err(ExecuterPanic {
                             reason: ThreadPanicReason::IllegalAddressingValue,
@@ -33,7 +33,7 @@ impl super::InstructionExecuter for CALLN {
                     }
                 };
                 let return_heap_position = match &program[start_location + 1].addressing_value {
-                    AddressingValues::Immediate(e) => usize::from_le_bytes(e.data),
+                    AddressingValues::Immediate(e) => e.to_int() as usize,
                     _ => {
                         return Err(ExecuterPanic {
                             reason: ThreadPanicReason::IllegalAddressingValue,
@@ -42,7 +42,7 @@ impl super::InstructionExecuter for CALLN {
                     }
                 };
                 let params_length = match &program[start_location + 2].addressing_value {
-                    AddressingValues::Immediate(e) => usize::from_le_bytes(e.data),
+                    AddressingValues::Immediate(e) => e.to_int() as usize,
                     _ => {
                         return Err(ExecuterPanic {
                             reason: ThreadPanicReason::IllegalAddressingValue,
@@ -51,7 +51,7 @@ impl super::InstructionExecuter for CALLN {
                     }
                 };
                 let mut params = Vec::new();
-                let start_position_of_params = current_stack.get_pos() - 2;
+                let _start_position_of_params = current_stack.get_pos() - 2;
 
                 for i in 0..params_length {
                     let pos =

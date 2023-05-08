@@ -6,7 +6,7 @@ use ellie_core::{
 
 use crate::{
     instruction_table,
-    instructions::{self, Instruction},
+    instructions::{self, Instruction}, utils::limit_platform_size,
 };
 
 use super::type_resolver::resolve_type;
@@ -69,7 +69,7 @@ impl super::Transpiler for loop_type::Loop {
 
         assembler.debug_headers.push(DebugHeader {
             rtype: DebugHeaderType::Condition,
-            hash: self.hash,
+            hash: limit_platform_size(self.hash, assembler.platform_attributes.architecture),
             module: processed_page.path.clone(),
             name: "<loop>".to_string(),
             start_end: (start_pos, assembler.location()),

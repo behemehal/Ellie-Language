@@ -1,3 +1,5 @@
+use core::mem;
+
 use crate::{
     heap_memory::HeapMemory,
     instruction_utils::PUSH,

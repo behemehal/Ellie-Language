@@ -1,9 +1,10 @@
 use alloc::{format, vec::Vec};
-use ellie_core::{defs::PlatformArchitecture, raw_type::StaticRawType};
+use ellie_core::defs::PlatformArchitecture;
 
 use crate::{
     heap_memory::HeapMemory,
     instruction_utils::LDA,
+    raw_type::StaticRawType,
     stack::Stack,
     stack_memory::StackMemory,
     utils::{AddressingValues, ThreadPanicReason},
@@ -195,8 +196,9 @@ impl super::InstructionExecuter for LDA {
                                                 code_location: format!("{}:{}", file!(), line!()),
                                             });
                                         } else {
-                                            let absolute_position_start =
-                                                8 + (array_entry_len * index);
+                                            let absolute_position_start = (arch.usize_len()
+                                                as usize)
+                                                + (array_entry_len * index);
                                             let absolute_position_end =
                                                 absolute_position_start + array_entry_len;
                                             let array_entry = &e.data

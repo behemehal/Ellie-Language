@@ -49,7 +49,7 @@ mod SUB;
 mod _MOD;
 
 use alloc::string::String;
-use ellie_core::defs::{PlatformArchitecture, VmNativeCall};
+use ellie_core::defs::PlatformArchitecture;
 
 use crate::{
     config::PROGRAM_MAX_SIZE,
@@ -57,7 +57,7 @@ use crate::{
     program::ReadInstruction,
     stack::Stack,
     stack_memory::StackMemory,
-    utils::{AddressingValues, ThreadPanicReason},
+    utils::{AddressingValues, ThreadPanicReason, VmNativeCall},
 };
 
 #[derive(Debug, Clone)]

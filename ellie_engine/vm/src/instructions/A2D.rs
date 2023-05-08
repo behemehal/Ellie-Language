@@ -1,9 +1,10 @@
 use alloc::{format, string::String};
-use ellie_core::{defs::PlatformArchitecture, raw_type::StaticRawType};
+use ellie_core::defs::PlatformArchitecture;
 
 use crate::{
     heap_memory::HeapMemory,
     instruction_utils::A2D,
+    raw_type::StaticRawType,
     stack::Stack,
     stack_memory::StackMemory,
     utils::{AddressingValues, ThreadPanicReason},
@@ -19,29 +20,26 @@ impl super::InstructionExecuter for A2D {
         current_stack: &mut Stack,
         _stack_memory: &mut StackMemory,
         addressing_value: &AddressingValues,
-        arch: PlatformArchitecture,
+        _arch: PlatformArchitecture,
     ) -> Result<super::ExecuterResult, super::ExecuterPanic> {
         match addressing_value {
             AddressingValues::Implicit => {
                 match current_stack.registers.A.type_id.id {
                     1 => {
                         let data = current_stack.registers.A.to_int();
-                        current_stack.registers.A =
-                            StaticRawType::double((data as f64).to_le_bytes().to_vec());
+                        current_stack.registers.A = StaticRawType::from_double(data as f64);
                     }
                     2 => {
                         let data = current_stack.registers.A.to_float();
-                        current_stack.registers.A =
-                            StaticRawType::double((data as f64).to_le_bytes().to_vec());
+                        current_stack.registers.A = StaticRawType::from_double(data as f64);
                     }
                     3 => (),
                     4 => {
                         let data = current_stack.registers.A.to_byte();
-                        current_stack.registers.A =
-                            StaticRawType::double((data as f64).to_le_bytes().to_vec());
+                        current_stack.registers.A = StaticRawType::from_double(data as f64);
                     }
                     13 => {
-                        let pointer = usize::from_le_bytes(current_stack.registers.B.data);
+                        let pointer = current_stack.registers.B.to_int() as usize;
                         let mref = match heap_memory.get(&pointer) {
                             Some(e) => e.clone(),
                             None => {
@@ -54,9 +52,21 @@ impl super::InstructionExecuter for A2D {
                         match mref.type_id.id {
                             6 => {
                                 let a_value = String::from_utf8(mref.data).unwrap();
-                                let double_value = a_value.parse::<f64>().unwrap();
-                                current_stack.registers.A =
-                                    StaticRawType::double(double_value.to_le_bytes().to_vec());
+                                match a_value.parse::<f64>() {
+                                    Ok(double_value) => {
+                                        current_stack.registers.A =
+                                            StaticRawType::from_double(double_value);
+                                    }
+                                    Err(_) => {
+                                        return Err(ExecuterPanic {
+                                            reason: ThreadPanicReason::CannotConvertToType(
+                                                mref.type_id.id,
+                                                3,
+                                            ),
+                                            code_location: format!("{}:{}", file!(), line!()),
+                                        })
+                                    }
+                                }
                             }
                             e => {
                                 return Err(ExecuterPanic {

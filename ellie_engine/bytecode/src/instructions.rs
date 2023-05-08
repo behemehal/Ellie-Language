@@ -1,3 +1,5 @@
+use alloc::vec::Vec;
+
 use crate::{addressing_modes::AddressingModes, types::Types};
 
 #[derive(Clone, Debug, PartialEq)]
@@ -12,7 +14,7 @@ impl Instruction {
         }
     }
 
-    pub fn immediate(rtype: Types, val: [u8; 8]) -> Instruction {
+    pub fn immediate(rtype: Types, val: Vec<u8>) -> Instruction {
         Instruction {
             addressing_mode: AddressingModes::Immediate(rtype, val),
         }
