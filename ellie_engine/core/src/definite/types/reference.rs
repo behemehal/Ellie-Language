@@ -11,6 +11,8 @@ use super::class_instance::AttributeType;
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct IndexChainAttribute {
     pub rtype: AttributeType,
+    pub hash: usize,
+    pub page_hash: usize,
     pub idx: usize,
 }
 

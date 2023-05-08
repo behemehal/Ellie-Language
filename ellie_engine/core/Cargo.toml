@@ -14,10 +14,7 @@ enum-as-inner = "0.3.3"
 rand = "0.8.4"
 
 [features]
-default = ["std", "B64"]
+default = ["std"]
 native_addons = []
 compiler_utils = []
 std = []
-B64 = []
-B32 = []
-B16 = []

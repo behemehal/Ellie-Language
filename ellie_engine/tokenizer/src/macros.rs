@@ -61,7 +61,7 @@ macro_rules! tokenizeCode {
                 if link_module {
                     ResolvedImport {
                         found: false,
-                        resolve_error: "Cannot use modules in tokenizer".to_owned(),
+                        resolve_error: "Cannot use modules in tokenizer macro".to_owned(),
                         ..Default::default()
                     }
                 } else {

@@ -9,7 +9,10 @@ use alloc::{
 use ellie_core::defs::{CursorPosition, DebugHeader, DebugHeaderType};
 #[cfg(feature = "std")]
 use ellie_vm::utils::Reader;
-use ellie_vm::{program::Program, utils::ProgramReader};
+use ellie_vm::{
+    program::{Program, ProgramReadErrors},
+    utils::ProgramReader,
+};
 
 #[cfg(feature = "std")]
 pub struct RFile<'a, T> {
@@ -31,7 +34,9 @@ where
     fn read(&mut self) -> Option<u8> {
         let mut b = [0u8];
         match self.source.read_exact(&mut b) {
-            Ok(_) => Some(b[0]),
+            Ok(_) => {
+                return Some(b[0]);
+            }
             Err(_) => None,
         }
     }
@@ -162,7 +167,9 @@ pub fn parse_debug_file(dbg_file: String) -> Result<DebugInfo, String> {
 
 //Deprecated
 #[deprecated]
-pub fn read_program<T: ellie_vm::utils::Reader>(program_reader: &mut T) -> Result<Program, u8> {
+pub fn read_program<T: ellie_vm::utils::Reader>(
+    program_reader: &mut T,
+) -> Result<Program, ProgramReadErrors> {
     let mut program_reader = ProgramReader::new(program_reader);
     let mut program = Program::new();
     match program.build_from_reader(&mut program_reader) {

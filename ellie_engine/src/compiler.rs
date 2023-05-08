@@ -1,6 +1,6 @@
 use crate::utils::{CompileOutput, CompilerSettings};
 use alloc::{borrow::ToOwned, string::String, vec::Vec};
-use ellie_core::{error::Error, utils::PageExport};
+use ellie_core::{error::Error, utils::PageExport, defs::Version};
 use ellie_parser::parser;
 use ellie_tokenizer::tokenizer::Page;
 
@@ -27,7 +27,7 @@ pub fn parse_pages(
         compiler_settings.description,
         compiler_settings.is_lib,
         compiler_settings.experimental_features,
-        ellie_core::defs::Version::build_from_string(
+        Version::build_from_string(
             crate::engine_constants::ELLIE_ENGINE_VERSION.to_owned(),
         ),
     );
@@ -51,10 +51,10 @@ pub fn parse_pages(
 #[macro_export]
 macro_rules! parseText {
     ($text:expr) => {{
-        use ellie_engine::utils::MainProgram;
-        use ellie_engine::utils::ProgramRepository;
-        use ellie_parser::parser;
-        use ellie_tokenizer::tokenizer::Pager;
+        use ellie_engine::utils::{MainProgram, CompileOutput, ProgramRepository};
+        use ellie_engine::ellie_parser::parser;
+        use ellie_engine::ellie_tokenizer::tokenizer::{Pager, ResolvedImport};
+        use ellie_engine::ellie_core::defs;
 
         #[derive(Clone)]
         struct Repository {
@@ -106,12 +106,12 @@ macro_rules! parseText {
                 let mut parser = parser::Parser::new(
                     pager.pages,
                     0,
-                    ellie_core::defs::Version::build_from_string("1.0.0".to_string()),
+                    defs::Version::build_from_string("1.0.0".to_string()),
                     "main".to_string(),
                     "".to_string(),
                     false,
                     false,
-                    ellie_core::defs::Version::build_from_string(
+                    defs::Version::build_from_string(
                         ellie_engine::engine_constants::ELLIE_ENGINE_VERSION.to_owned(),
                     ),
                 );

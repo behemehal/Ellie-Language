@@ -51,7 +51,7 @@ pub enum Collecting {
     SetterCall(setter_call::SetterCall),
     Enum(enum_type::EnumType),
     NativeFunction(native_function::NativeFunction),
-    FuctionParameter(function_parameter::FunctionParameter),
+    FunctionParameter(function_parameter::FunctionParameter),
     ConstructorParameter(constructor_parameter::ConstructorParameter),
     SelfItem(self_item::SelfItem),
     ClassInstance(class_instance::ClassInstance),
@@ -85,7 +85,7 @@ impl Collecting {
                 range_end: e.value_pos.range_end,
             },
             Collecting::ConstructorParameter(e) => e.pos,
-            Collecting::FuctionParameter(e) => defs::Cursor {
+            Collecting::FunctionParameter(e) => defs::Cursor {
                 range_start: e.name_pos.range_start,
                 range_end: e.rtype_pos.range_end,
             },
@@ -136,7 +136,7 @@ impl Collecting {
             Collecting::Generic(_) => false,
             Collecting::Brk(_) => false,
             Collecting::Go(_) => false,
-            Collecting::FuctionParameter(_) => false,
+            Collecting::FunctionParameter(_) => false,
             Collecting::ConstructorParameter(_) => false,
             Collecting::Extend(_) => false,
             Collecting::Loop(_) => false,

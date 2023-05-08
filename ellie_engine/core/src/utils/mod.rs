@@ -7,11 +7,11 @@ use alloc::vec::Vec;
 use rand;
 use serde::{Deserialize, Serialize};
 
+use crate::definite::types::operator::Operators;
 use crate::definite::types::operator::{
     assignment_operator_to_string, comparison_operator_to_string, logical_operator_to_string,
     ArithmeticOperators, AssignmentOperators,
 };
-use crate::definite::{definers::DefinerCollecting, types::operator::Operators};
 use crate::{defs, error};
 
 /// Response of [`reliable_name_range`] function

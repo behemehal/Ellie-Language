@@ -25,7 +25,6 @@ pub mod information;
 pub mod module_path;
 #[doc(hidden)]
 pub mod native;
-pub mod raw_type;
 #[cfg(feature = "compiler_utils")]
 pub mod utils;
 pub mod warning;
