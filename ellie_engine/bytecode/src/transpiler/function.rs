@@ -88,7 +88,6 @@ impl super::Transpiler for function::Function {
         };
 
 
-        let loc = assembler.location();
         assembler.assemble_dependency(&self.inner_page_id);
 
         assembler
