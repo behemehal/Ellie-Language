@@ -69,6 +69,8 @@ impl Default for TokenizerOptions {
     }
 }
 
+/// A struct that represents a position in a file.
+/// (line, column)
 #[derive(PartialEq, Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct CursorPosition(pub usize, pub usize);
 
