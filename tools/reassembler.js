@@ -55,7 +55,7 @@ instruction_table += "}\n\n";
 
 instruction_table += "impl Instructions {\n";
 instruction_table +=
-  "    pub fn op_code(&self, platform_size: &PlatformArchitecture) -> Vec<u8> {\n";
+  "    pub fn op_code(&self, platform_size: PlatformArchitecture) -> Vec<u8> {\n";
 instruction_table += "        match &self {\n";
 
 for (const instruction of byteCodeFile.instructions) {
@@ -108,7 +108,7 @@ instruction_table += `        .to_string()\n`;
 instruction_table += `    }\n`;
 
 //!
-instruction_table += `\n    pub fn get_arg(&self, platform_size: &PlatformArchitecture) -> Vec<u8> {\n`;
+instruction_table += `\n    pub fn get_arg(&self, platform_size: PlatformArchitecture) -> Vec<u8> {\n`;
 instruction_table += "        match &self {\n";
 
 for (const instruction of byteCodeFile.instructions) {
@@ -145,7 +145,6 @@ let instruction_utils =
 instruction_utils += `
 use ellie_core::defs::PlatformArchitecture;
 use crate::{
-    channel::ModuleManager,
     heap_memory::HeapMemory,
     instructions::{ExecuterPanic, ExecuterResult, InstructionExecuter, StaticProgram},
     stack_memory::StackMemory,
