@@ -21,7 +21,7 @@ impl super::Processor for EnumType {
         let path = parser.pages.nth(page_idx).unwrap().path.clone();
         parser
             .informations
-            .push(&error::error_list::ERROR_S58.clone().build_with_path(
+            .push(&error::error_list::ERROR_S59.clone().build_with_path(
                 vec![error::ErrorBuildField::new("token", &"enum".to_owned())],
                 alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                 path,

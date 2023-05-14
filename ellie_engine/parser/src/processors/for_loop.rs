@@ -1,3 +1,5 @@
+#![allow(unused_variables)]
+#![allow(unreachable_code)]
 use crate::processors::type_processor::process;
 use alloc::{borrow::ToOwned, vec, vec::Vec};
 use ellie_core::{definite::definers::DefinerCollecting, error};
@@ -11,6 +13,16 @@ impl super::Processor for ForLoop {
         processed_page_idx: usize,
         page_hash: usize,
     ) -> bool {
+        let path = parser.pages.nth(page_idx).unwrap().path.clone();
+        parser
+            .informations
+            .push(&error::error_list::ERROR_S59.clone().build_with_path(
+                vec![error::ErrorBuildField::new("token", &"for loops".to_owned())],
+                alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                path,
+                self.pos,
+            ));
+        return false;
         let page = parser.pages.nth(page_idx).unwrap().clone();
         let path = page.path.clone();
 
