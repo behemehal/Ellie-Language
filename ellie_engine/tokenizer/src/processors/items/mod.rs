@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::syntax::items::*;
 
-use super::types::TypeProcessor;
+use super::{types::TypeProcessor, EscapeCharEmitter};
 mod brk_processor;
 mod class_processor;
 mod comment_processor;
@@ -271,6 +271,30 @@ impl ItemProcessor {
 }
 
 impl super::Processor for ItemProcessor {
+    fn emits_line_endings(&self) -> EscapeCharEmitter {
+        match &self.current {
+            Processors::Variable(e) => e.emits_line_endings(),
+            Processors::GetterCall(e) => e.emits_line_endings(),
+            Processors::SetterCall(e) => e.emits_line_endings(),
+            Processors::Function(e) => e.emits_line_endings(),
+            Processors::FileKey(e) => e.emits_line_endings(),
+            Processors::Import(e) => e.emits_line_endings(),
+            Processors::Loop(e) => e.emits_line_endings(),
+            Processors::ForLoop(e) => e.emits_line_endings(),
+            Processors::Condition(e) => e.emits_line_endings(),
+            Processors::Constructor(e) => e.emits_line_endings(),
+            Processors::Class(e) => e.emits_line_endings(),
+            Processors::Ret(e) => e.emits_line_endings(),
+            Processors::Brk(e) => e.emits_line_endings(),
+            Processors::Go(e) => e.emits_line_endings(),
+            Processors::Enum(e) => e.emits_line_endings(),
+            Processors::Getter(e) => e.emits_line_endings(),
+            Processors::Setter(e) => e.emits_line_endings(),
+            Processors::Comment(e) => e.emits_line_endings(),
+            _ => EscapeCharEmitter::dont_emit(),
+        }
+    }
+
     fn iterate(
         &mut self,
         errors: &mut Vec<error::Error>,

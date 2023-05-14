@@ -1,7 +1,11 @@
-use crate::syntax::items::ret::Ret;
+use crate::{syntax::items::ret::Ret, processors::EscapeCharEmitter};
 use ellie_core::{defs, error};
 
 impl crate::processors::Processor for Ret {
+    fn emits_line_endings(&self) -> EscapeCharEmitter {
+        self.value.emits_line_endings()
+    }
+
     fn iterate(
         &mut self,
         errors: &mut Vec<error::Error>,

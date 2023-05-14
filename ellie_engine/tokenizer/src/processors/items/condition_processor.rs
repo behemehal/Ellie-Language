@@ -1,7 +1,17 @@
-use crate::syntax::items::condition;
+use crate::{processors::EscapeCharEmitter, syntax::items::condition};
 use ellie_core::{defs, error};
 
 impl crate::processors::Processor for condition::Condition {
+    fn emits_line_endings(&self) -> EscapeCharEmitter {
+        if self.chains.len() != 0 {
+            EscapeCharEmitter::dont_emit()
+        } else {
+            self.chains[self.chains.len() - 1]
+                .iterator
+                .emits_line_endings()
+        }
+    }
+
     fn iterate(
         &mut self,
         errors: &mut Vec<error::Error>,

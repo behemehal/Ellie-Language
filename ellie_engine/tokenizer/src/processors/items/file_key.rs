@@ -1,8 +1,12 @@
-use crate::processors::types::Processors;
+use crate::processors::{types::Processors, EscapeCharEmitter};
 pub use crate::syntax::items::file_key::FileKey;
 use ellie_core::{defs, error, utils};
 
 impl crate::processors::Processor for FileKey {
+    fn emits_line_endings(&self) -> EscapeCharEmitter {
+        self.value_cache.emits_line_endings()
+    }
+
     fn iterate(
         &mut self,
         errors: &mut Vec<error::Error>,

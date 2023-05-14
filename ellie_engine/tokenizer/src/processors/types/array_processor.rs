@@ -1,7 +1,11 @@
-use crate::syntax::types::array_type;
+use crate::{syntax::types::array_type, processors::EscapeCharEmitter};
 use ellie_core::{defs, error};
 
 impl crate::processors::Processor for array_type::ArrayTypeCollector {
+    fn emits_line_endings(&self) -> EscapeCharEmitter {
+        self.itered_cache.emits_line_endings()
+    }
+
     fn iterate(
         &mut self,
         errors: &mut Vec<error::Error>,

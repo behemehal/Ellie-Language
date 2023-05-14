@@ -1,7 +1,19 @@
-use crate::syntax::items::for_loop::ForLoop;
+use crate::{processors::EscapeCharEmitter, syntax::items::for_loop::ForLoop};
 use ellie_core::{defs, error};
 
 impl crate::processors::Processor for ForLoop {
+    fn emits_line_endings(&self) -> EscapeCharEmitter {
+        if self.variable.emits_line_endings().is_emitting() {
+            self.variable.emits_line_endings()
+        } else if self.target_iterator.emits_line_endings().is_emitting() {
+            self.target_iterator.emits_line_endings()
+        } else if self.iterator.emits_line_endings().is_emitting() {
+            self.iterator.emits_line_endings()
+        } else {
+            EscapeCharEmitter::dont_emit()
+        }
+    }
+
     fn iterate(
         &mut self,
         errors: &mut Vec<error::Error>,

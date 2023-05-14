@@ -1,8 +1,12 @@
-use crate::syntax::{items::definers::DefinerCollector, types::class_call_type};
+use crate::{syntax::{items::definers::DefinerCollector, types::class_call_type}, processors::EscapeCharEmitter};
 use ellie_core::{defs, error};
 
 use super::TypeProcessor;
 impl crate::processors::Processor for class_call_type::ClassCallCollector {
+    fn emits_line_endings(&self) -> EscapeCharEmitter {
+        self.itered_cache.emits_line_endings()
+    }
+
     fn iterate(
         &mut self,
         errors: &mut Vec<error::Error>,

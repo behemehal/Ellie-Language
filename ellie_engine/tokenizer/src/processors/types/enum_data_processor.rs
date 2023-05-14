@@ -1,7 +1,11 @@
-use crate::syntax::types::enum_data;
+use crate::{syntax::types::enum_data, processors::EscapeCharEmitter};
 use ellie_core::{defs, error};
 
 impl crate::processors::Processor for enum_data::EnumDataCollector {
+    fn emits_line_endings(&self) -> EscapeCharEmitter {
+        self.itered_cache.emits_line_endings()
+    }
+
     fn iterate(
         &mut self,
         errors: &mut Vec<error::Error>,

@@ -1,5 +1,5 @@
 use crate::{
-    processors::{types::Processors, Processor},
+    processors::{types::Processors, Processor, EscapeCharEmitter},
     syntax::types::operator_type::{self, ComparisonOperators},
 };
 use ellie_core::{
@@ -9,6 +9,10 @@ use ellie_core::{
 };
 
 impl Processor for operator_type::OperatorTypeCollector {
+    fn emits_line_endings(&self) -> EscapeCharEmitter {
+        self.itered_cache.emits_line_endings()
+    }
+
     fn iterate(
         &mut self,
         errors: &mut Vec<error::Error>,

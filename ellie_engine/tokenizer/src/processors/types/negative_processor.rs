@@ -1,7 +1,11 @@
-use crate::syntax::types::negative_type;
+use crate::{syntax::types::negative_type, processors::EscapeCharEmitter};
 use ellie_core::{defs, error};
 
 impl crate::processors::Processor for negative_type::Negative {
+    fn emits_line_endings(&self) -> EscapeCharEmitter {
+        self.itered_cache.emits_line_endings()
+    }
+
     fn iterate(
         &mut self,
         errors: &mut Vec<ellie_core::error::Error>,

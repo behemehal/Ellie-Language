@@ -2,7 +2,7 @@
 
 use crate::processors::{
     items::{self},
-    Processor,
+    EscapeCharEmitter, Processor,
 };
 use ellie_core::{defs, error};
 use serde::{Deserialize, Serialize};
@@ -30,8 +30,7 @@ impl Iterator {
     pub fn finalize(&mut self) {
         if !self.active.is_complete() {
             if self.active.current.is_initalized() {
-                if matches!(&self.active.current, items::Processors::Comment(e) if e.line_comment)
-                {
+                if matches!(&self.active.current, items::Processors::Comment(e) if e.line_comment) {
                     self.collected.push(self.active.current.clone());
                 } else {
                     self.errors.push(error::error_list::ERROR_S26.clone().build(
@@ -51,6 +50,10 @@ impl Iterator {
         }
     }
 
+    pub fn emits_line_endings(&self) -> EscapeCharEmitter {
+        self.active.emits_line_endings()
+    }
+
     /// This method iterates current data
     /// ## Parameters
     /// * `last_char` - Last char of the active char
@@ -58,24 +61,23 @@ impl Iterator {
     /// ## Returns
     /// * `bool` - Returns true if the iterating process is hang
     pub fn iterate(&mut self, last_char: char, letter_char: char) -> bool {
-        let mut hang = false;
-        let in_str_or_char = matches!(&self.active.current,  items::Processors::GetterCall(e) if e.data.as_string().is_some() || e.data.as_char().is_some());
+        let emits_line_endings = self.active.emits_line_endings();
+        let mut hang: bool = false;
 
         let is_escape = letter_char == '\n' || letter_char == '\r' || letter_char == '\t';
-        if is_escape && !in_str_or_char {
+        if !emits_line_endings.emit.contains(&letter_char) && is_escape {
             self.active
                 .iterate(&mut self.errors, self.pos, last_char, ' ');
         } else {
             self.active
                 .iterate(&mut self.errors, self.pos, last_char, letter_char);
         }
-        if self.errors.iter().any(|e| e.code == 0x00) {
+        if self.errors.iter().any(|e: &error::Error| e.code == 0x00) {
             hang = true;
         }
 
         let mut dont_inc_column = false;
-
-        if letter_char == '\n' && !in_str_or_char {
+        if letter_char == '\n' && (emits_line_endings.increase_cursor || !emits_line_endings.is_emitting()) {
             self.pos.0 += 1;
             self.pos.1 = 0;
             dont_inc_column = true;
@@ -89,16 +91,9 @@ impl Iterator {
                         ));
                         self.active = items::ItemProcessor::default();
                     }
-                } else if let items::Processors::Comment(e) = &mut self.active.current {
-                    if e.line_comment {
-                        self.collected.push(self.active.current.clone());
-                        self.active = items::ItemProcessor::default();
-                    } else {
-                        e.content.push(String::new());
-                    }
                 }
             }
-        } else if letter_char == '\t' && !in_str_or_char {
+        } else if letter_char == '\t' && (emits_line_endings.increase_cursor || !emits_line_endings.is_emitting()) {
             self.pos.1 += 4;
             dont_inc_column = true;
         }

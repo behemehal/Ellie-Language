@@ -1,7 +1,11 @@
-use crate::syntax::items::variable::VariableCollector;
+use crate::{syntax::items::variable::VariableCollector, processors::EscapeCharEmitter};
 use ellie_core::{defs, error, utils};
 
 impl crate::processors::Processor for VariableCollector {
+    fn emits_line_endings(&self) -> EscapeCharEmitter {
+        self.value_cache.emits_line_endings()
+    }
+
     fn iterate(
         &mut self,
         errors: &mut Vec<error::Error>,

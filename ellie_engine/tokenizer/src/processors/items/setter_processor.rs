@@ -1,10 +1,14 @@
-use crate::syntax::items::{function, setter};
+use crate::{syntax::items::{function, setter}, processors::EscapeCharEmitter};
 use ellie_core::{
     defs::{self, Cursor},
     error, utils,
 };
 
 impl crate::processors::Processor for setter::Setter {
+    fn emits_line_endings(&self) -> EscapeCharEmitter {
+        self.iterator.emits_line_endings()
+    }
+
     fn iterate(
         &mut self,
         errors: &mut Vec<error::Error>,

@@ -1,7 +1,11 @@
-use crate::syntax::types::function_call_type;
+use crate::{syntax::types::function_call_type, processors::EscapeCharEmitter};
 use ellie_core::{defs, error};
 
 impl crate::processors::Processor for function_call_type::FunctionCallCollector {
+    fn emits_line_endings(&self) -> EscapeCharEmitter {
+        self.itered_cache.emits_line_endings()
+    }
+
     fn iterate(
         &mut self,
         errors: &mut Vec<error::Error>,

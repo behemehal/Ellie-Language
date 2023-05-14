@@ -1,6 +1,11 @@
+use crate::processors::EscapeCharEmitter;
 pub use crate::syntax::items::getter_call::GetterCall;
 
 impl crate::processors::Processor for GetterCall {
+    fn emits_line_endings(&self) -> EscapeCharEmitter {
+        self.cache.emits_line_endings()
+    }
+
     fn iterate(
         &mut self,
         errors: &mut Vec<ellie_core::error::Error>,

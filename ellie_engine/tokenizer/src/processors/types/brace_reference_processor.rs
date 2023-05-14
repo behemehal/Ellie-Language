@@ -1,7 +1,11 @@
-use crate::syntax::types::brace_reference_type;
+use crate::{syntax::types::brace_reference_type, processors::EscapeCharEmitter};
 use ellie_core::{defs, error};
 
 impl crate::processors::Processor for brace_reference_type::BraceReferenceTypeCollector {
+    fn emits_line_endings(&self) -> EscapeCharEmitter {
+        self.itered_cache.emits_line_endings()
+    }
+
     fn iterate(
         &mut self,
         errors: &mut Vec<error::Error>,

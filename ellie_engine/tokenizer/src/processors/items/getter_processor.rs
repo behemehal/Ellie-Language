@@ -1,7 +1,11 @@
-use crate::syntax::items::getter;
+use crate::{syntax::items::getter, processors::EscapeCharEmitter};
 use ellie_core::{defs, error, utils};
 
 impl crate::processors::Processor for getter::Getter {
+    fn emits_line_endings(&self) -> EscapeCharEmitter {
+        self.iterator.emits_line_endings()
+    }
+
     fn iterate(
         &mut self,
         errors: &mut Vec<error::Error>,

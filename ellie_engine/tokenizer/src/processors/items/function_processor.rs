@@ -1,7 +1,11 @@
-use crate::syntax::items::function;
+use crate::{syntax::items::function, processors::EscapeCharEmitter};
 use ellie_core::{defs, error, utils};
 
 impl crate::processors::Processor for function::FunctionCollector {
+    fn emits_line_endings(&self) -> EscapeCharEmitter {
+        self.iterator.emits_line_endings()
+    }
+
     fn iterate(
         &mut self,
         errors: &mut Vec<error::Error>,
@@ -16,7 +20,7 @@ impl crate::processors::Processor for function::FunctionCollector {
             {
                 if self.data.name == "" {
                     self.data.name_pos.range_start = cursor;
-                } else if last_char == ' ' {
+                } else if last_char == ' ' || last_char == '\n' || last_char == '\t' {
                     errors.push(error::error_list::ERROR_S1.clone().build(
                         vec![error::ErrorBuildField {
                             key: "token".to_string(),

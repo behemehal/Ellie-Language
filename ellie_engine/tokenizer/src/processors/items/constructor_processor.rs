@@ -1,7 +1,11 @@
-use crate::syntax::items::constructor;
+use crate::{syntax::items::constructor, processors::EscapeCharEmitter};
 use ellie_core::{defs, error, utils};
 
 impl crate::processors::Processor for constructor::Constructor {
+    fn emits_line_endings(&self) -> EscapeCharEmitter {
+        self.iterator.emits_line_endings()
+    }
+
     fn iterate(
         &mut self,
         errors: &mut Vec<error::Error>,
