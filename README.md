@@ -6,6 +6,10 @@
 
 Why ellie? Ellie is a type-safe programing language that runs on embedded and sandboxed environments.
 
+### Bu belgenin Türkçe çevirisi için [tıklayın](./README.tr.md)
+
+---
+
 ## Docs
 
 You can see detailed docs [here](https://docs.ellie-lang.org)
@@ -17,10 +21,6 @@ You can read ellie blog [here](https://www.ellie-lang.org/blog)
 ## Discord
 
 Do you have a question or feature to ask? join [here](https://discord.gg/CpxCzQ9y8S)
-
-## Robotics
-
-Check [Robotics.md](./Robotics.md)
 
 ## Language Server [WIP]
 
@@ -35,4 +35,4 @@ You can see [Contributor Covenant](https://www.contributor-covenant.org/version/
 Ellie is licensed under the [GPL-2.0 license](./LICENSE) and its libraries are licensed under the [Apache License, Version 2.0](http://apache.org/licenses/LICENSE-2.0) or [MIT license](https://opensource.org/licenses/MIT)
 
 ## Note
-Ellie is still in development and it is not ready for production use, you can see development progress [here](https://www.ellie-lang.org/blog)
+Ellie is still in development and it is not ready for production use, you can see development progress [here](https://www.ellie-lang.org/blog) or you can reach us from our discord server.
