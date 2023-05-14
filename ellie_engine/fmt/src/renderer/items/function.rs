@@ -17,7 +17,7 @@ impl CodeRenderer for Function {
                     if param.multi_capture { "*" } else { "" }
                 );
 
-                if options.leave_space_after_comma {
+                if options.space_before_type_colon {
                     _param += " : "
                 } else {
                     _param += ": "
@@ -59,6 +59,14 @@ impl CodeRenderer for Function {
             "{state_scope_length}{is_public}fn {fn_name}{params}{rtype}",
             fn_name = &self.name
         );
+
+        if self.defining {
+            fn_input += ";";
+            return fn_input;
+        } else if self.body.len() == 0 {
+            fn_input += " {}";
+            return fn_input;
+        }
 
         if options.render_brace_next_line {
             fn_input += &format!(

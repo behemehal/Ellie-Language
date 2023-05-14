@@ -1,6 +1,7 @@
 use crate::renderer::CodeRenderer;
 use crate::renderer::State;
 pub use ellie_tokenizer;
+use ellie_tokenizer::processors::items::Processors;
 use ellie_tokenizer::tokenizer::Page;
 
 #[derive(Clone, Debug, Copy)]
@@ -26,7 +27,7 @@ impl Default for FormatterOptions {
             extend_array: false,
             leave_space_after_comma: true,
             use_shorts: true,
-            space_before_type_colon: false,
+            space_before_type_colon: true,
             render_brace_next_line: true,
             space_between_operators: true,
             is_cr_lf: false,
@@ -44,6 +45,14 @@ impl FormatterOptions {
             String::from("\n")
         }
     }
+
+    pub fn render_tab(&self) -> String {
+        if self.use_tabs {
+            String::from("\t")
+        } else {
+            String::from("    ")
+        }
+    }
 }
 
 pub struct Formatter {
@@ -55,6 +64,7 @@ pub struct FormattedPage {
     pub content: String,
 }
 
+#[derive(Debug)]
 struct FormatedFile {
     pub lines: Vec<String>,
     pub line_ending: String,
@@ -70,7 +80,7 @@ impl FormatedFile {
 
     fn insert_element_to_line(&mut self, line: usize, element: String) {
         if self.lines.len() < line {
-            self.lines.resize(line, self.line_ending.clone());
+            self.lines.resize(line, String::new());
         }
         let lines = element
             .split(&self.line_ending)
@@ -92,12 +102,31 @@ impl Formatter {
 
     pub fn format_page(&self, page: &Page) -> String {
         let mut output = FormatedFile::new(self.options.render_line_ending());
-
-        for item in page.items.iter() {
-            let item_pos = item.get_pos();
-
+        let mut last_element_is_fn_or_class = false;
+        for item in &page.items {
+            match item {
+                Processors::Function(_) | Processors::Class(_) => {
+                    output.lines.push(String::new());
+                    last_element_is_fn_or_class = true;
+                },
+                Processors::Comment(e) => {
+                    if e.line_comment && e.pos.range_start.0 == output.lines.len() - 1 {
+                        let formated_item = item.render(&State::empty_state(), &self.options);
+                        let last_line = output.lines.last_mut().unwrap();
+                        last_line.push_str(" ");
+                        last_line.push_str(&formated_item);
+                        continue;
+                    }
+                }
+                _ => {
+                    if last_element_is_fn_or_class {
+                        output.lines.push(String::new());
+                        last_element_is_fn_or_class = false;
+                    }
+                },
+            };
             let formated_item = item.render(&State::empty_state(), &self.options);
-            output.insert_element_to_line(item_pos.range_start.0, formated_item);
+            output.insert_element_to_line(item.get_pos().range_start.0, formated_item);
         }
         output.render_out()
     }

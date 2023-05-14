@@ -19,10 +19,9 @@ impl CodeRenderer for FunctionCall {
                 } else {
                     call += ",";
                 }
-            } else {
-                call += ")";
             }
         }
+        call += ")";
         format!("{call}{state_ending_token}")
     }
 }
