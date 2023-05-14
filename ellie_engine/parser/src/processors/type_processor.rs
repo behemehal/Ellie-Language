@@ -370,6 +370,8 @@ pub fn process(
                     struct Attribute {
                         rtype: AttributeType,
                         name: String,
+                        hash: usize,
+                        page_hash: usize,
                         value: DefinerCollecting,
                     }
 
@@ -633,6 +635,8 @@ pub fn process(
                                                                 Some(Attribute {
                                                                     rtype: AttributeType::Property,
                                                                     name: e.name.clone(),
+                                                                    hash: e.hash,
+                                                                    page_hash: class_inner_page.hash,
                                                                     value: resolved_type,
                                                                 })
                                                             },
@@ -640,6 +644,8 @@ pub fn process(
                                                                 Some(Attribute {
                                                                     rtype: AttributeType::Method,
                                                                     name: e.name.clone(),
+                                                                    hash: e.hash,
+                                                                    page_hash: class_inner_page.hash,
                                                                     value: DefinerCollecting::Function(
                                                                         ellie_core::definite::definers::FunctionType {
                                                                             params: e.parameters.iter().map(|param| {
@@ -654,6 +660,8 @@ pub fn process(
                                                                 Some(Attribute {
                                                                     rtype: AttributeType::Method,
                                                                     name: e.name.clone(),
+                                                                    hash: e.hash,
+                                                                    page_hash: class_inner_page.hash,
                                                                     value: DefinerCollecting::Function(
                                                                         ellie_core::definite::definers::FunctionType {
                                                                             params: e.parameters.iter().map(|param| {
@@ -668,6 +676,8 @@ pub fn process(
                                                                 Some(Attribute {
                                                                     rtype: AttributeType::Getter,
                                                                     name: e.name.clone(),
+                                                                    hash: e.hash,
+                                                                    page_hash: class_inner_page.hash,
                                                                     value: e.return_type,
                                                                 })
                                                             }
@@ -677,6 +687,8 @@ pub fn process(
                                                                         rtype: AttributeType::Setter,
                                                                         name: e.name.clone(),
                                                                         value: e.rtype,
+                                                                        hash: e.hash,
+                                                                        page_hash: class_inner_page.hash,
                                                                     })
                                                                 } else {
                                                                     //TODO add setter check
@@ -726,6 +738,9 @@ pub fn process(
                                                         ellie_core::definite::items::enum_type::EnumValue::Value(_) => AttributeType::EnumItemData,
                                                     },
                                                     name: item.identifier.clone(),
+                                                    //TODO: Fix this
+                                                    hash: 0,
+                                                    page_hash: enum_data.hash,
                                                     value:  match item.value.clone() {
                                                         ellie_core::definite::items::enum_type::EnumValue::NoValue => {
                                                             match find_type("void".to_string(), page_id, parser) {
@@ -889,6 +904,8 @@ pub fn process(
                                             attributes.push(Attribute {
                                                 rtype: attribute._rtype.clone(),
                                                 name: attribute.name.clone(),
+                                                hash: attribute.hash,
+                                                page_hash: attribute.page,
                                                 value,
                                             });
                                         }
@@ -896,6 +913,8 @@ pub fn process(
                                             attributes.push(Attribute {
                                                 rtype: attribute._rtype.clone(),
                                                 name: attribute.name.clone(),
+                                                hash: attribute.hash,
+                                                page_hash: attribute.page,
                                                 value: DefinerCollecting::Function(
                                                     ellie_core::definite::definers::FunctionType {
                                                         params: e
@@ -912,6 +931,8 @@ pub fn process(
                                             attributes.push(Attribute {
                                                 rtype: attribute._rtype.clone(),
                                                 name: attribute.name.clone(),
+                                                hash: attribute.hash,
+                                                page_hash: attribute.page,
                                                 value: e.return_type,
                                             });
                                         }
@@ -947,6 +968,8 @@ pub fn process(
                                             attributes.push(Attribute {
                                                 rtype: attribute._rtype.clone(),
                                                 name: attribute.name.clone(),
+                                                hash: attribute.hash,
+                                                page_hash: attribute.page,
                                                 value,
                                             });
                                         }
@@ -954,6 +977,8 @@ pub fn process(
                                             attributes.push(Attribute {
                                                 rtype: attribute._rtype.clone(),
                                                 name: attribute.name.clone(),
+                                                hash: attribute.hash,
+                                                page_hash: attribute.page,
                                                 value: DefinerCollecting::Function(
                                                     ellie_core::definite::definers::FunctionType {
                                                         params: e
@@ -1011,6 +1036,8 @@ pub fn process(
                                         index_chain.push(IndexChainAttribute {
                                             rtype: a.rtype.clone(),
                                             idx: attribute_index.unwrap(),
+                                            hash: a.hash,
+                                            page_hash: a.page_hash,
                                         });
                                         last_chain_attributes = (
                                             a.value.clone(),

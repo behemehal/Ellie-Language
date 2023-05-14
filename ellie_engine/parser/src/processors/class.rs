@@ -193,7 +193,11 @@ impl super::Processor for Class {
                 deep_link: Some(page.hash.clone()),
                 public: false,
             }];
-            dependencies.extend(page.dependencies.clone());
+            dependencies.extend(page.dependencies.iter().map(|d| {
+                let mut dep = d.clone();
+                dep.deep_link = Some(page.hash.clone());
+                dep
+            }));
             items.extend(self.body.clone());
 
             let mut inner = ellie_tokenizer::tokenizer::Page {

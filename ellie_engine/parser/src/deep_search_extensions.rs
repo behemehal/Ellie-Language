@@ -312,6 +312,7 @@ fn iterate_deep_type(
                 _rtype: AttributeType,
                 name: String,
                 value: definers::DefinerCollecting,
+                page: usize,
             }
 
             fn resolve_chain(
@@ -321,10 +322,9 @@ fn iterate_deep_type(
                 parser: &mut crate::parser::Parser,
             ) -> Result<Vec<Attribute>, Vec<error::Error>> {
                 let mut errors: Vec<error::Error> = Vec::new();
-
                 match reference_type.clone() {
                     ellie_core::definite::definers::DefinerCollecting::Generic(generic) => {
-                        let hash_deep_search = crate::deep_search_extensions::deep_search_hash(
+                        let hash_deep_search = deep_search_hash(
                             parser,
                             page_id,
                             generic.hash,
@@ -352,7 +352,8 @@ fn iterate_deep_type(
                                                                 Some(Attribute {
                                                                     _rtype: AttributeType::Property,
                                                                     name: e.name.clone(),
-                                                                    value: resolved_type
+                                                                    value: resolved_type,
+                                                                    page: class_inner_page.hash,
                                                                 })
                                                             },
                                                             Collecting::Function(e) => {
@@ -366,7 +367,8 @@ fn iterate_deep_type(
                                                                             }).collect::<Vec<_>>(),
                                                                             returning: Box::new(e.return_type),
                                                                         }
-                                                                    )
+                                                                    ),
+                                                                    page: class_inner_page.hash,
                                                                 })
                                                             },
                                                             Collecting::NativeFunction(e) => {
@@ -380,21 +382,24 @@ fn iterate_deep_type(
                                                                             }).collect::<Vec<_>>(),
                                                                             returning: Box::new(e.return_type),
                                                                         }
-                                                                    )
+                                                                    ),
+                                                                    page: class_inner_page.hash,
                                                                 })
                                                             }
                                                             Collecting::Getter(e) => {
                                                                 Some(Attribute {
                                                                     _rtype: AttributeType::Method,
                                                                     name: e.name.clone(),
-                                                                    value: e.return_type
+                                                                    value: e.return_type,
+                                                                    page: class_inner_page.hash,
                                                                 })
                                                             }
                                                             Collecting::Setter(e) => {
                                                                 Some(Attribute {
                                                                     _rtype: AttributeType::Method,
                                                                     name: e.name.clone(),
-                                                                    value: e.rtype
+                                                                    value: e.rtype,
+                                                                    page: class_inner_page.hash,
                                                                 })
                                                             }
                                                             _ => None,
@@ -426,7 +431,8 @@ fn iterate_deep_type(
                                                         name: enum_data.name.clone(),
                                                         hash: enum_data.hash,
                                                     }
-                                                )
+                                                ),
+                                                page: page_id,
                                             }
                                         }).collect()
                                     )
@@ -475,7 +481,8 @@ fn iterate_deep_type(
                                                                 Some(Attribute {
                                                                     _rtype: AttributeType::Property,
                                                                     name: e.name.clone(),
-                                                                    value: resolved_type
+                                                                    value: resolved_type,
+                                                                    page: class_inner_page.hash,
                                                                 })
                                                             },
                                                             Collecting::Function(e) => {
@@ -489,7 +496,8 @@ fn iterate_deep_type(
                                                                             }).collect::<Vec<_>>(),
                                                                             returning: Box::new(e.return_type),
                                                                         }
-                                                                    )
+                                                                    ),
+                                                                    page: class_inner_page.hash,
                                                                 })
                                                             },
                                                             Collecting::NativeFunction(e) => {
@@ -503,7 +511,8 @@ fn iterate_deep_type(
                                                                             }).collect::<Vec<_>>(),
                                                                             returning: Box::new(e.return_type),
                                                                         }
-                                                                    )
+                                                                    ),
+                                                                    page: class_inner_page.hash,
                                                                 })
                                                             }
                                                             _ => None,
@@ -532,16 +541,33 @@ fn iterate_deep_type(
                         }
                     }
                     ellie_core::definite::definers::DefinerCollecting::Function(_) => {
-                        let rtype = find_type("function".to_owned(), page_id, parser);
-                        match resolve_chain(
-                            definers::DefinerCollecting::Generic(rtype.unwrap()),
-                            defs::Cursor::default(),
-                            page_id,
-                            parser,
-                        ) {
-                            Ok(e) => Ok(e),
-                            Err(_) => todo!(),
+                        let result = parser.deep_search(page_id, "function".to_owned(), None, vec![], 0, Some(reference_pos));
+                        if result.found {
+                            let rtype = match result.found_item {
+                                DeepSearchItems::Class(e) => definers::GenericType {
+                                    rtype: e.name,
+                                    pos: e.pos,
+                                    hash: e.hash,
+                                },
+                                _ => unreachable!(),
+                            };
+                            let pos = rtype.pos;
+                            match resolve_chain(
+                                definers::DefinerCollecting::Generic(rtype),
+                                pos,
+                                result.found_page.hash,
+                                parser,
+                            ) {
+                                Ok(e) => Ok(e),
+                                Err(e) => {
+                                    errors.extend(e);
+                                    Err(errors)
+                                }
+                            }
+                        } else {
+                            todo!()
                         }
+                        
                     }
                     ellie_core::definite::definers::DefinerCollecting::EnumField(_) => {
                         let rtype = find_type("enum".to_owned(), page_id, parser);
@@ -552,7 +578,10 @@ fn iterate_deep_type(
                             parser,
                         ) {
                             Ok(e) => Ok(e),
-                            Err(_) => todo!(),
+                            Err(e) => {
+                                errors.extend(e);
+                                Err(errors)
+                            }
                         }
                     }
                     ellie_core::definite::definers::DefinerCollecting::ClassInstance(
@@ -563,6 +592,7 @@ fn iterate_deep_type(
                         for attribute in &class_instance.attributes {
                             let page = parser.find_processed_page(attribute.page).unwrap();
                             let item = page.find_item_by_hash(attribute.hash).unwrap();
+                            let page_id = page.hash;
 
                             match item {
                                 Collecting::Variable(e) => {
@@ -584,6 +614,7 @@ fn iterate_deep_type(
                                         _rtype: attribute._rtype.clone(),
                                         name: attribute.name.clone(),
                                         value,
+                                        page: page_id,
                                     });
                                 }
                                 Collecting::Function(e) => {
@@ -600,6 +631,7 @@ fn iterate_deep_type(
                                                 returning: Box::new(e.return_type),
                                             },
                                         ),
+                                        page: page.hash,
                                     });
                                 }
                                 Collecting::Getter(e) => {
@@ -607,6 +639,7 @@ fn iterate_deep_type(
                                         _rtype: attribute._rtype.clone(),
                                         name: attribute.name.clone(),
                                         value: e.return_type,
+                                        page: page.hash,
                                     });
                                 }
                                 Collecting::Setter(e) => {
@@ -614,6 +647,7 @@ fn iterate_deep_type(
                                         _rtype: attribute._rtype.clone(),
                                         name: attribute.name.clone(),
                                         value: e.rtype,
+                                        page: page.hash,
                                     });
                                 }
                                 Collecting::NativeFunction(e) => {
@@ -630,6 +664,7 @@ fn iterate_deep_type(
                                                 returning: Box::new(e.return_type),
                                             },
                                         ),
+                                        page: page.hash,
                                     });
                                 }
                                 _ => (),
@@ -667,49 +702,51 @@ fn iterate_deep_type(
             let mut resolved_types = LastEntry::Null;
             let mut last_chain_attributes = (
                 reference_type.clone(),
-                resolve_chain(reference_type, reference.pos, page_id, parser),
+                match resolve_chain(reference_type, reference.pos, page_id, parser) {
+                    Ok(e) => e,
+                    Err(e) => {
+                        errors.extend(e);
+                        return DeepTypeResult::NotFound;
+                    }
+                },
             );
             for chain in &reference.chain {
-                match last_chain_attributes.1.clone() {
-                    Ok(e) => {
-                        let attribute = e.iter().find(|a| a.name == chain.value);
-                        match attribute {
-                            Some(a) => {
-                                resolved_types = LastEntry::Type(
-                                    generate_type_from_defining(a.value.clone(), page_id, parser)
-                                        .unwrap(),
-                                );
-                                last_chain_attributes = (
-                                    a.value.clone(),
-                                    resolve_chain(a.value.clone(), chain.pos, page_id, parser),
-                                );
-                            }
-                            None => {
-                                errors.push(error::error_list::ERROR_S42.clone().build_with_path(
-                                    vec![
-                                        error::ErrorBuildField {
-                                            key: "token".to_owned(),
-                                            value: chain.value.clone(),
-                                        },
-                                        error::ErrorBuildField {
-                                            key: "token1".to_owned(),
-                                            value: last_chain_attributes.0.to_string(),
-                                        },
-                                    ],
-                                    alloc::format!(
-                                        "{}:{}:{}",
-                                        file!().to_owned(),
-                                        line!(),
-                                        column!()
-                                    ),
-                                    parser.find_page(page_id).unwrap().path.clone(),
-                                    chain.pos,
-                                ));
-                            }
-                        }
+                let attribute = last_chain_attributes
+                    .1
+                    .iter()
+                    .find(|a| a.name == chain.value);
+                match attribute {
+                    Some(a) => {
+                        resolved_types = LastEntry::Type(
+                            generate_type_from_defining(a.value.clone(), page_id, parser).unwrap(),
+                        );
+                        last_chain_attributes = (
+                            a.value.clone(),
+                            match resolve_chain(a.value.clone(), chain.pos, a.page, parser) {
+                                Ok(e) => e,
+                                Err(e) => {
+                                    errors.extend(e);
+                                    return DeepTypeResult::NotFound;
+                                }
+                            },
+                        );
                     }
-                    Err(err) => {
-                        errors.extend(err);
+                    None => {
+                        errors.push(error::error_list::ERROR_S42.clone().build_with_path(
+                            vec![
+                                error::ErrorBuildField {
+                                    key: "token".to_owned(),
+                                    value: chain.value.clone(),
+                                },
+                                error::ErrorBuildField {
+                                    key: "token1".to_owned(),
+                                    value: last_chain_attributes.0.to_string(),
+                                },
+                            ],
+                            alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                            parser.find_page(page_id).unwrap().path.clone(),
+                            chain.pos,
+                        ));
                     }
                 }
             }
@@ -2042,7 +2079,7 @@ pub fn deep_search(
                                     found_type = ProcessedDeepSearchItems::Enum(e.clone());
                                 }
                             }
-                            Collecting::FuctionParameter(e) => {
+                            Collecting::FunctionParameter(e) => {
                                 if e.name == name {
                                     found_pos = Some(defs::Cursor {
                                         range_start: e.name_pos.range_start,
@@ -2179,7 +2216,7 @@ pub fn deep_search(
     }
 }
 
-pub fn find_type(
+pub fn  find_type(
     rtype: String,
     target_page: usize,
     parser: &mut Parser,
