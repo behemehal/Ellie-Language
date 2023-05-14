@@ -163,31 +163,6 @@ pub struct Module {
     pub modules: Vec<ellie_tokenizer::tokenizer::Module>,
 }
 
-#[derive(Debug, Clone)]
-pub struct NativeCall {
-    pub name: String,
-    pub hash: usize,
-}
-
-impl Module {
-    pub fn get_natives(&self) -> Vec<NativeCall> {
-        let mut natives = vec![];
-        for page in &self.pages.pages {
-            for item in &page.items {
-                match item {
-                    Collecting::NativeFunction(native_function) => {
-                        natives.push(NativeCall {
-                            name: native_function.name.clone(),
-                            hash: native_function.hash,
-                        });
-                    }
-                    _ => (),
-                }
-            }
-        }
-        natives
-    }
-}
 pub struct ParserSettings {
     pub dynamics: (bool, String),
     pub nullables: (bool, String),
@@ -1370,7 +1345,7 @@ impl Parser {
                         Some(page) => {
                             for item in page.items.iter() {
                                 match item.clone() {
-                                    Collecting::FuctionParameter(e) => {
+                                    Collecting::FunctionParameter(e) => {
                                         if e.name == name {
                                             found_pos = Some(defs::Cursor {
                                                 range_start: e.name_pos.range_start,
@@ -2065,7 +2040,7 @@ impl Parser {
                         ),
                         Processors::FunctionParameter(e) => {
                             self.processed_pages.nth_mut(processed_page_idx).unwrap().items.push(
-                            Collecting::FuctionParameter(
+                            Collecting::FunctionParameter(
                                 ellie_core::definite::items::function_parameter::FunctionParameter { name: e.name.clone(), rtype: e.rtype.clone(), name_pos: e.name_pos, rtype_pos: e.rtype_pos, hash: e.hash }
                             ));
                             true
@@ -2309,7 +2284,7 @@ impl Parser {
                         ),
                         Processors::FunctionParameter(e) => {
                             self.processed_pages.nth_mut(processed_page_idx).unwrap().items.push(
-                                Collecting::FuctionParameter(
+                                Collecting::FunctionParameter(
                                     ellie_core::definite::items::function_parameter::FunctionParameter { name: e.name.clone(), rtype: e.rtype.clone(), name_pos: e.name_pos, rtype_pos: e.rtype_pos, hash: e.hash }
                                 ));
                             true
@@ -2663,7 +2638,7 @@ impl Parser {
                         ),
                         Processors::FunctionParameter(e) => {
                             self.processed_pages.nth_mut(processed_page_idx).unwrap().items.push(
-                                Collecting::FuctionParameter(
+                                Collecting::FunctionParameter(
                                     ellie_core::definite::items::function_parameter::FunctionParameter { name: e.name.clone(), rtype: e.rtype.clone(), name_pos: e.name_pos, rtype_pos: e.rtype_pos, hash: e.hash }
                                 ));
                             true
