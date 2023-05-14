@@ -1,0 +1,13 @@
+ellieStd: C:\Users\ahmet\Desktop\Projects\Ellie-Language\tools\debug_files
+---
+2:2:<ellie_module_ellieStd>/main.ei:s:15:12:15:20:0
+3:5:<ellie_module_ellieStd>/main.ei:println:15:1:15:2:11107246917804381447
+8:10:<ellie_module_ellieStd>/main.ei:getTime:16:8:16:9:551986417292754410
+13:13:<ellie_module_ellieStd>/main.ei:n:18:7:18:12:0
+14:58:<ellie_module_ellieStd>/main.ei:fib:18:0:23:0:17253283829618208923
+64:93:<ellie_module_ellieStd>/main.ei:@getter:27:8:27:30:9999999
+64:94:<ellie_module_ellieStd>/main.ei:tesT:26:4:28:4:4136814418115725327
+94:98:<ellie_module_ellieStd>/main.ei:start_time:29:12:29:36:6764947252542950049
+98:104:<ellie_module_ellieStd>/main.ei:@getter:30:12:30:19:9999999
+104:108:<ellie_module_ellieStd>/main.ei:end_time:31:12:31:34:15769969294873136661
+61:109:<ellie_module_ellieStd>/main.ei:main:25:1:33:12:6763838596209126933

@@ -1,0 +1,20 @@
+[package]
+name = "ellie_core"
+description = "Core modules for ellie"
+version = "0.5.0"
+authors = ["Ahmetcan Aksu <ahmetcanaksu@behemehal.org>", "Behemehal <info@behemehal.org>"]
+edition = "2021"
+license = "GPL-2.0"
+
+[dependencies]
+lazy_static = "1.4.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
+enum-as-inner = "0.3.3"
+rand = "0.8.4"
+
+[features]
+default = ["std"]
+native_addons = []
+compiler_utils = []
+std = []

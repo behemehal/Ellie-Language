@@ -1,0 +1,45 @@
+[package]
+name = "ellie_engine"
+description = "Why ellie? Ellie is a type-safe programing language that runs on embedded and sandboxed environments."
+version = "0.9.0"
+authors = ["Ahmetcan Aksu <ahmetcanaksu@behemehal.org>", "Behemehal <info@behemehal.org>"]
+edition = "2021"
+license-file = "../LICENSE"
+keywords = ["ellie", "language", "compiler", "vm",  "embeddable"]
+categories = ["compilers", "embedded", "no-std"]
+repository = "https://github.com/behemehal/Ellie-Language"
+documentation = "https://docs.rs/ellie_engine"
+homepage = "https://www.ellie-lang.org"
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"], optional = true }
+serde_json = { version = "1.0", default-features = false, features = ["alloc"], optional = true }
+path-absolutize = { version = "3.0.10", optional = true }
+ellie_core = { path = "core", version = "*" }
+#ellie_assist = { path = "EllieAssist", version = "*", optional = true }
+ellie_tokenizer = { path = "tokenizer", version = "*", default-features = false, optional = true }
+ellie_parser = { path = "parser", version = "*", default-features = false, optional = true }
+ellie_bytecode = { path = "bytecode", version = "*", optional = true }
+ellie_vm = { path = "vm", version = "*", optional = true }
+ellie_fmt = { path = "fmt", version = "*", optional = true }
+ellie_renderer_utils = { path = "renderer_utils", version = "*", optional = true,  default-features = false }
+
+[features]
+default = ["vm", "compiler", "fmt", "std", "B32"]
+compiler = ["ellie_tokenizer", "ellie_parser", "ellie_bytecode", "ellie_core/compiler_utils"]
+vm = ["ellie_vm", "ellie_vm/std"]
+std = ["ellie_vm/std"]
+renderer_utils = ["ellie_renderer_utils"]
+fmt = ["ellie_fmt"]
+#ellie_assistant = ["ellie_assist"]
+standard_rules =  ["ellie_parser/standard_rules"]
+cli-utils = ["ellie_renderer_utils/cli-utils"]
+B64 = ["ellie_vm/B64"]
+B32 = ["ellie_vm/B32"]
+B16 = ["ellie_vm/B16"]
+
+[build-dependencies]
+path-absolutize = { version = "3.0.10" }
+toml = "0.5.8"
+regex = { version = "1.1.7" }
+chrono = "0.4.22"

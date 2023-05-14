@@ -20,3 +20,12 @@ Node.js@v15>= and npm are required.
 
 - ### OpcodeOrd
     Orders opcodes in [instructions.csv](../bytecode/instructions.csv). This tool is useful for ordering instruction op-codes [instructions.md](../bytecode/instructions.md). [Warning]: This tool modifies [instructions.csv](../bytecode/instructions.csv) file.
+
+- ### Cleanup scripts
+    - clean_up.sh
+    - clean_up.ps1
+    They must be called at the root of the project. They will remove all cargo relase and node_modules directories.
+
+
+- ### Debug Files (debug_files) directory
+    This directory contains nothing you can use this directory for debugging also this contents of this directory is ignored by git.

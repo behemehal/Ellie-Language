@@ -3,7 +3,10 @@ use bincode::Options;
 use ellie_engine::{
     compiler::parse_pages,
     ellie_bytecode::assembler::{Assembler, PlatformAttributes},
-    ellie_core::{defs::PlatformArchitecture, module_path::parse_module_import},
+    ellie_core::{
+        defs::{ModuleMap, PlatformArchitecture},
+        module_path::parse_module_import,
+    },
     ellie_parser::parser,
     //ellie_renderer_utils::*,
     ellie_renderer_utils::outputs,
@@ -403,9 +406,9 @@ pub fn compile(
                         OutputTypesSelector::ByteCodeDebug,
                     );
 
-                    let mut module_maps = vec![(
-                        compile_output.module.name.clone(),
-                        Some(
+                    let mut module_maps = vec![ModuleMap {
+                        module_name: compile_output.module.name.clone(),
+                        module_path: Some(
                             Path::new(target_path)
                                 .absolutize()
                                 .unwrap()
@@ -415,12 +418,15 @@ pub fn compile(
                                 .unwrap()
                                 .to_string(),
                         ),
-                    )];
+                    }];
 
                     module_maps.extend(
                         modules
                             .iter()
-                            .map(|(module, path)| (module.name.clone(), path.clone()))
+                            .map(|(module, path)| ModuleMap {
+                                module_name: module.name.clone(),
+                                module_path: path.clone(),
+                            })
                             .collect::<Vec<_>>(),
                     );
 
@@ -640,7 +646,7 @@ pub fn compile(
                                 },
                             );
                             let assembler_result = assembler.assemble(module_maps);
-                            let output_file = File::create(output_path).unwrap_or_else(|err| {
+                            let mut output_file = File::create(output_path).unwrap_or_else(|err| {
                                 if cli_settings.json_log {
                                     let mut output = outputs::WRITE_FILE_ERROR.clone();
                                     output.extra.push(outputs::CliOuputExtraData {
@@ -661,7 +667,7 @@ pub fn compile(
                                 }
                                 std::process::exit(1);
                             });
-                            assembler_result.alternate_render(output_file);
+                            assembler_result.alternate_render(&mut output_file);
 
                             if cli_settings.json_log {
                                 let mut output = outputs::WRITE_BYTE_CODE_ASM_SUCCEDED.clone();

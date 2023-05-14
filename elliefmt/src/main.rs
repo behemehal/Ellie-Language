@@ -5,7 +5,7 @@ use ellie_engine::{
     },
     engine_constants,
 };
-use std::path::Path;
+use std::{path::Path, process};
 mod format_file;
 
 fn main() {
@@ -109,6 +109,12 @@ fn main() {
                 }
             };
 
+            let exclude_files = matches
+                .values_of("excludeFiles")
+                .unwrap_or_default()
+                .map(str::to_string)
+                .collect::<Vec<String>>();
+
             let formatter_settings = format_file::FormatterSettings {
                 json_log: matches.is_present("jsonLog"),
                 name: project_name,
@@ -120,23 +126,18 @@ fn main() {
                     .to_string(),
                 show_debug_lines: matches.is_present("showDebugLines"),
                 format_all: true,
+                exclude_files,
             };
 
-            format_file::format_file(
-                Path::new(&target_path),
-                Path::new(
-                    &Path::new(&target_path)
-                        .parent()
-                        .unwrap()
-                        .to_str()
-                        .unwrap()
-                        .to_string(),
-                ),
-                formatter_settings,
-            )
+            format_file::format_file(Path::new(&target_path), formatter_settings)
         }
-        Some(("analyze", matches)) => {
-            todo!()
+        Some(("analyze", _matches)) => {
+            println!(
+                "{}[Info]{}: File analyze is not implemented yet.",
+                cli_color.color(Colors::Red),
+                cli_color.color(Colors::Reset)
+            );
+            process::exit(1);
         }
         Some(("version", matches)) => {
             let mut output = outputs::VERSION_DETAILED.clone();
@@ -149,6 +150,10 @@ fn main() {
                     output.extra.push(outputs::CliOuputExtraData {
                         key: "git_hash".to_string(),
                         value: engine_constants::ELLIE_BUILD_GIT_HASH.to_owned(),
+                    });
+                    output.extra.push(outputs::CliOuputExtraData {
+                        key: "git_branch".to_string(),
+                        value: engine_constants::ELLIE_BUILD_GIT_BRANCH.to_owned(),
                     });
                     output.extra.push(outputs::CliOuputExtraData {
                         key: "build_date".to_string(),
@@ -186,10 +191,20 @@ fn main() {
                     println!("{}", serde_json::to_string(&output).unwrap());
                 } else {
                     println!(
-                        "EllieFMT v{} ({}: {})\nEllie v{} - Code: {}\nTokenizer Version: v{}\nCore version: v{}\n",
+                        "EllieFMT v{} ({}: {}){}\nEllie v{} - Code: {}\nTokenizer Version: v{}\nCore version: v{}\n",
                         version,
                         engine_constants::ELLIE_BUILD_GIT_HASH,
                         engine_constants::ELLIE_BUILD_DATE,
+                        if engine_constants::ELLIE_BUILD_GIT_BRANCH != "main" {
+                            format!(
+                                " [{}{}{}] ",
+                                cli_color.color(Colors::Yellow),
+                                engine_constants::ELLIE_BUILD_GIT_BRANCH,
+                                cli_color.color(Colors::Reset)
+                            )
+                        } else {
+                            String::new()
+                        },
                         engine_constants::ELLIE_ENGINE_VERSION,
                         engine_constants::ELLIE_ENGINE_VERSION_NAME,
                         engine_constants::ELLIE_TOKENIZER_VERSION,
@@ -214,10 +229,20 @@ fn main() {
                     println!("{}", serde_json::to_string(&output).unwrap());
                 } else {
                     println!(
-                        "EllieFMT v{}({} : {}) ",
+                        "EllieFMT v{}({} : {}){}",
                         version,
                         engine_constants::ELLIE_BUILD_GIT_HASH,
-                        engine_constants::ELLIE_BUILD_DATE
+                        engine_constants::ELLIE_BUILD_DATE,
+                        if engine_constants::ELLIE_BUILD_GIT_BRANCH != "main" {
+                            format!(
+                                " [{}{}{}] ",
+                                cli_color.color(Colors::Yellow),
+                                engine_constants::ELLIE_BUILD_GIT_BRANCH,
+                                cli_color.color(Colors::Reset)
+                            )
+                        } else {
+                            String::new()
+                        },
                     );
                 }
             }

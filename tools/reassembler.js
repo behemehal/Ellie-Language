@@ -1,233 +1,307 @@
-import { trace } from "console";
-import fs from "fs";
-import chalk from "chalk";
+const fs = require("fs");
 
-const bytecode_rev = 3;
+//Get working directory
+const working_dir = process.cwd();
 
-var csv = fs.readFileSync("./bytecode/instructions.csv", "utf8");
-var line_ending = csv.includes("\r\n") ? "\r\n" : "\n";
-var _instructions = csv.split(line_ending);
+console.log("Working directory: " + working_dir + "");
 
-console.log(chalk`{green [Info]:} {yellow Building instructions...}`);
-
-var _instructions_in_order = [];
-
-var out_of_order = false;
-
-for (var i = 0; i < _instructions.length; i++) {
-  let entries = _instructions[i].split(",");
-  let instruction = {
-    instructionString: entries[0],
-    addressing_mode: entries[1],
-    op_code: Number(entries[2]),
-  };
-  if (i + 1 != instruction.op_code) {
-    out_of_order = true;
-  }
-  _instructions_in_order.push({
-    instructionString: entries[0],
-    addressing_mode: entries[1],
-    op_code: Number(i + 1),
-  });
+//If we are in the tools folder, throw an error
+if (working_dir.endsWith("tools")) {
+  throw new Error("Please run this script from the root directory");
 }
 
-if (out_of_order) {
-  console.log(
-    chalk`{green [Info]:} {yellow Ordering {cyan './bytecode/instructions.csv'}}`
-  );
-  fs.writeFileSync(
-    "./bytecode/instructions.csv",
-    _instructions_in_order
-      .map((x) => {
-        return x.instructionString + "," + x.addressing_mode + "," + x.op_code;
-      })
-      .join(line_ending)
-  );
-}
+//!Targets
 
-let full_instructions = [];
+let instruction_table_path = "./ellie_engine/bytecode/src/instruction_table.rs";
+let instruction_utils_path = "./ellie_engine/vm/src/instruction_utils.rs";
+let instruction_md_path = "./tools/instructions.md";
 
-function index_of_addresing_mode(mode) {
-  return mode === "implicit"
-    ? 0
-    : mode == "immediate"
-    ? 1
-    : mode == "absolute"
-    ? 2
-    : mode == "absolute_index"
-    ? 3
-    : mode == "absolute_property"
-    ? 4
-    : mode == "indirect_a"
-    ? 5
-    : mode == "indirect_b"
-    ? 6
-    : mode == "indirect_c"
-    ? 7
-    : mode == "indirect_x"
-    ? 8
-    : mode == "indirect_y"
-    ? 9
-    : 10;
-}
+const byteCodeFile = require("./instructions.json");
+const bytecodeRev = byteCodeFile.rev;
 
-function addresing_mode_index(idx) {
-  if (idx === 0) {
-    return "implicit";
-  } else if (idx === 1) {
-    return "immediate";
-  } else if (idx === 2) {
-    return "absolute";
-  } else if (idx === 3) {
-    return "absolute_index";
-  } else if (idx === 4) {
-    return "absolute_property";
-  } else if (idx === 5) {
-    return "indirect_a";
-  } else if (idx === 6) {
-    return "indirect_b";
-  } else if (idx === 7) {
-    return "indirect_c";
-  } else if (idx === 8) {
-    return "indirect_x";
-  } else if (idx === 9) {
-    return "indirect_y";
-  } else {
-    return "parameter";
-  }
-}
+console.log("Building instructions...");
+console.log("Bytecode rev: " + (bytecodeRev + 1));
 
-let instructions = _instructions_in_order.map((instruction) => {
-  if (
-    full_instructions.find(
-      (i) => i.instructionString === instruction.instructionString
-    )
-  ) {
-    full_instructions
-      .find((i) => i.instructionString === instruction.instructionString)
-      .addressing_modes.push([
-        instruction.addressing_mode,
-        instruction.op_code,
-      ]);
-  } else {
-    full_instructions.push({
-      instructionString: instruction.instructionString,
-      addressing_modes: [[instruction.addressing_mode, instruction.op_code]],
+let op_codes = [];
+
+for (const instruction of byteCodeFile.instructions) {
+  for (const addressing_mode of instruction.addressingModes) {
+    op_codes.push({
+      rtype: instruction.instruction,
+      code: op_codes.length + 1,
+      mode: addressing_mode,
     });
   }
-  return instruction;
-});
-
-function makeFirstLetterBig(string) {
-  return string[0].toUpperCase() + string.slice(1, string.length);
 }
 
-function snakeCaseToCamelCase(input) {
-  let builded = "";
-  let is_upper = true;
-  for (var i = 0; i < input.length; i++) {
-    let char = input[i];
-    if (char === "_") {
-      is_upper = true;
-    } else {
-      if (is_upper) {
-        builded += char.toUpperCase();
-        is_upper = false;
-      } else {
-        builded += char.toLowerCase();
-      }
-    }
-  }
-  return builded;
+//! Build instructions_table.rs
+console.log("Building instructions_table.rs...");
+let instruction_table = "";
+instruction_table +=
+  "//Auto builded from `instructions.json` by `reAssembler.js` rev: " +
+  (bytecodeRev + 1) +
+  "\n";
+instruction_table += "use alloc::{vec::Vec, vec};\n";
+instruction_table += "use alloc::string::String;\n";
+instruction_table += "use crate::instructions::Instruction;\n";
+instruction_table += "use ellie_core::defs::PlatformArchitecture;\n\n";
+instruction_table += `#[derive(Clone, Debug, PartialEq)]
+pub enum Instructions {\n`;
+
+for (const instruction of byteCodeFile.instructions) {
+  instruction_table += `    ${instruction.instruction}(Instruction),\n`;
 }
+instruction_table += "}\n\n";
 
-function makeSpace(len) {
-  return Array(len).fill(" ").join("");
-}
+instruction_table += "impl Instructions {\n";
+instruction_table +=
+  "    pub fn op_code(&self, platform_size: PlatformArchitecture) -> Vec<u8> {\n";
+instruction_table += "        match &self {\n";
 
-//vm/src/utils.rs
-let utils = instructions.map((x) => {
-  return `${
-    x.op_code
-  } => Some(Instructions::${x.instructionString.toUpperCase()}(Instruction {
-        addressing_mode: AddressingModes::${snakeCaseToCamelCase(
-          x.addressing_mode
-        )},
-    })),\n`;
-});
-
-//bytecode/src/instruction_table.rs
-let instruction_table = instructions.map((x) => {
-  return `i.insert("${x.instructionString}_${x.addressing_mode}",Instruction {
-        rtype: "${x.instructionString}",
-        code: ${x.op_code},
-        mode: "${x.addressing_mode}",
-    });`;
-});
-
-let md =
-  `Rev: ${bytecode_rev}\n` +
-  "Auto builded from `instructions.csv` by `reassembler.js`\n" +
-  "| Instruction | Implicit | Immediate | Absolute | Absolute Index | Absolute Property | IndirectA | IndirectB | IndirectC | IndirectX | IndirectY | Parameter |\n" +
-  "| ----------- | -------- | --------- | -------- | -------------- | ----------------- | --------- | --------- | --------- | --------- | --------- | --------- |";
-
-//bytecode/instructions.md
-let instructions_md = full_instructions.map((x) => {
-  let instruction = x.instructionString;
-  let addressing_modes = "";
-
-  for (var idx = 0; idx <= 10; idx++) {
-    let mode = x.addressing_modes.find(
-      (x) => addresing_mode_index(idx) == x[0]
+for (const instruction of byteCodeFile.instructions) {
+  let existing_instruction_names = [
+    "Implicit",
+    "Immediate",
+    "Absolute",
+    "AbsoluteIndex",
+    "AbsoluteProperty",
+    "AbsoluteStatic",
+    "IndirectA",
+    "IndirectB",
+    "IndirectC",
+    "IndirectX",
+    "IndirectY",
+  ];
+  instruction_table += `            Instructions::${instruction.instruction}(e) => {\n`;
+  let op_code = op_codes.find((x) => x.rtype == instruction.instruction);
+  let op_code_list = existing_instruction_names.map((x) => {
+    return (
+      op_codes.find((y) => y.rtype == instruction.instruction && y.mode == x)
+        ?.code || -1
     );
-    let len =
-      idx == 0
-        ? 10
-        : idx == 1
-        ? 11
-        : idx == 2
-        ? 10
-        : idx == 3
-        ? 16
-        : idx == 4
-        ? 19
-        : idx > 4 && idx <= 9
-        ? 11
-        : 11;
+  });
+  instruction_table += `                let op_code_list: [isize; 11] = [${op_code_list.join(
+    ", "
+  )}];\n`;
+  instruction_table += `                let real_op_code: isize = op_code_list[e.addressing_mode.idx()];\n`;
+  instruction_table += `                if real_op_code == -1 {\n`;
+  instruction_table += `                  panic!("Wrong addresing_mode accessed");\n`;
+  instruction_table += `                }\n`;
+  instruction_table += `                let mut op_code = vec![real_op_code as u8];\n`;
+  instruction_table += `                op_code.extend(e.addressing_mode.arg(platform_size));\n`;
+  instruction_table += `                op_code\n`;
+  instruction_table += `            },\n`;
+}
+instruction_table += `        }\n`;
+instruction_table += `    }\n`;
 
-    if (mode) {
-      let op_code = "0x" + Number(mode[1]).toString(16).padStart(2, "0");
+//!
 
-      addressing_modes += `${makeSpace(
-        Math.round((len - op_code.length) / 2)
-      )}${op_code}${makeSpace(Math.floor((len - op_code.length) / 2))}|`;
+instruction_table += `\n    pub fn get_addressing_mode(&self) -> String {\n`;
+instruction_table += "        match &self {\n";
+
+for (const instruction of byteCodeFile.instructions) {
+  instruction_table += `            Instructions::${instruction.instruction}(e) => e.addressing_mode.clone(),\n`;
+}
+instruction_table += `        }\n`;
+instruction_table += `        .to_string()\n`;
+instruction_table += `    }\n`;
+
+//!
+instruction_table += `\n    pub fn get_arg(&self, platform_size: PlatformArchitecture) -> Vec<u8> {\n`;
+instruction_table += "        match &self {\n";
+
+for (const instruction of byteCodeFile.instructions) {
+  instruction_table += `            Instructions::${instruction.instruction}(e) => e.addressing_mode.arg(platform_size),\n`;
+}
+instruction_table += `        }\n`;
+instruction_table += `    }\n`;
+
+//!
+instruction_table += `}\n\n`;
+
+instruction_table += `impl core::fmt::Display for Instructions {\n`;
+instruction_table += `    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {\n`;
+instruction_table += `        match &self {\n`;
+
+for (const instruction of byteCodeFile.instructions) {
+  instruction_table += `            Instructions::${instruction.instruction}(e) => write!(f, "${instruction.instruction} {}", e.addressing_mode),\n`;
+}
+instruction_table += `        }\n`;
+instruction_table += `    }\n`;
+
+instruction_table += `}\n\n`;
+
+fs.writeFileSync(instruction_table_path, instruction_table);
+//! End of instructions_table.rs
+
+//? Build instructions_utils.rs
+console.log("Building instructions_utils.rs...");
+
+let instruction_utils =
+  "//Auto generated from `instructions.json` by `reAssembler.js rev: " +
+  (bytecodeRev + 1) +
+  "\n";
+instruction_utils += `
+use ellie_core::defs::PlatformArchitecture;
+use crate::{
+    heap_memory::HeapMemory,
+    instructions::{ExecuterPanic, ExecuterResult, InstructionExecuter, StaticProgram},
+    stack_memory::StackMemory,
+    stack::Stack,
+    utils::{AddressingModes, AddressingValues},
+};\n\n`
+for (const instruction of byteCodeFile.instructions) {
+  instruction_utils += `#[derive(Clone, Copy, Debug)]\n`;
+  instruction_utils += `pub struct ${instruction.instruction} {\n`;
+  instruction_utils += `    pub addressing_mode: AddressingModes,\n`;
+  instruction_utils += `}\n\n`;
+}
+
+instruction_utils += `#[derive(Clone, Copy, Debug)]\n`;
+instruction_utils += `pub enum Instructions {\n`;
+
+for (const instruction of byteCodeFile.instructions) {
+  instruction_utils += `    ${instruction.instruction}(${instruction.instruction}),\n`;
+}
+instruction_utils += "}\n\n";
+
+instruction_utils += `impl Instructions {\n`;
+instruction_utils += `    pub fn from(op_code: &u8) -> Option<Self> {\n`;
+instruction_utils += `        match op_code {\n`;
+
+for (const op_code of op_codes) {
+  instruction_utils += `            ${op_code.code} => Some(Instructions::${op_code.rtype}(${op_code.rtype} {\n`;
+  instruction_utils += `                addressing_mode: AddressingModes::${op_code.mode},\n`;
+  instruction_utils += `            })),\n`;
+}
+instruction_utils += `            _ => None,\n`;
+instruction_utils += `        }\n`;
+instruction_utils += `    }\n\n`;
+
+//!
+
+//!
+
+instruction_utils += `    pub fn execute(
+        &self,
+        heap_memory: &mut HeapMemory,
+        program: StaticProgram,
+        current_stack: &mut Stack,
+        stack_memory: &mut StackMemory,
+        addressing_value: &AddressingValues,
+        arch: PlatformArchitecture,
+    ) -> Result<ExecuterResult, ExecuterPanic> {\n`;
+instruction_utils += "        match &self {\n";
+
+for (const instruction of byteCodeFile.instructions) {
+  instruction_utils += `            Instructions::${instruction.instruction}(e) => e.execute(
+                heap_memory,
+                program,
+                current_stack,
+                stack_memory,
+                addressing_value,
+                arch,
+            ),\n`;
+}
+instruction_utils += `        }\n`;
+instruction_utils += `    }\n`;
+
+//!
+
+instruction_utils += `    pub fn addressing_mode(&self) -> AddressingModes {\n`;
+instruction_utils += `        match &self {\n`;
+
+for (const instruction of byteCodeFile.instructions) {
+  instruction_utils += `            Instructions::${instruction.instruction}(e) => e.addressing_mode.clone(),\n`;
+}
+instruction_utils += `        }\n`;
+instruction_utils += `    }\n`;
+
+instruction_utils += `}\n\n`;
+
+fs.writeFileSync(instruction_utils_path, instruction_utils);
+
+//? Build instructions.json
+
+//# Build instructions.md
+
+console.log("Building instructions.md...");
+
+let instruction_md = "# Instructions\n\n";
+instruction_md += "## Rev: " + (bytecodeRev + 1) + "\n\n";
+
+// headers
+
+let header_names = [
+  "Instruction",
+  "Implicit",
+  "Immediate",
+  "Absolute",
+  "AbsoluteIndex",
+  "AbsoluteProperty",
+  "AbsoluteStatic",
+  "IndirectA",
+  "IndirectB",
+  "IndirectC",
+  "IndirectX",
+  "IndirectY",
+];
+
+let op_code_idx = 1;
+
+function centerText(text, size) {
+  let spaces = size - text.length;
+  let left = Math.floor(spaces / 2);
+  let right = spaces - left;
+  return (
+    " ".repeat(left < 0 ? 0 : left) + text + " ".repeat(right < 0 ? 0 : right)
+  );
+}
+
+for (const header of header_names) {
+  instruction_md += "|";
+  instruction_md += centerText(header, header.length + 2);
+}
+
+instruction_md += "|\n";
+
+for (const header of header_names) {
+  instruction_md += "|";
+  instruction_md += "-".repeat(header.length + 2);
+}
+
+instruction_md += "|\n";
+
+for (const instruction of byteCodeFile.instructions) {
+  for (const header of header_names) {
+    instruction_md += "|";
+    if (header == "Instruction") {
+      instruction_md += centerText(instruction.instruction, header.length + 2);
+    } else if (instruction.addressingModes.includes(header)) {
+      instruction_md += centerText(
+        "0x" + op_code_idx.toString(16),
+        header.length + 2
+      );
+      op_code_idx++;
     } else {
-      addressing_modes += `${makeSpace(Math.round((len - 2) / 2))}--${makeSpace(
-        Math.floor((len - 2) / 2)
-      )}|`;
+      instruction_md += centerText("-", header.length + 2);
     }
   }
-  return `| ${instruction}${makeSpace(
-    11 - instruction.length
-  )} |${addressing_modes}`;
-});
+  instruction_md += "|\n";
+}
 
-console.log(
-  chalk`{green [Info]:} {yellow Instruction markdown writed {cyan './bytecode/instructions.md'}}`
-);
-fs.writeFileSync(
-  "./bytecode/instructions.md",
-  md + "\n" + instructions_md.join("\n")
-);
-console.log(
-  chalk`{green [Info]:} {yellow Utils writed {cyan './tools/generated_utils.rs'}}`
-);
-fs.writeFileSync("./tools/generated_utils.rs", utils.join(line_ending));
-console.log(
-  chalk`{green [Info]:} {yellow Instruction table writed {cyan '/bytecode/instructions.csv'}}`
-);
-fs.writeFileSync(
-  "./tools/generated_instruction_table.rs",
-  instruction_table.join(line_ending)
-);
-console.log(chalk`{green [Info]:} {yellow ReAssembly completed}`);
+instruction_md += "\n";
+instruction_md +=
+  "*__Note:__ Revision is incremented when the instruction set changes.*\n";
+instruction_md += "\n";
+instruction_md +=
+  "*_This file is auto generated from `instructions.json` by `reAssembler.js_*\n";
+
+fs.writeFileSync(instruction_md_path, instruction_md);
+
+console.log("ReAssembler.js finished.");
+console.log("Running cargo fmt --all in terminal");
+const { spawn } = require("child_process");
+process.chdir("..");
+const ls = spawn("cargo", ["fmt", "--all"]);

@@ -1,0 +1,359 @@
+{
+    "rev": 2,
+    "instructions": [
+        {
+            "instruction": "LDA",
+            "addressingModes": [
+                "Immediate",
+                "Absolute",
+                "AbsoluteIndex",
+                "AbsoluteProperty",
+                "AbsoluteStatic",
+                "IndirectB",
+                "IndirectC",
+                "IndirectX",
+                "IndirectY"
+            ]
+        },
+        {
+            "instruction": "LDB",
+            "addressingModes": [
+                "Immediate",
+                "Absolute",
+                "AbsoluteIndex",
+                "AbsoluteProperty",
+                "AbsoluteStatic",
+                "IndirectA",
+                "IndirectC",
+                "IndirectX",
+                "IndirectY"
+            ]
+        },
+        {
+            "instruction": "LDC",
+            "addressingModes": [
+                "Immediate",
+                "Absolute",
+                "AbsoluteIndex",
+                "AbsoluteProperty",
+                "AbsoluteStatic",
+                "IndirectA",
+                "IndirectB",
+                "IndirectX",
+                "IndirectY"
+            ]
+        },
+        {
+            "instruction": "LDX",
+            "addressingModes": [
+                "Immediate",
+                "Absolute",
+                "AbsoluteIndex",
+                "AbsoluteProperty",
+                "AbsoluteStatic",
+                "IndirectA",
+                "IndirectB",
+                "IndirectC",
+                "IndirectY"
+            ]
+        },
+        {
+            "instruction": "LDY",
+            "addressingModes": [
+                "Immediate",
+                "Absolute",
+                "AbsoluteIndex",
+                "AbsoluteProperty",
+                "AbsoluteStatic",
+                "IndirectA",
+                "IndirectB",
+                "IndirectC",
+                "IndirectX"
+            ]
+        },
+        {
+            "instruction": "STA",
+            "addressingModes": [
+                "Implicit",
+                "Immediate",
+                "Absolute",
+                "AbsoluteIndex",
+                "AbsoluteProperty"
+            ]
+        },
+        {
+            "instruction": "STB",
+            "addressingModes": [
+                "Implicit",
+                "Immediate",
+                "Absolute",
+                "AbsoluteIndex",
+                "AbsoluteProperty"
+            ]
+        },
+        {
+            "instruction": "STC",
+            "addressingModes": [
+                "Implicit",
+                "Immediate",
+                "Absolute",
+                "AbsoluteIndex",
+                "AbsoluteProperty"
+            ]
+        },
+        {
+            "instruction": "STX",
+            "addressingModes": [
+                "Implicit",
+                "Immediate",
+                "Absolute",
+                "AbsoluteIndex",
+                "AbsoluteProperty"
+            ]
+        },
+        {
+            "instruction": "STY",
+            "addressingModes": [
+                "Implicit",
+                "Immediate",
+                "Absolute",
+                "AbsoluteIndex",
+                "AbsoluteProperty"
+            ]
+        },
+        {
+            "instruction": "EQ",
+            "addressingModes": [
+                "Implicit"
+            ]
+        },
+        {
+            "instruction": "NE",
+            "addressingModes": [
+                "Implicit"
+            ]
+        },
+        {
+            "instruction": "GT",
+            "addressingModes": [
+                "Implicit"
+            ]
+        },
+        {
+            "instruction": "LT",
+            "addressingModes": [
+                "Implicit"
+            ]
+        },
+        {
+            "instruction": "GQ",
+            "addressingModes": [
+                "Implicit"
+            ]
+        },
+        {
+            "instruction": "LQ",
+            "addressingModes": [
+                "Implicit"
+            ]
+        },
+        {
+            "instruction": "AND",
+            "addressingModes": [
+                "Implicit"
+            ]
+        },
+        {
+            "instruction": "OR",
+            "addressingModes": [
+                "Implicit"
+            ]
+        },
+        {
+            "instruction": "ADD",
+            "addressingModes": [
+                "Implicit"
+            ]
+        },
+        {
+            "instruction": "SUB",
+            "addressingModes": [
+                "Implicit"
+            ]
+        },
+        {
+            "instruction": "MUL",
+            "addressingModes": [
+                "Implicit"
+            ]
+        },
+        {
+            "instruction": "EXP",
+            "addressingModes": [
+                "Implicit"
+            ]
+        },
+        {
+            "instruction": "DIV",
+            "addressingModes": [
+                "Implicit"
+            ]
+        },
+        {
+            "instruction": "MOD",
+            "addressingModes": [
+                "Implicit"
+            ]
+        },
+        {
+            "instruction": "JMP",
+            "addressingModes": [
+                "Absolute"
+            ]
+        },
+        {
+            "instruction": "JMPA",
+            "addressingModes": [
+                "Absolute"
+            ]
+        },
+        {
+            "instruction": "CALL",
+            "addressingModes": [
+                "Absolute"
+            ]
+        },
+        {
+            "instruction": "RET",
+            "addressingModes": [
+                "Implicit"
+            ]
+        },
+        {
+            "instruction": "PUSH",
+            "addressingModes": [
+                "Absolute",
+                "AbsoluteIndex",
+                "IndirectA",
+                "IndirectB",
+                "IndirectC",
+                "IndirectX",
+                "IndirectY"
+            ]
+        },
+        {
+            "instruction": "SPUS",
+            "addressingModes": [
+                "Absolute",
+                "AbsoluteIndex",
+                "IndirectA",
+                "IndirectB",
+                "IndirectC",
+                "IndirectX",
+                "IndirectY"
+            ]
+        },
+        {
+            "instruction": "LEN",
+            "addressingModes": [
+                "Absolute"
+            ]
+        },
+        {
+            "instruction": "A2I",
+            "addressingModes": [
+                "Implicit"
+            ]
+        },
+        {
+            "instruction": "A2F",
+            "addressingModes": [
+                "Implicit"
+            ]
+        },
+        {
+            "instruction": "A2D",
+            "addressingModes": [
+                "Implicit"
+            ]
+        },
+        {
+            "instruction": "A2B",
+            "addressingModes": [
+                "Implicit"
+            ]
+        },
+        {
+            "instruction": "A2S",
+            "addressingModes": [
+                "Implicit"
+            ]
+        },
+        {
+            "instruction": "A2C",
+            "addressingModes": [
+                "Implicit"
+            ]
+        },
+        {
+            "instruction": "A2O",
+            "addressingModes": [
+                "Implicit"
+            ]
+        },
+        {
+            "instruction": "ARR",
+            "addressingModes": [
+                "Implicit"
+            ]
+        },
+        {
+            "instruction": "STR",
+            "addressingModes": [
+                "Implicit"
+            ]
+        },
+        {
+            "instruction": "SAR",
+            "addressingModes": [
+                "Immediate"
+            ]
+        },
+        {
+            "instruction": "POPS",
+            "addressingModes": [
+                "Absolute"
+            ]
+        },
+        {
+            "instruction": "BRK",
+            "addressingModes": [
+                "Implicit"
+            ]
+        },
+        {
+            "instruction": "CALLN",
+            "addressingModes": [
+                "Absolute"
+            ]
+        },
+        {
+            "instruction": "CO",
+            "addressingModes": [
+                "Absolute"
+            ]
+        },
+        {
+            "instruction": "FN",
+            "addressingModes": [
+                "Immediate"
+            ]
+        },
+        {
+            "instruction": "DEA",
+            "addressingModes": [
+                "Absolute"
+            ]
+        }
+    ]
+}
