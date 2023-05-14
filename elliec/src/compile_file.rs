@@ -3,7 +3,10 @@ use bincode::Options;
 use ellie_engine::{
     compiler::parse_pages,
     ellie_bytecode::assembler::{Assembler, PlatformAttributes},
-    ellie_core::{defs::PlatformArchitecture, module_path::parse_module_import},
+    ellie_core::{
+        defs::{ModuleMap, PlatformArchitecture},
+        module_path::parse_module_import,
+    },
     ellie_parser::parser,
     //ellie_renderer_utils::*,
     ellie_renderer_utils::outputs,
@@ -403,9 +406,9 @@ pub fn compile(
                         OutputTypesSelector::ByteCodeDebug,
                     );
 
-                    let mut module_maps = vec![(
-                        compile_output.module.name.clone(),
-                        Some(
+                    let mut module_maps = vec![ModuleMap {
+                        module_name: compile_output.module.name.clone(),
+                        module_path: Some(
                             Path::new(target_path)
                                 .absolutize()
                                 .unwrap()
@@ -415,12 +418,15 @@ pub fn compile(
                                 .unwrap()
                                 .to_string(),
                         ),
-                    )];
+                    }];
 
                     module_maps.extend(
                         modules
                             .iter()
-                            .map(|(module, path)| (module.name.clone(), path.clone()))
+                            .map(|(module, path)| ModuleMap {
+                                module_name: module.name.clone(),
+                                module_path: path.clone(),
+                            })
                             .collect::<Vec<_>>(),
                     );
 

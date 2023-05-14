@@ -7,6 +7,7 @@ use serde::Serialize;
 pub struct Import {
     pub path: String,
     pub link_module: bool,
+    pub path_module: bool,
     pub public: bool,
     pub path_filled: bool,
     pub reference: String,
@@ -22,6 +23,7 @@ impl Converter<Import, ellie_core::definite::items::import::Import> for Import {
         ellie_core::definite::items::import::Import {
             path: self.path,
             link_module: self.link_module,
+            path_module: self.path_module,
             public: self.public,
             reference: self.reference,
             path_pos: self.path_pos,
@@ -34,6 +36,7 @@ impl Converter<Import, ellie_core::definite::items::import::Import> for Import {
         Import {
             path: from.path,
             link_module: self.link_module,
+            path_module: self.path_module,
             public: from.public,
             reference: from.reference,
             path_pos: from.path_pos,

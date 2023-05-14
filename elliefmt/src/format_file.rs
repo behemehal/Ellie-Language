@@ -1,11 +1,11 @@
 use ellie_engine::{
-    ellie_core::module_path::parse_module_import,
+    ellie_core::{module_path::parse_module_import, defs::Version},
     ellie_fmt::fmt::{Formatter, FormatterOptions},
     ellie_renderer_utils::{
         outputs,
         utils::{self, print_errors, CliColor, ColorDisplay, Colors},
     },
-    ellie_tokenizer::tokenizer::{ImportType, ResolvedImport},
+    ellie_tokenizer::tokenizer::{ImportType, ResolvedImport, Module},
     tokenizer::tokenize_file,
     utils::{MainProgram, ProgramRepository},
 };
@@ -87,9 +87,16 @@ pub fn format_file(target_path: &Path, formatter_settings: FormatterSettings) {
 
             if link_module {
                 ResolvedImport {
-                    found: false,
+                    found: true,
+                    hash:0,
                     resolve_error: "Cannot use modules in tokenizer".to_owned(),
-                    ..Default::default()
+                    path: "".to_string(),
+                    matched: ImportType::Module(Module {
+                        hash: 0,
+                        initial_page: 0,
+                        version: Version::build_from_string("0.0.0".to_string()),
+                        name: requested_path.clone(),
+                    }),
                 }
             } else {
                 match parse_module_import(&current_path, &requested_path) {
