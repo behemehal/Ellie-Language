@@ -2,9 +2,8 @@ use alloc::{
     format,
     string::{String, ToString},
 };
-use ellie_core::raw_type::StaticRawType;
 
-use crate::config::STACK_MEMORY_SIZE;
+use crate::{config::STACK_MEMORY_SIZE, raw_type::StaticRawType};
 
 //Static memory allocation
 pub struct StackMemory {
@@ -16,7 +15,7 @@ impl StackMemory {
     pub fn new() -> StackMemory {
         StackMemory {
             //4096 * 8 = 32kb
-            data: [StaticRawType::void(); STACK_MEMORY_SIZE],
+            data: [StaticRawType::from_void(); STACK_MEMORY_SIZE],
             len: 0,
         }
     }
@@ -27,10 +26,6 @@ impl StackMemory {
         } else {
             return Some(self.data[*key]);
         }
-        //match self.data.get(*key) {
-        //    Some(e) => Some(*e),
-        //    None => None,
-        //}
     }
 
     pub fn set(&mut self, key: &usize, value: StaticRawType) {
@@ -38,7 +33,7 @@ impl StackMemory {
     }
 
     pub fn dea(&mut self, key: &usize) {
-        self.data[*key] = StaticRawType::void();
+        self.data[*key] = StaticRawType::from_void();
     }
 
     pub fn dump(&self) -> String {

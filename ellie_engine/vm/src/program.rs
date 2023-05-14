@@ -1,12 +1,11 @@
+use core::mem;
 use crate::{
     instruction_utils::{Instructions, A2B},
-    utils::{AddressingModes, AddressingValues, ProgramReader},
+    raw_type::{StaticRawType, TypeId},
+    utils::{AddressingModes, AddressingValues, ProgramReader}, config::PROGRAM_MAX_SIZE,
 };
 use alloc::vec::Vec;
-use ellie_core::{
-    defs::PlatformArchitecture,
-    raw_type::{StaticRawType, TypeId},
-};
+use ellie_core::defs::PlatformArchitecture;
 
 #[derive(Debug, Clone, Copy)]
 pub struct ReadInstruction {
@@ -14,7 +13,17 @@ pub struct ReadInstruction {
     pub addressing_mode: AddressingModes,
     pub addressing_value: AddressingValues,
     pub op_code: u8,
-    pub args: [u8; 8],
+}
+
+#[derive(PartialEq, Debug)]
+pub enum ProgramReadErrors {
+    ReadError,
+    UnexpectedPlatformArchitecture,
+    UnmatchedPlatformArchitecture(PlatformArchitecture, PlatformArchitecture),
+    NoMainFunction,
+    BrokenMainFunction,
+    IllegalOpCode,
+    Complete,
 }
 
 impl Default for ReadInstruction {
@@ -26,12 +35,11 @@ impl Default for ReadInstruction {
             addressing_mode: AddressingModes::Implicit,
             addressing_value: AddressingValues::Implicit,
             op_code: 0,
-            args: [0_u8; 8],
         }
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct MainProgram {
     pub hash: usize,
     pub start: usize,
@@ -102,37 +110,44 @@ impl Program {
         Err(3)
     }
 
-    pub fn build_from_reader(&mut self, reader: &mut ProgramReader) -> Result<(), u8> {
+    pub fn build_from_reader(&mut self, reader: &mut ProgramReader) -> Result<(), ProgramReadErrors> {
         let arch = match reader.read_u8() {
             Some(byte) => match PlatformArchitecture::from_byte(byte) {
                 Some(e) => e,
-                None => return Err(2),
+                None => return Err(ProgramReadErrors::UnexpectedPlatformArchitecture),
             },
-            None => return Err(0),
+            None => return Err(ProgramReadErrors::ReadError),
         };
+
+        if arch.usize_len() > mem::size_of::<usize>() as u8 {
+            return Err(ProgramReadErrors::UnmatchedPlatformArchitecture(
+                arch,
+                PlatformArchitecture::from_byte(mem::size_of::<usize>() as u8 * 8).unwrap()),
+            );
+        }
 
         let main_exists = match reader.read_u8() {
             Some(byte) => byte,
-            None => return Err(0),
+            None => return Err(ProgramReadErrors::ReadError),
         };
 
         if main_exists == 0 {
-            return Err(3);
+            return Err(ProgramReadErrors::NoMainFunction);
         }
 
         let start = match reader.read_usize(arch.usize_len()) {
             Some(byte) => byte,
-            None => return Err(0),
+            None => return Err(ProgramReadErrors::ReadError),
         };
 
         let end = match reader.read_usize(arch.usize_len()) {
             Some(byte) => byte,
-            None => return Err(0),
+            None => return Err(ProgramReadErrors::ReadError),
         };
 
         let hash = match reader.read_usize(arch.usize_len()) {
             Some(byte) => byte,
-            None => return Err(0),
+            None => return Err(ProgramReadErrors::ReadError),
         };
         self.main = MainProgram {
             hash,
@@ -145,13 +160,12 @@ impl Program {
             match read_instruction {
                 Ok(instruction) => {
                     self.instructions.push(instruction);
-                }
-                Err(error) => {
-                    if error != 0 {
-                        return Err(error);
-                    } else {
+                    if self.instructions.len() - 1 == self.main.length {
                         break;
                     }
+                }
+                Err(error) => {
+                    return Err(error);
                 }
             }
         }
@@ -167,10 +181,10 @@ impl Program {
     /// 0 = Failed to read byte
     /// 1 = Used illegal op code
     /// 2 = Used invalid addressing mode
-    fn read_instruction<'a>(&self, reader: &mut ProgramReader) -> Result<ReadInstruction, u8> {
+    fn read_instruction<'a>(&self, reader: &mut ProgramReader) -> Result<ReadInstruction, ProgramReadErrors> {
         let read_byte = match reader.read_u8() {
             Some(byte) => byte,
-            None => return Err(0),
+            None => return Err(ProgramReadErrors::ReadError),
         };
 
         match Instructions::from(&read_byte) {
@@ -183,67 +197,55 @@ impl Program {
                         addressing_mode,
                         addressing_value,
                         op_code: read_byte,
-                        args: [0_u8; 8],
                     });
                 } else {
-                    let mut args: [u8; 8] = [0; 8];
                     match addressing_mode {
                         AddressingModes::Immediate => {
                             let id = reader.read_u8().unwrap();
                             let size = reader.read_usize(self.arch.usize_len()).unwrap();
                             let type_id = TypeId::from(id, size);
                             let mut data: [u8; 8] = [0; 8];
-                            for i in 0..8 {
+                            for i in 0..type_id.size {
                                 data[i] = reader.read_u8().unwrap();
                             }
                             addressing_value =
                                 AddressingValues::Immediate(StaticRawType { type_id, data });
                         }
                         AddressingModes::Absolute => {
-                            for i in 0..self.arch.usize_len() {
-                                let read_byte = match reader.read_u8() {
-                                    Some(byte) => byte,
-                                    None => return Err(0),
-                                };
-                                args[i as usize] = read_byte;
-                            }
-                            addressing_value = AddressingValues::Absolute(usize::from_le_bytes(
-                                args.clone().try_into().unwrap(),
-                            ));
+                            let address = match reader.read_usize(self.arch.usize_len()) {
+                                Some(byte) => byte,
+                                None => return Err(ProgramReadErrors::ReadError),
+                            };
+                            addressing_value = AddressingValues::Absolute(address);
                         }
                         AddressingModes::AbsoluteIndex => {
                             let pointer = match reader.read_usize(self.arch.usize_len()) {
                                 Some(byte) => byte,
-                                None => return Err(0),
+                                None => return Err(ProgramReadErrors::ReadError),
                             };
                             let index = match reader.read_usize(self.arch.usize_len()) {
                                 Some(byte) => byte,
-                                None => return Err(0),
+                                None => return Err(ProgramReadErrors::ReadError),
                             };
                             addressing_value = AddressingValues::AbsoluteIndex(pointer, index);
                         }
                         AddressingModes::AbsoluteProperty => {
                             let pointer = match reader.read_usize(self.arch.usize_len()) {
                                 Some(byte) => byte,
-                                None => return Err(0),
+                                None => return Err(ProgramReadErrors::ReadError),
                             };
                             let index = match reader.read_usize(self.arch.usize_len()) {
                                 Some(byte) => byte,
-                                None => return Err(0),
+                                None => return Err(ProgramReadErrors::ReadError),
                             };
                             addressing_value = AddressingValues::AbsoluteProperty(pointer, index);
                         }
                         AddressingModes::AbsoluteStatic => {
-                            for i in 0..self.arch.usize_len() {
-                                let read_byte = match reader.read_u8() {
-                                    Some(byte) => byte,
-                                    None => return Err(0),
-                                };
-                                args[i as usize] = read_byte;
-                            }
-                            addressing_value = AddressingValues::AbsoluteStatic(
-                                usize::from_le_bytes(args.clone().try_into().unwrap()),
-                            );
+                            let address = match reader.read_usize(self.arch.usize_len()) {
+                                Some(byte) => byte,
+                                None => return Err(ProgramReadErrors::ReadError),
+                            };
+                            addressing_value = AddressingValues::AbsoluteStatic(address);
                         }
                         AddressingModes::Implicit => todo!(),
                         AddressingModes::IndirectA => {
@@ -268,13 +270,39 @@ impl Program {
                         addressing_mode,
                         addressing_value,
                         op_code: read_byte,
-                        args,
                     });
                 }
             }
             None => {
-                return Err(1);
+                return Err(ProgramReadErrors::IllegalOpCode);
             }
         };
+    }
+}
+
+pub struct VmProgram {
+    pub instructions: [ReadInstruction; PROGRAM_MAX_SIZE],
+    pub length: usize,
+}
+
+impl VmProgram {
+    pub fn new() -> Self {
+        VmProgram {
+            instructions: [ReadInstruction::default(); PROGRAM_MAX_SIZE],
+            length: 0,
+        }
+    }
+
+    pub fn new_from_vector(program: Vec<ReadInstruction>) -> Self {
+        let mut vm_program = VmProgram::new();
+        vm_program.fill_from_vector(program);
+        vm_program
+    }
+
+    pub fn fill_from_vector(&mut self, program: Vec<ReadInstruction>) {
+        for (idx, instruction) in program.iter().enumerate() {
+            self.instructions[idx] = *instruction;
+        }
+        self.length = program.len();
     }
 }

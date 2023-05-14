@@ -1,9 +1,5 @@
-use crate::utils::ThreadInfo;
+use crate::utils::{ThreadInfo, VmNativeCallParameters, VmNativeAnswer};
 use alloc::{boxed::Box, string::String, vec::Vec};
-use ellie_core::{
-    defs::{VmNativeAnswer, VmNativeCallParameters},
-    raw_type::RawType,
-};
 
 pub enum ModuleElements {
     Function(FunctionElement),
@@ -22,7 +18,6 @@ impl ModuleElements {
         }
     }
 }
-
 pub struct EllieModule {
     pub module_name: String,
     pub module_hash: usize,
@@ -34,7 +29,7 @@ pub struct FunctionElement {
     pub hash: usize,
     /// This is a callback function that will be called when the function is called
     /// (ThreadInfo, params)
-    pub callback: Box<dyn FnMut(ThreadInfo, Vec<VmNativeCallParameters>) -> VmNativeAnswer>,
+    pub callback: Box<dyn FnMut(ThreadInfo, Vec<VmNativeCallParameters>) -> VmNativeAnswer + Send>,
 }
 
 impl EllieModule {

@@ -4,7 +4,7 @@ use alloc::{
     string::{String, ToString},
     vec::Vec,
 };
-use ellie_core::raw_type::{MutatableRawType, RawType};
+use crate::raw_type::{MutatableRawType, RawType};
 
 #[derive(Clone)]
 pub struct HeapMemory {
@@ -17,11 +17,6 @@ impl HeapMemory {
             data: BTreeMap::new(),
         }
     }
-
-    //pub fn push(&mut self, value: RawType) {
-    //    let key = self.data.len();
-    //    self.data.insert(key, value.to_bytes());
-    //}
 
     pub fn get_mut(&mut self, key: &usize) -> Option<MutatableRawType> {
         match self.data.get_mut(key) {

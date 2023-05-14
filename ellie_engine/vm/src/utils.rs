@@ -1,10 +1,39 @@
+use core::mem;
+
 use alloc::{string::String, vec::Vec};
-use ellie_core::{
-    defs::CursorPosition,
+use ellie_core::defs::CursorPosition;
+
+use crate::{
+    heap_memory,
     raw_type::{RawType, StaticRawType, TypeId},
+    stack::Stack,
+    stack_memory,
 };
 
-use crate::{heap_memory, stack::Stack, stack_memory};
+#[derive(Clone, Debug)]
+pub enum VmNativeCallParameters {
+    Static(StaticRawType),
+    Dynamic(RawType),
+}
+
+#[derive(Clone, Debug)]
+pub struct VmNativeCall {
+    /// Native function's hash
+    pub hash: usize,
+    /// Parameter array
+    pub params: Vec<VmNativeCallParameters>,
+    /// Return heap position is location of the ret instruction
+    /// If a non static value want to be returned, it will be stored in the heap,
+    /// and Y register will be referencing to this position,
+    /// so set the location of your dynamic value here
+    pub return_heap_position: usize,
+}
+
+#[derive(Clone, Debug)]
+pub enum VmNativeAnswer {
+    Ok(VmNativeCallParameters),
+    RuntimeError(String),
+}
 
 #[derive(Debug, Clone)]
 pub struct ThreadInfo {
@@ -58,7 +87,7 @@ pub enum ThreadPanicReason {
     /// This panic is triggered when a native call not matched with any module_manager item
     CallToUnknown(usize),
     /// This panic is triggered when a native call not matched with any module_manager item
-    MissingModule,
+    MissingModule(usize),
     /// Usally arrays are created with first index of it as it's entries size
     /// If array data doesnt have the entry_size or entry_size is zero or less this panic will be triggered
     ArraySizeCorruption,
@@ -189,30 +218,39 @@ impl ProgramReader<'_> {
 
     pub fn read_usize(&mut self, arch_size: u8) -> Option<usize> {
         //Read usize in little endian
-        let mut bytes = Vec::new();
-        for _ in 0..arch_size {
-            match self.reader.read() {
-                Some(byte) => {
-                    bytes.push(byte);
+        let mut array = [0; mem::size_of::<usize>()];
+        for i in 0..mem::size_of::<usize>() {
+            if arch_size > i as u8 {
+                match self.reader.read() {
+                    Some(byte) => {
+                        array[i] = byte;
+                    }
+                    None => return None,
                 }
-                None => return None,
+            } else {
+                array[i] = 0
             }
         }
-        Some(usize::from_le_bytes(bytes.try_into().unwrap()))
+        Some(usize::from_le_bytes(array))
     }
 
     pub fn read_isize(&mut self, arch_size: u8) -> Option<isize> {
-        //Read usize in little endian
-        let mut bytes = Vec::new();
-        for _ in 0..arch_size {
-            match self.reader.read() {
-                Some(byte) => {
-                    bytes.push(byte);
+        //Read isize in little endian
+        let mut array = [0; mem::size_of::<isize>()];
+
+        for i in 0..mem::size_of::<isize>() {
+            if arch_size > i as u8 {
+                match self.reader.read() {
+                    Some(byte) => {
+                        array[i] = byte;
+                    }
+                    None => return None,
                 }
-                None => return None,
+            } else {
+                array[i] = 0
             }
         }
-        Some(isize::from_le_bytes(bytes.try_into().unwrap()))
+        Some(isize::from_le_bytes(array))
     }
 
     pub fn read_u8(&mut self) -> Option<u8> {
@@ -308,14 +346,14 @@ pub fn resolve_reference(
                 if data.type_id.id == 13 {
                     resolve_reference(
                         ReferenceType::Stack,
-                        usize::from_le_bytes(data.data.try_into().unwrap()),
+                        data.to_int() as usize,
                         heap_memory,
                         stack_memory,
                     )
                 } else if data.type_id.id == 14 {
                     resolve_reference(
                         ReferenceType::Heap,
-                        usize::from_le_bytes(data.data.try_into().unwrap()),
+                        data.to_int() as usize,
                         heap_memory,
                         stack_memory,
                     )

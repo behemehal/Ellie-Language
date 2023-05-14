@@ -1,7 +1,6 @@
 //Auto generated from `instructions.json` by `reAssembler.js rev: 3
 
 use crate::{
-    channel::ModuleManager,
     heap_memory::HeapMemory,
     instructions::{ExecuterPanic, ExecuterResult, InstructionExecuter, StaticProgram},
     stack::Stack,

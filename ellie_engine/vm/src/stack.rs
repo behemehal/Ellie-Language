@@ -1,6 +1,5 @@
-use crate::{config::STACK_SIZE, thread::Registers};
+use crate::{config::STACK_SIZE, thread::Registers, raw_type::StaticRawType};
 use alloc::vec::Vec;
-use ellie_core::raw_type::StaticRawType;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Stack {
@@ -26,11 +25,11 @@ impl Stack {
             id: 0,
             stack_len: 0,
             registers: Registers {
-                A: StaticRawType::void(),
-                B: StaticRawType::void(),
-                C: StaticRawType::void(),
-                X: StaticRawType::void(),
-                Y: StaticRawType::void(),
+                A: StaticRawType::from_void(),
+                B: StaticRawType::from_void(),
+                C: StaticRawType::from_void(),
+                X: StaticRawType::from_void(),
+                Y: StaticRawType::from_void(),
             },
             caller: None,
         }
