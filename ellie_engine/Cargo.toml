@@ -25,7 +25,7 @@ ellie_fmt = { path = "fmt", version = "*", optional = true }
 ellie_renderer_utils = { path = "renderer_utils", version = "*", optional = true,  default-features = false }
 
 [features]
-default = ["vm", "compiler", "fmt", "std", "B32"]
+default = ["vm", "compiler", "fmt", "std"]
 compiler = ["ellie_tokenizer", "ellie_parser", "ellie_bytecode", "ellie_core/compiler_utils"]
 vm = ["ellie_vm", "ellie_vm/std"]
 std = ["ellie_vm/std"]
@@ -34,9 +34,6 @@ fmt = ["ellie_fmt"]
 #ellie_assistant = ["ellie_assist"]
 standard_rules =  ["ellie_parser/standard_rules"]
 cli-utils = ["ellie_renderer_utils/cli-utils"]
-B64 = ["ellie_vm/B64"]
-B32 = ["ellie_vm/B32"]
-B16 = ["ellie_vm/B16"]
 
 [build-dependencies]
 path-absolutize = { version = "3.0.10" }

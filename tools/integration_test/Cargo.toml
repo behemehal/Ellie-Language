@@ -6,4 +6,4 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-ellie_engine = { path = "../../ellie_engine", default-features = false, features=["vm", "compiler", "B32", "std"] }
+ellie_engine = { path = "../../ellie_engine", default-features = false, features=["vm", "compiler", "std"] }
