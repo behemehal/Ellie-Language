@@ -10,8 +10,9 @@ mod loop_type;
 mod native_function;
 mod ret;
 mod setter_call;
-pub mod type_resolver;
+mod type_resolver;
 mod variable;
+mod self_item;
 
 use ellie_parser::parser::ProcessedPage;
 

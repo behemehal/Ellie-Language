@@ -1,3 +1,6 @@
+[workspace]
+members = [ "core", "tokenizer", "parser", "bytecode", "vm", "fmt", "renderer_utils" ]
+
 [package]
 name = "ellie_engine"
 description = "Why ellie? Ellie is a type-safe programing language that runs on embedded and sandboxed environments."

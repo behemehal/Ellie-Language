@@ -210,6 +210,7 @@ impl super::Processor for Class {
                 page_type: PageType::ClassBody(ClassPageType {
                     name: self.name.clone(),
                     hash: self.hash.clone(),
+                    pos: self.pos,
                     page_hash: page_hash.clone(),
                 }),
                 unreachable: false,

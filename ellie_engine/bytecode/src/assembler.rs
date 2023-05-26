@@ -446,8 +446,8 @@ impl Assembler {
                     )
                 }
                 ellie_core::definite::items::Collecting::ConstructorParameter(_) => true,
-                ellie_core::definite::items::Collecting::SelfItem(e) => {
-                    panic!("Unexpected self item in assembler: {:?}", e)
+                ellie_core::definite::items::Collecting::SelfItem(self_item) => {
+                    self_item.transpile(self, processed_page.hash as usize, &processed_page)
                 }
                 ellie_core::definite::items::Collecting::Extend(_) => true,
                 ellie_core::definite::items::Collecting::Loop(loop_type) => {

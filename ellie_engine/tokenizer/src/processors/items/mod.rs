@@ -1,7 +1,11 @@
 use core::panic;
 
 use ellie_core::{
-    definite::{items::Collecting, types::class_instance, Converter},
+    definite::{
+        items::{self_item, Collecting},
+        types::class_instance,
+        Converter,
+    },
     defs, error,
 };
 use enum_as_inner::EnumAsInner;
@@ -24,7 +28,7 @@ mod getter_call;
 mod getter_processor;
 mod go_processor;
 mod import_processor;
-pub mod loop_processor;
+mod loop_processor;
 mod ret_processor;
 mod setter_call;
 mod setter_processor;
@@ -52,6 +56,7 @@ pub enum Processors {
     ClassInstance(class_instance::ClassInstance), //VirtualValues
     GenericItem(generic_item::GenericItem),       //VirtualValues
     FunctionParameter(function_parameter::FunctionParameter), //VirtualValues
+    SelfItem(self_item::SelfItem),                //VirtualValues
     Comment(comment::Comment),
     ConstructorParameter(constructor_parameter::ConstructorParameter), //DISABLED
 }
@@ -78,6 +83,7 @@ impl Processors {
             Processors::GenericItem(_) => panic!("Unexpected behaviour"),
             Processors::FunctionParameter(_) => panic!("Unexpected behaviour"),
             Processors::ConstructorParameter(_) => panic!("Unexpected behaviour"),
+            Processors::SelfItem(_) => panic!("Unexpected behaviour"),
             Processors::ClassInstance(_) => panic!("Unexpected behaviour"),
             Processors::Brk(e) => e.complete,
             Processors::Go(e) => e.complete,
@@ -130,6 +136,7 @@ impl Processors {
                 range_start: e.name_pos.range_start,
                 range_end: e.rtype_pos.range_end,
             },
+            Processors::SelfItem(e) => e.pos,
             Processors::ConstructorParameter(_) => ellie_core::defs::Cursor::default(),
             Processors::Brk(e) => e.pos,
             Processors::Go(e) => e.pos,
@@ -157,6 +164,7 @@ impl Processors {
             Processors::ClassInstance(_) => panic!("Unexpected behaviour"),
             Processors::GenericItem(_) => panic!("Unexpected behaviour"),
             Processors::FunctionParameter(_) => panic!("Unexpected behaviour"),
+            Processors::SelfItem(_) => panic!("Unexpected behaviour"),
             Processors::ConstructorParameter(_) => panic!("Unexpected behaviour"),
             Processors::Brk(e) => Collecting::Brk(e.to_definite()),
             Processors::Go(e) => Collecting::Go(e.to_definite()),
@@ -521,6 +529,7 @@ impl super::Processor for ItemProcessor {
             Processors::ClassInstance(_) => unreachable!("Unexpected behaviour"),
             Processors::GenericItem(_) => unreachable!("Unexpected behaviour"),
             Processors::FunctionParameter(_) => unreachable!("Unexpected behaviour"),
+            Processors::SelfItem(_) => unreachable!("Unexpected behaviour"),
             Processors::ConstructorParameter(_) => unreachable!("Unexpected behaviour"),
             Processors::Brk(e) => e.iterate(errors, cursor, last_char, letter_char),
             Processors::Go(e) => e.iterate(errors, cursor, last_char, letter_char),

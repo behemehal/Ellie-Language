@@ -15,6 +15,3 @@ lazy_static = "1.4.0"
 [features]
 default = ["std"]
 std = []
-
-[profile.release]
-opt-level = 3

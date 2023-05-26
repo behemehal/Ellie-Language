@@ -20,6 +20,3 @@ default = ["std", "standard_rules"]
 std = []
 integrity_com = []
 standard_rules = ["ellie_standard_rules"]
-
-[profile.release]
-opt-level = 3

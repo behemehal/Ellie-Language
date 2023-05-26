@@ -19,7 +19,6 @@ pub mod go;
 pub mod import;
 pub mod loop_type;
 pub mod ret;
-pub mod self_item;
 pub mod setter;
 pub mod setter_call;
 pub mod variable;

@@ -39,7 +39,7 @@ impl super::InstructionExecuter for LDB {
                         if raw_type.type_id.is_void() {
                             return Err(ExecuterPanic {
                                 reason: ThreadPanicReason::NullReference(
-                                    e + current_stack.frame_pos,
+                                    current_stack.pos,
                                 ),
                                 code_location: format!("{}:{}", file!(), line!()),
                             });

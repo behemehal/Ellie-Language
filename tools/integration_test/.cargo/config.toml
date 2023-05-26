@@ -1,2 +1,2 @@
-[build]
-target = "i686-unknown-linux-gnu"
+#[build]
+#target = "i686-unknown-linux-gnu"

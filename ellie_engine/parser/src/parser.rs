@@ -311,6 +311,7 @@ pub enum DeepSearchItems {
     ConstructorParameter(
         ellie_tokenizer::syntax::items::constructor_parameter::ConstructorParameter,
     ),
+    SelfItem(ellie_core::definite::items::self_item::SelfItem),
     BrokenPageGraph,
     MixUp(Vec<(String, String)>),
     None,
@@ -1150,6 +1151,7 @@ impl Parser {
             }
             deep_search_extensions::DeepTypeResult::Enum(_) => todo!(),
             deep_search_extensions::DeepTypeResult::ClassInstance(_) => todo!(),
+            deep_search_extensions::DeepTypeResult::SelfItem(_) => todo!(),
         }
     }
 
@@ -1495,6 +1497,15 @@ impl Parser {
                                             });
                                         }
                                     }
+                                    Collecting::SelfItem(e) => {
+                                        if name == "self" {
+                                            found_pos = Some(e.pos);
+                                            found = true;
+                                            found_page = FoundPage::fill(&unprocessed_page);
+                                            found_type = DeepSearchItems::SelfItem(e);
+                                        }
+                                        
+                                    }
                                     _ => (),
                                 }
                             }
@@ -1654,6 +1665,14 @@ impl Parser {
                                             });
                                         }
                                     }
+                                    Collecting::SelfItem(e) => {
+                                        if name == "self" {
+                                            found_pos = Some(e.pos);
+                                            found = true;
+                                            found_page = FoundPage::fill(&unprocessed_page);
+                                            found_type = DeepSearchItems::SelfItem(e);
+                                        }
+                                    }
                                     _ => (),
                                 }
                             }
@@ -1810,6 +1829,15 @@ impl Parser {
                                             found_page = FoundPage::fill(&page);
                                             found_type =
                                                 DeepSearchItems::ConstructorParameter(e.clone());
+                                        }
+                                    }
+                                    Processors::SelfItem(e) => {
+                                        if "self" == name && (level == 0 || dep.deep_link.is_some())
+                                        {
+                                            found_pos = Some(e.pos);
+                                            found = true;
+                                            found_page = FoundPage::fill(page);
+                                            found_type = DeepSearchItems::SelfItem(e.clone());
                                         }
                                     }
                                     _ => (),
@@ -2043,6 +2071,14 @@ impl Parser {
                             Collecting::FunctionParameter(
                                 ellie_core::definite::items::function_parameter::FunctionParameter { name: e.name.clone(), rtype: e.rtype.clone(), name_pos: e.name_pos, rtype_pos: e.rtype_pos, hash: e.hash }
                             ));
+                            true
+                        }
+                        Processors::SelfItem(e) => {
+                            self.processed_pages
+                                .nth_mut(processed_page_idx)
+                                .unwrap()
+                                .items
+                                .push(Collecting::SelfItem(*e));
                             true
                         }
                         Processors::ConstructorParameter(e) => {

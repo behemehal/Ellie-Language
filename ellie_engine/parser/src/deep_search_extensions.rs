@@ -288,6 +288,7 @@ pub enum DeepTypeResult {
     FunctionCall(ellie_core::definite::types::function_call::FunctionCall),
     BraceReference(ellie_core::definite::types::brace_reference::BraceReferenceType),
     ClassInstance(ellie_core::definite::types::class_instance::ClassInstance),
+    SelfItem(ellie_core::definite::items::self_item::SelfItem),
     Void,
     Null,
     Dynamic,
@@ -324,13 +325,8 @@ fn iterate_deep_type(
                 let mut errors: Vec<error::Error> = Vec::new();
                 match reference_type.clone() {
                     ellie_core::definite::definers::DefinerCollecting::Generic(generic) => {
-                        let hash_deep_search = deep_search_hash(
-                            parser,
-                            page_id,
-                            generic.hash,
-                            vec![],
-                            0,
-                        );
+                        let hash_deep_search =
+                            deep_search_hash(parser, page_id, generic.hash, vec![], 0);
 
                         if hash_deep_search.found {
                             match hash_deep_search.found_item {
@@ -541,7 +537,14 @@ fn iterate_deep_type(
                         }
                     }
                     ellie_core::definite::definers::DefinerCollecting::Function(_) => {
-                        let result = parser.deep_search(page_id, "function".to_owned(), None, vec![], 0, Some(reference_pos));
+                        let result = parser.deep_search(
+                            page_id,
+                            "function".to_owned(),
+                            None,
+                            vec![],
+                            0,
+                            Some(reference_pos),
+                        );
                         if result.found {
                             let rtype = match result.found_item {
                                 DeepSearchItems::Class(e) => definers::GenericType {
@@ -567,7 +570,6 @@ fn iterate_deep_type(
                         } else {
                             todo!()
                         }
-                        
                     }
                     ellie_core::definite::definers::DefinerCollecting::EnumField(_) => {
                         let rtype = find_type("enum".to_owned(), page_id, parser);
@@ -801,6 +803,7 @@ fn iterate_deep_type(
                             DeepTypeResult::EnumData(_) => todo!(),
                             DeepTypeResult::Enum(_) => todo!(),
                             DeepTypeResult::ClassInstance(_) => todo!(),
+                            DeepTypeResult::SelfItem(_) => todo!(),
                         }),
                         reference_pos: e.reference_pos,
                         brace_pos: e.brace_pos,
@@ -826,6 +829,7 @@ fn iterate_deep_type(
                             DeepTypeResult::EnumData(_) => todo!(),
                             DeepTypeResult::Enum(_) => todo!(),
                             DeepTypeResult::ClassInstance(_) => todo!(),
+                            DeepTypeResult::SelfItem(_) => todo!(),
                         }),
                         pos: e.pos,
                     },
@@ -855,6 +859,7 @@ fn iterate_deep_type(
                 DeepTypeResult::EnumData(_) => todo!(),
                 DeepTypeResult::Enum(_) => todo!(),
                 DeepTypeResult::ClassInstance(_) => todo!(),
+                DeepTypeResult::SelfItem(_) => todo!(),
             };
 
             let second = match resolve_deep_type(parser, page_id, *e.second, errors) {
@@ -879,6 +884,7 @@ fn iterate_deep_type(
                 DeepTypeResult::EnumData(e) => Types::EnumData(e),
                 DeepTypeResult::Enum(_) => todo!(),
                 DeepTypeResult::ClassInstance(_) => todo!(),
+                DeepTypeResult::SelfItem(_) => todo!(),
             };
 
             DeepTypeResult::Operator(ellie_core::definite::types::operator::OperatorType {
@@ -1012,6 +1018,7 @@ fn iterate_deep_type(
                     DeepTypeResult::EnumData(_) => todo!(),
                     DeepTypeResult::Enum(_) => todo!(),
                     DeepTypeResult::ClassInstance(_) => todo!(),
+                    DeepTypeResult::SelfItem(_) => todo!(),
                 }
             }
             DeepTypeResult::Array(ellie_core::definite::types::array::ArrayType {
@@ -1268,13 +1275,7 @@ fn iterate_deep_type(
                     ProcessedDeepSearchItems::None => todo!(),
                     ProcessedDeepSearchItems::Enum(enum_data) => DeepTypeResult::Enum(enum_data),
                     ProcessedDeepSearchItems::SelfItem(self_item) => {
-                        let targeted_class_page = parser.find_page(self_item.class_page).unwrap();
-                        let class_page_hash = targeted_class_page.inner.unwrap();
-                        let class_page = parser.find_page(class_page_hash).unwrap();
-                        let _targeted_class = class_page.items.iter().find(|item| matches!(item, ellie_tokenizer::processors::items::Processors::Class(found_class) if found_class.hash == self_item.class_hash));
-                        let _targeted_class = _targeted_class.unwrap().as_class().unwrap();
-
-                        todo!("TO BE REMOVED");
+                        DeepTypeResult::SelfItem(self_item)
 
                         /*
                         DeepTypeResult::ClassCall(
@@ -2180,6 +2181,14 @@ pub fn deep_search(
                                     found_type = ProcessedDeepSearchItems::ClassInstance(e.clone());
                                 }
                             }
+                            Collecting::SelfItem(e) => {
+                                if name == "self" {
+                                    found_pos = None;
+                                    found = true;
+                                    found_page = FoundPage::fill_from_processed(&page);
+                                    found_type = ProcessedDeepSearchItems::SelfItem(e.clone());
+                                }
+                            }
                             _ => (),
                         }
                     }
@@ -2216,7 +2225,7 @@ pub fn deep_search(
     }
 }
 
-pub fn  find_type(
+pub fn find_type(
     rtype: String,
     target_page: usize,
     parser: &mut Parser,
@@ -2905,5 +2914,12 @@ pub fn resolve_type(
         DeepTypeResult::ClassInstance(instance) => {
             Some(ellie_core::definite::definers::DefinerCollecting::ClassInstance(instance))
         }
+        DeepTypeResult::SelfItem(e) => Some(
+            ellie_core::definite::definers::DefinerCollecting::Generic(definers::GenericType {
+                rtype: "self".to_string(),
+                pos: e.pos,
+                hash: e.class_hash,
+            }),
+        ),
     }
 }

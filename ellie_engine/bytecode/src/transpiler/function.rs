@@ -56,6 +56,7 @@ impl super::Transpiler for function::Function {
                 ),
             ));
         //Reserve memory spaces for parameters
+        std::println!("Parameters: {:?}", self.parameters);
         for (idx, parameter) in self.parameters.iter().enumerate() {
             assembler.debug_headers.push(DebugHeader {
                 rtype: DebugHeaderType::Parameter,

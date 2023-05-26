@@ -219,6 +219,13 @@ pub fn process(
                             pos: e.pos,
                         }))
                     }
+                    crate::parser::DeepSearchItems::SelfItem(e) => {
+                        Ok(types::Types::VariableType(types::variable::VariableType {
+                            value: String::from("self"),
+                            reference: e.class_hash,
+                            pos: from.get_pos(),
+                        }))
+                    }
                 }
             } else {
                 errors.push(error::error_list::ERROR_S6.clone().build_with_path(
@@ -1353,7 +1360,9 @@ pub fn process(
                                     })
                                     .collect::<Vec<_>>();
 
-                                if function.params.len() != used_params.len() && errors.len() == 0 {
+                                if function.params.iter().filter(|x| matches!(x, DefinerCollecting::Generic(generic) if generic.rtype != "self")).count() != used_params.len()
+                                    && errors.len() == 0
+                                {
                                     errors.push(
                                         error::error_list::ERROR_S7.clone().build_with_path(
                                             vec![
@@ -1385,6 +1394,11 @@ pub fn process(
 
                                 if errors.len() == 0 {
                                     for (index, param) in function.params.iter().enumerate() {
+                                        if matches!(param, DefinerCollecting::Generic(generic) if generic.rtype == "self")
+                                        {
+                                            continue;
+                                        }
+                                        std::println!("\n---\n{:#?}\n---\n{:#?}\n---", function.params, used_params);
                                         let used = used_params[index].1.clone();
                                         if !param.same_as(used.clone()) {
                                             errors.push(
@@ -1434,11 +1448,14 @@ pub fn process(
                                                     target: Box::new(resolved),
                                                     target_pos: ellie_core::defs::Cursor::default(),
                                                     returning: *function.returning.clone(),
-                                                    params: function.params.iter().enumerate().map(|(idx, _)| {
-                                                        ellie_core::definite::types::function_call::FunctionCallParameter {
+                                                    params: function.params.iter().enumerate().filter_map(|(idx, e)| {
+                                                        if matches!(e, DefinerCollecting::Generic(generic) if generic.rtype == "self") {
+                                                            return None;
+                                                        }
+                                                        Some(ellie_core::definite::types::function_call::FunctionCallParameter {
                                                             value: resolved_params[idx].0.clone(),
                                                             pos: resolved_params[idx].1
-                                                        }
+                                                        })
                                                     }).collect::<Vec<_>>(),
                                                     pos: ellie_core::defs::Cursor::default(),
                                                     generic_parameters: vec![],

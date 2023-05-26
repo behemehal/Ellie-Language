@@ -51,6 +51,7 @@ pub fn resolve_type(
     match types {
         CoreTypes::Collective(_) => todo!(),
         CoreTypes::Reference(e) => {
+            std::println!("reference to resolve {:?}", e);
             resolve_type(
                 assembler,
                 &e.reference,
@@ -182,6 +183,7 @@ pub fn resolve_type(
             }
         }
         CoreTypes::BraceReference(e) => {
+            std::println!("reference to resolve {:?}", e);
             resolve_type(
                 assembler,
                 &e.reference,
@@ -648,7 +650,6 @@ pub fn resolve_type(
             let class_location = assembler.location();
             if !class_call.params.is_empty() {
                 for (idx, param) in class_call.params.iter().enumerate() {
-                    let _idx = class_call.params.len() - idx;
                     resolve_type(
                         assembler,
                         &param.value,
@@ -735,19 +736,38 @@ pub fn resolve_type(
             }
         }
         CoreTypes::FunctionCall(function_call) => {
+            let mut is_reference = None;
             let target = match *function_call.target.clone() {
                 CoreTypes::VariableType(e) => assembler
                     .find_local(&e.value, dependencies.clone())
                     .unwrap()
                     .clone(),
                 CoreTypes::Reference(e) => {
+                    let reference = match *e.reference {
+                        CoreTypes::VariableType(e) => assembler
+                            .find_local(&e.value, dependencies.clone())
+                            .unwrap()
+                            .clone(),
+                        _ => unreachable!("Unexpected target type"),
+                    };
                     let hash = e.index_chain.last().unwrap();
-                    assembler.find_local_by_hash(
-                        e.index_chain.last().unwrap().hash,
-                        Some(vec![hash.page_hash]),
-                    ).unwrap().clone()
+                    std::println!("reference hash: {:#?}", reference);
+                    //let local = assembler
+                    //    .find_local_by_hash(reference.hash.unwrap(), Some(vec![hash.page_hash]))
+                    //    .unwrap()
+                    //    .clone();
+                    std::println!("local: {:#?}", reference);
+                    is_reference = Some(reference.cursor);
+
+                    assembler
+                        .find_local_by_hash(
+                            e.index_chain.last().unwrap().hash,
+                            Some(vec![hash.page_hash]),
+                        )
+                        .unwrap()
+                        .clone()
                 }
-                _ => unreachable!("{:?}", function_call.target),
+                _ => unreachable!("Unexpected target type"),
             };
 
             let previous_params_location = assembler.location() + 1;
@@ -757,9 +777,22 @@ pub fn resolve_type(
                     .push(instruction_table::Instructions::STB(Instruction::implicit()));
             }
 
+            if let Some(reference) = is_reference {
+                assembler
+                    .instructions
+                    .push(instruction_table::Instructions::LDA(Instruction::absolute(
+                        reference,
+                    )));
+                assembler
+                    .instructions
+                    .push(instruction_table::Instructions::STA(Instruction::absolute(
+                        previous_params_location,
+                    )));
+            }
+
             if !function_call.params.is_empty() {
                 for (idx, param) in function_call.params.iter().enumerate() {
-                    let _idx = function_call.params.len() - idx;
+                    let idx = if is_reference.is_some() { idx + 1 } else { idx };
                     resolve_type(
                         assembler,
                         &param.value,
@@ -873,7 +906,10 @@ pub fn resolve_type(
         }
         CoreTypes::Negative(_) => todo!(),
         CoreTypes::VariableType(e) => {
-            let pos = assembler.find_local(&e.value, dependencies).unwrap();
+            let pos = match assembler.find_local(&e.value, dependencies) {
+                Some(e) => e,
+                None => panic!("Variable not found: {}", e.value),
+            };
             let mut instructions = Vec::new();
 
             match target_register {

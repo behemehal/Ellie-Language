@@ -30,6 +30,7 @@ pub struct Dependency {
 pub struct ClassPageType {
     pub name: String,
     pub hash: usize,
+    pub pos: defs::Cursor,
     pub page_hash: usize,
 }
 

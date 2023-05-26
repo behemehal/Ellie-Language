@@ -1,14 +1,11 @@
-use crate::deep_search_extensions::deep_search;
-use alloc::{borrow::ToOwned, vec, vec::Vec};
+use alloc::{borrow::ToOwned, vec, vec::Vec, string::ToString};
 use ellie_core::{
-    definite::types::class_instance::{Attribute, AttributeType},
+    definite::items::self_item,
     error,
     utils::{self, generate_hash_usize},
     warning,
 };
-use ellie_tokenizer::{
-    processors::items::Processors, syntax::items::function, tokenizer::PageType,
-};
+use ellie_tokenizer::{syntax::items::function, tokenizer::PageType};
 
 impl super::Processor for function::FunctionCollector {
     fn process(
@@ -107,6 +104,49 @@ impl super::Processor for function::FunctionCollector {
                     }
                     Err(type_error) => parser.informations.extend(&type_error),
                 }
+            }
+
+            match page.page_type {
+                PageType::ClassBody(class_body) => {
+                    /* items.push(ellie_tokenizer::processors::items::Processors::SelfItem(
+                        self_item::SelfItem {
+                            class_page: class_body.page_hash,
+                            class_hash: class_body.hash,
+                            pos: class_body.pos,
+                        },
+                    )); */
+                    items.push(ellie_tokenizer::processors::items::Processors::FunctionParameter(
+                        ellie_tokenizer::syntax::items::function_parameter::FunctionParameter {
+                            name: "self".to_owned(),
+                            reference: false,
+                            rtype: ellie_core::definite::definers::DefinerCollecting::Generic(
+                                ellie_core::definite::definers::GenericType {
+                                    rtype: "self".to_string(),
+                                    pos: class_body.pos,
+                                    hash: class_body.hash,
+                                },
+                            ),
+                            name_pos: class_body.pos,
+                            rtype_pos: class_body.pos,
+                            hash: generate_hash_usize()
+                        },
+                    ));
+                    parameters.push(ellie_core::definite::items::function::FunctionParameter {
+                        name: "self".to_owned(),
+                        rtype: ellie_core::definite::definers::DefinerCollecting::Generic(
+                            ellie_core::definite::definers::GenericType {
+                                rtype: "self".to_string(),
+                                pos: class_body.pos,
+                                hash: class_body.hash,
+                            },
+                        ),
+                        multi_capture: false,
+                        name_pos: class_body.pos,
+                        rtype_pos: class_body.pos,
+                        is_mut: false,
+                    });
+                }
+                _ => (),
             }
 
             for (index, parameter) in self.data.parameters.iter().enumerate() {
@@ -304,7 +344,7 @@ impl super::Processor for function::FunctionCollector {
                 }];
                 dependencies.extend(page.dependencies);
 
-                let function =
+                /* let function =
                     deep_search(parser, page.hash, "function".to_owned(), None, vec![], 0);
 
                 if function.found {
@@ -436,7 +476,7 @@ impl super::Processor for function::FunctionCollector {
                         ),
                     );
                     return false;
-                };
+                }; */
 
                 items.extend(self.data.body.clone());
                 let inner = ellie_tokenizer::tokenizer::Page {
