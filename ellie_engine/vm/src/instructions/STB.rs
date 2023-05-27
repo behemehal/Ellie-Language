@@ -32,7 +32,7 @@ impl super::InstructionExecuter for STB {
                 stack_memory.set(&(e + current_stack.frame_pos), current_stack.registers.B);
             }
             AddressingValues::AbsoluteIndex(pointer, index) => {
-                let index = match stack_memory.get(index) {
+                let index = match stack_memory.get(&(index + current_stack.frame_pos)) {
                     Some(stack_data) => {
                         if stack_data.type_id.is_int() {
                             let data = stack_data.to_int();
@@ -58,7 +58,7 @@ impl super::InstructionExecuter for STB {
                         });
                     }
                 };
-                match stack_memory.get(pointer) {
+                match stack_memory.get(&(pointer + current_stack.frame_pos)) {
                     Some(stack_data) => {
                         if stack_data.type_id.is_heap_reference() {
                             match heap_memory.get_mut(&(stack_data.to_int() as usize)) {
@@ -147,10 +147,10 @@ impl super::InstructionExecuter for STB {
                     }
                 }
             }
-            AddressingValues::AbsoluteProperty(pointer, index) => match stack_memory.get(pointer) {
+            AddressingValues::AbsoluteProperty(pointer, index) => match stack_memory.get(&(pointer + current_stack.frame_pos)) {
                 Some(e) => {
                     if e.type_id.is_class() {
-                        match heap_memory.get_mut(&(e.to_int() as usize)) {
+                        match heap_memory.get_mut(&e.to_uint()) {
                             Some(heap_data) => {
                                 let type_id = heap_data.get_type_id();
                                 if type_id.is_array() {

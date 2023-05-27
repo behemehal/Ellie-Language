@@ -61,7 +61,7 @@ impl super::InstructionExecuter for LDC {
                 };
             }
             AddressingValues::AbsoluteIndex(pointer, index) => {
-                let index = match stack_memory.get(index) {
+                let index = match stack_memory.get(&(index + current_stack.frame_pos)) {
                     Some(stack_data) => {
                         if stack_data.type_id.is_int() {
                             let data = stack_data.to_int();
@@ -87,7 +87,7 @@ impl super::InstructionExecuter for LDC {
                         });
                     }
                 };
-                match stack_memory.get(pointer) {
+                match stack_memory.get(&(pointer + current_stack.frame_pos)) {
                     Some(stack_data) => {
                         if stack_data.type_id.is_heap_reference() {
                             match heap_memory.get(&(stack_data.to_int() as usize)) {
@@ -146,10 +146,10 @@ impl super::InstructionExecuter for LDC {
                     }
                 }
             }
-            AddressingValues::AbsoluteProperty(pointer, index) => match stack_memory.get(pointer) {
+            AddressingValues::AbsoluteProperty(pointer, index) => match stack_memory.get(&(pointer + current_stack.frame_pos)) {
                 Some(e) => {
                     if e.type_id.is_class() {
-                        match heap_memory.get(&(e.to_int() as usize)) {
+                        match heap_memory.get(&e.to_uint()) {
                             Some(e) => {
                                 if e.type_id.is_array() {
                                     // Increase size of array

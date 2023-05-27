@@ -32,7 +32,7 @@ impl super::InstructionExecuter for STX {
                 stack_memory.set(&(e + current_stack.frame_pos), current_stack.registers.X);
             }
             AddressingValues::AbsoluteIndex(pointer, index) => {
-                let index = match stack_memory.get(index) {
+                let index = match stack_memory.get(&(index + current_stack.frame_pos)) {
                     Some(stack_data) => {
                         if stack_data.type_id.is_int() {
                             let data = stack_data.to_int();
@@ -58,7 +58,7 @@ impl super::InstructionExecuter for STX {
                         });
                     }
                 };
-                match stack_memory.get(pointer) {
+                match stack_memory.get(&(pointer + current_stack.frame_pos)) {
                     Some(stack_data) => {
                         if stack_data.type_id.is_heap_reference() {
                             match heap_memory.get_mut(&(stack_data.to_int() as usize)) {
