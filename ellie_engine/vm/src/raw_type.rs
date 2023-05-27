@@ -575,6 +575,14 @@ impl StaticRawType {
         isize::from_le_bytes(integer)
     }
 
+    /// Converts the integer to a usize
+    /// TODO: Example doc
+    pub fn to_uint(&self) -> usize {
+        let mut integer = [0; mem::size_of::<usize>()];
+        integer[0..].copy_from_slice(&self.data[0..mem::size_of::<usize>()]);
+        usize::from_le_bytes(integer)
+    }
+
     /// Converts the float to a f32
     /// TODO: Example doc
     pub fn to_float(&self) -> f32 {
