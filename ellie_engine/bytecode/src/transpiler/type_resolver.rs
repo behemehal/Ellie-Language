@@ -751,14 +751,7 @@ pub fn resolve_type(
                         _ => unreachable!("Unexpected target type"),
                     };
                     let hash = e.index_chain.last().unwrap();
-                    std::println!("reference hash: {:#?}", reference);
-                    //let local = assembler
-                    //    .find_local_by_hash(reference.hash.unwrap(), Some(vec![hash.page_hash]))
-                    //    .unwrap()
-                    //    .clone();
-                    std::println!("local: {:#?}", reference);
                     is_reference = Some(reference.cursor);
-
                     assembler
                         .find_local_by_hash(
                             e.index_chain.last().unwrap().hash,
@@ -771,6 +764,12 @@ pub fn resolve_type(
             };
 
             let previous_params_location = assembler.location() + 1;
+            if is_reference.is_some() {
+                assembler
+                    .instructions
+                    .push(instruction_table::Instructions::STB(Instruction::implicit()));
+            }
+
             for _ in &function_call.params {
                 assembler
                     .instructions

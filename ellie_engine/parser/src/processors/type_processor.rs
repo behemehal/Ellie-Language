@@ -1393,12 +1393,7 @@ pub fn process(
                                 }
 
                                 if errors.len() == 0 {
-                                    for (index, param) in function.params.iter().enumerate() {
-                                        if matches!(param, DefinerCollecting::Generic(generic) if generic.rtype == "self")
-                                        {
-                                            continue;
-                                        }
-                                        std::println!("\n---\n{:#?}\n---\n{:#?}\n---", function.params, used_params);
+                                    for (index, param) in function.params.iter().filter(|x| matches!(x, DefinerCollecting::Generic(generic) if generic.rtype != "self")).enumerate() {
                                         let used = used_params[index].1.clone();
                                         if !param.same_as(used.clone()) {
                                             errors.push(
@@ -1448,14 +1443,13 @@ pub fn process(
                                                     target: Box::new(resolved),
                                                     target_pos: ellie_core::defs::Cursor::default(),
                                                     returning: *function.returning.clone(),
-                                                    params: function.params.iter().enumerate().filter_map(|(idx, e)| {
-                                                        if matches!(e, DefinerCollecting::Generic(generic) if generic.rtype == "self") {
-                                                            return None;
-                                                        }
-                                                        Some(ellie_core::definite::types::function_call::FunctionCallParameter {
+                                                    params: function.params.iter()
+                                                    .filter(|e| matches!(e, DefinerCollecting::Generic(generic) if generic.rtype != "self")).enumerate()
+                                                    .map(|(idx, _)| {
+                                                        ellie_core::definite::types::function_call::FunctionCallParameter {
                                                             value: resolved_params[idx].0.clone(),
                                                             pos: resolved_params[idx].1
-                                                        })
+                                                        }
                                                     }).collect::<Vec<_>>(),
                                                     pos: ellie_core::defs::Cursor::default(),
                                                     generic_parameters: vec![],
