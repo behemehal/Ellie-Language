@@ -432,8 +432,18 @@ pub fn compile(
 
                     match cli_settings.output_type {
                         OutputTypesSelector::Bin => {
-                            let config = bincode::options().clone();
-
+                            let config =
+                                bincode::options()
+                                    .with_big_endian()
+                                    .with_fixint_encoding()
+                                    .with_limit(
+                                        match cli_settings.compiler_settings.byte_code_architecture
+                                        {
+                                            PlatformArchitecture::B16 => 65536,
+                                            PlatformArchitecture::B32 => 2147483648,
+                                            PlatformArchitecture::B64 => 9223372036854775808,
+                                        },
+                                    );
                             let bytes = config.serialize(&compile_output.module).unwrap();
                             if let Err(write_error) = fs::write(output_path, bytes) {
                                 if cli_settings.json_log {

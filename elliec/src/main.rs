@@ -661,8 +661,19 @@ fn main() {
                     std::process::exit(1);
                 }
             };
-
-            view_module::parse(Path::new(&target_path), matches.is_present("jsonLog"));
+            let target_arch = {
+                match matches.value_of("targetArchitecture").unwrap() {
+                    "16" => PlatformArchitecture::B16,
+                    "32" => PlatformArchitecture::B32,
+                    "64" => PlatformArchitecture::B64,
+                    _ => unreachable!("clap should ensure we don't get here"),
+                }
+            };
+            view_module::parse(
+                Path::new(&target_path),
+                matches.is_present("jsonLog"),
+                target_arch,
+            );
         }
         _ => unreachable!("clap should ensure we don't get here"),
     }

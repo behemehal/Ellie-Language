@@ -51,7 +51,6 @@ pub fn resolve_type(
     match types {
         CoreTypes::Collective(_) => todo!(),
         CoreTypes::Reference(e) => {
-            std::println!("reference to resolve {:?}", e);
             resolve_type(
                 assembler,
                 &e.reference,
@@ -183,7 +182,6 @@ pub fn resolve_type(
             }
         }
         CoreTypes::BraceReference(e) => {
-            std::println!("reference to resolve {:?}", e);
             resolve_type(
                 assembler,
                 &e.reference,
