@@ -111,7 +111,6 @@ impl super::Processor for Loop {
                     hash: self.hash,
                 },
             ));
-        parser.process_page(inner_page_id);
         true
     }
 }

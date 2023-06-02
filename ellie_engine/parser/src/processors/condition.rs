@@ -1,13 +1,9 @@
 use crate::deep_search_extensions::resolve_type;
 use alloc::{borrow::ToOwned, boxed::Box, string::ToString, vec, vec::Vec};
-use ellie_core::{
-    definite::{definers::DefinerCollecting, types::Types},
-    defs::{self, Cursor},
-    error,
-};
+use ellie_core::{definite::types::Types, defs, error, utils::generate_hash_usize};
 use ellie_tokenizer::{
     syntax::items::condition::{Condition, ConditionType},
-    tokenizer::PageType,
+    tokenizer::{ConditionPageType, PageType},
 };
 
 impl super::Processor for Condition {
@@ -18,16 +14,10 @@ impl super::Processor for Condition {
         processed_page_idx: usize,
         page_hash: usize,
     ) -> bool {
-        let mut common_return: Option<(
-            Cursor,
-            Option<(DefinerCollecting, Cursor)>,
-            ellie_tokenizer::syntax::items::condition::ConditionType,
-        )> = None;
-
         let path = parser.pages.nth(page_idx).unwrap().path.clone();
         //(processed_page_id, conditionType)
         let mut chains: Vec<(usize, Types)> = Vec::new();
-
+        let condition_hash = generate_hash_usize();
         for chain in &self.chains {
             let condition_type: Types;
             let mut errors = Vec::new();
@@ -114,7 +104,12 @@ impl super::Processor for Condition {
                 hash: inner_page_id,
                 inner: Some(page.hash),
                 path: page.path.clone(),
-                page_type: PageType::ConditionBody,
+                page_type: PageType::ConditionBody(ConditionPageType {
+                    page_hash,
+                    condition_hash,
+                    chain_type: chain.rtype,
+                    keyword_pos: chain.keyword_pos,
+                }),
                 items: chain.code.clone(),
                 dependents: vec![],
                 dependencies,
@@ -122,172 +117,6 @@ impl super::Processor for Condition {
             };
             parser.pages.push_page(inner);
             chains.push((inner_page_id, condition_type));
-
-            parser.process_page(inner_page_id);
-            let found_ret = parser
-                .find_processed_page(inner_page_id)
-                .unwrap()
-                .items
-                .clone()
-                .into_iter()
-                .find_map(|item| match item {
-                    ellie_core::definite::items::Collecting::Ret(e) => Some(e),
-                    _ => None,
-                });
-
-            if let Some(ret) = found_ret {
-                match resolve_type(ret.value, inner_page_id, parser, &mut errors, Some(ret.pos)) {
-                    Some(ret_type) => match common_return {
-                        Some(e) => {
-                            match e.1 {
-                                Some(previous_type) => {
-                                    if previous_type.0 != ret_type {
-                                        let mut error =
-                                            error::error_list::ERROR_S13.clone().build_with_path(
-                                                vec![
-                                                    error::ErrorBuildField {
-                                                        key: "token".to_string(),
-                                                        value: match e.2 {
-                                                            ConditionType::If => "if",
-                                                            ConditionType::ElseIf => "else if",
-                                                            ConditionType::Else => "else",
-                                                        }
-                                                        .to_string(),
-                                                    },
-                                                    error::ErrorBuildField {
-                                                        key: "token1".to_string(),
-                                                        value: match chain.rtype {
-                                                            ConditionType::If => "if",
-                                                            ConditionType::ElseIf => "else if",
-                                                            ConditionType::Else => "else",
-                                                        }
-                                                        .to_string(),
-                                                    },
-                                                ],
-                                                alloc::format!(
-                                                    "{}:{}:{}",
-                                                    file!().to_owned(),
-                                                    line!(),
-                                                    column!()
-                                                ),
-                                                path.clone(),
-                                                e.0,
-                                            );
-
-                                        error.reference_block =
-                                            Some((previous_type.1, path.clone()));
-                                        error.reference_message = "Type mismatch".to_string();
-
-                                        parser.informations.push(&error);
-                                    }
-                                }
-                                None => {
-                                    let mut error =
-                                        error::error_list::ERROR_S13.clone().build_with_path(
-                                            vec![
-                                                error::ErrorBuildField {
-                                                    key: "token".to_string(),
-                                                    value: match e.2 {
-                                                        ConditionType::If => "if",
-                                                        ConditionType::ElseIf => "else if",
-                                                        ConditionType::Else => "else",
-                                                    }
-                                                    .to_string(),
-                                                },
-                                                error::ErrorBuildField {
-                                                    key: "token1".to_string(),
-                                                    value: match chain.rtype {
-                                                        ConditionType::If => "if",
-                                                        ConditionType::ElseIf => "else if",
-                                                        ConditionType::Else => "else",
-                                                    }
-                                                    .to_string(),
-                                                },
-                                            ],
-                                            alloc::format!(
-                                                "{}:{}:{}",
-                                                file!().to_owned(),
-                                                line!(),
-                                                column!()
-                                            ),
-                                            path.clone(),
-                                            e.0,
-                                        );
-                                    error.reference_block = Some((ret.pos, path.clone()));
-                                    error.reference_message = "Type mismatch".to_string();
-                                    parser.informations.push(&error);
-                                }
-                            }
-
-                            common_return = Some((
-                                chain.keyword_pos,
-                                Some((ret_type, ret.pos)),
-                                chain.rtype.clone(),
-                            ));
-                        }
-                        None => {
-                            common_return = Some((
-                                chain.keyword_pos,
-                                Some((ret_type, ret.pos)),
-                                chain.rtype.clone(),
-                            ));
-                        }
-                    },
-                    None => {
-                        //Parser should prevent this
-                        unreachable!()
-                    }
-                };
-            } else {
-                match common_return.clone() {
-                    Some(e) => {
-                        match e.1 {
-                            Some(f) => {
-                                let mut error =
-                                    error::error_list::ERROR_S13.clone().build_with_path(
-                                        vec![
-                                            error::ErrorBuildField {
-                                                key: "token".to_string(),
-                                                value: match e.2 {
-                                                    ConditionType::If => "if",
-                                                    ConditionType::ElseIf => "else if",
-                                                    ConditionType::Else => "else",
-                                                }
-                                                .to_string(),
-                                            },
-                                            error::ErrorBuildField {
-                                                key: "token1".to_string(),
-                                                value: match chain.rtype {
-                                                    ConditionType::If => "if",
-                                                    ConditionType::ElseIf => "else if",
-                                                    ConditionType::Else => "else",
-                                                }
-                                                .to_string(),
-                                            },
-                                        ],
-                                        alloc::format!(
-                                            "{}:{}:{}",
-                                            file!().to_owned(),
-                                            line!(),
-                                            column!()
-                                        ),
-                                        path.clone(),
-                                        e.0,
-                                    );
-                                error.reference_block = Some((f.1, path.clone()));
-                                error.reference_message = "Type mismatch".to_string();
-                                parser.informations.push(&error);
-                            }
-                            None => (),
-                        }
-
-                        common_return = Some((chain.keyword_pos, None, chain.rtype.clone()));
-                    }
-                    None => {
-                        common_return = Some((chain.keyword_pos, None, chain.rtype.clone()));
-                    }
-                }
-            }
         }
 
         let processed_page = parser.processed_pages.nth_mut(processed_page_idx).unwrap();
@@ -296,13 +125,8 @@ impl super::Processor for Condition {
             .items
             .push(ellie_core::definite::items::Collecting::Condition(
                 ellie_core::definite::items::condition::Condition {
-                    returns: match common_return {
-                        Some(e) => match e.1 {
-                            Some(e) => Some(e.0),
-                            None => None,
-                        },
-                        None => None,
-                    },
+                    hash: condition_hash,
+                    returns: None,
                     chains: self
                         .chains
                         .clone()

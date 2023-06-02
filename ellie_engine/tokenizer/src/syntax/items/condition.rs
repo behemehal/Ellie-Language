@@ -4,7 +4,7 @@ use ellie_core::definite::Converter;
 use ellie_core::defs;
 use serde::{Deserialize, Serialize};
 
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Copy, Clone, Serialize, Deserialize)]
 pub enum ConditionType {
     If,
     ElseIf,

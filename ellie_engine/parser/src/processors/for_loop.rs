@@ -17,7 +17,10 @@ impl super::Processor for ForLoop {
         parser
             .informations
             .push(&error::error_list::ERROR_S59.clone().build_with_path(
-                vec![error::ErrorBuildField::new("token", &"for loops".to_owned())],
+                vec![error::ErrorBuildField::new(
+                    "token",
+                    &"for loops".to_owned(),
+                )],
                 alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                 path,
                 self.pos,
@@ -219,7 +222,6 @@ impl super::Processor for ForLoop {
                         iterator_pos: self.iterator_pos,
                     },
                 ));
-            parser.process_page(inner_page_id);
         }
         true
     }

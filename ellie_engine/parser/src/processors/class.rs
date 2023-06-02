@@ -251,7 +251,6 @@ impl super::Processor for Class {
 
             processed_page.unassigned_file_keys = vec![];
             processed_page.items.push(processed);
-            parser.process_page(inner_page_id);
         }
         true
     }

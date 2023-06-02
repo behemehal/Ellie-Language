@@ -72,7 +72,7 @@ pub fn process(
                     crate::parser::DeepSearchItems::Variable(e) => {
                         let page = parser.find_page(page_id).unwrap().clone();
                         if !e.constant
-                            && page.page_type == PageType::FunctionBody
+                            && matches!(page.page_type, PageType::FunctionBody(_))
                             && deep_search_result.found_page.hash != page.hash
                         {
                             //ERROR_S16

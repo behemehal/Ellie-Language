@@ -5,6 +5,7 @@ use alloc::format;
 use alloc::string::ToString;
 use alloc::vec::Vec;
 use alloc::{string::String, vec};
+use ellie_core::definite::definers::DefinerCollecting;
 use ellie_core::definite::items::file_key::FileKey;
 use ellie_core::definite::types::class_instance::{self, Attribute, AttributeType, ClassInstance};
 use ellie_core::definite::{items::Collecting, Converter};
@@ -12,6 +13,7 @@ use ellie_core::defs::Cursor;
 use ellie_core::utils::{ExportPage, PageExport};
 use ellie_core::{defs, error, information, warning};
 use ellie_tokenizer::processors::items::Processors;
+use ellie_tokenizer::syntax::items::condition::ConditionType;
 use ellie_tokenizer::tokenizer::{Dependency, Page, PageType};
 use serde::{Deserialize, Serialize};
 
@@ -1504,7 +1506,6 @@ impl Parser {
                                             found_page = FoundPage::fill(&unprocessed_page);
                                             found_type = DeepSearchItems::SelfItem(e);
                                         }
-                                        
                                     }
                                     _ => (),
                                 }
@@ -1967,7 +1968,7 @@ impl Parser {
                 }
 
                 let terminated = match unprocessed_page.page_type {
-                    ellie_tokenizer::tokenizer::PageType::FunctionBody => match item {
+                    ellie_tokenizer::tokenizer::PageType::FunctionBody(_) => match item {
                         Processors::Variable(e) => e.process(
                             self,
                             unprocessed_page_idx,
@@ -2414,7 +2415,7 @@ impl Parser {
                             false
                         }
                     },
-                    ellie_tokenizer::tokenizer::PageType::ConditionBody => match item {
+                    ellie_tokenizer::tokenizer::PageType::ConditionBody(_) => match item {
                         Processors::Variable(e) => e.process(
                             self,
                             unprocessed_page_idx,
@@ -2728,6 +2729,335 @@ impl Parser {
 
     pub fn parse(&mut self) -> Module {
         self.process_page(self.initial_page);
+        let mut idx = 0;
+        loop {
+            let page = match self.pages.nth(idx) {
+                Some(i) => i,
+                None => break,
+            };
+            let page_hash = page.hash;
+            let page_type = page.page_type.clone();
+            let page_path = page.path.clone();
+            idx += 1;
+            if page.hash == self.initial_page {
+                continue;
+            }
+            self.process_page(page_hash);
+            match page_type {
+                PageType::FunctionBody(function_page) => {
+                    let found_ret = self
+                        .find_processed_page(page_hash)
+                        .unwrap()
+                        .items
+                        .clone()
+                        .into_iter()
+                        .find_map(|item| match item {
+                            ellie_core::definite::items::Collecting::Ret(e) => Some(e),
+                            _ => None,
+                        });
+                    if let Some(ret) = found_ret {
+                        if self.informations.has_no_errors() {
+                            match self.compare_defining_with_type(
+                                function_page.return_type,
+                                ret.value,
+                                page_hash,
+                            ) {
+                                Ok(result) => {
+                                    if result.requires_cast {
+                                        self.informations.push(
+                                                &error::error_list::ERROR_S41.clone().build_with_path(
+                                                    vec![error::ErrorBuildField {
+                                                        key: "token".to_owned(),
+                                                        value: "Type helpers are not completely implemented yet. Next error is result of this. Follow progress here (https://github.com/behemehal/EllieWorks/issues/8)".to_owned(),
+                                                    }],
+                                                    alloc::format!(
+                                                        "{}:{}:{}",
+                                                        file!().to_owned(),
+                                                        line!(),
+                                                        column!()
+                                                    ),
+                                                    page_path.clone(),
+                                                    ret.pos,
+                                                ),
+                                            );
+                                        let mut err =
+                                            error::error_list::ERROR_S3.clone().build_with_path(
+                                                vec![
+                                                    error::ErrorBuildField {
+                                                        key: "token1".to_owned(),
+                                                        value: result.first.clone(),
+                                                    },
+                                                    error::ErrorBuildField {
+                                                        key: "token2".to_owned(),
+                                                        value: result.second.clone(),
+                                                    },
+                                                ],
+                                                alloc::format!(
+                                                    "{}:{}:{}",
+                                                    file!().to_owned(),
+                                                    line!(),
+                                                    column!()
+                                                ),
+                                                page_path.clone(),
+                                                ret.pos,
+                                            );
+                                        err.reference_block =
+                                            Some((function_page.return_pos, page_path.clone()));
+                                        err.reference_message = "Defined here".to_owned();
+                                        err.semi_assist = true;
+                                        self.informations.push(&err);
+                                    }
+
+                                    if !result.same {
+                                        let mut err =
+                                            error::error_list::ERROR_S3.clone().build_with_path(
+                                                vec![
+                                                    error::ErrorBuildField {
+                                                        key: "token1".to_owned(),
+                                                        value: result.first,
+                                                    },
+                                                    error::ErrorBuildField {
+                                                        key: "token2".to_owned(),
+                                                        value: result.second,
+                                                    },
+                                                ],
+                                                alloc::format!(
+                                                    "{}:{}:{}",
+                                                    file!().to_owned(),
+                                                    line!(),
+                                                    column!()
+                                                ),
+                                                page_path.clone(),
+                                                ret.pos,
+                                            );
+                                        err.reference_block =
+                                            Some((function_page.return_pos, page_path));
+                                        err.reference_message = "Defined here".to_owned();
+                                        err.semi_assist = true;
+                                        self.informations.push(&err);
+                                    }
+                                }
+                                Err(e) => {
+                                    self.informations.extend(&e);
+                                }
+                            }
+                        }
+                    }
+                }
+                PageType::ConditionBody(condition_page) => {
+                    let mut common_return: Option<(
+                        Cursor,
+                        Option<(DefinerCollecting, Cursor)>,
+                        ellie_tokenizer::syntax::items::condition::ConditionType,
+                    )> = None;
+                    let found_ret = self
+                        .find_processed_page(page_hash)
+                        .unwrap()
+                        .items
+                        .clone()
+                        .into_iter()
+                        .find_map(|item| match item {
+                            ellie_core::definite::items::Collecting::Ret(e) => Some(e),
+                            _ => None,
+                        });
+
+                    if let Some(ret) = found_ret {
+                        let mut errors = Vec::new();
+                        match resolve_type(ret.value, page_hash, self, &mut errors, Some(ret.pos)) {
+                            Some(ret_type) => match common_return {
+                                Some(e) => {
+                                    match e.1 {
+                                        Some(previous_type) => {
+                                            if previous_type.0 != ret_type {
+                                                let mut error = error::error_list::ERROR_S13
+                                                    .clone()
+                                                    .build_with_path(
+                                                        vec![
+                                                            error::ErrorBuildField {
+                                                                key: "token".to_string(),
+                                                                value: match e.2 {
+                                                                    ConditionType::If => "if",
+                                                                    ConditionType::ElseIf => {
+                                                                        "else if"
+                                                                    }
+                                                                    ConditionType::Else => "else",
+                                                                }
+                                                                .to_string(),
+                                                            },
+                                                            error::ErrorBuildField {
+                                                                key: "token1".to_string(),
+                                                                value: match condition_page
+                                                                    .chain_type
+                                                                {
+                                                                    ConditionType::If => "if",
+                                                                    ConditionType::ElseIf => {
+                                                                        "else if"
+                                                                    }
+                                                                    ConditionType::Else => "else",
+                                                                }
+                                                                .to_string(),
+                                                            },
+                                                        ],
+                                                        alloc::format!(
+                                                            "{}:{}:{}",
+                                                            file!().to_owned(),
+                                                            line!(),
+                                                            column!()
+                                                        ),
+                                                        page_path.clone(),
+                                                        e.0,
+                                                    );
+
+                                                error.reference_block =
+                                                    Some((previous_type.1, page_path.clone()));
+                                                error.reference_message =
+                                                    "Type mismatch".to_string();
+
+                                                self.informations.push(&error);
+                                            }
+                                        }
+                                        None => {
+                                            let mut error = error::error_list::ERROR_S13
+                                                .clone()
+                                                .build_with_path(
+                                                    vec![
+                                                        error::ErrorBuildField {
+                                                            key: "token".to_string(),
+                                                            value: match e.2 {
+                                                                ConditionType::If => "if",
+                                                                ConditionType::ElseIf => "else if",
+                                                                ConditionType::Else => "else",
+                                                            }
+                                                            .to_string(),
+                                                        },
+                                                        error::ErrorBuildField {
+                                                            key: "token1".to_string(),
+                                                            value:
+                                                                match condition_page.chain_type {
+                                                                    ConditionType::If => "if",
+                                                                    ConditionType::ElseIf => {
+                                                                        "else if"
+                                                                    }
+                                                                    ConditionType::Else => "else",
+                                                                }
+                                                                .to_string(),
+                                                        },
+                                                    ],
+                                                    alloc::format!(
+                                                        "{}:{}:{}",
+                                                        file!().to_owned(),
+                                                        line!(),
+                                                        column!()
+                                                    ),
+                                                    page_path.clone(),
+                                                    e.0,
+                                                );
+                                            error.reference_block =
+                                                Some((ret.pos, page_path.clone()));
+                                            error.reference_message = "Type mismatch".to_string();
+                                            self.informations.push(&error);
+                                        }
+                                    }
+
+                                    common_return = Some((
+                                        condition_page.keyword_pos,
+                                        Some((ret_type, ret.pos)),
+                                        condition_page.chain_type,
+                                    ));
+                                }
+                                None => {
+                                    common_return = Some((
+                                        condition_page.keyword_pos,
+                                        Some((ret_type, ret.pos)),
+                                        condition_page.chain_type,
+                                    ));
+                                }
+                            },
+                            None => {
+                                //Parser should prevent this
+                                unreachable!()
+                            }
+                        };
+                        self.informations.extend(&errors);
+                    } else {
+                        match common_return.clone() {
+                            Some(e) => {
+                                match e.1 {
+                                    Some(f) => {
+                                        let mut error =
+                                            error::error_list::ERROR_S13.clone().build_with_path(
+                                                vec![
+                                                    error::ErrorBuildField {
+                                                        key: "token".to_string(),
+                                                        value: match e.2 {
+                                                            ConditionType::If => "if",
+                                                            ConditionType::ElseIf => "else if",
+                                                            ConditionType::Else => "else",
+                                                        }
+                                                        .to_string(),
+                                                    },
+                                                    error::ErrorBuildField {
+                                                        key: "token1".to_string(),
+                                                        value: match condition_page.chain_type {
+                                                            ConditionType::If => "if",
+                                                            ConditionType::ElseIf => "else if",
+                                                            ConditionType::Else => "else",
+                                                        }
+                                                        .to_string(),
+                                                    },
+                                                ],
+                                                alloc::format!(
+                                                    "{}:{}:{}",
+                                                    file!().to_owned(),
+                                                    line!(),
+                                                    column!()
+                                                ),
+                                                page_path.clone(),
+                                                e.0,
+                                            );
+                                        error.reference_block = Some((f.1, page_path.clone()));
+                                        error.reference_message = "Type mismatch".to_string();
+                                        self.informations.push(&error);
+                                    }
+                                    None => (),
+                                }
+
+                                common_return = Some((
+                                    condition_page.keyword_pos,
+                                    None,
+                                    condition_page.chain_type,
+                                ));
+                            }
+                            None => {
+                                common_return = Some((
+                                    condition_page.keyword_pos,
+                                    None,
+                                    condition_page.chain_type,
+                                ));
+                            }
+                        }
+                    }
+
+                    let condition_body =
+                        self.find_processed_page(condition_page.page_hash).unwrap();
+                    condition_body.items.iter_mut().for_each(|x| match x {
+                        Collecting::Condition(e) => {
+                            if e.hash == condition_page.condition_hash {
+                                e.returns = match &common_return {
+                                    Some(e) => match &e.1 {
+                                        Some(e) => Some(e.0.clone()),
+                                        None => None,
+                                    },
+                                    None => None,
+                                };
+                            }
+                        }
+                        _ => (),
+                    });
+                }
+                _ => (),
+            }
+        }
 
         if !self.module_info.is_lib {
             let main_function =
