@@ -1,3 +1,5 @@
+use core::ops::Add;
+
 use super::type_resolver::resolve_type;
 use crate::{
     assembler::LocalHeader,
@@ -52,12 +54,13 @@ impl super::Transpiler for variable::Variable {
                 pos: self.pos,
             });
 
-            assembler.locals.push(LocalHeader {
+            assembler.add_local(LocalHeader {
                 name: self.name.clone(),
                 cursor: assembler.location(),
                 page_hash: processed_page.hash,
                 hash: Some(self.hash),
-                reference: Instruction::absolute(assembler.location()),
+                reference: Instruction::absolute_static(assembler.location()),
+                borrowed: None,
             });
             return true;
         }
@@ -81,6 +84,7 @@ impl super::Transpiler for variable::Variable {
             page_hash: processed_page.hash,
             hash: Some(self.hash),
             reference: Instruction::absolute(assembler.location()),
+            borrowed: None,
         });
 
         true

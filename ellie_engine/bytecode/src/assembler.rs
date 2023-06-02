@@ -7,7 +7,7 @@ use alloc::{
     string::{String, ToString},
     vec::Vec,
 };
-use ellie_core::defs::{DebugHeader, PlatformArchitecture, ModuleMap};
+use ellie_core::defs::{DebugHeader, ModuleMap, PlatformArchitecture};
 use ellie_core::utils::ExportPage;
 use ellie_parser::parser::Module;
 use std::{io::Write, panic};
@@ -28,6 +28,7 @@ pub struct LocalHeader {
     pub reference: Instruction,
     pub hash: Option<usize>,
     pub page_hash: usize,
+    pub borrowed: Option<Vec<usize>>,
 }
 
 #[derive(Clone, Debug)]
@@ -336,7 +337,12 @@ impl Assembler {
         }
     }
 
-    pub fn find_local_by_hash(&self, hash: usize, page_hash: Option<Vec<usize>>) -> Option<&LocalHeader> {
+    pub fn find_local_by_hash(
+        &mut self,
+        hash: usize,
+        page_hash: Option<Vec<usize>>,
+        borrow: bool,
+    ) -> Option<LocalHeader> {
         let mut locals: Vec<&LocalHeader> = self
             .locals
             .iter()
@@ -347,10 +353,119 @@ impl Assembler {
             .collect();
         locals.sort_by(|a, b| a.cursor.cmp(&b.cursor));
         locals.reverse();
-        locals.into_iter().find(|local| matches!(local.hash, Some(local_hash) if local_hash == hash))
+        match locals
+            .iter_mut()
+            .find(|local| matches!(local.hash, Some(local_hash) if local_hash == hash))
+        {
+            Some(local) => Some(local.clone()),
+            None => {
+                if page_hash.is_none() || !borrow {
+                    return None;
+                }
+                match self.module.pages.clone().into_iter().find_map(|x| {
+                    if page_hash.clone().unwrap().contains(&x.hash) {
+                        x.items.clone().into_iter().find_map(|e| match e {
+                            ellie_core::definite::items::Collecting::Function(function) => {
+                                if function.hash == hash {
+                                    Some(LocalHeader {
+                                        name: function.name.clone(),
+                                        cursor: 0,
+                                        reference: Instruction::absolute_static(0),
+                                        hash: Some(function.hash),
+                                        page_hash: x.hash,
+                                        borrowed: Some(Vec::new()),
+                                    })
+                                } else {
+                                    None
+                                }
+                            }
+                            ellie_core::definite::items::Collecting::Variable(variable) => {
+                                if variable.hash == hash {
+                                    Some(LocalHeader {
+                                        name: variable.name.clone(),
+                                        cursor: 0,
+                                        reference: Instruction::absolute_static(0),
+                                        hash: Some(variable.hash),
+                                        page_hash: x.hash,
+                                        borrowed: Some(Vec::new()),
+                                    })
+                                } else {
+                                    None
+                                }
+                            }
+                            ellie_core::definite::items::Collecting::NativeFunction(nfunction) => {
+                                if nfunction.hash == hash {
+                                    Some(LocalHeader {
+                                        name: nfunction.name.clone(),
+                                        cursor: 0,
+                                        reference: Instruction::absolute_static(0),
+                                        hash: Some(nfunction.hash),
+                                        page_hash: x.hash,
+                                        borrowed: Some(Vec::new()),
+                                    })
+                                } else {
+                                    None
+                                }
+                            }
+                            _ => None,
+                        })
+                    } else {
+                        None
+                    }
+                }) {
+                    Some(local) => {
+                        self.locals.push(local.clone());
+                        Some(local)
+                    }
+                    None => None,
+                }
+            }
+        }
     }
 
-    pub fn find_local(&self, name: &String, page_hash: Option<Vec<usize>>) -> Option<&LocalHeader> {
+    pub fn add_borrow_to_local(&mut self, hash: usize, cursor: usize) {
+        let local = self.locals.iter_mut().find(|local| {
+            matches!(local.hash, Some(local_hash) if local_hash == hash) && local.borrowed.is_some()
+        });
+        match local {
+            Some(local) => match local.borrowed {
+                Some(ref mut borrowed) => {
+                    borrowed.push(cursor);
+                }
+                None => (),
+            },
+            None => (),
+        }
+    }
+
+    pub fn add_local(&mut self, local: LocalHeader) {
+        let location = self.location();
+        match self.locals.iter_mut().find(|x| x.hash == local.hash) {
+            Some(local) => {
+                //If the function already preserved with find we will just update the reference
+                local.reference = Instruction::absolute_static(location);
+                local.cursor = location;
+                if let Some(e) = &local.borrowed {
+                    for cursor in e {
+                        self.instructions[*cursor]
+                            .get_addressing_mode_mut()
+                            .addressing_mode =
+                            crate::addressing_modes::AddressingModes::Absolute(location);
+                    }
+                }
+            }
+            None => {
+                self.locals.push(local);
+            }
+        }
+    }
+
+    pub fn find_local(
+        &mut self,
+        name: &String,
+        page_hash: Option<Vec<usize>>,
+        borrow: bool,
+    ) -> Option<LocalHeader> {
         let mut locals: Vec<&LocalHeader> = self
             .locals
             .iter()
@@ -362,7 +477,71 @@ impl Assembler {
 
         locals.sort_by(|a, b| a.cursor.cmp(&b.cursor));
         locals.reverse();
-        locals.into_iter().find(|local| &local.name == name)
+        match locals.iter_mut().find(|local| &local.name == name) {
+            Some(local) => Some(local.clone()),
+            None => {
+                if page_hash.is_none() || !borrow {
+                    return None;
+                }
+                match self.module.pages.clone().into_iter().find_map(|x| {
+                    if page_hash.clone().unwrap().contains(&x.hash) {
+                        x.items.clone().into_iter().find_map(|e| match e {
+                            ellie_core::definite::items::Collecting::Function(function) => {
+                                if &function.name == name {
+                                    Some(LocalHeader {
+                                        name: function.name.clone(),
+                                        cursor: 0,
+                                        reference: Instruction::absolute_static(0),
+                                        hash: Some(function.hash),
+                                        page_hash: x.hash,
+                                        borrowed: Some(Vec::new()),
+                                    })
+                                } else {
+                                    None
+                                }
+                            }
+                            ellie_core::definite::items::Collecting::Variable(variable) => {
+                                if &variable.name == name {
+                                    Some(LocalHeader {
+                                        name: variable.name.clone(),
+                                        cursor: 0,
+                                        reference: Instruction::absolute_static(0),
+                                        hash: Some(variable.hash),
+                                        page_hash: x.hash,
+                                        borrowed: Some(Vec::new()),
+                                    })
+                                } else {
+                                    None
+                                }
+                            }
+                            ellie_core::definite::items::Collecting::NativeFunction(nfunction) => {
+                                if &nfunction.name == name {
+                                    Some(LocalHeader {
+                                        name: nfunction.name.clone(),
+                                        cursor: 0,
+                                        reference: Instruction::absolute_static(0),
+                                        hash: Some(nfunction.hash),
+                                        page_hash: x.hash,
+                                        borrowed: Some(Vec::new()),
+                                    })
+                                } else {
+                                    None
+                                }
+                            }
+                            _ => None,
+                        })
+                    } else {
+                        None
+                    }
+                }) {
+                    Some(local) => {
+                        self.locals.push(local.clone());
+                        Some(local)
+                    }
+                    None => None,
+                }
+            }
+        }
     }
 
     pub(crate) fn assemble_dependency(&mut self, hash: &usize) -> Option<MainFunction> {

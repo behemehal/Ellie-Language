@@ -28,12 +28,13 @@ impl super::Transpiler for function::Function {
                 usize_to_le_bytes(self.hash, assembler.platform_attributes.architecture),
             ))); //Function hash
 
-        assembler.locals.push(LocalHeader {
+        assembler.add_local(LocalHeader {
             name: self.name.clone(),
             cursor: assembler.location(),
             page_hash: processed_page.hash,
             hash: Some(self.hash),
             reference: Instruction::absolute_static(assembler.location()),
+            borrowed: None,
         });
 
         assembler
@@ -78,6 +79,7 @@ impl super::Transpiler for function::Function {
                 cursor: assembler.location(),
                 hash: None,
                 reference: Instruction::absolute(assembler.location()),
+                borrowed: None,
             });
         }
 
@@ -86,7 +88,6 @@ impl super::Transpiler for function::Function {
         } else {
             assembler.location()
         };
-
 
         assembler.assemble_dependency(&self.inner_page_id);
 

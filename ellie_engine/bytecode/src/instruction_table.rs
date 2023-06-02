@@ -531,6 +531,58 @@ impl Instructions {
         }
     }
 
+    pub fn get_addressing_mode_mut(&mut self) -> &mut Instruction {
+        match self {
+            Instructions::LDA(e) => e,
+            Instructions::LDB(e) => e,
+            Instructions::LDC(e) => e,
+            Instructions::LDX(e) => e,
+            Instructions::LDY(e) => e,
+            Instructions::STA(e) => e,
+            Instructions::STB(e) => e,
+            Instructions::STC(e) => e,
+            Instructions::STX(e) => e,
+            Instructions::STY(e) => e,
+            Instructions::EQ(e) => e,
+            Instructions::NE(e) => e,
+            Instructions::GT(e) => e,
+            Instructions::LT(e) => e,
+            Instructions::GQ(e) => e,
+            Instructions::LQ(e) => e,
+            Instructions::AND(e) => e,
+            Instructions::OR(e) => e,
+            Instructions::ADD(e) => e,
+            Instructions::SUB(e) => e,
+            Instructions::MUL(e) => e,
+            Instructions::EXP(e) => e,
+            Instructions::DIV(e) => e,
+            Instructions::MOD(e) => e,
+            Instructions::JMP(e) => e,
+            Instructions::JMPA(e) => e,
+            Instructions::CALL(e) => e,
+            Instructions::RET(e) => e,
+            Instructions::PUSH(e) => e,
+            Instructions::SPUS(e) => e,
+            Instructions::LEN(e) => e,
+            Instructions::A2I(e) => e,
+            Instructions::A2F(e) => e,
+            Instructions::A2D(e) => e,
+            Instructions::A2B(e) => e,
+            Instructions::A2S(e) => e,
+            Instructions::A2C(e) => e,
+            Instructions::A2O(e) => e,
+            Instructions::ARR(e) => e,
+            Instructions::STR(e) => e,
+            Instructions::SAR(e) => e,
+            Instructions::POPS(e) => e,
+            Instructions::BRK(e) => e,
+            Instructions::CALLN(e) => e,
+            Instructions::CO(e) => e,
+            Instructions::FN(e) => e,
+            Instructions::DEA(e) => e,
+        }
+    }
+
     pub fn get_addressing_mode(&self) -> String {
         match &self {
             Instructions::LDA(e) => e.addressing_mode.clone(),

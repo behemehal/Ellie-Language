@@ -737,23 +737,24 @@ pub fn resolve_type(
             let mut is_reference = None;
             let target = match *function_call.target.clone() {
                 CoreTypes::VariableType(e) => assembler
-                    .find_local(&e.value, dependencies.clone())
+                    .find_local(&e.value, dependencies.clone(), true)
                     .unwrap()
                     .clone(),
                 CoreTypes::Reference(e) => {
                     let reference = match *e.reference {
                         CoreTypes::VariableType(e) => assembler
-                            .find_local(&e.value, dependencies.clone())
+                            .find_local(&e.value, dependencies.clone(), true)
                             .unwrap()
                             .clone(),
                         _ => unreachable!("Unexpected target type"),
                     };
                     let hash = e.index_chain.last().unwrap();
-                    is_reference = Some(reference.cursor);
+                    is_reference = Some(reference.clone());
                     assembler
                         .find_local_by_hash(
                             e.index_chain.last().unwrap().hash,
                             Some(vec![hash.page_hash]),
+                            true,
                         )
                         .unwrap()
                         .clone()
@@ -774,12 +775,13 @@ pub fn resolve_type(
                     .push(instruction_table::Instructions::STB(Instruction::implicit()));
             }
 
-            if let Some(reference) = is_reference {
+            if let Some(reference) = &is_reference {
                 assembler
                     .instructions
                     .push(instruction_table::Instructions::LDA(Instruction::absolute(
-                        reference,
+                        reference.cursor,
                     )));
+                assembler.add_borrow_to_local(reference.hash.unwrap(), assembler.location());
                 assembler
                     .instructions
                     .push(instruction_table::Instructions::STA(Instruction::absolute(
@@ -822,6 +824,7 @@ pub fn resolve_type(
                 .push(instruction_table::Instructions::CALL(
                     Instruction::absolute(target.cursor),
                 ));
+            assembler.add_borrow_to_local(target.hash.unwrap(), assembler.location());
 
             match target_register {
                 instructions::Registers::A => {
@@ -903,7 +906,7 @@ pub fn resolve_type(
         }
         CoreTypes::Negative(_) => todo!(),
         CoreTypes::VariableType(e) => {
-            let pos = match assembler.find_local(&e.value, dependencies) {
+            let pos = match assembler.find_local(&e.value, dependencies, false) {
                 Some(e) => e,
                 None => panic!("Variable not found: {}", e.value),
             };

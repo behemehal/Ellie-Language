@@ -16,6 +16,7 @@ impl super::Transpiler for class_instance::ClassInstance {
             page_hash: processed_page.hash,
             hash: Some(self.class_hash),
             reference: Instruction::absolute(self.class_hash),
+            borrowed: None,
         });
         for item in &self.attributes {
             assembler.locals.push(LocalHeader {
@@ -24,6 +25,7 @@ impl super::Transpiler for class_instance::ClassInstance {
                 page_hash: processed_page.hash,
                 hash: Some(item.hash),
                 reference: Instruction::absolute(item.hash),
+                borrowed: None,
             });
         }
         true

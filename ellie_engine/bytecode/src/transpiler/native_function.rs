@@ -21,23 +21,15 @@ impl super::Transpiler for native_function::NativeFunction {
             .instructions
             .push(instruction_table::Instructions::FN(Instruction::immediate(
                 Types::Integer,
-                {
-                    assembler.locals.push(LocalHeader {
-                        name: self.name.clone(),
-                        cursor: assembler.location(),
-                        page_hash: processed_page.hash,
-                        hash: Some(self.hash),
-                        reference: Instruction::absolute(assembler.location()),
-                    });
-                    usize_to_le_bytes(self.hash, assembler.platform_attributes.architecture)
-                },
+                usize_to_le_bytes(self.hash, assembler.platform_attributes.architecture),
             ))); //Function hash
-        assembler.locals.push(LocalHeader {
+        assembler.add_local(LocalHeader {
             name: self.name.clone(),
             cursor: assembler.location(),
             page_hash: processed_page.hash,
             hash: Some(self.hash),
             reference: Instruction::absolute(assembler.location()),
+            borrowed: None,
         });
 
         assembler
@@ -83,6 +75,7 @@ impl super::Transpiler for native_function::NativeFunction {
                 cursor: assembler.location(),
                 hash: None,
                 reference: Instruction::absolute(assembler.location()),
+                borrowed: None,
             });
         }
 
