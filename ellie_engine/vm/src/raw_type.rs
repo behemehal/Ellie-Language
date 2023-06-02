@@ -178,6 +178,13 @@ impl TypeId {
         self.id == 14
     }
 
+    pub fn is_core_type(&self) -> bool {
+        match self.id {
+            1..=12 => true,
+            _ => false,
+        }
+    }
+
     pub fn integer() -> Self {
         Self {
             id: 1,
@@ -333,6 +340,10 @@ impl RawType {
 
     pub fn to_int(&self) -> isize {
         isize::from_le_bytes(self.data.clone().try_into().unwrap())
+    }
+
+    pub fn to_uint(&self) -> usize {
+        usize::from_le_bytes(self.data.clone().try_into().unwrap())
     }
 
     pub fn to_float(&self) -> f32 {

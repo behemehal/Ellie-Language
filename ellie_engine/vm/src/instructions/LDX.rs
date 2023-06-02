@@ -32,34 +32,37 @@ impl super::InstructionExecuter for LDX {
                 }
             }
             AddressingValues::Absolute(e) => {
-                current_stack.registers.X = match stack_memory.get(&(e + current_stack.frame_pos)) {
-                    Some(raw_type) => {
-                        if raw_type.type_id.is_void() {
+                current_stack.registers.X =
+                    match stack_memory.get(&(current_stack.calculate_frame_pos(*e))) {
+                        Some(raw_type) => {
+                            if raw_type.type_id.is_void() {
+                                return Err(ExecuterPanic {
+                                    reason: ThreadPanicReason::NullReference(
+                                        current_stack.calculate_frame_pos(*e),
+                                    ),
+                                    code_location: format!("{}:{}", file!(), line!()),
+                                });
+                            } else if raw_type.type_id.is_stack_storable() {
+                                raw_type
+                            } else {
+                                StaticRawType::from_heap_reference(
+                                    current_stack.calculate_frame_pos(*e),
+                                )
+                            }
+                        }
+                        None => {
                             return Err(ExecuterPanic {
-                                reason: ThreadPanicReason::NullReference(
-                                    e + current_stack.frame_pos,
+                                reason: ThreadPanicReason::MemoryAccessViolation(
+                                    e.clone(),
+                                    current_stack.pos,
                                 ),
                                 code_location: format!("{}:{}", file!(), line!()),
                             });
-                        } else if raw_type.type_id.is_stack_storable() {
-                            raw_type
-                        } else {
-                            StaticRawType::from_heap_reference(e + current_stack.frame_pos)
                         }
-                    }
-                    None => {
-                        return Err(ExecuterPanic {
-                            reason: ThreadPanicReason::MemoryAccessViolation(
-                                e.clone(),
-                                current_stack.pos,
-                            ),
-                            code_location: format!("{}:{}", file!(), line!()),
-                        });
-                    }
-                };
+                    };
             }
             AddressingValues::AbsoluteIndex(pointer, index) => {
-                let index = match stack_memory.get(&(index + current_stack.frame_pos)) {
+                let index = match stack_memory.get(&current_stack.calculate_frame_pos(*index)) {
                     Some(stack_data) => {
                         if stack_data.type_id.is_int() {
                             let data = stack_data.to_int();
@@ -85,10 +88,10 @@ impl super::InstructionExecuter for LDX {
                         });
                     }
                 };
-                match stack_memory.get(&(pointer + current_stack.frame_pos)) {
+                match stack_memory.get(&(&current_stack.calculate_frame_pos(*pointer))) {
                     Some(stack_data) => {
                         if stack_data.type_id.is_heap_reference() {
-                            match heap_memory.get(&(stack_data.to_int() as usize)) {
+                            match heap_memory.get(&(stack_data.to_uint())) {
                                 Some(heap_data) => {
                                     if heap_data.type_id.is_array() {
                                         let array_entry_size = usize::from_le_bytes(
@@ -123,7 +126,7 @@ impl super::InstructionExecuter for LDX {
                                 None => {
                                     return Err(ExecuterPanic {
                                         reason: ThreadPanicReason::NullReference(
-                                            stack_data.to_int() as usize,
+                                            stack_data.to_uint(),
                                         ),
                                         code_location: format!("{}:{}", file!(), line!()),
                                     });
@@ -144,14 +147,18 @@ impl super::InstructionExecuter for LDX {
                     }
                 }
             }
-            AddressingValues::AbsoluteProperty(pointer, index) => match stack_memory.get(&(pointer + current_stack.frame_pos)) {
-                Some(e) => {
-                    if e.type_id.is_class() {
-                        match heap_memory.get(&e.to_uint()) {
-                            Some(e) => {
-                                if e.type_id.is_array() {
+            AddressingValues::AbsoluteProperty(pointer, index) => match stack_memory
+                .get(&(current_stack.calculate_frame_pos(*pointer)))
+            {
+                Some(static_raw_type) => {
+                    if static_raw_type.type_id.is_class()
+                        || static_raw_type.type_id.is_heap_reference()
+                    {
+                        match heap_memory.get(&static_raw_type.to_uint()) {
+                            Some(raw_type) => {
+                                if raw_type.type_id.is_array() {
                                     // Increase size of array
-                                    let array_size = e.type_id.size;
+                                    let array_size = raw_type.type_id.size;
                                     if *index < array_size && *index > array_size {
                                         return Err(ExecuterPanic {
                                             reason: ThreadPanicReason::IndexOutOfBounds(*index),
@@ -160,7 +167,7 @@ impl super::InstructionExecuter for LDX {
                                     } else {
                                         let platform_size = arch.usize_len() as usize;
                                         let array_entry_len = {
-                                            if e.data.len() < (platform_size + 1) {
+                                            if raw_type.data.len() < (platform_size + 1) {
                                                 return Err(ExecuterPanic {
                                                     reason: ThreadPanicReason::ArraySizeCorruption,
                                                     code_location: format!(
@@ -171,7 +178,9 @@ impl super::InstructionExecuter for LDX {
                                                 });
                                             } else {
                                                 usize::from_le_bytes(
-                                                    e.data[0..platform_size].try_into().unwrap(),
+                                                    raw_type.data[0..platform_size]
+                                                        .try_into()
+                                                        .unwrap(),
                                                 )
                                             }
                                         };
@@ -183,10 +192,12 @@ impl super::InstructionExecuter for LDX {
                                             });
                                         }
 
-                                        let array_size = if (e.data.len() - platform_size) == 0 {
+                                        let array_size = if (raw_type.data.len() - platform_size)
+                                            == 0
+                                        {
                                             0
                                         } else {
-                                            (e.data.len() - platform_size) / array_entry_len
+                                            (raw_type.data.len() - platform_size) / array_entry_len
                                         };
                                         if index > &array_size {
                                             return Err(ExecuterPanic {
@@ -199,29 +210,39 @@ impl super::InstructionExecuter for LDX {
                                                 + (array_entry_len * index);
                                             let absolute_position_end =
                                                 absolute_position_start + array_entry_len;
-                                            let array_entry = &e.data
+                                            let array_entry = &raw_type.data
                                                 [absolute_position_start..absolute_position_end];
                                             current_stack.registers.X =
                                                 StaticRawType::from_bytes(array_entry);
                                         }
                                     }
+                                } else if raw_type.type_id.is_core_type() {
+                                    current_stack.registers.X = StaticRawType::from_heap_reference(
+                                        static_raw_type.to_uint(),
+                                    )
                                 } else {
                                     return Err(ExecuterPanic {
-                                        reason: ThreadPanicReason::UnexpectedType(e.type_id.id),
+                                        reason: ThreadPanicReason::UnexpectedType(
+                                            static_raw_type.type_id.id,
+                                        ),
                                         code_location: format!("{}:{}", file!(), line!()),
                                     });
                                 }
                             }
                             None => {
                                 return Err(ExecuterPanic {
-                                    reason: ThreadPanicReason::NullReference(e.to_int() as usize),
+                                    reason: ThreadPanicReason::NullReference(
+                                        static_raw_type.to_uint(),
+                                    ),
                                     code_location: format!("{}:{}", file!(), line!()),
                                 });
                             }
                         }
+                    } else if static_raw_type.type_id.is_core_type() {
+                        current_stack.registers.B = static_raw_type;
                     } else {
                         return Err(ExecuterPanic {
-                            reason: ThreadPanicReason::UnexpectedType(e.type_id.id),
+                            reason: ThreadPanicReason::UnexpectedType(static_raw_type.type_id.id),
                             code_location: format!("{}:{}", file!(), line!()),
                         });
                     }
