@@ -1,4 +1,4 @@
-use alloc::{string::String, vec::Vec, borrow::ToOwned};
+use alloc::{borrow::ToOwned, string::String, vec::Vec};
 use core::fmt::{Display, Error, Formatter};
 use serde::{Deserialize, Serialize};
 
@@ -99,7 +99,9 @@ impl CursorPosition {
 
     pub fn pop_char(&mut self, n: usize) -> CursorPosition {
         let mut clone = *self;
-        clone.1 -= n;
+        if clone.1 != 0 {
+            clone.1 -= n;
+        }
         clone
     }
 
