@@ -102,13 +102,13 @@ pub enum ReliableNameRanges {
 pub fn reliable_name_range(range: ReliableNameRanges, value: char) -> ReliableNameRangeResponse {
     let variable_range = match range {
         ReliableNameRanges::VariableName => {
-            "QWERTYUIOPASDFGHJKLIZXCVBNMqwertyuıopasdfghjklizxcvbnm0123456789_"
+            "QWERTYUIOPASDFGHJKLIZXCVBNMqwertyuıopasşdfghjklizxcvbnm0123456789_"
         }
         ReliableNameRanges::Type => {
-            "QWERTYUIOPASDFGHJKLIZXCVBNMqwertyuıopasdfghjklizxcvbnm0123456789"
+            "QWERTYUIOPASDFGHJKLIZXCVBNMqwertyuıopasşdfghjklizxcvbnm0123456789"
         }
         ReliableNameRanges::Path => {
-            "QWERTYUIOPASDFGHJKLIZXCVBNMqwertyuıopasdfghjklizxcvbnm0123456789_@!?"
+            "QWERTYUIOPASDFGHJKLIZXCVBNMqwertyuıopasşdfghjklizxcvbnm0123456789_@!?"
         }
     };
 
