@@ -145,7 +145,7 @@ impl DefinerCollecting {
             }
             DefinerCollecting::Generic(generic) => {
                 if let DefinerCollecting::Generic(other_generic) = other {
-                    other_generic.rtype == generic.rtype && other_generic.hash == generic.hash
+                    (other_generic.rtype == generic.rtype && other_generic.hash == generic.hash) || (other_generic.rtype == "dyn" || generic.rtype == "dyn")
                 } else if DefinerCollecting::Dynamic == other {
                     true
                 } else {

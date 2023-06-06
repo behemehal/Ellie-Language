@@ -1372,7 +1372,7 @@ pub fn process(
                                                 ),
                                                 error::ErrorBuildField::new(
                                                     "token",
-                                                    &function.params.len().to_string(),
+                                                    &function.params.iter().filter(|x| matches!(x, DefinerCollecting::Generic(generic) if generic.rtype != "self")).count().to_string(),
                                                 ),
                                                 error::ErrorBuildField::new(
                                                     "token2",

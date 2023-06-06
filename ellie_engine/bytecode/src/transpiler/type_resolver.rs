@@ -6,7 +6,7 @@ use ellie_core::{
 };
 
 use crate::{
-    assembler::Assembler,
+    assembler::{Assembler, LocalHeader},
     instruction_table,
     instructions::{self, Instruction},
     types::Types,
@@ -735,7 +735,7 @@ pub fn resolve_type(
         }
         CoreTypes::FunctionCall(function_call) => {
             let mut is_reference = None;
-            let target = match *function_call.target.clone() {
+            let target: LocalHeader = match *function_call.target.clone() {
                 CoreTypes::VariableType(e) => assembler
                     .find_local(&e.value, dependencies.clone(), true)
                     .unwrap()
@@ -746,7 +746,22 @@ pub fn resolve_type(
                             .find_local(&e.value, dependencies.clone(), true)
                             .unwrap()
                             .clone(),
-                        _ => unreachable!("Unexpected target type"),
+                        e => {
+                            resolve_type(
+                                assembler,
+                                &e,
+                                instructions::Registers::A,
+                                target_page,
+                                dependencies.clone(),
+                            );
+                            assembler
+                                .instructions
+                                .push(
+                                    instruction_table::Instructions::STA(Instruction::implicit()),
+                                );
+                            panic!("Not implemented yet")
+                        }
+                        _ => unreachable!("Unexpected target type: {:#?}", e),
                     };
                     let hash = e.index_chain.last().unwrap();
                     is_reference = Some(reference.clone());
