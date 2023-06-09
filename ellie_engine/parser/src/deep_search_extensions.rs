@@ -1008,7 +1008,12 @@ fn iterate_deep_type(
                             location: i.location,
                         });
                     }
-                    DeepTypeResult::Dynamic => todo!(),
+                    DeepTypeResult::Dynamic => {
+                        collective.push(ellie_core::definite::types::array::ArrayEntry {
+                            value: Types::Dynamic,
+                            location: i.location,
+                        });
+                    }
                     DeepTypeResult::Function(e) => {
                         collective.push(ellie_core::definite::types::array::ArrayEntry {
                             value: Types::Function(e),
