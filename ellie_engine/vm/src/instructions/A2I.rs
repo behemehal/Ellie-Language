@@ -68,9 +68,13 @@ impl super::InstructionExecuter for A2I {
                             }
                         }
                     }
+                    15 => {
+                        let data = current_stack.registers.A.to_uint() as isize;
+                        current_stack.registers.A = StaticRawType::from_int(data);
+                    }
                     e => {
                         return Err(ExecuterPanic {
-                            reason: ThreadPanicReason::CannotConvertToType(e, 7),
+                            reason: ThreadPanicReason::CannotConvertToType(e, 1),
                             code_location: format!("{}:{}", file!(), line!()),
                         });
                     }

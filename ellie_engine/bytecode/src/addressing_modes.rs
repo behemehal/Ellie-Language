@@ -152,11 +152,7 @@ impl core::fmt::Display for AddressingModes {
                                     .unwrap()
                             )
                         }
-                        Types::StaticArray(_) => format!("static_array[{:?}]", {
-                            let mut array = [0; mem::size_of::<isize>()];
-                            array.copy_from_slice(&value[0..mem::size_of::<isize>()]);
-                            isize::from_le_bytes(array)
-                        }),
+                        Types::StaticArray => format!("static_array"),
                         Types::Array(_) => format!("array[{:?}]", {
                             let mut array = [0; mem::size_of::<isize>()];
                             array.copy_from_slice(&value[0..mem::size_of::<isize>()]);

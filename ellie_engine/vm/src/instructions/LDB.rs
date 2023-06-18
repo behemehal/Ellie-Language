@@ -134,6 +134,37 @@ impl super::InstructionExecuter for LDB {
                                     });
                                 }
                             }
+                        } else if stack_data.type_id.is_static_array() {
+                            let array_location = stack_data.to_uint();
+                            let array_size = match stack_memory.get(&(array_location + 1)) {
+                                Some(e) => e.to_uint(),
+                                None => {
+                                    return Err(ExecuterPanic {
+                                        reason: ThreadPanicReason::NullReference(array_location),
+                                        code_location: format!("{}:{}", file!(), line!()),
+                                    });
+                                }
+                            };
+                            std::println!("SIZE: {}", array_size);
+                            if index > array_size {
+                                return Err(ExecuterPanic {
+                                    reason: ThreadPanicReason::IndexOutOfBounds(index),
+                                    code_location: format!("{}:{}", file!(), line!()),
+                                });
+                            } else {
+                                let entry = array_location + 1 + index;
+                                std::println!("entry: {}", entry);
+                                current_stack.registers.B = match stack_memory.get(&entry) {
+                                    Some(e) => e,
+                                    None => {
+                                        return Err(ExecuterPanic {
+                                            reason: ThreadPanicReason::NullReference(entry),
+                                            code_location: format!("{}:{}", file!(), line!()),
+                                        });
+                                    }
+                                };
+                                return Ok(ExecuterResult::Continue);
+                            }
                         } else {
                             return Err(ExecuterPanic {
                                 reason: ThreadPanicReason::UnexpectedType(stack_data.type_id.id),

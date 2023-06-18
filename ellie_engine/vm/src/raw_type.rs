@@ -23,6 +23,7 @@ pub enum TypeIds {
     Function,
     StackReference,
     HeapReference,
+    StaticArray,
 }
 
 #[derive(Clone, Debug, Copy)]
@@ -74,6 +75,7 @@ impl Display for TypeId {
             12 => write!(f, "Function"),
             13 => write!(f, "StackReference"),
             14 => write!(f, "HeapReference"),
+            15 => write!(f, "StaticArray"),
             _ => panic!("Unexpected type_id"),
         }
     }
@@ -114,6 +116,7 @@ impl TypeId {
             12 => TypeIds::Function,
             13 => TypeIds::StackReference,
             14 => TypeIds::HeapReference,
+            15 => TypeIds::StaticArray,
             _ => panic!("Unexpected type_id"),
         }
     }
@@ -178,9 +181,13 @@ impl TypeId {
         self.id == 14
     }
 
+    pub fn is_static_array(&self) -> bool {
+        self.id == 15
+    }
+
     pub fn is_core_type(&self) -> bool {
         match self.id {
-            1..=12 => true,
+            1..=12 | 15 => true,
             _ => false,
         }
     }
@@ -385,7 +392,10 @@ impl RawType {
 
     pub fn integer(data: Vec<u8>) -> RawType {
         RawType {
-            type_id: TypeId { id: 1, size: mem::size_of::<isize>() },
+            type_id: TypeId {
+                id: 1,
+                size: mem::size_of::<isize>(),
+            },
             data,
         }
     }
@@ -399,7 +409,10 @@ impl RawType {
 
     pub fn double(data: Vec<u8>) -> RawType {
         RawType {
-            type_id: TypeId { id: 3, size: mem::size_of::<f64>() },
+            type_id: TypeId {
+                id: 3,
+                size: mem::size_of::<f64>(),
+            },
             data,
         }
     }
@@ -649,7 +662,10 @@ impl StaticRawType {
         let mut bytes = [0; 8];
         bytes[0..mem::size_of::<f64>()].copy_from_slice(&data.to_le_bytes());
         StaticRawType {
-            type_id: TypeId { id: 3, size: mem::size_of::<f64>() },
+            type_id: TypeId {
+                id: 3,
+                size: mem::size_of::<f64>(),
+            },
             data: bytes,
         }
     }

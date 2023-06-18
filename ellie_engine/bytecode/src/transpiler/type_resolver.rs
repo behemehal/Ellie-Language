@@ -535,7 +535,7 @@ pub fn resolve_type(
                 .instructions
                 .push(instruction_table::Instructions::SAR(
                     Instruction::immediate(
-                        Types::StaticArray(size),
+                        Types::StaticArray,
                         usize_to_le_bytes(size, assembler.platform_attributes.architecture),
                     ),
                 ));
@@ -579,6 +579,86 @@ pub fn resolve_type(
             }
         }
         CoreTypes::Array(e) => {
+            assembler
+                .instructions
+                .push(instruction_table::Instructions::SAR(
+                    Instruction::immediate(
+                        Types::StaticArray,
+                        usize_to_le_bytes(
+                            assembler.location(),
+                            assembler.platform_attributes.architecture,
+                        ),
+                    ),
+                ));
+            assembler
+                .instructions
+                .push(instruction_table::Instructions::STA(
+                    Instruction::immediate(
+                        Types::Integer,
+                        usize_to_le_bytes(
+                            e.collective.len(),
+                            assembler.platform_attributes.architecture,
+                        ),
+                    ),
+                ));
+            let index_start = assembler.location();
+            for _ in &e.collective {
+                assembler
+                    .instructions
+                    .push(instruction_table::Instructions::STA(Instruction::implicit()));
+            }
+            for (index, entry) in e.collective.iter().enumerate() {
+                resolve_type(
+                    assembler,
+                    &entry.value,
+                    instructions::Registers::A,
+                    target_page,
+                    dependencies.clone(),
+                );
+                assembler
+                    .instructions
+                    .push(instruction_table::Instructions::STA(Instruction::absolute(
+                        (index_start + 1) + index,
+                    )));
+            }
+            match target_register {
+                instructions::Registers::A => {
+                    assembler
+                        .instructions
+                        .push(instruction_table::Instructions::LDA(Instruction::absolute(
+                            index_start - 1,
+                        )))
+                }
+                instructions::Registers::B => {
+                    assembler
+                        .instructions
+                        .push(instruction_table::Instructions::LDB(Instruction::absolute(
+                            index_start - 1,
+                        )))
+                }
+                instructions::Registers::C => {
+                    assembler
+                        .instructions
+                        .push(instruction_table::Instructions::LDC(Instruction::absolute(
+                            index_start - 1,
+                        )))
+                }
+                instructions::Registers::X => {
+                    assembler
+                        .instructions
+                        .push(instruction_table::Instructions::LDX(Instruction::absolute(
+                            index_start - 1,
+                        )))
+                }
+                instructions::Registers::Y => {
+                    assembler
+                        .instructions
+                        .push(instruction_table::Instructions::LDY(Instruction::absolute(
+                            index_start - 1,
+                        )))
+                }
+            }
+            /*
             assembler
                 .instructions
                 .push(instruction_table::Instructions::ARR(Instruction::implicit()));
@@ -639,6 +719,7 @@ pub fn resolve_type(
                         )))
                 }
             }
+            */
         }
         CoreTypes::Function(_) => todo!(),
         CoreTypes::ClassCall(class_call) => {
@@ -796,7 +877,10 @@ pub fn resolve_type(
                     .push(instruction_table::Instructions::LDA(Instruction::absolute(
                         reference.cursor,
                     )));
-                assembler.add_borrow_to_local(reference.hash.unwrap(), assembler.location());
+                match reference.hash {
+                    Some(hash) => assembler.add_borrow_to_local(hash, assembler.location()),
+                    None => (),
+                }
                 assembler
                     .instructions
                     .push(instruction_table::Instructions::STA(Instruction::absolute(
