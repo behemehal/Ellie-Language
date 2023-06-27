@@ -2,7 +2,7 @@
 name = "elliefmt"
 version = "0.1.0"
 edition = "2021"
-authors = ["Ahmetcan Aksu <ahmetcanaksu@behemehal.net>", "Behemehal <info@behemehal.net>"]
+authors = ["Ahmetcan Aksu <ahmetcanaksu@behemehal.org>", "Behemehal <info@behemehal.org>"]
 license = "GPL-2.0"
 
 [dependencies]
