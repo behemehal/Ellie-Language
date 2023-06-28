@@ -443,7 +443,11 @@ pub(crate) fn render_code_block<T: ColorDisplay>(
                         Colors::Yellow
                     }
                 ),
-                generate_blank((line_space - (i + 1).to_string().len()) + 1),
+                if (i + 1).to_string().len() < line_space {
+                    generate_blank((line_space - (i + 1).to_string().len()) + 1)
+                } else {
+                    String::from("")
+                },
                 i + 1,
                 color_output.color(Colors::Reset),
                 if (i >= item_pos.range_start.0 && i <= item_pos.range_end.0) && multi_line {
@@ -653,7 +657,6 @@ where
             true,
             color_output,
         );
-        output += "\n";
         output += &format!(
             "{}{}[?]{} ╞ Check online error repo for more info {}{}{}\n",
             generate_blank(line_space - 2),
@@ -661,7 +664,7 @@ where
             color_output.color(Colors::Reset),
             color_output.color(Colors::Green),
             format!(
-                "https://www.ellie-lang.org/errorIndex.html#{:#04x}",
+                "https://www.ellie-lang.org/errorIndex#{:#04x}",
                 error.code
             ),
             color_output.color(Colors::Reset),
