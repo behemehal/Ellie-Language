@@ -257,10 +257,18 @@ impl AssembleResult {
             output
                 .write_all(
                     format!(
-                        "\n{}: {} = {}",
+                        "\n{}: {} = {}{}",
                         local.cursor,
                         local.name,
-                        local.reference.addressing_mode.to_string()
+                        local.reference.addressing_mode.to_string(),
+                        match local.hash {
+                            Some(reference) => {
+                                format!("({})", reference)
+                            }
+                            None => {
+                                String::new()
+                            }
+                        }
                     )
                     .as_bytes(),
                 )
