@@ -133,6 +133,9 @@ impl DefinerCollecting {
     }
 
     pub fn same_as(&self, other: DefinerCollecting) -> bool {
+        if matches!(&other, DefinerCollecting::Generic(generic) if generic.rtype == "dyn") || matches!(&self, DefinerCollecting::Generic(generic) if generic.rtype == "dyn") {
+            return true;
+        }
         match self {
             DefinerCollecting::Array(data) => {
                 if let DefinerCollecting::Array(other_data) = other {
@@ -162,8 +165,6 @@ impl DefinerCollecting {
                             .iter()
                             .zip(parent_generic.generics.iter())
                             .all(|(a, b)| a.value.same_as(b.value.clone()))
-                } else if DefinerCollecting::Dynamic == other {
-                    true
                 } else {
                     false
                 }
@@ -176,8 +177,6 @@ impl DefinerCollecting {
                             .zip(other_e.params.iter())
                             .all(|(a, b)| a.same_as(b.clone()))
                         && e.returning.same_as(*other_e.returning.clone())
-                } else if DefinerCollecting::Dynamic == other {
-                    true
                 } else {
                     false
                 }
@@ -190,8 +189,6 @@ impl DefinerCollecting {
                             .iter()
                             .zip(other_cloak.rtype.iter())
                             .all(|(a, b)| a.same_as(b.clone()))
-                } else if DefinerCollecting::Dynamic == other {
-                    true
                 } else {
                     false
                 }
@@ -207,15 +204,6 @@ impl DefinerCollecting {
             DefinerCollecting::Nullable(e) => {
                 if let DefinerCollecting::Nullable(other_e) = other {
                     e.value.same_as(*other_e.value.clone())
-                } else if DefinerCollecting::Dynamic == other {
-                    true
-                } else {
-                    false
-                }
-            }
-            DefinerCollecting::Dynamic => {
-                if let DefinerCollecting::Dynamic = other {
-                    true
                 } else {
                     false
                 }
@@ -228,6 +216,7 @@ impl DefinerCollecting {
                 }
             }
             DefinerCollecting::ClassInstance(_) => todo!(),
+            DefinerCollecting::Dynamic => unreachable!(),
         }
     }
 }

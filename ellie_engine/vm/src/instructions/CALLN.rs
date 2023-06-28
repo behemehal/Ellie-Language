@@ -57,9 +57,10 @@ impl super::InstructionExecuter for CALLN {
                     let pos =
                         current_stack.get_pos() - (params_length - ((i as isize * -1) as usize));
                     let paramater = match stack_memory.get(&pos) {
-                        Some(raw_type) => match raw_type.type_id.id {
-                            0..=5 | 7 | 10 => VmNativeCallParameters::Static(raw_type),
-                            14 => {
+                        Some(raw_type) => {
+                            if raw_type.type_id.is_stack_storable() {
+                                VmNativeCallParameters::Static(raw_type)
+                            } else {
                                 let location = raw_type.to_int() as usize;
                                 match heap_memory.get(&location) {
                                     Some(raw_type) => VmNativeCallParameters::Dynamic(raw_type),
@@ -71,13 +72,6 @@ impl super::InstructionExecuter for CALLN {
                                     }
                                 }
                             }
-                            8 => {
-                                return Err(ExecuterPanic {
-                                    reason: ThreadPanicReason::NullReference(pos),
-                                    code_location: format!("{}:{}", file!(), line!()),
-                                });
-                            }
-                            _ => unreachable!("Wrong typeid"),
                         },
                         None => {
                             return Err(ExecuterPanic {
