@@ -28,8 +28,6 @@ impl super::Transpiler for self_item::SelfItem {
             pos: self.pos,
         });
 
-        std::println!("Self item pos: {:?}", assembler.location());
-
         //assembler.locals.push(LocalHeader {
         //    name: "self".to_string(),
         //    cursor: assembler.location(),

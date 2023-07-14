@@ -2277,8 +2277,6 @@ pub fn resolve_type(
         errors,
     );
 
-    std::println!("Resolved deep type: {:#?}\n{:#?}", deep_type, target_type);
-
     match deep_type {
         DeepTypeResult::Integer(_) => {
             let int_type = find_type("int".to_string(), target_page, parser);

@@ -145,7 +145,7 @@ impl super::InstructionExecuter for LDB {
                                     });
                                 }
                             };
-                            std::println!("SIZE: {}", array_size);
+
                             if index > array_size {
                                 return Err(ExecuterPanic {
                                     reason: ThreadPanicReason::IndexOutOfBounds(index),
@@ -153,7 +153,6 @@ impl super::InstructionExecuter for LDB {
                                 });
                             } else {
                                 let entry = array_location + 1 + index;
-                                std::println!("entry: {}", entry);
                                 current_stack.registers.B = match stack_memory.get(&entry) {
                                     Some(e) => e,
                                     None => {

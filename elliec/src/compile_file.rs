@@ -50,8 +50,8 @@ pub fn get_output_path(
             .to_string();
         let mut file_name = target_path.file_name().unwrap().to_str().unwrap();
 
-        if file_name.contains(".") {
-            file_name = file_name.split(".").nth(0).unwrap();
+        if file_name.contains('.') {
+            file_name = file_name.split('.').next().unwrap();
         }
 
         Path::new(
@@ -292,10 +292,10 @@ pub fn compile(
                                 print_warnings(
                                     &compile_output.warnings,
                                     |path| {
-                                        let path_starter = path.split("/").next().unwrap();
+                                        let path_starter = path.split('/').next().unwrap();
                                         let virtual_path_identifier =
                                             match path_starter.split("<ellie_module_").last() {
-                                                Some(e) => e.split(">").next().unwrap(),
+                                                Some(e) => e.split('>').next().unwrap(),
                                                 None => "",
                                             };
                                         if path_starter == starter_name {
@@ -331,7 +331,7 @@ pub fn compile(
                                         {
                                             let module_path = module_path.clone().unwrap();
                                             let real_path =
-                                                path.replace(&path_starter, &module_path).clone();
+                                                path.replace(path_starter, &module_path).clone();
                                             match read_file(real_path) {
                                                 Ok(e) => e,
                                                 Err(err) => {
@@ -353,10 +353,10 @@ pub fn compile(
                                         }
                                     },
                                     |path| {
-                                        let path_starter = path.split("/").next().unwrap();
+                                        let path_starter = path.split('/').next().unwrap();
                                         let virtual_path_identifier =
                                             match path_starter.split("<ellie_module_").last() {
-                                                Some(e) => e.split(">").next().unwrap(),
+                                                Some(e) => e.split('>').next().unwrap(),
                                                 None => "",
                                             };
                                         if path_starter == starter_name {
@@ -377,7 +377,7 @@ pub fn compile(
                                             })
                                         {
                                             let module_path = module_path.clone().unwrap();
-                                            path.replace(&path_starter, &module_path).clone()
+                                            path.replace(path_starter, &module_path).clone()
                                         } else {
                                             panic!(
                                             "Failed to ouput error. Cannot identify module '{}'",
@@ -385,7 +385,7 @@ pub fn compile(
                                         );
                                         }
                                     },
-                                    cli_color.clone(),
+                                    *cli_color,
                                 )
                             );
                         }
@@ -459,29 +459,27 @@ pub fn compile(
                                         cli_color.color(Colors::Reset),
                                     );
                                 }
+                            } else if cli_settings.json_log {
+                                let mut output = outputs::WRITE_BINARY_SUCCEDED.clone();
+                                output.extra.push(outputs::CliOuputExtraData {
+                                    key: 0,
+                                    value: output_path
+                                        .absolutize()
+                                        .unwrap()
+                                        .to_str()
+                                        .unwrap()
+                                        .to_owned(),
+                                });
+                                println!("{}", serde_json::to_string(&output).unwrap())
                             } else {
-                                if cli_settings.json_log {
-                                    let mut output = outputs::WRITE_BINARY_SUCCEDED.clone();
-                                    output.extra.push(outputs::CliOuputExtraData {
-                                        key: 0,
-                                        value: output_path
-                                            .absolutize()
-                                            .unwrap()
-                                            .to_str()
-                                            .unwrap()
-                                            .to_owned(),
-                                    });
-                                    println!("{}", serde_json::to_string(&output).unwrap())
-                                } else {
-                                    println!(
-                                        "{}[!]{}: Binary output written to {}{}{}",
-                                        cli_color.color(Colors::Green),
-                                        cli_color.color(Colors::Reset),
-                                        cli_color.color(Colors::Yellow),
-                                        output_path.absolutize().unwrap().to_str().unwrap(),
-                                        cli_color.color(Colors::Reset)
-                                    );
-                                }
+                                println!(
+                                    "{}[!]{}: Binary output written to {}{}{}",
+                                    cli_color.color(Colors::Green),
+                                    cli_color.color(Colors::Reset),
+                                    cli_color.color(Colors::Yellow),
+                                    output_path.absolutize().unwrap().to_str().unwrap(),
+                                    cli_color.color(Colors::Reset)
+                                );
                             }
                         }
                         OutputTypesSelector::DependencyAnalysis => {
@@ -494,7 +492,7 @@ pub fn compile(
                         }
                         OutputTypesSelector::Json => {
                             let json = serde_json::to_string(&compile_output.module).unwrap();
-                            if let Err(write_error) = fs::write(&output_path, json) {
+                            if let Err(write_error) = fs::write(output_path, json) {
                                 if cli_settings.json_log {
                                     let mut output = outputs::WRITE_FILE_ERROR.clone();
                                     output.extra.push(outputs::CliOuputExtraData {
@@ -511,29 +509,27 @@ pub fn compile(
                                         cli_color.color(Colors::Reset),
                                     );
                                 }
+                            } else if cli_settings.json_log {
+                                let mut output = outputs::WRITE_JSON_SUCCEDED.clone();
+                                output.extra.push(outputs::CliOuputExtraData {
+                                    key: 0,
+                                    value: output_path
+                                        .absolutize()
+                                        .unwrap()
+                                        .to_str()
+                                        .unwrap()
+                                        .to_owned(),
+                                });
+                                println!("{}", serde_json::to_string(&output).unwrap())
                             } else {
-                                if cli_settings.json_log {
-                                    let mut output = outputs::WRITE_JSON_SUCCEDED.clone();
-                                    output.extra.push(outputs::CliOuputExtraData {
-                                        key: 0,
-                                        value: output_path
-                                            .absolutize()
-                                            .unwrap()
-                                            .to_str()
-                                            .unwrap()
-                                            .to_owned(),
-                                    });
-                                    println!("{}", serde_json::to_string(&output).unwrap())
-                                } else {
-                                    println!(
-                                        "{}[!]{}: JSON output written to {}{}{}",
-                                        cli_color.color(Colors::Green),
-                                        cli_color.color(Colors::Reset),
-                                        cli_color.color(Colors::Yellow),
-                                        output_path.absolutize().unwrap().to_str().unwrap(),
-                                        cli_color.color(Colors::Reset),
-                                    );
-                                }
+                                println!(
+                                    "{}[!]{}: JSON output written to {}{}{}",
+                                    cli_color.color(Colors::Green),
+                                    cli_color.color(Colors::Reset),
+                                    cli_color.color(Colors::Yellow),
+                                    output_path.absolutize().unwrap().to_str().unwrap(),
+                                    cli_color.color(Colors::Reset),
+                                );
                             }
                         }
                         OutputTypesSelector::ByteCode => {
@@ -722,10 +718,10 @@ pub fn compile(
                             print_errors(
                                 &errors,
                                 |path| {
-                                    let path_starter = path.split("/").next().unwrap();
+                                    let path_starter = path.split('/').next().unwrap();
                                     let virtual_path_identifier =
                                         match path_starter.split("<ellie_module_").last() {
-                                            Some(e) => e.split(">").next().unwrap(),
+                                            Some(e) => e.split('>').next().unwrap(),
                                             None => "",
                                         };
                                     if path_starter == starter_name {
@@ -759,7 +755,7 @@ pub fn compile(
                                     {
                                         if let Some(module_path) = module_path.clone() {
                                             let real_path =
-                                                path.replace(&path_starter, &module_path).clone();
+                                                path.replace(path_starter, &module_path).clone();
                                             match read_file(real_path.clone()) {
                                                 Ok(e) => e,
                                                 Err(err) => {
@@ -799,10 +795,10 @@ pub fn compile(
                                 },
                                 cli_settings.show_debug_lines,
                                 |path| {
-                                    let path_starter = path.split("/").next().unwrap();
+                                    let path_starter = path.split('/').next().unwrap();
                                     let virtual_path_identifier =
                                         match path_starter.split("<ellie_module_").last() {
-                                            Some(e) => e.split(">").next().unwrap(),
+                                            Some(e) => e.split('>').next().unwrap(),
                                             None => "",
                                         };
                                     if path_starter == starter_name {
@@ -822,7 +818,7 @@ pub fn compile(
                                         .find(|(module, _)| module.name == virtual_path_identifier)
                                     {
                                         if let Some(module_path) = module_path.clone() {
-                                            path.replace(&path_starter, &module_path).clone()
+                                            path.replace(path_starter, &module_path).clone()
                                         } else {
                                             exit_messages.lock().unwrap().push(Box::new(move || {
                                                 println!(
@@ -843,7 +839,7 @@ pub fn compile(
                                         );
                                     }
                                 },
-                                cli_color.clone(),
+                                *cli_color,
                             )
                         );
                         for message in exit_messages.lock().unwrap().iter() {
@@ -867,7 +863,7 @@ pub fn compile(
                     print_errors(
                         &pager_errors,
                         |path| match read_file(
-                            &path.replace(
+                            path.replace(
                                 &starter_name,
                                 Path::new(target_path)
                                     .absolutize()
@@ -906,7 +902,7 @@ pub fn compile(
                             )
                             .to_string()
                         },
-                        cli_color.clone()
+                        *cli_color
                     )
                 );
                 for message in exit_messages.lock().unwrap().iter() {

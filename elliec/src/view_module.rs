@@ -85,7 +85,7 @@ pub fn parse(target_path: &Path, json_log: bool, target_arch: PlatformArchitectu
                         );
                     } else {
                         let mut output = format!("ModuleName        = {}{}\nModuleDescription = {}\nModuleVersion     = {}.{}.{}\nEllieVersion      = {}.{}.{}", module.name, if module.is_library {" (Library)"} else {""}, module.description, module.version.major, module.version.minor, module.version.bug, module.ellie_version.major, module.ellie_version.minor, module.ellie_version.bug);
-                        if module.modules.len() > 0 {
+                        if !module.modules.is_empty() {
                             output.push_str("\nInnerModules      =\n");
                         }
 

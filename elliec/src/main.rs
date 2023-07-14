@@ -68,7 +68,7 @@ fn main() {
                             "{}{}{}",
                             cli_color.color(Colors::Blue),
                             e.to_string().split("@Halt:").collect::<Vec<&str>>()[1]
-                                .split("@")
+                                .split('@')
                                 .collect::<Vec<&str>>()[0]
                                 .trim(),
                             cli_color.color(Colors::Red)
@@ -136,8 +136,8 @@ fn main() {
                     .to_str()
                     .unwrap();
 
-                if file_name.contains(".") {
-                    file_name.split(".").next().unwrap().to_string()
+                if file_name.contains('.') {
+                    file_name.split('.').next().unwrap().to_string()
                 } else {
                     file_name.to_string()
                 }
@@ -187,7 +187,7 @@ fn main() {
                             "{}{}{}",
                             cli_color.color(Colors::Blue),
                             e.to_string().split("@Halt:").collect::<Vec<&str>>()[1]
-                                .split("@")
+                                .split('@')
                                 .collect::<Vec<&str>>()[0]
                                 .trim(),
                             cli_color.color(Colors::Red)
@@ -332,7 +332,7 @@ fn main() {
 
                 //Iter through all modules
                 for module in modules {
-                    let path = module.trim().split("=").collect::<Vec<_>>();
+                    let path = module.trim().split('=').collect::<Vec<_>>();
 
                     let module_path = Path::new(path[0].trim());
                     let code_path = if path.len() > 1 {
@@ -481,17 +481,17 @@ fn main() {
                         .to_str()
                         .unwrap();
 
-                    if file_name.contains(".") {
-                        file_name.split(".").next().unwrap().to_string()
+                    if file_name.contains('.') {
+                        file_name.split('.').next().unwrap().to_string()
                     } else {
                         file_name.to_string()
                     }
                 }
             };
 
-            if project_name.contains(" ")
-                || project_name.contains("/")
-                || project_name.contains(".")
+            if project_name.contains(' ')
+                || project_name.contains('/')
+                || project_name.contains('.')
             {
                 println!(
                     "{}Error:{} Wrong project name '{}{}{}'{}{}{}",
@@ -612,44 +612,42 @@ fn main() {
                         engine_constants::ELLIE_CORE_VERSION,
                     );
                 }
+            } else if matches.is_present("jsonLog") {
+                let mut output = outputs::VERSION.clone();
+                output.extra.push(outputs::CliOuputExtraData {
+                    key: "version".to_string(),
+                    value: version.to_string(),
+                });
+                output.extra.push(outputs::CliOuputExtraData {
+                    key: "git_hash".to_string(),
+                    value: engine_constants::ELLIE_BUILD_GIT_HASH.to_owned(),
+                });
+                output.extra.push(outputs::CliOuputExtraData {
+                    key: "git_branch".to_string(),
+                    value: engine_constants::ELLIE_BUILD_GIT_BRANCH.to_owned(),
+                });
+                output.extra.push(outputs::CliOuputExtraData {
+                    key: "build_date".to_string(),
+                    value: engine_constants::ELLIE_BUILD_DATE.to_owned(),
+                });
+                println!("{}", serde_json::to_string(&output).unwrap());
             } else {
-                if matches.is_present("jsonLog") {
-                    let mut output = outputs::VERSION.clone();
-                    output.extra.push(outputs::CliOuputExtraData {
-                        key: "version".to_string(),
-                        value: version.to_string(),
-                    });
-                    output.extra.push(outputs::CliOuputExtraData {
-                        key: "git_hash".to_string(),
-                        value: engine_constants::ELLIE_BUILD_GIT_HASH.to_owned(),
-                    });
-                    output.extra.push(outputs::CliOuputExtraData {
-                        key: "git_branch".to_string(),
-                        value: engine_constants::ELLIE_BUILD_GIT_BRANCH.to_owned(),
-                    });
-                    output.extra.push(outputs::CliOuputExtraData {
-                        key: "build_date".to_string(),
-                        value: engine_constants::ELLIE_BUILD_DATE.to_owned(),
-                    });
-                    println!("{}", serde_json::to_string(&output).unwrap());
-                } else {
-                    println!(
-                        "EllieC v{} ({} : {}){}",
-                        version,
-                        engine_constants::ELLIE_BUILD_GIT_HASH,
-                        engine_constants::ELLIE_BUILD_DATE,
-                        if engine_constants::ELLIE_BUILD_GIT_BRANCH != "main" {
-                            format!(
-                                " [{}{}{}] ",
-                                cli_color.color(Colors::Yellow),
-                                engine_constants::ELLIE_BUILD_GIT_BRANCH,
-                                cli_color.color(Colors::Reset)
-                            )
-                        } else {
-                            String::new()
-                        },
-                    );
-                }
+                println!(
+                    "EllieC v{} ({} : {}){}",
+                    version,
+                    engine_constants::ELLIE_BUILD_GIT_HASH,
+                    engine_constants::ELLIE_BUILD_DATE,
+                    if engine_constants::ELLIE_BUILD_GIT_BRANCH != "main" {
+                        format!(
+                            " [{}{}{}] ",
+                            cli_color.color(Colors::Yellow),
+                            engine_constants::ELLIE_BUILD_GIT_BRANCH,
+                            cli_color.color(Colors::Reset)
+                        )
+                    } else {
+                        String::new()
+                    },
+                );
             }
         }
         Some(("viewModule", matches)) => {
