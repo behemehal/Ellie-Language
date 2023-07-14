@@ -238,7 +238,7 @@ pub fn draw_error<T: ColorDisplay>(
 pub fn generate_blank(size: usize) -> String {
     let mut blank: String = String::new();
     for _ in 0..size + 1 {
-        blank += &" ".to_string();
+        blank += " ";
     }
     blank
 }
@@ -380,7 +380,7 @@ pub(crate) fn render_code_block<T: ColorDisplay>(
                     generate_blank((line_space - (i + 1).to_string().len()) + 1),
                     i + 1,
                     color_output.color(Colors::Reset),
-                    get_line(code.clone(), i).replace("\t", "    "), //:/
+                    get_line(code.clone(), i).replace('\t', "    "), //:/
                     color_output.color(Colors::Green),
                     ref_message,
                     color_output.color(Colors::Reset),
@@ -397,7 +397,7 @@ pub(crate) fn render_code_block<T: ColorDisplay>(
                         Colors::Yellow
                     }),
                     arrow(
-                        (item_pos.range_start.1 + 1) as usize,
+                        item_pos.range_start.1 + 1,
                         ((item_pos.range_end.1) - item_pos.range_start.1) + 1
                     ),
                     color_output.color(Colors::Reset),
@@ -409,7 +409,7 @@ pub(crate) fn render_code_block<T: ColorDisplay>(
                     generate_blank((line_space - (i + 1).to_string().len()) + 1),
                     i + 1,
                     color_output.color(Colors::Reset),
-                    get_line(code.clone(), i).replace("\t", "    "), //WTF? THIS IS THE ONLY SOLUTION
+                    get_line(code.clone(), i).replace('\t', "    "), //WTF? THIS IS THE ONLY SOLUTION
                 );
 
                 output += &format!(
@@ -423,7 +423,7 @@ pub(crate) fn render_code_block<T: ColorDisplay>(
                         Colors::Yellow
                     }),
                     arrow(
-                        (item_pos.range_start.1 + 1) as usize,
+                        item_pos.range_start.1 + 1,
                         ((item_pos.range_end.1) - item_pos.range_start.1) + 1
                     ),
                     color_output.color(Colors::Reset),

@@ -140,7 +140,7 @@ pub fn generate_elliec_options() -> Command<'static> {
                         .short('c')
                         .long("--arch")
                         .default_value("64")
-                        .possible_values(&["16", "32", "64"]),
+                        .possible_values(["16", "32", "64"]),
                 )
                 .arg(
                     Arg::new("performanceInfo")
@@ -237,7 +237,7 @@ pub fn generate_elliec_options() -> Command<'static> {
                         .long("--output-type")
                         .takes_value(true)
                         .default_value("byteCode")
-                        .possible_values(&[
+                        .possible_values([
                             "bin",
                             "json",
                             "byteCode",
@@ -263,7 +263,7 @@ pub fn generate_elliec_options() -> Command<'static> {
                         .short('c')
                         .long("--arch")
                         .default_value("64")
-                        .possible_values(&["16", "32", "64"]),
+                        .possible_values(["16", "32", "64"]),
                 )
                 .arg(
                     Arg::new("jsonLog")
