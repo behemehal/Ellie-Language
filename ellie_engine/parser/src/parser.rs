@@ -1509,13 +1509,13 @@ impl Parser {
                                     }
                                     _ => (),
                                 }
+                                if found {
+                                    break;
+                                }
                             }
                         }
                         None => {
                             panic!("Broken Page structure; Failed to find page {}", dep.hash);
-                            //found = true;
-                            //found_type = DeepSearchItems::BrokenPageGraph;
-                            //break 'pages;
                         }
                     }
                 } else if dep.processed {
@@ -1676,13 +1676,13 @@ impl Parser {
                                     }
                                     _ => (),
                                 }
+                                if found {
+                                    break;
+                                }
                             }
                         }
                         None => {
                             panic!("Broken Page structure; Failed to find page {}", dep.hash);
-                            //found = true;
-                            //found_type = DeepSearchItems::BrokenPageGraph;
-                            //break 'pages;
                         }
                     }
                 } else {
@@ -1843,15 +1843,18 @@ impl Parser {
                                     }
                                     _ => (),
                                 }
+                                if found {
+                                    break;
+                                }
                             }
                         }
                         None => {
                             panic!("Broken Page structure; Failed to find page {}", dep.hash);
-                            //found = true;
-                            //found_type = DeepSearchItems::BrokenPageGraph;
-                            //break 'pages;
                         }
                     }
+                }
+                if found {
+                    break;
                 }
                 level += 1;
             }

@@ -327,7 +327,7 @@ impl PlatformArchitecture {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum DebugHeaderType {
     Variable,
     SetterCall,

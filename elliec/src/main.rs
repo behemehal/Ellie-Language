@@ -1,3 +1,4 @@
+use bincode::Options;
 use ellie_engine::{
     ellie_core::defs::{PlatformArchitecture, Version},
     ellie_parser,
@@ -309,6 +310,23 @@ fn main() {
                     .to_string()
             };
 
+            let byte_code_architecture = match matches.value_of("targetArchitecture").unwrap() {
+                "64" => PlatformArchitecture::B64,
+                "32" => PlatformArchitecture::B32,
+                "16" => PlatformArchitecture::B16,
+                e => {
+                    println!(
+                        "{}Error:{} Unknown architecture '{}{}{}'",
+                        cli_color.color(Colors::Red),
+                        cli_color.color(Colors::Reset),
+                        cli_color.color(Colors::Yellow),
+                        e,
+                        cli_color.color(Colors::Reset),
+                    );
+                    std::process::exit(1);
+                }
+            };
+
             let modules = if let Some(modules) = matches.values_of("insertModule") {
                 let mut parsed_modules = vec![];
 
@@ -328,7 +346,15 @@ fn main() {
                         //If module path is file
                         match read_file_bin(module_path) {
                             Ok(file_content) => {
-                                match bincode::deserialize::<ellie_parser::parser::Module>(
+                                let config = bincode::options()
+                                    .with_big_endian()
+                                    .with_fixint_encoding()
+                                    .with_limit(match byte_code_architecture {
+                                        PlatformArchitecture::B16 => 65535,
+                                        PlatformArchitecture::B32 => 4294967295,
+                                        PlatformArchitecture::B64 => 18446744073709551615,
+                                    });
+                                match config.deserialize::<ellie_parser::parser::Module>(
                                     file_content.as_slice(),
                                 ) {
                                     Ok(module) => {
@@ -494,28 +520,7 @@ fn main() {
                     is_lib: matches.is_present("isLib"),
                     version,
                     experimental_features: matches.is_present("experimentalFeatures"),
-                    byte_code_architecture: match matches.value_of("targetArchitecture") {
-                        Some(e) => {
-                            if e == "64" {
-                                PlatformArchitecture::B64
-                            } else if e == "32" {
-                                PlatformArchitecture::B32
-                            } else if e == "16" {
-                                PlatformArchitecture::B16
-                            } else {
-                                println!(
-                                    "{}Error:{} Unknown architecture '{}{}{}'",
-                                    cli_color.color(Colors::Red),
-                                    cli_color.color(Colors::Reset),
-                                    cli_color.color(Colors::Yellow),
-                                    e,
-                                    cli_color.color(Colors::Reset),
-                                );
-                                std::process::exit(1);
-                            }
-                        }
-                        None => unreachable!(),
-                    },
+                    byte_code_architecture,
                     file_name: Path::new(&target_path)
                         .file_name()
                         .unwrap()

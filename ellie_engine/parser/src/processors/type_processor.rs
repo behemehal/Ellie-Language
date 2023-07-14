@@ -208,7 +208,10 @@ pub fn process(
                     crate::parser::DeepSearchItems::FunctionParameter(e) => {
                         Ok(types::Types::VariableType(types::variable::VariableType {
                             value: e.name,
-                            reference: 0,
+                            reference: match e.rtype {
+                                DefinerCollecting::Generic(e) => e.hash,
+                                _ => unreachable!()
+                            },
                             pos: from.get_pos(),
                         }))
                     }

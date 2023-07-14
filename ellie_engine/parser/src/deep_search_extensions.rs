@@ -2196,6 +2196,12 @@ pub fn deep_search(
                             }
                             _ => (),
                         }
+                        if found {
+                            break;
+                        }
+                    }
+                    if found {
+                        break;
                     }
                 }
                 None => {
@@ -2270,6 +2276,8 @@ pub fn resolve_type(
         target_type.clone(),
         errors,
     );
+
+    std::println!("Resolved deep type: {:#?}\n{:#?}", deep_type, target_type);
 
     match deep_type {
         DeepTypeResult::Integer(_) => {

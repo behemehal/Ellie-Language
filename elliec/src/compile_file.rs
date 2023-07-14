@@ -8,7 +8,6 @@ use ellie_engine::{
         module_path::parse_module_import,
     },
     ellie_parser::parser,
-    //ellie_renderer_utils::*,
     ellie_renderer_utils::outputs,
     ellie_renderer_utils::utils::{
         print_errors, print_warnings, read_file, CliColor, ColorDisplay, Colors,
