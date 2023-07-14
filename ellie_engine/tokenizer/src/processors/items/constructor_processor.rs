@@ -1,4 +1,4 @@
-use crate::{syntax::items::constructor, processors::EscapeCharEmitter};
+use crate::{processors::EscapeCharEmitter, syntax::items::constructor};
 use ellie_core::{defs, error, utils};
 
 impl crate::processors::Processor for constructor::Constructor {

@@ -1,4 +1,4 @@
-use crate::{syntax::types::function_call_type, processors::EscapeCharEmitter};
+use crate::{processors::EscapeCharEmitter, syntax::types::function_call_type};
 use ellie_core::{defs, error};
 
 impl crate::processors::Processor for function_call_type::FunctionCallCollector {

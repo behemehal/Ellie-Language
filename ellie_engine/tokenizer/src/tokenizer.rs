@@ -4,7 +4,8 @@ use ellie_core::{
         definers::DefinerCollecting,
         types::class_instance::{Attribute, AttributeType, ClassInstance},
     },
-    defs::{self, Cursor}, error,
+    defs::{self, Cursor},
+    error,
     utils::{ExportPage, PageExport},
 };
 use serde::{Deserialize, Serialize};

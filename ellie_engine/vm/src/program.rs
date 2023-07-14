@@ -1,10 +1,11 @@
-use core::mem;
 use crate::{
+    config::PROGRAM_MAX_SIZE,
     instruction_utils::{Instructions, A2B},
     raw_type::{StaticRawType, TypeId},
-    utils::{AddressingModes, AddressingValues, ProgramReader}, config::PROGRAM_MAX_SIZE,
+    utils::{AddressingModes, AddressingValues, ProgramReader},
 };
 use alloc::vec::Vec;
+use core::mem;
 use ellie_core::defs::PlatformArchitecture;
 
 #[derive(Debug, Clone, Copy)]
@@ -110,7 +111,10 @@ impl Program {
         Err(3)
     }
 
-    pub fn build_from_reader(&mut self, reader: &mut ProgramReader) -> Result<(), ProgramReadErrors> {
+    pub fn build_from_reader(
+        &mut self,
+        reader: &mut ProgramReader,
+    ) -> Result<(), ProgramReadErrors> {
         let arch = match reader.read_u8() {
             Some(byte) => match PlatformArchitecture::from_byte(byte) {
                 Some(e) => e,
@@ -122,8 +126,8 @@ impl Program {
         if arch.usize_len() > mem::size_of::<usize>() as u8 {
             return Err(ProgramReadErrors::UnmatchedPlatformArchitecture(
                 arch,
-                PlatformArchitecture::from_byte(mem::size_of::<usize>() as u8 * 8).unwrap()),
-            );
+                PlatformArchitecture::from_byte(mem::size_of::<usize>() as u8 * 8).unwrap(),
+            ));
         }
 
         let main_exists = match reader.read_u8() {
@@ -181,7 +185,10 @@ impl Program {
     /// 0 = Failed to read byte
     /// 1 = Used illegal op code
     /// 2 = Used invalid addressing mode
-    fn read_instruction<'a>(&self, reader: &mut ProgramReader) -> Result<ReadInstruction, ProgramReadErrors> {
+    fn read_instruction<'a>(
+        &self,
+        reader: &mut ProgramReader,
+    ) -> Result<ReadInstruction, ProgramReadErrors> {
         let read_byte = match reader.read_u8() {
             Some(byte) => byte,
             None => return Err(ProgramReadErrors::ReadError),

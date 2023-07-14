@@ -4,9 +4,10 @@ use ellie_core::defs::PlatformArchitecture;
 use crate::{
     heap_memory::HeapMemory,
     instruction_utils::A2O,
+    raw_type::StaticRawType,
     stack::Stack,
     stack_memory::StackMemory,
-    utils::{AddressingValues, ThreadPanicReason}, raw_type::StaticRawType,
+    utils::{AddressingValues, ThreadPanicReason},
 };
 
 use super::{ExecuterPanic, ExecuterResult, StaticProgram};
@@ -39,7 +40,8 @@ impl super::InstructionExecuter for A2O {
                         match mref.type_id.id {
                             6 => {
                                 let a_value = String::from_utf8(mref.data).unwrap();
-                                current_stack.registers.A = StaticRawType::from_bool(a_value.len() > 0);
+                                current_stack.registers.A =
+                                    StaticRawType::from_bool(a_value.len() > 0);
                             }
                             9 | 11 | 12 => {
                                 return Err(ExecuterPanic {

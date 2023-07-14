@@ -110,7 +110,7 @@ impl super::Processor for function::FunctionCollector {
 
             match page.page_type {
                 PageType::ClassBody(class_body) => {
-                    let param_hash= generate_hash_usize();
+                    let param_hash = generate_hash_usize();
                     items.push(
                         ellie_tokenizer::processors::items::Processors::FunctionParameter(
                             ellie_tokenizer::syntax::items::function_parameter::FunctionParameter {

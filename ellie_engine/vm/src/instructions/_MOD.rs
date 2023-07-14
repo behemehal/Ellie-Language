@@ -32,8 +32,7 @@ impl super::InstructionExecuter for MOD {
                         let b_value = current_stack.registers.B.to_int();
                         let c_value = current_stack.registers.C.to_int();
                         let result = b_value % c_value;
-                        current_stack.registers.A =
-                            StaticRawType::from_int(result);
+                        current_stack.registers.A = StaticRawType::from_int(result);
                     }
                     (2, 2) => {
                         let b_value = f32::from_le_bytes(
@@ -44,8 +43,7 @@ impl super::InstructionExecuter for MOD {
                         );
                         let result = b_value % c_value;
                         if result.is_finite() {
-                            current_stack.registers.A =
-                                StaticRawType::from_float(result);
+                            current_stack.registers.A = StaticRawType::from_float(result);
                         } else {
                             return Err(ExecuterPanic {
                                 reason: ThreadPanicReason::FloatOverflow,
@@ -58,8 +56,7 @@ impl super::InstructionExecuter for MOD {
                         let c_value = f64::from_le_bytes(current_stack.registers.C.data);
                         let result = b_value % c_value;
                         if result.is_finite() {
-                            current_stack.registers.A =
-                                StaticRawType::from_double(result);
+                            current_stack.registers.A = StaticRawType::from_double(result);
                         } else {
                             return Err(ExecuterPanic {
                                 reason: ThreadPanicReason::DoubleOverflow,

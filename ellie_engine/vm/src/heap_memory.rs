@@ -1,10 +1,10 @@
+use crate::raw_type::{MutatableRawType, RawType};
 use alloc::{
     collections::BTreeMap,
     format,
     string::{String, ToString},
     vec::Vec,
 };
-use crate::raw_type::{MutatableRawType, RawType};
 
 #[derive(Clone)]
 pub struct HeapMemory {

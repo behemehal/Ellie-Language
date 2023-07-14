@@ -4,7 +4,8 @@ use super::type_resolver::resolve_type;
 use crate::{
     assembler::LocalHeader,
     instruction_table,
-    instructions::{self, Instruction}, utils::limit_platform_size,
+    instructions::{self, Instruction},
+    utils::limit_platform_size,
 };
 use alloc::vec;
 use ellie_core::{

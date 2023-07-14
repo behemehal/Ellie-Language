@@ -77,7 +77,9 @@ impl Iterator {
         }
 
         let mut dont_inc_column = false;
-        if letter_char == '\n' && (emits_line_endings.increase_cursor || !emits_line_endings.is_emitting()) {
+        if letter_char == '\n'
+            && (emits_line_endings.increase_cursor || !emits_line_endings.is_emitting())
+        {
             self.pos.0 += 1;
             self.pos.1 = 0;
             dont_inc_column = true;
@@ -93,7 +95,9 @@ impl Iterator {
                     }
                 }
             }
-        } else if letter_char == '\t' && (emits_line_endings.increase_cursor || !emits_line_endings.is_emitting()) {
+        } else if letter_char == '\t'
+            && (emits_line_endings.increase_cursor || !emits_line_endings.is_emitting())
+        {
             self.pos.1 += 4;
             dont_inc_column = true;
         }

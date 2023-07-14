@@ -1,4 +1,7 @@
-use crate::{syntax::items::{function, setter}, processors::EscapeCharEmitter};
+use crate::{
+    processors::EscapeCharEmitter,
+    syntax::items::{function, setter},
+};
 use ellie_core::{
     defs::{self, Cursor},
     error, utils,

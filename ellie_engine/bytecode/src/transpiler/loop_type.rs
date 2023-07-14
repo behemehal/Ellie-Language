@@ -6,7 +6,8 @@ use ellie_core::{
 
 use crate::{
     instruction_table,
-    instructions::{self, Instruction}, utils::limit_platform_size,
+    instructions::{self, Instruction},
+    utils::limit_platform_size,
 };
 
 use super::type_resolver::resolve_type;

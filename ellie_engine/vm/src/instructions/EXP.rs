@@ -40,8 +40,7 @@ impl super::InstructionExecuter for EXP {
                                 });
                             }
                         };
-                        current_stack.registers.A =
-                            StaticRawType::from_int(result);
+                        current_stack.registers.A = StaticRawType::from_int(result);
                     }
                     (2, 2) => {
                         let b_value = f32::from_le_bytes(
@@ -52,8 +51,7 @@ impl super::InstructionExecuter for EXP {
                         );
                         let result = b_value.powf(c_value);
                         if result.is_finite() {
-                            current_stack.registers.A =
-                                StaticRawType::from_float(result);
+                            current_stack.registers.A = StaticRawType::from_float(result);
                         } else {
                             return Err(ExecuterPanic {
                                 reason: ThreadPanicReason::FloatOverflow,

@@ -1,4 +1,4 @@
-use crate::utils::{ThreadInfo, VmNativeCallParameters, VmNativeAnswer};
+use crate::utils::{ThreadInfo, VmNativeAnswer, VmNativeCallParameters};
 use alloc::{boxed::Box, string::String, vec::Vec};
 
 pub enum ModuleElements {

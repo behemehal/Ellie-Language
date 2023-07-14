@@ -210,7 +210,7 @@ pub fn process(
                             value: e.name,
                             reference: match e.rtype {
                                 DefinerCollecting::Generic(e) => e.hash,
-                                _ => unreachable!()
+                                _ => unreachable!(),
                             },
                             pos: from.get_pos(),
                         }))

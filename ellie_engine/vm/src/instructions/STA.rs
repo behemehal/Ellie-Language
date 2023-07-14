@@ -147,7 +147,9 @@ impl super::InstructionExecuter for STA {
                     }
                 }
             }
-            AddressingValues::AbsoluteProperty(pointer, index) => match stack_memory.get(&(pointer + current_stack.frame_pos)) {
+            AddressingValues::AbsoluteProperty(pointer, index) => match stack_memory
+                .get(&(pointer + current_stack.frame_pos))
+            {
                 Some(e) => {
                     if e.type_id.is_class() {
                         match heap_memory.get_mut(&e.to_uint()) {

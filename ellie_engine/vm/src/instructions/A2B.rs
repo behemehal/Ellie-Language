@@ -4,9 +4,10 @@ use ellie_core::defs::PlatformArchitecture;
 use crate::{
     heap_memory::HeapMemory,
     instruction_utils::A2B,
+    raw_type::StaticRawType,
     stack::Stack,
     stack_memory::StackMemory,
-    utils::{AddressingValues, ThreadPanicReason}, raw_type::StaticRawType,
+    utils::{AddressingValues, ThreadPanicReason},
 };
 
 use super::{ExecuterPanic, ExecuterResult, StaticProgram};
@@ -56,7 +57,8 @@ impl super::InstructionExecuter for A2B {
                     4 => (),
                     5 => {
                         let data = current_stack.registers.A.to_bool();
-                        current_stack.registers.A = StaticRawType::from_byte(if data { 1 } else { 0 });
+                        current_stack.registers.A =
+                            StaticRawType::from_byte(if data { 1 } else { 0 });
                     }
                     e => {
                         return Err(ExecuterPanic {

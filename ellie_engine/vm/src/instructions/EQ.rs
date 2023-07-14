@@ -4,9 +4,10 @@ use ellie_core::defs::PlatformArchitecture;
 use crate::{
     heap_memory::HeapMemory,
     instruction_utils::EQ,
+    raw_type::StaticRawType,
     stack::Stack,
     stack_memory::StackMemory,
-    utils::{AddressingValues, ThreadPanicReason}, raw_type::StaticRawType,
+    utils::{AddressingValues, ThreadPanicReason},
 };
 
 use super::{ExecuterPanic, ExecuterResult, StaticProgram};
@@ -87,7 +88,8 @@ impl super::InstructionExecuter for EQ {
                             (6, 6) => {
                                 let b_value = b_ref.to_string();
                                 let c_value = c_ref.to_string();
-                                current_stack.registers.A = StaticRawType::from_bool(b_value == c_value);
+                                current_stack.registers.A =
+                                    StaticRawType::from_bool(b_value == c_value);
                             }
                             e => {
                                 return Err(ExecuterPanic {

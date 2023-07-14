@@ -133,7 +133,9 @@ impl DefinerCollecting {
     }
 
     pub fn same_as(&self, other: DefinerCollecting) -> bool {
-        if matches!(&other, DefinerCollecting::Generic(generic) if generic.rtype == "dyn") || matches!(&self, DefinerCollecting::Generic(generic) if generic.rtype == "dyn") {
+        if matches!(&other, DefinerCollecting::Generic(generic) if generic.rtype == "dyn")
+            || matches!(&self, DefinerCollecting::Generic(generic) if generic.rtype == "dyn")
+        {
             return true;
         }
         match self {
@@ -148,7 +150,8 @@ impl DefinerCollecting {
             }
             DefinerCollecting::Generic(generic) => {
                 if let DefinerCollecting::Generic(other_generic) = other {
-                    (other_generic.rtype == generic.rtype && other_generic.hash == generic.hash) || (other_generic.rtype == "dyn" || generic.rtype == "dyn")
+                    (other_generic.rtype == generic.rtype && other_generic.hash == generic.hash)
+                        || (other_generic.rtype == "dyn" || generic.rtype == "dyn")
                 } else if DefinerCollecting::Dynamic == other {
                     true
                 } else {

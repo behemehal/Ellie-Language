@@ -72,7 +72,7 @@ impl super::InstructionExecuter for CALLN {
                                     }
                                 }
                             }
-                        },
+                        }
                         None => {
                             return Err(ExecuterPanic {
                                 reason: ThreadPanicReason::NullReference(pos),

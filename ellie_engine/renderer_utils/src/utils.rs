@@ -663,10 +663,7 @@ where
             color_output.color(Colors::Magenta),
             color_output.color(Colors::Reset),
             color_output.color(Colors::Green),
-            format!(
-                "https://www.ellie-lang.org/errorIndex#{:#04x}",
-                error.code
-            ),
+            format!("https://www.ellie-lang.org/errorIndex#{:#04x}", error.code),
             color_output.color(Colors::Reset),
         );
 

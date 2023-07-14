@@ -1,4 +1,4 @@
-use crate::{config::STACK_SIZE, thread::Registers, raw_type::StaticRawType};
+use crate::{config::STACK_SIZE, raw_type::StaticRawType, thread::Registers};
 use alloc::vec::Vec;
 
 #[derive(Debug, Clone, Copy)]
