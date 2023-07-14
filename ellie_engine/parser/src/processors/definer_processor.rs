@@ -18,7 +18,7 @@ pub fn process(
             let deep_search_result = parser.deep_search(
                 page_id,
                 "cloak".to_string(),
-                ignore_hash.clone(),
+                ignore_hash,
                 vec![],
                 0,
                 None,
@@ -78,7 +78,7 @@ pub fn process(
             let deep_search_result = parser.deep_search(
                 page_id,
                 "array".to_string(),
-                ignore_hash.clone(),
+                ignore_hash,
                 vec![],
                 0,
                 None,
@@ -206,13 +206,13 @@ pub fn process(
         DefinerTypes::Collective(e) => {
             let mut key = DefinerCollecting::Dynamic;
             let mut value = DefinerCollecting::Dynamic;
-            match process(*e.key, parser, page_id, ignore_hash.clone()) {
+            match process(*e.key, parser, page_id, ignore_hash) {
                 Ok(e) => {
                     key = e;
                 }
                 Err(e) => errors.extend(e),
             }
-            match process(*e.value, parser, page_id, ignore_hash.clone()) {
+            match process(*e.value, parser, page_id, ignore_hash) {
                 Ok(e) => {
                     value = e;
                 }
@@ -221,7 +221,7 @@ pub fn process(
             let deep_search_result = parser.deep_search(
                 page_id,
                 "collective".to_string(),
-                ignore_hash.clone(),
+                ignore_hash,
                 vec![],
                 0,
                 None,
@@ -295,7 +295,7 @@ pub fn process(
             let deep_search_result = parser.deep_search(
                 page_id,
                 "nullAble".to_string(),
-                ignore_hash.clone(),
+                ignore_hash,
                 vec![],
                 0,
                 None,
@@ -402,7 +402,7 @@ pub fn process(
             let deep_search_result = parser.deep_search(
                 page_id,
                 generic.parent.clone(),
-                ignore_hash.clone(),
+                ignore_hash,
                 vec![],
                 0,
                 None,
@@ -433,7 +433,7 @@ pub fn process(
                         } else {
                             let mut resolved_generics = Vec::new();
                             for i in generic.generics {
-                                match process(i.value, parser, page_id, ignore_hash.clone()) {
+                                match process(i.value, parser, page_id, ignore_hash) {
                                     Ok(e) => resolved_generics.push(definers::GenericParameter {
                                         value: e,
                                         pos: i.pos,
@@ -490,7 +490,7 @@ pub fn process(
             let deep_search_result = parser.deep_search(
                 page_id,
                 generic.rtype.clone(),
-                ignore_hash.clone(),
+                ignore_hash,
                 vec![],
                 0,
                 None,
@@ -499,7 +499,7 @@ pub fn process(
             if deep_search_result.found {
                 match deep_search_result.found_item {
                     crate::parser::DeepSearchItems::Class(e) => {
-                        if e.generic_definings.len() == 0 {
+                        if e.generic_definings.is_empty() {
                             found = DefinerCollecting::Generic(definers::GenericType {
                                 rtype: e.name,
                                 hash: e.hash,
@@ -578,7 +578,7 @@ pub fn process(
             let deep_search_result = parser.deep_search(
                 page_id,
                 "function".to_string(),
-                ignore_hash.clone(),
+                ignore_hash,
                 vec![],
                 0,
                 None,
@@ -599,7 +599,7 @@ pub fn process(
                             .params
                             .iter()
                             .filter_map(|x| {
-                                match process(x.clone(), parser, page_id, ignore_hash.clone()) {
+                                match process(x.clone(), parser, page_id, ignore_hash) {
                                     Ok(e) => Some(e),
                                     Err(e) => {
                                         errors.extend(e);
@@ -613,7 +613,7 @@ pub fn process(
                             *e.returning.clone(),
                             parser,
                             page_id,
-                            ignore_hash.clone(),
+                            ignore_hash,
                         ) {
                             Ok(e) => Some(e),
                             Err(e) => {
@@ -622,9 +622,9 @@ pub fn process(
                             }
                         };
 
-                        if errors.len() == 0 {
+                        if errors.is_empty() {
                             found = DefinerCollecting::Function(definers::FunctionType {
-                                params: params,
+                                params,
                                 returning: Box::new(returning.unwrap()),
                             });
                         } else {
@@ -676,7 +676,7 @@ pub fn process(
             panic!("Unexpected behaviour")
         }
     }
-    if errors.len() > 0 {
+    if !errors.is_empty() {
         Err(errors)
     } else {
         Ok(found)

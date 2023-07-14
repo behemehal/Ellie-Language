@@ -21,7 +21,7 @@ impl crate::processors::Processor for condition::Condition {
     ) -> bool {
         let mut hang = false;
         let chain_len = self.chains.len();
-        let mut chain = &mut self.chains[chain_len - 1];
+        let chain = &mut self.chains[chain_len - 1];
 
         match chain.rtype {
             condition::ConditionType::If => {

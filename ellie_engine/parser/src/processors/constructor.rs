@@ -137,7 +137,7 @@ impl super::Processor for Constructor {
             page_type: PageType::ConstructorBody,
             dependents: vec![],
             dependencies: vec![ellie_tokenizer::tokenizer::Dependency {
-                hash: class_body_page.hash.clone(),
+                hash: class_body_page.hash,
                 processed: false,
                 module: None,
                 deep_link: None,

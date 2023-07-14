@@ -20,7 +20,7 @@ impl super::Processor for function::FunctionCollector {
         let (duplicate, found) = parser.is_duplicate(
             page_hash,
             self.data.name.clone(),
-            self.data.hash.clone(),
+            self.data.hash,
             self.data.pos,
         );
         let page = parser.pages.nth(page_idx).unwrap().clone();
@@ -36,8 +36,7 @@ impl super::Processor for function::FunctionCollector {
             &self.data.name,
             function_key_definings
                 .iter()
-                .find(|x| x.key_name == "dont_fix_variant")
-                .is_some(),
+                .any(|x| x.key_name == "dont_fix_variant"),
         ) {
             parser
                 .informations
@@ -317,8 +316,8 @@ impl super::Processor for function::FunctionCollector {
                         ellie_core::definite::items::native_function::NativeFunction {
                             name: self.data.name.clone(),
                             pos: self.data.pos,
-                            parameters: parameters,
-                            hash: self.data.hash.clone(),
+                            parameters,
+                            hash: self.data.hash,
                             return_type,
                             public: self.data.public,
                             name_pos: self.data.name_pos,
@@ -334,10 +333,10 @@ impl super::Processor for function::FunctionCollector {
                 true
             } else {
                 let mut dependencies = vec![ellie_tokenizer::tokenizer::Dependency {
-                    hash: page.hash.clone(),
+                    hash: page.hash,
                     processed: false,
                     module: None,
-                    deep_link: Some(page.hash.clone()),
+                    deep_link: Some(page.hash),
                     public: false,
                 }];
                 dependencies.extend(page.dependencies);
@@ -366,8 +365,8 @@ impl super::Processor for function::FunctionCollector {
                         ellie_core::definite::items::function::Function {
                             name: self.data.name.clone(),
                             pos: self.data.pos,
-                            parameters: parameters,
-                            hash: self.data.hash.clone(),
+                            parameters,
+                            hash: self.data.hash,
                             return_type: return_type.clone(),
                             file_keys: processed_page.unassigned_file_keys.clone(),
                             public: self.data.public,

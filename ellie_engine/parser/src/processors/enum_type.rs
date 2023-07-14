@@ -30,7 +30,7 @@ impl super::Processor for EnumType {
         return false;
         let halt = true;
         let (duplicate, found) =
-            parser.is_duplicate(page_hash, self.name.clone(), self.hash.clone(), self.pos);
+            parser.is_duplicate(page_hash, self.name.clone(), self.hash, self.pos);
 
         let enum_key_definings = parser
             .processed_pages
@@ -43,8 +43,7 @@ impl super::Processor for EnumType {
             &self.name,
             enum_key_definings
                 .iter()
-                .find(|x| x.key_name == "dont_fix_variant")
-                .is_some(),
+                .any(|x| x.key_name == "dont_fix_variant"),
         ) {
             parser
                 .informations
@@ -81,7 +80,7 @@ impl super::Processor for EnumType {
                         self.name_pos,
                     ))
             }
-            return false;
+            false
         } else {
             #[cfg(feature = "standard_rules")]
             {

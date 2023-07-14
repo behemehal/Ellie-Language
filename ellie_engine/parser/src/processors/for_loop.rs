@@ -161,10 +161,10 @@ impl super::Processor for ForLoop {
 
             let inner_page_id: usize = ellie_core::utils::generate_hash_usize();
             let mut dependencies = vec![ellie_tokenizer::tokenizer::Dependency {
-                hash: page.hash.clone(),
+                hash: page.hash,
                 processed: false,
                 module: None,
-                deep_link: Some(page.hash.clone()),
+                deep_link: Some(page.hash),
                 public: false,
             }];
 

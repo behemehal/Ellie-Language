@@ -233,10 +233,8 @@ impl ParserSettings {
         }
     }
 
-    pub fn is_item_allowed(&self, type_: Processors) -> bool {
-        match type_ {
-            _ => true,
-        }
+    pub fn is_item_allowed(&self, _type_: Processors) -> bool {
+        true
     }
 }
 
@@ -272,7 +270,7 @@ impl FoundPage {
     pub fn fill(page: &Page) -> FoundPage {
         FoundPage {
             hash: page.hash,
-            inner: page.inner.clone(),
+            inner: page.inner,
             processed: page.processed,
             module: page.module,
             path: page.path.clone(),
@@ -282,7 +280,7 @@ impl FoundPage {
     pub fn fill_from_processed(page: &ProcessedPage) -> FoundPage {
         FoundPage {
             hash: page.hash,
-            inner: page.inner.clone(),
+            inner: page.inner,
             processed: true,
             module: false,
             path: page.path.clone(),
@@ -482,19 +480,7 @@ impl Parser {
                         } else {
                             Err(errors)
                         }
-                    } else {
-                        if errors.is_empty() {
-                            Ok(CompareResult::result(
-                                false,
-                                defining.to_string(),
-                                "int".to_owned(),
-                            ))
-                        } else {
-                            Err(errors)
-                        }
-                    }
-                } else {
-                    if errors.is_empty() {
+                    } else if errors.is_empty() {
                         Ok(CompareResult::result(
                             false,
                             defining.to_string(),
@@ -503,6 +489,14 @@ impl Parser {
                     } else {
                         Err(errors)
                     }
+                } else if errors.is_empty() {
+                    Ok(CompareResult::result(
+                        false,
+                        defining.to_string(),
+                        "int".to_owned(),
+                    ))
+                } else {
+                    Err(errors)
                 }
             }
             deep_search_extensions::DeepTypeResult::Byte(_) => {
@@ -517,19 +511,7 @@ impl Parser {
                         } else {
                             Err(errors)
                         }
-                    } else {
-                        if errors.is_empty() {
-                            Ok(CompareResult::result(
-                                false,
-                                defining.to_string(),
-                                "byte".to_owned(),
-                            ))
-                        } else {
-                            Err(errors)
-                        }
-                    }
-                } else {
-                    if errors.is_empty() {
+                    } else if errors.is_empty() {
                         Ok(CompareResult::result(
                             false,
                             defining.to_string(),
@@ -538,6 +520,14 @@ impl Parser {
                     } else {
                         Err(errors)
                     }
+                } else if errors.is_empty() {
+                    Ok(CompareResult::result(
+                        false,
+                        defining.to_string(),
+                        "byte".to_owned(),
+                    ))
+                } else {
+                    Err(errors)
                 }
             }
             deep_search_extensions::DeepTypeResult::Decimal(decimal_type) => {
@@ -557,19 +547,7 @@ impl Parser {
                         } else {
                             Err(errors)
                         }
-                    } else {
-                        if errors.is_empty() {
-                            Ok(CompareResult::result(
-                                false,
-                                defining.to_string(),
-                                generic_name.to_owned(),
-                            ))
-                        } else {
-                            Err(errors)
-                        }
-                    }
-                } else {
-                    if errors.is_empty() {
+                    } else if errors.is_empty() {
                         Ok(CompareResult::result(
                             false,
                             defining.to_string(),
@@ -578,6 +556,14 @@ impl Parser {
                     } else {
                         Err(errors)
                     }
+                } else if errors.is_empty() {
+                    Ok(CompareResult::result(
+                        false,
+                        defining.to_string(),
+                        generic_name.to_owned(),
+                    ))
+                } else {
+                    Err(errors)
                 }
             }
             deep_search_extensions::DeepTypeResult::Bool(_) => {
@@ -592,19 +578,7 @@ impl Parser {
                         } else {
                             Err(errors)
                         }
-                    } else {
-                        if errors.is_empty() {
-                            Ok(CompareResult::result(
-                                false,
-                                defining.to_string(),
-                                "bool".to_owned(),
-                            ))
-                        } else {
-                            Err(errors)
-                        }
-                    }
-                } else {
-                    if errors.is_empty() {
+                    } else if errors.is_empty() {
                         Ok(CompareResult::result(
                             false,
                             defining.to_string(),
@@ -613,6 +587,14 @@ impl Parser {
                     } else {
                         Err(errors)
                     }
+                } else if errors.is_empty() {
+                    Ok(CompareResult::result(
+                        false,
+                        defining.to_string(),
+                        "bool".to_owned(),
+                    ))
+                } else {
+                    Err(errors)
                 }
             }
             deep_search_extensions::DeepTypeResult::String(_) => {
@@ -627,19 +609,7 @@ impl Parser {
                         } else {
                             Err(errors)
                         }
-                    } else {
-                        if errors.is_empty() {
-                            Ok(CompareResult::result(
-                                false,
-                                defining.to_string(),
-                                "string".to_owned(),
-                            ))
-                        } else {
-                            Err(errors)
-                        }
-                    }
-                } else {
-                    if errors.is_empty() {
+                    } else if errors.is_empty() {
                         Ok(CompareResult::result(
                             false,
                             defining.to_string(),
@@ -648,6 +618,14 @@ impl Parser {
                     } else {
                         Err(errors)
                     }
+                } else if errors.is_empty() {
+                    Ok(CompareResult::result(
+                        false,
+                        defining.to_string(),
+                        "string".to_owned(),
+                    ))
+                } else {
+                    Err(errors)
                 }
             }
             deep_search_extensions::DeepTypeResult::Char(_) => {
@@ -662,19 +640,7 @@ impl Parser {
                         } else {
                             Err(errors)
                         }
-                    } else {
-                        if errors.is_empty() {
-                            Ok(CompareResult::result(
-                                false,
-                                defining.to_string(),
-                                "char".to_owned(),
-                            ))
-                        } else {
-                            Err(errors)
-                        }
-                    }
-                } else {
-                    if errors.is_empty() {
+                    } else if errors.is_empty() {
                         Ok(CompareResult::result(
                             false,
                             defining.to_string(),
@@ -683,6 +649,14 @@ impl Parser {
                     } else {
                         Err(errors)
                     }
+                } else if errors.is_empty() {
+                    Ok(CompareResult::result(
+                        false,
+                        defining.to_string(),
+                        "char".to_owned(),
+                    ))
+                } else {
+                    Err(errors)
                 }
             }
             deep_search_extensions::DeepTypeResult::Collective(_) => todo!(),
@@ -710,16 +684,14 @@ impl Parser {
                     } else {
                         Err(errors)
                     }
+                } else if errors.is_empty() {
+                    Ok(CompareResult::result(
+                        false,
+                        defining.to_string(),
+                        value_gen.to_string(),
+                    ))
                 } else {
-                    if errors.is_empty() {
-                        Ok(CompareResult::result(
-                            false,
-                            defining.to_string(),
-                            value_gen.to_string(),
-                        ))
-                    } else {
-                        Err(errors)
-                    }
+                    Err(errors)
                 }
             }
             deep_search_extensions::DeepTypeResult::Cloak(_) => todo!(),
@@ -747,16 +719,14 @@ impl Parser {
                     } else {
                         Err(errors)
                     }
+                } else if errors.is_empty() {
+                    Ok(CompareResult::result(
+                        false,
+                        defining.to_string(),
+                        value_gen.to_string(),
+                    ))
                 } else {
-                    if errors.is_empty() {
-                        Ok(CompareResult::result(
-                            false,
-                            defining.to_string(),
-                            value_gen.to_string(),
-                        ))
-                    } else {
-                        Err(errors)
-                    }
+                    Err(errors)
                 }
             }
             deep_search_extensions::DeepTypeResult::ClassCall(class_call) => {
@@ -882,19 +852,7 @@ impl Parser {
                         } else {
                             Err(errors)
                         }
-                    } else {
-                        if errors.is_empty() {
-                            Ok(CompareResult::result(
-                                false,
-                                defining.to_string(),
-                                "void".to_owned(),
-                            ))
-                        } else {
-                            Err(errors)
-                        }
-                    }
-                } else {
-                    if errors.is_empty() {
+                    } else if errors.is_empty() {
                         Ok(CompareResult::result(
                             false,
                             defining.to_string(),
@@ -903,6 +861,14 @@ impl Parser {
                     } else {
                         Err(errors)
                     }
+                } else if errors.is_empty() {
+                    Ok(CompareResult::result(
+                        false,
+                        defining.to_string(),
+                        "void".to_owned(),
+                    ))
+                } else {
+                    Err(errors)
                 }
             }
             deep_search_extensions::DeepTypeResult::Null => {
@@ -917,19 +883,7 @@ impl Parser {
                         } else {
                             Err(errors)
                         }
-                    } else {
-                        if errors.is_empty() {
-                            Ok(CompareResult::result(
-                                false,
-                                defining.to_string(),
-                                "null".to_owned(),
-                            ))
-                        } else {
-                            Err(errors)
-                        }
-                    }
-                } else {
-                    if errors.is_empty() {
+                    } else if errors.is_empty() {
                         Ok(CompareResult::result(
                             false,
                             defining.to_string(),
@@ -938,6 +892,14 @@ impl Parser {
                     } else {
                         Err(errors)
                     }
+                } else if errors.is_empty() {
+                    Ok(CompareResult::result(
+                        false,
+                        defining.to_string(),
+                        "null".to_owned(),
+                    ))
+                } else {
+                    Err(errors)
                 }
             }
             deep_search_extensions::DeepTypeResult::BraceReference(e) => {
@@ -962,16 +924,14 @@ impl Parser {
                     } else {
                         Err(errors)
                     }
+                } else if errors.is_empty() {
+                    Ok(CompareResult::result(
+                        false,
+                        defining.to_string(),
+                        value_gen.to_string(),
+                    ))
                 } else {
-                    if errors.is_empty() {
-                        Ok(CompareResult::result(
-                            false,
-                            defining.to_string(),
-                            value_gen.to_string(),
-                        ))
-                    } else {
-                        Err(errors)
-                    }
+                    Err(errors)
                 }
             }
             deep_search_extensions::DeepTypeResult::Dynamic => {
@@ -986,16 +946,14 @@ impl Parser {
                         } else {
                             Err(errors)
                         }
+                    } else if errors.is_empty() {
+                        Ok(CompareResult::result(
+                            false,
+                            defining.to_string(),
+                            "dyn".to_owned(),
+                        ))
                     } else {
-                        if errors.is_empty() {
-                            Ok(CompareResult::result(
-                                false,
-                                defining.to_string(),
-                                "dyn".to_owned(),
-                            ))
-                        } else {
-                            Err(errors)
-                        }
+                        Err(errors)
                     }
                 } else if let ellie_core::definite::definers::DefinerCollecting::Dynamic = defining
                 {
@@ -1008,16 +966,14 @@ impl Parser {
                     } else {
                         Err(errors)
                     }
+                } else if errors.is_empty() {
+                    Ok(CompareResult::result(
+                        false,
+                        defining.to_string(),
+                        "dyn".to_owned(),
+                    ))
                 } else {
-                    if errors.is_empty() {
-                        Ok(CompareResult::result(
-                            false,
-                            defining.to_string(),
-                            "dyn".to_owned(),
-                        ))
-                    } else {
-                        Err(errors)
-                    }
+                    Err(errors)
                 }
             }
             deep_search_extensions::DeepTypeResult::NotFound => {
@@ -1067,28 +1023,26 @@ impl Parser {
                     } else {
                         Err(errors)
                     }
+                } else if errors.is_empty() {
+                    Ok(CompareResult::result(
+                        false,
+                        defining.to_string(),
+                        format!(
+                            "Fn({}):{}",
+                            function
+                                .parameters
+                                .iter()
+                                .map(|x| match &x.rtype {
+                                    Some(x) => x.to_string(),
+                                    None => "?".to_string(),
+                                })
+                                .collect::<Vec<_>>()
+                                .join(","),
+                            function.return_type.to_string()
+                        ),
+                    ))
                 } else {
-                    if errors.is_empty() {
-                        Ok(CompareResult::result(
-                            false,
-                            defining.to_string(),
-                            format!(
-                                "Fn({}):{}",
-                                function
-                                    .parameters
-                                    .iter()
-                                    .map(|x| match &x.rtype {
-                                        Some(x) => x.to_string(),
-                                        None => "?".to_string(),
-                                    })
-                                    .collect::<Vec<_>>()
-                                    .join(","),
-                                function.return_type.to_string()
-                            ),
-                        ))
-                    } else {
-                        Err(errors)
-                    }
+                    Err(errors)
                 }
             }
             deep_search_extensions::DeepTypeResult::EnumData(e) => {
@@ -1428,7 +1382,7 @@ impl Parser {
                                         }
                                     }
                                     Collecting::Import(e) => {
-                                        if e.reference != ""
+                                        if !e.reference.is_empty()
                                             && e.reference == name
                                             && (e.public
                                                 || level == 0
@@ -1595,7 +1549,7 @@ impl Parser {
                                         }
                                     }
                                     Collecting::Import(e) => {
-                                        if e.reference != ""
+                                        if !e.reference.is_empty()
                                             && e.reference == name
                                             && (e.public
                                                 || level == 0
@@ -1707,7 +1661,7 @@ impl Parser {
                                         {
                                             found_pos = Some(e.data.pos);
                                             found = true;
-                                            found_page = FoundPage::fill(&page);
+                                            found_page = FoundPage::fill(page);
                                             found_type = DeepSearchItems::Variable(e.data.clone());
                                         }
                                     }
@@ -1719,7 +1673,7 @@ impl Parser {
                                         {
                                             found_pos = Some(e.pos);
                                             found = true;
-                                            found_page = FoundPage::fill(&page);
+                                            found_page = FoundPage::fill(page);
                                             found_type = DeepSearchItems::Enum(e.clone());
                                         }
                                     }
@@ -1733,7 +1687,7 @@ impl Parser {
                                         {
                                             found_pos = Some(e.data.pos);
                                             found = true;
-                                            found_page = FoundPage::fill(&page);
+                                            found_page = FoundPage::fill(page);
                                             found_type = DeepSearchItems::Function(e.data.clone());
                                         }
                                     }
@@ -1745,7 +1699,7 @@ impl Parser {
                                         {
                                             found_pos = Some(e.pos);
                                             found = true;
-                                            found_page = FoundPage::fill(&page);
+                                            found_page = FoundPage::fill(page);
                                             found_type = DeepSearchItems::Getter(e.clone());
                                         }
                                     }
@@ -1757,12 +1711,12 @@ impl Parser {
                                         {
                                             found_pos = Some(e.pos);
                                             found = true;
-                                            found_page = FoundPage::fill(&page);
+                                            found_page = FoundPage::fill(page);
                                             found_type = DeepSearchItems::Setter(e.clone());
                                         }
                                     }
                                     Processors::Import(e) => {
-                                        if e.reference != ""
+                                        if !e.reference.is_empty()
                                             && e.reference == name
                                             && (e.public
                                                 || level == 0
@@ -1773,7 +1727,7 @@ impl Parser {
                                         {
                                             found_pos = Some(e.pos);
                                             found = true;
-                                            found_page = FoundPage::fill(&page);
+                                            found_page = FoundPage::fill(page);
                                             found_type =
                                                 DeepSearchItems::ImportReference(e.clone());
                                         }
@@ -1789,7 +1743,7 @@ impl Parser {
                                         {
                                             found_pos = Some(e.pos);
                                             found = true;
-                                            found_page = FoundPage::fill(&page);
+                                            found_page = FoundPage::fill(page);
                                             found_type = DeepSearchItems::Class(e.clone());
                                         }
                                     }
@@ -1801,14 +1755,14 @@ impl Parser {
                                         {
                                             found_pos = Some(e.pos);
                                             found = true;
-                                            found_page = FoundPage::fill(&page);
+                                            found_page = FoundPage::fill(page);
                                             found_type = DeepSearchItems::GenericItem(e.clone());
                                         }
                                     }
                                     Processors::ClassInstance(e) => {
                                         if "self" == name && level == 0 {
                                             found = true;
-                                            found_page = FoundPage::fill(&page);
+                                            found_page = FoundPage::fill(page);
                                             found_type = DeepSearchItems::ClassInstance(e.clone());
                                         }
                                     }
@@ -1827,7 +1781,7 @@ impl Parser {
                                         {
                                             found_pos = Some(e.pos);
                                             found = true;
-                                            found_page = FoundPage::fill(&page);
+                                            found_page = FoundPage::fill(page);
                                             found_type =
                                                 DeepSearchItems::ConstructorParameter(e.clone());
                                         }
@@ -1838,7 +1792,7 @@ impl Parser {
                                             found_pos = Some(e.pos);
                                             found = true;
                                             found_page = FoundPage::fill(page);
-                                            found_type = DeepSearchItems::SelfItem(e.clone());
+                                            found_type = DeepSearchItems::SelfItem(*e);
                                         }
                                     }
                                     _ => (),
@@ -1912,7 +1866,7 @@ impl Parser {
         let (_, processed_page_idx) = match self.processed_pages.find_page_and_idx(hash) {
             None => {
                 self.processed_pages.push_page(ProcessedPage {
-                    hash: hash,
+                    hash,
                     inner: unprocessed_page.inner,
                     path: unprocessed_page.path.clone(),
                     items: vec![],
@@ -2280,7 +2234,7 @@ impl Parser {
                             unprocessed_page.hash,
                         ),
                         Processors::Import(e) => {
-                            let hash = e.hash.clone();
+                            let hash = e.hash;
                             e.process(
                                 self,
                                 unprocessed_page_idx,
@@ -3047,10 +3001,7 @@ impl Parser {
                         Collecting::Condition(e) => {
                             if e.hash == condition_page.condition_hash {
                                 e.returns = match &common_return {
-                                    Some(e) => match &e.1 {
-                                        Some(e) => Some(e.0.clone()),
-                                        None => None,
-                                    },
+                                    Some(e) => e.1.as_ref().map(|e| e.0.clone()),
                                     None => None,
                                 };
                             }

@@ -44,7 +44,7 @@ impl super::Processor for Condition {
                             &mut errors,
                             Some(condition_pos),
                         );
-                        if errors.len() > 0 {
+                        if !errors.is_empty() {
                             parser.informations.extend(&errors);
                             return false;
                         }
@@ -92,10 +92,10 @@ impl super::Processor for Condition {
             let page = parser.pages.nth_mut(page_idx).unwrap().clone();
             let inner_page_id: usize = ellie_core::utils::generate_hash_usize();
             let mut dependencies = vec![ellie_tokenizer::tokenizer::Dependency {
-                hash: page.hash.clone(),
+                hash: page.hash,
                 processed: false,
                 module: None,
-                deep_link: Some(page.hash.clone()),
+                deep_link: Some(page.hash),
                 public: false,
             }];
             dependencies.extend(page.dependencies);
