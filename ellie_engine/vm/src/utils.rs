@@ -212,7 +212,7 @@ pub struct ProgramReader<'a> {
 }
 
 impl ProgramReader<'_> {
-    pub fn new<'a>(vreader: &'a mut dyn Reader) -> ProgramReader<'a> {
+    pub fn new(vreader: &mut dyn Reader) -> ProgramReader<'_> {
         ProgramReader { reader: vreader }
     }
 

@@ -6,7 +6,7 @@ use core::mem;
 use ellie_core::defs::PlatformArchitecture;
 
 const INTEGER_SIZE: usize = mem::size_of::<usize>();
-const TYPE_SIZE: usize = (INTEGER_SIZE + 1) as usize;
+const TYPE_SIZE: usize = INTEGER_SIZE + 1;
 
 pub enum TypeIds {
     Integer,
@@ -195,7 +195,7 @@ impl TypeId {
     pub fn integer() -> Self {
         Self {
             id: 1,
-            size: INTEGER_SIZE as usize,
+            size: INTEGER_SIZE,
         }
     }
 
@@ -286,7 +286,7 @@ impl MutatableRawType<'_> {
     }
 
     pub fn get_raw_type(&self) -> RawType {
-        RawType::from_bytes(&self.data)
+        RawType::from_bytes(self.data)
     }
 
     pub fn set_data(&mut self, data: Vec<u8>) {
@@ -579,7 +579,7 @@ impl StaticRawType {
     pub fn to_bytes(&self) -> Vec<u8> {
         let type_id = self.type_id.to_bytes();
         let mut bytes = Vec::from(type_id);
-        bytes.extend(self.data.clone());
+        bytes.extend(self.data);
         bytes
     }
 

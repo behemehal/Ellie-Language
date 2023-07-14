@@ -41,7 +41,7 @@ impl super::InstructionExecuter for A2O {
                             6 => {
                                 let a_value = String::from_utf8(mref.data).unwrap();
                                 current_stack.registers.A =
-                                    StaticRawType::from_bool(a_value.len() > 0);
+                                    StaticRawType::from_bool(!a_value.is_empty());
                             }
                             9 | 11 | 12 => {
                                 return Err(ExecuterPanic {

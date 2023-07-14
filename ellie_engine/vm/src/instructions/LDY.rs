@@ -55,7 +55,7 @@ impl super::InstructionExecuter for LDY {
                         None => {
                             return Err(ExecuterPanic {
                                 reason: ThreadPanicReason::MemoryAccessViolation(
-                                    e.clone(),
+                                    *e,
                                     current_stack.pos,
                                 ),
                                 code_location: format!("{}:{}", file!(), line!()),
@@ -90,7 +90,7 @@ impl super::InstructionExecuter for LDY {
                         });
                     }
                 };
-                match stack_memory.get(&(&current_stack.calculate_frame_pos(*pointer))) {
+                match stack_memory.get(&current_stack.calculate_frame_pos(*pointer)) {
                     Some(stack_data) => {
                         if stack_data.type_id.is_heap_reference() {
                             match heap_memory.get(&(stack_data.to_uint())) {

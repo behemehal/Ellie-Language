@@ -19,17 +19,11 @@ impl HeapMemory {
     }
 
     pub fn get_mut(&mut self, key: &usize) -> Option<MutatableRawType> {
-        match self.data.get_mut(key) {
-            Some(data) => Some(MutatableRawType { data }),
-            None => None,
-        }
+        self.data.get_mut(key).map(|data| MutatableRawType { data })
     }
 
     pub fn get(&self, key: &usize) -> Option<RawType> {
-        match self.data.get(key) {
-            Some(data) => Some(RawType::from_bytes(data)),
-            None => None,
-        }
+        self.data.get(key).map(|data| RawType::from_bytes(data))
     }
 
     pub fn get_def(&self, key: &usize) -> Option<RawType> {

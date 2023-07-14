@@ -136,7 +136,7 @@ impl Thread {
                         current_stack.pos += 1;
                     }
                     crate::instructions::ExecuterResult::DropStack => {
-                        let current_y = current_stack.registers.Y.clone();
+                        let current_y = current_stack.registers.Y;
                         match current_stack.caller {
                             Some(_) => {
                                 self.stack.pop();

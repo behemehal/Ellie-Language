@@ -15,7 +15,7 @@ impl super::InstructionExecuter for SAR {
     fn execute(
         &self,
         _heap_memory: &mut HeapMemory,
-        program: StaticProgram,
+        _program: StaticProgram,
         current_stack: &mut Stack,
         stack_memory: &mut StackMemory,
         addressing_value: &AddressingValues,

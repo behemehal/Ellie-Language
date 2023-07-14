@@ -37,7 +37,7 @@ impl super::InstructionExecuter for SPUS {
                         let char_data = match stack_memory.get(&(current_stack.get_pos() - 1)) {
                             Some(e) => {
                                 if e.type_id.is_char() {
-                                    e.data.clone()
+                                    e.data
                                 } else {
                                     return Err(ExecuterPanic {
                                         reason: ThreadPanicReason::InvalidType(7),

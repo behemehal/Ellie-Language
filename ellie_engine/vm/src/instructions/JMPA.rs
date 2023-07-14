@@ -28,16 +28,16 @@ impl super::InstructionExecuter for JMPA {
                     }
                     Ok(ExecuterResult::Continue)
                 } else {
-                    return Err(ExecuterPanic {
+                    Err(ExecuterPanic {
                         reason: ThreadPanicReason::UnexpectedType(
                             current_stack.registers.A.type_id.id,
                         ),
                         code_location: format!("{}:{}", file!(), line!()),
-                    });
+                    })
                 }
             }
             _ => {
-                return Err(ExecuterPanic {
+                Err(ExecuterPanic {
                     reason: ThreadPanicReason::IllegalAddressingValue,
                     code_location: format!("{}:{}", file!(), line!()),
                 })

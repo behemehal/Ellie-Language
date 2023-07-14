@@ -199,12 +199,12 @@ impl Program {
                 let addressing_mode = instruction.addressing_mode();
                 let mut addressing_value: AddressingValues = AddressingValues::Implicit;
                 if addressing_mode == AddressingModes::Implicit {
-                    return Ok(ReadInstruction {
+                    Ok(ReadInstruction {
                         instruction,
                         addressing_mode,
                         addressing_value,
                         op_code: read_byte,
-                    });
+                    })
                 } else {
                     match addressing_mode {
                         AddressingModes::Immediate => {
@@ -272,18 +272,18 @@ impl Program {
                         }
                     }
 
-                    return Ok(ReadInstruction {
+                    Ok(ReadInstruction {
                         instruction,
                         addressing_mode,
                         addressing_value,
                         op_code: read_byte,
-                    });
+                    })
                 }
             }
             None => {
-                return Err(ProgramReadErrors::IllegalOpCode);
+                Err(ProgramReadErrors::IllegalOpCode)
             }
-        };
+        }
     }
 }
 

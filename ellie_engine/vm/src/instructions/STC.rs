@@ -26,7 +26,7 @@ impl super::InstructionExecuter for STC {
                 stack_memory.set(&current_stack.get_pos(), current_stack.registers.C);
             }
             AddressingValues::Immediate(raw_type) => {
-                stack_memory.set(&current_stack.get_pos(), raw_type.clone());
+                stack_memory.set(&current_stack.get_pos(), *raw_type);
             }
             AddressingValues::Absolute(e) => {
                 stack_memory.set(&(e + current_stack.frame_pos), current_stack.registers.C);
@@ -68,7 +68,7 @@ impl super::InstructionExecuter for STC {
                                         let usize_len = arch.usize_len() as usize;
                                         let type_id_len = arch.type_id_size() as usize;
                                         let entry_size = {
-                                            if heap_data.data.len() == 0 {
+                                            if heap_data.data.is_empty() {
                                                 0
                                             } else {
                                                 usize::from_le_bytes(
@@ -159,7 +159,7 @@ impl super::InstructionExecuter for STC {
                                     let usize_len = arch.usize_len() as usize;
                                     let type_id_len = arch.type_id_size() as usize;
                                     let entry_size = {
-                                        if heap_data.data.len() == 0 {
+                                        if heap_data.data.is_empty() {
                                             0
                                         } else {
                                             usize::from_le_bytes(

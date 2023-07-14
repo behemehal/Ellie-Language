@@ -225,7 +225,7 @@ instruction_utils += `    pub fn addressing_mode(&self) -> AddressingModes {\n`;
 instruction_utils += `        match &self {\n`;
 
 for (const instruction of byteCodeFile.instructions) {
-  instruction_utils += `            Instructions::${instruction.instruction}(e) => e.addressing_mode.clone(),\n`;
+  instruction_utils += `            Instructions::${instruction.instruction}(e) => e.addressing_mode,\n`;
 }
 instruction_utils += `        }\n`;
 instruction_utils += `    }\n`;

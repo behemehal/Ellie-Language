@@ -61,12 +61,12 @@ impl super::InstructionExecuter for FN {
                             current_stack.registers.X.to_int() as usize + previous_frame_pos;
                         for i in 0..parameter_count {
                             let pos = current_stack.get_pos() + 3 + i;
-                            match stack_memory.get(&(index_start as usize + i)) {
+                            match stack_memory.get(&(index_start + i)) {
                                 Some(e) => {
                                     if e.type_id.is_void() {
                                         return Err(ExecuterPanic {
                                             reason: ThreadPanicReason::NullReference(
-                                                index_start as usize + i,
+                                                index_start + i,
                                             ),
                                             code_location: format!("{}:{}", file!(), line!()),
                                         });
@@ -82,7 +82,7 @@ impl super::InstructionExecuter for FN {
                                             None => {
                                                 return Err(ExecuterPanic {
                                                     reason: ThreadPanicReason::NullReference(
-                                                        index_start as usize + i,
+                                                        index_start + i,
                                                     ),
                                                     code_location: format!(
                                                         "{}:{}",
@@ -99,7 +99,7 @@ impl super::InstructionExecuter for FN {
                                 None => {
                                     return Err(ExecuterPanic {
                                         reason: ThreadPanicReason::NullReference(
-                                            index_start as usize + i,
+                                            index_start + i,
                                         ),
                                         code_location: format!("{}:{}", file!(), line!()),
                                     })

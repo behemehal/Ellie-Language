@@ -55,7 +55,7 @@ impl super::InstructionExecuter for CALLN {
 
                 for i in 0..params_length {
                     let pos =
-                        current_stack.get_pos() - (params_length - ((i as isize * -1) as usize));
+                        current_stack.get_pos() - (params_length - (-(i as isize) as usize));
                     let paramater = match stack_memory.get(&pos) {
                         Some(raw_type) => {
                             if raw_type.type_id.is_stack_storable() {

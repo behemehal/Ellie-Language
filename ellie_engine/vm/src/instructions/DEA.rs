@@ -22,7 +22,7 @@ impl super::InstructionExecuter for DEA {
         _arch: PlatformArchitecture,
     ) -> Result<super::ExecuterResult, super::ExecuterPanic> {
         match &addressing_value {
-            AddressingValues::Absolute(location) => match stack_memory.get(&location) {
+            AddressingValues::Absolute(location) => match stack_memory.get(location) {
                 Some(e) => {
                     if e.type_id.is_heap_reference() {
                         heap_memory.dea(&(location + current_stack.frame_pos));
@@ -31,14 +31,14 @@ impl super::InstructionExecuter for DEA {
                     Ok(ExecuterResult::Continue)
                 }
                 None => {
-                    return Err(ExecuterPanic {
+                    Err(ExecuterPanic {
                         reason: ThreadPanicReason::NullReference(*location),
                         code_location: format!("{}:{}", file!(), line!()),
                     })
                 }
             },
             _ => {
-                return Err(ExecuterPanic {
+                Err(ExecuterPanic {
                     reason: ThreadPanicReason::IllegalAddressingValue,
                     code_location: format!("{}:{}", file!(), line!()),
                 })

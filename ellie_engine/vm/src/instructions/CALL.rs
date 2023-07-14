@@ -50,7 +50,7 @@ impl super::InstructionExecuter for CALL {
                 }))
             }
             _ => {
-                return Err(ExecuterPanic {
+                Err(ExecuterPanic {
                     reason: ThreadPanicReason::IllegalAddressingValue,
                     code_location: format!("{}:{}", file!(), line!()),
                 })

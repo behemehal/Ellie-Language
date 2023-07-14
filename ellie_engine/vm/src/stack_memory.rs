@@ -22,9 +22,9 @@ impl StackMemory {
 
     pub fn get(&self, key: &usize) -> Option<StaticRawType> {
         if self.data.len() <= *key {
-            return None;
+            None
         } else {
-            return Some(self.data[*key]);
+            Some(self.data[*key])
         }
     }
 
