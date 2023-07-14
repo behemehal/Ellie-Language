@@ -35,7 +35,7 @@ where
         let mut b = [0u8];
         match self.source.read_exact(&mut b) {
             Ok(_) => {
-                return Some(b[0]);
+                Some(b[0])
             }
             Err(_) => None,
         }
@@ -60,17 +60,17 @@ use ellie_core::defs::{DebugInfo, ModuleMap};
 /// let debug_info = vm::parse_debug_file(file.to_string());
 /// ```
 pub fn parse_debug_file(dbg_file: String) -> Result<DebugInfo, String> {
-    let mut dbg_headers = dbg_file.split("\n").collect::<Vec<_>>().into_iter();
+    let mut dbg_headers = dbg_file.split('\n').collect::<Vec<_>>().into_iter();
     let mut module_maps_ended = false;
 
     let mut module_maps = Vec::new();
 
-    while let Some(line) = dbg_headers.next() {
+    for line in dbg_headers.by_ref() {
         if line == "---" {
             module_maps_ended = true;
             break;
         } else {
-            let line = line.split(":").collect::<Vec<_>>();
+            let line = line.split(':').collect::<Vec<_>>();
             let module_name = line[0].to_string();
             let path = line[1..].join(":").to_string().trim().to_string();
             module_maps.push(ModuleMap {
@@ -87,7 +87,7 @@ pub fn parse_debug_file(dbg_file: String) -> Result<DebugInfo, String> {
     let mut debug_headers = Vec::new();
 
     for (idx, header) in dbg_headers.enumerate() {
-        let line = header.split(":").collect::<Vec<_>>();
+        let line = header.split(':').collect::<Vec<_>>();
         if line.len() != 9 {
             return Err(format!("Broken debug header, line: {}", idx + 1));
         }
