@@ -1,8 +1,8 @@
 use crate::{
-    assembler::LocalHeader, instruction_table, instructions::Instruction,
+    instruction_table, instructions::Instruction,
     utils::limit_platform_size,
 };
-use alloc::{format, string::ToString};
+use alloc::{string::ToString};
 use ellie_core::{
     definite::items::self_item,
     defs::{DebugHeader, DebugHeaderType},

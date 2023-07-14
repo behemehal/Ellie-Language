@@ -79,7 +79,7 @@ impl super::Transpiler for native_function::NativeFunction {
             });
         }
 
-        let debug_header_start = if assembler.instructions.len() == 0 {
+        let debug_header_start = if assembler.instructions.is_empty() {
             0
         } else {
             assembler.location()

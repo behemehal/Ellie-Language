@@ -1,4 +1,4 @@
-use core::ops::Add;
+
 
 use super::type_resolver::resolve_type;
 use crate::{
@@ -23,7 +23,7 @@ impl super::Transpiler for variable::Variable {
         let mut dependencies = vec![processed_page.hash];
         dependencies.extend(processed_page.dependencies.iter().map(|d| d.hash));
 
-        let location = if assembler.instructions.len() == 0 {
+        let location = if assembler.instructions.is_empty() {
             0
         } else {
             assembler.location()

@@ -310,7 +310,7 @@ impl AssembleResult {
                 instruction.op_code(self.module_info.platform_attributes.architecture)[1..]
                     .to_vec(),
             );
-            output.write_all(&code.as_bytes()).unwrap();
+            output.write_all(code.as_bytes()).unwrap();
             count += 1;
         }
     }
@@ -338,7 +338,7 @@ impl Assembler {
     }
 
     pub fn location(&self) -> usize {
-        if self.instructions.len() == 0 {
+        if self.instructions.is_empty() {
             0
         } else {
             self.instructions.len() - 1
@@ -563,7 +563,7 @@ impl Assembler {
             .pages
             .clone()
             .into_iter()
-            .find(|x| x.hash == hash.clone())
+            .find(|x| x.hash == *hash)
             .unwrap_or_else(|| {
                 panic!("Unexpected assembler error, cannot find page {:?}", hash);
             });
@@ -577,12 +577,12 @@ impl Assembler {
         for item in &processed_page.items {
             match item {
                 ellie_core::definite::items::Collecting::Variable(variable) => {
-                    variable.transpile(self, processed_page.hash as usize, &processed_page)
+                    variable.transpile(self, processed_page.hash, &processed_page)
                 }
                 ellie_core::definite::items::Collecting::Function(function) => {
                     let start = self.instructions.len();
                     let transpile_res =
-                        function.transpile(self, processed_page.hash as usize, &processed_page);
+                        function.transpile(self, processed_page.hash, &processed_page);
                     if function.name == "main" {
                         main_function = Some(MainFunction {
                             hash: function.hash,
@@ -593,19 +593,19 @@ impl Assembler {
                     transpile_res
                 }
                 ellie_core::definite::items::Collecting::ForLoop(for_loop) => {
-                    for_loop.transpile(self, processed_page.hash as usize, &processed_page)
+                    for_loop.transpile(self, processed_page.hash, &processed_page)
                 }
                 ellie_core::definite::items::Collecting::Condition(condition) => {
-                    condition.transpile(self, processed_page.hash as usize, &processed_page)
+                    condition.transpile(self, processed_page.hash, &processed_page)
                 }
                 ellie_core::definite::items::Collecting::Class(class) => {
-                    class.transpile(self, processed_page.hash as usize, &processed_page)
+                    class.transpile(self, processed_page.hash, &processed_page)
                 }
                 ellie_core::definite::items::Collecting::Ret(ret) => {
-                    ret.transpile(self, processed_page.hash as usize, &processed_page)
+                    ret.transpile(self, processed_page.hash, &processed_page)
                 }
                 ellie_core::definite::items::Collecting::Constructor(constructor) => {
-                    constructor.transpile(self, processed_page.hash as usize, &processed_page)
+                    constructor.transpile(self, processed_page.hash, &processed_page)
                 }
                 ellie_core::definite::items::Collecting::Import(_) => true,
                 ellie_core::definite::items::Collecting::FileKey(_) => true,
@@ -613,14 +613,14 @@ impl Assembler {
                 ellie_core::definite::items::Collecting::Setter(_) => todo!(),
                 ellie_core::definite::items::Collecting::Generic(_) => true,
                 ellie_core::definite::items::Collecting::GetterCall(getter_call) => {
-                    getter_call.transpile(self, processed_page.hash as usize, &processed_page)
+                    getter_call.transpile(self, processed_page.hash, &processed_page)
                 }
                 ellie_core::definite::items::Collecting::SetterCall(setter_call) => {
-                    setter_call.transpile(self, processed_page.hash as usize, &processed_page)
+                    setter_call.transpile(self, processed_page.hash, &processed_page)
                 }
                 ellie_core::definite::items::Collecting::Enum(_) => todo!(),
                 ellie_core::definite::items::Collecting::NativeFunction(native_function) => {
-                    native_function.transpile(self, processed_page.hash as usize, &processed_page)
+                    native_function.transpile(self, processed_page.hash, &processed_page)
                 }
                 ellie_core::definite::items::Collecting::None => todo!(),
                 ellie_core::definite::items::Collecting::Brk(_) => todo!(),
@@ -628,20 +628,20 @@ impl Assembler {
                 ellie_core::definite::items::Collecting::FunctionParameter(function_parameter) => {
                     function_parameter.transpile(
                         self,
-                        processed_page.hash as usize,
+                        processed_page.hash,
                         &processed_page,
                     )
                 }
                 ellie_core::definite::items::Collecting::ConstructorParameter(_) => true,
                 ellie_core::definite::items::Collecting::SelfItem(self_item) => {
-                    self_item.transpile(self, processed_page.hash as usize, &processed_page)
+                    self_item.transpile(self, processed_page.hash, &processed_page)
                 }
                 ellie_core::definite::items::Collecting::Extend(_) => true,
                 ellie_core::definite::items::Collecting::Loop(loop_type) => {
-                    loop_type.transpile(self, processed_page.hash as usize, &processed_page)
+                    loop_type.transpile(self, processed_page.hash, &processed_page)
                 }
                 ellie_core::definite::items::Collecting::ClassInstance(class_instance) => {
-                    class_instance.transpile(self, processed_page.hash as usize, &processed_page)
+                    class_instance.transpile(self, processed_page.hash, &processed_page)
                 }
             };
         }

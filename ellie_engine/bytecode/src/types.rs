@@ -66,8 +66,8 @@ impl Types {
             Types::Byte => "byte".to_string(),
             Types::Bool => "bool".to_string(),
             Types::String(str_len) => alloc::format!("string[{str_len}]"),
-            Types::Char => alloc::format!("char"),
-            Types::StaticArray => alloc::format!("staticArray"),
+            Types::Char => "char".to_string(),
+            Types::StaticArray => "staticArray".to_string(),
             Types::Array(len) => alloc::format!("array<{len} / platformSize>"),
             Types::Void => "void".to_string(),
             Types::Null => "null".to_string(),
@@ -75,7 +75,7 @@ impl Types {
                 alloc::format!("class<{class_len}>")
             }
             Types::Function => {
-                alloc::format!("function")
+                "function".to_string()
             }
             Types::HeapReference => "heapReference".to_string(),
             Types::StackReference => "stackReference".to_string(),

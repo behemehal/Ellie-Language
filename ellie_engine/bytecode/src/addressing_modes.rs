@@ -152,7 +152,7 @@ impl core::fmt::Display for AddressingModes {
                                     .unwrap()
                             )
                         }
-                        Types::StaticArray => format!("static_array"),
+                        Types::StaticArray => "static_array".to_string(),
                         Types::Array(_) => format!("array[{:?}]", {
                             let mut array = [0; mem::size_of::<isize>()];
                             array.copy_from_slice(&value[0..mem::size_of::<isize>()]);
@@ -235,7 +235,7 @@ impl PartialEq for AddressingModesStruct {
 }
 
 impl AddressingModesStruct {
-    pub fn from_str<'a>(mode: &'a str, op_code: u8) -> AddressingModesStruct {
+    pub fn from_str(mode: &str, op_code: u8) -> AddressingModesStruct {
         match mode {
             "implicit" => AddressingModesStruct::Implicit(op_code),
             "immediate" => AddressingModesStruct::Immediate(op_code),

@@ -728,12 +728,12 @@ pub fn resolve_type(
                 .push(instruction_table::Instructions::ARR(Instruction::implicit()));
             let class_location = assembler.location();
             if !class_call.params.is_empty() {
-                for (idx, param) in class_call.params.iter().enumerate() {
+                for (_idx, param) in class_call.params.iter().enumerate() {
                     resolve_type(
                         assembler,
                         &param.value,
                         instructions::Registers::A,
-                        &target_page,
+                        target_page,
                         dependencies.clone(),
                     );
                     assembler
@@ -895,7 +895,7 @@ pub fn resolve_type(
                         assembler,
                         &param.value,
                         instructions::Registers::A,
-                        &target_page,
+                        target_page,
                         dependencies.clone(),
                     );
                     assembler

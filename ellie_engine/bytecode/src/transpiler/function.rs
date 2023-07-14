@@ -83,7 +83,7 @@ impl super::Transpiler for function::Function {
             });
         }
 
-        let debug_header_start = if assembler.instructions.len() == 0 {
+        let debug_header_start = if assembler.instructions.is_empty() {
             0
         } else {
             assembler.location()
