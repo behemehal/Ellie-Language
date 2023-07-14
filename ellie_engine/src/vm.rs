@@ -34,9 +34,7 @@ where
     fn read(&mut self) -> Option<u8> {
         let mut b = [0u8];
         match self.source.read_exact(&mut b) {
-            Ok(_) => {
-                Some(b[0])
-            }
+            Ok(_) => Some(b[0]),
             Err(_) => None,
         }
     }

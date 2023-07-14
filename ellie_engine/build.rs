@@ -276,18 +276,18 @@ fn main() {
     */
 
     let mut output = format!(
-        r#"pub static ELLIE_ENGINE_VERSION : &str = &{ellie_engine_version};
-pub static ELLIE_ENGINE_VERSION_NAME : &str = &{ellie_engine_version_name};
-pub static ELLIE_CORE_VERSION : &str = &{ellie_core_version};"#
+        r#"pub static ELLIE_ENGINE_VERSION: &str = &{ellie_engine_version};
+pub static ELLIE_ENGINE_VERSION_NAME: &str = &{ellie_engine_version_name};
+pub static ELLIE_CORE_VERSION: &str = &{ellie_core_version};"#
     );
 
     #[cfg(feature = "compiler")]
     {
         output += &format!(
             r#"
-pub static ELLIE_TOKENIZER_VERSION : &str = &{ellie_tokenizer_version};
-pub static ELLIE_PARSER_VERSION : &str = &{ellie_parser_version};
-pub static ELLIE_BYTECODE_VERSION : &str = &{ellie_bytecode_version};"#
+pub static ELLIE_TOKENIZER_VERSION: &str = &{ellie_tokenizer_version};
+pub static ELLIE_PARSER_VERSION: &str = &{ellie_parser_version};
+pub static ELLIE_BYTECODE_VERSION: &str = &{ellie_bytecode_version};"#
         );
     }
     //git show HEAD~2 --pretty=format:"%h" --no-patch
@@ -295,14 +295,13 @@ pub static ELLIE_BYTECODE_VERSION : &str = &{ellie_bytecode_version};"#
     {
         #[cfg(feature = "compiler")]
         {
-            output +=
-                &format!("\npub static ELLIE_FMT_VERSION : &str = &{ellie_fmt_version};");
+            output += &format!("\npub static ELLIE_FMT_VERSION: &str = &{ellie_fmt_version};");
         }
         #[cfg(not(feature = "compiler"))]
         {
             output += &format!(
                 r#"
-pub static ELLIE_TOKENIZER_VERSION : &str = &{ellie_tokenizer_version};
+pub static ELLIE_TOKENIZER_VERSION: &str = &{ellie_tokenizer_version};
 pub static ELLIE_PARSER_VERSION : & str = &{ellie_parser_version};
 pub static ELLIE_BYTECODE_VERSION : & str = &{ellie_bytecode_version};
 pub static ELLIE_FMT_VERSION : & str = &{ellie_fmt_version};"#
@@ -312,7 +311,7 @@ pub static ELLIE_FMT_VERSION : & str = &{ellie_fmt_version};"#
 
     #[cfg(feature = "vm")]
     {
-        output += &format!("\npub static ELLIE_VM_VERSION : &str = &{ellie_vm_version};");
+        output += &format!("\npub static ELLIE_VM_VERSION: &str = &{ellie_vm_version};");
     }
 
     //Add date and git show HEAD~2 --pretty=format:"%h" --no-patch
@@ -331,9 +330,9 @@ pub static ELLIE_FMT_VERSION : & str = &{ellie_fmt_version};"#
         .stdout;
     let git_branch = String::from_utf8(git_branch).unwrap().replace('\n', "");
 
-    output += &format!("\npub static ELLIE_BUILD_DATE : &str = &\"{date}\";");
-    output += &format!("\npub static ELLIE_BUILD_GIT_HASH : &str = &\"{git_hash}\";");
-    output += &format!("\npub static ELLIE_BUILD_GIT_BRANCH : &str = &\"{git_branch}\";\n");
+    output += &format!("\npub static ELLIE_BUILD_DATE: &str = &\"{date}\";");
+    output += &format!("\npub static ELLIE_BUILD_GIT_HASH: &str = &\"{git_hash}\";");
+    output += &format!("\npub static ELLIE_BUILD_GIT_BRANCH: &str = &\"{git_branch}\";\n");
 
     if matches!(env::var("PROFILE"), Ok(e) if e == "release") {
         fs::write(
