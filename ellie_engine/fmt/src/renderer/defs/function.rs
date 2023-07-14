@@ -14,7 +14,7 @@ impl CodeRenderer for FunctionType {
             ","
         };
 
-        let mut generics = format!("@(");
+        let mut generics = "@(".to_string();
 
         for (idx, rtype) in self.params.iter().enumerate() {
             let type_of_value = rtype.render(&State::empty_state(), options);
@@ -22,7 +22,7 @@ impl CodeRenderer for FunctionType {
             if idx != self.params.len() - 1 {
                 generics += &format!("{type_of_value}{comment}",);
             } else {
-                generics += &format!("{type_of_value}");
+                generics += &type_of_value.to_string();
             }
         }
 

@@ -113,7 +113,7 @@ impl Formatter {
                     if e.line_comment && e.pos.range_start.0 == output.lines.len() - 1 {
                         let formated_item = item.render(&State::empty_state(), &self.options);
                         let last_line = output.lines.last_mut().unwrap();
-                        last_line.push_str(" ");
+                        last_line.push(' ');
                         last_line.push_str(&formated_item);
                         continue;
                     }

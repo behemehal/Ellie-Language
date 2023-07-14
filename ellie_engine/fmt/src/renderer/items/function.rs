@@ -9,7 +9,7 @@ impl CodeRenderer for Function {
         let is_public = if self.public { "pub " } else { "" };
 
         let params = {
-            let mut params = format!("(");
+            let mut params = "(".to_string();
             for (index, param) in self.parameters.iter().enumerate() {
                 let mut _param = format!(
                     "{}{}",
@@ -63,7 +63,7 @@ impl CodeRenderer for Function {
         if self.defining {
             fn_input += ";";
             return fn_input;
-        } else if self.body.len() == 0 {
+        } else if self.body.is_empty() {
             fn_input += " {}";
             return fn_input;
         }

@@ -18,7 +18,7 @@ impl CodeRenderer for Comment {
             let mut comment = format!("{state_scope_length}/*{line_ending}");
             for line in &self.content {
                 let line = line.trim();
-                if line == "" {
+                if line.is_empty() {
                     continue;
                 }
                 comment += &format!("{state_scope_length}{tab}{line}{line_ending}");

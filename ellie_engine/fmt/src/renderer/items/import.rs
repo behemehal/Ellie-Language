@@ -13,7 +13,7 @@ impl CodeRenderer for Import {
         } else if self.path_module {
             import += format!("\"{}\"", self.path.as_str()).as_str();
         }
-        if self.reference != "" {
+        if !self.reference.is_empty() {
             import += " : ";
             import += self.reference.as_str();
         }

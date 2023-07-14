@@ -1,6 +1,7 @@
-use alloc::{borrow::ToOwned, string::String, vec::Vec};
 use core::fmt::{Display, Error, Formatter};
 use serde::{Deserialize, Serialize};
+use alloc::{borrow::ToOwned, string::String, vec::Vec};
+
 
 #[cfg(feature = "compiler_utils")]
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
@@ -72,6 +73,7 @@ impl Default for TokenizerOptions {
 /// A struct that represents a position in a file.
 /// (line, column)
 #[derive(PartialEq, Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Default)]
 pub struct CursorPosition(pub usize, pub usize);
 
 impl core::fmt::Display for CursorPosition {
@@ -80,11 +82,7 @@ impl core::fmt::Display for CursorPosition {
     }
 }
 
-impl Default for CursorPosition {
-    fn default() -> Self {
-        CursorPosition(0, 0)
-    }
-}
+
 
 impl CursorPosition {
     pub fn is_bigger(&self, other: &CursorPosition) -> bool {
@@ -92,7 +90,7 @@ impl CursorPosition {
     }
 
     pub fn skip_char(&mut self, n: usize) -> CursorPosition {
-        let mut clone = self.clone();
+        let mut clone = *self;
         clone.1 += n;
         clone
     }
@@ -121,6 +119,7 @@ impl CursorPosition {
 /// * `range_start` - Start of range [`CursorPosition`]
 /// * `range_end` - End of range [`CursorPosition`]
 #[derive(PartialEq, Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Default)]
 pub struct Cursor {
     pub range_start: CursorPosition,
     pub range_end: CursorPosition,
@@ -138,11 +137,7 @@ impl Cursor {
     pub fn is_bigger(&self, than: Cursor) -> bool {
         if than.range_end.0 == self.range_end.0 {
             self.range_end.1 > than.range_end.1
-        } else if than.range_end.0 > self.range_end.0 {
-            return false;
-        } else {
-            return true;
-        }
+        } else { than.range_end.0 <= self.range_end.0 }
     }
 
     /// Create new [`Cursor`] range start and skip one column pos to define the end
@@ -172,7 +167,7 @@ impl Cursor {
     /// [`Cursor`] with new range end
     pub fn range_end_skip_char(&self, n: usize) -> Self {
         self.range_end.clone().skip_char(n);
-        self.clone()
+        *self
     }
 
     /// Gets [`Cursor`] range start and skip one char
@@ -182,18 +177,11 @@ impl Cursor {
     /// [`Cursor`] with new range start and end
     pub fn range_start_skip_char(&self, n: usize) -> Self {
         self.range_start.clone().skip_char(n);
-        self.clone()
+        *self
     }
 }
 
-impl Default for Cursor {
-    fn default() -> Self {
-        Cursor {
-            range_start: CursorPosition::default(),
-            range_end: CursorPosition::default(),
-        }
-    }
-}
+
 
 /// Version
 /// ## Fields
@@ -220,13 +208,13 @@ impl Version {
     /// * `version` - [`String`] to parse
     pub fn build_from_string(input: String) -> Version {
         Version {
-            minor: input.split(".").collect::<Vec<_>>()[0]
+            minor: input.split('.').collect::<Vec<_>>()[0]
                 .parse::<u8>()
                 .unwrap_or_else(|_| panic!("Given 'minor', is not a number")),
-            major: input.split(".").collect::<Vec<_>>()[1]
+            major: input.split('.').collect::<Vec<_>>()[1]
                 .parse::<u8>()
                 .unwrap_or_else(|_| panic!("Given 'major', is not a number")),
-            bug: input.split(".").collect::<Vec<_>>()[2]
+            bug: input.split('.').collect::<Vec<_>>()[2]
                 .parse::<u8>()
                 .unwrap_or_else(|_| panic!("Given 'bug', is not a number")),
         }
@@ -238,15 +226,15 @@ impl Version {
     /// ## Return
     /// [`Result`] - If versionb is valid [`Ok(Version)`] otherwise [`Err(u8)`]-
     pub fn build_from_string_checked(input: String) -> Result<Version, u8> {
-        if input.split(".").collect::<Vec<_>>().len() == 3 {
-            let major = input.split(".").collect::<Vec<_>>()[0]
+        if input.split('.').collect::<Vec<_>>().len() == 3 {
+            let major = input.split('.').collect::<Vec<_>>()[0]
                 .parse::<u8>()
                 .unwrap_or(0);
-            let minor = input.split(".").collect::<Vec<_>>()[1]
+            let minor = input.split('.').collect::<Vec<_>>()[1]
                 .parse::<u8>()
                 .unwrap_or(0);
 
-            let bug = input.split(".").collect::<Vec<_>>()[2]
+            let bug = input.split('.').collect::<Vec<_>>()[2]
                 .parse::<u8>()
                 .unwrap_or(0);
 
