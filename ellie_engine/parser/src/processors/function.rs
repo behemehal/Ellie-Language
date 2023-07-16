@@ -2,12 +2,13 @@ use alloc::{borrow::ToOwned, string::ToString, vec, vec::Vec};
 use ellie_core::{
     error,
     utils::{self, generate_hash_usize},
-    warning,
 };
 use ellie_tokenizer::{
     syntax::items::function,
     tokenizer::{FunctionPageType, PageType},
 };
+#[cfg(feature = "standard_rules")]
+use ellie_core::warning;
 
 impl super::Processor for function::FunctionCollector {
     fn process(

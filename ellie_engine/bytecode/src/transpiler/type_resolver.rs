@@ -842,7 +842,6 @@ pub fn resolve_type(
                                 );
                             panic!("Not implemented yet")
                         }
-                        _ => unreachable!("Unexpected target type: {:#?}", e),
                     };
                     let hash = e.index_chain.last().unwrap();
                     is_reference = Some(reference.clone());

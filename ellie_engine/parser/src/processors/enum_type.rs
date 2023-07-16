@@ -6,8 +6,10 @@ use ellie_core::{
     definite::items::enum_type::{EnumItem, EnumValue},
     error,
 };
-use ellie_core::{utils, warning};
+use ellie_core::utils;
 use ellie_tokenizer::syntax::items::enum_type::EnumType;
+#[cfg(feature = "standard_rules")]
+use ellie_core::warning;
 
 impl super::Processor for EnumType {
     fn process(

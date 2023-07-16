@@ -1,9 +1,11 @@
 use alloc::{borrow::ToOwned, vec, vec::Vec};
-use ellie_core::{defs, error, utils, warning};
+use ellie_core::{defs, error, utils};
 use ellie_tokenizer::{
     syntax::items::class::Class,
     tokenizer::{ClassPageType, PageType},
 };
+#[cfg(feature = "standard_rules")]
+use ellie_core::warning;
 
 impl super::Processor for Class {
     fn process(

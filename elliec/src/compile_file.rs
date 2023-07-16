@@ -102,20 +102,20 @@ pub fn compile(
         main_hash: usize,
         target_path: String,
         cli_compiler_settings: CliCompilerSettings,
+        modules: Vec<(parser::Module, Option<String>)>,
     }
 
-    let mut _used_modules = vec![];
-
-    if !cli_settings.exclude_std {
-        _used_modules.push("ellieStd".to_string());
-    }
-
-    let mut program_repisotory = Repository {
+    let mut program_repository = Repository {
         main_hash: 0,
-        used_modules: _used_modules,
+        used_modules: Vec::new(),
         target_path: target_path.to_str().unwrap().to_string(),
         cli_compiler_settings: cli_settings.clone(),
+        modules: modules.clone(),
     };
+
+    if !cli_settings.exclude_std {
+        program_repository.used_modules.push("ellieStd".to_string());
+    }
 
     impl ProgramRepository for Repository {
         fn read_main(&mut self) -> MainProgram {
@@ -173,10 +173,23 @@ pub fn compile(
             );
 
             if link_module {
-                self.used_modules.push(requested_path);
-                ResolvedImport {
-                    found: true,
-                    ..Default::default()
+                match self.modules.iter().find(|(m, _)| m.name == requested_path) {
+                    Some(module) => {
+                        self.used_modules.push(requested_path.clone());
+                        ResolvedImport {
+                            found: true,
+                            hash: module.0.hash,
+                            path: requested_path.clone(),
+                            ..Default::default()
+                        }
+                    },
+                    None => {
+                        ResolvedImport {
+                            found: false,
+                            resolve_error: "Module not found".to_string(),
+                            ..Default::default()
+                        }
+                    }
                 }
             } else {
                 match parse_module_import(&current_path, &requested_path) {
@@ -235,44 +248,43 @@ pub fn compile(
             }
         }
     }
-
-    let mut used_modules = Vec::new();
-    for module_name in &program_repisotory.used_modules {
-        if let Some(module) = modules
-            .iter()
-            .find(|(module, _)| module.name == *module_name)
-        {
-            used_modules.push(module.clone());
-        } else {
-            if program_repisotory.cli_compiler_settings.json_log {
-                let mut cli_module_output = outputs::FAILED_TO_FIND_MODULE.clone();
-                cli_module_output.extra.push(outputs::CliOuputExtraData {
-                    key: 0,
-                    value: module_name.to_string(),
-                });
-                println!(
-                    "{}",
-                    serde_json::to_string_pretty(&cli_module_output).unwrap()
-                );
-            } else {
-                println!(
-                    "{}[Internal Error]{}: Could not find imported module {}'{}'{}",
-                    cli_color.color(Colors::Red),
-                    cli_color.color(Colors::Reset),
-                    cli_color.color(Colors::Cyan),
-                    module_name,
-                    cli_color.color(Colors::Reset),
-                );
-            }
-            std::process::exit(1);
-        }
-    }
     let starter_name = format!("<ellie_module_{}>", cli_settings.compiler_settings.name);
 
-    match tokenizer::tokenize_file(&mut program_repisotory) {
+    match tokenizer::tokenize_file(&mut program_repository) {
         Ok(pages) => {
+            let mut used_modules = Vec::new();
+            for module_name in &program_repository.used_modules {
+                if let Some(module) = modules
+                    .iter()
+                    .find(|(module, _)| module.name == *module_name)
+                {
+                    used_modules.push(module.clone());
+                } else {
+                    if program_repository.cli_compiler_settings.json_log {
+                        let mut cli_module_output = outputs::FAILED_TO_FIND_MODULE.clone();
+                        cli_module_output.extra.push(outputs::CliOuputExtraData {
+                            key: 0,
+                            value: module_name.to_string(),
+                        });
+                        println!(
+                            "{}",
+                            serde_json::to_string_pretty(&cli_module_output).unwrap()
+                        );
+                    } else {
+                        println!(
+                            "{}[Internal Error]{}: Could not find imported module {}'{}'{}",
+                            cli_color.color(Colors::Red),
+                            cli_color.color(Colors::Reset),
+                            cli_color.color(Colors::Cyan),
+                            module_name,
+                            cli_color.color(Colors::Reset),
+                        );
+                    }
+                    std::process::exit(1);
+                }
+            }
             match parse_pages(
-                program_repisotory.main_hash,
+                program_repository.main_hash,
                 used_modules,
                 pages,
                 cli_settings.compiler_settings.clone(),

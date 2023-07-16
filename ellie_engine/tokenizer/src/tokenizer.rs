@@ -442,7 +442,10 @@ where
 
                         current_page.dependencies.push(Dependency {
                             hash: resolved.hash,
-                            processed: false,
+                            processed: match &resolved.matched {
+                                ImportType::Code(_) => true,
+                                ImportType::Module(_) => false
+                            },
                             module: match &resolved.matched {
                                 ImportType::Code(_) => None,
                                 ImportType::Module(x) => Some(x.initial_page.clone()),

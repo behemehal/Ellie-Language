@@ -1,5 +1,3 @@
-use core::any::Any;
-
 use alloc::{format, vec::Vec};
 use ellie_core::defs::PlatformArchitecture;
 

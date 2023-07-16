@@ -774,8 +774,6 @@ where
             false,
             color_output,
         );
-        output += "\n";
-
         output += &format!(
             "{}{}[?]{} ╞ Check online standard rules repo for more info {}{}{}\n",
             generate_blank(line_space - 2),

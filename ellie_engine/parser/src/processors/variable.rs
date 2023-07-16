@@ -1,8 +1,10 @@
 use alloc::{borrow::ToOwned, string::ToString, vec, vec::Vec};
 use ellie_core::{
     definite::{definers::DefinerCollecting, types::Types},
-    error, warning,
+    error
 };
+#[cfg(feature = "standard_rules")]
+use ellie_core::warning;
 use ellie_tokenizer::syntax::items::variable::VariableCollector;
 
 impl super::Processor for VariableCollector {
