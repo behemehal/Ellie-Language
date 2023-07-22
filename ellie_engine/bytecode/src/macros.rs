@@ -27,8 +27,8 @@ fn parse_type_text(text: String) -> Option<(Types, Vec<u8>)> {
     let _value = type_text.next().unwrap();
     let value = match _type {
         "int" => _value.parse::<i64>().unwrap().to_le_bytes().to_vec(),
-        "float" => _value.parse::<f32>().unwrap().to_le_bytes().to_vec(),
-        "double" => _value.parse::<f64>().unwrap().to_le_bytes().to_vec(),
+        "float" => _value.parse::<f64>().unwrap().to_le_bytes().to_vec(),
+        "double" => _value.parse::<f32>().unwrap().to_le_bytes().to_vec(),
         "byte" => _value.parse::<u8>().unwrap().to_le_bytes().to_vec(),
         "bool" => vec![_value.parse::<bool>().unwrap().into()],
         "char" => _value

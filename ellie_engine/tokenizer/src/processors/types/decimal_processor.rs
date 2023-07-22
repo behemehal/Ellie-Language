@@ -35,7 +35,7 @@ impl crate::processors::Processor for decimal_type::DecimalTypeCollector {
             } else if letter_char.to_string().parse::<i8>().is_ok() {
                 self.point += &letter_char.to_string();
                 self.data.raw += &letter_char.to_string();
-                if let Ok(nm) = self.data.raw.parse::<f32>() {
+                if let Ok(nm) = self.data.raw.parse::<f64>() {
                     self.data.value = DecimalTypeEnum::Float(nm);
                     self.complete = true;
                 } else {
@@ -49,11 +49,11 @@ impl crate::processors::Processor for decimal_type::DecimalTypeCollector {
                     ));
                 }
                 self.data.pos.range_end = cursor;
-            } else if letter_char == 'd' {
+            } else if letter_char == 'f' {
                 self.data.pos.range_end = cursor;
                 if let Ok(nm) = self.data.raw.parse::<f64>() {
-                    self.data.value = DecimalTypeEnum::Double(nm);
-                    self.data.is_double = true;
+                    self.data.value = DecimalTypeEnum::Float(nm);
+                    self.data.is_double = false;
                     self.complete = true;
                 } else {
                     errors.push(error::error_list::ERROR_S17.clone().build(
@@ -65,11 +65,11 @@ impl crate::processors::Processor for decimal_type::DecimalTypeCollector {
                         defs::Cursor::build_from_cursor(cursor),
                     ));
                 }
-            } else if letter_char == 'f' {
+            } else if letter_char == 'd' {
                 self.data.pos.range_end = cursor;
                 if let Ok(nm) = self.data.raw.parse::<f32>() {
-                    self.data.value = DecimalTypeEnum::Float(nm);
-                    self.complete = true;
+                    self.data.value = DecimalTypeEnum::Double(nm);
+                    self.complete = false;
                 } else {
                     errors.push(error::error_list::ERROR_S17.clone().build(
                         vec![error::ErrorBuildField {
