@@ -36,12 +36,10 @@ impl super::InstructionExecuter for JMPA {
                     })
                 }
             }
-            _ => {
-                Err(ExecuterPanic {
-                    reason: ThreadPanicReason::IllegalAddressingValue,
-                    code_location: format!("{}:{}", file!(), line!()),
-                })
-            }
+            _ => Err(ExecuterPanic {
+                reason: ThreadPanicReason::IllegalAddressingValue,
+                code_location: format!("{}:{}", file!(), line!()),
+            }),
         }
     }
 }

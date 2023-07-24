@@ -98,9 +98,7 @@ impl super::InstructionExecuter for FN {
                                 }
                                 None => {
                                     return Err(ExecuterPanic {
-                                        reason: ThreadPanicReason::NullReference(
-                                            index_start + i,
-                                        ),
+                                        reason: ThreadPanicReason::NullReference(index_start + i),
                                         code_location: format!("{}:{}", file!(), line!()),
                                     })
                                 }

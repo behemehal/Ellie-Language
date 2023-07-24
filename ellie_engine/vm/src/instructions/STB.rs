@@ -132,6 +132,28 @@ impl super::InstructionExecuter for STB {
                                     });
                                 }
                             }
+                        } else if stack_data.type_id.is_static_array() {
+                            let array_location = stack_data.to_uint();
+                            let array_size = match stack_memory.get(&(array_location + 1)) {
+                                Some(e) => e.to_uint(),
+                                None => {
+                                    return Err(ExecuterPanic {
+                                        reason: ThreadPanicReason::NullReference(array_location),
+                                        code_location: format!("{}:{}", file!(), line!()),
+                                    });
+                                }
+                            };
+
+                            if index > array_size {
+                                return Err(ExecuterPanic {
+                                    reason: ThreadPanicReason::IndexOutOfBounds(index),
+                                    code_location: format!("{}:{}", file!(), line!()),
+                                });
+                            } else {
+                                let entry = array_location + index;
+                                stack_memory.set(&(entry + 2), current_stack.registers.B);
+                                return Ok(ExecuterResult::Continue);
+                            }
                         } else {
                             return Err(ExecuterPanic {
                                 reason: ThreadPanicReason::UnexpectedType(stack_data.type_id.id),

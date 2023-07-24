@@ -30,19 +30,15 @@ impl super::InstructionExecuter for DEA {
                     stack_memory.dea(&(location + current_stack.frame_pos));
                     Ok(ExecuterResult::Continue)
                 }
-                None => {
-                    Err(ExecuterPanic {
-                        reason: ThreadPanicReason::NullReference(*location),
-                        code_location: format!("{}:{}", file!(), line!()),
-                    })
-                }
-            },
-            _ => {
-                Err(ExecuterPanic {
-                    reason: ThreadPanicReason::IllegalAddressingValue,
+                None => Err(ExecuterPanic {
+                    reason: ThreadPanicReason::NullReference(*location),
                     code_location: format!("{}:{}", file!(), line!()),
-                })
-            }
+                }),
+            },
+            _ => Err(ExecuterPanic {
+                reason: ThreadPanicReason::IllegalAddressingValue,
+                code_location: format!("{}:{}", file!(), line!()),
+            }),
         }
     }
 }

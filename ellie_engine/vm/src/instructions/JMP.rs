@@ -26,12 +26,10 @@ impl super::InstructionExecuter for JMP {
                 current_stack.pos = e - 1;
                 Ok(ExecuterResult::Continue)
             }
-            _ => {
-                Err(ExecuterPanic {
-                    reason: ThreadPanicReason::IllegalAddressingValue,
-                    code_location: format!("{}:{}", file!(), line!()),
-                })
-            }
+            _ => Err(ExecuterPanic {
+                reason: ThreadPanicReason::IllegalAddressingValue,
+                code_location: format!("{}:{}", file!(), line!()),
+            }),
         }
     }
 }
