@@ -114,7 +114,7 @@ pub fn compile(
     };
 
     if !cli_settings.exclude_std {
-        program_repository.used_modules.push("ellieStd".to_string());
+        program_repository.used_modules.push("ellieCore".to_string());
     }
 
     impl ProgramRepository for Repository {
