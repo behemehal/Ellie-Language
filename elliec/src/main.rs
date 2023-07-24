@@ -359,7 +359,7 @@ fn main() {
                                 ) {
                                     Ok(module) => {
                                         if code_path.is_none()
-                                            || Path::new(&code_path.clone().unwrap()).is_dir()
+                                            || Path::new(&code_path.clone().unwrap()).is_file()
                                         {
                                             let current_ellie_version = Version::build_from_string(
                                                 engine_constants::ELLIE_ENGINE_VERSION.to_owned(),
