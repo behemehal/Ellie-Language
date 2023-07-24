@@ -84,15 +84,28 @@ pub fn parse(target_path: &Path, json_log: bool, target_arch: PlatformArchitectu
                             serde_json::to_string_pretty(&cli_module_output).unwrap()
                         );
                     } else {
-                        let mut output = format!("ModuleName        = {}{}\nModuleDescription = {}\nModuleVersion     = {}.{}.{}\nEllieVersion      = {}.{}.{}", module.name, if module.is_library {" (Library)"} else {""}, module.description, module.version.major, module.version.minor, module.version.bug, module.ellie_version.major, module.ellie_version.minor, module.ellie_version.bug);
+                        let mut output = format!(
+                            "ModuleName        = {}{}\nModuleHash        = {}\nModuleDescription = {}\nModuleVersion     = {}.{}.{}\nEllieVersion      = {}.{}.{}",
+                            module.name,
+                            if module.is_library {" (Library)"} else {""},
+                            module.hash,
+                            module.description,
+                            module.version.major,
+                            module.version.minor,
+                            module.version.bug,
+                            module.ellie_version.major,
+                            module.ellie_version.minor,
+                            module.ellie_version.bug
+                        );
                         if !module.modules.is_empty() {
                             output.push_str("\nInnerModules      =\n");
                         }
 
                         for inner_module in module.modules {
                             output += format!(
-                                "\tModuleName    =\t{}\n\tModuleVersion =\t{}.{}.{}\n",
+                                "\t-\n\tModuleName    =\t{}\n\tModuleHash    =\t{}\n\tModuleVersion =\t{}.{}.{}\n",
                                 inner_module.name,
+                                inner_module.hash,
                                 inner_module.version.major,
                                 inner_module.version.minor,
                                 inner_module.version.bug
