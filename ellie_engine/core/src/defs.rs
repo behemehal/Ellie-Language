@@ -1,7 +1,6 @@
+use alloc::{borrow::ToOwned, string::String, vec::Vec};
 use core::fmt::{Display, Error, Formatter};
 use serde::{Deserialize, Serialize};
-use alloc::{borrow::ToOwned, string::String, vec::Vec};
-
 
 #[cfg(feature = "compiler_utils")]
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
@@ -72,8 +71,7 @@ impl Default for TokenizerOptions {
 
 /// A struct that represents a position in a file.
 /// (line, column)
-#[derive(PartialEq, Debug, Clone, Copy, Serialize, Deserialize)]
-#[derive(Default)]
+#[derive(PartialEq, Debug, Clone, Copy, Serialize, Deserialize, Default)]
 pub struct CursorPosition(pub usize, pub usize);
 
 impl core::fmt::Display for CursorPosition {
@@ -81,8 +79,6 @@ impl core::fmt::Display for CursorPosition {
         write!(f, "{}:{}", self.0, self.1)
     }
 }
-
-
 
 impl CursorPosition {
     pub fn is_bigger(&self, other: &CursorPosition) -> bool {
@@ -118,8 +114,7 @@ impl CursorPosition {
 /// ## Fields
 /// * `range_start` - Start of range [`CursorPosition`]
 /// * `range_end` - End of range [`CursorPosition`]
-#[derive(PartialEq, Debug, Clone, Copy, Serialize, Deserialize)]
-#[derive(Default)]
+#[derive(PartialEq, Debug, Clone, Copy, Serialize, Deserialize, Default)]
 pub struct Cursor {
     pub range_start: CursorPosition,
     pub range_end: CursorPosition,
@@ -137,7 +132,9 @@ impl Cursor {
     pub fn is_bigger(&self, than: Cursor) -> bool {
         if than.range_end.0 == self.range_end.0 {
             self.range_end.1 > than.range_end.1
-        } else { than.range_end.0 <= self.range_end.0 }
+        } else {
+            than.range_end.0 <= self.range_end.0
+        }
     }
 
     /// Create new [`Cursor`] range start and skip one column pos to define the end
@@ -180,8 +177,6 @@ impl Cursor {
         *self
     }
 }
-
-
 
 /// Version
 /// ## Fields
@@ -334,7 +329,9 @@ pub struct DebugHeader {
     /// Element's hash
     pub hash: usize,
     /// Module Name
-    pub module: String,
+    pub module_name: String,
+    /// Module Hash
+    pub module_hash: usize,
     /// Element Name
     pub name: String,
     /// Instruction start -> end,
@@ -346,7 +343,15 @@ pub struct DebugHeader {
 #[derive(Debug, Clone)]
 pub struct ModuleMap {
     pub module_name: String,
+    pub module_hash: usize,
     pub module_path: Option<String>,
+}
+
+#[derive(Debug, Clone)]
+pub struct NativeCallTrace {
+    pub module_name: String,
+    pub function_hash: usize,
+    pub function_name: String,
 }
 
 #[derive(Debug, Clone)]

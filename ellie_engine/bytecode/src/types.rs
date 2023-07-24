@@ -74,9 +74,7 @@ impl Types {
             Types::Class(class_len) => {
                 alloc::format!("class<{class_len}>")
             }
-            Types::Function => {
-                "function".to_string()
-            }
+            Types::Function => "function".to_string(),
             Types::HeapReference => "heapReference".to_string(),
             Types::StackReference => "stackReference".to_string(),
         }

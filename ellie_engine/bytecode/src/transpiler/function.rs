@@ -61,7 +61,8 @@ impl super::Transpiler for function::Function {
             assembler.debug_headers.push(DebugHeader {
                 rtype: DebugHeaderType::Parameter,
                 hash: limit_platform_size(idx, assembler.platform_attributes.architecture),
-                module: processed_page.path.clone(),
+                module_name: processed_page.path.clone(),
+                module_hash: processed_page.hash,
                 name: parameter.name.clone(),
                 start_end: (assembler.location(), assembler.location()),
                 pos: Cursor {
@@ -107,7 +108,8 @@ impl super::Transpiler for function::Function {
         assembler.debug_headers.push(DebugHeader {
             rtype: DebugHeaderType::Function,
             hash: limit_platform_size(self.hash, assembler.platform_attributes.architecture),
-            module: processed_page.path.clone(),
+            module_name: processed_page.path.clone(),
+            module_hash: processed_page.hash,
             name: self.name.clone(),
             start_end: (debug_header_start, assembler.location()),
             pos: self.pos,

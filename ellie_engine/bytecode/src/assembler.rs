@@ -7,7 +7,9 @@ use alloc::{
     string::{String, ToString},
     vec::Vec,
 };
-use ellie_core::defs::{DebugHeader, ModuleMap, PlatformArchitecture};
+use ellie_core::defs::{
+    DebugHeader, DebugHeaderType, ModuleMap, NativeCallTrace, PlatformArchitecture,
+};
 use ellie_core::utils::ExportPage;
 use ellie_parser::parser::Module;
 use std::{io::Write, panic};
@@ -82,7 +84,7 @@ pub struct MainFunction {
 #[derive(Clone, Debug)]
 pub struct ModuleInfo {
     pub name: String,
-    pub modue_maps: Vec<ModuleMap>,
+    pub module_maps: Vec<ModuleMap>,
     pub is_library: bool,
     pub main_function: Option<MainFunction>,
     pub platform_attributes: PlatformAttributes,
@@ -104,6 +106,24 @@ pub struct AssembleResult {
 
 impl AssembleResult {
     pub fn render_binary_to_vector(&self) -> Vec<u8> {
+        let native_calls: Vec<NativeCallTrace> = self
+            .debug_headers
+            .iter()
+            .filter(|x| x.rtype == DebugHeaderType::NativeFunction)
+            .map(|x| NativeCallTrace {
+                module_name: if x.module_name.contains(">") {
+                    x.module_name.to_string()
+                } else {
+                    x.module_name.clone().split(">").collect::<Vec<_>>()[0]
+                        .split('_')
+                        .last()
+                        .unwrap()
+                        .to_string()
+                },
+                function_hash: x.hash,
+                function_name: x.name.clone(),
+            })
+            .collect();
         let arch = self.module_info.platform_attributes.architecture;
         let mut binary = Vec::new();
         binary
@@ -132,6 +152,28 @@ impl AssembleResult {
                 .unwrap();
         }
 
+        binary
+            .write_all(&usize_to_le_bytes(native_calls.len(), arch))
+            .unwrap();
+
+        for native_call in &native_calls {
+            binary
+                .write_all(&usize_to_le_bytes(native_call.module_name.len(), arch))
+                .unwrap();
+            binary
+                .write_all(native_call.module_name.as_bytes())
+                .unwrap();
+            binary
+                .write_all(&usize_to_le_bytes(native_call.function_hash, arch))
+                .unwrap();
+            binary
+                .write_all(&usize_to_le_bytes(native_call.function_name.len(), arch))
+                .unwrap();
+            binary
+                .write_all(native_call.function_name.as_bytes())
+                .unwrap();
+        }
+
         for instruction in &self.instructions {
             binary
                 .write(&instruction.op_code(self.module_info.platform_attributes.architecture))
@@ -141,13 +183,15 @@ impl AssembleResult {
     }
 
     pub fn render_binary<T: Write, E: Write>(&self, writer: &mut T, dbg_w: &mut E) {
+        let mut native_calls: Vec<NativeCallTrace> = Vec::new();
         let arch = self.module_info.platform_attributes.architecture;
-        for module_map in &self.module_info.modue_maps {
+        for module_map in &self.module_info.module_maps {
             dbg_w
                 .write_all(
                     format!(
-                        "{}: {}\n",
+                        "{}-{}: {}\n",
                         module_map.module_name,
+                        module_map.module_hash,
                         module_map.module_path.clone().unwrap_or("-   ".to_string())
                     )
                     .as_bytes(),
@@ -156,13 +200,34 @@ impl AssembleResult {
         }
         dbg_w.write_all(b"---\n").unwrap();
         for (idx, header) in self.debug_headers.iter().enumerate() {
+            if header.rtype == DebugHeaderType::NativeFunction {
+                native_calls.push(NativeCallTrace {
+                    module_name: if !header.module_name.contains(">") {
+                        header.module_name.to_string()
+                    } else {
+                        header
+                            .module_name
+                            .clone()
+                            .split(">")
+                            .next()
+                            .unwrap()
+                            .split('_')
+                            .last()
+                            .unwrap()
+                            .to_string()
+                    },
+                    function_hash: header.hash,
+                    function_name: header.name.clone(),
+                });
+            }
             dbg_w
                 .write_all(
                     format!(
-                        "{}:{}:{}:{}:{}:{}:{}:{}:{}{}",
+                        "{}:{}:{}:{}:{}:{}:{}:{}:{}:{}{}",
                         header.start_end.0,
                         header.start_end.1,
-                        header.module,
+                        header.module_name,
+                        header.module_hash,
                         header.name,
                         header.pos.range_start.0,
                         header.pos.range_start.1,
@@ -202,6 +267,28 @@ impl AssembleResult {
                 .unwrap();
             writer
                 .write_all(&usize_to_le_bytes(main_fn.hash, arch))
+                .unwrap();
+        }
+
+        writer
+            .write_all(&usize_to_le_bytes(native_calls.len(), arch))
+            .unwrap();
+
+        for native_call in &native_calls {
+            writer
+                .write_all(&usize_to_le_bytes(native_call.module_name.len(), arch))
+                .unwrap();
+            writer
+                .write_all(native_call.module_name.as_bytes())
+                .unwrap();
+            writer
+                .write_all(&usize_to_le_bytes(native_call.function_hash, arch))
+                .unwrap();
+            writer
+                .write_all(&usize_to_le_bytes(native_call.function_name.len(), arch))
+                .unwrap();
+            writer
+                .write_all(native_call.function_name.as_bytes())
                 .unwrap();
         }
 
@@ -626,11 +713,7 @@ impl Assembler {
                 ellie_core::definite::items::Collecting::Brk(_) => todo!(),
                 ellie_core::definite::items::Collecting::Go(_) => todo!(),
                 ellie_core::definite::items::Collecting::FunctionParameter(function_parameter) => {
-                    function_parameter.transpile(
-                        self,
-                        processed_page.hash,
-                        &processed_page,
-                    )
+                    function_parameter.transpile(self, processed_page.hash, &processed_page)
                 }
                 ellie_core::definite::items::Collecting::ConstructorParameter(_) => true,
                 ellie_core::definite::items::Collecting::SelfItem(self_item) => {
@@ -648,9 +731,8 @@ impl Assembler {
         main_function
     }
 
-    pub fn assemble(&mut self, modue_maps: Vec<ModuleMap>) -> AssembleResult {
+    pub fn assemble(&mut self, module_maps: Vec<ModuleMap>) -> AssembleResult {
         let main_function = self.assemble_dependency(&self.module.initial_page.clone());
-        //self.instructions.push(instruction_table::Instructions::RET(Instruction { addressing_mode: AddressingModes::Implicit }));
         let mut native_exports = Vec::new();
 
         for native_header in &self.debug_headers {
@@ -670,7 +752,7 @@ impl Assembler {
                 name: self.module.name.clone(),
                 is_library: self.module.is_library,
                 platform_attributes: self.platform_attributes.clone(),
-                modue_maps,
+                module_maps,
                 main_function,
             },
             locals: self.locals.clone(),

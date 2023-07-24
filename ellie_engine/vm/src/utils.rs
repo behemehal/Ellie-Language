@@ -234,6 +234,19 @@ impl ProgramReader<'_> {
         Some(usize::from_le_bytes(array))
     }
 
+    pub fn read_string(&mut self, string_length: usize) -> Option<String> {
+        let mut string = String::new();
+        for _ in 0..string_length {
+            match self.reader.read() {
+                Some(byte) => {
+                    string.push(byte as char);
+                }
+                None => return None,
+            }
+        }
+        Some(string)
+    }
+
     pub fn read_isize(&mut self, arch_size: u8) -> Option<isize> {
         //Read isize in little endian
         let mut array = [0; mem::size_of::<isize>()];

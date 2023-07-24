@@ -419,6 +419,7 @@ pub fn compile(
 
                     let mut module_maps = vec![ModuleMap {
                         module_name: compile_output.module.name.clone(),
+                        module_hash: compile_output.module.hash,
                         module_path: Some(
                             Path::new(target_path)
                                 .absolutize()
@@ -436,6 +437,7 @@ pub fn compile(
                             .iter()
                             .map(|(module, path)| ModuleMap {
                                 module_name: module.name.clone(),
+                                module_hash: module.hash,
                                 module_path: path.clone(),
                             })
                             .collect::<Vec<_>>(),

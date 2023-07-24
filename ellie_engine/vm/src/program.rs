@@ -6,7 +6,7 @@ use crate::{
 };
 use alloc::vec::Vec;
 use core::mem;
-use ellie_core::defs::PlatformArchitecture;
+use ellie_core::defs::{NativeCallTrace, PlatformArchitecture};
 
 #[derive(Debug, Clone, Copy)]
 pub struct ReadInstruction {
@@ -51,6 +51,7 @@ pub struct MainProgram {
 pub struct Program {
     pub main: MainProgram,
     pub arch: PlatformArchitecture,
+    pub native_call_traces: Vec<NativeCallTrace>,
     pub instructions: Vec<ReadInstruction>,
 }
 
@@ -64,6 +65,7 @@ impl Program {
             },
             arch: PlatformArchitecture::B32,
             instructions: Vec::new(),
+            native_call_traces: Vec::new(),
         }
     }
 
@@ -159,6 +161,43 @@ impl Program {
             length: end,
         };
         self.arch = arch;
+
+        let native_call_trace_count = match reader.read_usize(arch.usize_len()) {
+            Some(byte) => byte,
+            None => return Err(ProgramReadErrors::ReadError),
+        };
+
+        for _ in 0..native_call_trace_count {
+            let module_name_len = match reader.read_usize(arch.usize_len()) {
+                Some(byte) => byte,
+                None => return Err(ProgramReadErrors::ReadError),
+            };
+
+            let module_name = match reader.read_string(module_name_len) {
+                Some(name) => name,
+                None => return Err(ProgramReadErrors::ReadError),
+            };
+
+            let function_hash = match reader.read_usize(arch.usize_len()) {
+                Some(byte) => byte,
+                None => return Err(ProgramReadErrors::ReadError),
+            };
+            let function_name_len = match reader.read_usize(arch.usize_len()) {
+                Some(byte) => byte,
+                None => return Err(ProgramReadErrors::ReadError),
+            };
+            let function_name = match reader.read_string(function_name_len) {
+                Some(name) => name,
+                None => return Err(ProgramReadErrors::ReadError),
+            };
+
+            self.native_call_traces.push(NativeCallTrace {
+                module_name,
+                function_hash,
+                function_name,
+            })
+        }
+
         loop {
             let read_instruction = self.read_instruction(reader);
             match read_instruction {
@@ -280,9 +319,7 @@ impl Program {
                     })
                 }
             }
-            None => {
-                Err(ProgramReadErrors::IllegalOpCode)
-            }
+            None => Err(ProgramReadErrors::IllegalOpCode),
         }
     }
 }

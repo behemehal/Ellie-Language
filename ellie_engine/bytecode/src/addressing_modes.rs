@@ -130,9 +130,11 @@ impl core::fmt::Display for AddressingModes {
                         }
                         .to_string(),
                         Types::Float =>
-                            f64::from_le_bytes(value[0..mem::size_of::<f64>()].try_into().unwrap()).to_string(),
+                            f64::from_le_bytes(value[0..mem::size_of::<f64>()].try_into().unwrap())
+                                .to_string(),
                         Types::Double =>
-                            f32::from_le_bytes(value[0..mem::size_of::<f32>()].try_into().unwrap()).to_string(),
+                            f32::from_le_bytes(value[0..mem::size_of::<f32>()].try_into().unwrap())
+                                .to_string(),
                         Types::Byte => format!("0x{}", value[0]),
                         Types::Bool =>
                             if value[0] == 1 {

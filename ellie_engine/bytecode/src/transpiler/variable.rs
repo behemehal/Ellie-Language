@@ -1,5 +1,3 @@
-
-
 use super::type_resolver::resolve_type;
 use crate::{
     assembler::LocalHeader,
@@ -50,7 +48,8 @@ impl super::Transpiler for variable::Variable {
                 rtype: DebugHeaderType::Variable,
                 hash: limit_platform_size(self.hash, assembler.platform_attributes.architecture),
                 start_end: (location, assembler.location()),
-                module: processed_page.path.clone(),
+                module_name: processed_page.path.clone(),
+                module_hash: processed_page.hash,
                 name: self.name.clone(),
                 pos: self.pos,
             });
@@ -74,7 +73,8 @@ impl super::Transpiler for variable::Variable {
             rtype: DebugHeaderType::Variable,
             hash: limit_platform_size(self.hash, assembler.platform_attributes.architecture),
             start_end: (location, assembler.location()),
-            module: processed_page.path.clone(),
+            module_name: processed_page.path.clone(),
+            module_hash: processed_page.hash,
             name: self.name.clone(),
             pos: self.pos,
         });

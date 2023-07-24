@@ -1,42 +1,61 @@
 use crate::utils::{ThreadInfo, VmNativeAnswer, VmNativeCallParameters};
 use alloc::{boxed::Box, string::String, vec::Vec};
+use ellie_core::defs::NativeCallTrace;
 
 pub enum ModuleElements {
     Function(FunctionElement),
 }
 
 impl ModuleElements {
-    pub fn get_name(&self) -> String {
+    pub fn get_name(&self) -> &'static str {
         match self {
             ModuleElements::Function(e) => e.name.clone(),
         }
     }
 
-    pub fn get_hash(&self) -> usize {
+    pub fn get_hash(&self) -> Option<usize> {
         match self {
             ModuleElements::Function(e) => e.hash,
         }
     }
+
+    pub fn set_hash(&mut self, hash: usize) {
+        match self {
+            ModuleElements::Function(e) => e.hash = Some(hash),
+        }
+    }
 }
+
 pub struct EllieModule {
     pub module_name: String,
-    pub module_hash: usize,
     pub elements: Vec<ModuleElements>,
 }
 
+pub type FunctionElementCallback =
+    Box<dyn FnMut(ThreadInfo, Vec<VmNativeCallParameters>) -> VmNativeAnswer + Send>;
+
 pub struct FunctionElement {
-    pub name: String,
-    pub hash: usize,
+    pub name: &'static str,
+    pub hash: Option<usize>,
     /// This is a callback function that will be called when the function is called
     /// (ThreadInfo, params)
-    pub callback: Box<dyn FnMut(ThreadInfo, Vec<VmNativeCallParameters>) -> VmNativeAnswer + Send>,
+    pub callback: FunctionElementCallback,
+}
+
+impl FunctionElement {
+    pub fn new(name: &'static str, callback: FunctionElementCallback) -> FunctionElement {
+        FunctionElement {
+            name,
+            hash: None,
+            callback,
+        }
+    }
 }
 
 impl EllieModule {
-    pub fn new(module_name: String, module_hash: usize) -> Self {
+    pub fn new(module_name: String) -> Self {
         EllieModule {
             module_name,
-            module_hash,
             elements: Vec::new(),
         }
     }
@@ -49,7 +68,20 @@ impl EllieModule {
         for element in self.elements.iter_mut() {
             match element {
                 ModuleElements::Function(e) => {
-                    if e.hash == hash {
+                    if e.hash.is_some() && e.hash.unwrap() == hash {
+                        return Some(element);
+                    }
+                }
+            }
+        }
+        None
+    }
+
+    pub fn get_emiter_by_name(&mut self, name: &str) -> Option<&mut ModuleElements> {
+        for element in self.elements.iter_mut() {
+            match element {
+                ModuleElements::Function(e) => {
+                    if e.name == name {
                         return Some(element);
                     }
                 }
@@ -74,7 +106,7 @@ impl ModuleManager {
         for module in self.modules.iter_mut() {
             let mut found = false;
             for element in module.elements.iter() {
-                if element.get_hash() == hash {
+                if element.get_hash() == Some(hash) {
                     found = true;
                     break;
                 }
@@ -90,21 +122,43 @@ impl ModuleManager {
         self.modules.push(module);
     }
 
-    pub fn get_module(&mut self, module_hash: usize) -> Option<&mut EllieModule> {
+    pub fn get_module(&mut self, module_name: &str) -> Option<&mut EllieModule> {
         for module in self.modules.iter_mut() {
-            if module.module_hash == module_hash {
+            if module.module_name == module_name {
                 return Some(module);
             }
         }
         None
     }
 
-    pub fn get_module_mut(&mut self, module_hash: usize) -> Option<&mut EllieModule> {
+    pub fn get_module_mut(&mut self, module_name: String) -> Option<&mut EllieModule> {
         for module in self.modules.iter_mut() {
-            if module.module_hash == module_hash {
+            if module.module_name == module_name {
                 return Some(module);
             }
         }
         None
+    }
+
+    /// Register function to existing module items
+    /// This function gets the native call trace from program and and matches with
+    /// already registered native module functions.
+    /// ## Params
+    /// * `trace` - [`NativeCallTrace`]
+    /// ## Output
+    /// * [`Option<usize>`]
+    /// if the function is registered successfully it will return None,
+    /// or else it will return the cause of the error
+    pub fn add_native_call_trace(&mut self, trace: NativeCallTrace) -> Option<&'static str> {
+        if let Some(module) = self.get_module(&trace.module_name) {
+            if let Some(emiter) = module.get_emiter_by_name(&trace.function_name) {
+                emiter.set_hash(trace.function_hash);
+                None
+            } else {
+                Some("Function not found on module")
+            }
+        } else {
+            Some("Module not found")
+        }
     }
 }

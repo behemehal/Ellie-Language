@@ -237,14 +237,7 @@ pub fn generate_elliec_options() -> Command<'static> {
                         .long("--output-type")
                         .takes_value(true)
                         .default_value("byteCode")
-                        .possible_values([
-                            "bin",
-                            "json",
-                            "byteCode",
-                            "byteCodeAsm",
-                            "depA",
-                            "nop",
-                        ]),
+                        .possible_values(["bin", "json", "byteCode", "byteCodeAsm", "depA", "nop"]),
                 )
                 .arg(
                     Arg::new("target")

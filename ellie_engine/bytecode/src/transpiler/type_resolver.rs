@@ -585,7 +585,7 @@ pub fn resolve_type(
                     Instruction::immediate(
                         Types::StaticArray,
                         usize_to_le_bytes(
-                            assembler.location(),
+                            assembler.location() + 1,
                             assembler.platform_attributes.architecture,
                         ),
                     ),

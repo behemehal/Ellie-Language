@@ -3,9 +3,7 @@ pub mod utils;
 use std::fs::File;
 use std::time::Instant;
 
-use ellie_engine::ellie_bytecode::assembler::{
-    AssembleResult, Assembler, PlatformAttributes,
-};
+use ellie_engine::ellie_bytecode::assembler::{AssembleResult, Assembler, PlatformAttributes};
 use ellie_engine::ellie_core::defs::{DebugHeader, DebugInfo, PlatformArchitecture};
 use ellie_engine::ellie_vm::program::VmProgram;
 use ellie_engine::ellie_vm::utils::ThreadExit;
@@ -180,7 +178,7 @@ HEAP DUMP:
                             debug_file: &DebugInfo,
                         ) -> String {
                             let module_name = debug_header
-                                .module
+                                .module_name
                                 .split("<ellie_module_")
                                 .nth(1)
                                 .unwrap()
@@ -194,14 +192,14 @@ HEAP DUMP:
                             let real_path = match module_path {
                                 Some(module_path) => match &module_path.module_path {
                                     Some(module_path) => {
-                                        let new_path = debug_header.module.clone();
+                                        let new_path = debug_header.module_name.clone();
                                         let starter_name =
                                             format!("<ellie_module_{}>", module_name);
                                         new_path.replace(&starter_name, &module_path)
                                     }
-                                    None => debug_header.module.clone(),
+                                    None => debug_header.module_name.clone(),
                                 },
-                                None => debug_header.module.clone(),
+                                None => debug_header.module_name.clone(),
                             };
                             real_path
                         }
@@ -209,7 +207,7 @@ HEAP DUMP:
                         let real_path = get_real_path(
                             e,
                             &DebugInfo {
-                                module_map: assembler_result.module_info.modue_maps.clone(),
+                                module_map: assembler_result.module_info.module_maps.clone(),
                                 debug_headers: assembler_result.debug_headers.clone(),
                             },
                         );

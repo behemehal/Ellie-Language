@@ -200,11 +200,17 @@ impl TypeId {
     }
 
     pub fn float() -> Self {
-        Self { id: 2, size: mem::size_of::<f64>(), }
+        Self {
+            id: 2,
+            size: mem::size_of::<f64>(),
+        }
     }
 
     pub fn double() -> Self {
-        Self { id: 3, size: mem::size_of::<f32>(), }
+        Self {
+            id: 3,
+            size: mem::size_of::<f32>(),
+        }
     }
 
     pub fn byte() -> Self {
@@ -402,7 +408,10 @@ impl RawType {
 
     pub fn float(data: Vec<u8>) -> RawType {
         RawType {
-            type_id: TypeId { id: 2, size: mem::size_of::<f64>(), },
+            type_id: TypeId {
+                id: 2,
+                size: mem::size_of::<f64>(),
+            },
             data,
         }
     }

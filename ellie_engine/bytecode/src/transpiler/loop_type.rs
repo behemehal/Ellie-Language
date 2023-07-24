@@ -71,7 +71,8 @@ impl super::Transpiler for loop_type::Loop {
         assembler.debug_headers.push(DebugHeader {
             rtype: DebugHeaderType::Condition,
             hash: limit_platform_size(self.hash, assembler.platform_attributes.architecture),
-            module: processed_page.path.clone(),
+            module_name: processed_page.path.clone(),
+            module_hash: processed_page.hash,
             name: "<loop>".to_string(),
             start_end: (start_pos, assembler.location()),
             pos: self.pos,

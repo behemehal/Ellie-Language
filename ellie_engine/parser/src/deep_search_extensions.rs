@@ -113,15 +113,16 @@ pub fn generate_type_from_defining(
                     parent_generic.generics[0].value.clone(),
                     page_id,
                     parser,
-                ).map(|t| Types::Array(
-                        ellie_core::definite::types::array::ArrayType {
-                            collective: vec![ellie_core::definite::types::array::ArrayEntry {
-                                value: t,
-                                location: defs::Cursor::default(),
-                            }],
-                            pos: defs::Cursor::default(),
-                        },
-                    ))
+                )
+                .map(|t| {
+                    Types::Array(ellie_core::definite::types::array::ArrayType {
+                        collective: vec![ellie_core::definite::types::array::ArrayEntry {
+                            value: t,
+                            location: defs::Cursor::default(),
+                        }],
+                        pos: defs::Cursor::default(),
+                    })
+                })
             } else if parent_generic.rtype == "cloak" {
                 let mut cloak_entries = vec![];
                 let mut unresolved_element_available = false;
@@ -154,19 +155,18 @@ pub fn generate_type_from_defining(
                     parent_generic.generics[0].value.clone(),
                     page_id,
                     parser,
-                ).map(|t| Types::Collective(
-                        ellie_core::definite::types::collective::CollectiveType {
-                            entries: vec![
-                                ellie_core::definite::types::collective::CollectiveEntry {
-                                    key: "?".to_string(),
-                                    value: t,
-                                    key_pos: defs::Cursor::default(),
-                                    value_pos: defs::Cursor::default(),
-                                },
-                            ],
-                            pos: defs::Cursor::default(),
-                        },
-                    ))
+                )
+                .map(|t| {
+                    Types::Collective(ellie_core::definite::types::collective::CollectiveType {
+                        entries: vec![ellie_core::definite::types::collective::CollectiveEntry {
+                            key: "?".to_string(),
+                            value: t,
+                            key_pos: defs::Cursor::default(),
+                            value_pos: defs::Cursor::default(),
+                        }],
+                        pos: defs::Cursor::default(),
+                    })
+                })
             } else {
                 let hash_deep_search = crate::deep_search_extensions::deep_search_hash(
                     parser,
@@ -2621,50 +2621,57 @@ pub fn resolve_type(
                 }
             }
         }
-        DeepTypeResult::ClassCall(class_call) => match (*class_call.target).clone() {
-            Types::Cloak(cloak) => {
-                if cloak.collective.len() == 1 {
-                    unimplemented!()
-                } else {
-                    unreachable!()
+        DeepTypeResult::ClassCall(class_call) => {
+            match (*class_call.target).clone() {
+                Types::Cloak(cloak) => {
+                    if cloak.collective.len() == 1 {
+                        unimplemented!()
+                    } else {
+                        unreachable!()
+                    }
                 }
-            }
-            Types::VariableType(variable) => {
-                let deep_search_result = parser.deep_search(
-                    target_page,
-                    variable.value.clone(),
-                    None,
-                    Vec::new(),
-                    0,
-                    None,
-                );
-                let targeted_class = find_type(variable.value.clone(), target_page, parser)
-                    .unwrap_or_else(|| panic!("Failed to find class {}", variable.value));
+                Types::VariableType(variable) => {
+                    let deep_search_result = parser.deep_search(
+                        target_page,
+                        variable.value.clone(),
+                        None,
+                        Vec::new(),
+                        0,
+                        None,
+                    );
+                    let targeted_class = find_type(variable.value.clone(), target_page, parser)
+                        .unwrap_or_else(|| panic!("Failed to find class {}", variable.value));
 
-                if deep_search_result.found {
-                    match deep_search_result.found_item {
-                        crate::parser::DeepSearchItems::Class(e) => {
-                            /*
-                            if e.generic_definings.len() != class_call.generic_parameters.len() {
-                                unreachable!()
-                            } else
-                            */
-                            if e.body.iter().find_map(|x| match x {
+                    if deep_search_result.found {
+                        match deep_search_result.found_item {
+                            crate::parser::DeepSearchItems::Class(e) => {
+                                /*
+                                if e.generic_definings.len() != class_call.generic_parameters.len() {
+                                    unreachable!()
+                                } else
+                                */
+                                if e.body
+                                    .iter()
+                                    .find_map(|x| {
+                                        match x {
                                 ellie_tokenizer::processors::items::Processors::Constructor(e) => {
                                     Some(e)
                                 }
                                 _ => None,
-                            }).is_some() {
-                                if class_call.generic_parameters.is_empty() {
-                                    Some(definers::DefinerCollecting::Generic(
-                                        definers::GenericType {
-                                            rtype: variable.value.clone(),
-                                            hash: targeted_class.hash,
-                                            pos: defs::Cursor::default(),
-                                        },
-                                    ))
-                                } else {
-                                    Some(definers::DefinerCollecting::ParentGeneric(
+                            }
+                                    })
+                                    .is_some()
+                                {
+                                    if class_call.generic_parameters.is_empty() {
+                                        Some(definers::DefinerCollecting::Generic(
+                                            definers::GenericType {
+                                                rtype: variable.value.clone(),
+                                                hash: targeted_class.hash,
+                                                pos: defs::Cursor::default(),
+                                            },
+                                        ))
+                                    } else {
+                                        Some(definers::DefinerCollecting::ParentGeneric(
                                         definers::ParentGenericType {
                                             rtype: variable.value.clone(),
                                             generics: class_call.generic_parameters.iter().map(|x| {
@@ -2677,17 +2684,17 @@ pub fn resolve_type(
                                             hash: targeted_class.hash,
                                         },
                                     ))
-                                }
-                            } else if class_call.generic_parameters.is_empty() {
-                                Some(definers::DefinerCollecting::Generic(
-                                    definers::GenericType {
-                                        rtype: variable.value.clone(),
-                                        hash: targeted_class.hash,
-                                        pos: defs::Cursor::default(),
-                                    },
-                                ))
-                            } else {
-                                Some(definers::DefinerCollecting::ParentGeneric(
+                                    }
+                                } else if class_call.generic_parameters.is_empty() {
+                                    Some(definers::DefinerCollecting::Generic(
+                                        definers::GenericType {
+                                            rtype: variable.value.clone(),
+                                            hash: targeted_class.hash,
+                                            pos: defs::Cursor::default(),
+                                        },
+                                    ))
+                                } else {
+                                    Some(definers::DefinerCollecting::ParentGeneric(
                                     definers::ParentGenericType {
                                         rtype: variable.value.clone(),
                                         generics: class_call.generic_parameters.iter().map(|x| {
@@ -2700,26 +2707,27 @@ pub fn resolve_type(
                                         hash: targeted_class.hash,
                                     },
                                 ))
+                                }
+                            }
+                            crate::parser::DeepSearchItems::GenericItem(_) => todo!(),
+                            crate::parser::DeepSearchItems::FunctionParameter(_) => {
+                                unimplemented!()
+                            }
+                            crate::parser::DeepSearchItems::ConstructorParameter(_) => {
+                                unimplemented!()
+                            }
+                            _ => {
+                                unreachable!()
                             }
                         }
-                        crate::parser::DeepSearchItems::GenericItem(_) => todo!(),
-                        crate::parser::DeepSearchItems::FunctionParameter(_) => {
-                            unimplemented!()
-                        }
-                        crate::parser::DeepSearchItems::ConstructorParameter(_) => {
-                            unimplemented!()
-                        }
-                        _ => {
-                            unreachable!()
-                        }
+                    } else {
+                        unreachable!()
                     }
-                } else {
-                    unreachable!()
                 }
-            }
 
-            _ => unreachable!(),
-        },
+                _ => unreachable!(),
+            }
+        }
         DeepTypeResult::FunctionCall(e) => Some(e.returning),
         DeepTypeResult::Void => {
             let void_type = find_type("void".to_string(), target_page, parser);

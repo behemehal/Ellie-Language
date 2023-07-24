@@ -15,14 +15,8 @@ pub fn process(
     let mut found = DefinerCollecting::Dynamic;
     match from.clone() {
         DefinerTypes::Cloak(e) => {
-            let deep_search_result = parser.deep_search(
-                page_id,
-                "cloak".to_string(),
-                ignore_hash,
-                vec![],
-                0,
-                None,
-            );
+            let deep_search_result =
+                parser.deep_search(page_id, "cloak".to_string(), ignore_hash, vec![], 0, None);
 
             if deep_search_result.found {
                 match deep_search_result.found_item {
@@ -75,14 +69,8 @@ pub fn process(
             }
         }
         DefinerTypes::Array(array_type) => {
-            let deep_search_result = parser.deep_search(
-                page_id,
-                "array".to_string(),
-                ignore_hash,
-                vec![],
-                0,
-                None,
-            );
+            let deep_search_result =
+                parser.deep_search(page_id, "array".to_string(), ignore_hash, vec![], 0, None);
 
             if deep_search_result.found {
                 match deep_search_result.found_item {
@@ -487,14 +475,8 @@ pub fn process(
             }
         }
         DefinerTypes::Generic(generic) => {
-            let deep_search_result = parser.deep_search(
-                page_id,
-                generic.rtype.clone(),
-                ignore_hash,
-                vec![],
-                0,
-                None,
-            );
+            let deep_search_result =
+                parser.deep_search(page_id, generic.rtype.clone(), ignore_hash, vec![], 0, None);
 
             if deep_search_result.found {
                 match deep_search_result.found_item {
@@ -609,18 +591,14 @@ pub fn process(
                             })
                             .collect();
 
-                        let returning = match process(
-                            *e.returning.clone(),
-                            parser,
-                            page_id,
-                            ignore_hash,
-                        ) {
-                            Ok(e) => Some(e),
-                            Err(e) => {
-                                errors.extend(e);
-                                None
-                            }
-                        };
+                        let returning =
+                            match process(*e.returning.clone(), parser, page_id, ignore_hash) {
+                                Ok(e) => Some(e),
+                                Err(e) => {
+                                    errors.extend(e);
+                                    None
+                                }
+                            };
 
                         if errors.is_empty() {
                             found = DefinerCollecting::Function(definers::FunctionType {

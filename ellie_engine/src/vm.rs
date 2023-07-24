@@ -69,10 +69,22 @@ pub fn parse_debug_file(dbg_file: String) -> Result<DebugInfo, String> {
             break;
         } else {
             let line = line.split(':').collect::<Vec<_>>();
-            let module_name = line[0].to_string();
+            if line.len() != 2 {
+                return Err(format!("Broken debug header, line: {}", module_maps.len()));
+            }
+            let module_info = line[0].to_string();
+            let module_info = module_info.split("-").collect::<Vec<_>>();
+            if module_info.len() != 2 {
+                return Err(format!("Broken debug header, line: {}", module_maps.len()));
+            }
+            let module_hash = match module_info[0].parse::<usize>() {
+                Ok(hash) => hash,
+                Err(_) => return Err(format!("Broken debug header, line: {}", module_maps.len())),
+            };
             let path = line[1..].join(":").to_string().trim().to_string();
             module_maps.push(ModuleMap {
-                module_name,
+                module_name: module_info[0].to_string(),
+                module_hash,
                 module_path: if path == "-" { None } else { Some(path) },
             });
         }
@@ -147,10 +159,18 @@ pub fn parse_debug_file(dbg_file: String) -> Result<DebugInfo, String> {
             }
         };
 
+        let module_hash = match line[3].parse::<usize>() {
+            Ok(n) => n,
+            Err(_) => {
+                return Err(format!("Broken debug header, line: {}", idx + 1));
+            }
+        };
+
         debug_headers.push(DebugHeader {
             start_end,
-            module: line[2].to_string(),
-            name: line[3].to_string(),
+            module_name: line[2].to_string(),
+            module_hash,
+            name: line[4].to_string(),
             pos,
             rtype: DebugHeaderType::Variable,
             hash,

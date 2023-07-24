@@ -444,7 +444,7 @@ where
                             hash: resolved.hash,
                             processed: match &resolved.matched {
                                 ImportType::Code(_) => true,
-                                ImportType::Module(_) => false
+                                ImportType::Module(_) => false,
                             },
                             module: match &resolved.matched {
                                 ImportType::Code(_) => None,

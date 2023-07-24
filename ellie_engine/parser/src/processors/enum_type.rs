@@ -2,14 +2,14 @@
 #![allow(unreachable_code)]
 use alloc::vec::Vec;
 use alloc::{borrow::ToOwned, vec};
+use ellie_core::utils;
+#[cfg(feature = "standard_rules")]
+use ellie_core::warning;
 use ellie_core::{
     definite::items::enum_type::{EnumItem, EnumValue},
     error,
 };
-use ellie_core::utils;
 use ellie_tokenizer::syntax::items::enum_type::EnumType;
-#[cfg(feature = "standard_rules")]
-use ellie_core::warning;
 
 impl super::Processor for EnumType {
     fn process(

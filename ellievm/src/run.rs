@@ -13,7 +13,32 @@ use crate::VmSettings;
 
 pub fn run(program: Program, vm_settings: VmSettings, debug_file: Option<DebugInfo>) {
     let vm_program = VmProgram::new_from_vector(program.instructions);
+    let cli_color = &CliColor;
     let mut module_manager = ModuleManager::new();
+
+    //Register incoming modules
+    for module in vm_settings.modules {
+        module_manager.register_module(module);
+    }
+
+    //Register hashes of all the functions in the program to belonging module functions
+    for trace in program.native_call_traces {
+        let trace_path = format!("{}->{}", trace.module_name, trace.function_name);
+        if let Some(cause) = module_manager.add_native_call_trace(trace) {
+            println!(
+                "{}Error:{} Failed to register native function: {}'{}'{} {}[{:?}]{}",
+                cli_color.color(Colors::Red),
+                cli_color.color(Colors::Reset),
+                cli_color.color(Colors::Magenta),
+                cause,
+                cli_color.color(Colors::Reset),
+                cli_color.color(Colors::Cyan),
+                trace_path,
+                cli_color.color(Colors::Reset)
+            );
+            std::process::exit(1);
+        }
+    }
 
     let cli_color = &CliColor;
 
@@ -21,12 +46,6 @@ pub fn run(program: Program, vm_settings: VmSettings, debug_file: Option<DebugIn
     let mut thread = Thread::new(program.main.hash, PlatformArchitecture::B64, isolate);
     thread.build_thread(program.main.clone());
     let output = thread.run(&mut module_manager, &vm_program);
-    println!(
-        "{}[VM]{}: Thread exited with {:?}",
-        cli_color.color(Colors::Yellow),
-        cli_color.color(Colors::Reset),
-        output
-    );
     match output {
         ThreadExit::ExitGracefully => {
             if vm_settings.heap_dump {
@@ -68,7 +87,7 @@ pub fn run(program: Program, vm_settings: VmSettings, debug_file: Option<DebugIn
                                     debug_file: &DebugInfo,
                                 ) -> String {
                                     let module_name = debug_header
-                                        .module
+                                        .module_name
                                         .split("<ellie_module_")
                                         .nth(1)
                                         .unwrap()
@@ -82,14 +101,14 @@ pub fn run(program: Program, vm_settings: VmSettings, debug_file: Option<DebugIn
                                     let real_path = match module_path {
                                         Some(module_path) => match &module_path.module_path {
                                             Some(module_path) => {
-                                                let new_path = debug_header.module.clone();
+                                                let new_path = debug_header.module_name.clone();
                                                 let starter_name =
                                                     format!("<ellie_module_{}>", module_name);
                                                 new_path.replace(&starter_name, &module_path)
                                             }
-                                            None => debug_header.module.clone(),
+                                            None => debug_header.module_name.clone(),
                                         },
-                                        None => debug_header.module.clone(),
+                                        None => debug_header.module_name.clone(),
                                     };
                                     real_path
                                 }
@@ -154,6 +173,7 @@ pub fn run(program: Program, vm_settings: VmSettings, debug_file: Option<DebugIn
                     thread.isolate.stack_dump(),
                 );
             }
+            std::process::exit(1);
         }
     }
 }

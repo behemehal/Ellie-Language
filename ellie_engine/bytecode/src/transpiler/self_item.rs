@@ -1,8 +1,5 @@
-use crate::{
-    instruction_table, instructions::Instruction,
-    utils::limit_platform_size,
-};
-use alloc::{string::ToString};
+use crate::{instruction_table, instructions::Instruction, utils::limit_platform_size};
+use alloc::string::ToString;
 use ellie_core::{
     definite::items::self_item,
     defs::{DebugHeader, DebugHeaderType},
@@ -23,27 +20,11 @@ impl super::Transpiler for self_item::SelfItem {
             rtype: DebugHeaderType::Variable,
             hash: limit_platform_size(self.class_hash, assembler.platform_attributes.architecture),
             start_end: (assembler.location() - 1, assembler.location()),
-            module: processed_page.path.clone(),
+            module_name: processed_page.path.clone(),
+            module_hash: processed_page.hash,
             name: "self".to_string(),
             pos: self.pos,
         });
-
-        //assembler.locals.push(LocalHeader {
-        //    name: "self".to_string(),
-        //    cursor: assembler.location(),
-        //    page_hash: processed_page.hash,
-        //    hash: Some(self.class_hash),
-        //    reference: Instruction::absolute(self.class_hash),
-        //});
-        //for item in &self.attributes {
-        //    assembler.locals.push(LocalHeader {
-        //        name: format!("self.{}", item.name),
-        //        cursor: 0,
-        //        page_hash: processed_page.hash,
-        //        hash: Some(item.hash),
-        //        reference: Instruction::absolute(item.hash),
-        //    });
-        //}
         true
     }
 }
