@@ -376,10 +376,16 @@ impl RawType {
     }
 
     pub fn to_string(&self) -> String {
-        match String::from_utf8(self.data.clone()) {
-            Ok(e) => e,
-            Err(_) => "Invalid UTF-8 sequence".to_string(),
+        let mut string = String::new();
+        // Get data as 4 byte chunks
+        for byte_chunk in self.data.chunks(4) {
+            // convert data to u32
+            let u32 = u32::from_le_bytes(byte_chunk.try_into().unwrap());
+            // convert u32 to char if failed add � [U+FFFD] instead.
+            let char = char::from_u32(u32).unwrap_or(char::REPLACEMENT_CHARACTER);
+            string.push(char);
         }
+        string
     }
 
     pub fn to_function(&self, arch: PlatformArchitecture) -> Function {
