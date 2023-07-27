@@ -77,7 +77,7 @@ pub fn parse_debug_file(dbg_file: String) -> Result<DebugInfo, String> {
             if module_info.len() != 2 {
                 return Err(format!("Broken debug header, line: {}", module_maps.len()));
             }
-            let module_hash = match module_info[0].parse::<usize>() {
+            let module_hash = match module_info[1].parse::<usize>() {
                 Ok(hash) => hash,
                 Err(_) => return Err(format!("Broken debug header, line: {}", module_maps.len())),
             };
@@ -98,7 +98,7 @@ pub fn parse_debug_file(dbg_file: String) -> Result<DebugInfo, String> {
 
     for (idx, header) in dbg_headers.enumerate() {
         let line = header.split(':').collect::<Vec<_>>();
-        if line.len() != 9 {
+        if line.len() != 10 {
             return Err(format!("Broken debug header, line: {}", idx + 1));
         }
 
@@ -118,13 +118,13 @@ pub fn parse_debug_file(dbg_file: String) -> Result<DebugInfo, String> {
         );
 
         let pos_range_start = (
-            match line[4].parse::<usize>() {
+            match line[5].parse::<usize>() {
                 Ok(n) => n,
                 Err(_) => {
                     return Err(format!("Broken debug header, line: {}", idx + 1));
                 }
             },
-            match line[5].parse::<usize>() {
+            match line[6].parse::<usize>() {
                 Ok(n) => n,
                 Err(_) => {
                     return Err(format!("Broken debug header, line: {}", idx + 1));
@@ -133,13 +133,13 @@ pub fn parse_debug_file(dbg_file: String) -> Result<DebugInfo, String> {
         );
 
         let pos_range_end = (
-            match line[6].parse::<usize>() {
+            match line[7].parse::<usize>() {
                 Ok(n) => n,
                 Err(_) => {
                     return Err(format!("Broken debug header, line: {}", idx + 1));
                 }
             },
-            match line[7].parse::<usize>() {
+            match line[8].parse::<usize>() {
                 Ok(n) => n,
                 Err(_) => {
                     return Err(format!("Broken debug header, line: {}", idx + 1));
@@ -152,7 +152,7 @@ pub fn parse_debug_file(dbg_file: String) -> Result<DebugInfo, String> {
             range_end: CursorPosition(pos_range_end.0, pos_range_end.1),
         };
 
-        let hash = match line[8].parse::<usize>() {
+        let hash = match line[9].parse::<usize>() {
             Ok(n) => n,
             Err(_) => {
                 return Err(format!("Broken debug header, line: {}", idx + 1));
