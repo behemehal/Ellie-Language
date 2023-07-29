@@ -96,6 +96,7 @@ impl super::Processor for SetterCall {
                                     page.items.push(ellie_core::definite::items::Collecting::SetterCall(
                                             ellie_core::definite::items::setter_call::SetterCall {
                                                 target,
+                                                hash: self.hash,
                                                 value: processed_value_type,
                                                 target_pos: self.target_pos,
                                                 value_pos: self.value_pos,
@@ -236,6 +237,7 @@ impl super::Processor for SetterCall {
                                         page.items.push(ellie_core::definite::items::Collecting::SetterCall(
                                             ellie_core::definite::items::setter_call::SetterCall {
                                                 target,
+                                                hash: self.hash,
                                                 value: processed_value_type,
                                                 target_pos: self.target_pos,
                                                 value_pos: self.value_pos,
@@ -428,6 +430,7 @@ impl super::Processor for SetterCall {
                                                         page.items.push(ellie_core::definite::items::Collecting::SetterCall(
                                                             ellie_core::definite::items::setter_call::SetterCall {
                                                                 target,
+                                                                hash: self.hash,
                                                                 value: processed_value_type,
                                                                 target_pos: self.target_pos,
                                                                 value_pos: self.value_pos,
@@ -559,6 +562,7 @@ impl super::Processor for SetterCall {
                                                 target,
                                                 value: processed_value_type,
                                                 target_pos: self.target_pos,
+                                                hash: self.hash,
                                                 value_pos: self.value_pos,
                                                 operator: match self.operator  {
                                                     AssignmentOperators::Assignment => ellie_core::definite::types::operator::AssignmentOperators::Assignment,

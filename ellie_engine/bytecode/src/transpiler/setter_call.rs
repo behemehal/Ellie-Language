@@ -2,8 +2,12 @@ use super::type_resolver::resolve_type;
 use crate::addressing_modes::AddressingModes;
 use crate::instruction_table;
 use crate::instructions;
+use crate::utils::limit_platform_size;
+use alloc::string::ToString;
 use alloc::vec;
 use ellie_core::definite::items::setter_call;
+use ellie_core::defs::DebugHeader;
+use ellie_core::defs::DebugHeaderType;
 
 impl super::Transpiler for setter_call::SetterCall {
     fn transpile(
@@ -14,6 +18,9 @@ impl super::Transpiler for setter_call::SetterCall {
     ) -> bool {
         let mut dependencies = vec![processed_page.hash];
         dependencies.extend(processed_page.dependencies.iter().map(|d| d.hash));
+
+
+        let location = assembler.location();
 
         //Resolve the value to be inserted
         resolve_type(
@@ -184,6 +191,16 @@ impl super::Transpiler for setter_call::SetterCall {
                         unreachable!()
                     }
                 }
+
+                assembler.debug_headers.push(DebugHeader {
+                    rtype: DebugHeaderType::Variable,
+                    hash: limit_platform_size(self.hash, assembler.platform_attributes.architecture),
+                    start_end: (location, assembler.location()),
+                    module_name: processed_page.path.clone(),
+                    module_hash: processed_page.hash,
+                    name: "".to_string(),
+                    pos: self.target_pos,
+                });
             }
         }
         true
