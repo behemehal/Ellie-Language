@@ -398,6 +398,7 @@ pub fn operator_control(
                     ("byte", "byte") | ("byte", "int") => None,
                     ("string", "string")
                     | ("string", "int")
+                    | ("string", "char")
                     | ("string", "float")
                     | ("string", "double")
                     | ("string", "bool")
@@ -436,6 +437,7 @@ pub fn operator_control(
                     | ("byte", "byte")
                     | ("byte", "int")
                     | ("string", "string")
+                    | ("string", "char")
                     | ("string", "int")
                     | ("string", "float")
                     | ("string", "double")
@@ -624,6 +626,10 @@ where
 
     pub fn nth(&self, n: usize) -> Option<&T> {
         self.pages.get(n)
+    }
+
+    pub fn len(&self) -> usize {
+        self.pages.len()
     }
 
     /// Find page
