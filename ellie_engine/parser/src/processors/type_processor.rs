@@ -16,6 +16,7 @@ use ellie_core::{
     error,
 };
 use ellie_tokenizer::processors::types::Processors;
+use ellie_tokenizer::syntax::types::operator_type::Operators;
 use ellie_tokenizer::tokenizer::PageType;
 
 pub fn process(
@@ -343,6 +344,17 @@ pub fn process(
 
             let first = _first_value.to_string();
             let second = _second_value.to_string();
+
+            if let Operators::AssignmentType(_) = operator.data.operator {
+                if !operator.data.first.is_assignable() {
+                    return Err(vec![error::error_list::ERROR_S43.clone().build_with_path(
+                        vec![],
+                        alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                        parser.find_page(page_id).unwrap().path.clone(),
+                        operator.data.pos,
+                    )]);
+                }
+            }
 
             match ellie_core::utils::operator_control(
                 operator.data.operator.clone().to_definite(),

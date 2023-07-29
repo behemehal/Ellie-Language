@@ -237,6 +237,15 @@ impl Processors {
         }
     }
 
+    pub fn is_assignable(&self) -> bool {
+        match self {
+            Processors::Variable(_) => true,
+            Processors::Reference(_) => true,
+            Processors::BraceReference(_) => true,
+            _ => false
+        }
+    }
+
     pub fn get_pos(&self) -> defs::Cursor {
         match self {
             Processors::Integer(e) => e.data.pos,

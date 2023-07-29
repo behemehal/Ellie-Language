@@ -2432,29 +2432,19 @@ pub fn resolve_type(
                     }
                 }
                 ellie_core::definite::types::operator::Operators::AssignmentType(_) => {
-                    let res =
-                        resolve_type(*operator.first.clone(), target_page, parser, errors, pos)
-                            .unwrap()
-                            .to_string();
-                    errors.push(error::error_list::ERROR_S3.clone().build_with_path(
-                        vec![
-                            error::ErrorBuildField {
-                                key: "token1".to_owned(),
-                                value: "bool".to_string(),
+                    let first =
+                        resolve_type(*operator.first.clone(), target_page, parser, errors, pos);
+
+                    match first {
+                        Some(first) => (
+                            match first.clone() {
+                                definers::DefinerCollecting::Generic(e) => Some(e),
+                                _ => None,
                             },
-                            error::ErrorBuildField {
-                                key: "token1".to_owned(),
-                                value: res,
-                            },
-                        ],
-                        alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                        parser.find_page(target_page).unwrap().path.clone(),
-                        match pos {
-                            Some(e) => e,
-                            None => defs::Cursor::default(),
-                        },
-                    ));
-                    return None;
+                            first.to_string(),
+                        ),
+                        None => (None, String::new()),
+                    }
                 }
                 ellie_core::definite::types::operator::Operators::Null => {
                     unreachable!()
