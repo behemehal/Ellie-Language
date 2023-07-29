@@ -2561,7 +2561,19 @@ pub fn resolve_type(
                                     );
                                 }
                                 None => {
-                                    panic!("Unhandled behaviour, failed to find string type");
+                                    errors.push(error::error_list::ERROR_S38.clone().build_with_path(
+                                        vec![error::ErrorBuildField {
+                                            key: "token".to_owned(),
+                                            value: "dyn".to_string(),
+                                        }],
+                                        alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                                        parser.find_page(target_page).unwrap().path.clone(),
+                                        match pos {
+                                            Some(e) => e,
+                                            None => unreachable!(),
+                                        },
+                                    ));
+                                    return None;
                                 }
                             }
 
