@@ -6,7 +6,7 @@ use crate::{
 };
 use alloc::vec::Vec;
 use core::mem;
-use ellie_core::defs::{NativeCallTrace, PlatformArchitecture};
+use ellie_core::defs::{PlatformArchitecture, NativeCallTrace};
 
 #[derive(Debug, Clone, Copy)]
 pub struct ReadInstruction {
@@ -326,6 +326,7 @@ impl Program {
 
 pub struct VmProgram {
     pub instructions: [ReadInstruction; PROGRAM_MAX_SIZE],
+    pub traces: Vec<NativeCallTrace>,
     pub length: usize,
 }
 
@@ -333,6 +334,7 @@ impl VmProgram {
     pub fn new() -> Self {
         VmProgram {
             instructions: [ReadInstruction::default(); PROGRAM_MAX_SIZE],
+            traces: Vec::new(),
             length: 0,
         }
     }
@@ -348,5 +350,9 @@ impl VmProgram {
             self.instructions[idx] = *instruction;
         }
         self.length = program.len();
+    }
+
+    pub fn fill_traces(&mut self, traces: Vec<NativeCallTrace>) {
+        self.traces = traces
     }
 }

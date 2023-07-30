@@ -85,9 +85,11 @@ pub enum ThreadPanicReason {
     // This panic triggered from A2(n) instructions, when instruction does not support conversion between types
     CannotConvertToType(u8, u8),
     /// This panic is triggered when a native call not matched with any module_manager item
-    CallToUnknown(usize),
+    CallToUnknown((String , usize)),
     /// This panic is triggered when a native call not matched with any module_manager item
     MissingModule(usize),
+    /// This panic is triggered when a native call does not registered as trace
+    MissingTrace(usize),
     /// Usally arrays are created with first index of it as it's entries size
     /// If array data doesnt have the entry_size or entry_size is zero or less this panic will be triggered
     ArraySizeCorruption,

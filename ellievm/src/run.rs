@@ -12,7 +12,8 @@ use ellie_engine::{
 use crate::VmSettings;
 
 pub fn run(program: Program, vm_settings: VmSettings, debug_file: Option<DebugInfo>) {
-    let vm_program = VmProgram::new_from_vector(program.instructions);
+    let mut vm_program = VmProgram::new_from_vector(program.instructions);
+    vm_program.fill_traces(program.native_call_traces);
     let cli_color = &CliColor;
     let mut module_manager = ModuleManager::new();
 
@@ -21,24 +22,6 @@ pub fn run(program: Program, vm_settings: VmSettings, debug_file: Option<DebugIn
         module_manager.register_module(module);
     }
 
-    //Register hashes of all the functions in the program to belonging module functions
-    for trace in program.native_call_traces {
-        let trace_path = format!("{}->{}", trace.module_name, trace.function_name);
-        if let Some(cause) = module_manager.add_native_call_trace(trace) {
-            println!(
-                "{}Error:{} Failed to register native function: {}'{}'{} {}[{:?}]{}",
-                cli_color.color(Colors::Red),
-                cli_color.color(Colors::Reset),
-                cli_color.color(Colors::Magenta),
-                cause,
-                cli_color.color(Colors::Reset),
-                cli_color.color(Colors::Cyan),
-                trace_path,
-                cli_color.color(Colors::Reset)
-            );
-            std::process::exit(1);
-        }
-    }
 
     let cli_color = &CliColor;
 

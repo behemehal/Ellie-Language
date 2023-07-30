@@ -118,6 +118,22 @@ impl ModuleManager {
         None
     }
 
+    pub fn find_module_by_item_name(&mut self, name: &String) -> Option<&mut EllieModule> {
+        for module in self.modules.iter_mut() {
+            let mut found = false;
+            for element in module.elements.iter() {
+                if element.get_name() == name {
+                    found = true;
+                    break;
+                }
+            }
+            if found {
+                return Some(module);
+            }
+        }
+        None
+    }
+
     pub fn register_module(&mut self, module: EllieModule) {
         self.modules.push(module);
     }

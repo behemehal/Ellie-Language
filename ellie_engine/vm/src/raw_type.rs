@@ -43,6 +43,7 @@ pub enum TypeIds {
 /// * `12`: `function`
 /// * `13`: `stack_reference`
 /// * `14`: `heap_reference`
+/// * `15`: `static_array`
 /// ## Fields
 /// * `id`: The ID of the type.
 /// * `size`: The size of the type.

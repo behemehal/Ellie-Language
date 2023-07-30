@@ -40,3 +40,4 @@ pub mod stack_memory;
 pub mod thread;
 /// Ellie VM's utils
 pub mod utils;
+mod iternal_functions;
