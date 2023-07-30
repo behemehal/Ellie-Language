@@ -9,6 +9,12 @@ Why ellie? Ellie is a type-safe programing language that runs on embedded and sa
 
 ---
 
+## ElliePlayground
+
+To try Ellie online visit [here](https://playground.ellie-lang.org).
+
+---
+
 ## Docs
 
 You can see detailed docs [here](https://docs.ellie-lang.org)

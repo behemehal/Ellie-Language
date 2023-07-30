@@ -40,7 +40,7 @@ use std::{
 
 fn main() {
     let ellie_engine_version: Value;
-    let ellie_engine_version_name = "\"BeautifulTropicalFish\"".to_string();
+    let ellie_engine_version_name = "\"Kaan\"".to_string();
     let ellie_core_version: Value;
     #[cfg(any(feature = "compiler", feature = "fmt"))]
     let ellie_tokenizer_version: Value;
