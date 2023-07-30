@@ -85,7 +85,7 @@ pub enum ThreadPanicReason {
     // This panic triggered from A2(n) instructions, when instruction does not support conversion between types
     CannotConvertToType(u8, u8),
     /// This panic is triggered when a native call not matched with any module_manager item
-    CallToUnknown((String , usize)),
+    CallToUnknown((String, usize)),
     /// This panic is triggered when a native call not matched with any module_manager item
     MissingModule(usize),
     /// This panic is triggered when a native call does not registered as trace

@@ -6,7 +6,7 @@ use crate::{
 };
 use alloc::vec::Vec;
 use core::mem;
-use ellie_core::defs::{PlatformArchitecture, NativeCallTrace};
+use ellie_core::defs::{NativeCallTrace, PlatformArchitecture};
 
 #[derive(Debug, Clone, Copy)]
 pub struct ReadInstruction {

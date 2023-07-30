@@ -58,7 +58,9 @@ impl super::InstructionExecuter for SPUS {
                     }
                     None => {
                         return Err(ExecuterPanic {
-                            reason: ThreadPanicReason::NullReference(current_stack.calculate_frame_pos(*absolute_address)),
+                            reason: ThreadPanicReason::NullReference(
+                                current_stack.calculate_frame_pos(*absolute_address),
+                            ),
                             code_location: format!("{}:{}", file!(), line!()),
                         })
                     }
