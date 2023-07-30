@@ -7,6 +7,12 @@ cargo publish -q
 
 cd ..
 
+cd .\renderer_utils
+echo "Releasing the renderer_utils"
+cargo publish -q
+
+cd ..
+
 cd .\tokenizer
 
 echo "Releasing the tokenizer"

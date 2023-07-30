@@ -59,7 +59,7 @@ fn main() {
             ellie_engine_version = toml["package"]["version"].clone();
         }
         Err(_) => {
-            panic!("Failed to build ellie constants, cannot read Cargo.toml",)
+            return;
         }
     }
 
@@ -69,7 +69,7 @@ fn main() {
             ellie_core_version = toml["package"]["version"].clone();
         }
         Err(_) => {
-            panic!("Failed to build ellie constants, cannot read core/Cargo.toml",)
+            return;
         }
     }
 
@@ -80,7 +80,7 @@ fn main() {
             ellie_tokenizer_version = toml["package"]["version"].clone();
         }
         Err(_) => {
-            panic!("Failed to build ellie constants, cannot read tokenizer/Cargo.toml",)
+            return;
         }
     }
 
@@ -91,7 +91,7 @@ fn main() {
             ellie_parser_version = toml["package"]["version"].clone();
         }
         Err(_) => {
-            panic!("Failed to build ellie constants, cannot read parser/Cargo.toml",)
+            return;
         }
     }
 
@@ -102,7 +102,7 @@ fn main() {
             ellie_bytecode_version = toml["package"]["version"].clone();
         }
         Err(_) => {
-            panic!("Failed to build ellie constants, cannot read bytecode/Cargo.toml",)
+            return;
         }
     }
 
@@ -113,7 +113,7 @@ fn main() {
             ellie_vm_version = toml["package"]["version"].clone();
         }
         Err(_) => {
-            panic!("Failed to build ellie constants, cannot read vm/Cargo.toml",)
+            return;
         }
     }
 
@@ -124,7 +124,7 @@ fn main() {
             ellie_fmt_version = toml["package"]["version"].clone();
         }
         Err(_) => {
-            panic!("Failed to build ellie constants, cannot read vm/Cargo.toml",)
+            return;
         }
     }
 
