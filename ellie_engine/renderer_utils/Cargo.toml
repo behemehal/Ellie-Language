@@ -1,7 +1,12 @@
 [package]
 name = "ellie_renderer_utils"
+description = "Ellie Renderer contains utilities cli apps such as elliec"
 version = "0.2.0"
+authors = ["Ahmetcan Aksu <ahmetcanaksu@behemehal.org>", "Behemehal <info@behemehal.org>"]
 edition = "2021"
+license = "GPL-2.0"
+repository = "https://github.com/behemehal/Ellie-Language"
+homepage = "https://www.ellie-lang.org"
 
 [dependencies]
 lazy_static = { version = "1.4.0", optional = true }

@@ -1,7 +1,12 @@
 [package]
 name = "ellie_vm"
+description = "Ellie VM for running Ellie ByteCode"
 version = "0.4.0"
 edition = "2021"
+license = "GPL-2.0"
+authors = ["Ahmetcan Aksu <ahmetcanaksu@behemehal.org>", "Behemehal <info@behemehal.org>"]
+repository = "https://github.com/behemehal/Ellie-Language"
+homepage = "https://www.ellie-lang.org"
 
 [dependencies]
 ellie_core = { path = "../core", version = "*", default-features = false }

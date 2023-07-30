@@ -5,6 +5,8 @@ version = "0.3.0"
 edition = "2021"
 authors = ["Ahmetcan Aksu <ahmetcanaksu@behemehal.org>", "Behemehal <info@behemehal.org>"]
 license = "GPL-2.0"
+repository = "https://github.com/behemehal/Ellie-Language"
+homepage = "https://www.ellie-lang.org"
 
 [dependencies]
 ellie_core = { path = "../core", version = "*" }

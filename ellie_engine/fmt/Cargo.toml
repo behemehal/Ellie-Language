@@ -5,6 +5,8 @@ version = "0.4.0"
 authors = ["Ahmetcan Aksu <ahmetcanaksu@behemehal.org>", "Behemehal <info@behemehal.org>"]
 edition = "2021"
 license = "GPL-2.0"
+repository = "https://github.com/behemehal/Ellie-Language"
+homepage = "https://www.ellie-lang.org"
 
 [dependencies]
 lazy_static = "1.4.0"
