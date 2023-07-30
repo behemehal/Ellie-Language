@@ -189,10 +189,10 @@ impl AssembleResult {
             dbg_w
                 .write_all(
                     format!(
-                        "{}-{}: {}\n",
+                        "{}E-E{}F:F {}\n",
                         module_map.module_name,
                         module_map.module_hash,
-                        module_map.module_path.clone().unwrap_or("-   ".to_string())
+                        module_map.module_path.clone().unwrap_or("-".to_string())
                     )
                     .as_bytes(),
                 )
@@ -223,7 +223,7 @@ impl AssembleResult {
             dbg_w
                 .write_all(
                     format!(
-                        "{}:{}:{}:{}:{}:{}:{}:{}:{}:{}{}",
+                        "{}F:F{}F:F{}F:F{}F:F{}F:F{}F:F{}F:F{}F:F{}F:F{}{}",
                         header.start_end.0,
                         header.start_end.1,
                         header.module_name,

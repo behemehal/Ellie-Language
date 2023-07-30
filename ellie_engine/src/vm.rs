@@ -68,12 +68,12 @@ pub fn parse_debug_file(dbg_file: String) -> Result<DebugInfo, String> {
             module_maps_ended = true;
             break;
         } else {
-            let line = line.split(':').collect::<Vec<_>>();
+            let line = line.split("F:F").collect::<Vec<_>>();
             if line.len() != 2 {
                 return Err(format!("Broken debug header, line: {}", module_maps.len()));
             }
             let module_info = line[0].to_string();
-            let module_info = module_info.split("-").collect::<Vec<_>>();
+            let module_info = module_info.split("E-E").collect::<Vec<_>>();
             if module_info.len() != 2 {
                 return Err(format!("Broken debug header, line: {}", module_maps.len()));
             }
@@ -81,7 +81,7 @@ pub fn parse_debug_file(dbg_file: String) -> Result<DebugInfo, String> {
                 Ok(hash) => hash,
                 Err(_) => return Err(format!("Broken debug header, line: {}", module_maps.len())),
             };
-            let path = line[1..].join(":").to_string().trim().to_string();
+            let path = line[1..].join("F:F").to_string().trim().to_string();
             module_maps.push(ModuleMap {
                 module_name: module_info[0].to_string(),
                 module_hash,
@@ -97,7 +97,7 @@ pub fn parse_debug_file(dbg_file: String) -> Result<DebugInfo, String> {
     let mut debug_headers = Vec::new();
 
     for (idx, header) in dbg_headers.enumerate() {
-        let line = header.split(':').collect::<Vec<_>>();
+        let line = header.split("F:F").collect::<Vec<_>>();
         if line.len() != 10 {
             return Err(format!("Broken debug header, line: {}", idx + 1));
         }
