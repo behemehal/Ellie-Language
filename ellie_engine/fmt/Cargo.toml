@@ -1,7 +1,7 @@
 [package]
 name = "ellie_fmt"
 description = "Formatter for ellie"
-version = "0.3.0"
+version = "0.4.0"
 authors = ["Ahmetcan Aksu <ahmetcanaksu@behemehal.org>", "Behemehal <info@behemehal.org>"]
 edition = "2021"
 license = "GPL-2.0"
