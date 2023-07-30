@@ -1,7 +1,2 @@
 target
 Cargo.lock
-ellieRelease
-.DS_Store
-test_dir
-old2
-old

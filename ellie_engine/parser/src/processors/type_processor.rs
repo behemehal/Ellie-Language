@@ -16,6 +16,7 @@ use ellie_core::{
     error,
 };
 use ellie_tokenizer::processors::types::Processors;
+use ellie_tokenizer::syntax::types::operator_type::Operators;
 use ellie_tokenizer::tokenizer::PageType;
 
 pub fn process(
@@ -67,12 +68,12 @@ pub fn process(
                             path.clone(),
                             variable.data.pos,
                         ));
-                        return Err(errors);
+                        Err(errors)
                     }
                     crate::parser::DeepSearchItems::Variable(e) => {
                         let page = parser.find_page(page_id).unwrap().clone();
                         if !e.constant
-                            && page.page_type == PageType::FunctionBody
+                            && matches!(page.page_type, PageType::FunctionBody(_))
                             && deep_search_result.found_page.hash != page.hash
                         {
                             //ERROR_S16
@@ -208,7 +209,10 @@ pub fn process(
                     crate::parser::DeepSearchItems::FunctionParameter(e) => {
                         Ok(types::Types::VariableType(types::variable::VariableType {
                             value: e.name,
-                            reference: 0,
+                            reference: match e.rtype {
+                                DefinerCollecting::Generic(e) => e.hash,
+                                _ => unreachable!(),
+                            },
                             pos: from.get_pos(),
                         }))
                     }
@@ -217,6 +221,13 @@ pub fn process(
                             value: e.name,
                             reference: 0,
                             pos: e.pos,
+                        }))
+                    }
+                    crate::parser::DeepSearchItems::SelfItem(e) => {
+                        Ok(types::Types::VariableType(types::variable::VariableType {
+                            value: String::from("self"),
+                            reference: e.class_hash,
+                            pos: from.get_pos(),
                         }))
                     }
                 }
@@ -257,7 +268,7 @@ pub fn process(
                 }
             }
 
-            if errors.len() == 0 {
+            if errors.is_empty() {
                 //TODO: Type helper
                 //if collective.len() == 0 && !ignore_type {
                 //    errors.push(error::error_list::ERROR_S55.clone().build_with_path(
@@ -333,6 +344,17 @@ pub fn process(
 
             let first = _first_value.to_string();
             let second = _second_value.to_string();
+
+            if let Operators::AssignmentType(_) = operator.data.operator {
+                if !operator.data.first.is_assignable() {
+                    return Err(vec![error::error_list::ERROR_S43.clone().build_with_path(
+                        vec![],
+                        alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                        parser.find_page(page_id).unwrap().path.clone(),
+                        operator.data.pos,
+                    )]);
+                }
+            }
 
             match ellie_core::utils::operator_control(
                 operator.data.operator.clone().to_definite(),
@@ -471,12 +493,11 @@ pub fn process(
                             }
                             DefinerCollecting::ParentGeneric(parent_generic) => {
                                 if parent_generic.rtype == "array" {
-                                    match generate_type_from_defining(
+                                    generate_type_from_defining(
                                         parent_generic.generics[0].value.clone(),
                                         page_id,
                                         parser,
-                                    ) {
-                                        Some(t) => Some(types::Types::Array(
+                                    ).map(|t| types::Types::Array(
                                             ellie_core::definite::types::array::ArrayType {
                                                 collective: vec![
                                                     ellie_core::definite::types::array::ArrayEntry {
@@ -486,9 +507,7 @@ pub fn process(
                                                 ],
                                                 pos: ellie_core::defs::Cursor::default(),
                                             },
-                                        )),
-                                        None => None,
-                                    }
+                                        ))
                                 } else if parent_generic.rtype == "cloak" {
                                     let mut cloak_entries = vec![];
                                     let mut unresolved_element_available = false;
@@ -521,9 +540,8 @@ pub fn process(
                                         ))
                                     }
                                 } else if parent_generic.rtype == "collective" {
-                                    match generate_type_from_defining(parent_generic.generics[0].value.clone(), page_id,
-                                        parser,) {
-                                            Some(t) => Some(types::Types::Collective(
+                                    generate_type_from_defining(parent_generic.generics[0].value.clone(), page_id,
+                                        parser,).map(|t| types::Types::Collective(
                                             ellie_core::definite::types::collective::CollectiveType {
                                                 entries: vec![
                                                     ellie_core::definite::types::collective::CollectiveEntry {
@@ -535,9 +553,7 @@ pub fn process(
                                                 ],
                                                 pos: ellie_core::defs::Cursor::default(),
                                             },
-                                        )),
-                                            None => None,
-                                        }
+                                        ))
                                 } else {
                                     let hash_deep_search =
                                         crate::deep_search_extensions::deep_search_hash(
@@ -1027,10 +1043,7 @@ pub fn process(
                         match last_chain_attributes.1.clone() {
                             Ok(e) => {
                                 let attribute_index = e.iter().position(|a| a.name == chain.value);
-                                let attribute = match attribute_index {
-                                    Some(a) => Some(e[a].clone()),
-                                    None => None,
-                                };
+                                let attribute = attribute_index.map(|a| e[a].clone());
                                 match attribute {
                                     Some(a) => {
                                         index_chain.push(IndexChainAttribute {
@@ -1280,7 +1293,7 @@ pub fn process(
                                         }
                                     }
                                 },
-                                None => return Err(errors)
+                                None => Err(errors)
                             }
                         }
                         Err(e) => Err(e),
@@ -1353,7 +1366,9 @@ pub fn process(
                                     })
                                     .collect::<Vec<_>>();
 
-                                if function.params.len() != used_params.len() && errors.len() == 0 {
+                                if function.params.iter().filter(|x| matches!(x, DefinerCollecting::Generic(generic) if generic.rtype != "self")).count() != used_params.len()
+                                    && errors.is_empty()
+                                {
                                     errors.push(
                                         error::error_list::ERROR_S7.clone().build_with_path(
                                             vec![
@@ -1363,7 +1378,7 @@ pub fn process(
                                                 ),
                                                 error::ErrorBuildField::new(
                                                     "token",
-                                                    &function.params.len().to_string(),
+                                                    &function.params.iter().filter(|x| matches!(x, DefinerCollecting::Generic(generic) if generic.rtype != "self")).count().to_string(),
                                                 ),
                                                 error::ErrorBuildField::new(
                                                     "token2",
@@ -1383,8 +1398,8 @@ pub fn process(
                                     return Err(errors);
                                 }
 
-                                if errors.len() == 0 {
-                                    for (index, param) in function.params.iter().enumerate() {
+                                if errors.is_empty() {
+                                    for (index, param) in function.params.iter().filter(|x| matches!(x, DefinerCollecting::Generic(generic) if generic.rtype != "self")).enumerate() {
                                         let used = used_params[index].1.clone();
                                         if !param.same_as(used.clone()) {
                                             errors.push(
@@ -1434,7 +1449,9 @@ pub fn process(
                                                     target: Box::new(resolved),
                                                     target_pos: ellie_core::defs::Cursor::default(),
                                                     returning: *function.returning.clone(),
-                                                    params: function.params.iter().enumerate().map(|(idx, _)| {
+                                                    params: function.params.iter()
+                                                    .filter(|e| matches!(e, DefinerCollecting::Generic(generic) if generic.rtype != "self")).enumerate()
+                                                    .map(|(idx, _)| {
                                                         ellie_core::definite::types::function_call::FunctionCallParameter {
                                                             value: resolved_params[idx].0.clone(),
                                                             pos: resolved_params[idx].1
@@ -1584,7 +1601,7 @@ pub fn process(
         }
         Processors::ClassCall(class_call) => {
             let mut resolved_generics = class_call.data.resolved_generics.clone();
-            let resolved_generics_defined = class_call.data.resolved_generics.len() != 0;
+            let resolved_generics_defined = !class_call.data.resolved_generics.is_empty();
 
             match (*class_call.data.target).clone() {
                 Processors::Integer(_) => {
@@ -1765,7 +1782,7 @@ pub fn process(
                                     error.reference_message = "Defined here".to_owned();
                                     errors.push(error);
                                     Err(errors)
-                                } else if undefined_generics.len() > 0 {
+                                } else if !undefined_generics.is_empty() {
                                     for g in undefined_generics {
                                         errors.push(
                                             error::error_list::ERROR_S6.clone().build_with_path(
@@ -1879,16 +1896,14 @@ pub fn process(
                                                     match attribute_search.found_item {
                                                         crate::deep_search_extensions::ProcessedDeepSearchItems::Variable(variable) => {
                                                             if variable.has_type {
-                                                                if !belonging_class.generic_definings.is_empty() && belonging_class.generic_definings.len() - 1  >= index && matches!(variable.rtype.clone(), DefinerCollecting::Generic(e) if e.hash == belonging_class.generic_definings[index].hash) {
+                                                                if !belonging_class.generic_definings.is_empty() && belonging_class.generic_definings.len() > index && matches!(variable.rtype.clone(), DefinerCollecting::Generic(e) if e.hash == belonging_class.generic_definings[index].hash) {
                                                                     Some(
                                                                         resolved_generics[index].clone()
                                                                     )
+                                                                } else if variable.has_type {
+                                                                    Some(variable.rtype)
                                                                 } else {
-                                                                    if variable.has_type {
-                                                                        Some(variable.rtype)
-                                                                    } else {
-                                                                        resolve_type(variable.value, page_id, parser, &mut errors, variable_pos)
-                                                                    }
+                                                                    resolve_type(variable.value, page_id, parser, &mut errors, variable_pos)
                                                                 }
                                                             } else {
                                                                 let mut errors = Vec::new();
@@ -2192,7 +2207,7 @@ pub fn process(
                     first_entry.value.clone(),
                     parser,
                     page_id,
-                    ignore_hash.clone(),
+                    ignore_hash,
                     false,
                     false,
                     false,
@@ -2222,7 +2237,7 @@ pub fn process(
                     }
                 }
 
-                if errors.len() == 0 {
+                if errors.is_empty() {
                     //TODO: Type helper
                     //if collective.len() == 0 && !ignore_type {
                     //    errors.push(error::error_list::ERROR_S55.clone().build_with_path(
@@ -2260,7 +2275,7 @@ pub fn process(
                 *as_keyword.data.target,
                 parser,
                 page_id,
-                ignore_hash.clone(),
+                ignore_hash,
                 false,
                 false,
                 false,
@@ -2299,7 +2314,7 @@ pub fn process(
                 *null_resolver.target,
                 parser,
                 page_id,
-                ignore_hash.clone(),
+                ignore_hash,
                 false,
                 false,
                 false,

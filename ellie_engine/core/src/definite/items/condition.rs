@@ -21,6 +21,7 @@ pub struct ConditionChain {
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct Condition {
+    pub hash: usize,
     pub chains: Vec<ConditionChain>,
     pub returns: Option<DefinerCollecting>,
     pub pos: defs::Cursor,

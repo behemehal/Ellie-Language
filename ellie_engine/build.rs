@@ -40,7 +40,7 @@ use std::{
 
 fn main() {
     let ellie_engine_version: Value;
-    let ellie_engine_version_name ="\"BeautifulTropicalFish\"".to_string();
+    let ellie_engine_version_name = "\"BeautifulTropicalFish\"".to_string();
     let ellie_core_version: Value;
     #[cfg(any(feature = "compiler", feature = "fmt"))]
     let ellie_tokenizer_version: Value;
@@ -53,7 +53,7 @@ fn main() {
     #[cfg(feature = "fmt")]
     let ellie_fmt_version: Value;
 
-    match read_file(env!("CARGO_MANIFEST_DIR").to_owned() + &"/Cargo.toml".to_owned()) {
+    match read_file(env!("CARGO_MANIFEST_DIR").to_owned() + "/Cargo.toml") {
         Ok(cargo_toml) => {
             let toml = cargo_toml.parse::<Value>().unwrap();
             ellie_engine_version = toml["package"]["version"].clone();
@@ -63,7 +63,7 @@ fn main() {
         }
     }
 
-    match read_file(env!("CARGO_MANIFEST_DIR").to_owned() + &"/core/Cargo.toml".to_owned()) {
+    match read_file(env!("CARGO_MANIFEST_DIR").to_owned() + "/core/Cargo.toml") {
         Ok(cargo_toml) => {
             let toml = cargo_toml.parse::<Value>().unwrap();
             ellie_core_version = toml["package"]["version"].clone();
@@ -74,7 +74,7 @@ fn main() {
     }
 
     #[cfg(any(feature = "compiler", feature = "fmt"))]
-    match read_file(env!("CARGO_MANIFEST_DIR").to_owned() + &"/tokenizer/Cargo.toml".to_owned()) {
+    match read_file(env!("CARGO_MANIFEST_DIR").to_owned() + "/tokenizer/Cargo.toml") {
         Ok(cargo_toml) => {
             let toml = cargo_toml.parse::<Value>().unwrap();
             ellie_tokenizer_version = toml["package"]["version"].clone();
@@ -85,7 +85,7 @@ fn main() {
     }
 
     #[cfg(feature = "compiler")]
-    match read_file(env!("CARGO_MANIFEST_DIR").to_owned() + &"/parser/Cargo.toml".to_owned()) {
+    match read_file(env!("CARGO_MANIFEST_DIR").to_owned() + "/parser/Cargo.toml") {
         Ok(cargo_toml) => {
             let toml = cargo_toml.parse::<Value>().unwrap();
             ellie_parser_version = toml["package"]["version"].clone();
@@ -96,7 +96,7 @@ fn main() {
     }
 
     #[cfg(feature = "compiler")]
-    match read_file(env!("CARGO_MANIFEST_DIR").to_owned() + &"/bytecode/Cargo.toml".to_owned()) {
+    match read_file(env!("CARGO_MANIFEST_DIR").to_owned() + "/bytecode/Cargo.toml") {
         Ok(cargo_toml) => {
             let toml = cargo_toml.parse::<Value>().unwrap();
             ellie_bytecode_version = toml["package"]["version"].clone();
@@ -107,7 +107,7 @@ fn main() {
     }
 
     #[cfg(feature = "vm")]
-    match read_file(env!("CARGO_MANIFEST_DIR").to_owned() + &"/vm/Cargo.toml".to_owned()) {
+    match read_file(env!("CARGO_MANIFEST_DIR").to_owned() + "/vm/Cargo.toml") {
         Ok(cargo_toml) => {
             let toml = cargo_toml.parse::<Value>().unwrap();
             ellie_vm_version = toml["package"]["version"].clone();
@@ -118,7 +118,7 @@ fn main() {
     }
 
     #[cfg(feature = "fmt")]
-    match read_file(env!("CARGO_MANIFEST_DIR").to_owned() + &"/fmt/Cargo.toml".to_owned()) {
+    match read_file(env!("CARGO_MANIFEST_DIR").to_owned() + "/fmt/Cargo.toml") {
         Ok(cargo_toml) => {
             let toml = cargo_toml.parse::<Value>().unwrap();
             ellie_fmt_version = toml["package"]["version"].clone();
@@ -276,18 +276,18 @@ fn main() {
     */
 
     let mut output = format!(
-        r#"pub static ELLIE_ENGINE_VERSION : &'static str = &{ellie_engine_version};
-pub static ELLIE_ENGINE_VERSION_NAME : &'static str = &{ellie_engine_version_name};
-pub static ELLIE_CORE_VERSION : &'static str = &{ellie_core_version};"#
+        r#"pub static ELLIE_ENGINE_VERSION: &str = &{ellie_engine_version};
+pub static ELLIE_ENGINE_VERSION_NAME: &str = &{ellie_engine_version_name};
+pub static ELLIE_CORE_VERSION: &str = &{ellie_core_version};"#
     );
 
     #[cfg(feature = "compiler")]
     {
         output += &format!(
             r#"
-pub static ELLIE_TOKENIZER_VERSION : &'static str = &{ellie_tokenizer_version};
-pub static ELLIE_PARSER_VERSION : &'static str = &{ellie_parser_version};
-pub static ELLIE_BYTECODE_VERSION : &'static str = &{ellie_bytecode_version};"#
+pub static ELLIE_TOKENIZER_VERSION: &str = &{ellie_tokenizer_version};
+pub static ELLIE_PARSER_VERSION: &str = &{ellie_parser_version};
+pub static ELLIE_BYTECODE_VERSION: &str = &{ellie_bytecode_version};"#
         );
     }
     //git show HEAD~2 --pretty=format:"%h" --no-patch
@@ -295,49 +295,48 @@ pub static ELLIE_BYTECODE_VERSION : &'static str = &{ellie_bytecode_version};"#
     {
         #[cfg(feature = "compiler")]
         {
-            output +=
-                &format!("\npub static ELLIE_FMT_VERSION : &'static str = &{ellie_fmt_version};");
+            output += &format!("\npub static ELLIE_FMT_VERSION: &str = &{ellie_fmt_version};");
         }
         #[cfg(not(feature = "compiler"))]
         {
             output += &format!(
                 r#"
-pub static ELLIE_TOKENIZER_VERSION : &'static str = &{ellie_tokenizer_version};
-pub static ELLIE_PARSER_VERSION : &'static str = &{ellie_parser_version};
-pub static ELLIE_BYTECODE_VERSION : &'static str = &{ellie_bytecode_version};
-pub static ELLIE_FMT_VERSION : &'static str = &{ellie_fmt_version};"#
+pub static ELLIE_TOKENIZER_VERSION: &str = &{ellie_tokenizer_version};
+pub static ELLIE_PARSER_VERSION : & str = &{ellie_parser_version};
+pub static ELLIE_BYTECODE_VERSION : & str = &{ellie_bytecode_version};
+pub static ELLIE_FMT_VERSION : & str = &{ellie_fmt_version};"#
             );
         }
     }
 
     #[cfg(feature = "vm")]
     {
-        output += &format!("\npub static ELLIE_VM_VERSION : &'static str = &{ellie_vm_version};");
+        output += &format!("\npub static ELLIE_VM_VERSION: &str = &{ellie_vm_version};");
     }
 
     //Add date and git show HEAD~2 --pretty=format:"%h" --no-patch
     let date = Local::now().format("%Y-%m-%d").to_string();
     let git_hash = Command::new("git")
-        .args(&["show", "HEAD~2", "--pretty=format:%h", "--no-patch"])
+        .args(["show", "HEAD~2", "--pretty=format:%h", "--no-patch"])
         .output()
         .expect("Failed to execute 'git' command. Ellie requires git to be installed to build.")
         .stdout;
     let git_hash = String::from_utf8(git_hash).unwrap();
     let git_hash = git_hash.trim();
     let git_branch = Command::new("git")
-        .args(&["rev-parse", "--abbrev-ref", "HEAD"])
+        .args(["rev-parse", "--abbrev-ref", "HEAD"])
         .output()
         .expect("Failed to execute 'git' command. Ellie requires git to be installed to build.")
         .stdout;
     let git_branch = String::from_utf8(git_branch).unwrap().replace('\n', "");
 
-    output += &format!("\npub static ELLIE_BUILD_DATE : &'static str = &\"{date}\";");
-    output += &format!("\npub static ELLIE_BUILD_GIT_HASH : &'static str = &\"{git_hash}\";");
-    output += &format!("\npub static ELLIE_BUILD_GIT_BRANCH : &'static str = &\"{git_branch}\";\n");
+    output += &format!("\npub static ELLIE_BUILD_DATE: &str = &\"{date}\";");
+    output += &format!("\npub static ELLIE_BUILD_GIT_HASH: &str = &\"{git_hash}\";");
+    output += &format!("\npub static ELLIE_BUILD_GIT_BRANCH: &str = &\"{git_branch}\";\n");
 
     if matches!(env::var("PROFILE"), Ok(e) if e == "release") {
         fs::write(
-            env!("CARGO_MANIFEST_DIR").to_owned() + &"/src/engine_constants.rs",
+            env!("CARGO_MANIFEST_DIR").to_owned() + "/src/engine_constants.rs",
             output,
         )
         .unwrap();

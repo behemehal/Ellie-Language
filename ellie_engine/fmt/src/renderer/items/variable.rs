@@ -16,12 +16,10 @@ impl CodeRenderer for Variable {
             } else {
                 String::from("const ")
             }
+        } else if options.use_shorts {
+            String::from("v ")
         } else {
-            if options.use_shorts {
-                String::from("v ")
-            } else {
-                String::from("var ")
-            }
+            String::from("var ")
         };
 
         let variable_name = &self.name;

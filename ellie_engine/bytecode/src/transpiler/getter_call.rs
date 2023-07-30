@@ -26,7 +26,8 @@ impl super::Transpiler for getter_call::GetterCall {
         assembler.debug_headers.push(DebugHeader {
             rtype: DebugHeaderType::GetterCall,
             hash: limit_platform_size(00099999999, assembler.platform_attributes.architecture),
-            module: processed_page.path.clone(),
+            module_name: processed_page.path.clone(),
+            module_hash: processed_page.hash,
             name: "@getter".to_string(),
             start_end: (debug_header_start, assembler.location()),
             pos: self.pos,

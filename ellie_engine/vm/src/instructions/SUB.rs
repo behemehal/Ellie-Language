@@ -43,12 +43,8 @@ impl super::InstructionExecuter for SUB {
                         current_stack.registers.A = StaticRawType::from_int(result);
                     }
                     (2, 2) => {
-                        let b_value = f32::from_le_bytes(
-                            current_stack.registers.B.data[0..4].try_into().unwrap(),
-                        );
-                        let c_value = f32::from_le_bytes(
-                            current_stack.registers.C.data[0..4].try_into().unwrap(),
-                        );
+                        let b_value = current_stack.registers.B.to_float();
+                        let c_value = current_stack.registers.C.to_float();
                         let result = b_value - c_value;
                         if result.is_finite() {
                             current_stack.registers.A = StaticRawType::from_float(result);
@@ -60,8 +56,8 @@ impl super::InstructionExecuter for SUB {
                         }
                     }
                     (3, 3) => {
-                        let b_value = f64::from_le_bytes(current_stack.registers.B.data);
-                        let c_value = f64::from_le_bytes(current_stack.registers.C.data);
+                        let b_value = current_stack.registers.B.to_double();
+                        let c_value = current_stack.registers.C.to_double();
                         let result = b_value - c_value;
                         if result.is_finite() {
                             current_stack.registers.A = StaticRawType::from_double(result);

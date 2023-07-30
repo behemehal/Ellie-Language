@@ -9,7 +9,7 @@ impl CodeRenderer for Condition {
         let state_scope_length = state.render_scope_space(options);
 
         let render_chain = |chain: &ConditionChain| -> String {
-            let mut chain_str = format!("{state_scope_length}");
+            let mut chain_str = state_scope_length.to_string();
             match chain.rtype {
                 ellie_tokenizer::syntax::items::condition::ConditionType::If => {
                     chain_str += &format!(
@@ -61,22 +61,19 @@ impl CodeRenderer for Condition {
         let mut condition_str = String::new();
 
         for (idx, chain) in self.chains.iter().enumerate() {
-            condition_str += &render_chain(&chain);
+            condition_str += &render_chain(chain);
             if idx == self.chains.len() - 1 {
                 condition_str += &format!(
                     "{state_scope_length}}}{line_ending}",
                     line_ending = options.render_line_ending()
                 );
+            } else if options.render_brace_next_line {
+                condition_str += &format!(
+                    "{state_scope_length}}}{line_ending}",
+                    line_ending = options.render_line_ending()
+                );
             } else {
-                if options.render_brace_next_line {
-                    condition_str += &format!(
-                        "{state_scope_length}}}{line_ending}",
-                        line_ending = options.render_line_ending()
-                    );
-                } else {
-                    condition_str += &format!("{state_scope_length}}}",);
-                }
-                //condition_str += &format!("{state_scope_length}}} ");
+                condition_str += &format!("{state_scope_length}}}",);
             }
         }
 

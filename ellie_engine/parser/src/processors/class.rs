@@ -1,5 +1,7 @@
 use alloc::{borrow::ToOwned, vec, vec::Vec};
-use ellie_core::{defs, error, utils, warning};
+#[cfg(feature = "standard_rules")]
+use ellie_core::warning;
+use ellie_core::{defs, error, utils};
 use ellie_tokenizer::{
     syntax::items::class::Class,
     tokenizer::{ClassPageType, PageType},
@@ -14,7 +16,7 @@ impl super::Processor for Class {
         page_hash: usize,
     ) -> bool {
         let (duplicate, found) =
-            parser.is_duplicate(page_hash, self.name.clone(), self.hash.clone(), self.pos);
+            parser.is_duplicate(page_hash, self.name.clone(), self.hash, self.pos);
 
         let path = parser.pages.nth(page_idx).unwrap().path.clone();
         let class_key_definings = parser
@@ -28,8 +30,7 @@ impl super::Processor for Class {
             &self.name,
             class_key_definings
                 .iter()
-                .find(|x| x.key_name == "dont_fix_variant")
-                .is_some(),
+                .any(|x| x.key_name == "dont_fix_variant"),
         ) {
             parser
                 .informations
@@ -100,7 +101,7 @@ impl super::Processor for Class {
             });
 
             if constructors.clone().count() > 0 {
-                let prime = constructors.clone().nth(0).unwrap();
+                let prime = constructors.clone().next().unwrap();
                 let duplicate_constructors = constructors
                     .enumerate()
                     .map(
@@ -187,15 +188,15 @@ impl super::Processor for Class {
             }
 
             let mut dependencies = vec![ellie_tokenizer::tokenizer::Dependency {
-                hash: page.hash.clone(),
+                hash: page.hash,
                 processed: false,
                 module: None,
-                deep_link: Some(page.hash.clone()),
+                deep_link: Some(page.hash),
                 public: false,
             }];
             dependencies.extend(page.dependencies.iter().map(|d| {
                 let mut dep = d.clone();
-                dep.deep_link = Some(page.hash.clone());
+                dep.deep_link = Some(page.hash);
                 dep
             }));
             items.extend(self.body.clone());
@@ -209,8 +210,9 @@ impl super::Processor for Class {
                 dependencies,
                 page_type: PageType::ClassBody(ClassPageType {
                     name: self.name.clone(),
-                    hash: self.hash.clone(),
-                    page_hash: page_hash.clone(),
+                    hash: self.hash,
+                    pos: self.pos,
+                    page_hash,
                 }),
                 unreachable: false,
                 unreachable_range: defs::Cursor::default(),
@@ -241,7 +243,7 @@ impl super::Processor for Class {
                         .iter()
                         .map(|x| ellie_core::definite::items::class::GenericDefining {
                             name: x.name.clone(),
-                            hash: x.hash.clone(),
+                            hash: x.hash,
                             pos: x.pos,
                         })
                         .collect::<Vec<_>>(),
@@ -250,7 +252,6 @@ impl super::Processor for Class {
 
             processed_page.unassigned_file_keys = vec![];
             processed_page.items.push(processed);
-            parser.process_page(inner_page_id);
         }
         true
     }

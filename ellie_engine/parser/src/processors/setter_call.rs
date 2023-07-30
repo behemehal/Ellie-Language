@@ -1,6 +1,6 @@
 use crate::deep_search_extensions::{deep_search_hash, resolve_type};
 use alloc::{borrow::ToOwned, vec, vec::Vec};
-use ellie_core::{definite::Converter, error};
+use ellie_core::definite::Converter;
 use ellie_tokenizer::syntax::{
     items::setter_call::SetterCall,
     types::operator_type::{AssignmentOperators, Operators},
@@ -57,11 +57,6 @@ impl super::Processor for SetterCall {
                                 }
                             };
 
-                            if !errors.is_empty() {
-                                parser.informations.extend(&errors);
-                                return true;
-                            }
-
                             let value_defining = match resolve_type(
                                 processed_value_type.clone(),
                                 page_hash,
@@ -96,6 +91,7 @@ impl super::Processor for SetterCall {
                                     page.items.push(ellie_core::definite::items::Collecting::SetterCall(
                                             ellie_core::definite::items::setter_call::SetterCall {
                                                 target,
+                                                hash: self.hash,
                                                 value: processed_value_type,
                                                 target_pos: self.target_pos,
                                                 value_pos: self.value_pos,
@@ -153,89 +149,42 @@ impl super::Processor for SetterCall {
                                     .value;
                             }
 
-                            let comperable = parser.compare_defining_with_type(
-                                target_type,
+                            let value_defining = match resolve_type(
                                 processed_value_type.clone(),
                                 page_hash,
-                            );
+                                parser,
+                                &mut errors,
+                                Some(self.target_pos),
+                            ) {
+                                Some(e) => e,
+                                None => {
+                                    parser.informations.extend(&errors);
+                                    return false;
+                                }
+                            };
 
-                            match comperable {
-                                Ok(result) => {
-                                    if result.requires_cast {
-                                        parser.informations.push(
-                                            &error::error_list::ERROR_S41.clone().build_with_path(
-                                                vec![error::ErrorBuildField {
-                                                    key: "token".to_owned(),
-                                                    value: "Type helpers are not completely implemented yet. Next error is result of this. Follow progress here (https://github.com/behemehal/EllieWorks/issues/8)".to_owned(),
-                                                }],
-                                                alloc::format!(
-                                                    "{}:{}:{}",
-                                                    file!().to_owned(),
-                                                    line!(),
-                                                    column!()
-                                                ),
-                                                current_page.path.clone(),
-                                                self.value_pos,
-                                            ),
-                                        );
-                                        let err =
-                                            error::error_list::ERROR_S3.clone().build_with_path(
-                                                vec![
-                                                    error::ErrorBuildField {
-                                                        key: "token1".to_owned(),
-                                                        value: result.first,
-                                                    },
-                                                    error::ErrorBuildField {
-                                                        key: "token2".to_owned(),
-                                                        value: result.second,
-                                                    },
-                                                ],
-                                                alloc::format!(
-                                                    "{}:{}:{}",
-                                                    file!().to_owned(),
-                                                    line!(),
-                                                    column!()
-                                                ),
-                                                current_page.path.clone(),
-                                                self.value_pos,
-                                            );
+                            let first = target_type.to_string();
+                            let second = value_defining.to_string();
 
-                                        parser.informations.push(&err);
-                                        return false;
-                                    }
-                                    if !result.same {
-                                        let err =
-                                            error::error_list::ERROR_S3.clone().build_with_path(
-                                                vec![
-                                                    error::ErrorBuildField {
-                                                        key: "token1".to_owned(),
-                                                        value: result.first,
-                                                    },
-                                                    error::ErrorBuildField {
-                                                        key: "token2".to_owned(),
-                                                        value: result.second,
-                                                    },
-                                                ],
-                                                alloc::format!(
-                                                    "{}:{}:{}",
-                                                    file!().to_owned(),
-                                                    line!(),
-                                                    column!()
-                                                ),
-                                                current_page.path.clone(),
-                                                self.value_pos,
-                                            );
-
-                                        parser.informations.push(&err);
-                                        return false;
-                                    } else {
-                                        let page = parser
-                                            .processed_pages
-                                            .nth_mut(processed_page_idx)
-                                            .unwrap();
-                                        page.items.push(ellie_core::definite::items::Collecting::SetterCall(
+                            match ellie_core::utils::operator_control(
+                                Operators::AssignmentType(self.operator.clone()).to_definite(),
+                                first,
+                                second,
+                                current_page.path.clone(),
+                                self.value_pos,
+                            ) {
+                                Some(e) => {
+                                    errors.push(e);
+                                    parser.informations.extend(&errors);
+                                    return false;
+                                }
+                                None => {
+                                    let page =
+                                        parser.processed_pages.nth_mut(processed_page_idx).unwrap();
+                                    page.items.push(ellie_core::definite::items::Collecting::SetterCall(
                                             ellie_core::definite::items::setter_call::SetterCall {
                                                 target,
+                                                hash: self.hash,
                                                 value: processed_value_type,
                                                 target_pos: self.target_pos,
                                                 value_pos: self.value_pos,
@@ -251,10 +200,6 @@ impl super::Processor for SetterCall {
                                                 },
                                             },
                                         ));
-                                    }
-                                }
-                                Err(e) => {
-                                    parser.informations.extend(&e);
                                 }
                             }
                         }
@@ -293,25 +238,6 @@ impl super::Processor for SetterCall {
                                             ),
                                     );
                                 } else {
-                                    let mut errors = Vec::new();
-                                    let target_type = if variable.has_type {
-                                        variable.rtype
-                                    } else {
-                                        match resolve_type(
-                                            variable.value,
-                                            page_hash,
-                                            parser,
-                                            &mut errors,
-                                            Some(variable.value_pos),
-                                        ) {
-                                            Some(e) => e,
-                                            None => {
-                                                parser.informations.extend(&errors);
-                                                return false;
-                                            }
-                                        }
-                                    };
-
                                     match super::type_processor::process(
                                         self.value.clone(),
                                         parser,
@@ -323,111 +249,65 @@ impl super::Processor for SetterCall {
                                         Some(self.value_pos),
                                     ) {
                                         Ok(processed_value_type) => {
-                                            let comperable = parser.compare_defining_with_type(
-                                                target_type,
-                                                processed_value_type.clone(),
-                                                page_hash,
-                                            );
-                                            match comperable {
-                                                Ok(result) => {
-                                                    if result.requires_cast {
-                                                        parser.informations.push(
-                                                            &error::error_list::ERROR_S41.clone().build_with_path(
-                                                                vec![error::ErrorBuildField {
-                                                                    key: "token".to_owned(),
-                                                                    value: "Type helpers are not completely implemented yet. Next error is result of this. Follow progress here (https://github.com/behemehal/EllieWorks/issues/8)".to_owned(),
-                                                                }],
-                                                                alloc::format!(
-                                                                    "{}:{}:{}",
-                                                                    file!().to_owned(),
-                                                                    line!(),
-                                                                    column!()
-                                                                ),
-                                                                current_page.path.clone(),
-                                                                self.value_pos,
-                                                            ),
-                                                        );
-                                                        let mut err = error::error_list::ERROR_S3
-                                                            .clone()
-                                                            .build_with_path(
-                                                                vec![
-                                                                    error::ErrorBuildField {
-                                                                        key: "token1".to_owned(),
-                                                                        value: result.first,
-                                                                    },
-                                                                    error::ErrorBuildField {
-                                                                        key: "token2".to_owned(),
-                                                                        value: result.second,
-                                                                    },
-                                                                ],
-                                                                alloc::format!(
-                                                                    "{}:{}:{}",
-                                                                    file!().to_owned(),
-                                                                    line!(),
-                                                                    column!()
-                                                                ),
-                                                                current_page.path.clone(),
-                                                                self.value_pos,
-                                                            );
-                                                        err.reference_block = Some((
-                                                            if variable.has_type {
-                                                                variable.type_pos
-                                                            } else {
-                                                                variable.value_pos
-                                                            },
-                                                            current_page.path.clone(),
-                                                        ));
-                                                        err.reference_message =
-                                                            "Defined here".to_owned();
-                                                        err.semi_assist = true;
-                                                        parser.informations.push(&err);
+                                            let mut errors = Vec::new();
+
+                                            let target_type = if variable.has_type {
+                                                variable.rtype
+                                            } else {
+                                                match resolve_type(
+                                                    variable.value,
+                                                    page_hash,
+                                                    parser,
+                                                    &mut errors,
+                                                    Some(variable.value_pos),
+                                                ) {
+                                                    Some(e) => e,
+                                                    None => {
+                                                        parser.informations.extend(&errors);
                                                         return false;
                                                     }
+                                                }
+                                            };
 
-                                                    if !result.same {
-                                                        let mut err = error::error_list::ERROR_S3
-                                                            .clone()
-                                                            .build_with_path(
-                                                                vec![
-                                                                    error::ErrorBuildField {
-                                                                        key: "token1".to_owned(),
-                                                                        value: result.first,
-                                                                    },
-                                                                    error::ErrorBuildField {
-                                                                        key: "token2".to_owned(),
-                                                                        value: result.second,
-                                                                    },
-                                                                ],
-                                                                alloc::format!(
-                                                                    "{}:{}:{}",
-                                                                    file!().to_owned(),
-                                                                    line!(),
-                                                                    column!()
-                                                                ),
-                                                                current_page.path.clone(),
-                                                                self.value_pos,
-                                                            );
-                                                        err.reference_block = Some((
-                                                            if variable.has_type {
-                                                                variable.type_pos
-                                                            } else {
-                                                                variable.value_pos
-                                                            },
-                                                            current_page.path.clone(),
-                                                        ));
-                                                        err.reference_message =
-                                                            "Defined here".to_owned();
-                                                        err.semi_assist = true;
-                                                        parser.informations.push(&err);
-                                                        return false;
-                                                    } else {
-                                                        let page = parser
-                                                            .processed_pages
-                                                            .nth_mut(processed_page_idx)
-                                                            .unwrap();
-                                                        page.items.push(ellie_core::definite::items::Collecting::SetterCall(
+                                            let value_defining = match resolve_type(
+                                                processed_value_type.clone(),
+                                                page_hash,
+                                                parser,
+                                                &mut errors,
+                                                Some(self.target_pos),
+                                            ) {
+                                                Some(e) => e,
+                                                None => {
+                                                    parser.informations.extend(&errors);
+                                                    return false;
+                                                }
+                                            };
+
+                                            let first = target_type.to_string();
+                                            let second = value_defining.to_string();
+
+                                            match ellie_core::utils::operator_control(
+                                                Operators::AssignmentType(self.operator.clone())
+                                                    .to_definite(),
+                                                first,
+                                                second,
+                                                current_page.path.clone(),
+                                                self.value_pos,
+                                            ) {
+                                                Some(e) => {
+                                                    errors.push(e);
+                                                    parser.informations.extend(&errors);
+                                                    return false;
+                                                }
+                                                None => {
+                                                    let page = parser
+                                                        .processed_pages
+                                                        .nth_mut(processed_page_idx)
+                                                        .unwrap();
+                                                    page.items.push(ellie_core::definite::items::Collecting::SetterCall(
                                                             ellie_core::definite::items::setter_call::SetterCall {
                                                                 target,
+                                                                hash: self.hash,
                                                                 value: processed_value_type,
                                                                 target_pos: self.target_pos,
                                                                 value_pos: self.value_pos,
@@ -443,10 +323,6 @@ impl super::Processor for SetterCall {
                                                                 },
                                                             },
                                                         ));
-                                                    }
-                                                }
-                                                Err(e) => {
-                                                    parser.informations.extend(&e);
                                                 }
                                             }
                                         }
@@ -464,7 +340,7 @@ impl super::Processor for SetterCall {
                         unreachable!("Parser should have prevented this");
                     }
                 }
-                ellie_core::definite::types::Types::SetterCall(setter_type) => {
+                ellie_core::definite::types::Types::SetterCall(_) => {
                     match super::type_processor::process(
                         self.value.clone(),
                         parser,
@@ -476,89 +352,58 @@ impl super::Processor for SetterCall {
                         Some(self.value_pos),
                     ) {
                         Ok(processed_value_type) => {
-                            let comperable = parser.compare_defining_with_type(
-                                setter_type,
+                            let mut errors = Vec::new();
+                            let target_type = match resolve_type(
+                                target.clone(),
+                                page_hash,
+                                parser,
+                                &mut errors,
+                                Some(self.target_pos),
+                            ) {
+                                Some(e) => e,
+                                None => {
+                                    parser.informations.extend(&errors);
+                                    return false;
+                                }
+                            };
+
+                            let value_defining = match resolve_type(
                                 processed_value_type.clone(),
                                 page_hash,
-                            );
-                            match comperable {
-                                Ok(result) => {
-                                    if result.requires_cast {
-                                        parser.informations.push(
-                                            &error::error_list::ERROR_S41.clone().build_with_path(
-                                                vec![error::ErrorBuildField {
-                                                    key: "token".to_owned(),
-                                                    value: "Type helpers are not completely implemented yet. Next error is result of this. Follow progress here (https://github.com/behemehal/EllieWorks/issues/8)".to_owned(),
-                                                }],
-                                                alloc::format!(
-                                                    "{}:{}:{}",
-                                                    file!().to_owned(),
-                                                    line!(),
-                                                    column!()
-                                                ),
-                                                current_page.path.clone(),
-                                                self.value_pos,
-                                            ),
-                                        );
-                                        parser.informations.push(
-                                            &error::error_list::ERROR_S3.clone().build_with_path(
-                                                vec![
-                                                    error::ErrorBuildField {
-                                                        key: "token1".to_owned(),
-                                                        value: result.first,
-                                                    },
-                                                    error::ErrorBuildField {
-                                                        key: "token2".to_owned(),
-                                                        value: result.second,
-                                                    },
-                                                ],
-                                                alloc::format!(
-                                                    "{}:{}:{}",
-                                                    file!().to_owned(),
-                                                    line!(),
-                                                    column!()
-                                                ),
-                                                current_page.path.clone(),
-                                                self.value_pos,
-                                            ),
-                                        );
-                                        return false;
-                                    }
+                                parser,
+                                &mut errors,
+                                Some(self.target_pos),
+                            ) {
+                                Some(e) => e,
+                                None => {
+                                    parser.informations.extend(&errors);
+                                    return false;
+                                }
+                            };
 
-                                    if !result.same {
-                                        parser.informations.push(
-                                            &error::error_list::ERROR_S3.clone().build_with_path(
-                                                vec![
-                                                    error::ErrorBuildField {
-                                                        key: "token1".to_owned(),
-                                                        value: result.first,
-                                                    },
-                                                    error::ErrorBuildField {
-                                                        key: "token2".to_owned(),
-                                                        value: result.second,
-                                                    },
-                                                ],
-                                                alloc::format!(
-                                                    "{}:{}:{}",
-                                                    file!().to_owned(),
-                                                    line!(),
-                                                    column!()
-                                                ),
-                                                current_page.path.clone(),
-                                                self.value_pos,
-                                            ),
-                                        );
-                                        return false;
-                                    } else {
-                                        let page = parser
-                                            .processed_pages
-                                            .nth_mut(processed_page_idx)
-                                            .unwrap();
-                                        page.items.push(ellie_core::definite::items::Collecting::SetterCall(
+                            let first = target_type.to_string();
+                            let second = value_defining.to_string();
+
+                            match ellie_core::utils::operator_control(
+                                Operators::AssignmentType(self.operator.clone()).to_definite(),
+                                first,
+                                second,
+                                current_page.path,
+                                self.value_pos,
+                            ) {
+                                Some(e) => {
+                                    parser.informations.push(&e);
+                                    return false;
+                                }
+                                None => {
+                                    let page =
+                                        parser.processed_pages.nth_mut(processed_page_idx).unwrap();
+                                    page.items.push(ellie_core::definite::items::Collecting::SetterCall(
                                             ellie_core::definite::items::setter_call::SetterCall {
                                                 target,
                                                 value: processed_value_type,
                                                 target_pos: self.target_pos,
+                                                hash: self.hash,
                                                 value_pos: self.value_pos,
                                                 operator: match self.operator  {
                                                     AssignmentOperators::Assignment => ellie_core::definite::types::operator::AssignmentOperators::Assignment,
@@ -572,10 +417,6 @@ impl super::Processor for SetterCall {
                                                 },
                                             },
                                         ));
-                                    }
-                                }
-                                Err(e) => {
-                                    parser.informations.extend(&e);
                                 }
                             }
                         }

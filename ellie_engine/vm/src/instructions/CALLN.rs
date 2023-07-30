@@ -6,7 +6,10 @@ use crate::{
     instruction_utils::CALLN,
     stack::Stack,
     stack_memory::StackMemory,
-    utils::{AddressingValues, ThreadPanicReason, VmNativeCall, VmNativeCallParameters},
+    utils::{
+        resolve_reference, AddressingValues, ReferenceType, ThreadPanicReason, VmNativeCall,
+        VmNativeCallParameters,
+    },
 };
 
 use super::{ExecuterPanic, ExecuterResult, StaticProgram};
@@ -54,31 +57,35 @@ impl super::InstructionExecuter for CALLN {
                 let _start_position_of_params = current_stack.get_pos() - 2;
 
                 for i in 0..params_length {
-                    let pos =
-                        current_stack.get_pos() - (params_length - ((i as isize * -1) as usize));
+                    let pos = current_stack.get_pos() - (params_length - (-(i as isize) as usize));
                     let paramater = match stack_memory.get(&pos) {
-                        Some(raw_type) => match raw_type.type_id.id {
-                            0..=5 | 7 | 10 => VmNativeCallParameters::Static(raw_type),
-                            14 => {
-                                let location = raw_type.to_int() as usize;
-                                match heap_memory.get(&location) {
-                                    Some(raw_type) => VmNativeCallParameters::Dynamic(raw_type),
-                                    None => {
-                                        return Err(ExecuterPanic {
-                                            reason: ThreadPanicReason::NullReference(location),
-                                            code_location: format!("{}:{}", file!(), line!()),
-                                        });
+                        Some(raw_type) => {
+                            if raw_type.type_id.is_stack_reference()
+                                || raw_type.type_id.is_heap_reference()
+                            {
+                                match resolve_reference(
+                                    if raw_type.type_id.is_stack_reference() {
+                                        ReferenceType::Stack
+                                    } else {
+                                        ReferenceType::Heap
+                                    },
+                                    raw_type.to_uint(),
+                                    &heap_memory,
+                                    &stack_memory,
+                                )
+                                .unwrap()
+                                {
+                                    crate::utils::ResolvedReference::StaticRawType(e) => {
+                                        VmNativeCallParameters::Static(e.0)
+                                    }
+                                    crate::utils::ResolvedReference::RawType(e) => {
+                                        VmNativeCallParameters::Dynamic(e.0)
                                     }
                                 }
+                            } else {
+                                VmNativeCallParameters::Static(raw_type)
                             }
-                            8 => {
-                                return Err(ExecuterPanic {
-                                    reason: ThreadPanicReason::NullReference(pos),
-                                    code_location: format!("{}:{}", file!(), line!()),
-                                });
-                            }
-                            _ => unreachable!("Wrong typeid"),
-                        },
+                        }
                         None => {
                             return Err(ExecuterPanic {
                                 reason: ThreadPanicReason::NullReference(pos),

@@ -1,4 +1,4 @@
-use crate::{syntax::types::array_type, processors::EscapeCharEmitter};
+use crate::{processors::EscapeCharEmitter, syntax::types::array_type};
 use ellie_core::{defs, error};
 
 impl crate::processors::Processor for array_type::ArrayTypeCollector {

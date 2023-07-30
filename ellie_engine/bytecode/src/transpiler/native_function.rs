@@ -21,23 +21,15 @@ impl super::Transpiler for native_function::NativeFunction {
             .instructions
             .push(instruction_table::Instructions::FN(Instruction::immediate(
                 Types::Integer,
-                {
-                    assembler.locals.push(LocalHeader {
-                        name: self.name.clone(),
-                        cursor: assembler.location(),
-                        page_hash: processed_page.hash,
-                        hash: Some(self.hash),
-                        reference: Instruction::absolute(assembler.location()),
-                    });
-                    usize_to_le_bytes(self.hash, assembler.platform_attributes.architecture)
-                },
+                usize_to_le_bytes(self.hash, assembler.platform_attributes.architecture),
             ))); //Function hash
-        assembler.locals.push(LocalHeader {
+        assembler.add_local(LocalHeader {
             name: self.name.clone(),
             cursor: assembler.location(),
             page_hash: processed_page.hash,
             hash: Some(self.hash),
             reference: Instruction::absolute(assembler.location()),
+            borrowed: None,
         });
 
         assembler
@@ -65,7 +57,8 @@ impl super::Transpiler for native_function::NativeFunction {
             assembler.debug_headers.push(DebugHeader {
                 rtype: DebugHeaderType::Parameter,
                 hash: limit_platform_size(idx, assembler.platform_attributes.architecture),
-                module: processed_page.path.clone(),
+                module_name: processed_page.path.clone(),
+                module_hash: processed_page.hash,
                 name: parameter.name.clone(),
                 start_end: (assembler.location(), assembler.location()),
                 pos: Cursor {
@@ -83,10 +76,11 @@ impl super::Transpiler for native_function::NativeFunction {
                 cursor: assembler.location(),
                 hash: None,
                 reference: Instruction::absolute(assembler.location()),
+                borrowed: None,
             });
         }
 
-        let debug_header_start = if assembler.instructions.len() == 0 {
+        let debug_header_start = if assembler.instructions.is_empty() {
             0
         } else {
             assembler.location()
@@ -113,7 +107,8 @@ impl super::Transpiler for native_function::NativeFunction {
         assembler.debug_headers.push(DebugHeader {
             rtype: DebugHeaderType::NativeFunction,
             hash: limit_platform_size(self.hash, assembler.platform_attributes.architecture),
-            module: processed_page.path.clone(),
+            module_name: processed_page.path.clone(),
+            module_hash: processed_page.hash,
             name: self.name.clone(),
             start_end: (debug_header_start, assembler.location()),
             pos: self.pos,

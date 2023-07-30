@@ -22,6 +22,7 @@ impl crate::processors::Processor for SetterCall {
                 self.value_pos.range_start = cursor;
             }
             self.value_pos.range_end = cursor;
+            self.hash = ellie_core::utils::generate_hash_usize();
             hang = self.cache.iterate(errors, cursor, last_char, letter_char);
         }
         hang

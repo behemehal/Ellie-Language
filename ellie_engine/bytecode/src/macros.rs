@@ -22,13 +22,13 @@ fn parse_type_text(text: String) -> Option<(Types, Vec<u8>)> {
     //#(null)
 
     let cut = text.split_at(2).1;
-    let mut type_text = cut.split(")");
+    let mut type_text = cut.split(')');
     let _type = type_text.next().unwrap();
     let _value = type_text.next().unwrap();
     let value = match _type {
         "int" => _value.parse::<i64>().unwrap().to_le_bytes().to_vec(),
-        "float" => _value.parse::<f32>().unwrap().to_le_bytes().to_vec(),
-        "double" => _value.parse::<f64>().unwrap().to_le_bytes().to_vec(),
+        "float" => _value.parse::<f64>().unwrap().to_le_bytes().to_vec(),
+        "double" => _value.parse::<f32>().unwrap().to_le_bytes().to_vec(),
         "byte" => _value.parse::<u8>().unwrap().to_le_bytes().to_vec(),
         "bool" => vec![_value.parse::<bool>().unwrap().into()],
         "char" => _value
@@ -64,7 +64,7 @@ pub fn parse_instruction_text(text: String) -> Option<Instructions> {
         _ => panic!("Invalid line format"),
     };
 
-    let addressing_mode = if operand == "" {
+    let addressing_mode = if operand.is_empty() {
         AddressingModes::Implicit
     } else {
         let prefix = operand.chars().next().unwrap();
@@ -77,8 +77,8 @@ pub fn parse_instruction_text(text: String) -> Option<Instructions> {
             '$' => {
                 if rest.contains('[') {
                     let data = &operand[1..];
-                    let pointer = data.split("[").next().unwrap();
-                    let idx = data.split("[").last().unwrap().trim_end_matches("]");
+                    let pointer = data.split('[').next().unwrap();
+                    let idx = data.split('[').last().unwrap().trim_end_matches(']');
                     AddressingModes::AbsoluteIndex(
                         pointer.parse::<usize>().unwrap(),
                         idx.parse::<usize>().unwrap(),

@@ -1,4 +1,7 @@
-use crate::{syntax::{items::definers::DefinerCollector, types::class_call_type}, processors::EscapeCharEmitter};
+use crate::{
+    processors::EscapeCharEmitter,
+    syntax::{items::definers::DefinerCollector, types::class_call_type},
+};
 use ellie_core::{defs, error};
 
 use super::TypeProcessor;

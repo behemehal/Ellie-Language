@@ -28,12 +28,13 @@ impl super::Transpiler for function::Function {
                 usize_to_le_bytes(self.hash, assembler.platform_attributes.architecture),
             ))); //Function hash
 
-        assembler.locals.push(LocalHeader {
+        assembler.add_local(LocalHeader {
             name: self.name.clone(),
             cursor: assembler.location(),
             page_hash: processed_page.hash,
             hash: Some(self.hash),
             reference: Instruction::absolute_static(assembler.location()),
+            borrowed: None,
         });
 
         assembler
@@ -60,7 +61,8 @@ impl super::Transpiler for function::Function {
             assembler.debug_headers.push(DebugHeader {
                 rtype: DebugHeaderType::Parameter,
                 hash: limit_platform_size(idx, assembler.platform_attributes.architecture),
-                module: processed_page.path.clone(),
+                module_name: processed_page.path.clone(),
+                module_hash: processed_page.hash,
                 name: parameter.name.clone(),
                 start_end: (assembler.location(), assembler.location()),
                 pos: Cursor {
@@ -78,15 +80,15 @@ impl super::Transpiler for function::Function {
                 cursor: assembler.location(),
                 hash: None,
                 reference: Instruction::absolute(assembler.location()),
+                borrowed: None,
             });
         }
 
-        let debug_header_start = if assembler.instructions.len() == 0 {
+        let debug_header_start = if assembler.instructions.is_empty() {
             0
         } else {
             assembler.location()
         };
-
 
         assembler.assemble_dependency(&self.inner_page_id);
 
@@ -106,7 +108,8 @@ impl super::Transpiler for function::Function {
         assembler.debug_headers.push(DebugHeader {
             rtype: DebugHeaderType::Function,
             hash: limit_platform_size(self.hash, assembler.platform_attributes.architecture),
-            module: processed_page.path.clone(),
+            module_name: processed_page.path.clone(),
+            module_hash: processed_page.hash,
             name: self.name.clone(),
             start_end: (debug_header_start, assembler.location()),
             pos: self.pos,

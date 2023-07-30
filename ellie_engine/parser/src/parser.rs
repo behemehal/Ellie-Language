@@ -5,13 +5,17 @@ use alloc::format;
 use alloc::string::ToString;
 use alloc::vec::Vec;
 use alloc::{string::String, vec};
+use ellie_core::definite::definers::DefinerCollecting;
 use ellie_core::definite::items::file_key::FileKey;
 use ellie_core::definite::types::class_instance::{self, Attribute, AttributeType, ClassInstance};
 use ellie_core::definite::{items::Collecting, Converter};
 use ellie_core::defs::Cursor;
 use ellie_core::utils::{ExportPage, PageExport};
-use ellie_core::{defs, error, information, warning};
+#[cfg(feature = "standard_rules")]
+use ellie_core::warning;
+use ellie_core::{defs, error, information};
 use ellie_tokenizer::processors::items::Processors;
+use ellie_tokenizer::syntax::items::condition::ConditionType;
 use ellie_tokenizer::tokenizer::{Dependency, Page, PageType};
 use serde::{Deserialize, Serialize};
 
@@ -231,10 +235,8 @@ impl ParserSettings {
         }
     }
 
-    pub fn is_item_allowed(&self, type_: Processors) -> bool {
-        match type_ {
-            _ => true,
-        }
+    pub fn is_item_allowed(&self, _type_: Processors) -> bool {
+        true
     }
 }
 
@@ -270,7 +272,7 @@ impl FoundPage {
     pub fn fill(page: &Page) -> FoundPage {
         FoundPage {
             hash: page.hash,
-            inner: page.inner.clone(),
+            inner: page.inner,
             processed: page.processed,
             module: page.module,
             path: page.path.clone(),
@@ -280,7 +282,7 @@ impl FoundPage {
     pub fn fill_from_processed(page: &ProcessedPage) -> FoundPage {
         FoundPage {
             hash: page.hash,
-            inner: page.inner.clone(),
+            inner: page.inner,
             processed: true,
             module: false,
             path: page.path.clone(),
@@ -311,6 +313,7 @@ pub enum DeepSearchItems {
     ConstructorParameter(
         ellie_tokenizer::syntax::items::constructor_parameter::ConstructorParameter,
     ),
+    SelfItem(ellie_core::definite::items::self_item::SelfItem),
     BrokenPageGraph,
     MixUp(Vec<(String, String)>),
     None,
@@ -479,19 +482,7 @@ impl Parser {
                         } else {
                             Err(errors)
                         }
-                    } else {
-                        if errors.is_empty() {
-                            Ok(CompareResult::result(
-                                false,
-                                defining.to_string(),
-                                "int".to_owned(),
-                            ))
-                        } else {
-                            Err(errors)
-                        }
-                    }
-                } else {
-                    if errors.is_empty() {
+                    } else if errors.is_empty() {
                         Ok(CompareResult::result(
                             false,
                             defining.to_string(),
@@ -500,6 +491,14 @@ impl Parser {
                     } else {
                         Err(errors)
                     }
+                } else if errors.is_empty() {
+                    Ok(CompareResult::result(
+                        false,
+                        defining.to_string(),
+                        "int".to_owned(),
+                    ))
+                } else {
+                    Err(errors)
                 }
             }
             deep_search_extensions::DeepTypeResult::Byte(_) => {
@@ -514,19 +513,7 @@ impl Parser {
                         } else {
                             Err(errors)
                         }
-                    } else {
-                        if errors.is_empty() {
-                            Ok(CompareResult::result(
-                                false,
-                                defining.to_string(),
-                                "byte".to_owned(),
-                            ))
-                        } else {
-                            Err(errors)
-                        }
-                    }
-                } else {
-                    if errors.is_empty() {
+                    } else if errors.is_empty() {
                         Ok(CompareResult::result(
                             false,
                             defining.to_string(),
@@ -535,6 +522,14 @@ impl Parser {
                     } else {
                         Err(errors)
                     }
+                } else if errors.is_empty() {
+                    Ok(CompareResult::result(
+                        false,
+                        defining.to_string(),
+                        "byte".to_owned(),
+                    ))
+                } else {
+                    Err(errors)
                 }
             }
             deep_search_extensions::DeepTypeResult::Decimal(decimal_type) => {
@@ -554,19 +549,7 @@ impl Parser {
                         } else {
                             Err(errors)
                         }
-                    } else {
-                        if errors.is_empty() {
-                            Ok(CompareResult::result(
-                                false,
-                                defining.to_string(),
-                                generic_name.to_owned(),
-                            ))
-                        } else {
-                            Err(errors)
-                        }
-                    }
-                } else {
-                    if errors.is_empty() {
+                    } else if errors.is_empty() {
                         Ok(CompareResult::result(
                             false,
                             defining.to_string(),
@@ -575,6 +558,14 @@ impl Parser {
                     } else {
                         Err(errors)
                     }
+                } else if errors.is_empty() {
+                    Ok(CompareResult::result(
+                        false,
+                        defining.to_string(),
+                        generic_name.to_owned(),
+                    ))
+                } else {
+                    Err(errors)
                 }
             }
             deep_search_extensions::DeepTypeResult::Bool(_) => {
@@ -589,19 +580,7 @@ impl Parser {
                         } else {
                             Err(errors)
                         }
-                    } else {
-                        if errors.is_empty() {
-                            Ok(CompareResult::result(
-                                false,
-                                defining.to_string(),
-                                "bool".to_owned(),
-                            ))
-                        } else {
-                            Err(errors)
-                        }
-                    }
-                } else {
-                    if errors.is_empty() {
+                    } else if errors.is_empty() {
                         Ok(CompareResult::result(
                             false,
                             defining.to_string(),
@@ -610,6 +589,14 @@ impl Parser {
                     } else {
                         Err(errors)
                     }
+                } else if errors.is_empty() {
+                    Ok(CompareResult::result(
+                        false,
+                        defining.to_string(),
+                        "bool".to_owned(),
+                    ))
+                } else {
+                    Err(errors)
                 }
             }
             deep_search_extensions::DeepTypeResult::String(_) => {
@@ -624,19 +611,7 @@ impl Parser {
                         } else {
                             Err(errors)
                         }
-                    } else {
-                        if errors.is_empty() {
-                            Ok(CompareResult::result(
-                                false,
-                                defining.to_string(),
-                                "string".to_owned(),
-                            ))
-                        } else {
-                            Err(errors)
-                        }
-                    }
-                } else {
-                    if errors.is_empty() {
+                    } else if errors.is_empty() {
                         Ok(CompareResult::result(
                             false,
                             defining.to_string(),
@@ -645,6 +620,14 @@ impl Parser {
                     } else {
                         Err(errors)
                     }
+                } else if errors.is_empty() {
+                    Ok(CompareResult::result(
+                        false,
+                        defining.to_string(),
+                        "string".to_owned(),
+                    ))
+                } else {
+                    Err(errors)
                 }
             }
             deep_search_extensions::DeepTypeResult::Char(_) => {
@@ -659,19 +642,7 @@ impl Parser {
                         } else {
                             Err(errors)
                         }
-                    } else {
-                        if errors.is_empty() {
-                            Ok(CompareResult::result(
-                                false,
-                                defining.to_string(),
-                                "char".to_owned(),
-                            ))
-                        } else {
-                            Err(errors)
-                        }
-                    }
-                } else {
-                    if errors.is_empty() {
+                    } else if errors.is_empty() {
                         Ok(CompareResult::result(
                             false,
                             defining.to_string(),
@@ -680,6 +651,14 @@ impl Parser {
                     } else {
                         Err(errors)
                     }
+                } else if errors.is_empty() {
+                    Ok(CompareResult::result(
+                        false,
+                        defining.to_string(),
+                        "char".to_owned(),
+                    ))
+                } else {
+                    Err(errors)
                 }
             }
             deep_search_extensions::DeepTypeResult::Collective(_) => todo!(),
@@ -707,16 +686,14 @@ impl Parser {
                     } else {
                         Err(errors)
                     }
+                } else if errors.is_empty() {
+                    Ok(CompareResult::result(
+                        false,
+                        defining.to_string(),
+                        value_gen.to_string(),
+                    ))
                 } else {
-                    if errors.is_empty() {
-                        Ok(CompareResult::result(
-                            false,
-                            defining.to_string(),
-                            value_gen.to_string(),
-                        ))
-                    } else {
-                        Err(errors)
-                    }
+                    Err(errors)
                 }
             }
             deep_search_extensions::DeepTypeResult::Cloak(_) => todo!(),
@@ -744,16 +721,14 @@ impl Parser {
                     } else {
                         Err(errors)
                     }
+                } else if errors.is_empty() {
+                    Ok(CompareResult::result(
+                        false,
+                        defining.to_string(),
+                        value_gen.to_string(),
+                    ))
                 } else {
-                    if errors.is_empty() {
-                        Ok(CompareResult::result(
-                            false,
-                            defining.to_string(),
-                            value_gen.to_string(),
-                        ))
-                    } else {
-                        Err(errors)
-                    }
+                    Err(errors)
                 }
             }
             deep_search_extensions::DeepTypeResult::ClassCall(class_call) => {
@@ -879,19 +854,7 @@ impl Parser {
                         } else {
                             Err(errors)
                         }
-                    } else {
-                        if errors.is_empty() {
-                            Ok(CompareResult::result(
-                                false,
-                                defining.to_string(),
-                                "void".to_owned(),
-                            ))
-                        } else {
-                            Err(errors)
-                        }
-                    }
-                } else {
-                    if errors.is_empty() {
+                    } else if errors.is_empty() {
                         Ok(CompareResult::result(
                             false,
                             defining.to_string(),
@@ -900,6 +863,14 @@ impl Parser {
                     } else {
                         Err(errors)
                     }
+                } else if errors.is_empty() {
+                    Ok(CompareResult::result(
+                        false,
+                        defining.to_string(),
+                        "void".to_owned(),
+                    ))
+                } else {
+                    Err(errors)
                 }
             }
             deep_search_extensions::DeepTypeResult::Null => {
@@ -914,19 +885,7 @@ impl Parser {
                         } else {
                             Err(errors)
                         }
-                    } else {
-                        if errors.is_empty() {
-                            Ok(CompareResult::result(
-                                false,
-                                defining.to_string(),
-                                "null".to_owned(),
-                            ))
-                        } else {
-                            Err(errors)
-                        }
-                    }
-                } else {
-                    if errors.is_empty() {
+                    } else if errors.is_empty() {
                         Ok(CompareResult::result(
                             false,
                             defining.to_string(),
@@ -935,6 +894,14 @@ impl Parser {
                     } else {
                         Err(errors)
                     }
+                } else if errors.is_empty() {
+                    Ok(CompareResult::result(
+                        false,
+                        defining.to_string(),
+                        "null".to_owned(),
+                    ))
+                } else {
+                    Err(errors)
                 }
             }
             deep_search_extensions::DeepTypeResult::BraceReference(e) => {
@@ -959,16 +926,14 @@ impl Parser {
                     } else {
                         Err(errors)
                     }
+                } else if errors.is_empty() {
+                    Ok(CompareResult::result(
+                        false,
+                        defining.to_string(),
+                        value_gen.to_string(),
+                    ))
                 } else {
-                    if errors.is_empty() {
-                        Ok(CompareResult::result(
-                            false,
-                            defining.to_string(),
-                            value_gen.to_string(),
-                        ))
-                    } else {
-                        Err(errors)
-                    }
+                    Err(errors)
                 }
             }
             deep_search_extensions::DeepTypeResult::Dynamic => {
@@ -983,16 +948,14 @@ impl Parser {
                         } else {
                             Err(errors)
                         }
+                    } else if errors.is_empty() {
+                        Ok(CompareResult::result(
+                            false,
+                            defining.to_string(),
+                            "dyn".to_owned(),
+                        ))
                     } else {
-                        if errors.is_empty() {
-                            Ok(CompareResult::result(
-                                false,
-                                defining.to_string(),
-                                "dyn".to_owned(),
-                            ))
-                        } else {
-                            Err(errors)
-                        }
+                        Err(errors)
                     }
                 } else if let ellie_core::definite::definers::DefinerCollecting::Dynamic = defining
                 {
@@ -1005,16 +968,14 @@ impl Parser {
                     } else {
                         Err(errors)
                     }
+                } else if errors.is_empty() {
+                    Ok(CompareResult::result(
+                        false,
+                        defining.to_string(),
+                        "dyn".to_owned(),
+                    ))
                 } else {
-                    if errors.is_empty() {
-                        Ok(CompareResult::result(
-                            false,
-                            defining.to_string(),
-                            "dyn".to_owned(),
-                        ))
-                    } else {
-                        Err(errors)
-                    }
+                    Err(errors)
                 }
             }
             deep_search_extensions::DeepTypeResult::NotFound => {
@@ -1064,28 +1025,26 @@ impl Parser {
                     } else {
                         Err(errors)
                     }
+                } else if errors.is_empty() {
+                    Ok(CompareResult::result(
+                        false,
+                        defining.to_string(),
+                        format!(
+                            "Fn({}):{}",
+                            function
+                                .parameters
+                                .iter()
+                                .map(|x| match &x.rtype {
+                                    Some(x) => x.to_string(),
+                                    None => "?".to_string(),
+                                })
+                                .collect::<Vec<_>>()
+                                .join(","),
+                            function.return_type.to_string()
+                        ),
+                    ))
                 } else {
-                    if errors.is_empty() {
-                        Ok(CompareResult::result(
-                            false,
-                            defining.to_string(),
-                            format!(
-                                "Fn({}):{}",
-                                function
-                                    .parameters
-                                    .iter()
-                                    .map(|x| match &x.rtype {
-                                        Some(x) => x.to_string(),
-                                        None => "?".to_string(),
-                                    })
-                                    .collect::<Vec<_>>()
-                                    .join(","),
-                                function.return_type.to_string()
-                            ),
-                        ))
-                    } else {
-                        Err(errors)
-                    }
+                    Err(errors)
                 }
             }
             deep_search_extensions::DeepTypeResult::EnumData(e) => {
@@ -1150,6 +1109,7 @@ impl Parser {
             }
             deep_search_extensions::DeepTypeResult::Enum(_) => todo!(),
             deep_search_extensions::DeepTypeResult::ClassInstance(_) => todo!(),
+            deep_search_extensions::DeepTypeResult::SelfItem(_) => todo!(),
         }
     }
 
@@ -1424,7 +1384,7 @@ impl Parser {
                                         }
                                     }
                                     Collecting::Import(e) => {
-                                        if e.reference != ""
+                                        if !e.reference.is_empty()
                                             && e.reference == name
                                             && (e.public
                                                 || level == 0
@@ -1495,15 +1455,23 @@ impl Parser {
                                             });
                                         }
                                     }
+                                    Collecting::SelfItem(e) => {
+                                        if name == "self" {
+                                            found_pos = Some(e.pos);
+                                            found = true;
+                                            found_page = FoundPage::fill(&unprocessed_page);
+                                            found_type = DeepSearchItems::SelfItem(e);
+                                        }
+                                    }
                                     _ => (),
+                                }
+                                if found {
+                                    break;
                                 }
                             }
                         }
                         None => {
                             panic!("Broken Page structure; Failed to find page {}", dep.hash);
-                            //found = true;
-                            //found_type = DeepSearchItems::BrokenPageGraph;
-                            //break 'pages;
                         }
                     }
                 } else if dep.processed {
@@ -1583,7 +1551,7 @@ impl Parser {
                                         }
                                     }
                                     Collecting::Import(e) => {
-                                        if e.reference != ""
+                                        if !e.reference.is_empty()
                                             && e.reference == name
                                             && (e.public
                                                 || level == 0
@@ -1654,15 +1622,23 @@ impl Parser {
                                             });
                                         }
                                     }
+                                    Collecting::SelfItem(e) => {
+                                        if name == "self" {
+                                            found_pos = Some(e.pos);
+                                            found = true;
+                                            found_page = FoundPage::fill(&unprocessed_page);
+                                            found_type = DeepSearchItems::SelfItem(e);
+                                        }
+                                    }
                                     _ => (),
+                                }
+                                if found {
+                                    break;
                                 }
                             }
                         }
                         None => {
                             panic!("Broken Page structure; Failed to find page {}", dep.hash);
-                            //found = true;
-                            //found_type = DeepSearchItems::BrokenPageGraph;
-                            //break 'pages;
                         }
                     }
                 } else {
@@ -1687,7 +1663,7 @@ impl Parser {
                                         {
                                             found_pos = Some(e.data.pos);
                                             found = true;
-                                            found_page = FoundPage::fill(&page);
+                                            found_page = FoundPage::fill(page);
                                             found_type = DeepSearchItems::Variable(e.data.clone());
                                         }
                                     }
@@ -1699,7 +1675,7 @@ impl Parser {
                                         {
                                             found_pos = Some(e.pos);
                                             found = true;
-                                            found_page = FoundPage::fill(&page);
+                                            found_page = FoundPage::fill(page);
                                             found_type = DeepSearchItems::Enum(e.clone());
                                         }
                                     }
@@ -1713,7 +1689,7 @@ impl Parser {
                                         {
                                             found_pos = Some(e.data.pos);
                                             found = true;
-                                            found_page = FoundPage::fill(&page);
+                                            found_page = FoundPage::fill(page);
                                             found_type = DeepSearchItems::Function(e.data.clone());
                                         }
                                     }
@@ -1725,7 +1701,7 @@ impl Parser {
                                         {
                                             found_pos = Some(e.pos);
                                             found = true;
-                                            found_page = FoundPage::fill(&page);
+                                            found_page = FoundPage::fill(page);
                                             found_type = DeepSearchItems::Getter(e.clone());
                                         }
                                     }
@@ -1737,12 +1713,12 @@ impl Parser {
                                         {
                                             found_pos = Some(e.pos);
                                             found = true;
-                                            found_page = FoundPage::fill(&page);
+                                            found_page = FoundPage::fill(page);
                                             found_type = DeepSearchItems::Setter(e.clone());
                                         }
                                     }
                                     Processors::Import(e) => {
-                                        if e.reference != ""
+                                        if !e.reference.is_empty()
                                             && e.reference == name
                                             && (e.public
                                                 || level == 0
@@ -1753,7 +1729,7 @@ impl Parser {
                                         {
                                             found_pos = Some(e.pos);
                                             found = true;
-                                            found_page = FoundPage::fill(&page);
+                                            found_page = FoundPage::fill(page);
                                             found_type =
                                                 DeepSearchItems::ImportReference(e.clone());
                                         }
@@ -1769,7 +1745,7 @@ impl Parser {
                                         {
                                             found_pos = Some(e.pos);
                                             found = true;
-                                            found_page = FoundPage::fill(&page);
+                                            found_page = FoundPage::fill(page);
                                             found_type = DeepSearchItems::Class(e.clone());
                                         }
                                     }
@@ -1781,14 +1757,14 @@ impl Parser {
                                         {
                                             found_pos = Some(e.pos);
                                             found = true;
-                                            found_page = FoundPage::fill(&page);
+                                            found_page = FoundPage::fill(page);
                                             found_type = DeepSearchItems::GenericItem(e.clone());
                                         }
                                     }
                                     Processors::ClassInstance(e) => {
                                         if "self" == name && level == 0 {
                                             found = true;
-                                            found_page = FoundPage::fill(&page);
+                                            found_page = FoundPage::fill(page);
                                             found_type = DeepSearchItems::ClassInstance(e.clone());
                                         }
                                     }
@@ -1807,22 +1783,34 @@ impl Parser {
                                         {
                                             found_pos = Some(e.pos);
                                             found = true;
-                                            found_page = FoundPage::fill(&page);
+                                            found_page = FoundPage::fill(page);
                                             found_type =
                                                 DeepSearchItems::ConstructorParameter(e.clone());
                                         }
                                     }
+                                    Processors::SelfItem(e) => {
+                                        if "self" == name && (level == 0 || dep.deep_link.is_some())
+                                        {
+                                            found_pos = Some(e.pos);
+                                            found = true;
+                                            found_page = FoundPage::fill(page);
+                                            found_type = DeepSearchItems::SelfItem(*e);
+                                        }
+                                    }
                                     _ => (),
+                                }
+                                if found {
+                                    break;
                                 }
                             }
                         }
                         None => {
                             panic!("Broken Page structure; Failed to find page {}", dep.hash);
-                            //found = true;
-                            //found_type = DeepSearchItems::BrokenPageGraph;
-                            //break 'pages;
                         }
                     }
+                }
+                if found {
+                    break;
                 }
                 level += 1;
             }
@@ -1880,7 +1868,7 @@ impl Parser {
         let (_, processed_page_idx) = match self.processed_pages.find_page_and_idx(hash) {
             None => {
                 self.processed_pages.push_page(ProcessedPage {
-                    hash: hash,
+                    hash,
                     inner: unprocessed_page.inner,
                     path: unprocessed_page.path.clone(),
                     items: vec![],
@@ -1939,7 +1927,7 @@ impl Parser {
                 }
 
                 let terminated = match unprocessed_page.page_type {
-                    ellie_tokenizer::tokenizer::PageType::FunctionBody => match item {
+                    ellie_tokenizer::tokenizer::PageType::FunctionBody(_) => match item {
                         Processors::Variable(e) => e.process(
                             self,
                             unprocessed_page_idx,
@@ -2043,6 +2031,14 @@ impl Parser {
                             Collecting::FunctionParameter(
                                 ellie_core::definite::items::function_parameter::FunctionParameter { name: e.name.clone(), rtype: e.rtype.clone(), name_pos: e.name_pos, rtype_pos: e.rtype_pos, hash: e.hash }
                             ));
+                            true
+                        }
+                        Processors::SelfItem(e) => {
+                            self.processed_pages
+                                .nth_mut(processed_page_idx)
+                                .unwrap()
+                                .items
+                                .push(Collecting::SelfItem(*e));
                             true
                         }
                         Processors::ConstructorParameter(e) => {
@@ -2240,7 +2236,7 @@ impl Parser {
                             unprocessed_page.hash,
                         ),
                         Processors::Import(e) => {
-                            let hash = e.hash.clone();
+                            let hash = e.hash;
                             e.process(
                                 self,
                                 unprocessed_page_idx,
@@ -2378,7 +2374,7 @@ impl Parser {
                             false
                         }
                     },
-                    ellie_tokenizer::tokenizer::PageType::ConditionBody => match item {
+                    ellie_tokenizer::tokenizer::PageType::ConditionBody(_) => match item {
                         Processors::Variable(e) => e.process(
                             self,
                             unprocessed_page_idx,
@@ -2692,6 +2688,332 @@ impl Parser {
 
     pub fn parse(&mut self) -> Module {
         self.process_page(self.initial_page);
+        let mut idx = 0;
+        loop {
+            let page = match self.pages.nth(idx) {
+                Some(i) => i,
+                None => break,
+            };
+            let page_hash = page.hash;
+            let page_type = page.page_type.clone();
+            let page_path = page.path.clone();
+            idx += 1;
+            if page.hash == self.initial_page {
+                continue;
+            }
+            self.process_page(page_hash);
+            match page_type {
+                PageType::FunctionBody(function_page) => {
+                    let found_ret = self
+                        .find_processed_page(page_hash)
+                        .unwrap()
+                        .items
+                        .clone()
+                        .into_iter()
+                        .find_map(|item| match item {
+                            ellie_core::definite::items::Collecting::Ret(e) => Some(e),
+                            _ => None,
+                        });
+                    if let Some(ret) = found_ret {
+                        if self.informations.has_no_errors() {
+                            match self.compare_defining_with_type(
+                                function_page.return_type,
+                                ret.value,
+                                page_hash,
+                            ) {
+                                Ok(result) => {
+                                    if result.requires_cast {
+                                        self.informations.push(
+                                                &error::error_list::ERROR_S41.clone().build_with_path(
+                                                    vec![error::ErrorBuildField {
+                                                        key: "token".to_owned(),
+                                                        value: "Type helpers are not completely implemented yet. Next error is result of this. Follow progress here (https://github.com/behemehal/EllieWorks/issues/8)".to_owned(),
+                                                    }],
+                                                    alloc::format!(
+                                                        "{}:{}:{}",
+                                                        file!().to_owned(),
+                                                        line!(),
+                                                        column!()
+                                                    ),
+                                                    page_path.clone(),
+                                                    ret.pos,
+                                                ),
+                                            );
+                                        let mut err =
+                                            error::error_list::ERROR_S3.clone().build_with_path(
+                                                vec![
+                                                    error::ErrorBuildField {
+                                                        key: "token1".to_owned(),
+                                                        value: result.first.clone(),
+                                                    },
+                                                    error::ErrorBuildField {
+                                                        key: "token2".to_owned(),
+                                                        value: result.second.clone(),
+                                                    },
+                                                ],
+                                                alloc::format!(
+                                                    "{}:{}:{}",
+                                                    file!().to_owned(),
+                                                    line!(),
+                                                    column!()
+                                                ),
+                                                page_path.clone(),
+                                                ret.pos,
+                                            );
+                                        err.reference_block =
+                                            Some((function_page.return_pos, page_path.clone()));
+                                        err.reference_message = "Defined here".to_owned();
+                                        err.semi_assist = true;
+                                        self.informations.push(&err);
+                                    }
+
+                                    if !result.same {
+                                        let mut err =
+                                            error::error_list::ERROR_S3.clone().build_with_path(
+                                                vec![
+                                                    error::ErrorBuildField {
+                                                        key: "token1".to_owned(),
+                                                        value: result.first,
+                                                    },
+                                                    error::ErrorBuildField {
+                                                        key: "token2".to_owned(),
+                                                        value: result.second,
+                                                    },
+                                                ],
+                                                alloc::format!(
+                                                    "{}:{}:{}",
+                                                    file!().to_owned(),
+                                                    line!(),
+                                                    column!()
+                                                ),
+                                                page_path.clone(),
+                                                ret.pos,
+                                            );
+                                        err.reference_block =
+                                            Some((function_page.return_pos, page_path));
+                                        err.reference_message = "Defined here".to_owned();
+                                        err.semi_assist = true;
+                                        self.informations.push(&err);
+                                    }
+                                }
+                                Err(e) => {
+                                    self.informations.extend(&e);
+                                }
+                            }
+                        }
+                    }
+                }
+                PageType::ConditionBody(condition_page) => {
+                    let mut common_return: Option<(
+                        Cursor,
+                        Option<(DefinerCollecting, Cursor)>,
+                        ellie_tokenizer::syntax::items::condition::ConditionType,
+                    )> = None;
+                    let found_ret = self
+                        .find_processed_page(page_hash)
+                        .unwrap()
+                        .items
+                        .clone()
+                        .into_iter()
+                        .find_map(|item| match item {
+                            ellie_core::definite::items::Collecting::Ret(e) => Some(e),
+                            _ => None,
+                        });
+
+                    if let Some(ret) = found_ret {
+                        let mut errors = Vec::new();
+                        match resolve_type(ret.value, page_hash, self, &mut errors, Some(ret.pos)) {
+                            Some(ret_type) => match common_return {
+                                Some(e) => {
+                                    match e.1 {
+                                        Some(previous_type) => {
+                                            if previous_type.0 != ret_type {
+                                                let mut error = error::error_list::ERROR_S13
+                                                    .clone()
+                                                    .build_with_path(
+                                                        vec![
+                                                            error::ErrorBuildField {
+                                                                key: "token".to_string(),
+                                                                value: match e.2 {
+                                                                    ConditionType::If => "if",
+                                                                    ConditionType::ElseIf => {
+                                                                        "else if"
+                                                                    }
+                                                                    ConditionType::Else => "else",
+                                                                }
+                                                                .to_string(),
+                                                            },
+                                                            error::ErrorBuildField {
+                                                                key: "token1".to_string(),
+                                                                value: match condition_page
+                                                                    .chain_type
+                                                                {
+                                                                    ConditionType::If => "if",
+                                                                    ConditionType::ElseIf => {
+                                                                        "else if"
+                                                                    }
+                                                                    ConditionType::Else => "else",
+                                                                }
+                                                                .to_string(),
+                                                            },
+                                                        ],
+                                                        alloc::format!(
+                                                            "{}:{}:{}",
+                                                            file!().to_owned(),
+                                                            line!(),
+                                                            column!()
+                                                        ),
+                                                        page_path.clone(),
+                                                        e.0,
+                                                    );
+
+                                                error.reference_block =
+                                                    Some((previous_type.1, page_path.clone()));
+                                                error.reference_message =
+                                                    "Type mismatch".to_string();
+
+                                                self.informations.push(&error);
+                                            }
+                                        }
+                                        None => {
+                                            let mut error = error::error_list::ERROR_S13
+                                                .clone()
+                                                .build_with_path(
+                                                    vec![
+                                                        error::ErrorBuildField {
+                                                            key: "token".to_string(),
+                                                            value: match e.2 {
+                                                                ConditionType::If => "if",
+                                                                ConditionType::ElseIf => "else if",
+                                                                ConditionType::Else => "else",
+                                                            }
+                                                            .to_string(),
+                                                        },
+                                                        error::ErrorBuildField {
+                                                            key: "token1".to_string(),
+                                                            value:
+                                                                match condition_page.chain_type {
+                                                                    ConditionType::If => "if",
+                                                                    ConditionType::ElseIf => {
+                                                                        "else if"
+                                                                    }
+                                                                    ConditionType::Else => "else",
+                                                                }
+                                                                .to_string(),
+                                                        },
+                                                    ],
+                                                    alloc::format!(
+                                                        "{}:{}:{}",
+                                                        file!().to_owned(),
+                                                        line!(),
+                                                        column!()
+                                                    ),
+                                                    page_path.clone(),
+                                                    e.0,
+                                                );
+                                            error.reference_block =
+                                                Some((ret.pos, page_path.clone()));
+                                            error.reference_message = "Type mismatch".to_string();
+                                            self.informations.push(&error);
+                                        }
+                                    }
+
+                                    common_return = Some((
+                                        condition_page.keyword_pos,
+                                        Some((ret_type, ret.pos)),
+                                        condition_page.chain_type,
+                                    ));
+                                }
+                                None => {
+                                    common_return = Some((
+                                        condition_page.keyword_pos,
+                                        Some((ret_type, ret.pos)),
+                                        condition_page.chain_type,
+                                    ));
+                                }
+                            },
+                            None => {
+                                //Parser should prevent this
+                                unreachable!()
+                            }
+                        };
+                        self.informations.extend(&errors);
+                    } else {
+                        match common_return.clone() {
+                            Some(e) => {
+                                match e.1 {
+                                    Some(f) => {
+                                        let mut error =
+                                            error::error_list::ERROR_S13.clone().build_with_path(
+                                                vec![
+                                                    error::ErrorBuildField {
+                                                        key: "token".to_string(),
+                                                        value: match e.2 {
+                                                            ConditionType::If => "if",
+                                                            ConditionType::ElseIf => "else if",
+                                                            ConditionType::Else => "else",
+                                                        }
+                                                        .to_string(),
+                                                    },
+                                                    error::ErrorBuildField {
+                                                        key: "token1".to_string(),
+                                                        value: match condition_page.chain_type {
+                                                            ConditionType::If => "if",
+                                                            ConditionType::ElseIf => "else if",
+                                                            ConditionType::Else => "else",
+                                                        }
+                                                        .to_string(),
+                                                    },
+                                                ],
+                                                alloc::format!(
+                                                    "{}:{}:{}",
+                                                    file!().to_owned(),
+                                                    line!(),
+                                                    column!()
+                                                ),
+                                                page_path.clone(),
+                                                e.0,
+                                            );
+                                        error.reference_block = Some((f.1, page_path.clone()));
+                                        error.reference_message = "Type mismatch".to_string();
+                                        self.informations.push(&error);
+                                    }
+                                    None => (),
+                                }
+
+                                common_return = Some((
+                                    condition_page.keyword_pos,
+                                    None,
+                                    condition_page.chain_type,
+                                ));
+                            }
+                            None => {
+                                common_return = Some((
+                                    condition_page.keyword_pos,
+                                    None,
+                                    condition_page.chain_type,
+                                ));
+                            }
+                        }
+                    }
+
+                    let condition_body =
+                        self.find_processed_page(condition_page.page_hash).unwrap();
+                    condition_body.items.iter_mut().for_each(|x| match x {
+                        Collecting::Condition(e) => {
+                            if e.hash == condition_page.condition_hash {
+                                e.returns = match &common_return {
+                                    Some(e) => e.1.as_ref().map(|e| e.0.clone()),
+                                    None => None,
+                                };
+                            }
+                        }
+                        _ => (),
+                    });
+                }
+                _ => (),
+            }
+        }
 
         if !self.module_info.is_lib {
             let main_function =

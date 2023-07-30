@@ -7,8 +7,8 @@ impl CodeRenderer for DecimalType {
     fn render(&self, state: &State, options: &FormatterOptions) -> String {
         let state_scope_length = state.render_scope_space(options);
         let state_ending_token = &state.ending_token;
-        let value = self.raw.split(".").collect::<Vec<&str>>()[1].to_string();
-        let starter = if self.raw.starts_with(".") || options.decimal_starts_with_dot {
+        let value = self.raw.split('.').collect::<Vec<&str>>()[1].to_string();
+        let starter = if self.raw.starts_with('.') || options.decimal_starts_with_dot {
             "."
         } else {
             "0."

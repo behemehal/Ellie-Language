@@ -19,7 +19,7 @@ impl super::Processor for getter::Getter {
                 path,
                 self.name_pos,
             ));
-        return false;
+        false
 
         /*
             let getter_key_definings = parser

@@ -1,4 +1,4 @@
-use crate::{syntax::items::variable::VariableCollector, processors::EscapeCharEmitter};
+use crate::{processors::EscapeCharEmitter, syntax::items::variable::VariableCollector};
 use ellie_core::{defs, error, utils};
 
 impl crate::processors::Processor for VariableCollector {

@@ -1,11 +1,12 @@
-use core::mem;
 use crate::{
+    config::PROGRAM_MAX_SIZE,
     instruction_utils::{Instructions, A2B},
     raw_type::{StaticRawType, TypeId},
-    utils::{AddressingModes, AddressingValues, ProgramReader}, config::PROGRAM_MAX_SIZE,
+    utils::{AddressingModes, AddressingValues, ProgramReader},
 };
 use alloc::vec::Vec;
-use ellie_core::defs::PlatformArchitecture;
+use core::mem;
+use ellie_core::defs::{NativeCallTrace, PlatformArchitecture};
 
 #[derive(Debug, Clone, Copy)]
 pub struct ReadInstruction {
@@ -50,6 +51,7 @@ pub struct MainProgram {
 pub struct Program {
     pub main: MainProgram,
     pub arch: PlatformArchitecture,
+    pub native_call_traces: Vec<NativeCallTrace>,
     pub instructions: Vec<ReadInstruction>,
 }
 
@@ -63,6 +65,7 @@ impl Program {
             },
             arch: PlatformArchitecture::B32,
             instructions: Vec::new(),
+            native_call_traces: Vec::new(),
         }
     }
 
@@ -110,7 +113,10 @@ impl Program {
         Err(3)
     }
 
-    pub fn build_from_reader(&mut self, reader: &mut ProgramReader) -> Result<(), ProgramReadErrors> {
+    pub fn build_from_reader(
+        &mut self,
+        reader: &mut ProgramReader,
+    ) -> Result<(), ProgramReadErrors> {
         let arch = match reader.read_u8() {
             Some(byte) => match PlatformArchitecture::from_byte(byte) {
                 Some(e) => e,
@@ -122,8 +128,8 @@ impl Program {
         if arch.usize_len() > mem::size_of::<usize>() as u8 {
             return Err(ProgramReadErrors::UnmatchedPlatformArchitecture(
                 arch,
-                PlatformArchitecture::from_byte(mem::size_of::<usize>() as u8 * 8).unwrap()),
-            );
+                PlatformArchitecture::from_byte(mem::size_of::<usize>() as u8 * 8).unwrap(),
+            ));
         }
 
         let main_exists = match reader.read_u8() {
@@ -155,6 +161,43 @@ impl Program {
             length: end,
         };
         self.arch = arch;
+
+        let native_call_trace_count = match reader.read_usize(arch.usize_len()) {
+            Some(byte) => byte,
+            None => return Err(ProgramReadErrors::ReadError),
+        };
+
+        for _ in 0..native_call_trace_count {
+            let module_name_len = match reader.read_usize(arch.usize_len()) {
+                Some(byte) => byte,
+                None => return Err(ProgramReadErrors::ReadError),
+            };
+
+            let module_name = match reader.read_string(module_name_len) {
+                Some(name) => name,
+                None => return Err(ProgramReadErrors::ReadError),
+            };
+
+            let function_hash = match reader.read_usize(arch.usize_len()) {
+                Some(byte) => byte,
+                None => return Err(ProgramReadErrors::ReadError),
+            };
+            let function_name_len = match reader.read_usize(arch.usize_len()) {
+                Some(byte) => byte,
+                None => return Err(ProgramReadErrors::ReadError),
+            };
+            let function_name = match reader.read_string(function_name_len) {
+                Some(name) => name,
+                None => return Err(ProgramReadErrors::ReadError),
+            };
+
+            self.native_call_traces.push(NativeCallTrace {
+                module_name,
+                function_hash,
+                function_name,
+            })
+        }
+
         loop {
             let read_instruction = self.read_instruction(reader);
             match read_instruction {
@@ -181,7 +224,10 @@ impl Program {
     /// 0 = Failed to read byte
     /// 1 = Used illegal op code
     /// 2 = Used invalid addressing mode
-    fn read_instruction<'a>(&self, reader: &mut ProgramReader) -> Result<ReadInstruction, ProgramReadErrors> {
+    fn read_instruction<'a>(
+        &self,
+        reader: &mut ProgramReader,
+    ) -> Result<ReadInstruction, ProgramReadErrors> {
         let read_byte = match reader.read_u8() {
             Some(byte) => byte,
             None => return Err(ProgramReadErrors::ReadError),
@@ -192,12 +238,12 @@ impl Program {
                 let addressing_mode = instruction.addressing_mode();
                 let mut addressing_value: AddressingValues = AddressingValues::Implicit;
                 if addressing_mode == AddressingModes::Implicit {
-                    return Ok(ReadInstruction {
+                    Ok(ReadInstruction {
                         instruction,
                         addressing_mode,
                         addressing_value,
                         op_code: read_byte,
-                    });
+                    })
                 } else {
                     match addressing_mode {
                         AddressingModes::Immediate => {
@@ -265,23 +311,22 @@ impl Program {
                         }
                     }
 
-                    return Ok(ReadInstruction {
+                    Ok(ReadInstruction {
                         instruction,
                         addressing_mode,
                         addressing_value,
                         op_code: read_byte,
-                    });
+                    })
                 }
             }
-            None => {
-                return Err(ProgramReadErrors::IllegalOpCode);
-            }
-        };
+            None => Err(ProgramReadErrors::IllegalOpCode),
+        }
     }
 }
 
 pub struct VmProgram {
     pub instructions: [ReadInstruction; PROGRAM_MAX_SIZE],
+    pub traces: Vec<NativeCallTrace>,
     pub length: usize,
 }
 
@@ -289,6 +334,7 @@ impl VmProgram {
     pub fn new() -> Self {
         VmProgram {
             instructions: [ReadInstruction::default(); PROGRAM_MAX_SIZE],
+            traces: Vec::new(),
             length: 0,
         }
     }
@@ -304,5 +350,9 @@ impl VmProgram {
             self.instructions[idx] = *instruction;
         }
         self.length = program.len();
+    }
+
+    pub fn fill_traces(&mut self, traces: Vec<NativeCallTrace>) {
+        self.traces = traces
     }
 }

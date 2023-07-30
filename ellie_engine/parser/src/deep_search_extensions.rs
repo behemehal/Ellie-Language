@@ -109,22 +109,20 @@ pub fn generate_type_from_defining(
         }
         definers::DefinerCollecting::ParentGeneric(parent_generic) => {
             if parent_generic.rtype == "array" {
-                match generate_type_from_defining(
+                generate_type_from_defining(
                     parent_generic.generics[0].value.clone(),
                     page_id,
                     parser,
-                ) {
-                    Some(t) => Some(Types::Array(
-                        ellie_core::definite::types::array::ArrayType {
-                            collective: vec![ellie_core::definite::types::array::ArrayEntry {
-                                value: t,
-                                location: defs::Cursor::default(),
-                            }],
-                            pos: defs::Cursor::default(),
-                        },
-                    )),
-                    None => None,
-                }
+                )
+                .map(|t| {
+                    Types::Array(ellie_core::definite::types::array::ArrayType {
+                        collective: vec![ellie_core::definite::types::array::ArrayEntry {
+                            value: t,
+                            location: defs::Cursor::default(),
+                        }],
+                        pos: defs::Cursor::default(),
+                    })
+                })
             } else if parent_generic.rtype == "cloak" {
                 let mut cloak_entries = vec![];
                 let mut unresolved_element_available = false;
@@ -153,26 +151,22 @@ pub fn generate_type_from_defining(
                     ))
                 }
             } else if parent_generic.rtype == "collective" {
-                match generate_type_from_defining(
+                generate_type_from_defining(
                     parent_generic.generics[0].value.clone(),
                     page_id,
                     parser,
-                ) {
-                    Some(t) => Some(Types::Collective(
-                        ellie_core::definite::types::collective::CollectiveType {
-                            entries: vec![
-                                ellie_core::definite::types::collective::CollectiveEntry {
-                                    key: "?".to_string(),
-                                    value: t,
-                                    key_pos: defs::Cursor::default(),
-                                    value_pos: defs::Cursor::default(),
-                                },
-                            ],
-                            pos: defs::Cursor::default(),
-                        },
-                    )),
-                    None => None,
-                }
+                )
+                .map(|t| {
+                    Types::Collective(ellie_core::definite::types::collective::CollectiveType {
+                        entries: vec![ellie_core::definite::types::collective::CollectiveEntry {
+                            key: "?".to_string(),
+                            value: t,
+                            key_pos: defs::Cursor::default(),
+                            value_pos: defs::Cursor::default(),
+                        }],
+                        pos: defs::Cursor::default(),
+                    })
+                })
             } else {
                 let hash_deep_search = crate::deep_search_extensions::deep_search_hash(
                     parser,
@@ -288,6 +282,7 @@ pub enum DeepTypeResult {
     FunctionCall(ellie_core::definite::types::function_call::FunctionCall),
     BraceReference(ellie_core::definite::types::brace_reference::BraceReferenceType),
     ClassInstance(ellie_core::definite::types::class_instance::ClassInstance),
+    SelfItem(ellie_core::definite::items::self_item::SelfItem),
     Void,
     Null,
     Dynamic,
@@ -324,13 +319,8 @@ fn iterate_deep_type(
                 let mut errors: Vec<error::Error> = Vec::new();
                 match reference_type.clone() {
                     ellie_core::definite::definers::DefinerCollecting::Generic(generic) => {
-                        let hash_deep_search = deep_search_hash(
-                            parser,
-                            page_id,
-                            generic.hash,
-                            vec![],
-                            0,
-                        );
+                        let hash_deep_search =
+                            deep_search_hash(parser, page_id, generic.hash, vec![], 0);
 
                         if hash_deep_search.found {
                             match hash_deep_search.found_item {
@@ -541,7 +531,14 @@ fn iterate_deep_type(
                         }
                     }
                     ellie_core::definite::definers::DefinerCollecting::Function(_) => {
-                        let result = parser.deep_search(page_id, "function".to_owned(), None, vec![], 0, Some(reference_pos));
+                        let result = parser.deep_search(
+                            page_id,
+                            "function".to_owned(),
+                            None,
+                            vec![],
+                            0,
+                            Some(reference_pos),
+                        );
                         if result.found {
                             let rtype = match result.found_item {
                                 DeepSearchItems::Class(e) => definers::GenericType {
@@ -567,7 +564,6 @@ fn iterate_deep_type(
                         } else {
                             todo!()
                         }
-                        
                     }
                     ellie_core::definite::definers::DefinerCollecting::EnumField(_) => {
                         let rtype = find_type("enum".to_owned(), page_id, parser);
@@ -801,6 +797,7 @@ fn iterate_deep_type(
                             DeepTypeResult::EnumData(_) => todo!(),
                             DeepTypeResult::Enum(_) => todo!(),
                             DeepTypeResult::ClassInstance(_) => todo!(),
+                            DeepTypeResult::SelfItem(_) => todo!(),
                         }),
                         reference_pos: e.reference_pos,
                         brace_pos: e.brace_pos,
@@ -826,6 +823,7 @@ fn iterate_deep_type(
                             DeepTypeResult::EnumData(_) => todo!(),
                             DeepTypeResult::Enum(_) => todo!(),
                             DeepTypeResult::ClassInstance(_) => todo!(),
+                            DeepTypeResult::SelfItem(_) => todo!(),
                         }),
                         pos: e.pos,
                     },
@@ -855,6 +853,7 @@ fn iterate_deep_type(
                 DeepTypeResult::EnumData(_) => todo!(),
                 DeepTypeResult::Enum(_) => todo!(),
                 DeepTypeResult::ClassInstance(_) => todo!(),
+                DeepTypeResult::SelfItem(_) => todo!(),
             };
 
             let second = match resolve_deep_type(parser, page_id, *e.second, errors) {
@@ -879,6 +878,7 @@ fn iterate_deep_type(
                 DeepTypeResult::EnumData(e) => Types::EnumData(e),
                 DeepTypeResult::Enum(_) => todo!(),
                 DeepTypeResult::ClassInstance(_) => todo!(),
+                DeepTypeResult::SelfItem(_) => todo!(),
             };
 
             DeepTypeResult::Operator(ellie_core::definite::types::operator::OperatorType {
@@ -1002,7 +1002,12 @@ fn iterate_deep_type(
                             location: i.location,
                         });
                     }
-                    DeepTypeResult::Dynamic => todo!(),
+                    DeepTypeResult::Dynamic => {
+                        collective.push(ellie_core::definite::types::array::ArrayEntry {
+                            value: Types::Dynamic,
+                            location: i.location,
+                        });
+                    }
                     DeepTypeResult::Function(e) => {
                         collective.push(ellie_core::definite::types::array::ArrayEntry {
                             value: Types::Function(e),
@@ -1012,6 +1017,7 @@ fn iterate_deep_type(
                     DeepTypeResult::EnumData(_) => todo!(),
                     DeepTypeResult::Enum(_) => todo!(),
                     DeepTypeResult::ClassInstance(_) => todo!(),
+                    DeepTypeResult::SelfItem(_) => todo!(),
                 }
             }
             DeepTypeResult::Array(ellie_core::definite::types::array::ArrayType {
@@ -1229,8 +1235,8 @@ fn iterate_deep_type(
                                     |x| ellie_core::definite::types::function::FunctionParameter {
                                         name: x.name.clone(),
                                         rtype: Some(x.rtype.clone()),
-                                        rtype_pos: x.rtype_pos.clone(),
-                                        name_pos: x.name_pos.clone(),
+                                        rtype_pos: x.rtype_pos,
+                                        name_pos: x.name_pos,
                                     },
                                 )
                                 .collect::<Vec<_>>(),
@@ -1251,8 +1257,8 @@ fn iterate_deep_type(
                                     |x| ellie_core::definite::types::function::FunctionParameter {
                                         name: x.name.clone(),
                                         rtype: Some(x.rtype.clone()),
-                                        rtype_pos: x.rtype_pos.clone(),
-                                        name_pos: x.name_pos.clone(),
+                                        rtype_pos: x.rtype_pos,
+                                        name_pos: x.name_pos,
                                     },
                                 )
                                 .collect::<Vec<_>>(),
@@ -1268,13 +1274,7 @@ fn iterate_deep_type(
                     ProcessedDeepSearchItems::None => todo!(),
                     ProcessedDeepSearchItems::Enum(enum_data) => DeepTypeResult::Enum(enum_data),
                     ProcessedDeepSearchItems::SelfItem(self_item) => {
-                        let targeted_class_page = parser.find_page(self_item.class_page).unwrap();
-                        let class_page_hash = targeted_class_page.inner.unwrap();
-                        let class_page = parser.find_page(class_page_hash).unwrap();
-                        let _targeted_class = class_page.items.iter().find(|item| matches!(item, ellie_tokenizer::processors::items::Processors::Class(found_class) if found_class.hash == self_item.class_hash));
-                        let _targeted_class = _targeted_class.unwrap().as_class().unwrap();
-
-                        todo!("TO BE REMOVED");
+                        DeepTypeResult::SelfItem(self_item)
 
                         /*
                         DeepTypeResult::ClassCall(
@@ -1330,7 +1330,7 @@ fn iterate_deep_type(
                 }
             };
 
-            if errors.len() > 0 {
+            if !errors.is_empty() {
                 DeepTypeResult::NotFound
             } else {
                 let rtype = crate::processors::definer_processor::process(
@@ -1422,10 +1422,9 @@ fn iterate_deep_type(
                                 }
                                 definers::DefinerCollecting::ParentGeneric(parent_generic) => {
                                     if parent_generic.rtype == "array" {
-                                        match generate_type_from_defining(
+                                        generate_type_from_defining(
                                             parent_generic.generics[0].value.clone(),
-                                        ) {
-                                            Some(t) => Some(Types::Array(
+                                        ).map(|t| Types::Array(
                                                 ellie_core::definite::types::array::ArrayType {
                                                     collective: vec![
                                                         ellie_core::definite::types::array::ArrayEntry {
@@ -1435,9 +1434,7 @@ fn iterate_deep_type(
                                                     ],
                                                     pos: defs::Cursor::default(),
                                                 },
-                                            )),
-                                            None => None,
-                                        }
+                                            ))
                                     } else if parent_generic.rtype == "cloak" {
                                         let mut cloak_entries = vec![];
                                         let mut unresolved_element_available = false;
@@ -1466,8 +1463,7 @@ fn iterate_deep_type(
                                             ))
                                         }
                                     } else if parent_generic.rtype == "collective" {
-                                        match generate_type_from_defining(parent_generic.generics[0].value.clone()) {
-                                            Some(t) => Some(Types::Collective(
+                                        generate_type_from_defining(parent_generic.generics[0].value.clone()).map(|t| Types::Collective(
                                             ellie_core::definite::types::collective::CollectiveType {
                                                 entries: vec![
                                                     ellie_core::definite::types::collective::CollectiveEntry {
@@ -1479,9 +1475,7 @@ fn iterate_deep_type(
                                                 ],
                                                 pos: defs::Cursor::default(),
                                             },
-                                        )),
-                                            None => None,
-                                        }
+                                        ))
                                     } else if parent_generic.rtype == "function" {
                                         Some(Types::Function(
                                             ellie_core::definite::types::function::Function {
@@ -1880,7 +1874,7 @@ pub fn deep_search_hash(
                                 {
                                     found_pos = Some(e.pos);
                                     found = true;
-                                    found_page = FoundPage::fill_from_processed(&page);
+                                    found_page = FoundPage::fill_from_processed(page);
                                     found_type = ProcessedDeepSearchItems::Variable(e);
                                 }
                             }
@@ -1890,7 +1884,7 @@ pub fn deep_search_hash(
                                 {
                                     found_pos = Some(e.pos);
                                     found = true;
-                                    found_page = FoundPage::fill_from_processed(&page);
+                                    found_page = FoundPage::fill_from_processed(page);
                                     found_type = ProcessedDeepSearchItems::Function(e);
                                 }
                             }
@@ -1900,12 +1894,12 @@ pub fn deep_search_hash(
                                 {
                                     found_pos = Some(e.pos);
                                     found = true;
-                                    found_page = FoundPage::fill_from_processed(&page);
+                                    found_page = FoundPage::fill_from_processed(page);
                                     found_type = ProcessedDeepSearchItems::Enum(e);
                                 }
                             }
                             Collecting::Import(e) => {
-                                if e.reference != ""
+                                if !e.reference.is_empty()
                                     && e.hash == target_hash
                                     && (e.public
                                         || level == 0
@@ -1914,7 +1908,7 @@ pub fn deep_search_hash(
                                 {
                                     found_pos = Some(e.pos);
                                     found = true;
-                                    found_page = FoundPage::fill_from_processed(&page);
+                                    found_page = FoundPage::fill_from_processed(page);
                                     found_type = ProcessedDeepSearchItems::ImportReference(e);
                                 }
                             }
@@ -1927,7 +1921,7 @@ pub fn deep_search_hash(
                                 {
                                     found_pos = Some(e.pos);
                                     found = true;
-                                    found_page = FoundPage::fill_from_processed(&page);
+                                    found_page = FoundPage::fill_from_processed(page);
                                     found_type = ProcessedDeepSearchItems::Class(e);
                                 }
                             }
@@ -1939,7 +1933,7 @@ pub fn deep_search_hash(
                                 {
                                     found_pos = Some(e.pos);
                                     found = true;
-                                    found_page = FoundPage::fill_from_processed(&page);
+                                    found_page = FoundPage::fill_from_processed(page);
                                     found_type = ProcessedDeepSearchItems::GenericItem(e);
                                 }
                             }
@@ -2063,7 +2057,7 @@ pub fn deep_search(
                                 {
                                     found_pos = Some(e.pos);
                                     found = true;
-                                    found_page = FoundPage::fill_from_processed(&page);
+                                    found_page = FoundPage::fill_from_processed(page);
                                     found_type = ProcessedDeepSearchItems::Variable(e.clone());
                                 }
                             }
@@ -2075,7 +2069,7 @@ pub fn deep_search(
                                 {
                                     found_pos = Some(e.pos);
                                     found = true;
-                                    found_page = FoundPage::fill_from_processed(&page);
+                                    found_page = FoundPage::fill_from_processed(page);
                                     found_type = ProcessedDeepSearchItems::Enum(e.clone());
                                 }
                             }
@@ -2086,7 +2080,7 @@ pub fn deep_search(
                                         range_end: e.rtype_pos.range_end,
                                     });
                                     found = true;
-                                    found_page = FoundPage::fill_from_processed(&page);
+                                    found_page = FoundPage::fill_from_processed(page);
                                     found_type =
                                         ProcessedDeepSearchItems::FunctionParameter(e.clone());
                                 }
@@ -2099,7 +2093,7 @@ pub fn deep_search(
                                 {
                                     found_pos = Some(e.pos);
                                     found = true;
-                                    found_page = FoundPage::fill_from_processed(&page);
+                                    found_page = FoundPage::fill_from_processed(page);
                                     found_type = ProcessedDeepSearchItems::Function(e.clone());
                                 }
                             }
@@ -2111,7 +2105,7 @@ pub fn deep_search(
                                 {
                                     found_pos = Some(e.pos);
                                     found = true;
-                                    found_page = FoundPage::fill_from_processed(&page);
+                                    found_page = FoundPage::fill_from_processed(page);
                                     found_type =
                                         ProcessedDeepSearchItems::NativeFunction(e.clone());
                                 }
@@ -2124,7 +2118,7 @@ pub fn deep_search(
                                 {
                                     found_pos = Some(e.pos);
                                     found = true;
-                                    found_page = FoundPage::fill_from_processed(&page);
+                                    found_page = FoundPage::fill_from_processed(page);
                                     found_type = ProcessedDeepSearchItems::Getter(e.clone());
                                 }
                             }
@@ -2136,12 +2130,12 @@ pub fn deep_search(
                                 {
                                     found_pos = Some(e.pos);
                                     found = true;
-                                    found_page = FoundPage::fill_from_processed(&page);
+                                    found_page = FoundPage::fill_from_processed(page);
                                     found_type = ProcessedDeepSearchItems::Setter(e.clone());
                                 }
                             }
                             Collecting::Import(e) => {
-                                if e.reference != ""
+                                if !e.reference.is_empty()
                                     && e.reference == name
                                     && (e.public
                                         || level == 0
@@ -2152,7 +2146,7 @@ pub fn deep_search(
                                 {
                                     found_pos = Some(e.pos);
                                     found = true;
-                                    found_page = FoundPage::fill_from_processed(&page);
+                                    found_page = FoundPage::fill_from_processed(page);
                                     found_type =
                                         ProcessedDeepSearchItems::ImportReference(e.clone());
                                 }
@@ -2168,7 +2162,7 @@ pub fn deep_search(
                                 {
                                     found_pos = Some(e.pos);
                                     found = true;
-                                    found_page = FoundPage::fill_from_processed(&page);
+                                    found_page = FoundPage::fill_from_processed(page);
                                     found_type = ProcessedDeepSearchItems::Class(e.clone());
                                 }
                             }
@@ -2176,12 +2170,26 @@ pub fn deep_search(
                                 if name == "self" {
                                     found_pos = None;
                                     found = true;
-                                    found_page = FoundPage::fill_from_processed(&page);
+                                    found_page = FoundPage::fill_from_processed(page);
                                     found_type = ProcessedDeepSearchItems::ClassInstance(e.clone());
+                                }
+                            }
+                            Collecting::SelfItem(e) => {
+                                if name == "self" {
+                                    found_pos = None;
+                                    found = true;
+                                    found_page = FoundPage::fill_from_processed(page);
+                                    found_type = ProcessedDeepSearchItems::SelfItem(*e);
                                 }
                             }
                             _ => (),
                         }
+                        if found {
+                            break;
+                        }
+                    }
+                    if found {
+                        break;
                     }
                 }
                 None => {
@@ -2216,7 +2224,7 @@ pub fn deep_search(
     }
 }
 
-pub fn  find_type(
+pub fn find_type(
     rtype: String,
     target_page: usize,
     parser: &mut Parser,
@@ -2274,7 +2282,7 @@ pub fn resolve_type(
                             parser.find_page(target_page).unwrap().path.clone(),
                             pos,
                         ));
-                        return None;
+                        None
                     } else {
                         panic!("Unhandled behaviour, failed to find int type");
                     }
@@ -2296,7 +2304,7 @@ pub fn resolve_type(
                             parser.find_page(target_page).unwrap().path.clone(),
                             pos,
                         ));
-                        return None;
+                        None
                     } else {
                         panic!("Unhandled behaviour, failed to find byte type");
                     }
@@ -2324,7 +2332,7 @@ pub fn resolve_type(
                             parser.find_page(target_page).unwrap().path.clone(),
                             pos,
                         ));
-                        return None;
+                        None
                     } else {
                         panic!("Unhandled behaviour, failed to find {generic} type");
                     }
@@ -2346,7 +2354,7 @@ pub fn resolve_type(
                             parser.find_page(target_page).unwrap().path.clone(),
                             pos,
                         ));
-                        return None;
+                        None
                     } else {
                         panic!("Unhandled behaviour, failed to find bool type");
                     }
@@ -2368,7 +2376,7 @@ pub fn resolve_type(
                             parser.find_page(target_page).unwrap().path.clone(),
                             pos,
                         ));
-                        return None;
+                        None
                     } else {
                         panic!("Unhandled behaviour, failed to find string type");
                     }
@@ -2390,7 +2398,7 @@ pub fn resolve_type(
                             parser.find_page(target_page).unwrap().path.clone(),
                             pos,
                         ));
-                        return None;
+                        None
                     } else {
                         panic!("Unhandled behaviour, failed to find char type");
                     }
@@ -2424,29 +2432,19 @@ pub fn resolve_type(
                     }
                 }
                 ellie_core::definite::types::operator::Operators::AssignmentType(_) => {
-                    let res =
-                        resolve_type(*operator.first.clone(), target_page, parser, errors, pos)
-                            .unwrap()
-                            .to_string();
-                    errors.push(error::error_list::ERROR_S3.clone().build_with_path(
-                        vec![
-                            error::ErrorBuildField {
-                                key: "token1".to_owned(),
-                                value: "bool".to_string(),
+                    let first =
+                        resolve_type(*operator.first.clone(), target_page, parser, errors, pos);
+
+                    match first {
+                        Some(first) => (
+                            match first.clone() {
+                                definers::DefinerCollecting::Generic(e) => Some(e),
+                                _ => None,
                             },
-                            error::ErrorBuildField {
-                                key: "token1".to_owned(),
-                                value: res,
-                            },
-                        ],
-                        alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                        parser.find_page(target_page).unwrap().path.clone(),
-                        match pos {
-                            Some(e) => e,
-                            None => defs::Cursor::default(),
-                        },
-                    ));
-                    return None;
+                            first.to_string(),
+                        ),
+                        None => (None, String::new()),
+                    }
                 }
                 ellie_core::definite::types::operator::Operators::Null => {
                     unreachable!()
@@ -2563,7 +2561,26 @@ pub fn resolve_type(
                                     );
                                 }
                                 None => {
-                                    panic!("Unhandled behaviour, failed to find string type");
+                                    errors.push(
+                                        error::error_list::ERROR_S38.clone().build_with_path(
+                                            vec![error::ErrorBuildField {
+                                                key: "token".to_owned(),
+                                                value: "dyn".to_string(),
+                                            }],
+                                            alloc::format!(
+                                                "{}:{}:{}",
+                                                file!().to_owned(),
+                                                line!(),
+                                                column!()
+                                            ),
+                                            parser.find_page(target_page).unwrap().path.clone(),
+                                            match pos {
+                                                Some(e) => e,
+                                                None => unreachable!(),
+                                            },
+                                        ),
+                                    );
+                                    return None;
                                 }
                             }
 
@@ -2613,50 +2630,57 @@ pub fn resolve_type(
                 }
             }
         }
-        DeepTypeResult::ClassCall(class_call) => match (*class_call.target).clone() {
-            Types::Cloak(cloak) => {
-                if cloak.collective.len() == 1 {
-                    unimplemented!()
-                } else {
-                    unreachable!()
+        DeepTypeResult::ClassCall(class_call) => {
+            match (*class_call.target).clone() {
+                Types::Cloak(cloak) => {
+                    if cloak.collective.len() == 1 {
+                        unimplemented!()
+                    } else {
+                        unreachable!()
+                    }
                 }
-            }
-            Types::VariableType(variable) => {
-                let deep_search_result = parser.deep_search(
-                    target_page,
-                    variable.value.clone(),
-                    None,
-                    Vec::new(),
-                    0,
-                    None,
-                );
-                let targeted_class = find_type(variable.value.clone(), target_page, parser)
-                    .unwrap_or_else(|| panic!("Failed to find class {}", variable.value));
+                Types::VariableType(variable) => {
+                    let deep_search_result = parser.deep_search(
+                        target_page,
+                        variable.value.clone(),
+                        None,
+                        Vec::new(),
+                        0,
+                        None,
+                    );
+                    let targeted_class = find_type(variable.value.clone(), target_page, parser)
+                        .unwrap_or_else(|| panic!("Failed to find class {}", variable.value));
 
-                if deep_search_result.found {
-                    match deep_search_result.found_item {
-                        crate::parser::DeepSearchItems::Class(e) => {
-                            /*
-                            if e.generic_definings.len() != class_call.generic_parameters.len() {
-                                unreachable!()
-                            } else
-                            */
-                            if let Some(_) = e.body.iter().find_map(|x| match x {
+                    if deep_search_result.found {
+                        match deep_search_result.found_item {
+                            crate::parser::DeepSearchItems::Class(e) => {
+                                /*
+                                if e.generic_definings.len() != class_call.generic_parameters.len() {
+                                    unreachable!()
+                                } else
+                                */
+                                if e.body
+                                    .iter()
+                                    .find_map(|x| {
+                                        match x {
                                 ellie_tokenizer::processors::items::Processors::Constructor(e) => {
                                     Some(e)
                                 }
                                 _ => None,
-                            }) {
-                                if class_call.generic_parameters.is_empty() {
-                                    Some(definers::DefinerCollecting::Generic(
-                                        definers::GenericType {
-                                            rtype: variable.value.clone(),
-                                            hash: targeted_class.hash,
-                                            pos: defs::Cursor::default(),
-                                        },
-                                    ))
-                                } else {
-                                    Some(definers::DefinerCollecting::ParentGeneric(
+                            }
+                                    })
+                                    .is_some()
+                                {
+                                    if class_call.generic_parameters.is_empty() {
+                                        Some(definers::DefinerCollecting::Generic(
+                                            definers::GenericType {
+                                                rtype: variable.value.clone(),
+                                                hash: targeted_class.hash,
+                                                pos: defs::Cursor::default(),
+                                            },
+                                        ))
+                                    } else {
+                                        Some(definers::DefinerCollecting::ParentGeneric(
                                         definers::ParentGenericType {
                                             rtype: variable.value.clone(),
                                             generics: class_call.generic_parameters.iter().map(|x| {
@@ -2669,9 +2693,8 @@ pub fn resolve_type(
                                             hash: targeted_class.hash,
                                         },
                                     ))
-                                }
-                            } else {
-                                if class_call.generic_parameters.is_empty() {
+                                    }
+                                } else if class_call.generic_parameters.is_empty() {
                                     Some(definers::DefinerCollecting::Generic(
                                         definers::GenericType {
                                             rtype: variable.value.clone(),
@@ -2681,39 +2704,39 @@ pub fn resolve_type(
                                     ))
                                 } else {
                                     Some(definers::DefinerCollecting::ParentGeneric(
-                                        definers::ParentGenericType {
-                                            rtype: variable.value.clone(),
-                                            generics: class_call.generic_parameters.iter().map(|x| {
-                                                ellie_core::definite::definers::GenericParameter {
-                                                    value: x.value.clone(),
-                                                    pos: defs::Cursor::default(),
-                                                }
-                                            }).collect::<Vec<_>>(),
-                                            parent_pos: defs::Cursor::default(),
-                                            hash: targeted_class.hash,
-                                        },
-                                    ))
+                                    definers::ParentGenericType {
+                                        rtype: variable.value.clone(),
+                                        generics: class_call.generic_parameters.iter().map(|x| {
+                                            ellie_core::definite::definers::GenericParameter {
+                                                value: x.value.clone(),
+                                                pos: defs::Cursor::default(),
+                                            }
+                                        }).collect::<Vec<_>>(),
+                                        parent_pos: defs::Cursor::default(),
+                                        hash: targeted_class.hash,
+                                    },
+                                ))
                                 }
                             }
+                            crate::parser::DeepSearchItems::GenericItem(_) => todo!(),
+                            crate::parser::DeepSearchItems::FunctionParameter(_) => {
+                                unimplemented!()
+                            }
+                            crate::parser::DeepSearchItems::ConstructorParameter(_) => {
+                                unimplemented!()
+                            }
+                            _ => {
+                                unreachable!()
+                            }
                         }
-                        crate::parser::DeepSearchItems::GenericItem(_) => todo!(),
-                        crate::parser::DeepSearchItems::FunctionParameter(_) => {
-                            unimplemented!()
-                        }
-                        crate::parser::DeepSearchItems::ConstructorParameter(_) => {
-                            unimplemented!()
-                        }
-                        _ => {
-                            unreachable!()
-                        }
+                    } else {
+                        unreachable!()
                     }
-                } else {
-                    unreachable!()
                 }
-            }
 
-            _ => unreachable!(),
-        },
+                _ => unreachable!(),
+            }
+        }
         DeepTypeResult::FunctionCall(e) => Some(e.returning),
         DeepTypeResult::Void => {
             let void_type = find_type("void".to_string(), target_page, parser);
@@ -2730,7 +2753,7 @@ pub fn resolve_type(
                             parser.find_page(target_page).unwrap().path.clone(),
                             pos,
                         ));
-                        return None;
+                        None
                     } else {
                         panic!("Unhandled behaviour, failed to find void type");
                     }
@@ -2752,7 +2775,7 @@ pub fn resolve_type(
                             parser.find_page(target_page).unwrap().path.clone(),
                             pos,
                         ));
-                        return None;
+                        None
                     } else {
                         panic!("Unhandled behaviour, failed to find null type");
                     }
@@ -2822,7 +2845,7 @@ pub fn resolve_type(
                             parser.find_page(target_page).unwrap().path.clone(),
                             pos,
                         ));
-                        return None;
+                        None
                     } else {
                         panic!("Unhandled behaviour, failed to find nullAble type");
                     }
@@ -2844,7 +2867,7 @@ pub fn resolve_type(
                             parser.find_page(target_page).unwrap().path.clone(),
                             pos,
                         ));
-                        return None;
+                        None
                     } else {
                         panic!("Unhandled behaviour, failed to find dyn type");
                     }
@@ -2905,5 +2928,12 @@ pub fn resolve_type(
         DeepTypeResult::ClassInstance(instance) => {
             Some(ellie_core::definite::definers::DefinerCollecting::ClassInstance(instance))
         }
+        DeepTypeResult::SelfItem(e) => Some(
+            ellie_core::definite::definers::DefinerCollecting::Generic(definers::GenericType {
+                rtype: "self".to_string(),
+                pos: e.pos,
+                hash: e.class_hash,
+            }),
+        ),
     }
 }

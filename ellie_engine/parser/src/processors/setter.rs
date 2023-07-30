@@ -20,7 +20,7 @@ impl super::Processor for setter::Setter {
                 self.name_pos,
             ));
 
-        return false;
+        false
         /*
         let (duplicate, found) =
             parser.is_duplicate(page_hash, self.name.clone(), self.hash.clone(), self.pos);

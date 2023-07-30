@@ -5,6 +5,7 @@ use ellie_core::defs::PlatformArchitecture;
 use crate::{
     channel::ModuleManager,
     heap_memory::HeapMemory,
+    iternal_functions::INTERNAL_FUNCTIONS,
     program::{MainProgram, VmProgram},
     raw_type::StaticRawType,
     stack::{Stack, StackArray},
@@ -136,7 +137,7 @@ impl Thread {
                         current_stack.pos += 1;
                     }
                     crate::instructions::ExecuterResult::DropStack => {
-                        let current_y = current_stack.registers.Y.clone();
+                        let current_y = current_stack.registers.Y;
                         match current_stack.caller {
                             Some(_) => {
                                 self.stack.pop();
@@ -171,69 +172,140 @@ impl Thread {
                         });
                     }
                     crate::instructions::ExecuterResult::CallNativeFunction(native_call) => {
-                        match module_manager.find_module_by_item_hash(native_call.hash) {
-                            Some(module) => match module.get_emiter(native_call.hash) {
-                                Some(item) => match item {
-                                    crate::channel::ModuleElements::Function(native_function) => {
-                                        let response = (native_function.callback)(
-                                            ThreadInfo {
-                                                id: self.id,
-                                                stack_id: current_stack.id,
-                                                stack_caller: current_stack.caller,
-                                            },
-                                            native_call.params,
-                                        );
-                                        match response {
-                                            VmNativeAnswer::Ok(return_value) => {
-                                                match return_value {
-                                                    VmNativeCallParameters::Static(
-                                                        static_value,
-                                                    ) => {
-                                                        current_stack.registers.Y = static_value;
-                                                    }
-                                                    VmNativeCallParameters::Dynamic(
-                                                        dynamic_value,
-                                                    ) => {
-                                                        self.isolate.heap_memory.set(
-                                                            &native_call.return_heap_position,
-                                                            dynamic_value,
-                                                        );
-                                                        current_stack.registers.Y =
-                                                            StaticRawType::from_heap_reference(
-                                                                native_call.return_heap_position,
-                                                            )
-                                                    }
+                        let found_trace = loaded_program
+                            .traces
+                            .iter()
+                            .find(|x| x.function_hash == native_call.hash);
+                        match found_trace {
+                            Some(found_trace) => {
+                                if let Some(internal_function) = INTERNAL_FUNCTIONS
+                                    .iter()
+                                    .find(|x| x.name == found_trace.function_name)
+                                {
+                                    let response = (internal_function.callback)(
+                                        &mut self.isolate,
+                                        native_call.params,
+                                    );
+                                    match response {
+                                        VmNativeAnswer::Ok(return_value) => {
+                                            match return_value {
+                                                VmNativeCallParameters::Static(static_value) => {
+                                                    current_stack.registers.Y = static_value;
                                                 }
-                                                current_stack.pos += 1;
+                                                VmNativeCallParameters::Dynamic(dynamic_value) => {
+                                                    self.isolate.heap_memory.set(
+                                                        &native_call.return_heap_position,
+                                                        dynamic_value,
+                                                    );
+                                                    current_stack.registers.Y =
+                                                        StaticRawType::from_heap_reference(
+                                                            native_call.return_heap_position,
+                                                        )
+                                                }
                                             }
-                                            VmNativeAnswer::RuntimeError(e) => {
-                                                return ThreadExit::Panic(ThreadPanic {
-                                                    reason: ThreadPanicReason::RuntimeError(e),
-                                                    stack_trace: self.stack.clone(),
-                                                    code_location: format!(
-                                                        "{}:{}",
-                                                        file!(),
-                                                        line!()
-                                                    ),
-                                                });
-                                            }
+                                            current_stack.pos += 1;
+                                        }
+                                        VmNativeAnswer::RuntimeError(e) => {
+                                            return ThreadExit::Panic(ThreadPanic {
+                                                reason: ThreadPanicReason::RuntimeError(e),
+                                                stack_trace: self.stack.clone(),
+                                                code_location: format!("{}:{}", file!(), line!()),
+                                            });
                                         }
                                     }
-                                },
-                                None => {
-                                    return ThreadExit::Panic(ThreadPanic {
-                                        reason: ThreadPanicReason::CallToUnknown(native_call.hash),
-                                        stack_trace: self.stack.clone(),
-                                        code_location: format!("{}:{}", file!(), line!()),
-                                    });
+                                } else {
+                                    match module_manager
+                                        .find_module_by_item_name(&found_trace.function_name)
+                                    {
+                                        Some(module) => {
+                                            match module
+                                                .get_emiter_by_name(&found_trace.function_name)
+                                            {
+                                                Some(item) => match item {
+                                                    crate::channel::ModuleElements::Function(
+                                                        native_function,
+                                                    ) => {
+                                                        let response = (native_function.callback)(
+                                                            ThreadInfo {
+                                                                id: self.id,
+                                                                stack_id: current_stack.id,
+                                                                stack_caller: current_stack.caller,
+                                                            },
+                                                            native_call.params,
+                                                        );
+                                                        match response {
+                                                            VmNativeAnswer::Ok(return_value) => {
+                                                                match return_value {
+                                                                VmNativeCallParameters::Static(
+                                                                    static_value,
+                                                                ) => {
+                                                                    current_stack.registers.Y =
+                                                                        static_value;
+                                                                }
+                                                                VmNativeCallParameters::Dynamic(
+                                                                    dynamic_value,
+                                                                ) => {
+                                                                    self.isolate.heap_memory.set(
+                                                                        &native_call
+                                                                            .return_heap_position,
+                                                                        dynamic_value,
+                                                                    );
+                                                                    current_stack.registers.Y =
+                                                                    StaticRawType::from_heap_reference(
+                                                                        native_call.return_heap_position,
+                                                                    )
+                                                                }
+                                                            }
+                                                                current_stack.pos += 1;
+                                                            }
+                                                            VmNativeAnswer::RuntimeError(e) => {
+                                                                return ThreadExit::Panic(ThreadPanic {
+                                                            reason: ThreadPanicReason::RuntimeError(e),
+                                                            stack_trace: self.stack.clone(),
+                                                            code_location: format!(
+                                                                "{}:{}",
+                                                                file!(),
+                                                                line!()
+                                                            ),
+                                                        });
+                                                            }
+                                                        }
+                                                    }
+                                                },
+                                                None => {
+                                                    return ThreadExit::Panic(ThreadPanic {
+                                                        reason: ThreadPanicReason::CallToUnknown((
+                                                            found_trace.function_name.clone(),
+                                                            native_call.hash,
+                                                        )),
+                                                        stack_trace: self.stack.clone(),
+                                                        code_location: format!(
+                                                            "{}:{}",
+                                                            file!(),
+                                                            line!()
+                                                        ),
+                                                    });
+                                                }
+                                            }
+                                        }
+                                        None => {
+                                            return ThreadExit::Panic(ThreadPanic {
+                                                reason: ThreadPanicReason::MissingModule(
+                                                    native_call.hash,
+                                                ),
+                                                stack_trace: self.stack.clone(),
+                                                code_location: format!("{}:{}", file!(), line!()),
+                                            });
+                                        }
+                                    }
                                 }
-                            },
+                            }
                             None => {
                                 return ThreadExit::Panic(ThreadPanic {
-                                    reason: ThreadPanicReason::MissingModule(native_call.hash),
+                                    reason: ThreadPanicReason::MissingTrace(native_call.hash),
                                     stack_trace: self.stack.clone(),
                                     code_location: format!("{}:{}", file!(), line!()),
-                                });
+                                })
                             }
                         }
                     }

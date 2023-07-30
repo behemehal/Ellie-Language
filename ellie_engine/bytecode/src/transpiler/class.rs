@@ -19,6 +19,7 @@ impl super::Transpiler for class::Class {
             page_hash: processed_page.hash,
             hash: Some(self.hash),
             reference: Instruction::absolute(assembler.location()),
+            borrowed: None,
         });
 
         assembler.assemble_dependency(&self.inner_page_id);

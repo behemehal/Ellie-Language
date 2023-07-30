@@ -7,7 +7,9 @@ use alloc::{
     string::{String, ToString},
     vec::Vec,
 };
-use ellie_core::defs::{DebugHeader, PlatformArchitecture, ModuleMap};
+use ellie_core::defs::{
+    DebugHeader, DebugHeaderType, ModuleMap, NativeCallTrace, PlatformArchitecture,
+};
 use ellie_core::utils::ExportPage;
 use ellie_parser::parser::Module;
 use std::{io::Write, panic};
@@ -28,6 +30,7 @@ pub struct LocalHeader {
     pub reference: Instruction,
     pub hash: Option<usize>,
     pub page_hash: usize,
+    pub borrowed: Option<Vec<usize>>,
 }
 
 #[derive(Clone, Debug)]
@@ -81,7 +84,7 @@ pub struct MainFunction {
 #[derive(Clone, Debug)]
 pub struct ModuleInfo {
     pub name: String,
-    pub modue_maps: Vec<ModuleMap>,
+    pub module_maps: Vec<ModuleMap>,
     pub is_library: bool,
     pub main_function: Option<MainFunction>,
     pub platform_attributes: PlatformAttributes,
@@ -103,6 +106,24 @@ pub struct AssembleResult {
 
 impl AssembleResult {
     pub fn render_binary_to_vector(&self) -> Vec<u8> {
+        let native_calls: Vec<NativeCallTrace> = self
+            .debug_headers
+            .iter()
+            .filter(|x| x.rtype == DebugHeaderType::NativeFunction)
+            .map(|x| NativeCallTrace {
+                module_name: if x.module_name.contains(">") {
+                    x.module_name.to_string()
+                } else {
+                    x.module_name.clone().split(">").collect::<Vec<_>>()[0]
+                        .split('_')
+                        .last()
+                        .unwrap()
+                        .to_string()
+                },
+                function_hash: x.hash,
+                function_name: x.name.clone(),
+            })
+            .collect();
         let arch = self.module_info.platform_attributes.architecture;
         let mut binary = Vec::new();
         binary
@@ -131,6 +152,28 @@ impl AssembleResult {
                 .unwrap();
         }
 
+        binary
+            .write_all(&usize_to_le_bytes(native_calls.len(), arch))
+            .unwrap();
+
+        for native_call in &native_calls {
+            binary
+                .write_all(&usize_to_le_bytes(native_call.module_name.len(), arch))
+                .unwrap();
+            binary
+                .write_all(native_call.module_name.as_bytes())
+                .unwrap();
+            binary
+                .write_all(&usize_to_le_bytes(native_call.function_hash, arch))
+                .unwrap();
+            binary
+                .write_all(&usize_to_le_bytes(native_call.function_name.len(), arch))
+                .unwrap();
+            binary
+                .write_all(native_call.function_name.as_bytes())
+                .unwrap();
+        }
+
         for instruction in &self.instructions {
             binary
                 .write(&instruction.op_code(self.module_info.platform_attributes.architecture))
@@ -140,14 +183,16 @@ impl AssembleResult {
     }
 
     pub fn render_binary<T: Write, E: Write>(&self, writer: &mut T, dbg_w: &mut E) {
+        let mut native_calls: Vec<NativeCallTrace> = Vec::new();
         let arch = self.module_info.platform_attributes.architecture;
-        for module_map in &self.module_info.modue_maps {
+        for module_map in &self.module_info.module_maps {
             dbg_w
                 .write_all(
                     format!(
-                        "{}: {}\n",
+                        "{}E-E{}F:F {}\n",
                         module_map.module_name,
-                        module_map.module_path.clone().unwrap_or("-   ".to_string())
+                        module_map.module_hash,
+                        module_map.module_path.clone().unwrap_or("-".to_string())
                     )
                     .as_bytes(),
                 )
@@ -155,13 +200,34 @@ impl AssembleResult {
         }
         dbg_w.write_all(b"---\n").unwrap();
         for (idx, header) in self.debug_headers.iter().enumerate() {
+            if header.rtype == DebugHeaderType::NativeFunction {
+                native_calls.push(NativeCallTrace {
+                    module_name: if !header.module_name.contains(">") {
+                        header.module_name.to_string()
+                    } else {
+                        header
+                            .module_name
+                            .clone()
+                            .split(">")
+                            .next()
+                            .unwrap()
+                            .split('_')
+                            .last()
+                            .unwrap()
+                            .to_string()
+                    },
+                    function_hash: header.hash,
+                    function_name: header.name.clone(),
+                });
+            }
             dbg_w
                 .write_all(
                     format!(
-                        "{}:{}:{}:{}:{}:{}:{}:{}:{}{}",
+                        "{}F:F{}F:F{}F:F{}F:F{}F:F{}F:F{}F:F{}F:F{}F:F{}{}",
                         header.start_end.0,
                         header.start_end.1,
-                        header.module,
+                        header.module_name,
+                        header.module_hash,
                         header.name,
                         header.pos.range_start.0,
                         header.pos.range_start.1,
@@ -201,6 +267,28 @@ impl AssembleResult {
                 .unwrap();
             writer
                 .write_all(&usize_to_le_bytes(main_fn.hash, arch))
+                .unwrap();
+        }
+
+        writer
+            .write_all(&usize_to_le_bytes(native_calls.len(), arch))
+            .unwrap();
+
+        for native_call in &native_calls {
+            writer
+                .write_all(&usize_to_le_bytes(native_call.module_name.len(), arch))
+                .unwrap();
+            writer
+                .write_all(native_call.module_name.as_bytes())
+                .unwrap();
+            writer
+                .write_all(&usize_to_le_bytes(native_call.function_hash, arch))
+                .unwrap();
+            writer
+                .write_all(&usize_to_le_bytes(native_call.function_name.len(), arch))
+                .unwrap();
+            writer
+                .write_all(native_call.function_name.as_bytes())
                 .unwrap();
         }
 
@@ -256,10 +344,18 @@ impl AssembleResult {
             output
                 .write_all(
                     format!(
-                        "\n{}: {} = {}",
+                        "\n{}: {} = {}{}",
                         local.cursor,
                         local.name,
-                        local.reference.addressing_mode.to_string()
+                        local.reference.addressing_mode.to_string(),
+                        match local.hash {
+                            Some(reference) => {
+                                format!("({})", reference)
+                            }
+                            None => {
+                                String::new()
+                            }
+                        }
                     )
                     .as_bytes(),
                 )
@@ -301,7 +397,7 @@ impl AssembleResult {
                 instruction.op_code(self.module_info.platform_attributes.architecture)[1..]
                     .to_vec(),
             );
-            output.write_all(&code.as_bytes()).unwrap();
+            output.write_all(code.as_bytes()).unwrap();
             count += 1;
         }
     }
@@ -329,14 +425,19 @@ impl Assembler {
     }
 
     pub fn location(&self) -> usize {
-        if self.instructions.len() == 0 {
+        if self.instructions.is_empty() {
             0
         } else {
             self.instructions.len() - 1
         }
     }
 
-    pub fn find_local_by_hash(&self, hash: usize, page_hash: Option<Vec<usize>>) -> Option<&LocalHeader> {
+    pub fn find_local_by_hash(
+        &mut self,
+        hash: usize,
+        page_hash: Option<Vec<usize>>,
+        borrow: bool,
+    ) -> Option<LocalHeader> {
         let mut locals: Vec<&LocalHeader> = self
             .locals
             .iter()
@@ -347,10 +448,119 @@ impl Assembler {
             .collect();
         locals.sort_by(|a, b| a.cursor.cmp(&b.cursor));
         locals.reverse();
-        locals.into_iter().find(|local| matches!(local.hash, Some(local_hash) if local_hash == hash))
+        match locals
+            .iter_mut()
+            .find(|local| matches!(local.hash, Some(local_hash) if local_hash == hash))
+        {
+            Some(local) => Some(local.clone()),
+            None => {
+                if page_hash.is_none() || !borrow {
+                    return None;
+                }
+                match self.module.pages.clone().into_iter().find_map(|x| {
+                    if page_hash.clone().unwrap().contains(&x.hash) {
+                        x.items.clone().into_iter().find_map(|e| match e {
+                            ellie_core::definite::items::Collecting::Function(function) => {
+                                if function.hash == hash {
+                                    Some(LocalHeader {
+                                        name: function.name.clone(),
+                                        cursor: 0,
+                                        reference: Instruction::absolute_static(0),
+                                        hash: Some(function.hash),
+                                        page_hash: x.hash,
+                                        borrowed: Some(Vec::new()),
+                                    })
+                                } else {
+                                    None
+                                }
+                            }
+                            ellie_core::definite::items::Collecting::Variable(variable) => {
+                                if variable.hash == hash {
+                                    Some(LocalHeader {
+                                        name: variable.name.clone(),
+                                        cursor: 0,
+                                        reference: Instruction::absolute_static(0),
+                                        hash: Some(variable.hash),
+                                        page_hash: x.hash,
+                                        borrowed: Some(Vec::new()),
+                                    })
+                                } else {
+                                    None
+                                }
+                            }
+                            ellie_core::definite::items::Collecting::NativeFunction(nfunction) => {
+                                if nfunction.hash == hash {
+                                    Some(LocalHeader {
+                                        name: nfunction.name.clone(),
+                                        cursor: 0,
+                                        reference: Instruction::absolute_static(0),
+                                        hash: Some(nfunction.hash),
+                                        page_hash: x.hash,
+                                        borrowed: Some(Vec::new()),
+                                    })
+                                } else {
+                                    None
+                                }
+                            }
+                            _ => None,
+                        })
+                    } else {
+                        None
+                    }
+                }) {
+                    Some(local) => {
+                        self.locals.push(local.clone());
+                        Some(local)
+                    }
+                    None => None,
+                }
+            }
+        }
     }
 
-    pub fn find_local(&self, name: &String, page_hash: Option<Vec<usize>>) -> Option<&LocalHeader> {
+    pub fn add_borrow_to_local(&mut self, hash: usize, cursor: usize) {
+        let local = self.locals.iter_mut().find(|local| {
+            matches!(local.hash, Some(local_hash) if local_hash == hash) && local.borrowed.is_some()
+        });
+        match local {
+            Some(local) => match local.borrowed {
+                Some(ref mut borrowed) => {
+                    borrowed.push(cursor);
+                }
+                None => (),
+            },
+            None => (),
+        }
+    }
+
+    pub fn add_local(&mut self, local: LocalHeader) {
+        let location = self.location();
+        match self.locals.iter_mut().find(|x| x.hash == local.hash) {
+            Some(local) => {
+                //If the function already preserved with find we will just update the reference
+                local.reference = Instruction::absolute_static(location);
+                local.cursor = location;
+                if let Some(e) = &local.borrowed {
+                    for cursor in e {
+                        self.instructions[*cursor]
+                            .get_addressing_mode_mut()
+                            .addressing_mode =
+                            crate::addressing_modes::AddressingModes::Absolute(location);
+                    }
+                }
+            }
+            None => {
+                self.locals.push(local);
+            }
+        }
+    }
+
+    pub fn find_local(
+        &mut self,
+        name: &String,
+        page_hash: Option<Vec<usize>>,
+        borrow: bool,
+    ) -> Option<LocalHeader> {
         let mut locals: Vec<&LocalHeader> = self
             .locals
             .iter()
@@ -362,7 +572,71 @@ impl Assembler {
 
         locals.sort_by(|a, b| a.cursor.cmp(&b.cursor));
         locals.reverse();
-        locals.into_iter().find(|local| &local.name == name)
+        match locals.iter_mut().find(|local| &local.name == name) {
+            Some(local) => Some(local.clone()),
+            None => {
+                if page_hash.is_none() || !borrow {
+                    return None;
+                }
+                match self.module.pages.clone().into_iter().find_map(|x| {
+                    if page_hash.clone().unwrap().contains(&x.hash) {
+                        x.items.clone().into_iter().find_map(|e| match e {
+                            ellie_core::definite::items::Collecting::Function(function) => {
+                                if &function.name == name {
+                                    Some(LocalHeader {
+                                        name: function.name.clone(),
+                                        cursor: 0,
+                                        reference: Instruction::absolute_static(0),
+                                        hash: Some(function.hash),
+                                        page_hash: x.hash,
+                                        borrowed: Some(Vec::new()),
+                                    })
+                                } else {
+                                    None
+                                }
+                            }
+                            ellie_core::definite::items::Collecting::Variable(variable) => {
+                                if &variable.name == name {
+                                    Some(LocalHeader {
+                                        name: variable.name.clone(),
+                                        cursor: 0,
+                                        reference: Instruction::absolute_static(0),
+                                        hash: Some(variable.hash),
+                                        page_hash: x.hash,
+                                        borrowed: Some(Vec::new()),
+                                    })
+                                } else {
+                                    None
+                                }
+                            }
+                            ellie_core::definite::items::Collecting::NativeFunction(nfunction) => {
+                                if &nfunction.name == name {
+                                    Some(LocalHeader {
+                                        name: nfunction.name.clone(),
+                                        cursor: 0,
+                                        reference: Instruction::absolute_static(0),
+                                        hash: Some(nfunction.hash),
+                                        page_hash: x.hash,
+                                        borrowed: Some(Vec::new()),
+                                    })
+                                } else {
+                                    None
+                                }
+                            }
+                            _ => None,
+                        })
+                    } else {
+                        None
+                    }
+                }) {
+                    Some(local) => {
+                        self.locals.push(local.clone());
+                        Some(local)
+                    }
+                    None => None,
+                }
+            }
+        }
     }
 
     pub(crate) fn assemble_dependency(&mut self, hash: &usize) -> Option<MainFunction> {
@@ -376,7 +650,7 @@ impl Assembler {
             .pages
             .clone()
             .into_iter()
-            .find(|x| x.hash == hash.clone())
+            .find(|x| x.hash == *hash)
             .unwrap_or_else(|| {
                 panic!("Unexpected assembler error, cannot find page {:?}", hash);
             });
@@ -390,12 +664,12 @@ impl Assembler {
         for item in &processed_page.items {
             match item {
                 ellie_core::definite::items::Collecting::Variable(variable) => {
-                    variable.transpile(self, processed_page.hash as usize, &processed_page)
+                    variable.transpile(self, processed_page.hash, &processed_page)
                 }
                 ellie_core::definite::items::Collecting::Function(function) => {
                     let start = self.instructions.len();
                     let transpile_res =
-                        function.transpile(self, processed_page.hash as usize, &processed_page);
+                        function.transpile(self, processed_page.hash, &processed_page);
                     if function.name == "main" {
                         main_function = Some(MainFunction {
                             hash: function.hash,
@@ -406,19 +680,19 @@ impl Assembler {
                     transpile_res
                 }
                 ellie_core::definite::items::Collecting::ForLoop(for_loop) => {
-                    for_loop.transpile(self, processed_page.hash as usize, &processed_page)
+                    for_loop.transpile(self, processed_page.hash, &processed_page)
                 }
                 ellie_core::definite::items::Collecting::Condition(condition) => {
-                    condition.transpile(self, processed_page.hash as usize, &processed_page)
+                    condition.transpile(self, processed_page.hash, &processed_page)
                 }
                 ellie_core::definite::items::Collecting::Class(class) => {
-                    class.transpile(self, processed_page.hash as usize, &processed_page)
+                    class.transpile(self, processed_page.hash, &processed_page)
                 }
                 ellie_core::definite::items::Collecting::Ret(ret) => {
-                    ret.transpile(self, processed_page.hash as usize, &processed_page)
+                    ret.transpile(self, processed_page.hash, &processed_page)
                 }
                 ellie_core::definite::items::Collecting::Constructor(constructor) => {
-                    constructor.transpile(self, processed_page.hash as usize, &processed_page)
+                    constructor.transpile(self, processed_page.hash, &processed_page)
                 }
                 ellie_core::definite::items::Collecting::Import(_) => true,
                 ellie_core::definite::items::Collecting::FileKey(_) => true,
@@ -426,44 +700,39 @@ impl Assembler {
                 ellie_core::definite::items::Collecting::Setter(_) => todo!(),
                 ellie_core::definite::items::Collecting::Generic(_) => true,
                 ellie_core::definite::items::Collecting::GetterCall(getter_call) => {
-                    getter_call.transpile(self, processed_page.hash as usize, &processed_page)
+                    getter_call.transpile(self, processed_page.hash, &processed_page)
                 }
                 ellie_core::definite::items::Collecting::SetterCall(setter_call) => {
-                    setter_call.transpile(self, processed_page.hash as usize, &processed_page)
+                    setter_call.transpile(self, processed_page.hash, &processed_page)
                 }
                 ellie_core::definite::items::Collecting::Enum(_) => todo!(),
                 ellie_core::definite::items::Collecting::NativeFunction(native_function) => {
-                    native_function.transpile(self, processed_page.hash as usize, &processed_page)
+                    native_function.transpile(self, processed_page.hash, &processed_page)
                 }
                 ellie_core::definite::items::Collecting::None => todo!(),
                 ellie_core::definite::items::Collecting::Brk(_) => todo!(),
                 ellie_core::definite::items::Collecting::Go(_) => todo!(),
                 ellie_core::definite::items::Collecting::FunctionParameter(function_parameter) => {
-                    function_parameter.transpile(
-                        self,
-                        processed_page.hash as usize,
-                        &processed_page,
-                    )
+                    function_parameter.transpile(self, processed_page.hash, &processed_page)
                 }
                 ellie_core::definite::items::Collecting::ConstructorParameter(_) => true,
-                ellie_core::definite::items::Collecting::SelfItem(e) => {
-                    panic!("Unexpected self item in assembler: {:?}", e)
+                ellie_core::definite::items::Collecting::SelfItem(self_item) => {
+                    self_item.transpile(self, processed_page.hash, &processed_page)
                 }
                 ellie_core::definite::items::Collecting::Extend(_) => true,
                 ellie_core::definite::items::Collecting::Loop(loop_type) => {
-                    loop_type.transpile(self, processed_page.hash as usize, &processed_page)
+                    loop_type.transpile(self, processed_page.hash, &processed_page)
                 }
                 ellie_core::definite::items::Collecting::ClassInstance(class_instance) => {
-                    class_instance.transpile(self, processed_page.hash as usize, &processed_page)
+                    class_instance.transpile(self, processed_page.hash, &processed_page)
                 }
             };
         }
         main_function
     }
 
-    pub fn assemble(&mut self, modue_maps: Vec<ModuleMap>) -> AssembleResult {
+    pub fn assemble(&mut self, module_maps: Vec<ModuleMap>) -> AssembleResult {
         let main_function = self.assemble_dependency(&self.module.initial_page.clone());
-        //self.instructions.push(instruction_table::Instructions::RET(Instruction { addressing_mode: AddressingModes::Implicit }));
         let mut native_exports = Vec::new();
 
         for native_header in &self.debug_headers {
@@ -483,7 +752,7 @@ impl Assembler {
                 name: self.module.name.clone(),
                 is_library: self.module.is_library,
                 platform_attributes: self.platform_attributes.clone(),
-                modue_maps,
+                module_maps,
                 main_function,
             },
             locals: self.locals.clone(),

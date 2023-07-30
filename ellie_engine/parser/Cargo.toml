@@ -16,10 +16,7 @@ enum-as-inner = "0.3.3"
 ellie_standard_rules = { path = "./standard_rules", version = "0.1.0", optional = true }
 
 [features]
-default = ["std", "standard_rules"]
+default = ["std"]
 std = []
 integrity_com = []
 standard_rules = ["ellie_standard_rules"]
-
-[profile.release]
-opt-level = 3

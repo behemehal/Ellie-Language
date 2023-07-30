@@ -6,7 +6,7 @@ use ellie_core::{
 };
 
 use crate::{
-    assembler::Assembler,
+    assembler::{Assembler, LocalHeader},
     instruction_table,
     instructions::{self, Instruction},
     types::Types,
@@ -23,10 +23,10 @@ pub fn convert_type(
         CoreTypes::Integer(integer) => (Types::Integer, isize_to_le_bytes(integer.value, arch)),
         CoreTypes::Decimal(decimal) => match decimal.value {
             ellie_core::definite::types::decimal::DecimalTypeEnum::Float(float_value) => {
-                (Types::Float, f32_to_le_bytes(float_value, arch))
+                (Types::Float, f64_to_le_bytes(float_value, arch))
             }
             ellie_core::definite::types::decimal::DecimalTypeEnum::Double(double_value) => {
-                (Types::Double, f64_to_le_bytes(double_value, arch))
+                (Types::Double, f32_to_le_bytes(double_value, arch))
             }
         },
         CoreTypes::Bool(bool) => (Types::Bool, (bool.value as u8).to_le_bytes().to_vec()),
@@ -535,7 +535,7 @@ pub fn resolve_type(
                 .instructions
                 .push(instruction_table::Instructions::SAR(
                     Instruction::immediate(
-                        Types::StaticArray(size),
+                        Types::StaticArray,
                         usize_to_le_bytes(size, assembler.platform_attributes.architecture),
                     ),
                 ));
@@ -579,6 +579,86 @@ pub fn resolve_type(
             }
         }
         CoreTypes::Array(e) => {
+            assembler
+                .instructions
+                .push(instruction_table::Instructions::SAR(
+                    Instruction::immediate(
+                        Types::StaticArray,
+                        usize_to_le_bytes(
+                            assembler.location() + 1,
+                            assembler.platform_attributes.architecture,
+                        ),
+                    ),
+                ));
+            assembler
+                .instructions
+                .push(instruction_table::Instructions::STA(
+                    Instruction::immediate(
+                        Types::Integer,
+                        usize_to_le_bytes(
+                            e.collective.len(),
+                            assembler.platform_attributes.architecture,
+                        ),
+                    ),
+                ));
+            let index_start = assembler.location();
+            for _ in &e.collective {
+                assembler
+                    .instructions
+                    .push(instruction_table::Instructions::STA(Instruction::implicit()));
+            }
+            for (index, entry) in e.collective.iter().enumerate() {
+                resolve_type(
+                    assembler,
+                    &entry.value,
+                    instructions::Registers::A,
+                    target_page,
+                    dependencies.clone(),
+                );
+                assembler
+                    .instructions
+                    .push(instruction_table::Instructions::STA(Instruction::absolute(
+                        (index_start + 1) + index,
+                    )));
+            }
+            match target_register {
+                instructions::Registers::A => {
+                    assembler
+                        .instructions
+                        .push(instruction_table::Instructions::LDA(Instruction::absolute(
+                            index_start - 1,
+                        )))
+                }
+                instructions::Registers::B => {
+                    assembler
+                        .instructions
+                        .push(instruction_table::Instructions::LDB(Instruction::absolute(
+                            index_start - 1,
+                        )))
+                }
+                instructions::Registers::C => {
+                    assembler
+                        .instructions
+                        .push(instruction_table::Instructions::LDC(Instruction::absolute(
+                            index_start - 1,
+                        )))
+                }
+                instructions::Registers::X => {
+                    assembler
+                        .instructions
+                        .push(instruction_table::Instructions::LDX(Instruction::absolute(
+                            index_start - 1,
+                        )))
+                }
+                instructions::Registers::Y => {
+                    assembler
+                        .instructions
+                        .push(instruction_table::Instructions::LDY(Instruction::absolute(
+                            index_start - 1,
+                        )))
+                }
+            }
+            /*
             assembler
                 .instructions
                 .push(instruction_table::Instructions::ARR(Instruction::implicit()));
@@ -639,6 +719,7 @@ pub fn resolve_type(
                         )))
                 }
             }
+            */
         }
         CoreTypes::Function(_) => todo!(),
         CoreTypes::ClassCall(class_call) => {
@@ -647,13 +728,12 @@ pub fn resolve_type(
                 .push(instruction_table::Instructions::ARR(Instruction::implicit()));
             let class_location = assembler.location();
             if !class_call.params.is_empty() {
-                for (idx, param) in class_call.params.iter().enumerate() {
-                    let _idx = class_call.params.len() - idx;
+                for (_idx, param) in class_call.params.iter().enumerate() {
                     resolve_type(
                         assembler,
                         &param.value,
                         instructions::Registers::A,
-                        &target_page,
+                        target_page,
                         dependencies.clone(),
                     );
                     assembler
@@ -735,36 +815,86 @@ pub fn resolve_type(
             }
         }
         CoreTypes::FunctionCall(function_call) => {
-            let target = match *function_call.target.clone() {
+            let mut is_reference = None;
+            let target: LocalHeader = match *function_call.target.clone() {
                 CoreTypes::VariableType(e) => assembler
-                    .find_local(&e.value, dependencies.clone())
+                    .find_local(&e.value, dependencies.clone(), true)
                     .unwrap()
                     .clone(),
                 CoreTypes::Reference(e) => {
+                    let reference = match *e.reference {
+                        CoreTypes::VariableType(e) => assembler
+                            .find_local(&e.value, dependencies.clone(), true)
+                            .unwrap()
+                            .clone(),
+                        e => {
+                            resolve_type(
+                                assembler,
+                                &e,
+                                instructions::Registers::A,
+                                target_page,
+                                dependencies.clone(),
+                            );
+                            assembler
+                                .instructions
+                                .push(
+                                    instruction_table::Instructions::STA(Instruction::implicit()),
+                                );
+                            panic!("Not implemented yet")
+                        }
+                    };
                     let hash = e.index_chain.last().unwrap();
-                    assembler.find_local_by_hash(
-                        e.index_chain.last().unwrap().hash,
-                        Some(vec![hash.page_hash]),
-                    ).unwrap().clone()
+                    is_reference = Some(reference.clone());
+                    assembler
+                        .find_local_by_hash(
+                            e.index_chain.last().unwrap().hash,
+                            Some(vec![hash.page_hash]),
+                            true,
+                        )
+                        .unwrap()
+                        .clone()
                 }
-                _ => unreachable!("{:?}", function_call.target),
+                _ => unreachable!("Unexpected target type"),
             };
 
             let previous_params_location = assembler.location() + 1;
+            if is_reference.is_some() {
+                assembler
+                    .instructions
+                    .push(instruction_table::Instructions::STB(Instruction::implicit()));
+            }
+
             for _ in &function_call.params {
                 assembler
                     .instructions
                     .push(instruction_table::Instructions::STB(Instruction::implicit()));
             }
 
+            if let Some(reference) = &is_reference {
+                assembler
+                    .instructions
+                    .push(instruction_table::Instructions::LDA(Instruction::absolute(
+                        reference.cursor,
+                    )));
+                match reference.hash {
+                    Some(hash) => assembler.add_borrow_to_local(hash, assembler.location()),
+                    None => (),
+                }
+                assembler
+                    .instructions
+                    .push(instruction_table::Instructions::STA(Instruction::absolute(
+                        previous_params_location,
+                    )));
+            }
+
             if !function_call.params.is_empty() {
                 for (idx, param) in function_call.params.iter().enumerate() {
-                    let _idx = function_call.params.len() - idx;
+                    let idx = if is_reference.is_some() { idx + 1 } else { idx };
                     resolve_type(
                         assembler,
                         &param.value,
                         instructions::Registers::A,
-                        &target_page,
+                        target_page,
                         dependencies.clone(),
                     );
                     assembler
@@ -792,6 +922,7 @@ pub fn resolve_type(
                 .push(instruction_table::Instructions::CALL(
                     Instruction::absolute(target.cursor),
                 ));
+            assembler.add_borrow_to_local(target.hash.unwrap(), assembler.location());
 
             match target_register {
                 instructions::Registers::A => {
@@ -873,7 +1004,10 @@ pub fn resolve_type(
         }
         CoreTypes::Negative(_) => todo!(),
         CoreTypes::VariableType(e) => {
-            let pos = assembler.find_local(&e.value, dependencies).unwrap();
+            let pos = match assembler.find_local(&e.value, dependencies, false) {
+                Some(e) => e,
+                None => panic!("Variable not found: {}", e.value),
+            };
             let mut instructions = Vec::new();
 
             match target_register {

@@ -40,3 +40,7 @@ path-absolutize = { version = "3.0.10" }
 toml = "0.5.8"
 regex = { version = "1.1.7" }
 chrono = "0.4.22"
+
+[workspace]
+members = [".", "./core", "./tokenizer", "./parser", "./bytecode", "./vm", "./fmt", "./renderer_utils" ]
+default-members = ["."]

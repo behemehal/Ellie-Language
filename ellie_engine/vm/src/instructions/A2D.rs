@@ -27,16 +27,16 @@ impl super::InstructionExecuter for A2D {
                 match current_stack.registers.A.type_id.id {
                     1 => {
                         let data = current_stack.registers.A.to_int();
-                        current_stack.registers.A = StaticRawType::from_double(data as f64);
+                        current_stack.registers.A = StaticRawType::from_double(data as f32);
                     }
                     2 => {
                         let data = current_stack.registers.A.to_float();
-                        current_stack.registers.A = StaticRawType::from_double(data as f64);
+                        current_stack.registers.A = StaticRawType::from_double(data as f32);
                     }
                     3 => (),
                     4 => {
                         let data = current_stack.registers.A.to_byte();
-                        current_stack.registers.A = StaticRawType::from_double(data as f64);
+                        current_stack.registers.A = StaticRawType::from_double(data as f32);
                     }
                     13 => {
                         let pointer = current_stack.registers.B.to_int() as usize;
@@ -52,7 +52,7 @@ impl super::InstructionExecuter for A2D {
                         match mref.type_id.id {
                             6 => {
                                 let a_value = String::from_utf8(mref.data).unwrap();
-                                match a_value.parse::<f64>() {
+                                match a_value.parse::<f32>() {
                                     Ok(double_value) => {
                                         current_stack.registers.A =
                                             StaticRawType::from_double(double_value);

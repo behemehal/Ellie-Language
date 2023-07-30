@@ -130,9 +130,11 @@ impl core::fmt::Display for AddressingModes {
                         }
                         .to_string(),
                         Types::Float =>
-                            f32::from_le_bytes(value[0..4].try_into().unwrap()).to_string(),
+                            f64::from_le_bytes(value[0..mem::size_of::<f64>()].try_into().unwrap())
+                                .to_string(),
                         Types::Double =>
-                            f64::from_le_bytes(value[..].try_into().unwrap()).to_string(),
+                            f32::from_le_bytes(value[0..mem::size_of::<f32>()].try_into().unwrap())
+                                .to_string(),
                         Types::Byte => format!("0x{}", value[0]),
                         Types::Bool =>
                             if value[0] == 1 {
@@ -152,11 +154,7 @@ impl core::fmt::Display for AddressingModes {
                                     .unwrap()
                             )
                         }
-                        Types::StaticArray(_) => format!("static_array[{:?}]", {
-                            let mut array = [0; mem::size_of::<isize>()];
-                            array.copy_from_slice(&value[0..mem::size_of::<isize>()]);
-                            isize::from_le_bytes(array)
-                        }),
+                        Types::StaticArray => "static_array".to_string(),
                         Types::Array(_) => format!("array[{:?}]", {
                             let mut array = [0; mem::size_of::<isize>()];
                             array.copy_from_slice(&value[0..mem::size_of::<isize>()]);
@@ -239,7 +237,7 @@ impl PartialEq for AddressingModesStruct {
 }
 
 impl AddressingModesStruct {
-    pub fn from_str<'a>(mode: &'a str, op_code: u8) -> AddressingModesStruct {
+    pub fn from_str(mode: &str, op_code: u8) -> AddressingModesStruct {
         match mode {
             "implicit" => AddressingModesStruct::Implicit(op_code),
             "immediate" => AddressingModesStruct::Immediate(op_code),

@@ -108,12 +108,12 @@ impl Formatter {
                 Processors::Function(_) | Processors::Class(_) => {
                     output.lines.push(String::new());
                     last_element_is_fn_or_class = true;
-                },
+                }
                 Processors::Comment(e) => {
                     if e.line_comment && e.pos.range_start.0 == output.lines.len() - 1 {
                         let formated_item = item.render(&State::empty_state(), &self.options);
                         let last_line = output.lines.last_mut().unwrap();
-                        last_line.push_str(" ");
+                        last_line.push(' ');
                         last_line.push_str(&formated_item);
                         continue;
                     }
@@ -123,7 +123,7 @@ impl Formatter {
                         output.lines.push(String::new());
                         last_element_is_fn_or_class = false;
                     }
-                },
+                }
             };
             let formated_item = item.render(&State::empty_state(), &self.options);
             output.insert_element_to_line(item.get_pos().range_start.0, formated_item);

@@ -22,12 +22,10 @@ impl super::InstructionExecuter for RET {
     ) -> Result<ExecuterResult, ExecuterPanic> {
         match &addressing_value {
             AddressingValues::Implicit => Ok(ExecuterResult::DropStack),
-            _ => {
-                return Err(ExecuterPanic {
-                    reason: ThreadPanicReason::IllegalAddressingValue,
-                    code_location: format!("{}:{}", file!(), line!()),
-                })
-            }
+            _ => Err(ExecuterPanic {
+                reason: ThreadPanicReason::IllegalAddressingValue,
+                code_location: format!("{}:{}", file!(), line!()),
+            }),
         }
     }
 }

@@ -34,9 +34,7 @@ where
     fn read(&mut self) -> Option<u8> {
         let mut b = [0u8];
         match self.source.read_exact(&mut b) {
-            Ok(_) => {
-                return Some(b[0]);
-            }
+            Ok(_) => Some(b[0]),
             Err(_) => None,
         }
     }
@@ -60,21 +58,33 @@ use ellie_core::defs::{DebugInfo, ModuleMap};
 /// let debug_info = vm::parse_debug_file(file.to_string());
 /// ```
 pub fn parse_debug_file(dbg_file: String) -> Result<DebugInfo, String> {
-    let mut dbg_headers = dbg_file.split("\n").collect::<Vec<_>>().into_iter();
+    let mut dbg_headers = dbg_file.split('\n').collect::<Vec<_>>().into_iter();
     let mut module_maps_ended = false;
 
     let mut module_maps = Vec::new();
 
-    while let Some(line) = dbg_headers.next() {
+    for line in dbg_headers.by_ref() {
         if line == "---" {
             module_maps_ended = true;
             break;
         } else {
-            let line = line.split(":").collect::<Vec<_>>();
-            let module_name = line[0].to_string();
-            let path = line[1..].join(":").to_string().trim().to_string();
+            let line = line.split("F:F").collect::<Vec<_>>();
+            if line.len() != 2 {
+                return Err(format!("Broken debug header, line: {}", module_maps.len()));
+            }
+            let module_info = line[0].to_string();
+            let module_info = module_info.split("E-E").collect::<Vec<_>>();
+            if module_info.len() != 2 {
+                return Err(format!("Broken debug header, line: {}", module_maps.len()));
+            }
+            let module_hash = match module_info[1].parse::<usize>() {
+                Ok(hash) => hash,
+                Err(_) => return Err(format!("Broken debug header, line: {}", module_maps.len())),
+            };
+            let path = line[1..].join("F:F").to_string().trim().to_string();
             module_maps.push(ModuleMap {
-                module_name,
+                module_name: module_info[0].to_string(),
+                module_hash,
                 module_path: if path == "-" { None } else { Some(path) },
             });
         }
@@ -87,8 +97,8 @@ pub fn parse_debug_file(dbg_file: String) -> Result<DebugInfo, String> {
     let mut debug_headers = Vec::new();
 
     for (idx, header) in dbg_headers.enumerate() {
-        let line = header.split(":").collect::<Vec<_>>();
-        if line.len() != 9 {
+        let line = header.split("F:F").collect::<Vec<_>>();
+        if line.len() != 10 {
             return Err(format!("Broken debug header, line: {}", idx + 1));
         }
 
@@ -108,13 +118,13 @@ pub fn parse_debug_file(dbg_file: String) -> Result<DebugInfo, String> {
         );
 
         let pos_range_start = (
-            match line[4].parse::<usize>() {
+            match line[5].parse::<usize>() {
                 Ok(n) => n,
                 Err(_) => {
                     return Err(format!("Broken debug header, line: {}", idx + 1));
                 }
             },
-            match line[5].parse::<usize>() {
+            match line[6].parse::<usize>() {
                 Ok(n) => n,
                 Err(_) => {
                     return Err(format!("Broken debug header, line: {}", idx + 1));
@@ -123,13 +133,13 @@ pub fn parse_debug_file(dbg_file: String) -> Result<DebugInfo, String> {
         );
 
         let pos_range_end = (
-            match line[6].parse::<usize>() {
+            match line[7].parse::<usize>() {
                 Ok(n) => n,
                 Err(_) => {
                     return Err(format!("Broken debug header, line: {}", idx + 1));
                 }
             },
-            match line[7].parse::<usize>() {
+            match line[8].parse::<usize>() {
                 Ok(n) => n,
                 Err(_) => {
                     return Err(format!("Broken debug header, line: {}", idx + 1));
@@ -142,7 +152,14 @@ pub fn parse_debug_file(dbg_file: String) -> Result<DebugInfo, String> {
             range_end: CursorPosition(pos_range_end.0, pos_range_end.1),
         };
 
-        let hash = match line[8].parse::<usize>() {
+        let hash = match line[9].parse::<usize>() {
+            Ok(n) => n,
+            Err(_) => {
+                return Err(format!("Broken debug header, line: {}", idx + 1));
+            }
+        };
+
+        let module_hash = match line[3].parse::<usize>() {
             Ok(n) => n,
             Err(_) => {
                 return Err(format!("Broken debug header, line: {}", idx + 1));
@@ -151,8 +168,9 @@ pub fn parse_debug_file(dbg_file: String) -> Result<DebugInfo, String> {
 
         debug_headers.push(DebugHeader {
             start_end,
-            module: line[2].to_string(),
-            name: line[3].to_string(),
+            module_name: line[2].to_string(),
+            module_hash,
+            name: line[4].to_string(),
             pos,
             rtype: DebugHeaderType::Variable,
             hash,

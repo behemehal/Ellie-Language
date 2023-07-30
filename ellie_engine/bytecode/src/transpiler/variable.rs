@@ -2,7 +2,8 @@ use super::type_resolver::resolve_type;
 use crate::{
     assembler::LocalHeader,
     instruction_table,
-    instructions::{self, Instruction}, utils::limit_platform_size,
+    instructions::{self, Instruction},
+    utils::limit_platform_size,
 };
 use alloc::vec;
 use ellie_core::{
@@ -20,7 +21,7 @@ impl super::Transpiler for variable::Variable {
         let mut dependencies = vec![processed_page.hash];
         dependencies.extend(processed_page.dependencies.iter().map(|d| d.hash));
 
-        let location = if assembler.instructions.len() == 0 {
+        let location = if assembler.instructions.is_empty() {
             0
         } else {
             assembler.location()
@@ -47,17 +48,19 @@ impl super::Transpiler for variable::Variable {
                 rtype: DebugHeaderType::Variable,
                 hash: limit_platform_size(self.hash, assembler.platform_attributes.architecture),
                 start_end: (location, assembler.location()),
-                module: processed_page.path.clone(),
+                module_name: processed_page.path.clone(),
+                module_hash: processed_page.hash,
                 name: self.name.clone(),
                 pos: self.pos,
             });
 
-            assembler.locals.push(LocalHeader {
+            assembler.add_local(LocalHeader {
                 name: self.name.clone(),
                 cursor: assembler.location(),
                 page_hash: processed_page.hash,
                 hash: Some(self.hash),
-                reference: Instruction::absolute(assembler.location()),
+                reference: Instruction::absolute_static(assembler.location()),
+                borrowed: None,
             });
             return true;
         }
@@ -70,7 +73,8 @@ impl super::Transpiler for variable::Variable {
             rtype: DebugHeaderType::Variable,
             hash: limit_platform_size(self.hash, assembler.platform_attributes.architecture),
             start_end: (location, assembler.location()),
-            module: processed_page.path.clone(),
+            module_name: processed_page.path.clone(),
+            module_hash: processed_page.hash,
             name: self.name.clone(),
             pos: self.pos,
         });
@@ -81,6 +85,7 @@ impl super::Transpiler for variable::Variable {
             page_hash: processed_page.hash,
             hash: Some(self.hash),
             reference: Instruction::absolute(assembler.location()),
+            borrowed: None,
         });
 
         true

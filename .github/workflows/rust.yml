@@ -11,16 +11,20 @@ env:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
+    defaults:
+      run:
+        working-directory: ellie_engine
     steps:
     - uses: actions/checkout@v2
     - name: Download EllieAssist
       run: git clone https://github.com/behemehal/EllieAssist.git
+    - uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
     - name: Build
       run: cargo build --verbose
-    - name: Run tests
-      run: cargo test --verbose
-    #- name: Check formatting
-    #  run: cargo fmt --all -- --check --verbose
+    #- name: Run tests
+    #  run: cargo test --verbose
+    - name: Check formatting
+      run: cargo fmt --all -- --check --verbose

@@ -22,9 +22,9 @@ impl StackMemory {
 
     pub fn get(&self, key: &usize) -> Option<StaticRawType> {
         if self.data.len() <= *key {
-            return None;
+            None
         } else {
-            return Some(self.data[*key]);
+            Some(self.data[*key])
         }
     }
 
@@ -59,6 +59,7 @@ impl StackMemory {
                 12 => String::from("function"),
                 13 => String::from("stack_reference"),
                 14 => String::from("heap_reference"),
+                15 => String::from("static_array"),
                 _ => unreachable!("Wrong typeid"),
             };
             result.push_str(&format!(

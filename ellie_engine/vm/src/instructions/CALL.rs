@@ -49,12 +49,10 @@ impl super::InstructionExecuter for CALL {
                     pos: *start_location,
                 }))
             }
-            _ => {
-                return Err(ExecuterPanic {
-                    reason: ThreadPanicReason::IllegalAddressingValue,
-                    code_location: format!("{}:{}", file!(), line!()),
-                })
-            }
+            _ => Err(ExecuterPanic {
+                reason: ThreadPanicReason::IllegalAddressingValue,
+                code_location: format!("{}:{}", file!(), line!()),
+            }),
         }
     }
 }

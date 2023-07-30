@@ -4,9 +4,10 @@ use ellie_core::defs::PlatformArchitecture;
 use crate::{
     heap_memory::HeapMemory,
     instruction_utils::FN,
+    raw_type::StaticRawType,
     stack::Stack,
     stack_memory::StackMemory,
-    utils::{AddressingValues, ThreadPanicReason}, raw_type::StaticRawType,
+    utils::{AddressingValues, ThreadPanicReason},
 };
 
 use super::{ExecuterPanic, ExecuterResult, StaticProgram};
@@ -14,7 +15,7 @@ use super::{ExecuterPanic, ExecuterResult, StaticProgram};
 impl super::InstructionExecuter for FN {
     fn execute(
         &self,
-        _heap_memory: &mut HeapMemory,
+        heap_memory: &mut HeapMemory,
         program: StaticProgram,
         current_stack: &mut Stack,
         stack_memory: &mut StackMemory,
@@ -24,10 +25,7 @@ impl super::InstructionExecuter for FN {
         match &addressing_value {
             AddressingValues::Immediate(e) => {
                 let hash: usize = e.to_int() as usize;
-                stack_memory.set(
-                    &current_stack.get_pos(),
-                    StaticRawType::from_function(hash),
-                );
+                stack_memory.set(&current_stack.get_pos(), StaticRawType::from_function(hash));
                 let end_point = match &program[current_stack.pos + 1].addressing_value {
                     AddressingValues::Immediate(e) => e.to_int() as usize,
                     _ => {
@@ -63,23 +61,44 @@ impl super::InstructionExecuter for FN {
                             current_stack.registers.X.to_int() as usize + previous_frame_pos;
                         for i in 0..parameter_count {
                             let pos = current_stack.get_pos() + 3 + i;
-                            match stack_memory.get(&(index_start as usize + i)) {
+                            match stack_memory.get(&(index_start + i)) {
                                 Some(e) => {
                                     if e.type_id.is_void() {
                                         return Err(ExecuterPanic {
                                             reason: ThreadPanicReason::NullReference(
-                                                index_start as usize + i,
+                                                index_start + i,
                                             ),
                                             code_location: format!("{}:{}", file!(), line!()),
                                         });
+                                    } else if e.type_id.is_heap_reference() {
+                                        match heap_memory.get(&e.to_uint()) {
+                                            Some(e) => {
+                                                heap_memory.set(&pos, e.clone());
+                                                stack_memory.set(
+                                                    &pos,
+                                                    StaticRawType::from_heap_reference(pos),
+                                                );
+                                            }
+                                            None => {
+                                                return Err(ExecuterPanic {
+                                                    reason: ThreadPanicReason::NullReference(
+                                                        index_start + i,
+                                                    ),
+                                                    code_location: format!(
+                                                        "{}:{}",
+                                                        file!(),
+                                                        line!()
+                                                    ),
+                                                })
+                                            }
+                                        }
+                                    } else {
+                                        stack_memory.set(&pos, e);
                                     }
-                                    stack_memory.set(&pos, e);
                                 }
                                 None => {
                                     return Err(ExecuterPanic {
-                                        reason: ThreadPanicReason::NullReference(
-                                            index_start as usize + i,
-                                        ),
+                                        reason: ThreadPanicReason::NullReference(index_start + i),
                                         code_location: format!("{}:{}", file!(), line!()),
                                     })
                                 }

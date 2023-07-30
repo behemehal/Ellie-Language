@@ -12,7 +12,7 @@ impl super::Processor for Import {
     ) -> bool {
         let path = parser.pages.nth(page_idx).unwrap().path.clone();
 
-        if self.reference != "" {
+        if !self.reference.is_empty() {
             parser
                 .informations
                 .push(&error::error_list::ERROR_S59.clone().build_with_path(
@@ -28,14 +28,14 @@ impl super::Processor for Import {
             return false;
         }
 
-        let duplicate = if self.reference == "" {
+        let duplicate = if self.reference.is_empty() {
             false
         } else {
             parser
                 .deep_search(
                     page_hash,
                     self.reference.clone(),
-                    Some(self.hash.clone()),
+                    Some(self.hash),
                     vec![],
                     0,
                     None,
@@ -43,20 +43,18 @@ impl super::Processor for Import {
                 .found
         };
 
-        if self.reference != "" {
-            if utils::is_reserved(&self.reference, false) {
-                parser
-                    .informations
-                    .push(&error::error_list::ERROR_S21.clone().build_with_path(
-                        vec![error::ErrorBuildField {
-                            key: "token".to_owned(),
-                            value: self.reference.clone(),
-                        }],
-                        alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                        path.clone(),
-                        self.reference_pos,
-                    ));
-            }
+        if !self.reference.is_empty() && utils::is_reserved(&self.reference, false) {
+            parser
+                .informations
+                .push(&error::error_list::ERROR_S21.clone().build_with_path(
+                    vec![error::ErrorBuildField {
+                        key: "token".to_owned(),
+                        value: self.reference.clone(),
+                    }],
+                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                    path.clone(),
+                    self.reference_pos,
+                ));
         }
 
         if duplicate {

@@ -28,8 +28,11 @@ pub mod heap_memory;
 pub mod instruction_utils;
 /// Ellie VM's instructions
 pub mod instructions;
+mod iternal_functions;
 /// Ellie VM's program
 pub mod program;
+/// Ellie VM's raw type
+pub mod raw_type;
 /// Ellie VM's stack
 pub mod stack;
 /// Ellie VM's stack memory
@@ -38,5 +41,3 @@ pub mod stack_memory;
 pub mod thread;
 /// Ellie VM's utils
 pub mod utils;
-/// Ellie VM's raw type
-pub mod raw_type;

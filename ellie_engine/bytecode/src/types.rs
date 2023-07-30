@@ -18,7 +18,7 @@ pub enum Types {
     // 4 bit char
     Char,
     // compile time sized array pointing to next addresses
-    StaticArray(usize),
+    StaticArray,
     // dynamic sized array
     Array(usize),
     // 0 bit void
@@ -53,8 +53,8 @@ impl Types {
             Types::Class(_) => (11, platform_size.usize_len() as usize),
             Types::Function => (12, platform_size.usize_len() as usize),
             Types::HeapReference => (13, platform_size.usize_len() as usize),
-            Types::StackReference => (13, platform_size.usize_len() as usize),
-            Types::StaticArray(array_size) => (14, *array_size),
+            Types::StackReference => (14, platform_size.usize_len() as usize),
+            Types::StaticArray => (15, 8),
         }
     }
 
@@ -66,17 +66,15 @@ impl Types {
             Types::Byte => "byte".to_string(),
             Types::Bool => "bool".to_string(),
             Types::String(str_len) => alloc::format!("string[{str_len}]"),
-            Types::Char => alloc::format!("char"),
-            Types::StaticArray(size) => alloc::format!("staticArray<{size}>"),
+            Types::Char => "char".to_string(),
+            Types::StaticArray => "staticArray".to_string(),
             Types::Array(len) => alloc::format!("array<{len} / platformSize>"),
             Types::Void => "void".to_string(),
             Types::Null => "null".to_string(),
             Types::Class(class_len) => {
                 alloc::format!("class<{class_len}>")
             }
-            Types::Function => {
-                alloc::format!("function")
-            }
+            Types::Function => "function".to_string(),
             Types::HeapReference => "heapReference".to_string(),
             Types::StackReference => "stackReference".to_string(),
         }

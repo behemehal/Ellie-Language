@@ -1,7 +1,9 @@
 use alloc::{borrow::ToOwned, string::ToString, vec, vec::Vec};
+#[cfg(feature = "standard_rules")]
+use ellie_core::warning;
 use ellie_core::{
     definite::{definers::DefinerCollecting, types::Types},
-    error, warning,
+    error,
 };
 use ellie_tokenizer::syntax::items::variable::VariableCollector;
 
@@ -17,7 +19,7 @@ impl super::Processor for VariableCollector {
         let (duplicate, found) = parser.is_variable_duplicate(
             page_hash,
             self.data.name.clone(),
-            self.data.hash.clone(),
+            self.data.hash,
             self.data.pos,
         );
 
@@ -43,7 +45,7 @@ impl super::Processor for VariableCollector {
                         self.data.name_pos,
                     ))
             }
-            return false;
+            false
         } else {
             let deep_cast = parser
                 .processed_pages
@@ -112,7 +114,7 @@ impl super::Processor for VariableCollector {
                     self.data.rtype.definer_type.clone(),
                     parser,
                     page_hash,
-                    Some(self.data.hash.clone()),
+                    Some(self.data.hash),
                 )
             };
 
@@ -123,7 +125,7 @@ impl super::Processor for VariableCollector {
                     self.data.value.clone(),
                     parser,
                     page_hash,
-                    Some(self.data.hash.clone()),
+                    Some(self.data.hash),
                     false,
                     false,
                     true,
@@ -136,7 +138,7 @@ impl super::Processor for VariableCollector {
                 let defining_error = resolved_defining.err().unwrap_or(vec![]);
                 type_error.extend(defining_error);
                 parser.informations.extend(&type_error);
-                return false;
+                false
             } else {
                 #[cfg(feature = "standard_rules")]
                 {
@@ -270,15 +272,15 @@ impl super::Processor for VariableCollector {
                                 err.reference_message = "Defined here".to_owned();
                                 err.semi_assist = true;
                                 parser.informations.push(&err);
-                                return false;
+                                false
                             } else {
                                 current_page.items.push(processed);
-                                return true;
+                                true
                             }
                         }
                         Err(err) => {
                             parser.informations.extend(&err);
-                            return false;
+                            false
                         }
                     }
                 } else {
@@ -286,7 +288,7 @@ impl super::Processor for VariableCollector {
                         parser.processed_pages.nth_mut(processed_page_idx).unwrap();
                     processed_page.unassigned_file_keys = Vec::new();
                     processed_page.items.push(processed);
-                    return true;
+                    true
                 }
             }
         }

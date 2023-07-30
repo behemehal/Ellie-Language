@@ -1,7 +1,11 @@
-use crate::processors::items;
+use crate::{processors::items, syntax::items::condition::ConditionType};
 use ellie_core::{
-    definite::types::class_instance::{Attribute, AttributeType, ClassInstance},
-    defs, error,
+    definite::{
+        definers::DefinerCollecting,
+        types::class_instance::{Attribute, AttributeType, ClassInstance},
+    },
+    defs::{self, Cursor},
+    error,
     utils::{ExportPage, PageExport},
 };
 use serde::{Deserialize, Serialize};
@@ -30,19 +34,34 @@ pub struct Dependency {
 pub struct ClassPageType {
     pub name: String,
     pub hash: usize,
+    pub pos: defs::Cursor,
     pub page_hash: usize,
+}
+
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
+pub struct FunctionPageType {
+    pub return_type: DefinerCollecting,
+    pub return_pos: Cursor,
+}
+
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
+pub struct ConditionPageType {
+    pub page_hash: usize,
+    pub condition_hash: usize,
+    pub chain_type: ConditionType,
+    pub keyword_pos: Cursor,
 }
 
 /// `PageType` is gives us hint about the type of the page
 /// Check [`Page`]
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub enum PageType {
-    FunctionBody,
+    FunctionBody(FunctionPageType),
     ConstructorBody,
     RawBody,
     LoopBody,
     ClassBody(ClassPageType),
-    ConditionBody,
+    ConditionBody(ConditionPageType),
 }
 
 impl Default for PageType {
@@ -423,7 +442,10 @@ where
 
                         current_page.dependencies.push(Dependency {
                             hash: resolved.hash,
-                            processed: false,
+                            processed: match &resolved.matched {
+                                ImportType::Code(_) => true,
+                                ImportType::Module(_) => false,
+                            },
                             module: match &resolved.matched {
                                 ImportType::Code(_) => None,
                                 ImportType::Module(x) => Some(x.initial_page.clone()),

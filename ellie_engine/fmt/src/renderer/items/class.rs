@@ -9,7 +9,7 @@ impl CodeRenderer for Class {
         let is_public = if self.public { "pub " } else { "" };
         let mut class_input = format!("{state_scope_length}{is_public}class {} ", self.name);
 
-        if self.body.len() == 0 {
+        if self.body.is_empty() {
             class_input += &format!("{{}}{}", options.render_line_ending());
             class_input
         } else {

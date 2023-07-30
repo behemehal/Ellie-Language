@@ -85,9 +85,11 @@ pub enum ThreadPanicReason {
     // This panic triggered from A2(n) instructions, when instruction does not support conversion between types
     CannotConvertToType(u8, u8),
     /// This panic is triggered when a native call not matched with any module_manager item
-    CallToUnknown(usize),
+    CallToUnknown((String, usize)),
     /// This panic is triggered when a native call not matched with any module_manager item
     MissingModule(usize),
+    /// This panic is triggered when a native call does not registered as trace
+    MissingTrace(usize),
     /// Usally arrays are created with first index of it as it's entries size
     /// If array data doesnt have the entry_size or entry_size is zero or less this panic will be triggered
     ArraySizeCorruption,
@@ -212,7 +214,7 @@ pub struct ProgramReader<'a> {
 }
 
 impl ProgramReader<'_> {
-    pub fn new<'a>(vreader: &'a mut dyn Reader) -> ProgramReader<'a> {
+    pub fn new(vreader: &mut dyn Reader) -> ProgramReader<'_> {
         ProgramReader { reader: vreader }
     }
 
@@ -232,6 +234,19 @@ impl ProgramReader<'_> {
             }
         }
         Some(usize::from_le_bytes(array))
+    }
+
+    pub fn read_string(&mut self, string_length: usize) -> Option<String> {
+        let mut string = String::new();
+        for _ in 0..string_length {
+            match self.reader.read() {
+                Some(byte) => {
+                    string.push(byte as char);
+                }
+                None => return None,
+            }
+        }
+        Some(string)
     }
 
     pub fn read_isize(&mut self, arch_size: u8) -> Option<isize> {

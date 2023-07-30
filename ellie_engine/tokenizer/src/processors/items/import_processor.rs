@@ -24,11 +24,9 @@ impl crate::processors::Processor for Import {
                     self.path_pos.range_start = cursor;
                 }
             } else if self.link_module {
-                if utils::reliable_name_range(
-                    utils::ReliableNameRanges::VariableName,
-                    letter_char,
-                )
-                .reliable {
+                if utils::reliable_name_range(utils::ReliableNameRanges::VariableName, letter_char)
+                    .reliable
+                {
                     if last_char == ' ' {
                         errors.push(error::error_list::ERROR_S1.clone().build(
                             vec![error::ErrorBuildField {

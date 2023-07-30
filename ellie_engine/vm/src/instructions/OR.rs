@@ -1,9 +1,10 @@
 use crate::{
     heap_memory::HeapMemory,
     instruction_utils::OR,
+    raw_type::StaticRawType,
     stack::Stack,
     stack_memory::StackMemory,
-    utils::{AddressingValues, ThreadPanicReason}, raw_type::StaticRawType,
+    utils::{AddressingValues, ThreadPanicReason},
 };
 use alloc::format;
 use ellie_core::defs::PlatformArchitecture;

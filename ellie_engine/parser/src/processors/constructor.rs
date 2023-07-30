@@ -1,6 +1,8 @@
 use alloc::{borrow::ToOwned, vec, vec::Vec};
 use ellie_core::error;
-use ellie_tokenizer::{syntax::items::constructor::Constructor, tokenizer::PageType, processors::items::Processors};
+use ellie_tokenizer::{
+    processors::items::Processors, syntax::items::constructor::Constructor, tokenizer::PageType,
+};
 
 impl super::Processor for Constructor {
     fn process(
@@ -115,19 +117,14 @@ impl super::Processor for Constructor {
             }
 
             if found_is_constant_variable.is_some() {
-                parser.informations.push(
-                    &error::error_list::ERROR_S18.clone().build_with_path(
+                parser
+                    .informations
+                    .push(&error::error_list::ERROR_S18.clone().build_with_path(
                         vec![],
-                        alloc::format!(
-                            "{}:{}:{}",
-                            file!().to_owned(),
-                            line!(),
-                            column!()
-                        ),
+                        alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                         class_body_page.path.clone(),
                         found_is_constant_variable.unwrap(),
-                    ),
-                );
+                    ));
             }
         }
         items.extend(self.inside_code.clone());
@@ -140,7 +137,7 @@ impl super::Processor for Constructor {
             page_type: PageType::ConstructorBody,
             dependents: vec![],
             dependencies: vec![ellie_tokenizer::tokenizer::Dependency {
-                hash: class_body_page.hash.clone(),
+                hash: class_body_page.hash,
                 processed: false,
                 module: None,
                 deep_link: None,

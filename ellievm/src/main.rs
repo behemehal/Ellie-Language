@@ -6,7 +6,12 @@ use ellie_engine::{
         options, outputs,
         utils::{CliColor, ColorDisplay, Colors, TextStyles},
     },
-    ellie_vm::{program::Program, utils::ProgramReader},
+    ellie_vm::{
+        channel::{EllieModule, FunctionElement, ModuleElements},
+        program::Program,
+        raw_type::StaticRawType,
+        utils::{ProgramReader, VmNativeAnswer, VmNativeCallParameters},
+    },
     engine_constants,
     vm::{parse_debug_file, RFile},
 };
@@ -18,6 +23,7 @@ pub struct VmSettings {
     pub warnings: bool,
     pub heap_dump: bool,
     pub architecture: PlatformArchitecture,
+    pub modules: Vec<EllieModule>,
 }
 
 fn main() {
@@ -29,7 +35,7 @@ fn main() {
     match matches.subcommand() {
         Some(("run", matches)) => {
             let mut _debugger_wait = false;
-            let is_vm_debug = matches.is_present("vmDebug");
+            let _is_vm_debug = matches.is_present("vmDebug");
             if !matches.is_present("allowPanics") {
                 std::panic::set_hook(Box::new(|e| {
                     if e.to_string().contains("@Halt") {
@@ -48,7 +54,7 @@ fn main() {
                             "{}{}{}",
                             cli_color.color(Colors::Blue),
                             e.to_string().split("@Halt:").collect::<Vec<&str>>()[1]
-                                .split("@")
+                                .split('@')
                                 .collect::<Vec<&str>>()[0]
                                 .trim(),
                             cli_color.color(Colors::Red)
@@ -95,7 +101,7 @@ fn main() {
                 }));
             }
 
-            let vm_settings = VmSettings {
+            let mut vm_settings = VmSettings {
                 json_log: matches.is_present("jsonLog"),
                 warnings: true,
                 heap_dump: matches.is_present("heapDump"),
@@ -121,7 +127,39 @@ fn main() {
                     }
                     None => unreachable!(),
                 },
+                modules: Vec::new(),
             };
+
+            let mut ellie_core_module = EllieModule::new("ellieCore".to_string());
+            ellie_core_module.register_element(ModuleElements::Function(FunctionElement::new(
+                "println",
+                Box::new(|_, args| {
+                    if args.len() != 1 {
+                        return VmNativeAnswer::RuntimeError(
+                            "Signature mismatch expected 1 argument(s)".to_string(),
+                        );
+                    }
+                    match &args[0] {
+                        VmNativeCallParameters::Static(_) => VmNativeAnswer::RuntimeError(
+                            "Signature mismatch expected 'dynamic' argument".to_string(),
+                        ),
+                        VmNativeCallParameters::Dynamic(dynamic_value) => {
+                            if dynamic_value.is_string() {
+                                eprintln!("{}", dynamic_value.to_string());
+                                VmNativeAnswer::Ok(VmNativeCallParameters::Static(
+                                    StaticRawType::from_void(),
+                                ))
+                            } else {
+                                VmNativeAnswer::RuntimeError(
+                                    "Signature mismatch expected 'string' argument".to_string(),
+                                )
+                            }
+                        }
+                    }
+                }),
+            )));
+
+            vm_settings.modules.push(ellie_core_module);
 
             let debug_file = match matches.value_of("debugInfo") {
                 Some(e) => {

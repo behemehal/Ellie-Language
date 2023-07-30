@@ -108,6 +108,18 @@ instruction_table += `        .to_string()\n`;
 instruction_table += `    }\n`;
 
 //!
+
+instruction_table += `\n    pub fn get_addressing_mode_mut(&mut self) -> String {\n`;
+instruction_table += "        match self {\n";
+
+for (const instruction of byteCodeFile.instructions) {
+  instruction_table += `            Instructions::${instruction.instruction}(e) => e,\n`;
+}
+instruction_table += `        }\n`;
+instruction_table += `    }\n`;
+
+//!
+
 instruction_table += `\n    pub fn get_arg(&self, platform_size: PlatformArchitecture) -> Vec<u8> {\n`;
 instruction_table += "        match &self {\n";
 
@@ -213,7 +225,7 @@ instruction_utils += `    pub fn addressing_mode(&self) -> AddressingModes {\n`;
 instruction_utils += `        match &self {\n`;
 
 for (const instruction of byteCodeFile.instructions) {
-  instruction_utils += `            Instructions::${instruction.instruction}(e) => e.addressing_mode.clone(),\n`;
+  instruction_utils += `            Instructions::${instruction.instruction}(e) => e.addressing_mode,\n`;
 }
 instruction_utils += `        }\n`;
 instruction_utils += `    }\n`;

@@ -139,8 +139,8 @@ pub fn generate_elliec_options() -> Command<'static> {
                         .help("Targeted architecture for bytecode")
                         .short('c')
                         .long("--arch")
-                        .default_values(&["64", "32", "16"])
-                        .default_value("64"),
+                        .default_value("64")
+                        .possible_values(["16", "32", "64"]),
                 )
                 .arg(
                     Arg::new("performanceInfo")
@@ -236,7 +236,8 @@ pub fn generate_elliec_options() -> Command<'static> {
                         .short('o')
                         .long("--output-type")
                         .takes_value(true)
-                        .default_value("byteCode"),
+                        .default_value("byteCode")
+                        .possible_values(["bin", "json", "byteCode", "byteCodeAsm", "depA", "nop"]),
                 )
                 .arg(
                     Arg::new("target")
@@ -249,6 +250,14 @@ pub fn generate_elliec_options() -> Command<'static> {
         .subcommand(
             Command::new("viewModule")
                 .about("Analyze given module information")
+                .arg(
+                    Arg::new("targetArchitecture")
+                        .help("Targeted architecture for resolving file")
+                        .short('c')
+                        .long("--arch")
+                        .default_value("64")
+                        .possible_values(["16", "32", "64"]),
+                )
                 .arg(
                     Arg::new("jsonLog")
                         .help("Output json log")

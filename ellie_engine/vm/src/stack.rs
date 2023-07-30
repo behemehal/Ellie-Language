@@ -1,4 +1,4 @@
-use crate::{config::STACK_SIZE, thread::Registers, raw_type::StaticRawType};
+use crate::{config::STACK_SIZE, raw_type::StaticRawType, thread::Registers};
 use alloc::vec::Vec;
 
 #[derive(Debug, Clone, Copy)]
@@ -37,6 +37,10 @@ impl Stack {
 
     pub fn get_pos(&self) -> usize {
         self.frame_pos + self.pos
+    }
+
+    pub fn calculate_frame_pos(&mut self, pos: usize) -> usize {
+        self.frame_pos + pos
     }
 }
 

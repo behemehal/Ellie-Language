@@ -28,7 +28,7 @@ impl super::Processor for Ret {
                 page.items
                     .push(ellie_core::definite::items::Collecting::Ret(
                         ellie_core::definite::items::ret::Ret {
-                            value: value,
+                            value,
                             keyword_pos: self.keyword_pos,
                             value_position: self.value_position,
                             pos: self.pos,

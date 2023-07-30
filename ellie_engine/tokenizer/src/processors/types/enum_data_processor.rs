@@ -1,4 +1,4 @@
-use crate::{syntax::types::enum_data, processors::EscapeCharEmitter};
+use crate::{processors::EscapeCharEmitter, syntax::types::enum_data};
 use ellie_core::{defs, error};
 
 impl crate::processors::Processor for enum_data::EnumDataCollector {
