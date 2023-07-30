@@ -3,43 +3,51 @@ echo "Releasing the engine"
 
 cd .\core
 echo "Releasing the core"
-cargo publish
+cargo publish -q
 
 cd ..
 
 cd .\tokenizer
 
 echo "Releasing the tokenizer"
-cargo publish
+cargo publish -q
 
 cd ..
 
-cd .\parser
+cd .\parser\standard_rules
+
+echo "Releasing the standard_rules"
+cargo publish -q
+
+cd ..
 
 echo "Releasing the parser"
-cargo publish
+cargo publish -q
 
 cd ..
 
 cd .\bytecode
 
 echo "Releasing the bytecode"
-cargo publish
+cargo publish -q
 
 cd ..
 
 cd .\fmt
 
 echo "Releasing the fmt"
-cargo publish
+cargo publish -q
 
 cd..
 
 cd .\vm
 
 echo "Releasing the vm"
-cargo publish
+cargo publish -q
 
 cd ..
+
+echo "Releasing the engine"
+cargo publish -q
 
 echo "Release complete"

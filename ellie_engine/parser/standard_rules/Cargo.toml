@@ -2,8 +2,11 @@
 name = "ellie_standard_rules"
 description = "Standard rules for ellie language"
 version = "0.1.0"
+authors = ["Ahmetcan Aksu <ahmetcanaksu@behemehal.org>", "Behemehal <info@behemehal.org>"]
 edition = "2021"
-LICENSE="GPL-2.0"
+license = "GPL-2.0"
+repository = "https://github.com/behemehal/Ellie-Language"
+homepage = "https://www.ellie-lang.org"
 
 [dependencies]
 regex = "1"
