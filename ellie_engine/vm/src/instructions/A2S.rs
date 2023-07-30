@@ -52,7 +52,8 @@ impl super::InstructionExecuter for A2S {
                     7 => {
                         let data = current_stack.registers.A.to_char().to_string();
                         heap_memory.set(&current_stack.get_pos(), RawType::generate_string(data));
-                        current_stack.registers.A = StaticRawType::from_heap_reference(current_stack.get_pos());
+                        current_stack.registers.A =
+                            StaticRawType::from_heap_reference(current_stack.get_pos());
                     }
                     e => {
                         return Err(ExecuterPanic {

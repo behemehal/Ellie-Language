@@ -242,7 +242,7 @@ impl Processors {
             Processors::Variable(_) => true,
             Processors::Reference(_) => true,
             Processors::BraceReference(_) => true,
-            _ => false
+            _ => false,
         }
     }
 

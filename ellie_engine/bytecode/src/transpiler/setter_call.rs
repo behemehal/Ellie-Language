@@ -19,7 +19,6 @@ impl super::Transpiler for setter_call::SetterCall {
         let mut dependencies = vec![processed_page.hash];
         dependencies.extend(processed_page.dependencies.iter().map(|d| d.hash));
 
-
         let location = assembler.location();
 
         //Resolve the value to be inserted
@@ -194,7 +193,10 @@ impl super::Transpiler for setter_call::SetterCall {
 
                 assembler.debug_headers.push(DebugHeader {
                     rtype: DebugHeaderType::Variable,
-                    hash: limit_platform_size(self.hash, assembler.platform_attributes.architecture),
+                    hash: limit_platform_size(
+                        self.hash,
+                        assembler.platform_attributes.architecture,
+                    ),
                     start_end: (location, assembler.location()),
                     module_name: processed_page.path.clone(),
                     module_hash: processed_page.hash,

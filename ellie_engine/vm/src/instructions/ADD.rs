@@ -176,6 +176,19 @@ impl super::InstructionExecuter for ADD {
                         current_stack.registers.A =
                             StaticRawType::from_heap_reference(current_stack.get_pos());
                     }
+                    (6, 7) => {
+                        let mut b_value = String::new();
+                        for i in B.data().unwrap().chunks(4) {
+                            let char = u32::from_le_bytes(i.try_into().unwrap());
+                            b_value.push(char::from_u32(char).unwrap());
+                        }
+                        let c_value = C.as_static_raw_type().unwrap().to_char();
+                        let result = format!("{}{}", &b_value, &c_value);
+                        heap_memory
+                            .set(&(current_stack.get_pos()), RawType::generate_string(result));
+                        current_stack.registers.A =
+                            StaticRawType::from_heap_reference(current_stack.get_pos());
+                    }
                     (9, 9) => {
                         let mut b_value = String::new();
                         for i in B.data().unwrap().chunks(4) {
