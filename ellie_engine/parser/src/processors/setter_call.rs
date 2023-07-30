@@ -1,6 +1,6 @@
 use crate::deep_search_extensions::{deep_search_hash, resolve_type};
 use alloc::{borrow::ToOwned, vec, vec::Vec};
-use ellie_core::{definite::Converter, error};
+use ellie_core::definite::Converter;
 use ellie_tokenizer::syntax::{
     items::setter_call::SetterCall,
     types::operator_type::{AssignmentOperators, Operators},
@@ -340,7 +340,7 @@ impl super::Processor for SetterCall {
                         unreachable!("Parser should have prevented this");
                     }
                 }
-                ellie_core::definite::types::Types::SetterCall(setter_type) => {
+                ellie_core::definite::types::Types::SetterCall(_) => {
                     match super::type_processor::process(
                         self.value.clone(),
                         parser,
