@@ -27,7 +27,7 @@ pub fn parse_pages(
         compiler_settings.description,
         compiler_settings.is_lib,
         compiler_settings.experimental_features,
-        Version::build_from_string(crate::engine_constants::ELLIE_ENGINE_VERSION.to_owned()),
+        Version::build_from_string(&crate::engine_constants::ELLIE_ENGINE_VERSION.to_owned()),
     );
 
     for (module, _) in modules.iter() {

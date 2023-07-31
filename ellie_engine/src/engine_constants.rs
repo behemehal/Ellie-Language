@@ -1,11 +1,11 @@
-pub static ELLIE_ENGINE_VERSION: &str = &"1.0.1-alpha";
+pub static ELLIE_ENGINE_VERSION: &str = &"1.0.2-alpha";
 pub static ELLIE_ENGINE_VERSION_NAME: &str = &"Kaan";
-pub static ELLIE_CORE_VERSION: &str = &"0.6.0";
+pub static ELLIE_CORE_VERSION: &str = &"0.6.1";
 pub static ELLIE_TOKENIZER_VERSION: &str = &"0.5.0";
 pub static ELLIE_PARSER_VERSION: &str = &"0.6.0";
 pub static ELLIE_BYTECODE_VERSION: &str = &"0.3.0";
 pub static ELLIE_FMT_VERSION: &str = &"0.4.0";
 pub static ELLIE_VM_VERSION: &str = &"0.4.0";
 pub static ELLIE_BUILD_DATE: &str = &"2023-07-31";
-pub static ELLIE_BUILD_GIT_HASH: &str = &"25cc5ac";
+pub static ELLIE_BUILD_GIT_HASH: &str = &"1e8e06c";
 pub static ELLIE_BUILD_GIT_BRANCH: &str = &"main";

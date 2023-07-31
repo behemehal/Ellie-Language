@@ -1,5 +1,6 @@
-use alloc::{borrow::ToOwned, string::String, vec::Vec};
+use alloc::{borrow::ToOwned, string::String, vec::Vec, format};
 use core::fmt::{Display, Error, Formatter};
+use regex::Regex;
 use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "compiler_utils")]
@@ -185,9 +186,11 @@ impl Cursor {
 /// * `bug` - Bug version [`u8`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Version {
-    pub major: u8,
-    pub minor: u8,
-    pub bug: u8,
+    pub major: usize,
+    pub minor: usize,
+    pub patch: usize,
+    pub pre_release: Option<String>,
+    pub build_metadata: Option<String>,
 }
 
 impl PartialEq for Version {
@@ -201,17 +204,31 @@ impl Version {
     /// Create new [`Version`] from given [`String`]
     /// ## Arguments
     /// * `version` - [`String`] to parse
-    pub fn build_from_string(input: String) -> Version {
+    pub fn build_from_string(input: &String) -> Version {
+        let semver_regex = Regex::new(r"^(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$").unwrap();
+        let caps = semver_regex.captures(&input).unwrap();
+
         Version {
-            minor: input.split('.').collect::<Vec<_>>()[0]
-                .parse::<u8>()
-                .unwrap_or_else(|_| panic!("Given 'minor', is not a number")),
-            major: input.split('.').collect::<Vec<_>>()[1]
-                .parse::<u8>()
-                .unwrap_or_else(|_| panic!("Given 'major', is not a number")),
-            bug: input.split('.').collect::<Vec<_>>()[2]
-                .parse::<u8>()
-                .unwrap_or_else(|_| panic!("Given 'bug', is not a number")),
+            major: caps
+                .name("major")
+                .unwrap()
+                .as_str()
+                .parse::<usize>()
+                .unwrap(),
+            minor: caps
+                .name("minor")
+                .unwrap()
+                .as_str()
+                .parse::<usize>()
+                .unwrap(),
+            patch: caps
+                .name("patch")
+                .unwrap()
+                .as_str()
+                .parse::<usize>()
+                .unwrap(),
+            pre_release: caps.name("prerelease").map(|x| x.as_str().to_owned()),
+            build_metadata: caps.name("buildmetadata").map(|x| x.as_str().to_owned()),
         }
     }
 
@@ -220,27 +237,65 @@ impl Version {
     /// * `input` - [`String`] to parse
     /// ## Return
     /// [`Result`] - If versionb is valid [`Ok(Version)`] otherwise [`Err(u8)`]-
-    pub fn build_from_string_checked(input: String) -> Result<Version, u8> {
-        if input.split('.').collect::<Vec<_>>().len() == 3 {
-            let major = input.split('.').collect::<Vec<_>>()[0]
-                .parse::<u8>()
-                .unwrap_or(0);
-            let minor = input.split('.').collect::<Vec<_>>()[1]
-                .parse::<u8>()
-                .unwrap_or(0);
+    pub fn build_from_string_checked(input: &String) -> Result<Version, u8> {
+        let semver_regex = Regex::new(r"^(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$").unwrap();
+        match semver_regex.captures(&input) {
+            Some(caps) => {
+                let major = caps
+                    .name("major")
+                    .unwrap()
+                    .as_str()
+                    .parse::<usize>()
+                    .unwrap_or(0);
+                let minor = caps
+                    .name("minor")
+                    .unwrap()
+                    .as_str()
+                    .parse::<usize>()
+                    .unwrap_or(0);
+                let patch = caps
+                    .name("patch")
+                    .unwrap()
+                    .as_str()
+                    .parse::<usize>()
+                    .unwrap_or(0);
 
-            let bug = input.split('.').collect::<Vec<_>>()[2]
-                .parse::<u8>()
-                .unwrap_or(0);
+                let pre_release = caps.name("prerelease").map(|x| x.as_str().to_owned());
+                let build_metadata = caps.name("buildmetadata").map(|x| x.as_str().to_owned());
 
-            if major == 0 && minor == 0 && bug == 0 {
-                Err(1)
-            } else {
-                Ok(Version { minor, major, bug })
+                if major == 0 && minor == 0 && patch == 0 {
+                    Err(1)
+                } else {
+                    Ok(Version {
+                        minor,
+                        major,
+                        patch,
+                        pre_release,
+                        build_metadata,
+                    })
+                }
             }
-        } else {
-            Err(0)
+            None => Err(1),
         }
+    }
+
+    pub fn to_string(&self) -> String {
+        format!(
+            "{}.{}.{}{}{}",
+            self.major,
+            self.minor,
+            self.patch,
+            if let Some(ref pre_release) = self.pre_release {
+                format!("-{}", pre_release)
+            } else {
+                "".to_owned()
+            },
+            if let Some(ref build_metadata) = self.build_metadata {
+                format!("+{}", build_metadata)
+            } else {
+                "".to_owned()
+            }
+        )
     }
 }
 

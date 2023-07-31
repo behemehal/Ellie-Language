@@ -25,7 +25,7 @@ pub fn parse(target_path: &Path, json_log: bool, target_arch: PlatformArchitectu
             match config.deserialize::<parser::Module>(file_content.as_slice()) {
                 Ok(module) => {
                     let current_ellie_version = Version::build_from_string(
-                        engine_constants::ELLIE_ENGINE_VERSION.to_owned(),
+                        &engine_constants::ELLIE_ENGINE_VERSION.to_owned(),
                     );
                     if current_ellie_version != module.ellie_version {
                         if json_log {
@@ -36,18 +36,14 @@ pub fn parse(target_path: &Path, json_log: bool, target_arch: PlatformArchitectu
                             })
                         } else {
                             println!(
-                            "\n{}Info{}: This module is legacy, used ellie_version: {}{}.{}.{}{} current ellie_version: {}{}.{}.{}{}",
+                            "\n{}Info{}: This module is legacy, used ellie_version: {}{}{} current ellie_version: {}{}{}",
                             cli_color.color(Colors::Cyan),
                             cli_color.color(Colors::Reset),
                             cli_color.color(Colors::Yellow),
-                            module.ellie_version.major,
-                            module.ellie_version.minor,
-                            module.ellie_version.bug,
+                            module.ellie_version.to_string(),
                             cli_color.color(Colors::Reset),
                             cli_color.color(Colors::Yellow),
-                            current_ellie_version.major,
-                            current_ellie_version.minor,
-                            current_ellie_version.bug,
+                            current_ellie_version.to_string(),
                             cli_color.color(Colors::Reset),
                         );
                         }
@@ -61,19 +57,13 @@ pub fn parse(target_path: &Path, json_log: bool, target_arch: PlatformArchitectu
                             value: outputs::CliModuleOutput {
                                 name: module.name,
                                 description: module.description,
-                                version: format!(
-                                    "{}.{}.{}",
-                                    module.version.minor, module.version.major, module.version.bug
-                                ),
+                                version: format!("{}", module.version.to_string()),
                                 modules: module
                                     .modules
                                     .iter()
                                     .map(|x| outputs::CliInnerModuleOutput {
                                         name: x.name.clone(),
-                                        version: format!(
-                                            "{}.{}.{}",
-                                            x.version.minor, x.version.minor, x.version.bug
-                                        ),
+                                        version: format!("{}", x.version.to_string()),
                                     })
                                     .collect(),
                             },
@@ -85,17 +75,13 @@ pub fn parse(target_path: &Path, json_log: bool, target_arch: PlatformArchitectu
                         );
                     } else {
                         let mut output = format!(
-                            "ModuleName        = {}{}\nModuleHash        = {}\nModuleDescription = {}\nModuleVersion     = {}.{}.{}\nEllieVersion      = {}.{}.{}",
+                            "ModuleName        = {}{}\nModuleHash        = {}\nModuleDescription = {}\nModuleVersion     = {}\nEllieVersion      = {}",
                             module.name,
                             if module.is_library {" (Library)"} else {""},
                             module.hash,
                             module.description,
-                            module.version.major,
-                            module.version.minor,
-                            module.version.bug,
-                            module.ellie_version.major,
-                            module.ellie_version.minor,
-                            module.ellie_version.bug
+                            module.version.to_string(),
+                            module.ellie_version.to_string()
                         );
                         if !module.modules.is_empty() {
                             output.push_str("\nInnerModules      =\n");
@@ -103,12 +89,10 @@ pub fn parse(target_path: &Path, json_log: bool, target_arch: PlatformArchitectu
 
                         for inner_module in module.modules {
                             output += format!(
-                                "\t-\n\tModuleName    =\t{}\n\tModuleHash    =\t{}\n\tModuleVersion =\t{}.{}.{}\n",
+                                "\t-\n\tModuleName    =\t{}\n\tModuleHash    =\t{}\n\tModuleVersion =\t{}\n",
                                 inner_module.name,
                                 inner_module.hash,
-                                inner_module.version.major,
-                                inner_module.version.minor,
-                                inner_module.version.bug
+                                inner_module.version.to_string()
                             )
                             .as_str();
                         }

@@ -233,7 +233,7 @@ fn main() {
                 }));
             }
             let version = Version::build_from_string_checked(
-                matches.value_of("binaryVersion").unwrap().to_string(),
+                &matches.value_of("binaryVersion").unwrap().to_string(),
             )
             .unwrap_or_else(|_| {
                 println!(
@@ -362,7 +362,7 @@ fn main() {
                                             || Path::new(&code_path.clone().unwrap()).is_file()
                                         {
                                             let current_ellie_version = Version::build_from_string(
-                                                engine_constants::ELLIE_ENGINE_VERSION.to_owned(),
+                                                &engine_constants::ELLIE_ENGINE_VERSION.to_owned(),
                                             );
                                             if current_ellie_version != module.ellie_version {
                                                 if matches.is_present("jsonLog") {
@@ -376,18 +376,14 @@ fn main() {
                                                     )
                                                 } else {
                                                     println!(
-                                                    "\n{}Info{}: This module is legacy, used ellie_version: {}{}.{}.{}{} current ellie_version: {}{}.{}.{}{}",
+                                                    "\n{}Info{}: This module is legacy, used ellie_version: {}{}{} current ellie_version: {}{}{}",
                                                         cli_color.color(Colors::Cyan),
                                                         cli_color.color(Colors::Reset),
                                                         cli_color.color(Colors::Yellow),
-                                                        module.ellie_version.major,
-                                                        module.ellie_version.minor,
-                                                        module.ellie_version.bug,
+                                                        module.ellie_version.to_string(),
                                                         cli_color.color(Colors::Reset),
                                                         cli_color.color(Colors::Yellow),
-                                                        current_ellie_version.major,
-                                                        current_ellie_version.minor,
-                                                        current_ellie_version.bug,
+                                                        current_ellie_version.to_string(),
                                                         cli_color.color(Colors::Reset),
                                                     );
                                                 }
