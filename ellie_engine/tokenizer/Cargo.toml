@@ -9,7 +9,7 @@ repository = "https://github.com/behemehal/Ellie-Language"
 homepage = "https://www.ellie-lang.org"
 
 [dependencies]
-ellie_core = { path = "../core", version = "0.6.0", features = ["compiler_utils"] }
+ellie_core = { path = "../core", version = "*", features = ["compiler_utils"] }
 enum-as-inner = "0.6.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0", default-features = false, features = ["alloc"] }

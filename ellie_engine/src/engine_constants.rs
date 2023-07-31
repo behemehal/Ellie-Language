@@ -7,5 +7,5 @@ pub static ELLIE_BYTECODE_VERSION: &str = &"0.3.0";
 pub static ELLIE_FMT_VERSION: &str = &"0.4.0";
 pub static ELLIE_VM_VERSION: &str = &"0.4.0";
 pub static ELLIE_BUILD_DATE: &str = &"2023-07-31";
-pub static ELLIE_BUILD_GIT_HASH: &str = &"1e8e06c";
+pub static ELLIE_BUILD_GIT_HASH: &str = &"a42dba8";
 pub static ELLIE_BUILD_GIT_BRANCH: &str = &"main";
