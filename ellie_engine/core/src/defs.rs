@@ -1,4 +1,4 @@
-use alloc::{borrow::ToOwned, string::String, vec::Vec, format};
+use alloc::{borrow::ToOwned, format, string::String, vec::Vec};
 use core::fmt::{Display, Error, Formatter};
 use regex::Regex;
 use serde::{Deserialize, Serialize};

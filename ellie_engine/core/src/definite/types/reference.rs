@@ -13,6 +13,7 @@ pub struct IndexChainAttribute {
     pub rtype: AttributeType,
     pub hash: usize,
     pub page_hash: usize,
+    pub class_attribute_idx: usize,
     pub idx: usize,
 }
 

@@ -39,6 +39,7 @@ impl super::InstructionExecuter for LDA {
                 {
                     Some(raw_type) => {
                         if raw_type.type_id.is_void() {
+                            std::println!("Current stack frame is void: {:#?}", current_stack);
                             return Err(ExecuterPanic {
                                 reason: ThreadPanicReason::NullReference(
                                     current_stack.calculate_frame_pos(*e),
@@ -144,7 +145,7 @@ impl super::InstructionExecuter for LDA {
                                 }
                             };
 
-                            if index > array_size {
+                            if index > array_size - 1 {
                                 return Err(ExecuterPanic {
                                     reason: ThreadPanicReason::IndexOutOfBounds(index),
                                     code_location: format!("{}:{}", file!(), line!()),
@@ -229,7 +230,7 @@ impl super::InstructionExecuter for LDA {
                                         } else {
                                             (raw_type.data.len() - platform_size) / array_entry_len
                                         };
-                                        if index > &array_size {
+                                        if index > &(array_size - 1) {
                                             return Err(ExecuterPanic {
                                                 reason: ThreadPanicReason::IndexOutOfBounds(*index),
                                                 code_location: format!("{}:{}", file!(), line!()),
@@ -240,6 +241,9 @@ impl super::InstructionExecuter for LDA {
                                                 + (array_entry_len * index);
                                             let absolute_position_end =
                                                 absolute_position_start + array_entry_len;
+                                            std::println!("Raw Type: {:#?}", raw_type);
+                                            std::println!("[{absolute_position_start}..{absolute_position_end}");
+                                            std::println!("array_entry_len: {array_entry_len}, index: {index}, array_size: {array_size}, arch_size: {}, datasize: {}", arch.usize_len() as usize, raw_type.data.len());
                                             let array_entry = &raw_type.data
                                                 [absolute_position_start..absolute_position_end];
                                             current_stack.registers.A =

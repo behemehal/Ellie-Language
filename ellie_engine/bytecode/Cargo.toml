@@ -10,7 +10,7 @@ homepage = "https://www.ellie-lang.org"
 
 [dependencies]
 ellie_core = { path = "../core", version = "0.6.1" }
-ellie_parser = { path = "../parser", version = "0.6.1" }
+ellie_parser = { path = "../parser", version = "0.6.2" }
 enum-as-inner = "0.6.0"
 lazy_static = "1.4.0"
 

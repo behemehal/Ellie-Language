@@ -562,7 +562,16 @@ fn iterate_deep_type(
                                 }
                             }
                         } else {
-                            todo!()
+                            errors.push(error::error_list::ERROR_S38.clone().build_with_path(
+                                vec![error::ErrorBuildField {
+                                    key: "token".to_owned(),
+                                    value: "function".to_string(),
+                                }],
+                                alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                                parser.find_page(page_id).unwrap().path.clone(),
+                                reference_pos,
+                            ));
+                            Err(errors)
                         }
                     }
                     ellie_core::definite::definers::DefinerCollecting::EnumField(_) => {

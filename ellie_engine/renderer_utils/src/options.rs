@@ -314,12 +314,6 @@ pub fn generate_ellievm_options() -> Command<'static> {
                         .long("--heap-dump"),
                 )
                 .arg(
-                    Arg::new("vmDebug")
-                        .help("Run vm slower and print more information")
-                        .short('v')
-                        .long("-vm-debug"),
-                )
-                .arg(
                     Arg::new("allowPanics")
                         .help("Allow panics")
                         .short('a')
@@ -337,6 +331,30 @@ pub fn generate_ellievm_options() -> Command<'static> {
                         .takes_value(true)
                         .required(true)
                         .value_hint(ValueHint::FilePath),
+                ),
+        )
+        .subcommand(
+            Command::new("debug")
+                .about("Run program with debugger")
+                .arg(
+                    Arg::new("jsonLog")
+                        .help("Output json log")
+                        .short('j')
+                        .long("-json-log"),
+                )
+                .arg(
+                    Arg::new("allowPanics")
+                        .help("Allow panics")
+                        .short('a')
+                        .long("--allow-panics"),
+                )
+                .arg(
+                    Arg::new("insertCommands")
+                        .help("Insert commands before entering stdin mode")
+                        .short('i')
+                        .long("--insert-commands")
+                        .takes_value(true)
+                        .multiple_values(true),
                 ),
         )
         .subcommand(

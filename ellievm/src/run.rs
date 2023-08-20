@@ -2,19 +2,24 @@ use ellie_engine::{
     ellie_core::defs::{DebugHeader, DebugInfo, PlatformArchitecture},
     ellie_renderer_utils::utils::{CliColor, ColorDisplay, Colors},
     ellie_vm::{
-        channel::ModuleManager,
+        channel::{ModuleManager, EllieModule},
         program::{Program, VmProgram},
         thread::{Isolate, Thread},
         utils::ThreadExit,
     },
 };
 
-use crate::VmSettings;
+pub struct VmSettings {
+    pub json_log: bool,
+    pub warnings: bool,
+    pub heap_dump: bool,
+    pub architecture: PlatformArchitecture,
+    pub modules: Vec<EllieModule>,
+}
 
 pub fn run(program: Program, vm_settings: VmSettings, debug_file: Option<DebugInfo>) {
     let mut vm_program = VmProgram::new_from_vector(program.instructions);
     vm_program.fill_traces(program.native_call_traces);
-    let cli_color = &CliColor;
     let mut module_manager = ModuleManager::new();
 
     //Register incoming modules

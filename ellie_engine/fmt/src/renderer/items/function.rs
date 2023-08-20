@@ -61,10 +61,13 @@ impl CodeRenderer for Function {
         );
 
         if self.defining {
-            fn_input += ";";
+            fn_input += &format!(";{line_ending}", line_ending = options.render_line_ending());
             return fn_input;
         } else if self.body.is_empty() {
-            fn_input += " {}";
+            fn_input += &format!(
+                " {{}}{line_ending}",
+                line_ending = options.render_line_ending()
+            );
             return fn_input;
         }
 

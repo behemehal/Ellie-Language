@@ -94,7 +94,7 @@ pub fn format_file(target_path: &Path, formatter_settings: FormatterSettings) {
                     matched: ImportType::Module(Module {
                         hash: 0,
                         initial_page: 0,
-                        version: Version::build_from_string("0.0.0".to_string()),
+                        version: Version::build_from_string(&"0.0.0".to_string()),
                         name: requested_path.clone(),
                     }),
                 }

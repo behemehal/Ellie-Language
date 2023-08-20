@@ -123,7 +123,7 @@ pub fn compile(
                 Ok(main_file_content) => {
                     let mut main_file_hasher = DefaultHasher::new();
                     main_file_content.hash(&mut main_file_hasher);
-                    let first_page_hash = main_file_hasher.finish();
+                    let first_page_hash = (main_file_hasher.finish() as u32) as usize;
                     self.main_hash = first_page_hash as usize;
                     MainProgram {
                         file_content: main_file_content,
@@ -214,7 +214,7 @@ pub fn compile(
                                     ResolvedImport {
                                         found: true,
                                         matched: ImportType::Code(data),
-                                        hash: hasher.finish().try_into().unwrap(),
+                                        hash: (hasher.finish() as u32) as usize,
                                         path,
                                         ..Default::default()
                                     }

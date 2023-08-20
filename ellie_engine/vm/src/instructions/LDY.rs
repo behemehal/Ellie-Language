@@ -144,7 +144,7 @@ impl super::InstructionExecuter for LDY {
                                 }
                             };
 
-                            if index > array_size {
+                            if index > array_size - 1 {
                                 return Err(ExecuterPanic {
                                     reason: ThreadPanicReason::IndexOutOfBounds(index),
                                     code_location: format!("{}:{}", file!(), line!()),
@@ -229,7 +229,7 @@ impl super::InstructionExecuter for LDY {
                                         } else {
                                             (raw_type.data.len() - platform_size) / array_entry_len
                                         };
-                                        if index > &array_size {
+                                        if index > &(array_size - 1) {
                                             return Err(ExecuterPanic {
                                                 reason: ThreadPanicReason::IndexOutOfBounds(*index),
                                                 code_location: format!("{}:{}", file!(), line!()),

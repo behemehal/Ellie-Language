@@ -120,6 +120,12 @@ pub enum ThreadExit {
 }
 
 #[derive(Debug, Clone)]
+pub enum StepResult {
+    Step,
+    ThreadExit(ThreadExit),
+}
+
+#[derive(Debug, Clone)]
 pub struct ThreadStep {
     pub instruction: crate::program::ReadInstruction,
     pub stack_pos: usize,

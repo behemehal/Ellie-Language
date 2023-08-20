@@ -70,7 +70,7 @@ pub fn is_reserved(value: &str, allow_core_naming: bool) -> bool {
 }
 
 pub fn generate_hash_usize() -> usize {
-    rand::random::<usize>()
+    rand::random::<u32>() as usize
 }
 
 pub fn generate_hash() -> String {
