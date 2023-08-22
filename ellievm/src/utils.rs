@@ -15,6 +15,7 @@ pub struct DebuggerStatus {
     pub breakpoints: Vec<BreakPoint>,
 }
 
+#[derive(PartialEq, Debug)]
 pub enum DebuggerState {
     ProgramNotLoaded,
     WaitingProgram,

@@ -20,7 +20,7 @@ use crate::{
     commands::{parse_args, parse_command, BuildDebuggerArgTypes, COMMANDS},
     debugger_messages::*,
     stream::InputStream,
-    utils::{DebuggerState, DebuggerStatus},
+    utils::{BreakPoint, DebuggerState, DebuggerStatus},
 };
 
 pub fn debug(json_output: bool, imported_commands: Vec<String>) {
@@ -123,21 +123,77 @@ pub fn debug(json_output: bool, imported_commands: Vec<String>) {
                                     .find(|x| x.short == *command_type || x.long == *command_type);
                                 match help_command {
                                     Some(command) => {
-                                        output_message(&EllieMessage::new_with_variables(
-                                            "log",
-                                            "Command    : {command} | {long}\nDescription: {description}\n",
-                                            -1,
-                                            {
-                                                let mut map = HashMap::new();
-                                                map.insert("{command}".to_string(), command.short.to_string());
-                                                map.insert("{long}".to_string(), command.long.to_string());
-                                                map.insert(
-                                                    "{description}".to_string(),
-                                                    command.help.to_string(),
-                                                );
-                                                map
-                                            },
-                                        ));
+                                        if command.args.is_empty() {
+                                            output_message(&EllieMessage::new_with_variables(
+                                                "log",
+                                                "Command    : {command} | {long}\nDescription: {description}\n",
+                                                -1,
+                                                {
+                                                    let mut map = HashMap::new();
+                                                    map.insert("{command}".to_string(), command.short.to_string());
+                                                    map.insert("{long}".to_string(), command.long.to_string());
+                                                    map.insert(
+                                                        "{description}".to_string(),
+                                                        command.help.to_string(),
+                                                    );
+                                                    map
+                                                },
+                                            ));
+                                        } else {
+                                            let mut message = "Command     : {command} | {long}\nDescription : {description}".to_string();
+                                            let mut map = HashMap::new();
+                                            map.insert(
+                                                "{command}".to_string(),
+                                                command.short.to_string(),
+                                            );
+                                            map.insert(
+                                                "{long}".to_string(),
+                                                command.long.to_string(),
+                                            );
+                                            map.insert(
+                                                "{description}".to_string(),
+                                                command.help.to_string(),
+                                            );
+                                            if !command.args.is_empty() {
+                                                message += "\nUsage       : {long}";
+                                                for arg in &command.args {
+                                                    message += format!(
+                                                        " ({}:{}{})",
+                                                        arg.name,
+                                                        arg.value_type,
+                                                        if arg.optional {
+                                                            " <optional>"
+                                                        } else {
+                                                            ""
+                                                        }
+                                                    )
+                                                    .as_str();
+                                                }
+                                                message += "\n";
+                                            }
+
+                                            output_message(&EllieMessage::new_with_variables(
+                                                "log",
+                                                &message,
+                                                -1,
+                                                {
+                                                    let mut map = HashMap::new();
+                                                    map.insert(
+                                                        "{command}".to_string(),
+                                                        command.short.to_string(),
+                                                    );
+                                                    map.insert(
+                                                        "{long}".to_string(),
+                                                        command.long.to_string(),
+                                                    );
+                                                    map.insert(
+                                                        "{description}".to_string(),
+                                                        command.help.to_string(),
+                                                    );
+                                                    map
+                                                },
+                                            ));
+                                        }
                                     }
                                     None => {
                                         output_message(&EllieMessage::new(
@@ -259,10 +315,53 @@ pub fn debug(json_output: bool, imported_commands: Vec<String>) {
                     let isolate = Isolate::new();
                     debugger_state.thread =
                         Some(Thread::new(main_hash, PlatformArchitecture::B64, isolate));
+                    debugger_state.state = DebuggerState::ProgramLoaded;
                     output_message(&PROGRAM_LOADED);
                 }
                 crate::commands::DebuggerCommands::Run => todo!(),
-                crate::commands::DebuggerCommands::Wait => todo!(),
+                crate::commands::DebuggerCommands::Wait => {
+                    if debugger_state.state == DebuggerState::ProgramNotLoaded {
+                        output_message(&PROGRAM_NOT_LOADED);
+                        continue;
+                    }
+                    let use_stack_pos = match &matched.args[0].value_type {
+                        BuildDebuggerArgTypes::Bool(e) => e,
+                        _ => unreachable!(),
+                    };
+
+                    let pos = match &matched.args[1].value_type {
+                        BuildDebuggerArgTypes::Int(pos) => pos,
+                        _ => unreachable!(),
+                    };
+
+                    let module_path = match &matched.args[2].value_type {
+                        BuildDebuggerArgTypes::String(module_path) => module_path,
+                        _ => unreachable!(),
+                    };
+
+                    let location = {
+                        if *use_stack_pos {
+                            *pos as usize
+                        } else {
+                            let debug_headers =
+                                &debugger_state.debug_file.as_ref().unwrap().debug_headers;
+                            let filtered_headers_by_path =
+                                debug_headers.into_iter().find(|header| {
+                                    header.module_name == module_path.to_string()
+                                        && header.pos.range_start.0 == (*pos + -1) as usize
+                                });
+
+                            if filtered_headers_by_path.is_none() {
+                                output_message(&CANT_FIND_ELEMENT_AT_LOCATION);
+                                continue;
+                            }
+                            filtered_headers_by_path.unwrap().start_end.0
+                        }
+                    };
+
+                    debugger_state.breakpoints.push(BreakPoint { location });
+                    output_message(&BREAKPOINT_ADDED);
+                }
                 crate::commands::DebuggerCommands::Step => todo!(),
                 crate::commands::DebuggerCommands::ReloadVm => todo!(),
                 crate::commands::DebuggerCommands::ReadAtPosition => todo!(),

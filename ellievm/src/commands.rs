@@ -1,7 +1,19 @@
+use std::fmt::Display;
+
 pub enum DebuggerArgTypes {
     String,
     Int,
     Bool,
+}
+
+impl Display for DebuggerArgTypes {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            DebuggerArgTypes::String => write!(f, "String"),
+            DebuggerArgTypes::Int => write!(f, "Int"),
+            DebuggerArgTypes::Bool => write!(f, "Bool"),
+        }
+    }
 }
 
 pub struct DebuggerArg {
@@ -55,11 +67,10 @@ pub enum DebuggerCommands {
     Help,
     Clear,
 
-
     // Program Management
     Load,
     ReloadVm,
-    
+
     // Program Execution
     Run,
     Wait,
@@ -204,11 +215,23 @@ lazy_static! {
             long: "wait",
             help: "Wait program at given stack position",
             command: DebuggerCommands::Wait,
-            args: vec![DebuggerArg {
-                name: "stack_pos",
-                value_type: DebuggerArgTypes::Int,
-                optional: false,
-            }],
+            args: vec![
+                DebuggerArg {
+                    name: "use_stack_pos",
+                    value_type: DebuggerArgTypes::Bool,
+                    optional: false,
+                },
+                DebuggerArg {
+                    name: "pos",
+                    value_type: DebuggerArgTypes::Int,
+                    optional: false,
+                },
+                DebuggerArg {
+                    name: "module_path",
+                    value_type: DebuggerArgTypes::String,
+                    optional: false,
+                },
+            ],
             has_json_output: true,
         },
         DebuggerCommand {

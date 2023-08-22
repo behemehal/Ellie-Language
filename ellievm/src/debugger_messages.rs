@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 
-
 #[derive(Debug, Clone)]
 pub struct EllieMessage {
     pub r#type: String,
@@ -90,7 +89,10 @@ lazy_static! {
     pub static ref FILE_READ_ERROR: EllieMessage = EllieMessage::new_with_variables("error", "Failed to read the file: {error}", 5, HashMap::new());
     pub static ref PROGRAM_READ_ERROR: EllieMessage = EllieMessage::new_with_variables("error", "Failed to read program: {error}", 6, HashMap::new());
     pub static ref DEBUG_FILE_PARSE_ERROR: EllieMessage = EllieMessage::new_with_variables("error", "Failed to parse debug fie: {error}", 7, HashMap::new());
-    
-    pub static ref EXIT_MESSAGE: EllieMessage = EllieMessage::new("info", "Debugger exited", 8);
-    pub static ref PROGRAM_LOADED: EllieMessage = EllieMessage::new("info", "Program Loaded", 8);
+    pub static ref PROGRAM_NOT_LOADED: EllieMessage = EllieMessage::new_with_variables("error", "Program not loaded", 8, HashMap::new());
+    pub static ref CANT_FIND_ELEMENT_AT_LOCATION: EllieMessage = EllieMessage::new_with_variables("error", "Can't find a element on given position to wait", 9, HashMap::new());
+
+    pub static ref EXIT_MESSAGE: EllieMessage = EllieMessage::new("info", "Debugger exited", 10);
+    pub static ref PROGRAM_LOADED: EllieMessage = EllieMessage::new("info", "Program Loaded", 11);
+    pub static ref BREAKPOINT_ADDED: EllieMessage = EllieMessage::new("info", "Breakpoint added", 12);
 }
