@@ -78,6 +78,11 @@ pub enum DebuggerCommands {
 
     // Information
     ReadAtPosition,
+    GetPaths,
+    GetBreakpoints,
+    GetRegisters,
+    GetStackMemory,
+    GetHeapMemory,
     // GetCodePos,
     // StepChanges,
 }
@@ -146,7 +151,7 @@ pub fn parse_command(
 }
 
 lazy_static! {
-    pub static ref COMMANDS: [DebuggerCommand; 9] = [
+    pub static ref COMMANDS: [DebuggerCommand; 14] = [
         DebuggerCommand {
             short: "e",
             long: "exit",
@@ -248,7 +253,47 @@ lazy_static! {
             help: "Read the variable at given ",
             command: DebuggerCommands::ReadAtPosition,
             args: vec![],
-            has_json_output: false,
+            has_json_output: true,
+        },
+        DebuggerCommand {
+            short: "gp",
+            long: "get-paths",
+            help: "Get the paths of all the modules",
+            command: DebuggerCommands::GetPaths,
+            args: vec![],
+            has_json_output: true,
+        },
+        DebuggerCommand {
+            short: "gbp",
+            long: "get-breakpoints",
+            help: "Get list of the breakpoints",
+            command: DebuggerCommands::GetBreakpoints,
+            args: vec![],
+            has_json_output: true,
+        },
+        DebuggerCommand {
+            short: "gr",
+            long: "get-registers",
+            help: "Get list of the registers",
+            command: DebuggerCommands::GetRegisters,
+            args: vec![],
+            has_json_output: true,
+        },
+        DebuggerCommand {
+            short: "gs",
+            long: "get-stack-memory",
+            help: "Get list of the stack memory",
+            command: DebuggerCommands::GetStackMemory,
+            args: vec![],
+            has_json_output: true,
+        },
+        DebuggerCommand {
+            short: "gh",
+            long: "get-heap-memory",
+            help: "Get list of the heap memory",
+            command: DebuggerCommands::GetHeapMemory,
+            args: vec![],
+            has_json_output: true,
         },
     ];
 }

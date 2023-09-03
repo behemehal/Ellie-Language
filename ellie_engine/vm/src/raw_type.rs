@@ -7,6 +7,7 @@ use ellie_core::defs::PlatformArchitecture;
 const INTEGER_SIZE: usize = mem::size_of::<usize>();
 const TYPE_SIZE: usize = INTEGER_SIZE + 1;
 
+#[derive(Debug)]
 pub enum TypeIds {
     Integer,
     Float,

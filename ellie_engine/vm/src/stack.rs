@@ -83,6 +83,14 @@ impl StackArray {
         Some(&mut self.data[self.len - 1])
     }
 
+    pub fn last(&self) -> Option<&Stack> {
+        if self.len > 0 {
+            Some(&self.data[self.len - 1])
+        } else {
+            None
+        }
+    }
+
     pub fn pop(&mut self) {
         self.data[self.len] = Stack::new();
         self.len -= 1;

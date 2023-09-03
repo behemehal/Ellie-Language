@@ -10,7 +10,7 @@ where
 
 impl<T> InputStream<'_, T>
 where
-    T: Read + BufRead +?Sized,
+    T: Read + BufRead + ?Sized,
 {
     pub fn new(stream: &mut T) -> InputStream<'_, T> {
         InputStream {
@@ -19,13 +19,13 @@ where
         }
     }
 
-    pub fn read_line(&mut self, buf: &mut String) -> Result<usize> {
+    pub fn read_line(&mut self, buf: &mut String) -> Result<(usize, bool)> {
         if self.external_lines.is_empty() {
-            self.stream.read_line(buf)
+            self.stream.read_line(buf).map(|x| (x, false))
         } else {
             let line = self.external_lines.remove(0);
             *buf += format!("{}", line).as_str();
-            Result::Ok(line.len())
+            Result::Ok((line.len(), true))
         }
     }
 }
