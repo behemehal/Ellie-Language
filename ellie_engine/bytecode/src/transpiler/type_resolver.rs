@@ -841,6 +841,7 @@ pub fn resolve_type(
                     let mut found = None;
 
                     for (idx, chain) in e.index_chain.iter().enumerate() {
+                        std::println!("REF {:?}", chain);
                         assembler
                             .instructions
                             .push(instruction_table::Instructions::LDA(
@@ -894,13 +895,12 @@ pub fn resolve_type(
                 _ => unreachable!("Unexpected target type"),
             };
 
-            let previous_params_location = assembler.location();
+            let previous_params_location = assembler.location() + 1;
             if let Some(reference) = &is_reference {
+                std::println!("STB TO LOCATION: {}", reference);
                 assembler
                     .instructions
-                    .push(instruction_table::Instructions::STB(Instruction::absolute(
-                        *reference,
-                    )));
+                    .push(instruction_table::Instructions::STB(Instruction::implicit()));
             }
 
             for _ in &function_call.params {
@@ -926,8 +926,28 @@ pub fn resolve_type(
                     )));
             } */
 
+            std::println!(
+                "REF?: {:?}, function_call.params.len(): {:?}",
+                is_reference,
+                function_call.params
+            );
+
+            if let Some(reference) = &is_reference {
+                assembler
+                    .instructions
+                    .push(instruction_table::Instructions::LDB(Instruction::absolute(
+                        *reference,
+                    )));
+                assembler
+                    .instructions
+                    .push(instruction_table::Instructions::STB(Instruction::absolute(
+                        previous_params_location,
+                    )));
+            }
+
             if !function_call.params.is_empty() {
                 for (idx, param) in function_call.params.iter().enumerate() {
+                    std::println!("INDEX: {}, PARAM: {:#?}", idx, param);
                     let idx = if is_reference.is_some() { idx + 1 } else { idx };
                     resolve_type(
                         assembler,
@@ -936,12 +956,14 @@ pub fn resolve_type(
                         target_page,
                         dependencies.clone(),
                     );
+                    std::println!("STA TO LOCATION: {}", previous_params_location + idx);
                     assembler
                         .instructions
                         .push(instruction_table::Instructions::STA(Instruction::absolute(
                             previous_params_location + idx,
                         )));
                 }
+                std::println!("STA END")
             }
 
             assembler
