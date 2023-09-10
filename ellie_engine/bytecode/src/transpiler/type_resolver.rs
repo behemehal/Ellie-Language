@@ -1,7 +1,7 @@
 use alloc::vec;
 use alloc::vec::Vec;
 use ellie_core::{
-    definite::{types::operator, types::Types as CoreTypes},
+    definite::{types::class_instance::AttributeType, types::operator, types::Types as CoreTypes},
     defs::PlatformArchitecture,
 };
 
@@ -841,21 +841,32 @@ pub fn resolve_type(
                     let mut found = None;
 
                     for (idx, chain) in e.index_chain.iter().enumerate() {
-                        std::println!("REF {:?}", chain);
-                        assembler
-                            .instructions
-                            .push(instruction_table::Instructions::LDA(
-                                instructions::Instruction::absolute_property(
-                                    last_pos,
-                                    chain.class_attribute_idx,
-                                ),
-                            ));
-                        assembler
-                            .instructions
-                            .push(instruction_table::Instructions::STA(
-                                instructions::Instruction::implicit(),
-                            ));
-                        last_pos = assembler.location();
+                        if e.index_chain.len() - 1 != idx {
+                            match chain.rtype {
+                                AttributeType::Property => {
+                                    assembler.instructions.push(
+                                        instruction_table::Instructions::LDA(
+                                            instructions::Instruction::absolute_property(
+                                                last_pos,
+                                                chain.class_attribute_idx,
+                                            ),
+                                        ),
+                                    );
+
+                                    assembler.instructions.push(
+                                        instruction_table::Instructions::STA(
+                                            instructions::Instruction::implicit(),
+                                        ),
+                                    );
+                                    last_pos = assembler.location();
+                                }
+                                AttributeType::Method => unimplemented!(),
+                                AttributeType::Setter => unimplemented!(),
+                                AttributeType::Getter => unimplemented!(),
+                                AttributeType::EnumItemData => unimplemented!(),
+                                AttributeType::EnumItemNoData => unimplemented!(),
+                            }
+                        }
                         /* std::println!("Chain: {:?}", chain);
                         if e.index_chain.len() - 1 != idx {
                             assembler

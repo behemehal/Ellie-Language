@@ -184,14 +184,9 @@ impl super::InstructionExecuter for LDC {
                     if static_raw_type.type_id.is_class()
                         || static_raw_type.type_id.is_heap_reference()
                     {
-                        std::println!("LDC current_stack.pos: {:?}", current_stack.pos);
-                        std::println!("POINTER: {:?}", pointer);
-                        std::println!("INDEX: {:?}", index);
-                        std::println!("static_raw_type: {:?}", static_raw_type);
 
                         match heap_memory.get(&static_raw_type.to_uint()) {
                             Some(raw_type) => {
-                                std::println!("FOUND: {:?}", raw_type);
                                 if raw_type.type_id.is_array() {
                                     // Increase size of array
                                     let array_size = raw_type.type_id.size;
@@ -247,17 +242,8 @@ impl super::InstructionExecuter for LDC {
                                             let absolute_position_end =
                                                 absolute_position_start + array_entry_len;
 
-                                            std::println!("Raw Type: {:#?}", raw_type);
-                                            std::println!("[{absolute_position_start}..{absolute_position_end}");
-                                            std::println!("array_entry_len: {array_entry_len}, index: {index}, array_size: {array_size}, arch_size: {}, datasize: {}", arch.usize_len() as usize, raw_type.data.len());
-
                                             let array_entry = &raw_type.data
                                                 [absolute_position_start..absolute_position_end];
-                                            std::println!(
-                                                "array_entry: {:#?}\n{:#?}",
-                                                StaticRawType::from_bytes(array_entry),
-                                                current_stack.get_pos()
-                                            );
                                             current_stack.registers.C =
                                                 StaticRawType::from_bytes(array_entry);
                                         }
