@@ -94,7 +94,7 @@ impl Processors {
 
     pub fn is_initalized(&self) -> bool {
         match &self {
-            Processors::GetterCall(e) => !e.data.is_not_initialized(),
+            Processors::GetterCall(e) => !e.data.is_not_initialized() || !e.cache.current.is_not_initialized(),
             Processors::GenericItem(_) => panic!("Unexpected behaviour"),
             Processors::FunctionParameter(_) => panic!("Unexpected behaviour"),
             Processors::ConstructorParameter(_) => panic!("Unexpected behaviour"),
