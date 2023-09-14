@@ -1,6 +1,6 @@
 // VM's stack memory size
-// 24 * 2048 = 49kb
-pub const STACK_MEMORY_SIZE: usize = 2048;
+// 24 * 1024 = 24kb
+pub const STACK_MEMORY_SIZE: usize = 1024;
 
 // VM's stack size
 // 168 * 512 = 86kb
