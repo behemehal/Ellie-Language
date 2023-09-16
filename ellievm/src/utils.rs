@@ -14,11 +14,11 @@ pub struct BreakPoint {
     pub code_location: Option<usize>,
 }
 
-pub struct DebuggerStatus {
+pub struct DebuggerStatus<'a> {
     pub vm_program: Option<VmProgram>,
     pub program: Option<Program>,
     pub debug_file: Option<DebugInfo>,
-    pub thread: Option<Thread>,
+    pub thread: &'a mut Thread,
     pub state: DebuggerState,
     pub breakpoints: Vec<BreakPoint>,
     pub module_manager: ModuleManager,

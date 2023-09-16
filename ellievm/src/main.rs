@@ -25,7 +25,7 @@ use ellie_engine::{
 };
 use run::VmSettings;
 
-use std::{f32::consts::E, fs::File, io::Read, path::Path};
+use std::{fs::File, io::Read, path::Path, time::SystemTime};
 
 fn main() {
     let app = options::generate_ellievm_options();
@@ -140,12 +140,9 @@ fn main() {
                         );
                     }
                     match &args[0] {
-                        VmNativeCallParameters::Static(e) => {
-                            panic!("Static: {:#?}", e);
-                            VmNativeAnswer::RuntimeError(
-                                "Signature mismatch, expected 'dynamic' argument".to_string(),
-                            )
-                        }
+                        VmNativeCallParameters::Static(e) => VmNativeAnswer::RuntimeError(
+                            "Signature mismatch, expected 'dynamic' argument".to_string(),
+                        ),
                         VmNativeCallParameters::Dynamic(dynamic_value) => {
                             if dynamic_value.is_string() {
                                 eprintln!("{}", dynamic_value.to_string());
@@ -159,6 +156,23 @@ fn main() {
                             }
                         }
                     }
+                }),
+            )));
+
+            ellie_core_module.register_element(ModuleElements::Function(FunctionElement::new(
+                "timestamp",
+                Box::new(|_, args| {
+                    if args.len() != 0 {
+                        return VmNativeAnswer::RuntimeError(
+                            "Signature mismatch expected 0 argument(s)".to_string(),
+                        );
+                    }
+                    VmNativeAnswer::Ok(VmNativeCallParameters::Static(StaticRawType::from_int(
+                        SystemTime::now()
+                            .duration_since(SystemTime::UNIX_EPOCH)
+                            .unwrap()
+                            .as_nanos() as isize,
+                    )))
                 }),
             )));
 

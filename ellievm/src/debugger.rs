@@ -48,12 +48,15 @@ pub fn debug(json_output: bool, imported_commands: Vec<String>) {
     //    module_manager.register_module(module);
     //}
 
+    let isolate = Isolate::new();
+    let mut thread = Thread::new(0, PlatformArchitecture::B64, isolate);
+
     let mut debugger_state = DebuggerStatus {
         vm_program: None,
         program: None,
         debug_file: None,
         module_manager: ModuleManager::new(),
-        thread: None,
+        thread: &mut thread,
         state: DebuggerState::ProgramNotLoaded,
         breakpoints: Vec::new(),
     };
@@ -67,7 +70,7 @@ pub fn debug(json_output: bool, imported_commands: Vec<String>) {
 
     loop {
         if debugger_state.state == DebuggerState::Running {
-            let thread = debugger_state.thread.as_mut().unwrap();
+            let thread = &mut debugger_state.thread;
             let current_stack = thread.stack.last();
             if let Some(current_stack) = current_stack {
                 let break_point = debugger_state
@@ -376,8 +379,6 @@ pub fn debug(json_output: bool, imported_commands: Vec<String>) {
                     debugger_state.debug_file = Some(debug_file);
 
                     let isolate = Isolate::new();
-                    debugger_state.thread =
-                        Some(Thread::new(main_hash, PlatformArchitecture::B64, isolate));
                     debugger_state.state = DebuggerState::ProgramLoaded;
                     output_message(&PROGRAM_LOADED);
                 }
@@ -385,8 +386,6 @@ pub fn debug(json_output: bool, imported_commands: Vec<String>) {
                     if debugger_state.state == DebuggerState::ProgramLoaded {
                         debugger_state
                             .thread
-                            .as_mut()
-                            .unwrap()
                             .build_thread(debugger_state.program.as_ref().unwrap().main.clone());
                         debugger_state.state = DebuggerState::Running;
                     } else {
@@ -554,7 +553,7 @@ pub fn debug(json_output: bool, imported_commands: Vec<String>) {
                 DebuggerCommands::GetRegisters => {
                     if let DebuggerState::WaitingAtBreakpoint(_) = debugger_state.state {
                         output_message(&GET_REGISTERS_START);
-                        let thread = debugger_state.thread.as_ref().unwrap();
+                        let thread = &debugger_state.thread;
                         let stack = thread.stack.last().unwrap();
 
                         let registers = [
@@ -589,7 +588,7 @@ pub fn debug(json_output: bool, imported_commands: Vec<String>) {
                 DebuggerCommands::GetStackMemory => {
                     if let DebuggerState::WaitingAtBreakpoint(_) = debugger_state.state {
                         output_message(&GET_STACK_MEMORY_START);
-                        let isolate = &debugger_state.thread.as_ref().unwrap().isolate;
+                        let isolate = &debugger_state.thread.isolate;
 
                         for (stack_location, static_raw_type) in
                             isolate.stack_memory.data.iter().enumerate()
@@ -619,7 +618,7 @@ pub fn debug(json_output: bool, imported_commands: Vec<String>) {
                 DebuggerCommands::GetHeapMemory => {
                     if let DebuggerState::WaitingAtBreakpoint(_) = debugger_state.state {
                         output_message(&GET_HEAP_MEMORY_START);
-                        let isolate = &debugger_state.thread.as_ref().unwrap().isolate;
+                        let isolate = debugger_state.thread.isolate.clone();
                         for (heap_location, heap_entry) in &isolate.heap_memory.data {
                             output_message({
                                 let mut module_entry = GET_STACK_MEMORY_ENTRY.clone();

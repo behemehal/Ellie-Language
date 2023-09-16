@@ -25,6 +25,7 @@ pub struct Registers {
     pub Y: StaticRawType,
 }
 
+#[derive(Clone)]
 pub struct Isolate {
     pub heap_memory: HeapMemory,
     pub stack_memory: StackMemory,
@@ -54,8 +55,6 @@ pub struct Thread {
     pub arch: PlatformArchitecture,
     // Stack of the thread
     pub stack: StackArray,
-    // Frame position of the thread changes over stack changes
-    pub frame_pos: usize,
     pub isolate: Isolate,
 }
 
@@ -65,7 +64,6 @@ impl Thread {
             id,
             arch,
             stack: StackArray::new(),
-            frame_pos: 0,
             isolate,
         }
     }
@@ -83,7 +81,7 @@ impl Thread {
             stack_len: main.length,
             caller: None,
             pos: main.start,
-            frame_pos: self.frame_pos,
+            frame_pos: main.start + main.length,
         });
     }
 
