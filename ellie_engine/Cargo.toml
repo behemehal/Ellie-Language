@@ -37,7 +37,7 @@ cli-utils = ["ellie_renderer_utils/cli-utils"]
 
 [build-dependencies]
 path-absolutize = { version = "3.0.10" }
-toml = "0.5.8"
+toml = "0.8.0"
 regex = { version = "1.1.7" }
 chrono = "0.4.22"
 

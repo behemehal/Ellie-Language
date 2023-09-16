@@ -1564,6 +1564,7 @@ fn iterate_deep_type(
         Types::Byte(byte) => DeepTypeResult::Byte(byte),
         Types::EnumData(e) => DeepTypeResult::EnumData(e),
         Types::ClassInstance(_) => todo!(),
+        Types::FunctionParameter(_) => todo!(),
     }
 }
 

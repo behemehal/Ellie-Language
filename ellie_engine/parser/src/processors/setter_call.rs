@@ -1,6 +1,6 @@
 use crate::deep_search_extensions::{deep_search_hash, resolve_type};
 use alloc::{borrow::ToOwned, vec, vec::Vec};
-use ellie_core::definite::Converter;
+use ellie_core::{definite::Converter, error};
 use ellie_tokenizer::syntax::{
     items::setter_call::SetterCall,
     types::operator_type::{AssignmentOperators, Operators},
@@ -424,6 +424,21 @@ impl super::Processor for SetterCall {
                             parser.informations.extend(&e);
                         }
                     }
+                }
+                ellie_core::definite::types::Types::FunctionParameter(_) => {
+                    parser.informations.push(
+                        &ellie_core::error::error_list::ERROR_S59
+                            .clone()
+                            .build_with_path(
+                                vec![error::ErrorBuildField {
+                                    key: "token".to_owned(),
+                                    value: "Mutatable Function Parameters".to_owned(),
+                                }],
+                                alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                                current_page.path.clone(),
+                                self.target_pos,
+                            ),
+                    );
                 }
                 _ => {
                     parser.informations.push(

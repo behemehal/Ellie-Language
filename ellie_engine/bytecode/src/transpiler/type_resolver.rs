@@ -1506,5 +1506,6 @@ pub fn resolve_type(
         CoreTypes::SetterCall(_) => todo!(),
         CoreTypes::EnumData(_) => todo!(),
         CoreTypes::ClassInstance(_) => todo!(),
+        CoreTypes::FunctionParameter(_) => todo!(),
     }
 }

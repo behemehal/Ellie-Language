@@ -39,6 +39,7 @@ pub enum Types {
     Cloak(cloak::CloakType),
     Array(array::ArrayType),
     Function(function::Function),
+    FunctionParameter(function::FunctionParameter),
     ClassCall(class_call::ClassCall),
     FunctionCall(function_call::FunctionCall),
     SetterCall(definers::DefinerCollecting),

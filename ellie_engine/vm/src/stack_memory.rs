@@ -6,6 +6,7 @@ use alloc::{
 use crate::{config::STACK_MEMORY_SIZE, raw_type::StaticRawType};
 
 //Static memory allocation
+#[derive(Clone, Copy)]
 pub struct StackMemory {
     pub data: [StaticRawType; STACK_MEMORY_SIZE],
     pub len: usize,
@@ -14,7 +15,6 @@ pub struct StackMemory {
 impl StackMemory {
     pub fn new() -> StackMemory {
         StackMemory {
-            //4096 * 8 = 32kb
             data: [StaticRawType::from_void(); STACK_MEMORY_SIZE],
             len: 0,
         }

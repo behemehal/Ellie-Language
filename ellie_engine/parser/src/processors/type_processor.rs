@@ -207,13 +207,11 @@ pub fn process(
                     }
                     crate::parser::DeepSearchItems::GenericItem(_) => todo!(),
                     crate::parser::DeepSearchItems::FunctionParameter(e) => {
-                        Ok(types::Types::VariableType(types::variable::VariableType {
-                            value: e.name,
-                            reference: match e.rtype {
-                                DefinerCollecting::Generic(e) => e.hash,
-                                _ => unreachable!(),
-                            },
-                            pos: from.get_pos(),
+                        Ok(types::Types::FunctionParameter(types::function::FunctionParameter {
+                            name: e.name,
+                            rtype: Some(e.rtype),
+                            name_pos: e.name_pos,
+                            rtype_pos: e.rtype_pos,
                         }))
                     }
                     crate::parser::DeepSearchItems::ConstructorParameter(e) => {
