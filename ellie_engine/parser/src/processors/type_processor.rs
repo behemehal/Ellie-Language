@@ -206,14 +206,14 @@ pub fn process(
                         }))
                     }
                     crate::parser::DeepSearchItems::GenericItem(_) => todo!(),
-                    crate::parser::DeepSearchItems::FunctionParameter(e) => {
-                        Ok(types::Types::FunctionParameter(types::function::FunctionParameter {
+                    crate::parser::DeepSearchItems::FunctionParameter(e) => Ok(
+                        types::Types::FunctionParameter(types::function::FunctionParameter {
                             name: e.name,
                             rtype: Some(e.rtype),
                             name_pos: e.name_pos,
                             rtype_pos: e.rtype_pos,
-                        }))
-                    }
+                        }),
+                    ),
                     crate::parser::DeepSearchItems::ConstructorParameter(e) => {
                         Ok(types::Types::VariableType(types::variable::VariableType {
                             value: e.name,
@@ -645,7 +645,6 @@ pub fn process(
                                                             Collecting::Variable(x) => Some(x),
                                                             _ => None
                                                         }).collect::<Vec<_>>();
-                                                        
                                                         match item.clone() {
                                                             Collecting::Variable(e) => {
                                                                 let resolved_type = if e.has_type { e.rtype } else { match resolve_type(e.value, class_inner_page.hash, parser, &mut errors, Some(e.value_pos)) {

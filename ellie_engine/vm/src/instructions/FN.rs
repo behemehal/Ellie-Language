@@ -64,7 +64,6 @@ impl super::InstructionExecuter for FN {
                             match stack_memory.get(&(index_start + i)) {
                                 Some(e) => {
                                     if e.type_id.is_void() {
-                                        std::println!("Illegal addressing value\n: index_start + i: {i} + {index_start}\nprevious_frame_pos: {}\n{:#?}",previous_frame_pos,current_stack);
                                         return Err(ExecuterPanic {
                                             reason: ThreadPanicReason::NullReference(
                                                 index_start + i,

@@ -184,7 +184,6 @@ impl super::InstructionExecuter for LDC {
                     if static_raw_type.type_id.is_class()
                         || static_raw_type.type_id.is_heap_reference()
                     {
-
                         match heap_memory.get(&static_raw_type.to_uint()) {
                             Some(raw_type) => {
                                 if raw_type.type_id.is_array() {
