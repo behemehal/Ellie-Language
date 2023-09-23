@@ -206,16 +206,14 @@ pub fn process(
                         }))
                     }
                     crate::parser::DeepSearchItems::GenericItem(_) => todo!(),
-                    crate::parser::DeepSearchItems::FunctionParameter(e) => {
-                        Ok(types::Types::VariableType(types::variable::VariableType {
-                            value: e.name,
-                            reference: match e.rtype {
-                                DefinerCollecting::Generic(e) => e.hash,
-                                _ => unreachable!(),
-                            },
-                            pos: from.get_pos(),
-                        }))
-                    }
+                    crate::parser::DeepSearchItems::FunctionParameter(e) => Ok(
+                        types::Types::FunctionParameter(types::function::FunctionParameter {
+                            name: e.name,
+                            rtype: Some(e.rtype),
+                            name_pos: e.name_pos,
+                            rtype_pos: e.rtype_pos,
+                        }),
+                    ),
                     crate::parser::DeepSearchItems::ConstructorParameter(e) => {
                         Ok(types::Types::VariableType(types::variable::VariableType {
                             value: e.name,
@@ -394,6 +392,7 @@ pub fn process(
                         name: String,
                         hash: usize,
                         page_hash: usize,
+                        class_attribute_idx: usize,
                         value: DefinerCollecting,
                     }
 
@@ -642,6 +641,10 @@ pub fn process(
                                             match parser.find_processed_page(class_page.inner_page_id).cloned() {
                                                 Some(class_inner_page) => {
                                                         let attributes = class_inner_page.items.iter().filter_map(|item| {
+                                                        let class_attribute_idx = class_inner_page.items.iter().filter_map(|x| match x {
+                                                            Collecting::Variable(x) => Some(x),
+                                                            _ => None
+                                                        }).collect::<Vec<_>>();
                                                         match item.clone() {
                                                             Collecting::Variable(e) => {
                                                                 let resolved_type = if e.has_type { e.rtype } else { match resolve_type(e.value, class_inner_page.hash, parser, &mut errors, Some(e.value_pos)) {
@@ -653,6 +656,7 @@ pub fn process(
                                                                     name: e.name.clone(),
                                                                     hash: e.hash,
                                                                     page_hash: class_inner_page.hash,
+                                                                    class_attribute_idx: class_attribute_idx.iter().position(|x| x.hash == e.hash).unwrap(),
                                                                     value: resolved_type,
                                                                 })
                                                             },
@@ -662,6 +666,7 @@ pub fn process(
                                                                     name: e.name.clone(),
                                                                     hash: e.hash,
                                                                     page_hash: class_inner_page.hash,
+                                                                    class_attribute_idx: 0,
                                                                     value: DefinerCollecting::Function(
                                                                         ellie_core::definite::definers::FunctionType {
                                                                             params: e.parameters.iter().map(|param| {
@@ -678,6 +683,7 @@ pub fn process(
                                                                     name: e.name.clone(),
                                                                     hash: e.hash,
                                                                     page_hash: class_inner_page.hash,
+                                                                    class_attribute_idx: 0,
                                                                     value: DefinerCollecting::Function(
                                                                         ellie_core::definite::definers::FunctionType {
                                                                             params: e.parameters.iter().map(|param| {
@@ -694,6 +700,7 @@ pub fn process(
                                                                     name: e.name.clone(),
                                                                     hash: e.hash,
                                                                     page_hash: class_inner_page.hash,
+                                                                    class_attribute_idx: 0,
                                                                     value: e.return_type,
                                                                 })
                                                             }
@@ -702,6 +709,7 @@ pub fn process(
                                                                     Some(Attribute {
                                                                         rtype: AttributeType::Setter,
                                                                         name: e.name.clone(),
+                                                                        class_attribute_idx: 0,
                                                                         value: e.rtype,
                                                                         hash: e.hash,
                                                                         page_hash: class_inner_page.hash,
@@ -756,6 +764,7 @@ pub fn process(
                                                     name: item.identifier.clone(),
                                                     //TODO: Fix this
                                                     hash: 0,
+                                                    class_attribute_idx: 0,
                                                     page_hash: enum_data.hash,
                                                     value:  match item.value.clone() {
                                                         ellie_core::definite::items::enum_type::EnumValue::NoValue => {
@@ -896,6 +905,7 @@ pub fn process(
                             ellie_core::definite::definers::DefinerCollecting::Dynamic => todo!(),
                             DefinerCollecting::EnumField(_) => todo!(),
                             DefinerCollecting::ClassInstance(class_instance) => {
+                                todo!("TO BE REMOVED");
                                 let mut attributes = Vec::new();
                                 for attribute in &class_instance.attributes {
                                     let page = parser.find_processed_page(attribute.page).unwrap();
@@ -921,6 +931,7 @@ pub fn process(
                                                 rtype: attribute._rtype.clone(),
                                                 name: attribute.name.clone(),
                                                 hash: attribute.hash,
+                                                class_attribute_idx: 0,
                                                 page_hash: attribute.page,
                                                 value,
                                             });
@@ -931,6 +942,7 @@ pub fn process(
                                                 name: attribute.name.clone(),
                                                 hash: attribute.hash,
                                                 page_hash: attribute.page,
+                                                class_attribute_idx: 0,
                                                 value: DefinerCollecting::Function(
                                                     ellie_core::definite::definers::FunctionType {
                                                         params: e
@@ -949,6 +961,7 @@ pub fn process(
                                                 name: attribute.name.clone(),
                                                 hash: attribute.hash,
                                                 page_hash: attribute.page,
+                                                class_attribute_idx: 0,
                                                 value: e.return_type,
                                             });
                                         }
@@ -986,6 +999,7 @@ pub fn process(
                                                 name: attribute.name.clone(),
                                                 hash: attribute.hash,
                                                 page_hash: attribute.page,
+                                                class_attribute_idx: 0,
                                                 value,
                                             });
                                         }
@@ -995,6 +1009,7 @@ pub fn process(
                                                 name: attribute.name.clone(),
                                                 hash: attribute.hash,
                                                 page_hash: attribute.page,
+                                                class_attribute_idx: 0,
                                                 value: DefinerCollecting::Function(
                                                     ellie_core::definite::definers::FunctionType {
                                                         params: e
@@ -1049,6 +1064,7 @@ pub fn process(
                                         index_chain.push(IndexChainAttribute {
                                             rtype: a.rtype.clone(),
                                             idx: attribute_index.unwrap(),
+                                            class_attribute_idx: a.class_attribute_idx,
                                             hash: a.hash,
                                             page_hash: a.page_hash,
                                         });

@@ -8,4 +8,4 @@ pub const STACK_SIZE: usize = 512;
 
 //Program size
 // 48 * 4096 = 196kb
-pub const PROGRAM_MAX_SIZE: usize = 4096;
+pub const PROGRAM_MAX_SIZE: usize = 2048;

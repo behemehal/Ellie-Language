@@ -50,7 +50,10 @@ impl super::InstructionExecuter for FN {
                 } else {
                     //skip the function len, the parameter count and paramaters
                     if parameter_count > 0 {
-                        let previous_frame_pos = current_stack.frame_pos - current_stack.stack_len;
+                        let previous_frame_pos = match current_stack.caller {
+                            Some(c) => c.frame_pos,
+                            None => todo!(),
+                        };
                         if !current_stack.registers.X.type_id.is_int() {
                             return Err(ExecuterPanic {
                                 reason: ThreadPanicReason::IllegalAddressingValue,

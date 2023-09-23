@@ -144,7 +144,7 @@ impl super::InstructionExecuter for LDC {
                                 }
                             };
 
-                            if index > array_size {
+                            if index > array_size - 1 {
                                 return Err(ExecuterPanic {
                                     reason: ThreadPanicReason::IndexOutOfBounds(index),
                                     code_location: format!("{}:{}", file!(), line!()),
@@ -240,6 +240,7 @@ impl super::InstructionExecuter for LDC {
                                                 + (array_entry_len * index);
                                             let absolute_position_end =
                                                 absolute_position_start + array_entry_len;
+
                                             let array_entry = &raw_type.data
                                                 [absolute_position_start..absolute_position_end];
                                             current_stack.registers.C =
@@ -282,7 +283,7 @@ impl super::InstructionExecuter for LDC {
                             }
                         };
 
-                        if index > &array_size {
+                        if index > &(array_size - 1) {
                             return Err(ExecuterPanic {
                                 reason: ThreadPanicReason::IndexOutOfBounds(*index),
                                 code_location: format!("{}:{}", file!(), line!()),

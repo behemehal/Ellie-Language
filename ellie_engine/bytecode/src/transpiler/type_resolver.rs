@@ -1,7 +1,7 @@
 use alloc::vec;
 use alloc::vec::Vec;
 use ellie_core::{
-    definite::{types::operator, types::Types as CoreTypes},
+    definite::{types::class_instance::AttributeType, types::operator, types::Types as CoreTypes},
     defs::PlatformArchitecture,
 };
 
@@ -113,7 +113,10 @@ pub fn resolve_type(
                             }
                         }
                     }
-                    ellie_core::definite::types::class_instance::AttributeType::Method => todo!(),
+                    ellie_core::definite::types::class_instance::AttributeType::Method => {
+                        panic!("??: {:?}", (last_pos, chain.idx,))
+                        // todo!()
+                    }
                     ellie_core::definite::types::class_instance::AttributeType::Setter => todo!(),
                     ellie_core::definite::types::class_instance::AttributeType::Getter => todo!(),
                     ellie_core::definite::types::class_instance::AttributeType::EnumItemData => {
@@ -746,119 +749,121 @@ pub fn resolve_type(
                         ));
                 }
             }
+
+            assembler
+                .instructions
+                .push(instruction_table::Instructions::CO(Instruction::absolute(
+                    class_location,
+                )));
+
             match target_register {
                 instructions::Registers::A => {
                     assembler
                         .instructions
-                        .push(instruction_table::Instructions::LDA(
-                            Instruction::immediate(
-                                Types::Class(class_call.params.len()),
-                                usize_to_le_bytes(
-                                    class_location,
-                                    assembler.platform_attributes.architecture,
-                                ),
-                            ),
-                        ))
+                        .push(instruction_table::Instructions::LDA(Instruction::absolute(
+                            assembler.location(),
+                        )))
                 }
                 instructions::Registers::B => {
                     assembler
                         .instructions
-                        .push(instruction_table::Instructions::LDB(
-                            Instruction::immediate(
-                                Types::Class(class_call.params.len()),
-                                usize_to_le_bytes(
-                                    class_location,
-                                    assembler.platform_attributes.architecture,
-                                ),
-                            ),
-                        ))
+                        .push(instruction_table::Instructions::LDB(Instruction::absolute(
+                            assembler.location(),
+                        )))
                 }
                 instructions::Registers::C => {
                     assembler
                         .instructions
-                        .push(instruction_table::Instructions::LDC(
-                            Instruction::immediate(
-                                Types::Class(class_call.params.len()),
-                                usize_to_le_bytes(
-                                    class_location,
-                                    assembler.platform_attributes.architecture,
-                                ),
-                            ),
-                        ))
+                        .push(instruction_table::Instructions::LDC(Instruction::absolute(
+                            assembler.location(),
+                        )))
                 }
                 instructions::Registers::X => {
                     assembler
                         .instructions
-                        .push(instruction_table::Instructions::LDX(
-                            Instruction::immediate(
-                                Types::Class(class_call.params.len()),
-                                usize_to_le_bytes(
-                                    class_location,
-                                    assembler.platform_attributes.architecture,
-                                ),
-                            ),
-                        ))
+                        .push(instruction_table::Instructions::LDX(Instruction::absolute(
+                            assembler.location(),
+                        )))
                 }
                 instructions::Registers::Y => {
                     assembler
                         .instructions
-                        .push(instruction_table::Instructions::LDY(
-                            Instruction::immediate(
-                                Types::Class(class_call.params.len()),
-                                usize_to_le_bytes(
-                                    class_location,
-                                    assembler.platform_attributes.architecture,
-                                ),
-                            ),
-                        ))
+                        .push(instruction_table::Instructions::LDY(Instruction::absolute(
+                            assembler.location(),
+                        )))
                 }
             }
         }
         CoreTypes::FunctionCall(function_call) => {
-            let mut is_reference = None;
+            let mut is_reference: Option<usize> = None;
             let target: LocalHeader = match *function_call.target.clone() {
                 CoreTypes::VariableType(e) => assembler
                     .find_local(&e.value, dependencies.clone(), true)
                     .unwrap()
                     .clone(),
                 CoreTypes::Reference(e) => {
-                    let reference = match *e.reference {
-                        CoreTypes::VariableType(e) => assembler
-                            .find_local(&e.value, dependencies.clone(), true)
-                            .unwrap()
-                            .clone(),
-                        e => {
-                            resolve_type(
-                                assembler,
-                                &e,
-                                instructions::Registers::A,
-                                target_page,
-                                dependencies.clone(),
-                            );
-                            assembler
-                                .instructions
-                                .push(
-                                    instruction_table::Instructions::STA(Instruction::implicit()),
-                                );
-                            panic!("Not implemented yet")
-                        }
-                    };
-                    let hash = e.index_chain.last().unwrap();
-                    is_reference = Some(reference.clone());
+                    let mut _pos = assembler.location();
+
+                    resolve_type(
+                        assembler,
+                        &e.reference,
+                        instructions::Registers::B,
+                        target_page,
+                        dependencies.clone(),
+                    );
                     assembler
-                        .find_local_by_hash(
-                            e.index_chain.last().unwrap().hash,
-                            Some(vec![hash.page_hash]),
-                            true,
-                        )
-                        .unwrap()
-                        .clone()
+                        .instructions
+                        .push(instruction_table::Instructions::STB(Instruction::implicit()));
+                    let mut last_pos = assembler.location();
+                    let mut found = None;
+
+                    for (idx, chain) in e.index_chain.iter().enumerate() {
+                        if e.index_chain.len() - 1 != idx {
+                            match chain.rtype {
+                                AttributeType::Property => {
+                                    assembler.instructions.push(
+                                        instruction_table::Instructions::LDA(
+                                            instructions::Instruction::absolute_property(
+                                                last_pos,
+                                                chain.class_attribute_idx,
+                                            ),
+                                        ),
+                                    );
+
+                                    assembler.instructions.push(
+                                        instruction_table::Instructions::STA(
+                                            instructions::Instruction::implicit(),
+                                        ),
+                                    );
+                                    last_pos = assembler.location();
+                                }
+                                AttributeType::Method => unimplemented!(),
+                                AttributeType::Setter => unimplemented!(),
+                                AttributeType::Getter => unimplemented!(),
+                                AttributeType::EnumItemData => unimplemented!(),
+                                AttributeType::EnumItemNoData => unimplemented!(),
+                            }
+                        }
+                    }
+                    let last_chain = e.index_chain.last().unwrap();
+                    found = assembler.find_local_by_hash(
+                        last_chain.hash,
+                        Some(vec![last_chain.page_hash]),
+                        true,
+                    );
+
+                    std::println!("Range:\n{:#?}", assembler.instructions[_pos..].to_vec());
+                    std::println!("found:\n{:#?}", found);
+                    std::println!("found:\n{:#?}", last_pos);
+                    is_reference = Some(last_pos);
+                    found.unwrap()
                 }
                 _ => unreachable!("Unexpected target type"),
             };
 
             let previous_params_location = assembler.location() + 1;
-            if is_reference.is_some() {
+            if let Some(reference) = &is_reference {
+                std::println!("STB TO LOCATION: {}", reference);
                 assembler
                     .instructions
                     .push(instruction_table::Instructions::STB(Instruction::implicit()));
@@ -873,22 +878,19 @@ pub fn resolve_type(
             if let Some(reference) = &is_reference {
                 assembler
                     .instructions
-                    .push(instruction_table::Instructions::LDA(Instruction::absolute(
-                        reference.cursor,
+                    .push(instruction_table::Instructions::LDB(Instruction::absolute(
+                        *reference,
                     )));
-                match reference.hash {
-                    Some(hash) => assembler.add_borrow_to_local(hash, assembler.location()),
-                    None => (),
-                }
                 assembler
                     .instructions
-                    .push(instruction_table::Instructions::STA(Instruction::absolute(
+                    .push(instruction_table::Instructions::STB(Instruction::absolute(
                         previous_params_location,
                     )));
             }
 
             if !function_call.params.is_empty() {
                 for (idx, param) in function_call.params.iter().enumerate() {
+                    std::println!("INDEX: {}, PARAM: {:#?}", idx, param);
                     let idx = if is_reference.is_some() { idx + 1 } else { idx };
                     resolve_type(
                         assembler,
@@ -897,12 +899,14 @@ pub fn resolve_type(
                         target_page,
                         dependencies.clone(),
                     );
+                    std::println!("STA TO LOCATION: {}", previous_params_location + idx);
                     assembler
                         .instructions
                         .push(instruction_table::Instructions::STA(Instruction::absolute(
                             previous_params_location + idx,
                         )));
                 }
+                std::println!("STA END")
             }
 
             assembler
@@ -1434,5 +1438,33 @@ pub fn resolve_type(
         CoreTypes::SetterCall(_) => todo!(),
         CoreTypes::EnumData(_) => todo!(),
         CoreTypes::ClassInstance(_) => todo!(),
+        CoreTypes::FunctionParameter(e) => {
+            let pos = match assembler.find_local(&e.name, dependencies, false) {
+                Some(e) => e,
+                None => panic!("Function Parameter not found: {}", e.name),
+            };
+            std::println!("pos: {:#?} {:#?}", pos, e);
+            let mut instructions = Vec::new();
+
+            match target_register {
+                instructions::Registers::A => {
+                    instructions.push(instruction_table::Instructions::LDA(pos.reference.clone()))
+                }
+                instructions::Registers::B => {
+                    instructions.push(instruction_table::Instructions::LDB(pos.reference.clone()))
+                }
+                instructions::Registers::C => {
+                    instructions.push(instruction_table::Instructions::LDC(pos.reference.clone()))
+                }
+                instructions::Registers::X => {
+                    instructions.push(instruction_table::Instructions::LDX(pos.reference.clone()))
+                }
+                instructions::Registers::Y => {
+                    instructions.push(instruction_table::Instructions::LDY(pos.reference.clone()))
+                }
+            }
+
+            assembler.instructions.extend(instructions)
+        }
     }
 }

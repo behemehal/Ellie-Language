@@ -339,6 +339,7 @@ impl VmProgram {
         }
     }
 
+    #[deprecated = "Use fill_from_vector to prevent stack overflow."]
     pub fn new_from_vector(program: Vec<ReadInstruction>) -> Self {
         let mut vm_program = VmProgram::new();
         vm_program.fill_from_vector(program);
