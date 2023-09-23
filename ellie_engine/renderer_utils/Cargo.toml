@@ -1,7 +1,7 @@
 [package]
 name = "ellie_renderer_utils"
 description = "Ellie Renderer contains utilities cli apps such as elliec"
-version = "0.2.1"
+version = "0.3.0"
 authors = ["Ahmetcan Aksu <ahmetcanaksu@behemehal.org>", "Behemehal <info@behemehal.org>"]
 edition = "2021"
 license = "GPL-2.0"
