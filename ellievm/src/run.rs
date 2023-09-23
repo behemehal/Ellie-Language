@@ -18,7 +18,8 @@ pub struct VmSettings {
 }
 
 pub fn run(program: Program, vm_settings: VmSettings, debug_file: Option<DebugInfo>) {
-    let mut vm_program = VmProgram::new_from_vector(program.instructions);
+    let mut vm_program = VmProgram::new();
+    vm_program.fill_from_vector(program.instructions);
     vm_program.fill_traces(program.native_call_traces);
     let mut module_manager = ModuleManager::new();
 
