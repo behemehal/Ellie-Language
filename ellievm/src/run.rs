@@ -2,7 +2,7 @@ use ellie_engine::{
     ellie_core::defs::{DebugHeader, DebugInfo, PlatformArchitecture},
     ellie_renderer_utils::utils::{CliColor, ColorDisplay, Colors},
     ellie_vm::{
-        channel::{ModuleManager, EllieModule},
+        channel::{EllieModule, ModuleManager},
         program::{Program, VmProgram},
         thread::{Isolate, Thread},
         utils::ThreadExit,
@@ -28,12 +28,11 @@ pub fn run(program: Program, vm_settings: VmSettings, debug_file: Option<DebugIn
         module_manager.register_module(module);
     }
 
-
     let cli_color = &CliColor;
 
     let isolate = Isolate::new();
     let mut thread = Thread::new(program.main.hash, PlatformArchitecture::B64, isolate);
-    thread.build_thread(program.main.clone());
+    thread.build_thread(program.main);
     let output = thread.run(&mut module_manager, &vm_program);
     match output {
         ThreadExit::ExitGracefully => {
@@ -80,26 +79,26 @@ pub fn run(program: Program, vm_settings: VmSettings, debug_file: Option<DebugIn
                                         .split("<ellie_module_")
                                         .nth(1)
                                         .unwrap()
-                                        .split(">")
-                                        .nth(0)
+                                        .split('>')
+                                        .next()
                                         .unwrap();
                                     let module_path = debug_file
                                         .module_map
                                         .iter()
                                         .find(|map| module_name == map.module_name);
-                                    let real_path = match module_path {
+
+                                    match module_path {
                                         Some(module_path) => match &module_path.module_path {
                                             Some(module_path) => {
                                                 let new_path = debug_header.module_name.clone();
                                                 let starter_name =
                                                     format!("<ellie_module_{}>", module_name);
-                                                new_path.replace(&starter_name, &module_path)
+                                                new_path.replace(&starter_name, module_path)
                                             }
                                             None => debug_header.module_name.clone(),
                                         },
                                         None => debug_header.module_name.clone(),
-                                    };
-                                    real_path
+                                    }
                                 }
 
                                 let real_path = get_real_path(e, debug_file);
@@ -114,9 +113,8 @@ pub fn run(program: Program, vm_settings: VmSettings, debug_file: Option<DebugIn
                             }
                             None => {
                                 println!(
-                                    "{}    at {}:{}",
+                                    "{}    at frame.name:{}",
                                     cli_color.color(Colors::Green),
-                                    "frame.name",
                                     frame.pos
                                 );
                             }
@@ -124,9 +122,8 @@ pub fn run(program: Program, vm_settings: VmSettings, debug_file: Option<DebugIn
                     }
                     None => {
                         println!(
-                            "{}    at {}:{} ({} + {})",
+                            "{}    at frame.name:{} ({} + {})",
                             cli_color.color(Colors::Green),
-                            "frame.name",
                             frame.pos + frame.frame_pos,
                             frame.pos,
                             frame.frame_pos,

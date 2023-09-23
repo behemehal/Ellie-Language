@@ -1,5 +1,5 @@
+use ellie_engine::ellie_vm::raw_type::{RawType, StaticRawType, TypeId};
 use std::collections::HashMap;
-use ellie_engine::ellie_vm::raw_type::{StaticRawType, TypeId, RawType};
 
 #[derive(Debug, Clone)]
 pub struct EllieMessage {
@@ -69,7 +69,7 @@ impl EllieMessage {
             self.build_message(),
             {
                 let mut data = String::new();
-                if (&self.variables).is_none() {
+                if self.variables.is_none() {
                     return data;
                 }
                 for (idx, variable) in self.variables.as_ref().unwrap().iter().enumerate() {
@@ -106,7 +106,7 @@ pub fn render_static_raw_type(value: StaticRawType) -> HashMap<String, String> {
 
     map.insert(
         "data_text".to_string(),
-        format!("{}", {
+        {
             let type_id = match value.type_id.id {
                 1 => value.to_int().to_string(),
                 2 => value.to_float().to_string(),
@@ -127,10 +127,11 @@ pub fn render_static_raw_type(value: StaticRawType) -> HashMap<String, String> {
                 15 => String::from("static_array"),
                 _ => unreachable!("Wrong typeid"),
             };
-            format!("{}", type_id)
-        }),
+            type_id.to_string()
+        }
+        .to_string(),
     );
-    return map;
+    map
 }
 
 pub fn render_raw_type(value: RawType) -> HashMap<String, String> {
@@ -140,16 +141,14 @@ pub fn render_raw_type(value: RawType) -> HashMap<String, String> {
 
     map.insert(
         "data_text".to_string(),
-        format!("{}", {
+        {
             let type_id = match value.type_id.id {
                 1 => value.to_int().to_string(),
                 2 => value.to_float().to_string(),
                 3 => value.to_double().to_string(),
                 4 => value.to_byte().to_string(),
                 5 => (value.data[0] == 1).to_string(),
-                6 => {
-                    String::from_utf8(value.data).unwrap_or("(CONVERT ERROR)".to_owned())
-                }
+                6 => String::from_utf8(value.data).unwrap_or("(CONVERT ERROR)".to_owned()),
                 7 => value.to_char().to_string(),
                 8 => String::from("void"),
                 9 => String::from("arr"),
@@ -161,10 +160,11 @@ pub fn render_raw_type(value: RawType) -> HashMap<String, String> {
                 15 => String::from("static_array"),
                 _ => unreachable!("Wrong typeid"),
             };
-            format!("{}", type_id)
-        }),
+            type_id.to_string()
+        }
+        .to_string(),
     );
-    return map;
+    map
 }
 
 lazy_static! {

@@ -137,7 +137,7 @@ pub fn parse_command(
 
             let mut processed_args = vec![];
             for (idx, arg) in args.iter().enumerate() {
-                if eq_b(&arg, &e.args[idx].value_type) {
+                if eq_b(arg, &e.args[idx].value_type) {
                     processed_args.push(BuildDebuggerArg {
                         name: e.args[idx].name.clone(),
                         value_type: arg.clone(),

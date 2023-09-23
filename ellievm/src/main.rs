@@ -30,7 +30,7 @@ use std::{fs::File, io::Read, path::Path, time::SystemTime};
 fn main() {
     let app = options::generate_ellievm_options();
     let matches = app.get_matches();
-    let version = format!("0.1.0",);
+    let version = "0.1.0".to_string();
     let cli_color = &CliColor;
 
     match matches.subcommand() {
@@ -140,7 +140,7 @@ fn main() {
                         );
                     }
                     match &args[0] {
-                        VmNativeCallParameters::Static(e) => VmNativeAnswer::RuntimeError(
+                        VmNativeCallParameters::Static(_e) => VmNativeAnswer::RuntimeError(
                             "Signature mismatch, expected 'dynamic' argument".to_string(),
                         ),
                         VmNativeCallParameters::Dynamic(dynamic_value) => {
@@ -162,7 +162,7 @@ fn main() {
             ellie_core_module.register_element(ModuleElements::Function(FunctionElement::new(
                 "timestamp",
                 Box::new(|_, args| {
-                    if args.len() != 0 {
+                    if !args.is_empty() {
                         return VmNativeAnswer::RuntimeError(
                             "Signature mismatch expected 0 argument(s)".to_string(),
                         );
@@ -498,44 +498,42 @@ fn main() {
                         engine_constants::ELLIE_CORE_VERSION,
                     );
                 }
+            } else if matches.is_present("jsonLog") {
+                let mut output = outputs::VERSION.clone();
+                output.extra.push(outputs::CliOuputExtraData {
+                    key: "version".to_string(),
+                    value: engine_constants::ELLIE_ENGINE_VERSION.to_owned(),
+                });
+                output.extra.push(outputs::CliOuputExtraData {
+                    key: "git_hash".to_string(),
+                    value: engine_constants::ELLIE_BUILD_GIT_HASH.to_owned(),
+                });
+                output.extra.push(outputs::CliOuputExtraData {
+                    key: "git_branch".to_string(),
+                    value: engine_constants::ELLIE_BUILD_GIT_BRANCH.to_owned(),
+                });
+                output.extra.push(outputs::CliOuputExtraData {
+                    key: "build_date".to_string(),
+                    value: engine_constants::ELLIE_BUILD_DATE.to_owned(),
+                });
+                println!("{}", serde_json::to_string(&output).unwrap());
             } else {
-                if matches.is_present("jsonLog") {
-                    let mut output = outputs::VERSION.clone();
-                    output.extra.push(outputs::CliOuputExtraData {
-                        key: "version".to_string(),
-                        value: engine_constants::ELLIE_ENGINE_VERSION.to_owned(),
-                    });
-                    output.extra.push(outputs::CliOuputExtraData {
-                        key: "git_hash".to_string(),
-                        value: engine_constants::ELLIE_BUILD_GIT_HASH.to_owned(),
-                    });
-                    output.extra.push(outputs::CliOuputExtraData {
-                        key: "git_branch".to_string(),
-                        value: engine_constants::ELLIE_BUILD_GIT_BRANCH.to_owned(),
-                    });
-                    output.extra.push(outputs::CliOuputExtraData {
-                        key: "build_date".to_string(),
-                        value: engine_constants::ELLIE_BUILD_DATE.to_owned(),
-                    });
-                    println!("{}", serde_json::to_string(&output).unwrap());
-                } else {
-                    println!(
-                        "EllieVM v{} ({} : {}){}",
-                        version,
-                        engine_constants::ELLIE_BUILD_GIT_HASH,
-                        engine_constants::ELLIE_BUILD_DATE,
-                        if engine_constants::ELLIE_BUILD_GIT_BRANCH != "main" {
-                            format!(
-                                " [{}{}{}] ",
-                                cli_color.color(Colors::Yellow),
-                                engine_constants::ELLIE_BUILD_GIT_BRANCH,
-                                cli_color.color(Colors::Reset)
-                            )
-                        } else {
-                            String::new()
-                        },
-                    );
-                }
+                println!(
+                    "EllieVM v{} ({} : {}){}",
+                    version,
+                    engine_constants::ELLIE_BUILD_GIT_HASH,
+                    engine_constants::ELLIE_BUILD_DATE,
+                    if engine_constants::ELLIE_BUILD_GIT_BRANCH != "main" {
+                        format!(
+                            " [{}{}{}] ",
+                            cli_color.color(Colors::Yellow),
+                            engine_constants::ELLIE_BUILD_GIT_BRANCH,
+                            cli_color.color(Colors::Reset)
+                        )
+                    } else {
+                        String::new()
+                    },
+                );
             }
         }
         _ => unreachable!("clap should ensure we don't get here"),

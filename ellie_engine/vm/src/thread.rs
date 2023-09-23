@@ -223,7 +223,9 @@ impl Thread {
                                                         ThreadInfo {
                                                             id: self.id,
                                                             stack_id: current_stack.id,
-                                                            stack_caller: current_stack.caller.map(|c| c.id),
+                                                            stack_caller: current_stack
+                                                                .caller
+                                                                .map(|c| c.id),
                                                         },
                                                         native_call.params,
                                                     );
@@ -446,7 +448,9 @@ impl Thread {
                                                             ThreadInfo {
                                                                 id: self.id,
                                                                 stack_id: current_stack.id,
-                                                                stack_caller: current_stack.caller.map(|c| c.id),
+                                                                stack_caller: current_stack
+                                                                    .caller
+                                                                    .map(|c| c.id),
                                                             },
                                                             native_call.params,
                                                         );

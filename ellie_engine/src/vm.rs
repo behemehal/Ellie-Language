@@ -98,7 +98,7 @@ pub fn parse_debug_file(dbg_file: String) -> Result<DebugInfo, String> {
 
     for (idx, header) in dbg_headers.enumerate() {
         let line = header.split("F:F").collect::<Vec<_>>();
-        if line.len() != 11{
+        if line.len() != 11 {
             return Err(format!("Broken debug header, line: {}", idx + 1));
         }
 

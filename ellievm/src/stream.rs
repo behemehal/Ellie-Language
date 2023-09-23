@@ -24,7 +24,7 @@ where
             self.stream.read_line(buf).map(|x| (x, false))
         } else {
             let line = self.external_lines.remove(0);
-            *buf += format!("{}", line).as_str();
+            *buf += line.to_string().as_str();
             Result::Ok((line.len(), true))
         }
     }

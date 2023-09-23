@@ -875,7 +875,6 @@ pub fn resolve_type(
                     .push(instruction_table::Instructions::STB(Instruction::implicit()));
             }
 
-
             if let Some(reference) = &is_reference {
                 assembler
                     .instructions

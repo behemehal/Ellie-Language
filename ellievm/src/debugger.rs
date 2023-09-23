@@ -55,7 +55,7 @@ pub fn debug(json_output: bool, imported_commands: Vec<String>) {
     let mut binding = io::stdin().lock();
     let mut stdin = InputStream::new(&mut binding);
     stdin.external_lines = imported_commands;
-    let mut stream_len = 1;
+    let stream_len = 1;
 
     output_message(&READY);
 
@@ -127,8 +127,7 @@ pub fn debug(json_output: bool, imported_commands: Vec<String>) {
             stdin.read_line(&mut input).expect("Failed to read input");
         input = input
             .to_string()
-            .replace("\n", "")
-            .replace("\r", "")
+            .replace(['\n', '\r'], "")
             .trim()
             .to_string();
 
@@ -145,7 +144,7 @@ pub fn debug(json_output: bool, imported_commands: Vec<String>) {
             continue;
         }
         if !json_output {
-            println!("");
+            println!();
         }
         let args = input.split_whitespace().collect::<Vec<&str>>();
         let command = &args[0];
@@ -156,7 +155,7 @@ pub fn debug(json_output: bool, imported_commands: Vec<String>) {
         match command {
             Ok(matched) => match matched.command {
                 DebuggerCommands::Help => {
-                    if matched.args.len() == 0 {
+                    if matched.args.is_empty() {
                         output_message(&EllieMessage::new("log", "Available commands:\n", -1));
                         for command in COMMANDS.iter() {
                             output_message(&EllieMessage::new_with_variables(
@@ -376,7 +375,7 @@ pub fn debug(json_output: bool, imported_commands: Vec<String>) {
                     if debugger_state.state == DebuggerState::ProgramLoaded {
                         debugger_state
                             .thread
-                            .build_thread(debugger_state.program.as_ref().unwrap().main.clone());
+                            .build_thread(debugger_state.program.as_ref().unwrap().main);
                         debugger_state.state = DebuggerState::Running;
                     } else {
                         output_message({
@@ -427,11 +426,10 @@ pub fn debug(json_output: bool, imported_commands: Vec<String>) {
                         } else {
                             let debug_headers =
                                 &debugger_state.debug_file.as_ref().unwrap().debug_headers;
-                            let filtered_headers_by_path =
-                                debug_headers.into_iter().find(|header| {
-                                    header.module_name == module_path.to_string()
-                                        && header.pos.range_start.0 == (*pos + -1) as usize
-                                });
+                            let filtered_headers_by_path = debug_headers.iter().find(|header| {
+                                header.module_name == *module_path
+                                    && header.pos.range_start.0 == (*pos + -1) as usize
+                            });
 
                             if filtered_headers_by_path.is_none() {
                                 output_message(&CANT_FIND_ELEMENT_AT_LOCATION);
@@ -483,9 +481,7 @@ pub fn debug(json_output: bool, imported_commands: Vec<String>) {
                             let debug_headers =
                                 &debugger_state.debug_file.as_ref().unwrap().debug_headers;
 
-                            let scope = debug_headers
-                                .into_iter()
-                                .find(|header| header.hash == stack.id);
+                            let scope = debug_headers.iter().find(|header| header.hash == stack.id);
 
                             if scope.is_none() {
                                 output_message(&CANT_FIND_VARIABLE);
@@ -494,12 +490,11 @@ pub fn debug(json_output: bool, imported_commands: Vec<String>) {
 
                             let scope = scope.unwrap();
 
-                            let filtered_headers_by_path =
-                                debug_headers.into_iter().find(|header| {
-                                    header.pos.range_start.0 + 1 == *pos as usize
-                                        && scope.start_end.0 >= header.start_end.0
-                                        && header.start_end.1 <= scope.start_end.1
-                                });
+                            let filtered_headers_by_path = debug_headers.iter().find(|header| {
+                                header.pos.range_start.0 + 1 == *pos as usize
+                                    && scope.start_end.0 >= header.start_end.0
+                                    && header.start_end.1 <= scope.start_end.1
+                            });
 
                             if filtered_headers_by_path.is_none() {
                                 output_message(&CANT_FIND_VARIABLE);

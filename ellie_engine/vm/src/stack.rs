@@ -4,7 +4,7 @@ use alloc::vec::Vec;
 #[derive(Debug, Clone, Copy)]
 pub struct Caller {
     pub id: usize,
-    pub frame_pos: usize
+    pub frame_pos: usize,
 }
 
 #[derive(Debug, Clone, Copy)]
