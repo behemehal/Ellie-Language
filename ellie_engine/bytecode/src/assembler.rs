@@ -223,7 +223,7 @@ impl AssembleResult {
             dbg_w
                 .write_all(
                     format!(
-                        "{}F:F{}F:F{}F:F{}F:F{}F:F{}F:F{}F:F{}F:F{}F:F{}{}",
+                        "{}F:F{}F:F{}F:F{}F:F{}F:F{}F:F{}F:F{}F:F{}F:F{}F:F{}{}",
                         header.start_end.0,
                         header.start_end.1,
                         header.module_name,
@@ -234,6 +234,18 @@ impl AssembleResult {
                         header.pos.range_end.0,
                         header.pos.range_end.1,
                         header.hash,
+                        {
+                            match header.rtype {
+                                DebugHeaderType::Variable => 0,
+                                DebugHeaderType::SetterCall => 1,
+                                DebugHeaderType::GetterCall => 2,
+                                DebugHeaderType::Class => 3,
+                                DebugHeaderType::Parameter => 4,
+                                DebugHeaderType::Function => 5,
+                                DebugHeaderType::NativeFunction => 6,
+                                DebugHeaderType::Condition => 7,
+                            }
+                        },
                         if idx != self.debug_headers.len() - 1 {
                             "\n"
                         } else {

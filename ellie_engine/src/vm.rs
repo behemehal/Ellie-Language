@@ -98,7 +98,7 @@ pub fn parse_debug_file(dbg_file: String) -> Result<DebugInfo, String> {
 
     for (idx, header) in dbg_headers.enumerate() {
         let line = header.split("F:F").collect::<Vec<_>>();
-        if line.len() != 10 {
+        if line.len() != 11{
             return Err(format!("Broken debug header, line: {}", idx + 1));
         }
 
@@ -159,6 +159,28 @@ pub fn parse_debug_file(dbg_file: String) -> Result<DebugInfo, String> {
             }
         };
 
+        let rtype = match line[10].parse::<usize>() {
+            Ok(n) => match n {
+                0 => DebugHeaderType::Variable,
+                1 => DebugHeaderType::SetterCall,
+                2 => DebugHeaderType::GetterCall,
+                3 => DebugHeaderType::Class,
+                4 => DebugHeaderType::Parameter,
+                5 => DebugHeaderType::Function,
+                6 => DebugHeaderType::NativeFunction,
+                7 => DebugHeaderType::Condition,
+                _ => {
+                    return Err(format!(
+                        "Broken debug header (Unknown Header Type), line: {}",
+                        idx + 1
+                    ));
+                }
+            },
+            Err(_) => {
+                return Err(format!("Broken debug header, line: {}", idx + 1));
+            }
+        };
+
         let module_hash = match line[3].parse::<usize>() {
             Ok(n) => n,
             Err(_) => {
@@ -172,7 +194,7 @@ pub fn parse_debug_file(dbg_file: String) -> Result<DebugInfo, String> {
             module_hash,
             name: line[4].to_string(),
             pos,
-            rtype: DebugHeaderType::Variable,
+            rtype,
             hash,
         })
     }
