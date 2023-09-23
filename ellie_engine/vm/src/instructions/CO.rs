@@ -1,4 +1,4 @@
-use alloc::{format, vec::Vec};
+use alloc::format;
 use ellie_core::defs::PlatformArchitecture;
 
 use crate::{
