@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use ellie_engine::ellie_vm::raw_type::{StaticRawType, TypeId};
+use ellie_engine::ellie_vm::raw_type::{StaticRawType, TypeId, RawType};
 
 #[derive(Debug, Clone)]
 pub struct EllieMessage {
@@ -133,6 +133,40 @@ pub fn render_static_raw_type(value: StaticRawType) -> HashMap<String, String> {
     return map;
 }
 
+pub fn render_raw_type(value: RawType) -> HashMap<String, String> {
+    let mut map = HashMap::new();
+    map.extend(render_type_id(value.type_id));
+    map.insert("data".to_string(), format!("{:?}", value.data));
+
+    map.insert(
+        "data_text".to_string(),
+        format!("{}", {
+            let type_id = match value.type_id.id {
+                1 => value.to_int().to_string(),
+                2 => value.to_float().to_string(),
+                3 => value.to_double().to_string(),
+                4 => value.to_byte().to_string(),
+                5 => (value.data[0] == 1).to_string(),
+                6 => {
+                    String::from_utf8(value.data).unwrap_or("(CONVERT ERROR)".to_owned())
+                }
+                7 => value.to_char().to_string(),
+                8 => String::from("void"),
+                9 => String::from("arr"),
+                10 => String::from("null"),
+                11 => String::from("class"),
+                12 => String::from("function"),
+                13 => String::from("stack_reference"),
+                14 => String::from("heap_reference"),
+                15 => String::from("static_array"),
+                _ => unreachable!("Wrong typeid"),
+            };
+            format!("{}", type_id)
+        }),
+    );
+    return map;
+}
+
 lazy_static! {
     // Error
     pub static ref UNKNOWN_COMMAND: EllieMessage = EllieMessage::new("error", "Unknown command", 1);
@@ -146,7 +180,10 @@ lazy_static! {
     pub static ref CANT_FIND_ELEMENT_AT_LOCATION: EllieMessage = EllieMessage::new_with_variables("error", "Can't find a element on given position to wait", 9, HashMap::new());
     pub static ref NOT_IN_BREAKPOINT: EllieMessage = EllieMessage::new("error", "Debugger is not on wait state", 25);
     pub static ref DEBUGER_IS_NOT_ON_EXPECTED_STATE: EllieMessage = EllieMessage::new_with_variables("error", "Debugger is on '{current_state}' state but expected to be on '{expected_state}' state", 33, HashMap::new());
-
+    pub static ref CANT_FIND_VARIABLE: EllieMessage = EllieMessage::new("error", "Can't find a variable to read at position", 36);
+    pub static ref DEBUG_FILE_REQUIRED : EllieMessage = EllieMessage::new("error", "Debug file is required for this operation", 37);
+    pub static ref CANT_FIND_DATA_ON_STACK_MEM : EllieMessage = EllieMessage::new("error", "Can't find data on stack memory", 38);
+    pub static ref CANT_FIND_DATA_ON_HEAP_MEM : EllieMessage = EllieMessage::new("error", "Can't find data on heap memory", 39);
     // Info
     pub static ref READY: EllieMessage = EllieMessage::new("info", "Ready", 0);
     pub static ref EXIT_MESSAGE: EllieMessage = EllieMessage::new("info", "Debugger exited", 10);
@@ -165,6 +202,7 @@ lazy_static! {
     pub static ref GET_HEAP_MEMORY_START: EllieMessage = EllieMessage::new("info", "Listing Heap memory", 29);
     pub static ref GET_HEAP_MEMORY_END: EllieMessage = EllieMessage::new("info", "Heap memory listing complete", 31);
     pub static ref STEP_FORWARD : EllieMessage = EllieMessage::new("info", "Stepping forward", 32);
+    pub static ref STEPPED : EllieMessage = EllieMessage::new("log", "Stepped", 35);
 
     // Data Feed
     pub static ref GET_PATHS_ENTRY : EllieMessage = EllieMessage::new("log", "Module Name: {module_name}, File Path: {module_path}, Module File Path: {module_file_path}", 14);
@@ -172,5 +210,8 @@ lazy_static! {
     pub static ref THREAD_PANIC : EllieMessage = EllieMessage::new("error", "Thread panic, reason: {panic_reason}, code location: {panic_code_location}", 21);
     pub static ref GET_REGISTERS_ENTRY : EllieMessage = EllieMessage::new("log", "Register {register_name}, TypeID {type_id}, Type Size: {type_size}, Data: {data} Data Text: {data_text}", 23);
     pub static ref GET_STACK_MEMORY_ENTRY : EllieMessage = EllieMessage::new("log", "Stack Location: {stack_location}, TypeID: {type_id}, Type Size: {type_size}, Data: {data}, Data Text: {data_text}", 27);
-    pub static ref GET_HEAP_MEMORY_ENTRY : EllieMessage = EllieMessage::new("log", "Heap Location: {heap_location}, Data: {data}", 30);
+    pub static ref GET_HEAP_MEMORY_ENTRY : EllieMessage = EllieMessage::new("log", "Heap Location: {heap_location}, TypeID: {type_id}, Type Size: {type_size}, Data: {data}, Data Text: {data_text}", 30);
+    pub static ref GET_LOCATION_ENTRY : EllieMessage = EllieMessage::new("log", "Frame Pos: {frame_pos}, Stack Pos: {stack_pos}, Real Pos: {real_pos}", 34);
+    pub static ref READ_AT_DATA_ENTRY : EllieMessage = EllieMessage::new("log", "Read From: {read_from}, TypeID: {type_id}, Type Size: {type_size}, Data: {data}, Data Text: {data_text}", 40);
+
 }

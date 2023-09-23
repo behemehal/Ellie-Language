@@ -7,7 +7,7 @@ use ellie_engine::{
     },
 };
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Default)]
 pub struct BreakPoint {
     pub module_name: Option<String>,
     pub stack_location: usize,
@@ -17,6 +17,7 @@ pub struct BreakPoint {
 pub struct DebuggerStatus<'a> {
     pub vm_program: Option<VmProgram>,
     pub program: Option<Program>,
+    pub step: bool,
     pub debug_file: Option<DebugInfo>,
     pub thread: &'a mut Thread,
     pub state: DebuggerState,
@@ -28,6 +29,7 @@ pub struct DebuggerStatus<'a> {
 pub enum DebuggerState {
     ProgramNotLoaded,
     WaitingAtBreakpoint(BreakPoint),
+    Stepped,
     Running,
     ProgramLoaded,
     ProgramCompleted,
@@ -37,10 +39,11 @@ impl DebuggerState {
     pub fn to_string(&self) -> &'static str {
         match self {
             DebuggerState::ProgramNotLoaded => "ProgramNotLoaded",
-            DebuggerState::WaitingAtBreakpoint(bp) => "WaitingAtBreakpoint",
+            DebuggerState::WaitingAtBreakpoint(_) => "WaitingAtBreakpoint",
             DebuggerState::Running => "Running",
             DebuggerState::ProgramLoaded => "ProgramLoaded",
             DebuggerState::ProgramCompleted => "ProgramCompleted",
+            DebuggerState::Stepped => "Stepped",
         }
     }
 }

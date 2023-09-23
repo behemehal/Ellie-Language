@@ -1,8 +1,10 @@
 use std::fmt::Display;
 
+#[derive(PartialEq)]
 pub enum DebuggerArgTypes {
     String,
     Int,
+    Uint,
     Bool,
 }
 
@@ -11,6 +13,7 @@ impl Display for DebuggerArgTypes {
         match self {
             DebuggerArgTypes::String => write!(f, "String"),
             DebuggerArgTypes::Int => write!(f, "Int"),
+            DebuggerArgTypes::Uint => write!(f, "Uint"),
             DebuggerArgTypes::Bool => write!(f, "Bool"),
         }
     }
@@ -43,7 +46,10 @@ pub fn eq_b(a: &BuildDebuggerArgTypes, b: &DebuggerArgTypes) -> bool {
         (BuildDebuggerArgTypes::String(_), DebuggerArgTypes::String) => true,
         (BuildDebuggerArgTypes::Int(_), DebuggerArgTypes::Int) => true,
         (BuildDebuggerArgTypes::Bool(_), DebuggerArgTypes::Bool) => true,
-        _ => false,
+        (a, b) => match a {
+            BuildDebuggerArgTypes::Int(e) => *b == DebuggerArgTypes::Uint && *e >= 0,
+            _ => false,
+        },
     }
 }
 
@@ -77,13 +83,13 @@ pub enum DebuggerCommands {
     Step,
 
     // Information
-    ReadAtPosition,
+    ReadVariable,
     GetPaths,
     GetBreakpoints,
     GetRegisters,
     GetStackMemory,
     GetHeapMemory,
-    // GetCodePos,
+    GetLocation,
     // StepChanges,
 }
 
@@ -151,7 +157,7 @@ pub fn parse_command(
 }
 
 lazy_static! {
-    pub static ref COMMANDS: [DebuggerCommand; 14] = [
+    pub static ref COMMANDS: [DebuggerCommand; 15] = [
         DebuggerCommand {
             short: "e",
             long: "exit",
@@ -200,7 +206,7 @@ lazy_static! {
             has_json_output: true,
         },
         DebuggerCommand {
-            short: "rv",
+            short: "rm",
             long: "reload-vm",
             help: "Reset vm to initial state with program loaded",
             command: DebuggerCommands::ReloadVm,
@@ -248,11 +254,15 @@ lazy_static! {
             has_json_output: true,
         },
         DebuggerCommand {
-            short: "rap",
-            long: "read-at-position",
-            help: "Read the variable at given ",
-            command: DebuggerCommands::ReadAtPosition,
-            args: vec![],
+            short: "rv",
+            long: "read-variable",
+            help: "Read the variable at given pos",
+            command: DebuggerCommands::ReadVariable,
+            args: vec![DebuggerArg {
+                name: "pos",
+                value_type: DebuggerArgTypes::Uint,
+                optional: false,
+            },],
             has_json_output: true,
         },
         DebuggerCommand {
@@ -292,6 +302,14 @@ lazy_static! {
             long: "get-heap-memory",
             help: "Get list of the heap memory",
             command: DebuggerCommands::GetHeapMemory,
+            args: vec![],
+            has_json_output: true,
+        },
+        DebuggerCommand {
+            short: "gl",
+            long: "get-location",
+            help: "Get current location of vm",
+            command: DebuggerCommands::GetLocation,
             args: vec![],
             has_json_output: true,
         },

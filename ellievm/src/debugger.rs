@@ -9,6 +9,7 @@ use ellie_engine::{
     ellie_vm::{
         channel::ModuleManager,
         program::{Program, VmProgram},
+        raw_type::RawType,
         thread::{Isolate, Thread},
         utils::{ProgramReader, StepResult, ThreadExit},
     },
@@ -31,17 +32,6 @@ pub fn debug(json_output: bool, imported_commands: Vec<String>) {
         }
     };
 
-    let reset_cursor = |command: Option<&String>| {
-        print!("\x1B[1A\x1B[2K");
-        io::stdout().flush().unwrap();
-        if let Some(command) = command {
-            print!("> {}\n", command.to_string());
-        } else {
-            std::io::stdout().write_all(">".as_bytes()).unwrap();
-            std::io::stdout().flush().unwrap();
-        }
-    };
-
     //let mut module_manager = ModuleManager::new();
     ////Register incoming modules
     //for module in debugger_settings.modules {
@@ -55,6 +45,7 @@ pub fn debug(json_output: bool, imported_commands: Vec<String>) {
         vm_program: None,
         program: None,
         debug_file: None,
+        step: false,
         module_manager: ModuleManager::new(),
         thread: &mut thread,
         state: DebuggerState::ProgramNotLoaded,
@@ -72,7 +63,10 @@ pub fn debug(json_output: bool, imported_commands: Vec<String>) {
         if debugger_state.state == DebuggerState::Running {
             let thread = &mut debugger_state.thread;
             let current_stack = thread.stack.last();
-            if let Some(current_stack) = current_stack {
+            if debugger_state.step {
+                debugger_state.state = DebuggerState::Stepped;
+                output_message(&STEPPED);
+            } else if let Some(current_stack) = current_stack {
                 let break_point = debugger_state
                     .breakpoints
                     .iter()
@@ -276,7 +270,6 @@ pub fn debug(json_output: bool, imported_commands: Vec<String>) {
                     break;
                 }
                 DebuggerCommands::Clear => {
-                    input = String::new();
                     print!("{}[2J", 27 as char);
                 }
                 DebuggerCommands::Load => {
@@ -368,8 +361,6 @@ pub fn debug(json_output: bool, imported_commands: Vec<String>) {
                             }
                         }
                     };
-                    let main_hash = main_file.main.hash;
-
                     let mut vm_program = VmProgram::new();
                     vm_program.fill_from_vector(main_file.instructions.clone());
                     vm_program.fill_traces(main_file.native_call_traces.clone());
@@ -378,7 +369,6 @@ pub fn debug(json_output: bool, imported_commands: Vec<String>) {
                     debugger_state.vm_program = Some(vm_program);
                     debugger_state.debug_file = Some(debug_file);
 
-                    let isolate = Isolate::new();
                     debugger_state.state = DebuggerState::ProgramLoaded;
                     output_message(&PROGRAM_LOADED);
                 }
@@ -459,15 +449,141 @@ pub fn debug(json_output: bool, imported_commands: Vec<String>) {
                     output_message(&BREAKPOINT_ADDED);
                 }
                 DebuggerCommands::Step => {
-                    if let DebuggerState::WaitingAtBreakpoint(_) = debugger_state.state {
+                    if matches!(
+                        debugger_state.state,
+                        DebuggerState::Stepped | DebuggerState::WaitingAtBreakpoint(_)
+                    ) {
                         output_message(&STEP_FORWARD);
+                        debugger_state.step = true;
                         debugger_state.state = DebuggerState::Running;
                     } else {
                         output_message(&NOT_IN_BREAKPOINT);
                     }
                 }
                 DebuggerCommands::ReloadVm => todo!(),
-                DebuggerCommands::ReadAtPosition => {}
+                DebuggerCommands::ReadVariable => {
+                    if matches!(
+                        debugger_state.state,
+                        DebuggerState::Stepped | DebuggerState::WaitingAtBreakpoint(_)
+                    ) {
+                        if debugger_state.debug_file.is_none() {
+                            output_message(&DEBUG_FILE_REQUIRED);
+                            continue;
+                        }
+
+                        let pos = match &matched.args[0].value_type {
+                            BuildDebuggerArgTypes::Int(pos) => pos,
+                            _ => unreachable!(),
+                        };
+
+                        let thread = &debugger_state.thread;
+                        let stack = thread.stack.last().unwrap();
+
+                        let found_variable = {
+                            let debug_headers =
+                                &debugger_state.debug_file.as_ref().unwrap().debug_headers;
+
+                            let scope = debug_headers
+                                .into_iter()
+                                .find(|header| header.hash == stack.id);
+
+                            if scope.is_none() {
+                                output_message(&CANT_FIND_VARIABLE);
+                                continue;
+                            }
+
+                            let scope = scope.unwrap();
+
+                            let filtered_headers_by_path =
+                                debug_headers.into_iter().find(|header| {
+                                    header.pos.range_start.0 + 1 == *pos as usize
+                                        && scope.start_end.0 >= header.start_end.0
+                                        && header.start_end.1 <= scope.start_end.1
+                                });
+
+                            if filtered_headers_by_path.is_none() {
+                                output_message(&CANT_FIND_VARIABLE);
+                                continue;
+                            }
+
+                            filtered_headers_by_path.unwrap()
+                        };
+
+                        let stack_data = match debugger_state
+                            .thread
+                            .isolate
+                            .stack_memory
+                            .get(&stack.calculate_frame_pos(found_variable.start_end.1))
+                        {
+                            Some(e) => e,
+                            None => {
+                                output_message(&CANT_FIND_DATA_ON_STACK_MEM);
+                                continue;
+                            }
+                        };
+
+                        if stack_data.type_id.is_heap_reference() {
+                            let heap_data = match debugger_state
+                                .thread
+                                .isolate
+                                .heap_memory
+                                .get_def(&stack_data.to_uint())
+                            {
+                                Some(e) => e,
+                                None => {
+                                    output_message(&CANT_FIND_DATA_ON_STACK_MEM);
+                                    continue;
+                                }
+                            };
+
+                            output_message({
+                                let mut read_at_data_entry = READ_AT_DATA_ENTRY.clone();
+                                read_at_data_entry.variables = {
+                                    let mut variables = HashMap::new();
+                                    variables
+                                        .insert("read_from".to_string(), "heap_memory".to_string());
+                                    variables.extend(render_raw_type(heap_data));
+                                    Some(variables)
+                                };
+                                &read_at_data_entry.clone()
+                            });
+                        } else {
+                            output_message({
+                                let mut read_at_data_entry = READ_AT_DATA_ENTRY.clone();
+                                read_at_data_entry.variables = {
+                                    let mut variables = HashMap::new();
+                                    variables.insert(
+                                        "read_from".to_string(),
+                                        "stack_memory".to_string(),
+                                    );
+                                    variables.extend(render_static_raw_type(stack_data));
+                                    Some(variables)
+                                };
+                                &read_at_data_entry.clone()
+                            });
+                        }
+                    } else {
+                        output_message({
+                            let mut wrong_state = DEBUGER_IS_NOT_ON_EXPECTED_STATE.clone();
+                            wrong_state.variables = {
+                                let mut variables = HashMap::new();
+                                variables.insert(
+                                    "current_state".to_string(),
+                                    debugger_state.state.to_string().to_owned(),
+                                );
+                                variables.insert(
+                                    "expected_state".to_string(),
+                                    DebuggerState::WaitingAtBreakpoint(BreakPoint::default())
+                                        .to_string()
+                                        .to_owned(),
+                                );
+                                Some(variables)
+                            };
+                            &wrong_state.clone()
+                        });
+                        continue;
+                    }
+                }
                 DebuggerCommands::GetPaths => {
                     if debugger_state.state == DebuggerState::ProgramNotLoaded {
                         output_message(&PROGRAM_NOT_LOADED);
@@ -551,7 +667,10 @@ pub fn debug(json_output: bool, imported_commands: Vec<String>) {
                     output_message(&GET_BREAKPOINTS_END);
                 }
                 DebuggerCommands::GetRegisters => {
-                    if let DebuggerState::WaitingAtBreakpoint(_) = debugger_state.state {
+                    if matches!(
+                        debugger_state.state,
+                        DebuggerState::Stepped | DebuggerState::WaitingAtBreakpoint(_)
+                    ) {
                         output_message(&GET_REGISTERS_START);
                         let thread = &debugger_state.thread;
                         let stack = thread.stack.last().unwrap();
@@ -581,12 +700,77 @@ pub fn debug(json_output: bool, imported_commands: Vec<String>) {
                         }
                         output_message(&GET_REGISTERS_END);
                     } else {
-                        output_message(&NOT_IN_BREAKPOINT);
+                        output_message({
+                            let mut wrong_state = DEBUGER_IS_NOT_ON_EXPECTED_STATE.clone();
+                            wrong_state.variables = {
+                                let mut variables = HashMap::new();
+                                variables.insert(
+                                    "current_state".to_string(),
+                                    debugger_state.state.to_string().to_owned(),
+                                );
+                                variables.insert(
+                                    "expected_state".to_string(),
+                                    DebuggerState::WaitingAtBreakpoint(BreakPoint::default())
+                                        .to_string()
+                                        .to_owned(),
+                                );
+                                Some(variables)
+                            };
+                            &wrong_state.clone()
+                        });
+                        continue;
+                    }
+                }
+                DebuggerCommands::GetLocation => {
+                    if matches!(
+                        debugger_state.state,
+                        DebuggerState::Stepped | DebuggerState::WaitingAtBreakpoint(_)
+                    ) {
+                        let thread = &debugger_state.thread;
+                        let stack = thread.stack.last().unwrap();
+
+                        output_message({
+                            let mut module_entry = GET_LOCATION_ENTRY.clone();
+                            module_entry.variables = {
+                                let mut variables = HashMap::new();
+                                variables
+                                    .insert("frame_pos".to_string(), stack.frame_pos.to_string());
+                                variables.insert("stack_pos".to_string(), stack.pos.to_string());
+                                variables.insert(
+                                    "real_pos".to_string(),
+                                    (stack.pos + stack.frame_pos).to_string(),
+                                );
+                                Some(variables)
+                            };
+                            &module_entry.clone()
+                        });
+                    } else {
+                        output_message({
+                            let mut wrong_state = DEBUGER_IS_NOT_ON_EXPECTED_STATE.clone();
+                            wrong_state.variables = {
+                                let mut variables = HashMap::new();
+                                variables.insert(
+                                    "current_state".to_string(),
+                                    debugger_state.state.to_string().to_owned(),
+                                );
+                                variables.insert(
+                                    "expected_state".to_string(),
+                                    DebuggerState::WaitingAtBreakpoint(BreakPoint::default())
+                                        .to_string()
+                                        .to_owned(),
+                                );
+                                Some(variables)
+                            };
+                            &wrong_state.clone()
+                        });
                         continue;
                     }
                 }
                 DebuggerCommands::GetStackMemory => {
-                    if let DebuggerState::WaitingAtBreakpoint(_) = debugger_state.state {
+                    if matches!(
+                        debugger_state.state,
+                        DebuggerState::Stepped | DebuggerState::WaitingAtBreakpoint(_)
+                    ) {
                         output_message(&GET_STACK_MEMORY_START);
                         let isolate = &debugger_state.thread.isolate;
 
@@ -611,17 +795,37 @@ pub fn debug(json_output: bool, imported_commands: Vec<String>) {
                         }
                         output_message(&GET_STACK_MEMORY_END);
                     } else {
-                        output_message(&NOT_IN_BREAKPOINT);
+                        output_message({
+                            let mut wrong_state = DEBUGER_IS_NOT_ON_EXPECTED_STATE.clone();
+                            wrong_state.variables = {
+                                let mut variables = HashMap::new();
+                                variables.insert(
+                                    "current_state".to_string(),
+                                    debugger_state.state.to_string().to_owned(),
+                                );
+                                variables.insert(
+                                    "expected_state".to_string(),
+                                    DebuggerState::WaitingAtBreakpoint(BreakPoint::default())
+                                        .to_string()
+                                        .to_owned(),
+                                );
+                                Some(variables)
+                            };
+                            &wrong_state.clone()
+                        });
                         continue;
                     }
                 }
                 DebuggerCommands::GetHeapMemory => {
-                    if let DebuggerState::WaitingAtBreakpoint(_) = debugger_state.state {
+                    if matches!(
+                        debugger_state.state,
+                        DebuggerState::Stepped | DebuggerState::WaitingAtBreakpoint(_)
+                    ) {
                         output_message(&GET_HEAP_MEMORY_START);
                         let isolate = debugger_state.thread.isolate.clone();
                         for (heap_location, heap_entry) in &isolate.heap_memory.data {
                             output_message({
-                                let mut module_entry = GET_STACK_MEMORY_ENTRY.clone();
+                                let mut module_entry = GET_HEAP_MEMORY_ENTRY.clone();
                                 module_entry.variables = {
                                     let mut variables = HashMap::new();
                                     variables.insert(
@@ -629,7 +833,7 @@ pub fn debug(json_output: bool, imported_commands: Vec<String>) {
                                         heap_location.to_string(),
                                     );
                                     variables
-                                        .insert("data".to_string(), format!("{:?}", heap_entry));
+                                        .extend(render_raw_type(RawType::from_bytes(heap_entry)));
                                     Some(variables)
                                 };
                                 &module_entry.clone()
@@ -637,7 +841,24 @@ pub fn debug(json_output: bool, imported_commands: Vec<String>) {
                         }
                         output_message(&GET_HEAP_MEMORY_END);
                     } else {
-                        output_message(&NOT_IN_BREAKPOINT);
+                        output_message({
+                            let mut wrong_state = DEBUGER_IS_NOT_ON_EXPECTED_STATE.clone();
+                            wrong_state.variables = {
+                                let mut variables = HashMap::new();
+                                variables.insert(
+                                    "current_state".to_string(),
+                                    debugger_state.state.to_string().to_owned(),
+                                );
+                                variables.insert(
+                                    "expected_state".to_string(),
+                                    DebuggerState::WaitingAtBreakpoint(BreakPoint::default())
+                                        .to_string()
+                                        .to_owned(),
+                                );
+                                Some(variables)
+                            };
+                            &wrong_state.clone()
+                        });
                         continue;
                     }
                 }
