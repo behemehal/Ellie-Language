@@ -1107,6 +1107,21 @@ impl Parser {
                     }
                 }
             }
+            deep_search_extensions::DeepTypeResult::FunctionParameter(e) => {
+                if e.rtype.as_ref().unwrap().same_as(defining.clone()) {
+                    Ok(CompareResult::result(
+                        true,
+                        defining.to_string(),
+                        e.rtype.as_ref().unwrap().to_string(),
+                    ))
+                } else {
+                    Ok(CompareResult::result(
+                        false,
+                        defining.to_string(),
+                        e.rtype.unwrap().to_string(),
+                    ))
+                }
+            }
             deep_search_extensions::DeepTypeResult::Enum(_) => todo!(),
             deep_search_extensions::DeepTypeResult::ClassInstance(_) => todo!(),
             deep_search_extensions::DeepTypeResult::SelfItem(_) => todo!(),

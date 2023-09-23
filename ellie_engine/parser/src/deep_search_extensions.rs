@@ -280,6 +280,7 @@ pub enum DeepTypeResult {
     ClassCall(ellie_core::definite::types::class_call::ClassCall),
     Function(ellie_core::definite::types::function::Function),
     FunctionCall(ellie_core::definite::types::function_call::FunctionCall),
+    FunctionParameter(ellie_core::definite::types::function::FunctionParameter),
     BraceReference(ellie_core::definite::types::brace_reference::BraceReferenceType),
     ClassInstance(ellie_core::definite::types::class_instance::ClassInstance),
     SelfItem(ellie_core::definite::items::self_item::SelfItem),
@@ -807,6 +808,7 @@ fn iterate_deep_type(
                             DeepTypeResult::Enum(_) => todo!(),
                             DeepTypeResult::ClassInstance(_) => todo!(),
                             DeepTypeResult::SelfItem(_) => todo!(),
+                            DeepTypeResult::FunctionParameter(e) => Types::FunctionParameter(e),
                         }),
                         reference_pos: e.reference_pos,
                         brace_pos: e.brace_pos,
@@ -833,6 +835,7 @@ fn iterate_deep_type(
                             DeepTypeResult::Enum(_) => todo!(),
                             DeepTypeResult::ClassInstance(_) => todo!(),
                             DeepTypeResult::SelfItem(_) => todo!(),
+                            DeepTypeResult::FunctionParameter(e) => Types::FunctionParameter(e),
                         }),
                         pos: e.pos,
                     },
@@ -863,6 +866,7 @@ fn iterate_deep_type(
                 DeepTypeResult::Enum(_) => todo!(),
                 DeepTypeResult::ClassInstance(_) => todo!(),
                 DeepTypeResult::SelfItem(_) => todo!(),
+                DeepTypeResult::FunctionParameter(e) => Types::FunctionParameter(e),
             };
 
             let second = match resolve_deep_type(parser, page_id, *e.second, errors) {
@@ -888,6 +892,7 @@ fn iterate_deep_type(
                 DeepTypeResult::Enum(_) => todo!(),
                 DeepTypeResult::ClassInstance(_) => todo!(),
                 DeepTypeResult::SelfItem(_) => todo!(),
+                DeepTypeResult::FunctionParameter(e) => Types::FunctionParameter(e),
             };
 
             DeepTypeResult::Operator(ellie_core::definite::types::operator::OperatorType {
@@ -1020,6 +1025,12 @@ fn iterate_deep_type(
                     DeepTypeResult::Function(e) => {
                         collective.push(ellie_core::definite::types::array::ArrayEntry {
                             value: Types::Function(e),
+                            location: i.location,
+                        });
+                    }
+                    DeepTypeResult::FunctionParameter(e) => {
+                        collective.push(ellie_core::definite::types::array::ArrayEntry {
+                            value: Types::FunctionParameter(e),
                             location: i.location,
                         });
                     }
@@ -1564,7 +1575,7 @@ fn iterate_deep_type(
         Types::Byte(byte) => DeepTypeResult::Byte(byte),
         Types::EnumData(e) => DeepTypeResult::EnumData(e),
         Types::ClassInstance(_) => todo!(),
-        Types::FunctionParameter(_) => todo!(),
+        Types::FunctionParameter(e) => DeepTypeResult::FunctionParameter(e),
     }
 }
 
@@ -2945,5 +2956,6 @@ pub fn resolve_type(
                 hash: e.class_hash,
             }),
         ),
+        DeepTypeResult::FunctionParameter(e) => e.rtype,
     }
 }
