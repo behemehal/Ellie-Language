@@ -2,6 +2,12 @@ use crate::{config::STACK_SIZE, raw_type::StaticRawType, thread::Registers};
 use alloc::vec::Vec;
 
 #[derive(Debug, Clone, Copy)]
+pub struct Caller {
+    pub id: usize,
+    pub frame_pos: usize
+}
+
+#[derive(Debug, Clone, Copy)]
 pub struct Stack {
     // Stack Position
     pub pos: usize,
@@ -14,7 +20,7 @@ pub struct Stack {
     // Registers of the stack
     pub registers: Registers,
     // Caller of the stack, this is hash of the caller
-    pub caller: Option<usize>,
+    pub caller: Option<Caller>,
 }
 
 impl Stack {
@@ -39,7 +45,7 @@ impl Stack {
         self.frame_pos + self.pos
     }
 
-    pub fn calculate_frame_pos(&mut self, pos: usize) -> usize {
+    pub fn calculate_frame_pos(&self, pos: usize) -> usize {
         self.frame_pos + pos
     }
 }

@@ -8,7 +8,7 @@ use crate::{
     iternal_functions::INTERNAL_FUNCTIONS,
     program::{MainProgram, VmProgram},
     raw_type::StaticRawType,
-    stack::{Stack, StackArray},
+    stack::{Caller, Stack, StackArray},
     stack_memory::StackMemory,
     utils::{
         StepResult, ThreadExit, ThreadInfo, ThreadPanic, ThreadPanicReason, VmNativeAnswer,
@@ -140,9 +140,12 @@ impl Thread {
                     StepResult::Step
                 }
                 crate::instructions::ExecuterResult::CallFunction(e) => {
-                    let caller = Some(current_stack.id);
+                    let caller = Some(Caller {
+                        id: current_stack.id,
+                        frame_pos: current_stack.frame_pos,
+                    });
                     let current_x = current_stack.registers.X;
-                    let frame_pos = current_stack.frame_pos + e.stack_len;
+                    let frame_pos = current_stack.get_pos() + e.stack_len;
                     current_stack.pos += 1;
                     self.stack.push(Stack {
                         pos: e.pos,
@@ -220,7 +223,7 @@ impl Thread {
                                                         ThreadInfo {
                                                             id: self.id,
                                                             stack_id: current_stack.id,
-                                                            stack_caller: current_stack.caller,
+                                                            stack_caller: current_stack.caller.map(|c| c.id),
                                                         },
                                                         native_call.params,
                                                     );
@@ -363,9 +366,12 @@ impl Thread {
                         }
                     }
                     crate::instructions::ExecuterResult::CallFunction(e) => {
-                        let caller = Some(current_stack.id);
+                        let caller = Some(Caller {
+                            id: current_stack.id,
+                            frame_pos: current_stack.frame_pos,
+                        });
                         let current_x = current_stack.registers.X;
-                        let frame_pos = current_stack.frame_pos + e.stack_len;
+                        let frame_pos = current_stack.get_pos() + e.stack_len;
                         current_stack.pos += 1;
                         self.stack.push(Stack {
                             pos: e.pos,
@@ -440,7 +446,7 @@ impl Thread {
                                                             ThreadInfo {
                                                                 id: self.id,
                                                                 stack_id: current_stack.id,
-                                                                stack_caller: current_stack.caller,
+                                                                stack_caller: current_stack.caller.map(|c| c.id),
                                                             },
                                                             native_call.params,
                                                         );

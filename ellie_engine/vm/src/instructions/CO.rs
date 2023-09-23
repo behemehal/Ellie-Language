@@ -1,22 +1,39 @@
+use alloc::{format, vec::Vec};
 use ellie_core::defs::PlatformArchitecture;
 
 use crate::{
-    heap_memory::HeapMemory, instruction_utils::CO, stack::Stack, stack_memory::StackMemory,
-    utils::AddressingValues,
+    heap_memory::HeapMemory,
+    instruction_utils::CO,
+    raw_type::StaticRawType,
+    stack::Stack,
+    stack_memory::StackMemory,
+    utils::{AddressingValues, ThreadPanicReason},
 };
 
-use super::StaticProgram;
+use super::{ExecuterPanic, ExecuterResult, StaticProgram};
 
 impl super::InstructionExecuter for CO {
     fn execute(
         &self,
         _heap_memory: &mut HeapMemory,
         _program: StaticProgram,
-        _current_stack: &mut Stack,
-        _stack_memory: &mut StackMemory,
-        _addressing_value: &AddressingValues,
+        current_stack: &mut Stack,
+        stack_memory: &mut StackMemory,
+        addressing_value: &AddressingValues,
         _arch: PlatformArchitecture,
     ) -> Result<super::ExecuterResult, super::ExecuterPanic> {
-        todo!()
+        match addressing_value {
+            AddressingValues::Absolute(pos) => stack_memory.set(
+                &current_stack.get_pos(),
+                StaticRawType::from_class(current_stack.calculate_frame_pos(*pos)),
+            ),
+            _ => {
+                return Err(ExecuterPanic {
+                    reason: ThreadPanicReason::IllegalAddressingValue,
+                    code_location: format!("{}:{}", file!(), line!()),
+                })
+            }
+        }
+        Ok(ExecuterResult::Continue)
     }
 }

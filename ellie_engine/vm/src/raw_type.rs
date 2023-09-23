@@ -461,6 +461,16 @@ impl RawType {
         }
     }
 
+    pub fn class(data: Vec<u8>) -> RawType {
+        RawType {
+            type_id: TypeId {
+                id: 11,
+                size: mem::size_of::<usize>(),
+            },
+            data,
+        }
+    }
+
     pub fn generate_string(data: String) -> RawType {
         let chars = data.chars().collect::<Vec<_>>();
         let mut data = Vec::new();
@@ -703,6 +713,18 @@ impl StaticRawType {
         StaticRawType {
             type_id: TypeId {
                 id: 14,
+                size: mem::size_of::<usize>(),
+            },
+            data: bytes,
+        }
+    }
+
+    pub fn from_class(data: usize) -> StaticRawType {
+        let mut bytes = [0; 8];
+        bytes[0..mem::size_of::<usize>()].copy_from_slice(&data.to_le_bytes());
+        StaticRawType {
+            type_id: TypeId {
+                id: 11,
                 size: mem::size_of::<usize>(),
             },
             data: bytes,
