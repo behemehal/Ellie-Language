@@ -532,17 +532,17 @@ fn iterate_deep_type(
                         }
                     }
                     ellie_core::definite::definers::DefinerCollecting::Function(_) => {
-                        let result = parser.deep_search(
+                        let result = deep_search(
+                            parser,
                             page_id,
                             "function".to_owned(),
                             None,
                             vec![],
                             0,
-                            Some(reference_pos),
                         );
                         if result.found {
                             let rtype = match result.found_item {
-                                DeepSearchItems::Class(e) => definers::GenericType {
+                                ProcessedDeepSearchItems::Class(e) => definers::GenericType {
                                     rtype: e.name,
                                     pos: e.pos,
                                     hash: e.hash,
@@ -1799,7 +1799,6 @@ pub fn resolve_deep_type(
 #[derive(Debug, Clone, EnumAsInner)]
 pub enum ProcessedDeepSearchItems {
     Class(ellie_core::definite::items::class::Class),
-
     Variable(ellie_core::definite::items::variable::Variable),
     Function(ellie_core::definite::items::function::Function),
     Enum(ellie_core::definite::items::enum_type::EnumType),
@@ -1815,6 +1814,25 @@ pub enum ProcessedDeepSearchItems {
     //MixUp(Vec<(String, String)>),
     //BrokenPageGraph,
     None,
+}
+
+impl ProcessedDeepSearchItems {
+    pub fn get_pos(&self) -> defs::Cursor {
+        match self {
+            ProcessedDeepSearchItems::Class(e) => e.pos,
+            ProcessedDeepSearchItems::Variable(e) => e.pos,
+            ProcessedDeepSearchItems::Function(e) => e.pos,
+            ProcessedDeepSearchItems::Enum(e) => e.pos,
+            ProcessedDeepSearchItems::NativeFunction(e) => e.pos,
+            ProcessedDeepSearchItems::Getter(e) => e.pos,
+            ProcessedDeepSearchItems::Setter(e) => e.pos,
+            ProcessedDeepSearchItems::ImportReference(e) => e.pos,
+            ProcessedDeepSearchItems::SelfItem(e) => e.pos,
+            ProcessedDeepSearchItems::GenericItem(e) => e.pos,
+            ProcessedDeepSearchItems::FunctionParameter(e) => e.name_pos,
+            _ => defs::Cursor::default(),
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
