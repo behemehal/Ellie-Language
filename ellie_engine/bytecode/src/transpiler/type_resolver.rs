@@ -851,10 +851,6 @@ pub fn resolve_type(
                         Some(vec![last_chain.page_hash]),
                         true,
                     );
-
-                    std::println!("Range:\n{:#?}", assembler.instructions[_pos..].to_vec());
-                    std::println!("found:\n{:#?}", found);
-                    std::println!("found:\n{:#?}", last_pos);
                     is_reference = Some(last_pos);
                     found.unwrap()
                 }
@@ -862,8 +858,7 @@ pub fn resolve_type(
             };
 
             let previous_params_location = assembler.location() + 1;
-            if let Some(reference) = &is_reference {
-                std::println!("STB TO LOCATION: {}", reference);
+            if is_reference.is_some() {
                 assembler
                     .instructions
                     .push(instruction_table::Instructions::STB(Instruction::implicit()));
