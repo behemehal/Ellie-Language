@@ -2,7 +2,9 @@ use alloc::{borrow::ToOwned, vec, vec::Vec};
 #[cfg(feature = "standard_rules")]
 use ellie_core::warning;
 use ellie_core::{defs, error, utils};
+use ellie_tokenizer::syntax::items::definers::DefinerTypes::Generic;
 use ellie_tokenizer::{
+    processors::items::Processors,
     syntax::items::class::Class,
     tokenizer::{ClassPageType, PageType},
 };
@@ -95,13 +97,9 @@ impl super::Processor for Class {
 
             let page = parser.pages.nth(page_idx).unwrap();
 
-            let constructors = self.body.iter().filter_map(|item| match item {
-                ellie_tokenizer::processors::items::Processors::Constructor(e) => Some(e),
-                _ => None,
-            });
+            let mut constructors = self.body.iter().filter_map(|item| item.as_constructor());
 
-            if constructors.clone().count() > 0 {
-                let prime = constructors.clone().next().unwrap();
+            if let Some(prime) = constructors.next() {
                 let duplicate_constructors = constructors
                     .enumerate()
                     .map(
@@ -115,6 +113,48 @@ impl super::Processor for Class {
                     )
                     .filter(|el| el.is_some());
 
+                for generic_defining in &self.generic_definings {
+                    let used_variables = self.body.iter().find_map(|item| match item {
+                        Processors::Variable(variable) => {
+                            if prime
+                                .parameters
+                                .iter()
+                                .filter_map(|x| Some(&x.name))
+                                .collect::<Vec<_>>()
+                                .contains(&&variable.data.name)
+                            {
+                                match &variable.data.rtype.definer_type {
+                                    Generic(generic_item) => {
+                                        if generic_item.rtype == generic_defining.name {
+                                            Some(variable)
+                                        } else {
+                                            None
+                                        }
+                                    }
+                                    _ => None,
+                                }
+                            } else {
+                                None
+                            }
+                        }
+                        _ => None,
+                    });
+
+                    if used_variables.is_none()  {
+                        parser.informations.push(&error::error_list::ERROR_S64.clone().build_with_path(
+                            vec![
+                                error::ErrorBuildField {
+                                    key: "token".to_owned(),
+                                    value: generic_defining.name.clone(),
+                                }
+                            ],
+                            alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                            path.clone(),
+                            generic_defining.pos,
+                        ));
+                    }
+                }
+
                 for constructor in duplicate_constructors {
                     let mut err = error::error_list::ERROR_S30.clone().build_with_path(
                         vec![],
@@ -127,10 +167,24 @@ impl super::Processor for Class {
                     err.semi_assist = true;
                     parser.informations.push(&err);
                 }
+            } else if self.generic_definings.len() > 0 {
+                for generic_defining in &self.generic_definings {
+                    parser.informations.push(
+                        &error::error_list::ERROR_S64.clone().build_with_path(
+                            vec![error::ErrorBuildField {
+                                key: "token".to_owned(),
+                                value: generic_defining.name.clone(),
+                            }],
+                            alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                            path.clone(),
+                            generic_defining.pos,
+                        ),
+                    );
+                }
             }
 
             let non_constants = self.body.iter().filter_map(|item| match item {
-                ellie_tokenizer::processors::items::Processors::Variable(e) => {
+                Processors::Variable(e) => {
                     if !e.data.constant && e.data.has_value {
                         Some(e)
                     } else {
@@ -178,7 +232,7 @@ impl super::Processor for Class {
             let mut items = Vec::new();
 
             for generic in self.generic_definings.clone() {
-                items.push(ellie_tokenizer::processors::items::Processors::GenericItem(
+                items.push(Processors::GenericItem(
                     ellie_tokenizer::syntax::items::generic_item::GenericItem {
                         generic_name: generic.name,
                         pos: generic.pos,
@@ -220,11 +274,9 @@ impl super::Processor for Class {
                 module: false,
             };
 
-            inner.items.push(
-                ellie_tokenizer::processors::items::Processors::ClassInstance(
-                    inner.generate_instance(),
-                ),
-            );
+            inner
+                .items
+                .push(Processors::ClassInstance(inner.generate_instance()));
 
             parser.pages.push_page(inner);
             let processed_page = parser.processed_pages.nth_mut(processed_page_idx).unwrap();

@@ -80,12 +80,14 @@ impl crate::processors::Processor for class::Class {
                 && generic_len > 0
                 && self.generic_definings[generic_len - 1].name != ""
             {
+                self.generic_definings.last_mut().unwrap().pos.range_end = cursor.clone().pop_char(1);
                 self.generic_definings
                     .push(class::GenericDefining::default());
             } else if letter_char == '>'
                 && generic_len > 0
                 && self.generic_definings[generic_len - 1].name != ""
             {
+                self.generic_definings.last_mut().unwrap().pos.range_end = cursor.clone().pop_char(1);
                 self.generics_collected = true;
             } else if letter_char != ' ' {
                 errors.push(error::error_list::ERROR_S1.clone().build(
