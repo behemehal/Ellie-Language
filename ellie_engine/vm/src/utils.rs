@@ -39,7 +39,19 @@ pub enum VmNativeAnswer {
 pub struct ThreadInfo {
     pub id: usize,
     pub stack_id: usize,
+    pub frame_pos: usize,
+    pub pos: usize,
     pub stack_caller: Option<usize>,
+}
+
+impl ThreadInfo {
+    pub fn get_real_pos(&self) -> usize {
+        self.frame_pos + self.pos
+    }
+
+    pub fn get_real_pos_with_location(&self, pos: usize) -> usize {
+        self.frame_pos + pos
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -93,7 +105,6 @@ pub enum ThreadPanicReason {
     /// Usally arrays are created with first index of it as it's entries size
     /// If array data doesnt have the entry_size or entry_size is zero or less this panic will be triggered
     ArraySizeCorruption,
-
     /// Reference error, this could be triggered when the program trying to access a reference that does not exists
     /// * location: Heap or Stack location of the data that is trying to be accessed
     ReferenceError(usize),

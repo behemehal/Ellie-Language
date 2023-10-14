@@ -116,7 +116,7 @@ fn main() {
             }
 
             let target_path = {
-                let path = Path::new(matches.value_of("target").unwrap().clone());
+                let path = Path::new(matches.value_of("target").unwrap());
                 if path.exists() {
                     matches.value_of("target").unwrap().to_string()
                 } else {
@@ -262,7 +262,7 @@ fn main() {
             };
 
             let target_path = {
-                let path = Path::new(matches.value_of("target").unwrap().clone());
+                let path = Path::new(matches.value_of("target").unwrap());
                 if path.exists() {
                     if path.is_file() {
                         matches.value_of("target").unwrap().to_string()
@@ -285,7 +285,7 @@ fn main() {
             };
 
             let output_path = if let Some(output) = matches.value_of("outputPath") {
-                let path = Path::new(output.clone());
+                let path = Path::new(output);
 
                 //Check the output path is exists or check path is file and parent directory exists
                 if path.exists()
@@ -359,7 +359,7 @@ fn main() {
                                 ) {
                                     Ok(module) => {
                                         if code_path.is_none()
-                                            || Path::new(&code_path.clone().unwrap()).is_file()
+                                            || Path::new(&code_path.clone().unwrap()).is_dir()
                                         {
                                             let current_ellie_version = Version::build_from_string(
                                                 &engine_constants::ELLIE_ENGINE_VERSION.to_owned(),
@@ -648,7 +648,7 @@ fn main() {
         }
         Some(("viewModule", matches)) => {
             let target_path = {
-                let path = Path::new(matches.value_of("target").unwrap().clone());
+                let path = Path::new(matches.value_of("target").unwrap());
                 if path.exists() {
                     matches.value_of("target").unwrap().to_string()
                 } else {

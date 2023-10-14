@@ -562,7 +562,7 @@ pub fn compile(
                             let mut assembler = Assembler::new(
                                 compile_output.module,
                                 PlatformAttributes {
-                                    architecture: PlatformArchitecture::B64, //64 Bit Limit
+                                    architecture: cli_settings.compiler_settings.byte_code_architecture, //64 Bit Limit
                                     memory_size: 512000,                     //512kb memory limit
                                 },
                             );
@@ -775,7 +775,7 @@ pub fn compile(
                                                 Err(err) => {
                                                     exit_messages.lock().unwrap().push(Box::new(move || {
                                                     println!(
-                                                        "{}[!]{}: Failed to read module targeted code director y: {}{}{} - [{}]",
+                                                        "{}[!]{}: Failed to read module targeted code directory: {}{}{} - [{}]",
                                                         cli_color.color(Colors::Red),
                                                         cli_color.color(Colors::Reset),
                                                         cli_color.color(Colors::Yellow),
