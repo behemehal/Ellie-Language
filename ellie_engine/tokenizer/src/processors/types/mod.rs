@@ -150,6 +150,15 @@ impl Processors {
             definite::types::Types::AsKeyword(e) => {
                 Processors::AsKeyword(as_keyword::AsKeywordCollector::default().from_definite(e))
             }
+            definite::types::Types::Null => {
+                Processors::Variable(variable_type::VariableTypeCollector {
+                    data: variable_type::VariableType {
+                        value: "null".to_string(),
+                        ..Default::default()
+                    },
+                    complete: true,
+                })
+            }
             _ => panic!("NOT SUPPORTED, {:?}", from),
         }
     }

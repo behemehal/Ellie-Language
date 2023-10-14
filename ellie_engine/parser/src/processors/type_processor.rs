@@ -242,7 +242,7 @@ pub fn process(
                 Err(errors)
             }
         }
-        Processors::Negative(_) => todo!("negative type not yet implemented"),
+        Processors::Negative(_) => Ok(types::Types::Bool(types::bool::BoolType { value: true })),
         Processors::Array(array_type) => {
             let mut collective = vec![];
             for i in array_type.data.collective {
@@ -904,8 +904,9 @@ pub fn process(
                             }
                             ellie_core::definite::definers::DefinerCollecting::Dynamic => todo!(),
                             DefinerCollecting::EnumField(_) => todo!(),
-                            DefinerCollecting::ClassInstance(class_instance) => {
+                            DefinerCollecting::ClassInstance(_) => {
                                 todo!("TO BE REMOVED");
+                                /*
                                 let mut attributes = Vec::new();
                                 for attribute in &class_instance.attributes {
                                     let page = parser.find_processed_page(attribute.page).unwrap();
@@ -1026,6 +1027,7 @@ pub fn process(
                                     }
                                 }
                                 Ok(attributes)
+                                */
                             }
                         }
                     }
