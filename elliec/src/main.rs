@@ -244,22 +244,27 @@ fn main() {
                 std::process::exit(1);
             });
 
-            let output_type = match matches.value_of("outputType").unwrap() {
-                "bin" => OutputTypesSelector::Bin,
-                "json" => OutputTypesSelector::Json,
-                "byteCode" => OutputTypesSelector::ByteCode,
-                "byteCodeAsm" => OutputTypesSelector::ByteCodeAsm,
-                "depA" => OutputTypesSelector::DependencyAnalysis,
-                "nop" => OutputTypesSelector::Nop,
-                _ => {
-                    println!(
-                        "{}Error:{} Given output type does not exist",
-                        cli_color.color(Colors::Red),
-                        cli_color.color(Colors::Reset)
-                    );
-                    std::process::exit(1);
-                }
-            };
+            let output_types = matches
+                .values_of("outputType")
+                .unwrap()
+                .into_iter()
+                .map(|e| match e {
+                    "bin" => OutputTypesSelector::Bin,
+                    "json" => OutputTypesSelector::Json,
+                    "byteCode" => OutputTypesSelector::ByteCode,
+                    "byteCodeAsm" => OutputTypesSelector::ByteCodeAsm,
+                    "depA" => OutputTypesSelector::DependencyAnalysis,
+                    "nop" => OutputTypesSelector::Nop,
+                    _ => {
+                        println!(
+                            "{}Error:{} Given output type does not exist",
+                            cli_color.color(Colors::Red),
+                            cli_color.color(Colors::Reset)
+                        );
+                        std::process::exit(1);
+                    }
+                })
+                .collect::<Vec<_>>();
 
             let target_path = {
                 let path = Path::new(matches.value_of("target").unwrap());
@@ -524,7 +529,7 @@ fn main() {
                         .unwrap()
                         .to_string(),
                 },
-                output_type,
+                output_types,
                 performance_info: matches.is_present("performanceInfo"),
                 show_debug_lines: matches.is_present("showDebugLines"),
                 warnings: !matches.is_present("disableWarnings"),

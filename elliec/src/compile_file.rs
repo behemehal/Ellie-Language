@@ -28,7 +28,7 @@ use std::sync::Mutex;
 #[derive(Clone)]
 pub struct CliCompilerSettings {
     pub json_log: bool,
-    pub output_type: OutputTypesSelector,
+    pub output_types: Vec<OutputTypesSelector>,
     pub warnings: bool,
     pub performance_info: bool,
     pub show_debug_lines: bool,
@@ -114,7 +114,9 @@ pub fn compile(
     };
 
     if !cli_settings.exclude_std {
-        program_repository.used_modules.push("ellieCore".to_string());
+        program_repository
+            .used_modules
+            .push("ellieCore".to_string());
     }
 
     impl ProgramRepository for Repository {
@@ -182,14 +184,12 @@ pub fn compile(
                             path: requested_path.clone(),
                             ..Default::default()
                         }
-                    },
-                    None => {
-                        ResolvedImport {
-                            found: false,
-                            resolve_error: "Module not found".to_string(),
-                            ..Default::default()
-                        }
                     }
+                    None => ResolvedImport {
+                        found: false,
+                        resolve_error: "Module not found".to_string(),
+                        ..Default::default()
+                    },
                 }
             } else {
                 match parse_module_import(&current_path, &requested_path) {
@@ -403,20 +403,6 @@ pub fn compile(
                         }
                     }
 
-                    let output_path = &get_output_path(
-                        target_path,
-                        output_path,
-                        cli_settings.output_type.clone(),
-                    );
-
-                    let dbg_output_path = output_path.file_name().unwrap().to_str().unwrap();
-
-                    let dbg_output_path = &get_output_path(
-                        target_path,
-                        Path::new(&output_path.to_str().unwrap().replace(dbg_output_path, "")),
-                        OutputTypesSelector::ByteCodeDebug,
-                    );
-
                     let mut module_maps = vec![ModuleMap {
                         module_name: compile_output.module.name.clone(),
                         module_hash: compile_output.module.hash,
@@ -443,275 +429,300 @@ pub fn compile(
                             .collect::<Vec<_>>(),
                     );
 
-                    match cli_settings.output_type {
-                        OutputTypesSelector::Bin => {
-                            let config = bincode::options()
-                                .with_big_endian()
-                                .with_fixint_encoding()
-                                .with_limit(
-                                    match cli_settings.compiler_settings.byte_code_architecture {
-                                        PlatformArchitecture::B16 => 65536,
-                                        PlatformArchitecture::B32 => 2147483648,
-                                        PlatformArchitecture::B64 => 9223372036854775808,
-                                    },
-                                );
-                            let bytes = config.serialize(&compile_output.module).unwrap();
-                            if let Err(write_error) = fs::write(output_path, bytes) {
-                                if cli_settings.json_log {
-                                    let mut output = outputs::WRITE_FILE_ERROR.clone();
+                    for output_type in &cli_settings.output_types {
+                        let output_path =
+                            &get_output_path(target_path, output_path, output_type.clone());
 
-                                    output.extra.push(outputs::CliOuputExtraData {
-                                        key: "path".to_string(),
-                                        value: format!("{:?}", write_error),
-                                    });
-                                    println!("{}", serde_json::to_string(&output).unwrap())
-                                } else {
-                                    println!(
-                                        "\nFailed to write output. [{}{:?}{}]",
-                                        cli_color.color(Colors::Red),
-                                        write_error,
-                                        cli_color.color(Colors::Reset),
-                                    );
-                                }
-                            } else if cli_settings.json_log {
-                                let mut output = outputs::WRITE_BINARY_SUCCEDED.clone();
-                                output.extra.push(outputs::CliOuputExtraData {
-                                    key: 0,
-                                    value: output_path
-                                        .absolutize()
-                                        .unwrap()
-                                        .to_str()
-                                        .unwrap()
-                                        .to_owned(),
-                                });
-                                println!("{}", serde_json::to_string(&output).unwrap())
-                            } else {
-                                println!(
-                                    "{}[!]{}: Binary output written to {}{}{}",
-                                    cli_color.color(Colors::Green),
-                                    cli_color.color(Colors::Reset),
-                                    cli_color.color(Colors::Yellow),
-                                    output_path.absolutize().unwrap().to_str().unwrap(),
-                                    cli_color.color(Colors::Reset)
-                                );
-                            }
-                        }
-                        OutputTypesSelector::DependencyAnalysis => {
-                            println!(
-                                "{}[Error]{}: Dependency analysis output is not supported yet.",
-                                cli_color.color(Colors::Red),
-                                cli_color.color(Colors::Reset),
-                            );
-                            std::process::exit(1);
-                        }
-                        OutputTypesSelector::Json => {
-                            let json = serde_json::to_string(&compile_output.module).unwrap();
-                            if let Err(write_error) = fs::write(output_path, json) {
-                                if cli_settings.json_log {
-                                    let mut output = outputs::WRITE_FILE_ERROR.clone();
-                                    output.extra.push(outputs::CliOuputExtraData {
-                                        key: "path".to_string(),
-                                        value: format!("{:?}", write_error),
-                                    });
+                        let dbg_output_path = output_path.file_name().unwrap().to_str().unwrap();
 
-                                    println!("{}", serde_json::to_string(&output).unwrap())
-                                } else {
-                                    println!(
-                                        "\nFailed to write output. [{}{:?}{}]",
-                                        cli_color.color(Colors::Red),
-                                        write_error,
-                                        cli_color.color(Colors::Reset),
+                        let dbg_output_path = &get_output_path(
+                            target_path,
+                            Path::new(&output_path.to_str().unwrap().replace(dbg_output_path, "")),
+                            OutputTypesSelector::ByteCodeDebug,
+                        );
+
+                        match output_type {
+                            OutputTypesSelector::Bin => {
+                                let config = bincode::options()
+                                    .with_big_endian()
+                                    .with_fixint_encoding()
+                                    .with_limit(
+                                        match cli_settings.compiler_settings.byte_code_architecture
+                                        {
+                                            PlatformArchitecture::B16 => 65536,
+                                            PlatformArchitecture::B32 => 2147483648,
+                                            PlatformArchitecture::B64 => 9223372036854775808,
+                                        },
                                     );
-                                }
-                            } else if cli_settings.json_log {
-                                let mut output = outputs::WRITE_JSON_SUCCEDED.clone();
-                                output.extra.push(outputs::CliOuputExtraData {
-                                    key: 0,
-                                    value: output_path
-                                        .absolutize()
-                                        .unwrap()
-                                        .to_str()
-                                        .unwrap()
-                                        .to_owned(),
-                                });
-                                println!("{}", serde_json::to_string(&output).unwrap())
-                            } else {
-                                println!(
-                                    "{}[!]{}: JSON output written to {}{}{}",
-                                    cli_color.color(Colors::Green),
-                                    cli_color.color(Colors::Reset),
-                                    cli_color.color(Colors::Yellow),
-                                    output_path.absolutize().unwrap().to_str().unwrap(),
-                                    cli_color.color(Colors::Reset),
-                                );
-                            }
-                        }
-                        OutputTypesSelector::ByteCode => {
-                            if !cli_settings.json_log {
-                                println!(
-                                    "{}[?]{}: ByteCode compiling to {} bit architecture",
-                                    cli_color.color(Colors::Green),
-                                    cli_color.color(Colors::Reset),
-                                    match cli_settings.compiler_settings.byte_code_architecture {
-                                        PlatformArchitecture::B16 => "16",
-                                        PlatformArchitecture::B32 => "32",
-                                        PlatformArchitecture::B64 => "64",
-                                    }
-                                );
-                            }
-                            let mut assembler = Assembler::new(
-                                compile_output.module,
-                                PlatformAttributes {
-                                    architecture: cli_settings.compiler_settings.byte_code_architecture, //64 Bit Limit
-                                    memory_size: 512000,                     //512kb memory limit
-                                },
-                            );
-                            let assembler_result = assembler.assemble(module_maps);
-                            let mut output_file = File::create(output_path).unwrap_or_else(|err| {
-                                if cli_settings.json_log {
-                                    let mut output = outputs::WRITE_FILE_ERROR.clone();
-                                    output.extra.push(outputs::CliOuputExtraData {
-                                        key: "path".to_string(),
-                                        value: format!("{:?}", err),
-                                    });
-                                    println!("{}", serde_json::to_string(&output).unwrap())
-                                } else {
-                                    println!(
-                                        "\nFailed to create file {}{}{}. [{}{:?}{}]",
-                                        cli_color.color(Colors::Cyan),
-                                        output_path.absolutize().unwrap().to_str().unwrap(),
-                                        cli_color.color(Colors::Reset),
-                                        cli_color.color(Colors::Red),
-                                        err,
-                                        cli_color.color(Colors::Reset),
-                                    );
-                                }
-                                std::process::exit(1);
-                            });
-                            let mut dbg_file =
-                                File::create(dbg_output_path).unwrap_or_else(|err| {
+                                let bytes = config.serialize(&compile_output.module).unwrap();
+                                if let Err(write_error) = fs::write(output_path, bytes) {
                                     if cli_settings.json_log {
                                         let mut output = outputs::WRITE_FILE_ERROR.clone();
+
                                         output.extra.push(outputs::CliOuputExtraData {
                                             key: "path".to_string(),
-                                            value: format!("{:?}", err),
+                                            value: format!("{:?}", write_error),
                                         });
                                         println!("{}", serde_json::to_string(&output).unwrap())
                                     } else {
                                         println!(
-                                            "\nFailed to create file {}{}{}. [{}{:?}{}]",
-                                            cli_color.color(Colors::Cyan),
-                                            dbg_output_path.absolutize().unwrap().to_str().unwrap(),
-                                            cli_color.color(Colors::Reset),
+                                            "\nFailed to write output. [{}{:?}{}]",
                                             cli_color.color(Colors::Red),
-                                            err,
+                                            write_error,
                                             cli_color.color(Colors::Reset),
                                         );
                                     }
-                                    std::process::exit(1);
-                                });
-                            assembler_result.render_binary(&mut output_file, &mut dbg_file);
-                            if cli_settings.json_log {
-                                let mut output = outputs::WRITE_BYTE_CODE_SUCCEDED.clone();
-                                output.extra.push(outputs::CliOuputExtraData {
-                                    key: 0,
-                                    value: output_path
-                                        .absolutize()
-                                        .unwrap()
-                                        .to_str()
-                                        .unwrap()
-                                        .to_owned(),
-                                });
-                                println!("{}", serde_json::to_string(&output).unwrap())
-                            } else {
-                                println!(
-                                    "{}[!]{}: ByteCode output written to {}{}{}",
-                                    cli_color.color(Colors::Green),
-                                    cli_color.color(Colors::Reset),
-                                    cli_color.color(Colors::Yellow),
-                                    output_path.absolutize().unwrap().to_str().unwrap(),
-                                    cli_color.color(Colors::Reset),
-                                );
-                                println!(
-                                    "{}[!]{}: ByteCode debug file written to {}{}{}",
-                                    cli_color.color(Colors::Green),
-                                    cli_color.color(Colors::Reset),
-                                    cli_color.color(Colors::Yellow),
-                                    dbg_output_path.absolutize().unwrap().to_str().unwrap(),
-                                    cli_color.color(Colors::Reset),
-                                );
-                            }
-                        }
-                        OutputTypesSelector::ByteCodeAsm => {
-                            if !cli_settings.json_log {
-                                println!(
-                                    "{}[?]{}: ByteCode compiling to {} bit architecture",
-                                    cli_color.color(Colors::Green),
-                                    cli_color.color(Colors::Reset),
-                                    match cli_settings.compiler_settings.byte_code_architecture {
-                                        PlatformArchitecture::B16 => "16",
-                                        PlatformArchitecture::B32 => "32",
-                                        PlatformArchitecture::B64 => "64",
-                                    }
-                                );
-                            }
-                            let mut assembler = Assembler::new(
-                                compile_output.module,
-                                PlatformAttributes {
-                                    architecture: PlatformArchitecture::B64, //64 Bit Limit
-                                    memory_size: 512000,                     //512kb memory limit
-                                },
-                            );
-                            let assembler_result = assembler.assemble(module_maps);
-                            let mut output_file = File::create(output_path).unwrap_or_else(|err| {
-                                if cli_settings.json_log {
-                                    let mut output = outputs::WRITE_FILE_ERROR.clone();
+                                } else if cli_settings.json_log {
+                                    let mut output = outputs::WRITE_BINARY_SUCCEDED.clone();
                                     output.extra.push(outputs::CliOuputExtraData {
-                                        key: "path".to_string(),
-                                        value: format!("{:?}", err),
+                                        key: 0,
+                                        value: output_path
+                                            .absolutize()
+                                            .unwrap()
+                                            .to_str()
+                                            .unwrap()
+                                            .to_owned(),
                                     });
                                     println!("{}", serde_json::to_string(&output).unwrap())
                                 } else {
                                     println!(
-                                        "\nFailed to create file {}{}{}. [{}{:?}{}]",
-                                        cli_color.color(Colors::Cyan),
-                                        output_path.absolutize().unwrap().to_str().unwrap(),
+                                        "{}[!]{}: Binary output written to {}{}{}\n",
+                                        cli_color.color(Colors::Green),
                                         cli_color.color(Colors::Reset),
-                                        cli_color.color(Colors::Red),
-                                        err,
+                                        cli_color.color(Colors::Yellow),
+                                        output_path.absolutize().unwrap().to_str().unwrap(),
+                                        cli_color.color(Colors::Reset)
+                                    );
+                                }
+                            }
+                            OutputTypesSelector::DependencyAnalysis => {
+                                println!(
+                                    "{}[Error]{}: Dependency analysis output is not supported yet.",
+                                    cli_color.color(Colors::Red),
+                                    cli_color.color(Colors::Reset),
+                                );
+                                std::process::exit(1);
+                            }
+                            OutputTypesSelector::Json => {
+                                let json = serde_json::to_string(&compile_output.module).unwrap();
+                                if let Err(write_error) = fs::write(output_path, json) {
+                                    if cli_settings.json_log {
+                                        let mut output = outputs::WRITE_FILE_ERROR.clone();
+                                        output.extra.push(outputs::CliOuputExtraData {
+                                            key: "path".to_string(),
+                                            value: format!("{:?}", write_error),
+                                        });
+
+                                        println!("{}", serde_json::to_string(&output).unwrap())
+                                    } else {
+                                        println!(
+                                            "\nFailed to write output. [{}{:?}{}]",
+                                            cli_color.color(Colors::Red),
+                                            write_error,
+                                            cli_color.color(Colors::Reset),
+                                        );
+                                    }
+                                } else if cli_settings.json_log {
+                                    let mut output = outputs::WRITE_JSON_SUCCEDED.clone();
+                                    output.extra.push(outputs::CliOuputExtraData {
+                                        key: 0,
+                                        value: output_path
+                                            .absolutize()
+                                            .unwrap()
+                                            .to_str()
+                                            .unwrap()
+                                            .to_owned(),
+                                    });
+                                    println!("{}", serde_json::to_string(&output).unwrap())
+                                } else {
+                                    println!(
+                                        "{}[!]{}: JSON output written to {}{}{}\n",
+                                        cli_color.color(Colors::Green),
+                                        cli_color.color(Colors::Reset),
+                                        cli_color.color(Colors::Yellow),
+                                        output_path.absolutize().unwrap().to_str().unwrap(),
                                         cli_color.color(Colors::Reset),
                                     );
                                 }
-                                std::process::exit(1);
-                            });
-                            assembler_result.alternate_render(&mut output_file);
-
-                            if cli_settings.json_log {
-                                let mut output = outputs::WRITE_BYTE_CODE_ASM_SUCCEDED.clone();
-                                output.extra.push(outputs::CliOuputExtraData {
-                                    key: 0,
-                                    value: output_path
-                                        .absolutize()
-                                        .unwrap()
-                                        .to_str()
-                                        .unwrap()
-                                        .to_owned(),
-                                });
-                                println!("{}", serde_json::to_string(&output).unwrap())
-                            } else {
-                                println!(
-                                    "{}[!]{}: ByteCodeAsm output written to {}{}{}",
-                                    cli_color.color(Colors::Green),
-                                    cli_color.color(Colors::Reset),
-                                    cli_color.color(Colors::Yellow),
-                                    output_path.absolutize().unwrap().to_str().unwrap(),
-                                    cli_color.color(Colors::Reset),
-                                );
                             }
+                            OutputTypesSelector::ByteCode => {
+                                if !cli_settings.json_log {
+                                    println!(
+                                        "{}[?]{}: ByteCode compiling to {} bit architecture",
+                                        cli_color.color(Colors::Green),
+                                        cli_color.color(Colors::Reset),
+                                        match cli_settings.compiler_settings.byte_code_architecture
+                                        {
+                                            PlatformArchitecture::B16 => "16",
+                                            PlatformArchitecture::B32 => "32",
+                                            PlatformArchitecture::B64 => "64",
+                                        }
+                                    );
+                                }
+                                let mut assembler = Assembler::new(
+                                    compile_output.module.clone(),
+                                    PlatformAttributes {
+                                        architecture: cli_settings
+                                            .compiler_settings
+                                            .byte_code_architecture, //64 Bit Limit
+                                        memory_size: 512000, //512kb memory limit
+                                    },
+                                );
+                                let assembler_result = assembler.assemble(module_maps.clone());
+                                let mut output_file =
+                                    File::create(output_path).unwrap_or_else(|err| {
+                                        if cli_settings.json_log {
+                                            let mut output = outputs::WRITE_FILE_ERROR.clone();
+                                            output.extra.push(outputs::CliOuputExtraData {
+                                                key: "path".to_string(),
+                                                value: format!("{:?}", err),
+                                            });
+                                            println!("{}", serde_json::to_string(&output).unwrap())
+                                        } else {
+                                            println!(
+                                                "\nFailed to create file {}{}{}. [{}{:?}{}]",
+                                                cli_color.color(Colors::Cyan),
+                                                output_path.absolutize().unwrap().to_str().unwrap(),
+                                                cli_color.color(Colors::Reset),
+                                                cli_color.color(Colors::Red),
+                                                err,
+                                                cli_color.color(Colors::Reset),
+                                            );
+                                        }
+                                        std::process::exit(1);
+                                    });
+                                let mut dbg_file =
+                                    File::create(dbg_output_path).unwrap_or_else(|err| {
+                                        if cli_settings.json_log {
+                                            let mut output = outputs::WRITE_FILE_ERROR.clone();
+                                            output.extra.push(outputs::CliOuputExtraData {
+                                                key: "path".to_string(),
+                                                value: format!("{:?}", err),
+                                            });
+                                            println!("{}", serde_json::to_string(&output).unwrap())
+                                        } else {
+                                            println!(
+                                                "\nFailed to create file {}{}{}. [{}{:?}{}]",
+                                                cli_color.color(Colors::Cyan),
+                                                dbg_output_path
+                                                    .absolutize()
+                                                    .unwrap()
+                                                    .to_str()
+                                                    .unwrap(),
+                                                cli_color.color(Colors::Reset),
+                                                cli_color.color(Colors::Red),
+                                                err,
+                                                cli_color.color(Colors::Reset),
+                                            );
+                                        }
+                                        std::process::exit(1);
+                                    });
+                                assembler_result.render_binary(&mut output_file, &mut dbg_file);
+                                if cli_settings.json_log {
+                                    let mut output = outputs::WRITE_BYTE_CODE_SUCCEDED.clone();
+                                    output.extra.push(outputs::CliOuputExtraData {
+                                        key: 0,
+                                        value: output_path
+                                            .absolutize()
+                                            .unwrap()
+                                            .to_str()
+                                            .unwrap()
+                                            .to_owned(),
+                                    });
+                                    println!("{}", serde_json::to_string(&output).unwrap())
+                                } else {
+                                    println!(
+                                        "{}[!]{}: ByteCode output written to {}{}{}",
+                                        cli_color.color(Colors::Green),
+                                        cli_color.color(Colors::Reset),
+                                        cli_color.color(Colors::Yellow),
+                                        output_path.absolutize().unwrap().to_str().unwrap(),
+                                        cli_color.color(Colors::Reset),
+                                    );
+                                    println!(
+                                        "{}[!]{}: ByteCode debug file written to {}{}{}\n",
+                                        cli_color.color(Colors::Green),
+                                        cli_color.color(Colors::Reset),
+                                        cli_color.color(Colors::Yellow),
+                                        dbg_output_path.absolutize().unwrap().to_str().unwrap(),
+                                        cli_color.color(Colors::Reset),
+                                    );
+                                }
+                            }
+                            OutputTypesSelector::ByteCodeAsm => {
+                                if !cli_settings.json_log {
+                                    println!(
+                                        "{}[?]{}: ByteCode compiling to {} bit architecture",
+                                        cli_color.color(Colors::Green),
+                                        cli_color.color(Colors::Reset),
+                                        match cli_settings.compiler_settings.byte_code_architecture
+                                        {
+                                            PlatformArchitecture::B16 => "16",
+                                            PlatformArchitecture::B32 => "32",
+                                            PlatformArchitecture::B64 => "64",
+                                        }
+                                    );
+                                }
+                                let mut assembler = Assembler::new(
+                                    compile_output.module.clone(),
+                                    PlatformAttributes {
+                                        architecture: PlatformArchitecture::B64, //64 Bit Limit
+                                        memory_size: 512000, //512kb memory limit
+                                    },
+                                );
+                                let assembler_result = assembler.assemble(module_maps.clone());
+                                let mut output_file =
+                                    File::create(output_path).unwrap_or_else(|err| {
+                                        if cli_settings.json_log {
+                                            let mut output = outputs::WRITE_FILE_ERROR.clone();
+                                            output.extra.push(outputs::CliOuputExtraData {
+                                                key: "path".to_string(),
+                                                value: format!("{:?}", err),
+                                            });
+                                            println!("{}", serde_json::to_string(&output).unwrap())
+                                        } else {
+                                            println!(
+                                                "\nFailed to create file {}{}{}. [{}{:?}{}]",
+                                                cli_color.color(Colors::Cyan),
+                                                output_path.absolutize().unwrap().to_str().unwrap(),
+                                                cli_color.color(Colors::Reset),
+                                                cli_color.color(Colors::Red),
+                                                err,
+                                                cli_color.color(Colors::Reset),
+                                            );
+                                        }
+                                        std::process::exit(1);
+                                    });
+                                assembler_result.alternate_render(&mut output_file);
+
+                                if cli_settings.json_log {
+                                    let mut output = outputs::WRITE_BYTE_CODE_ASM_SUCCEDED.clone();
+                                    output.extra.push(outputs::CliOuputExtraData {
+                                        key: 0,
+                                        value: output_path
+                                            .absolutize()
+                                            .unwrap()
+                                            .to_str()
+                                            .unwrap()
+                                            .to_owned(),
+                                    });
+                                    println!("{}", serde_json::to_string(&output).unwrap())
+                                } else {
+                                    println!(
+                                        "{}[!]{}: ByteCodeAsm output written to {}{}{}\n",
+                                        cli_color.color(Colors::Green),
+                                        cli_color.color(Colors::Reset),
+                                        cli_color.color(Colors::Yellow),
+                                        output_path.absolutize().unwrap().to_str().unwrap(),
+                                        cli_color.color(Colors::Reset),
+                                    );
+                                }
+                            }
+                            OutputTypesSelector::ByteCodeDebug => unreachable!(),
+                            OutputTypesSelector::Nop => (),
                         }
-                        OutputTypesSelector::ByteCodeDebug => unreachable!(),
-                        OutputTypesSelector::Nop => (),
                     }
+
                     if !cli_settings.json_log {
                         for message in exit_messages.lock().unwrap().iter() {
                             (message)();
