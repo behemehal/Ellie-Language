@@ -622,6 +622,18 @@ impl StaticRawType {
         }
     }
 
+    pub fn from_uint(data: usize) -> StaticRawType {
+        let mut bytes = [0; 8];
+        bytes[0..mem::size_of::<usize>()].copy_from_slice(&data.to_le_bytes());
+        StaticRawType {
+            type_id: TypeId {
+                id: 1,
+                size: mem::size_of::<usize>(),
+            },
+            data: bytes,
+        }
+    }
+
     pub fn from_float(data: f64) -> StaticRawType {
         let mut bytes = [0; 8];
         bytes[0..mem::size_of::<f64>()].copy_from_slice(&data.to_le_bytes());
@@ -683,6 +695,18 @@ impl StaticRawType {
         }
     }
 
+    pub fn from_class(data: usize) -> StaticRawType {
+        let mut bytes = [0; 8];
+        bytes[0..mem::size_of::<usize>()].copy_from_slice(&data.to_le_bytes());
+        StaticRawType {
+            type_id: TypeId {
+                id: 11,
+                size: mem::size_of::<usize>(),
+            },
+            data: bytes,
+        }
+    }
+
     pub fn from_function(data: usize) -> StaticRawType {
         let mut bytes = [0; 8];
         bytes[0..mem::size_of::<usize>()].copy_from_slice(&data.to_le_bytes());
@@ -719,12 +743,12 @@ impl StaticRawType {
         }
     }
 
-    pub fn from_class(data: usize) -> StaticRawType {
+    pub fn from_static_array(data: usize) -> StaticRawType {
         let mut bytes = [0; 8];
         bytes[0..mem::size_of::<usize>()].copy_from_slice(&data.to_le_bytes());
         StaticRawType {
             type_id: TypeId {
-                id: 11,
+                id: 15,
                 size: mem::size_of::<usize>(),
             },
             data: bytes,

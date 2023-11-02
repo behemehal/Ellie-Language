@@ -78,8 +78,8 @@ pub enum ThreadPanicReason {
     InvalidRegisterAccess(u8),
     /// This panic triggered when the program trying to access a array index with wrong value
     IndexAccessViolation(u8),
-    /// This panic triggered when the program trying to access a array index with out of bounds value
-    IndexOutOfBounds(usize),
+    /// This panic triggered when the program trying to access a array index with out of bounds value (index, size)
+    IndexOutOfBounds(usize, usize),
     /// This panic triggered when the program trying to write a value to array with unexpected size
     /// * first: expected size
     /// * second: given size

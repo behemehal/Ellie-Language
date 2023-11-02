@@ -105,7 +105,10 @@ impl super::InstructionExecuter for LDY {
                                             array_data.chunks(array_entry_size).collect::<Vec<_>>();
                                         if index > array_entries.len() {
                                             return Err(ExecuterPanic {
-                                                reason: ThreadPanicReason::IndexOutOfBounds(index),
+                                                reason: ThreadPanicReason::IndexOutOfBounds(
+                                                    index,
+                                                    array_entry_size,
+                                                ),
                                                 code_location: format!("{}:{}", file!(), line!()),
                                             });
                                         } else {
@@ -144,9 +147,9 @@ impl super::InstructionExecuter for LDY {
                                 }
                             };
 
-                            if index > array_size - 1 {
+                            if array_size == 0 || index > array_size - 1 {
                                 return Err(ExecuterPanic {
-                                    reason: ThreadPanicReason::IndexOutOfBounds(index),
+                                    reason: ThreadPanicReason::IndexOutOfBounds(index, array_size),
                                     code_location: format!("{}:{}", file!(), line!()),
                                 });
                             } else {
@@ -191,7 +194,9 @@ impl super::InstructionExecuter for LDY {
                                     let array_size = raw_type.type_id.size;
                                     if *index < array_size && *index > array_size {
                                         return Err(ExecuterPanic {
-                                            reason: ThreadPanicReason::IndexOutOfBounds(*index),
+                                            reason: ThreadPanicReason::IndexOutOfBounds(
+                                                *index, array_size,
+                                            ),
                                             code_location: format!("{}:{}", file!(), line!()),
                                         });
                                     } else {
@@ -229,9 +234,11 @@ impl super::InstructionExecuter for LDY {
                                         } else {
                                             (raw_type.data.len() - platform_size) / array_entry_len
                                         };
-                                        if index > &(array_size - 1) {
+                                        if array_size == 0 || *index > array_size - 1 {
                                             return Err(ExecuterPanic {
-                                                reason: ThreadPanicReason::IndexOutOfBounds(*index),
+                                                reason: ThreadPanicReason::IndexOutOfBounds(
+                                                    *index, array_size,
+                                                ),
                                                 code_location: format!("{}:{}", file!(), line!()),
                                             });
                                         } else {
@@ -282,9 +289,9 @@ impl super::InstructionExecuter for LDY {
                             }
                         };
 
-                        if index > &array_size {
+                        if *index > array_size {
                             return Err(ExecuterPanic {
-                                reason: ThreadPanicReason::IndexOutOfBounds(*index),
+                                reason: ThreadPanicReason::IndexOutOfBounds(*index, array_size),
                                 code_location: format!("{}:{}", file!(), line!()),
                             });
                         } else {
