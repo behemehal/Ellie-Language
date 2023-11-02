@@ -223,7 +223,7 @@ fn main() {
                 None => None,
             };
 
-            let path = Path::new(matches.value_of("target").unwrap().clone());
+            let path = Path::new(matches.value_of("target").unwrap());
             let program = if path.exists() {
                 if path.is_file() {
                     match File::open(path) {

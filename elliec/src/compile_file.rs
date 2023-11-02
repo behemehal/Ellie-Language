@@ -564,7 +564,7 @@ pub fn compile(
                                     PlatformAttributes {
                                         architecture: cli_settings
                                             .compiler_settings
-                                            .byte_code_architecture, //64 Bit Limit
+                                            .byte_code_architecture,
                                         memory_size: 512000, //512kb memory limit
                                     },
                                 );
@@ -666,7 +666,9 @@ pub fn compile(
                                 let mut assembler = Assembler::new(
                                     compile_output.module.clone(),
                                     PlatformAttributes {
-                                        architecture: PlatformArchitecture::B64, //64 Bit Limit
+                                        architecture: cli_settings
+                                            .compiler_settings
+                                            .byte_code_architecture,
                                         memory_size: 512000, //512kb memory limit
                                     },
                                 );

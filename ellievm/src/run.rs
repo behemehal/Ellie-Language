@@ -5,7 +5,7 @@ use ellie_engine::{
         channel::{EllieModule, ModuleManager},
         program::{Program, VmProgram},
         thread::{Isolate, Thread},
-        utils::ThreadExit,
+        utils::{ThreadExit, ThreadPanicReason},
     },
 };
 
@@ -31,7 +31,7 @@ pub fn run(program: Program, vm_settings: VmSettings, debug_file: Option<DebugIn
     let cli_color = &CliColor;
 
     let isolate = Isolate::new();
-    let mut thread = Thread::new(program.main.hash, PlatformArchitecture::B64, isolate);
+    let mut thread = Thread::new(program.main.hash, vm_settings.architecture, isolate);
     thread.build_thread(program.main);
     let output = thread.run(&mut module_manager, &vm_program);
     match output {
@@ -53,11 +53,58 @@ pub fn run(program: Program, vm_settings: VmSettings, debug_file: Option<DebugIn
         }
         ThreadExit::Panic(panic) => {
             println!(
-                "\n{}ThreadPanic{} : {}{:?}{}",
+                "\n{}ThreadPanic{} : {}{}{}",
                 cli_color.color(Colors::Red),
                 cli_color.color(Colors::Reset),
                 cli_color.color(Colors::Cyan),
-                panic.reason,
+                match panic.reason {
+                    ThreadPanicReason::IntegerOverflow => "IntegerOverflow".to_string(),
+                    ThreadPanicReason::ByteOverflow => "ByteOverflow".to_string(),
+                    ThreadPanicReason::PlatformOverflow => "PlatformOverflow".to_string(),
+                    ThreadPanicReason::FloatOverflow => "FloatOverflow".to_string(),
+                    ThreadPanicReason::DoubleOverflow => "DoubleOverflow".to_string(),
+                    ThreadPanicReason::UnmergebleTypes(a, b) =>
+                        format!("UnmergebleTypes; Cant merge {:?} and {:?}", a, b),
+                    ThreadPanicReason::UncomparableTypes(a, b) =>
+                        format!("UncomparableTypes; Cant compare {:?} and {:?}", a, b),
+                    ThreadPanicReason::StackOverflow => "StackOverflow".to_string(),
+                    ThreadPanicReason::BrokenStackTree(e) => format!("BrokenStackTree; {:?}", e),
+                    ThreadPanicReason::UnexpectedType(e) => format!("UnexpectedType; {:?}", e),
+                    ThreadPanicReason::NullReference(e) => format!("NullReference; {:?}", e),
+                    ThreadPanicReason::OutOfInstructions => "OutOfInstructions".to_string(),
+                    ThreadPanicReason::RuntimeError(e) => format!("RuntimeError; {:?}", e),
+                    ThreadPanicReason::InvalidRegisterAccess(e) =>
+                        format!("InvalidRegisterAccess; {:?}", e),
+                    ThreadPanicReason::IndexAccessViolation(e) =>
+                        format!("IndexAccessViolation; {:?}", e),
+                    ThreadPanicReason::IndexOutOfBounds(index, size) =>
+                        format!("IndexOutOfBounds; Index: {:?}, Size: {:?}", index, size),
+                    ThreadPanicReason::WrongEntryLength(a, b) =>
+                        format!("WrongEntryLength; A: {:?}, B: {:?}", a, b),
+                    ThreadPanicReason::CannotIndexWithNegative(e) =>
+                        format!("CannotIndexWithNegative; {:?}", e),
+                    ThreadPanicReason::ParemeterMemoryAccessViolation(e) =>
+                        format!("ParemeterMemoryAccessViolation; {:?}", e),
+                    ThreadPanicReason::MemoryAccessViolation(location, stack_idx) => format!(
+                        "MemoryAccessViolation; on stack {:?} at location: {:?}",
+                        stack_idx, location
+                    ),
+                    ThreadPanicReason::ImmediateUseViolation(e) =>
+                        format!("ImmediateUseViolation; {:?}, possible code corruption", e),
+                    ThreadPanicReason::InvalidType(e) => format!("Invalid type found: {}", e),
+                    ThreadPanicReason::IllegalAddressingValue =>
+                        "IllegalAddressingValue".to_string(),
+                    ThreadPanicReason::CannotConvertToType(a, b) =>
+                        format!("CannotConvertToType; {:?} to {:?}", a, b),
+                    ThreadPanicReason::CallToUnknown(e) =>
+                        format!("Call to unknown function; {:?}", e),
+                    ThreadPanicReason::MissingModule(module) =>
+                        format!("MissingModule; {:?}", module),
+                    ThreadPanicReason::MissingTrace(e) => format!("MissingTrace; {:?}", e),
+                    ThreadPanicReason::ArraySizeCorruption => "ArraySizeCorruption".to_string(),
+                    ThreadPanicReason::ReferenceError(e) =>
+                        format!("Broken reference: {}, possible memory corruption", e),
+                },
                 cli_color.color(Colors::Reset),
             );
             for frame in panic.stack_trace {
