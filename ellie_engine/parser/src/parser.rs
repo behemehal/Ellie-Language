@@ -434,7 +434,11 @@ impl Parser {
                 } else {
                     Some(module.initial_page)
                 },
-                deep_link: if module.name == "ellieCore" && x.inner.is_none() { Some(1) } else { None },
+                deep_link: if module.name == "ellieCore" && x.inner.is_none() {
+                    Some(1)
+                } else {
+                    None
+                },
                 public: false,
             })
             .collect();
@@ -940,25 +944,11 @@ impl Parser {
             }
             deep_search_extensions::DeepTypeResult::Dynamic => {
                 if let ellie_core::definite::definers::DefinerCollecting::Generic(_) = defining {
-                    if defining.to_string() == "dyn" {
-                        if errors.is_empty() {
-                            Ok(CompareResult::result(
-                                true,
-                                defining.to_string(),
-                                "dyn".to_owned(),
-                            ))
-                        } else {
-                            Err(errors)
-                        }
-                    } else if errors.is_empty() {
-                        Ok(CompareResult::result(
-                            false,
-                            defining.to_string(),
-                            "dyn".to_owned(),
-                        ))
-                    } else {
-                        Err(errors)
-                    }
+                    Ok(CompareResult::result(
+                        true,
+                        defining.to_string(),
+                        "dyn".to_owned(),
+                    ))
                 } else if let ellie_core::definite::definers::DefinerCollecting::Dynamic = defining
                 {
                     if errors.is_empty() {
