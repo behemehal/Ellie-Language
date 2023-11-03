@@ -48,7 +48,7 @@ impl Types {
             Types::String(str_len) => (6, *str_len),
             Types::Char => (7, 4),
             Types::Void => (8, 0),
-            Types::Array(_) => (9,  platform_size.usize_len() as usize),
+            Types::Array(_) => (9, platform_size.usize_len() as usize),
             Types::Null => (10, 0),
             Types::Class(_) => (11, platform_size.usize_len() as usize),
             Types::Function => (12, platform_size.usize_len() as usize),

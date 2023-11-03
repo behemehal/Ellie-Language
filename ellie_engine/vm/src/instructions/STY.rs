@@ -103,7 +103,9 @@ impl super::InstructionExecuter for STY {
 
                                         if index >= array_size {
                                             return Err(ExecuterPanic {
-                                                reason: ThreadPanicReason::IndexOutOfBounds(index, array_size),
+                                                reason: ThreadPanicReason::IndexOutOfBounds(
+                                                    index, array_size,
+                                                ),
                                                 code_location: format!("{}:{}", file!(), line!()),
                                             });
                                         } else {
@@ -216,7 +218,9 @@ impl super::InstructionExecuter for STY {
 
                                     if *index >= array_size {
                                         return Err(ExecuterPanic {
-                                            reason: ThreadPanicReason::IndexOutOfBounds(*index, array_size),
+                                            reason: ThreadPanicReason::IndexOutOfBounds(
+                                                *index, array_size,
+                                            ),
                                             code_location: format!("{}:{}", file!(), line!()),
                                         });
                                     } else {

@@ -2857,13 +2857,11 @@ pub fn resolve_type(
                                 .value
                                 .clone()
                         }
-                        Types::FunctionParameter(parameter) => {
-                            match parameter.rtype.unwrap() {
-                                DefinerCollecting::Array(e) => *e.rtype,
-                                DefinerCollecting::ParentGeneric(e) => e.generics[0].value.clone(),
-                                _ => unreachable!(),
-                            }
-                        }
+                        Types::FunctionParameter(parameter) => match parameter.rtype.unwrap() {
+                            DefinerCollecting::Array(e) => *e.rtype,
+                            DefinerCollecting::ParentGeneric(e) => e.generics[0].value.clone(),
+                            _ => unreachable!(),
+                        },
                         e => {
                             unimplemented!("Custom index queries are not yet supported for {:?}", e)
                         }

@@ -52,7 +52,7 @@ impl super::InstructionExecuter for FN {
                     if parameter_count > 0 {
                         let previous_frame_pos = match current_stack.caller {
                             Some(c) => c.frame_pos,
-                            None => 0
+                            None => 0,
                         };
 
                         if !current_stack.registers.X.type_id.is_int() {

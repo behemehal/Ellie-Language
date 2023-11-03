@@ -239,10 +239,10 @@ impl DefinerCollecting {
                 if parrent_generic.hash == generic_hash {
                     *self = replacement_generic;
                 } else {
-                    parrent_generic
-                        .generics
-                        .iter_mut()
-                        .for_each(|g| g.value.convert_generic(generic_hash, replacement_generic.clone()));
+                    parrent_generic.generics.iter_mut().for_each(|g| {
+                        g.value
+                            .convert_generic(generic_hash, replacement_generic.clone())
+                    });
                 }
             }
             DefinerCollecting::Function(function) => {
@@ -257,9 +257,10 @@ impl DefinerCollecting {
                     .convert_generic(generic_hash, replacement_generic.clone());
             }
             DefinerCollecting::Cloak(cloak) => {
-                cloak.rtype.iter_mut().for_each(|r| {
-                    r.convert_generic(generic_hash, replacement_generic.clone())
-                });
+                cloak
+                    .rtype
+                    .iter_mut()
+                    .for_each(|r| r.convert_generic(generic_hash, replacement_generic.clone()));
             }
             DefinerCollecting::Collective(collective) => {
                 collective

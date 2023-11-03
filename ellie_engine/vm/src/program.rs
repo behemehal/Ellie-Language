@@ -295,7 +295,7 @@ impl Program {
                         }
                         AddressingModes::Implicit => {
                             addressing_value = AddressingValues::Implicit;
-                        },
+                        }
                         AddressingModes::IndirectA => {
                             addressing_value = AddressingValues::IndirectA;
                         }

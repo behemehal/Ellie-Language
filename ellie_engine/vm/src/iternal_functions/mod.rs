@@ -2,7 +2,7 @@ use alloc::vec::Vec;
 
 use crate::{
     thread::Isolate,
-    utils::{VmNativeAnswer, VmNativeCallParameters, ThreadInfo},
+    utils::{ThreadInfo, VmNativeAnswer, VmNativeCallParameters},
 };
 
 mod array_len;
