@@ -82,7 +82,7 @@ fn main() {
             }
 
             let target_path = {
-                let path = Path::new(matches.value_of("target").unwrap().clone());
+                let path = Path::new(matches.value_of("target").unwrap());
                 if path.exists() {
                     matches.value_of("target").unwrap().to_string()
                 } else {
