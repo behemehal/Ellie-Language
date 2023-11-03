@@ -234,7 +234,7 @@ impl super::InstructionExecuter for LDB {
                                         } else {
                                             (raw_type.data.len() - platform_size) / array_entry_len
                                         };
-                                        if *index >= array_size - 1 {
+                                        if *index >= array_size {
                                             return Err(ExecuterPanic {
                                                 reason: ThreadPanicReason::IndexOutOfBounds(
                                                     *index, array_size,

@@ -6,6 +6,8 @@ use alloc::{
     vec,
     vec::Vec,
 };
+use definers::GenericType;
+use ellie_core::definite::types::class_call::ClassCallGenericParameter;
 use ellie_core::{
     definite::{
         definers::{self, DefinerCollecting},
@@ -97,7 +99,34 @@ pub fn generate_type_from_defining(
                                     },
                                 ))
                             } else {
-                                unimplemented!()
+                                Some(Types::ClassCall(
+                                    ellie_core::definite::types::class_call::ClassCall {
+                                        target: Box::new(Types::VariableType(
+                                            ellie_core::definite::types::variable::VariableType {
+                                                value: matched_class.name.clone(),
+                                                reference: matched_class.hash,
+                                                pos: defs::Cursor::default(),
+                                            },
+                                        )),
+                                        resolved_generics: vec![],
+                                        generic_parameters: matched_class
+                                            .generic_definings
+                                            .iter()
+                                            .map(|gd| ClassCallGenericParameter {
+                                                value: DefinerCollecting::Generic(GenericType {
+                                                    rtype: gd.name.clone(),
+                                                    pos: gd.pos,
+                                                    hash: gd.hash,
+                                                }),
+                                                pos: gd.pos,
+                                            })
+                                            .collect(),
+                                        keyword_pos: defs::Cursor::default(),
+                                        pos: defs::Cursor::default(),
+                                        target_pos: defs::Cursor::default(),
+                                        params: vec![],
+                                    },
+                                ))
                             }
                         }
                         crate::deep_search_extensions::ProcessedDeepSearchItems::GenericItem(_) => {

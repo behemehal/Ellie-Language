@@ -2,22 +2,27 @@
 name = "ellie_core"
 description = "Core modules for ellie"
 version = "0.7.1"
-authors = ["Ahmetcan Aksu <ahmetcanaksu@behemehal.org>", "Behemehal <info@behemehal.org>"]
+authors = [
+    "Ahmetcan Aksu <ahmetcanaksu@behemehal.org>",
+    "Behemehal <info@behemehal.org>",
+]
 edition = "2021"
 license = "GPL-2.0"
 repository = "https://github.com/behemehal/Ellie-Language"
 homepage = "https://www.ellie-lang.org"
 
 [dependencies]
-lazy_static = "1.4.0"
-serde = { version = "1.0", features = ["derive"] }
+lazy_static = { version = "1.4.0", optional = true }
+serde = { version = "1.0", features = ["derive"], default-features = false }
 serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
 enum-as-inner = "0.6.0"
-rand = "0.8.4"
-regex = "1.9.1"
+rand = { version = "0.8.4", optional = true }
+regex = { version = "1.9.1", default-features = false, features = [
+    "unicode-perl",
+] }
 
 [features]
 default = ["std"]
 native_addons = []
-compiler_utils = []
+compiler_utils = ["rand", "lazy_static"]
 std = []

@@ -22,7 +22,7 @@ extern crate alloc;
 /// EllieBytecode is the bytecode assembler for EllieVm.
 #[cfg(feature = "compiler")]
 pub extern crate ellie_bytecode;
-#[cfg(any(feature = "std", feature = "cli-utils"))]
+#[cfg(any(feature = "std", feature = "cli-utils", feature = "vm"))]
 pub extern crate ellie_core;
 /// EllieFmt is the formatter for Ellie.
 #[cfg(feature = "fmt")]

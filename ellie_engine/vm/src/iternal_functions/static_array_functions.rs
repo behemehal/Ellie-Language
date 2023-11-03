@@ -10,7 +10,7 @@ use super::InternalFunction;
 
 pub fn array_len_fn(
     isolate: &mut Isolate,
-    thread_info: ThreadInfo,
+    _thread_info: ThreadInfo,
     args: Vec<VmNativeCallParameters>,
 ) -> VmNativeAnswer {
     if args.len() != 1 {
@@ -22,10 +22,7 @@ pub fn array_len_fn(
         VmNativeCallParameters::Static(static_type) => {
             if static_type.type_id.is_static_array() {
                 let location_of_array = static_type.to_uint();
-                match isolate
-                    .stack_memory
-                    .get(&thread_info.get_real_pos_with_location(location_of_array + 1))
-                {
+                match isolate.stack_memory.get(&(location_of_array + 1)) {
                     Some(static_data) => {
                         let array_len = static_data.to_uint();
                         VmNativeAnswer::Ok(crate::utils::VmNativeCallParameters::Static(
