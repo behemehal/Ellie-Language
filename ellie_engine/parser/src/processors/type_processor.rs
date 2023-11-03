@@ -1,6 +1,8 @@
 use crate::deep_search_extensions::{
     deep_search, deep_search_hash, find_type, generate_type_from_defining, resolve_type,
+    ProcessedDeepSearchItems,
 };
+use crate::processors::definer_processor;
 use alloc::boxed::Box;
 use alloc::string::ToString;
 use alloc::vec;
@@ -457,8 +459,7 @@ pub fn process(
                                         );
                                     if hash_deep_search.found {
                                         match hash_deep_search.found_item {
-                                            crate::deep_search_extensions::ProcessedDeepSearchItems::Class(matched_class) => {
-
+                                            ProcessedDeepSearchItems::Class(matched_class) => {
                                                 if matched_class.generic_definings.is_empty() {
                                                     Some(
                                                         types::Types::ClassCall(
@@ -564,7 +565,7 @@ pub fn process(
                                         );
                                     if hash_deep_search.found {
                                         match hash_deep_search.found_item {
-                                            crate::deep_search_extensions::ProcessedDeepSearchItems::Class(matched_class) => {
+                                            ProcessedDeepSearchItems::Class(matched_class) => {
                                                     Some(
                                                         types::Types::ClassCall(
                                                             ellie_core::definite::types::class_call::ClassCall {
@@ -637,10 +638,13 @@ pub fn process(
 
                                 if hash_deep_search.found {
                                     match hash_deep_search.found_item {
-                                        crate::deep_search_extensions::ProcessedDeepSearchItems::Class(class_page) => {
-                                            match parser.find_processed_page(class_page.inner_page_id).cloned() {
+                                        ProcessedDeepSearchItems::Class(class_page) => {
+                                            match parser
+                                                .find_processed_page(class_page.inner_page_id)
+                                                .cloned()
+                                            {
                                                 Some(class_inner_page) => {
-                                                        let attributes = class_inner_page.items.iter().filter_map(|item| {
+                                                    let attributes = class_inner_page.items.iter().filter_map(|item| {
                                                         let class_attribute_idx = class_inner_page.items.iter().filter_map(|x| match x {
                                                             Collecting::Variable(x) => Some(x),
                                                             _ => None
@@ -739,22 +743,14 @@ pub fn process(
                                                         }
                                                     }).collect::<Vec<_>>();
                                                     Ok(attributes)
-                                                },
+                                                }
                                                 None => {
                                                     unreachable!()
                                                 }
                                             }
-                                        },
-                                        crate::deep_search_extensions::ProcessedDeepSearchItems::Variable(_) => todo!(),
-                                        crate::deep_search_extensions::ProcessedDeepSearchItems::FunctionParameter(_) => todo!(),
-                                        crate::deep_search_extensions::ProcessedDeepSearchItems::Function(_) => todo!(),
-                                        crate::deep_search_extensions::ProcessedDeepSearchItems::NativeFunction(_) => todo!(),
-                                        crate::deep_search_extensions::ProcessedDeepSearchItems::Getter(_) => todo!(),
-                                        crate::deep_search_extensions::ProcessedDeepSearchItems::Setter(_) => todo!(),
-                                        crate::deep_search_extensions::ProcessedDeepSearchItems::ImportReference(_) => todo!(),
-                                        crate::deep_search_extensions::ProcessedDeepSearchItems::GenericItem(_) => todo!(),
-                                        crate::deep_search_extensions::ProcessedDeepSearchItems::None => todo!(),
-                                        crate::deep_search_extensions::ProcessedDeepSearchItems::Enum(enum_data) => {
+                                        }
+                                        ProcessedDeepSearchItems::GenericItem(_) => Ok(vec![]),
+                                        ProcessedDeepSearchItems::Enum(enum_data) => {
                                             Ok(enum_data.items.iter().map(| item| {
                                                 Attribute {
                                                     rtype: match item.value {
@@ -795,9 +791,8 @@ pub fn process(
                                                     },
                                                 }
                                             }).collect())
-                                        },
-                                        crate::deep_search_extensions::ProcessedDeepSearchItems::SelfItem(_) => todo!(),
-                                        crate::deep_search_extensions::ProcessedDeepSearchItems::ClassInstance(_) => todo!(),
+                                        }
+                                        _ => unreachable!(),
                                     }
                                 } else {
                                     errors.push(
@@ -821,20 +816,75 @@ pub fn process(
                             }
                             ellie_core::definite::definers::DefinerCollecting::ParentGeneric(
                                 rtype,
-                            ) => match find_type(rtype.rtype, page_id, parser) {
+                            ) => match find_type(rtype.rtype.clone(), page_id, parser) {
                                 Some(found_rtype) => {
-                                    match resolve_chain(
-                                        DefinerCollecting::Generic(found_rtype),
-                                        ellie_core::defs::Cursor::default(),
-                                        page_id,
-                                        parser,
-                                        is_setter,
-                                    ) {
-                                        Ok(e) => Ok(e),
-                                        Err(e) => {
-                                            errors.extend(e);
-                                            Err(errors)
+                                    let hash_deep_search =
+                                        crate::deep_search_extensions::deep_search_hash(
+                                            parser,
+                                            page_id,
+                                            found_rtype.hash,
+                                            vec![],
+                                            0,
+                                        );
+
+                                    if hash_deep_search.found {
+                                        match hash_deep_search.found_item {
+                                            ProcessedDeepSearchItems::Class(class_item) => {
+                                                match resolve_chain(
+                                                    DefinerCollecting::Generic(found_rtype.clone()),
+                                                    ellie_core::defs::Cursor::default(),
+                                                    page_id,
+                                                    parser,
+                                                    is_setter,
+                                                ) {
+                                                    Ok(e) => {
+                                                        Ok(e.clone()
+                                                            .iter_mut()
+                                                            .map(|attr| {
+                                                                for (i, generic_defining) in
+                                                                    class_item
+                                                                        .generic_definings
+                                                                        .iter()
+                                                                        .enumerate()
+                                                                {
+                                                                    attr.value.convert_generic(
+                                                                        generic_defining.hash,
+                                                                        rtype.generics[i]
+                                                                            .value
+                                                                            .clone(),
+                                                                    );
+                                                                    // = rtype.generics[i].value.clone();
+                                                                }
+                                                                attr.clone()
+                                                            })
+                                                            .collect::<Vec<_>>())
+                                                    }
+                                                    Err(e) => {
+                                                        errors.extend(e);
+                                                        Err(errors)
+                                                    }
+                                                }
+                                            }
+                                            _ => unreachable!("Unexpected parent_generic target."),
                                         }
+                                    } else {
+                                        errors.push(
+                                            error::error_list::ERROR_S6.clone().build_with_path(
+                                                vec![error::ErrorBuildField {
+                                                    key: "token".to_owned(),
+                                                    value: reference_type.to_string(),
+                                                }],
+                                                alloc::format!(
+                                                    "{}:{}:{}",
+                                                    file!().to_owned(),
+                                                    line!(),
+                                                    column!()
+                                                ),
+                                                parser.find_page(page_id).unwrap().path.clone(),
+                                                reference_pos,
+                                            ),
+                                        );
+                                        Err(errors)
                                     }
                                 }
                                 None => {
@@ -1384,7 +1434,17 @@ pub fn process(
                                     })
                                     .collect::<Vec<_>>();
 
-                                if function.params.iter().filter(|x| matches!(x, DefinerCollecting::Generic(generic) if generic.rtype != "self")).count() != used_params.len()
+                                if function
+                                    .params
+                                    .iter()
+                                    .filter(|x| match x {
+                                        DefinerCollecting::Generic(generic) => {
+                                            generic.rtype != "self"
+                                        }
+                                        _ => true,
+                                    })
+                                    .count()
+                                    != used_params.len()
                                     && errors.is_empty()
                                 {
                                     errors.push(
@@ -1396,7 +1456,17 @@ pub fn process(
                                                 ),
                                                 error::ErrorBuildField::new(
                                                     "token",
-                                                    &function.params.iter().filter(|x| matches!(x, DefinerCollecting::Generic(generic) if generic.rtype != "self")).count().to_string(),
+                                                    &function
+                                                        .params
+                                                        .iter()
+                                                        .filter(|x| match x {
+                                                            DefinerCollecting::Generic(generic) => {
+                                                                generic.rtype != "self"
+                                                            }
+                                                            _ => true,
+                                                        })
+                                                        .count()
+                                                        .to_string(),
                                                 ),
                                                 error::ErrorBuildField::new(
                                                     "token2",
@@ -1468,7 +1538,12 @@ pub fn process(
                                                     target_pos: ellie_core::defs::Cursor::default(),
                                                     returning: *function.returning.clone(),
                                                     params: function.params.iter()
-                                                    .filter(|e| matches!(e, DefinerCollecting::Generic(generic) if generic.rtype != "self")).enumerate()
+                                                    .filter(|x| match x {
+                                                        DefinerCollecting::Generic(generic) => {
+                                                            generic.rtype != "self"
+                                                        }
+                                                        _ => true,
+                                                    }).enumerate()
                                                     .map(|(idx, _)| {
                                                         ellie_core::definite::types::function_call::FunctionCallParameter {
                                                             value: resolved_params[idx].0.clone(),
@@ -1540,82 +1615,6 @@ pub fn process(
                     Err(errors)
                 }
             }
-            /*
-            match index.clone() {
-                Some(index) => {
-                    match index {
-                        DefinerCollecting::Function(function) => {
-                            Ok(ellie_core::definite::types::Types::FunctionCall(
-                                ellie_core::definite::types::function_call::FunctionCall {
-                                    target: Box::new(function_call.data.target.to_definite()),
-                                    target_pos: ellie_core::defs::Cursor::default(),
-                                    returning: *function.returning,
-                                    params: function.params.iter().map(|_| {
-                                        ellie_core::definite::types::function_call::FunctionCallParameter {
-                                            value: types::Types::Dynamic,
-                                            pos: ellie_core::defs::Cursor::default()
-                                        }
-                                    }).collect::<Vec<_>>(),
-                                    pos: ellie_core::defs::Cursor::default(),
-                                    generic_parameters: vec![],
-                                },
-                            ))
-                        },
-                        _ => {
-                            errors.push(error::error_list::ERROR_S25.clone().build_with_path(
-                                vec![error::ErrorBuildField {
-                                    key: "token".to_string(),
-                                    value: index.to_string(),
-                                }],
-                                alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                                parser.find_page(page_id).unwrap().path.clone(),
-                                function_call.data.target_pos,
-                            ));
-                            Err(errors)
-                        }
-                    }
-                },
-                None => {
-                    Err(errors)
-                },
-            }
-            */
-
-            /*
-            match index.clone() {
-                types::Types::Function(d) => {
-                    Ok(ellie_core::definite::types::Types::FunctionCall(
-                        ellie_core::definite::types::function_call::FunctionCall {
-                            target: Box::new(types::Types::Dynamic),
-                            target_pos: ellie_core::defs::Cursor::default(),
-                            returning: d.return_type,
-                            params: d.parameters.iter().map(|param| {
-                                ellie_core::definite::types::function_call::FunctionCallParameter {
-                                    value: types::Types::Dynamic,
-                                    pos: param.pos
-                                }
-                            }).collect::<Vec<_>>(),
-                            pos: ellie_core::defs::Cursor::default(),
-                        },
-                    ))
-                }
-                _ => {
-                    panic!("{:#?}", index);
-                    let reference_type =
-                        resolve_type(index.clone(), page_id, parser, &mut errors);
-                    errors.push(error::error_list::ERROR_S25.clone().build_with_path(
-                        vec![error::ErrorBuildField {
-                            key: "token".to_string(),
-                            value: reference_type.to_string(),
-                        }],
-                        alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                        parser.find_page(page_id).unwrap().path.clone(),
-                        function_call.data.target_pos,
-                    ));
-                    Err(errors)
-                }
-            }
-            */
         }
         Processors::ClassCall(class_call) => {
             let mut resolved_generics = class_call.data.resolved_generics.clone();
@@ -1912,7 +1911,7 @@ pub fn process(
 
                                                 if attribute_search.found {
                                                     match attribute_search.found_item {
-                                                        crate::deep_search_extensions::ProcessedDeepSearchItems::Variable(variable) => {
+                                                        ProcessedDeepSearchItems::Variable(variable) => {
                                                             if variable.has_type {
                                                                 if !belonging_class.generic_definings.is_empty() && belonging_class.generic_definings.len() > index && matches!(variable.rtype.clone(), DefinerCollecting::Generic(e) if e.hash == belonging_class.generic_definings[index].hash) {
                                                                     Some(
@@ -1932,8 +1931,8 @@ pub fn process(
                                                                 resolved
                                                             }
                                                     },
-                                                        crate::deep_search_extensions::ProcessedDeepSearchItems::Function(_) => todo!(),
-                                                        crate::deep_search_extensions::ProcessedDeepSearchItems::Class(e) => {
+                                                        ProcessedDeepSearchItems::Function(_) => todo!(),
+                                                        ProcessedDeepSearchItems::Class(e) => {
                                                             Some(DefinerCollecting::Generic( ellie_core::definite::definers::GenericType { rtype: e.name, pos: e.pos, hash: e.hash }))
                                                         }
                                                         _ => unreachable!("Parser should have prevented this: {:?}", attribute_search)
@@ -1951,8 +1950,34 @@ pub fn process(
                                                 for (index, element) in
                                                     constructor_elements.iter().enumerate()
                                                 {
+                                                    //element.convert_generic();
+
                                                     let matching_param =
                                                         &class_call.data.parameters[index];
+
+                                                    std::println!(
+                                                        "ClassCall: {:#?}\nElement: {:#?}",
+                                                        class_call.data,
+                                                        element,
+                                                    );
+
+                                                    let element_to_be_compared = match class_call
+                                                        .data
+                                                        .generic_parameters
+                                                        .get(index)
+                                                    {
+                                                        Some(generic_param) => {
+                                                            definer_processor::process(
+                                                                generic_param.value.clone(),
+                                                                parser,
+                                                                page_id,
+                                                                ignore_hash,
+                                                            )
+                                                            .unwrap()
+                                                        }
+                                                        None => element.clone(),
+                                                    };
+
                                                     match process(
                                                         matching_param.value.clone(),
                                                         parser,
@@ -1966,7 +1991,7 @@ pub fn process(
                                                         Ok(resolved_type) => {
                                                             let comperable = parser
                                                                 .compare_defining_with_type(
-                                                                    element.clone(),
+                                                                    element_to_be_compared.clone(),
                                                                     resolved_type.clone(),
                                                                     page_id,
                                                                 );
