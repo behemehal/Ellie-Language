@@ -139,7 +139,7 @@ pub fn parse_command(
             for (idx, arg) in args.iter().enumerate() {
                 if eq_b(arg, &e.args[idx].value_type) {
                     processed_args.push(BuildDebuggerArg {
-                        name: e.args[idx].name.clone(),
+                        name: e.args[idx].name,
                         value_type: arg.clone(),
                         optional: e.args[idx].optional,
                     });

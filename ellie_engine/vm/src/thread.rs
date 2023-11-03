@@ -176,6 +176,13 @@ impl Thread {
                             {
                                 let response = (internal_function.callback)(
                                     &mut self.isolate,
+                                    ThreadInfo {
+                                        id: self.id,
+                                        stack_id: current_stack.id,
+                                        frame_pos: current_stack.frame_pos,
+                                        pos: current_stack.pos,
+                                        stack_caller: current_stack.caller.map(|c| c.id),
+                                    },
                                     native_call.params,
                                 );
                                 match response {
@@ -223,6 +230,8 @@ impl Thread {
                                                         ThreadInfo {
                                                             id: self.id,
                                                             stack_id: current_stack.id,
+                                                            frame_pos: current_stack.frame_pos,
+                                                            pos: current_stack.pos,
                                                             stack_caller: current_stack
                                                                 .caller
                                                                 .map(|c| c.id),
@@ -403,6 +412,13 @@ impl Thread {
                                 {
                                     let response = (internal_function.callback)(
                                         &mut self.isolate,
+                                        ThreadInfo {
+                                            id: self.id,
+                                            stack_id: current_stack.id,
+                                            frame_pos: current_stack.frame_pos,
+                                            pos: current_stack.pos,
+                                            stack_caller: current_stack.caller.map(|c| c.id),
+                                        },
                                         native_call.params,
                                     );
                                     match response {
@@ -448,6 +464,8 @@ impl Thread {
                                                             ThreadInfo {
                                                                 id: self.id,
                                                                 stack_id: current_stack.id,
+                                                                frame_pos: current_stack.frame_pos,
+                                                                pos: current_stack.pos,
                                                                 stack_caller: current_stack
                                                                     .caller
                                                                     .map(|c| c.id),

@@ -101,9 +101,12 @@ impl super::InstructionExecuter for LDX {
                                             &heap_data.data[arch.usize_len() as usize..];
                                         let array_entries =
                                             array_data.chunks(array_entry_size).collect::<Vec<_>>();
-                                        if index > array_entries.len() {
+                                        if index >= array_entries.len() {
                                             return Err(ExecuterPanic {
-                                                reason: ThreadPanicReason::IndexOutOfBounds(index),
+                                                reason: ThreadPanicReason::IndexOutOfBounds(
+                                                    index,
+                                                    array_entries.len(),
+                                                ),
                                                 code_location: format!("{}:{}", file!(), line!()),
                                             });
                                         } else {
@@ -142,9 +145,9 @@ impl super::InstructionExecuter for LDX {
                                 }
                             };
 
-                            if index > array_size - 1 {
+                            if index >= array_size {
                                 return Err(ExecuterPanic {
-                                    reason: ThreadPanicReason::IndexOutOfBounds(index),
+                                    reason: ThreadPanicReason::IndexOutOfBounds(index, array_size),
                                     code_location: format!("{}:{}", file!(), line!()),
                                 });
                             } else {
@@ -187,9 +190,11 @@ impl super::InstructionExecuter for LDX {
                                 if raw_type.type_id.is_array() {
                                     // Increase size of array
                                     let array_size = raw_type.type_id.size;
-                                    if *index < array_size && *index > array_size {
+                                    if *index >= array_size {
                                         return Err(ExecuterPanic {
-                                            reason: ThreadPanicReason::IndexOutOfBounds(*index),
+                                            reason: ThreadPanicReason::IndexOutOfBounds(
+                                                *index, array_size,
+                                            ),
                                             code_location: format!("{}:{}", file!(), line!()),
                                         });
                                     } else {
@@ -227,9 +232,11 @@ impl super::InstructionExecuter for LDX {
                                         } else {
                                             (raw_type.data.len() - platform_size) / array_entry_len
                                         };
-                                        if index > &(array_size - 1) {
+                                        if *index >= array_size {
                                             return Err(ExecuterPanic {
-                                                reason: ThreadPanicReason::IndexOutOfBounds(*index),
+                                                reason: ThreadPanicReason::IndexOutOfBounds(
+                                                    *index, array_size,
+                                                ),
                                                 code_location: format!("{}:{}", file!(), line!()),
                                             });
                                         } else {
@@ -280,9 +287,9 @@ impl super::InstructionExecuter for LDX {
                             }
                         };
 
-                        if index > &array_size {
+                        if *index >= array_size {
                             return Err(ExecuterPanic {
-                                reason: ThreadPanicReason::IndexOutOfBounds(*index),
+                                reason: ThreadPanicReason::IndexOutOfBounds(*index, array_size),
                                 code_location: format!("{}:{}", file!(), line!()),
                             });
                         } else {

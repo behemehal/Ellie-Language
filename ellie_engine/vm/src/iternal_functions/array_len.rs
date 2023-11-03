@@ -3,12 +3,16 @@ use alloc::{string::ToString, vec::Vec};
 use crate::{
     raw_type::StaticRawType,
     thread::Isolate,
-    utils::{VmNativeAnswer, VmNativeCallParameters},
+    utils::{ThreadInfo, VmNativeAnswer, VmNativeCallParameters},
 };
 
 use super::InternalFunction;
 
-pub fn array_len_fn(isolate: &mut Isolate, args: Vec<VmNativeCallParameters>) -> VmNativeAnswer {
+pub fn array_len_fn(
+    isolate: &mut Isolate,
+    thread_info: ThreadInfo,
+    args: Vec<VmNativeCallParameters>,
+) -> VmNativeAnswer {
     if args.len() != 1 {
         return VmNativeAnswer::RuntimeError(
             "Signature mismatch expected 1 argument(s)".to_string(),
@@ -18,7 +22,10 @@ pub fn array_len_fn(isolate: &mut Isolate, args: Vec<VmNativeCallParameters>) ->
         VmNativeCallParameters::Static(static_type) => {
             if static_type.type_id.is_static_array() {
                 let location_of_array = static_type.to_uint();
-                match isolate.stack_memory.get(&(location_of_array + 1)) {
+                match isolate
+                    .stack_memory
+                    .get(&thread_info.get_real_pos_with_location(location_of_array + 1))
+                {
                     Some(static_data) => {
                         let array_len = static_data.to_uint();
                         VmNativeAnswer::Ok(crate::utils::VmNativeCallParameters::Static(

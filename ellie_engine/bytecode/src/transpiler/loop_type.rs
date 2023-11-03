@@ -23,7 +23,8 @@ impl super::Transpiler for loop_type::Loop {
             assembler.assemble_dependency(&dependency.hash);
         }
 
-        let dependencies = vec![processed_page.hash];
+        let mut dependencies = vec![processed_page.hash];
+        dependencies.extend(processed_page.dependencies.iter().map(|d| d.hash));
 
         //We need to get back at this point every time we jump to the end of the loop.
         let start_pos = assembler.location() + 1;

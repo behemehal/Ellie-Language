@@ -234,6 +234,7 @@ pub fn generate_elliec_options() -> Command<'static> {
                     Arg::new("outputType")
                         .help("Output type")
                         .short('o')
+                        .multiple_values(true)
                         .long("--output-type")
                         .takes_value(true)
                         .default_value("byteCode")

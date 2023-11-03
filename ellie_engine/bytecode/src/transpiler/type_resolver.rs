@@ -851,10 +851,6 @@ pub fn resolve_type(
                         Some(vec![last_chain.page_hash]),
                         true,
                     );
-
-                    std::println!("Range:\n{:#?}", assembler.instructions[_pos..].to_vec());
-                    std::println!("found:\n{:#?}", found);
-                    std::println!("found:\n{:#?}", last_pos);
                     is_reference = Some(last_pos);
                     found.unwrap()
                 }
@@ -862,8 +858,7 @@ pub fn resolve_type(
             };
 
             let previous_params_location = assembler.location() + 1;
-            if let Some(reference) = &is_reference {
-                std::println!("STB TO LOCATION: {}", reference);
+            if is_reference.is_some() {
                 assembler
                     .instructions
                     .push(instruction_table::Instructions::STB(Instruction::implicit()));
@@ -890,7 +885,6 @@ pub fn resolve_type(
 
             if !function_call.params.is_empty() {
                 for (idx, param) in function_call.params.iter().enumerate() {
-                    std::println!("INDEX: {}, PARAM: {:#?}", idx, param);
                     let idx = if is_reference.is_some() { idx + 1 } else { idx };
                     resolve_type(
                         assembler,
@@ -899,14 +893,12 @@ pub fn resolve_type(
                         target_page,
                         dependencies.clone(),
                     );
-                    std::println!("STA TO LOCATION: {}", previous_params_location + idx);
                     assembler
                         .instructions
                         .push(instruction_table::Instructions::STA(Instruction::absolute(
                             previous_params_location + idx,
                         )));
                 }
-                std::println!("STA END")
             }
 
             assembler
@@ -1443,7 +1435,6 @@ pub fn resolve_type(
                 Some(e) => e,
                 None => panic!("Function Parameter not found: {}", e.name),
             };
-            std::println!("pos: {:#?} {:#?}", pos, e);
             let mut instructions = Vec::new();
 
             match target_register {

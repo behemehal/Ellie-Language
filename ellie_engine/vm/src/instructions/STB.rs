@@ -101,9 +101,11 @@ impl super::InstructionExecuter for STB {
                                             }
                                         };
 
-                                        if index > array_size {
+                                        if index >= array_size {
                                             return Err(ExecuterPanic {
-                                                reason: ThreadPanicReason::IndexOutOfBounds(index),
+                                                reason: ThreadPanicReason::IndexOutOfBounds(
+                                                    index, array_size,
+                                                ),
                                                 code_location: format!("{}:{}", file!(), line!()),
                                             });
                                         } else {
@@ -144,9 +146,9 @@ impl super::InstructionExecuter for STB {
                                 }
                             };
 
-                            if index > array_size {
+                            if index >= array_size {
                                 return Err(ExecuterPanic {
-                                    reason: ThreadPanicReason::IndexOutOfBounds(index),
+                                    reason: ThreadPanicReason::IndexOutOfBounds(index, array_size),
                                     code_location: format!("{}:{}", file!(), line!()),
                                 });
                             } else {
@@ -214,9 +216,11 @@ impl super::InstructionExecuter for STB {
                                         }
                                     };
 
-                                    if *index > array_size {
+                                    if *index >= array_size {
                                         return Err(ExecuterPanic {
-                                            reason: ThreadPanicReason::IndexOutOfBounds(*index),
+                                            reason: ThreadPanicReason::IndexOutOfBounds(
+                                                *index, array_size,
+                                            ),
                                             code_location: format!("{}:{}", file!(), line!()),
                                         });
                                     } else {

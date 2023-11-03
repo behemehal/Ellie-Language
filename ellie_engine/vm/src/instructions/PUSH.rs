@@ -91,7 +91,12 @@ impl super::InstructionExecuter for PUSH {
                             })
                         }
                     },
-                    None => todo!(),
+                    None => {
+                        return Err(ExecuterPanic {
+                            reason: ThreadPanicReason::NullReference(current_stack.get_pos() - 1),
+                            code_location: format!("{}:{}", file!(), line!()),
+                        })
+                    }
                 }
             }
 

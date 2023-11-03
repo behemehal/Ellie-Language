@@ -28,7 +28,7 @@ impl Default for FormatterOptions {
             leave_space_after_comma: true,
             use_shorts: true,
             space_before_type_colon: true,
-            render_brace_next_line: true,
+            render_brace_next_line: false,
             space_between_operators: true,
             is_cr_lf: false,
             tab_size: 4,

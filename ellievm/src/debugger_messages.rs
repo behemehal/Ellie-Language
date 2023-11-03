@@ -113,9 +113,7 @@ pub fn render_static_raw_type(value: StaticRawType) -> HashMap<String, String> {
                 3 => value.to_double().to_string(),
                 4 => value.to_byte().to_string(),
                 5 => (value.data[0] == 1).to_string(),
-                6 => {
-                    todo!()
-                }
+                6 => String::from("@StringRef"),
                 7 => value.to_char().to_string(),
                 8 => String::from("void"),
                 9 => String::from("arr"),

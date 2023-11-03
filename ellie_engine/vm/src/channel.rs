@@ -9,7 +9,7 @@ pub enum ModuleElements {
 impl ModuleElements {
     pub fn get_name(&self) -> &'static str {
         match self {
-            ModuleElements::Function(e) => e.name.clone(),
+            ModuleElements::Function(e) => e.name,
         }
     }
 

@@ -2,6 +2,7 @@
 #![allow(unused_assignments)]
 #![allow(unknown_lints)]
 #![warn(clippy::all)]
+#![recursion_limit = "256"]
 //! Ellie Core
 //! This is the core utilities for the Ellie Language.
 //!

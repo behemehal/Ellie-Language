@@ -293,7 +293,9 @@ impl Program {
                             };
                             addressing_value = AddressingValues::AbsoluteStatic(address);
                         }
-                        AddressingModes::Implicit => todo!(),
+                        AddressingModes::Implicit => {
+                            addressing_value = AddressingValues::Implicit;
+                        }
                         AddressingModes::IndirectA => {
                             addressing_value = AddressingValues::IndirectA;
                         }

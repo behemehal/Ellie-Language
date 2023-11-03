@@ -414,8 +414,10 @@ impl Parser {
                 hash: p.hash,
                 inner: p.inner,
                 path: p.path.clone(),
+                processed: false,
                 module: true,
                 dependents: p.dependents.clone(),
+                //TODO: THIS DEPENDENCIES ARE COUNTS AS UNPROCESSED PAGES BUT THEY ARE PROCESSED PAGES
                 dependencies: p.dependencies.clone(),
                 ..Default::default()
             })
@@ -432,7 +434,11 @@ impl Parser {
                 } else {
                     Some(module.initial_page)
                 },
-                deep_link: if x.hash == 343 { None } else { Some(343) },
+                deep_link: if module.name == "ellieCore" && x.inner.is_none() {
+                    Some(1)
+                } else {
+                    None
+                },
                 public: false,
             })
             .collect();
@@ -938,25 +944,11 @@ impl Parser {
             }
             deep_search_extensions::DeepTypeResult::Dynamic => {
                 if let ellie_core::definite::definers::DefinerCollecting::Generic(_) = defining {
-                    if defining.to_string() == "dyn" {
-                        if errors.is_empty() {
-                            Ok(CompareResult::result(
-                                true,
-                                defining.to_string(),
-                                "dyn".to_owned(),
-                            ))
-                        } else {
-                            Err(errors)
-                        }
-                    } else if errors.is_empty() {
-                        Ok(CompareResult::result(
-                            false,
-                            defining.to_string(),
-                            "dyn".to_owned(),
-                        ))
-                    } else {
-                        Err(errors)
-                    }
+                    Ok(CompareResult::result(
+                        true,
+                        defining.to_string(),
+                        "dyn".to_owned(),
+                    ))
                 } else if let ellie_core::definite::definers::DefinerCollecting::Dynamic = defining
                 {
                     if errors.is_empty() {
@@ -1306,6 +1298,7 @@ impl Parser {
             }
             None => (),
         }
+
         if !searched.contains(&target_page) {
             for dep in self_dependencies {
                 searched.push(target_page);

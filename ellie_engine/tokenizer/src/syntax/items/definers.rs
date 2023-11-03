@@ -111,6 +111,35 @@ impl DefinerTypes {
             DefinerTypes::Dynamic => panic!("Unexpected behaviour"),
         }
     }
+
+    // Checks recursively if generic used in any of the types.
+    pub fn is_generic_used_in_defining(&self, generic_name: &str) -> bool {
+        match self {
+            DefinerTypes::Cloak(cloak) => cloak
+                .entries
+                .iter()
+                .any(|e| e.is_generic_used_in_defining(generic_name)),
+            DefinerTypes::Array(array) => array.rtype.is_generic_used_in_defining(generic_name),
+            DefinerTypes::Collective(collective) => {
+                collective.key.is_generic_used_in_defining(generic_name)
+                    || collective.value.is_generic_used_in_defining(generic_name)
+            }
+            DefinerTypes::Nullable(e) => e.rtype.is_generic_used_in_defining(generic_name),
+            DefinerTypes::ParentGeneric(parent_generic) => parent_generic
+                .generics
+                .iter()
+                .any(|g| g.value.is_generic_used_in_defining(generic_name)),
+            DefinerTypes::Generic(generic) => generic.rtype == generic_name,
+            DefinerTypes::Function(function) => {
+                function
+                    .params
+                    .iter()
+                    .any(|param| param.is_generic_used_in_defining(generic_name))
+                    || function.returning.is_generic_used_in_defining(generic_name)
+            }
+            DefinerTypes::Dynamic => false,
+        }
+    }
 }
 
 impl Default for DefinerTypes {

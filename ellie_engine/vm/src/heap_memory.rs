@@ -79,9 +79,7 @@ impl HeapMemory {
                         }
                         new_string
                     }
-                    7 => {
-                        todo!("Todo")
-                    }
+                    7 => value.to_char().to_string(),
                     8 => String::from("void"),
                     9 => String::from("arr"),
                     10 => String::from("null"),
