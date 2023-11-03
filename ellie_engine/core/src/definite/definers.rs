@@ -222,4 +222,66 @@ impl DefinerCollecting {
             DefinerCollecting::Dynamic => unreachable!(),
         }
     }
+
+    pub fn convert_generic(&mut self, generic_hash: usize, replacement_generic: DefinerCollecting) {
+        match self {
+            DefinerCollecting::Array(array) => {
+                array
+                    .rtype
+                    .convert_generic(generic_hash, replacement_generic);
+            }
+            DefinerCollecting::Generic(generic) => {
+                if generic.hash == generic_hash {
+                    *self = replacement_generic;
+                }
+            }
+            DefinerCollecting::ParentGeneric(parrent_generic) => {
+                if parrent_generic.hash == generic_hash {
+                    *self = replacement_generic;
+                } else {
+                    parrent_generic
+                        .generics
+                        .iter_mut()
+                        .for_each(|g| g.value.convert_generic(generic_hash, replacement_generic.clone()));
+                }
+            }
+            DefinerCollecting::Function(function) => {
+                function
+                    .params
+                    .iter_mut()
+                    .for_each(|param: &mut DefinerCollecting| {
+                        param.convert_generic(generic_hash, replacement_generic.clone())
+                    });
+                function
+                    .returning
+                    .convert_generic(generic_hash, replacement_generic.clone());
+            }
+            DefinerCollecting::Cloak(cloak) => {
+                cloak.rtype.iter_mut().for_each(|r| {
+                    r.convert_generic(generic_hash, replacement_generic.clone())
+                });
+            }
+            DefinerCollecting::Collective(collective) => {
+                collective
+                    .key
+                    .convert_generic(generic_hash, replacement_generic.clone());
+                collective
+                    .value
+                    .convert_generic(generic_hash, replacement_generic);
+            }
+            DefinerCollecting::Nullable(nullable) => {
+                nullable
+                    .value
+                    .convert_generic(generic_hash, replacement_generic);
+            }
+            DefinerCollecting::EnumField(enum_field) => match &mut enum_field.field_data {
+                EnumFieldData::NoData => (),
+                EnumFieldData::Data(enum_field_data) => {
+                    enum_field_data.convert_generic(generic_hash, replacement_generic)
+                }
+            },
+            DefinerCollecting::Dynamic => (),
+            DefinerCollecting::ClassInstance(_) => (),
+        }
+    }
 }

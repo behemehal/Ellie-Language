@@ -100,6 +100,9 @@ pub fn generate_type_from_defining(
                                 unimplemented!()
                             }
                         }
+                        crate::deep_search_extensions::ProcessedDeepSearchItems::GenericItem(_) => {
+                            Some(Types::Dynamic)
+                        }
                         _ => unreachable!(),
                     }
                 } else {
@@ -259,6 +262,7 @@ pub fn generate_type_from_defining(
                 pos: defs::Cursor::default(),
             },
         )),
+        definers::DefinerCollecting::Dynamic => Some(Types::Dynamic),
         _ => unreachable!(),
     }
 }
@@ -428,6 +432,9 @@ fn iterate_deep_type(
                                         }).collect()
                                     )
                                 }
+                                ProcessedDeepSearchItems::GenericItem(_) => {
+                                    Ok(Vec::new())
+                                },
                                 _ => unreachable!(),
                             }
                         } else {
@@ -443,103 +450,96 @@ fn iterate_deep_type(
                             Err(errors)
                         }
                     }
-                    ellie_core::definite::definers::DefinerCollecting::ParentGeneric(generic) => {
-                        let hash_deep_search = crate::deep_search_extensions::deep_search_hash(
-                            parser,
-                            page_id,
-                            generic.hash,
-                            vec![],
-                            0,
-                        );
+                    ellie_core::definite::definers::DefinerCollecting::ParentGeneric(rtype) => {
+                        match find_type(rtype.rtype.clone(), page_id, parser) {
+                            Some(found_rtype) => {
+                                let hash_deep_search =
+                                    crate::deep_search_extensions::deep_search_hash(
+                                        parser,
+                                        page_id,
+                                        found_rtype.hash,
+                                        vec![],
+                                        0,
+                                    );
 
-                        if hash_deep_search.found {
-                            match hash_deep_search.found_item {
-                                ProcessedDeepSearchItems::Class(class_page) => {
-                                    match parser
-                                        .find_processed_page(class_page.inner_page_id)
-                                        .cloned()
-                                    {
-                                        Some(class_inner_page) => {
-                                            let attributes = class_inner_page.items.iter().filter_map(|item| {
-                                                        match item.clone() {
-                                                            Collecting::Variable(e) => {
-                                                                let resolved_type = if e.has_type { e.rtype } else { match resolve_type(e.value, class_inner_page.hash, parser, &mut errors, Some(reference_pos)) {
-                                                                    Some(x) => x,
-                                                                    None => {
-                                                                        return None;
-                                                                    },
-                                                                } };
-                                                                Some(Attribute {
-                                                                    _rtype: AttributeType::Property,
-                                                                    name: e.name.clone(),
-                                                                    value: resolved_type,
-                                                                    page: class_inner_page.hash,
-                                                                })
-                                                            },
-                                                            Collecting::Function(e) => {
-                                                                Some(Attribute {
-                                                                    _rtype: AttributeType::Method,
-                                                                    name: e.name.clone(),
-                                                                    value: definers::DefinerCollecting::Function(
-                                                                        ellie_core::definite::definers::FunctionType {
-                                                                            params: e.parameters.iter().map(|param| {
-                                                                                param.rtype.clone()
-                                                                            }).collect::<Vec<_>>(),
-                                                                            returning: Box::new(e.return_type),
-                                                                        }
-                                                                    ),
-                                                                    page: class_inner_page.hash,
-                                                                })
-                                                            },
-                                                            Collecting::NativeFunction(e) => {
-                                                                Some(Attribute {
-                                                                    _rtype: AttributeType::Method,
-                                                                    name: e.name.clone(),
-                                                                    value: definers::DefinerCollecting::Function(
-                                                                        ellie_core::definite::definers::FunctionType {
-                                                                            params: e.parameters.iter().map(|param| {
-                                                                                param.rtype.clone()
-                                                                            }).collect::<Vec<_>>(),
-                                                                            returning: Box::new(e.return_type),
-                                                                        }
-                                                                    ),
-                                                                    page: class_inner_page.hash,
-                                                                })
+                                if hash_deep_search.found {
+                                    match hash_deep_search.found_item {
+                                        ProcessedDeepSearchItems::Class(class_item) => {
+                                            match resolve_chain(
+                                                DefinerCollecting::Generic(found_rtype.clone()),
+                                                ellie_core::defs::Cursor::default(),
+                                                page_id,
+                                                parser,
+                                            ) {
+                                                Ok(e) => {
+                                                    Ok(e.clone()
+                                                        .iter_mut()
+                                                        .map(|attr| {
+                                                            for (i, generic_defining) in class_item
+                                                                .generic_definings
+                                                                .iter()
+                                                                .enumerate()
+                                                            {
+                                                                attr.value.convert_generic(
+                                                                    generic_defining.hash,
+                                                                    rtype.generics[i].value.clone(),
+                                                                );
+                                                                // = rtype.generics[i].value.clone();
                                                             }
-                                                            _ => None,
-                                                        }
-                                                    }).collect::<Vec<_>>();
-                                            Ok(attributes)
+                                                            attr.clone()
+                                                        })
+                                                        .collect::<Vec<_>>())
+                                                }
+                                                Err(e) => {
+                                                    errors.extend(e);
+                                                    Err(errors)
+                                                }
+                                            }
                                         }
-                                        None => {
-                                            unreachable!()
-                                        }
+                                        _ => unreachable!("Unexpected parent_generic target."),
                                     }
+                                } else {
+                                    errors.push(
+                                        error::error_list::ERROR_S6.clone().build_with_path(
+                                            vec![error::ErrorBuildField {
+                                                key: "token".to_owned(),
+                                                value: reference_type.to_string(),
+                                            }],
+                                            alloc::format!(
+                                                "{}:{}:{}",
+                                                file!().to_owned(),
+                                                line!(),
+                                                column!()
+                                            ),
+                                            parser.find_page(page_id).unwrap().path.clone(),
+                                            reference_pos,
+                                        ),
+                                    );
+                                    Err(errors)
                                 }
-                                _ => unreachable!(),
                             }
-                        } else {
-                            errors.push(error::error_list::ERROR_S6.clone().build_with_path(
-                                vec![error::ErrorBuildField {
-                                    key: "token".to_owned(),
-                                    value: reference_type.to_string(),
-                                }],
-                                alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                                parser.find_page(page_id).unwrap().path.clone(),
-                                reference_pos,
-                            ));
-                            Err(errors)
+                            None => {
+                                errors.push(error::error_list::ERROR_S38.clone().build_with_path(
+                                    vec![error::ErrorBuildField {
+                                        key: "token".to_owned(),
+                                        value: "function".to_string(),
+                                    }],
+                                    alloc::format!(
+                                        "{}:{}:{}",
+                                        file!().to_owned(),
+                                        line!(),
+                                        column!()
+                                    ),
+                                    parser.find_page(page_id).unwrap().path.clone(),
+                                    reference_pos,
+                                ));
+                                Err(errors)
+                            }
                         }
                     }
                     ellie_core::definite::definers::DefinerCollecting::Function(_) => {
-                        let result = deep_search(
-                            parser,
-                            page_id,
-                            "function".to_owned(),
-                            None,
-                            vec![],
-                            0,
-                        );
+                        let result =
+                            deep_search(parser, page_id, "function".to_owned(), None, vec![], 0);
                         if result.found {
                             let rtype = match result.found_item {
                                 ProcessedDeepSearchItems::Class(e) => definers::GenericType {
@@ -2857,8 +2857,15 @@ pub fn resolve_type(
                                 .value
                                 .clone()
                         }
-                        _ => {
-                            unimplemented!("Custom index queries are not yet supported",)
+                        Types::FunctionParameter(parameter) => {
+                            match parameter.rtype.unwrap() {
+                                DefinerCollecting::Array(e) => *e.rtype,
+                                DefinerCollecting::ParentGeneric(e) => e.generics[0].value.clone(),
+                                _ => unreachable!(),
+                            }
+                        }
+                        e => {
+                            unimplemented!("Custom index queries are not yet supported for {:?}", e)
                         }
                     };
                     Some(definers::DefinerCollecting::ParentGeneric(

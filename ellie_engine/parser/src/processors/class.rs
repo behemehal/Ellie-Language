@@ -2,7 +2,6 @@ use alloc::{borrow::ToOwned, vec, vec::Vec};
 #[cfg(feature = "standard_rules")]
 use ellie_core::warning;
 use ellie_core::{defs, error, utils};
-use ellie_tokenizer::syntax::items::definers::DefinerTypes::Generic;
 use ellie_tokenizer::{
     processors::items::Processors,
     syntax::items::class::Class,
@@ -123,15 +122,15 @@ impl super::Processor for Class {
                                 .collect::<Vec<_>>()
                                 .contains(&&variable.data.name)
                             {
-                                match &variable.data.rtype.definer_type {
-                                    Generic(generic_item) => {
-                                        if generic_item.rtype == generic_defining.name {
-                                            Some(variable)
-                                        } else {
-                                            None
-                                        }
-                                    }
-                                    _ => None,
+                                if variable
+                                    .data
+                                    .rtype
+                                    .definer_type
+                                    .is_generic_used_in_defining(&generic_defining.name)
+                                {
+                                    Some(variable.data.name.clone())
+                                } else {
+                                    None
                                 }
                             } else {
                                 None
@@ -140,18 +139,18 @@ impl super::Processor for Class {
                         _ => None,
                     });
 
-                    if used_variables.is_none()  {
-                        parser.informations.push(&error::error_list::ERROR_S64.clone().build_with_path(
-                            vec![
-                                error::ErrorBuildField {
+                    if used_variables.is_none() {
+                        parser.informations.push(
+                            &error::error_list::ERROR_S64.clone().build_with_path(
+                                vec![error::ErrorBuildField {
                                     key: "token".to_owned(),
                                     value: generic_defining.name.clone(),
-                                }
-                            ],
-                            alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                            path.clone(),
-                            generic_defining.pos,
-                        ));
+                                }],
+                                alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                                path.clone(),
+                                generic_defining.pos,
+                            ),
+                        );
                     }
                 }
 
