@@ -23,6 +23,11 @@ impl crate::processors::Processor for condition::Condition {
         let chain_len = self.chains.len();
         let chain = &mut self.chains[chain_len - 1];
 
+        if cursor.0 != chain.iterator.pos.0 {
+            chain.iterator.iterate(last_char, '\n');
+        }
+        chain.iterator.pos = cursor;
+
         match chain.rtype {
             condition::ConditionType::If => {
                 if !chain.condition_filled {

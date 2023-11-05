@@ -66,7 +66,6 @@ impl super::Transpiler for condition::Condition {
                 ));
             let end = assembler.location();
             condition_end_requests.push(end);
-            //}
         }
         let end = assembler.location() + 1;
 
