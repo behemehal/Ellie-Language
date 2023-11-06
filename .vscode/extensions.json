@@ -7,6 +7,7 @@
     "dtsvet.vscode-wasm",
     "vadimcn.vscode-lldb",
     "spmeesseman.vscode-taskexplorer",
-    "serayuzgur.crates"
+    "serayuzgur.crates",
+    "denoland.vscode-deno",
   ]
 }
