@@ -15,11 +15,11 @@ homepage = "https://www.ellie-lang.org"
 serde = { version = "1.0", features = ["derive"], optional = true }
 serde_json = { version = "1.0", default-features = false, features = ["alloc"], optional = true }
 path-absolutize = { version = "3.0.10", optional = true }
-ellie_core = { path = "core", version = "0.7.1", default-features = false }
+ellie_core = { path = "core", version = "0.7.2", default-features = false }
 #ellie_assist = { path = "EllieAssist", version = "*", optional = true }
-ellie_tokenizer = { path = "tokenizer", version = "0.6.1", default-features = false, optional = true }
+ellie_tokenizer = { path = "tokenizer", version = "0.6.2", default-features = false, optional = true }
 ellie_parser = { path = "parser", version = "0.7.2", default-features = false, optional = true }
-ellie_bytecode = { path = "bytecode", version = "0.4.2", optional = true }
+ellie_bytecode = { path = "bytecode", version = "0.4.3", optional = true }
 ellie_vm = { path = "vm", version = "0.5.4", optional = true }
 ellie_fmt = { path = "fmt", version = "0.5.2", optional = true }
 ellie_renderer_utils = { path = "renderer_utils", version = "0.3.0", optional = true,  default-features = false }

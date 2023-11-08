@@ -12,8 +12,8 @@ homepage = "https://www.ellie-lang.org"
 lazy_static = "1.4.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
-ellie_core = { path = "../core", version = "0.7.1" }
-ellie_tokenizer = { path = "../tokenizer", version = "0.6.1", default-features = false }
+ellie_core = { path = "../core", version = "0.7.2" }
+ellie_tokenizer = { path = "../tokenizer", version = "0.6.2", default-features = false }
 enum-as-inner = "0.6.0"
 ellie_standard_rules = { path = "./standard_rules", version = "0.1.0", optional = true }
 

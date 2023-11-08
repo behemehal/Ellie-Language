@@ -1,11 +1,11 @@
 pub static ELLIE_ENGINE_VERSION: &str = &"1.4.13-alpha";
 pub static ELLIE_ENGINE_VERSION_NAME: &str = &"Seftali";
-pub static ELLIE_CORE_VERSION: &str = &"0.7.1";
-pub static ELLIE_TOKENIZER_VERSION: &str = &"0.6.1";
+pub static ELLIE_CORE_VERSION: &str = &"0.7.2";
+pub static ELLIE_TOKENIZER_VERSION: &str = &"0.6.2";
 pub static ELLIE_PARSER_VERSION: &str = &"0.7.2";
-pub static ELLIE_BYTECODE_VERSION: &str = &"0.4.2";
+pub static ELLIE_BYTECODE_VERSION: &str = &"0.4.3";
 pub static ELLIE_FMT_VERSION: &str = &"0.5.2";
 pub static ELLIE_VM_VERSION: &str = &"0.5.4";
 pub static ELLIE_BUILD_DATE: &str = &"2023-11-09";
-pub static ELLIE_BUILD_GIT_HASH: &str = &"8fa378c";
+pub static ELLIE_BUILD_GIT_HASH: &str = &"d9dce96";
 pub static ELLIE_BUILD_GIT_BRANCH: &str = &"main";
