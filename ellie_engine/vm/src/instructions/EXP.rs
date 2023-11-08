@@ -1,4 +1,4 @@
-use alloc::format;
+use alloc::{borrow::ToOwned, format};
 use ellie_core::defs::PlatformArchitecture;
 
 use crate::{
@@ -43,7 +43,7 @@ impl super::InstructionExecuter for EXP {
                         current_stack.registers.A = StaticRawType::from_int(result);
                     }
                     (2, 2) => {
-                        let b_value = current_stack.registers.B.to_float();
+                        /* let b_value = current_stack.registers.B.to_float();
                         let c_value = current_stack.registers.C.to_float();
 
                         let result = b_value.powf(c_value);
@@ -54,10 +54,14 @@ impl super::InstructionExecuter for EXP {
                                 reason: ThreadPanicReason::FloatOverflow,
                                 code_location: format!("{}:{}", file!(), line!()),
                             });
-                        }
+                        } */
+                        return Err(ExecuterPanic {
+                            reason: ThreadPanicReason::RuntimeError("EXP is todo.".to_owned()),
+                            code_location: format!("{}:{}", file!(), line!()),
+                        });
                     }
                     (3, 3) => {
-                        let b_value = current_stack.registers.B.to_double();
+                        /* let b_value = current_stack.registers.B.to_double();
                         let c_value = current_stack.registers.C.to_double();
                         let result = b_value.powf(c_value);
                         if result.is_finite() {
@@ -67,7 +71,11 @@ impl super::InstructionExecuter for EXP {
                                 reason: ThreadPanicReason::DoubleOverflow,
                                 code_location: format!("{}:{}", file!(), line!()),
                             });
-                        }
+                        } */
+                        return Err(ExecuterPanic {
+                            reason: ThreadPanicReason::RuntimeError("EXP is todo.".to_owned()),
+                            code_location: format!("{}:{}", file!(), line!()),
+                        });
                     }
                     _ => {
                         return Err(ExecuterPanic {

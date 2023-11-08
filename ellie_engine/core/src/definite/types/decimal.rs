@@ -3,8 +3,8 @@ use serde::{Deserialize, Serialize};
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub enum DecimalTypeEnum {
-    Float(f64),
-    Double(f32),
+    Float(f32),
+    Double(f64),
 }
 
 impl Default for DecimalTypeEnum {

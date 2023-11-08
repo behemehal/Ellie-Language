@@ -203,14 +203,14 @@ impl TypeId {
     pub fn float() -> Self {
         Self {
             id: 2,
-            size: mem::size_of::<f64>(),
+            size: mem::size_of::<f32>(),
         }
     }
 
     pub fn double() -> Self {
         Self {
             id: 3,
-            size: mem::size_of::<f32>(),
+            size: mem::size_of::<f64>(),
         }
     }
 
@@ -360,12 +360,12 @@ impl RawType {
         usize::from_le_bytes(self.data.clone().try_into().unwrap())
     }
 
-    pub fn to_float(&self) -> f64 {
-        f64::from_le_bytes(self.data.clone().try_into().unwrap())
+    pub fn to_float(&self) -> f32 {
+        f32::from_le_bytes(self.data.clone().try_into().unwrap())
     }
 
-    pub fn to_double(&self) -> f32 {
-        f32::from_le_bytes(self.data.clone().try_into().unwrap())
+    pub fn to_double(&self) -> f64 {
+        f64::from_le_bytes(self.data.clone().try_into().unwrap())
     }
 
     pub fn to_byte(&self) -> u8 {
@@ -417,7 +417,7 @@ impl RawType {
         RawType {
             type_id: TypeId {
                 id: 2,
-                size: mem::size_of::<f64>(),
+                size: mem::size_of::<f32>(),
             },
             data,
         }
@@ -427,7 +427,7 @@ impl RawType {
         RawType {
             type_id: TypeId {
                 id: 3,
-                size: mem::size_of::<f32>(),
+                size: mem::size_of::<f64>(),
             },
             data,
         }
@@ -580,16 +580,16 @@ impl StaticRawType {
         usize::from_le_bytes(integer)
     }
 
-    /// Converts the float to a f64
+    /// Converts the float to a f32
     /// TODO: Example doc
-    pub fn to_float(&self) -> f64 {
-        f64::from_le_bytes(self.data[0..mem::size_of::<f64>()].try_into().unwrap())
+    pub fn to_float(&self) -> f32 {
+        f32::from_le_bytes(self.data[0..mem::size_of::<f32>()].try_into().unwrap())
     }
 
-    /// Converts the double to a f32
+    /// Converts the double to a f64
     /// TODO: Example doc
-    pub fn to_double(&self) -> f32 {
-        f32::from_le_bytes(self.data[0..mem::size_of::<f32>()].try_into().unwrap())
+    pub fn to_double(&self) -> f64 {
+        f64::from_le_bytes(self.data[0..mem::size_of::<f64>()].try_into().unwrap())
     }
 
     /// Converts the byte to a u8
@@ -634,9 +634,9 @@ impl StaticRawType {
         }
     }
 
-    pub fn from_float(data: f64) -> StaticRawType {
+    pub fn from_float(data: f32) -> StaticRawType {
         let mut bytes = [0; 8];
-        bytes[0..mem::size_of::<f64>()].copy_from_slice(&data.to_le_bytes());
+        bytes[0..mem::size_of::<f32>()].copy_from_slice(&data.to_le_bytes());
         StaticRawType {
             type_id: TypeId {
                 id: 2,
@@ -646,13 +646,13 @@ impl StaticRawType {
         }
     }
 
-    pub fn from_double(data: f32) -> StaticRawType {
+    pub fn from_double(data: f64) -> StaticRawType {
         let mut bytes = [0; 8];
-        bytes[0..mem::size_of::<f32>()].copy_from_slice(&data.to_le_bytes());
+        bytes[0..mem::size_of::<f64>()].copy_from_slice(&data.to_le_bytes());
         StaticRawType {
             type_id: TypeId {
                 id: 3,
-                size: mem::size_of::<f32>(),
+                size: mem::size_of::<f64>(),
             },
             data: bytes,
         }

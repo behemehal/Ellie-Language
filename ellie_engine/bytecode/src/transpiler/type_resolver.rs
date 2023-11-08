@@ -23,10 +23,10 @@ pub fn convert_type(
         CoreTypes::Integer(integer) => (Types::Integer, isize_to_le_bytes(integer.value, arch)),
         CoreTypes::Decimal(decimal) => match decimal.value {
             ellie_core::definite::types::decimal::DecimalTypeEnum::Float(float_value) => {
-                (Types::Float, f64_to_le_bytes(float_value, arch))
+                (Types::Float, f32_to_le_bytes(float_value, arch))
             }
             ellie_core::definite::types::decimal::DecimalTypeEnum::Double(double_value) => {
-                (Types::Double, f32_to_le_bytes(double_value, arch))
+                (Types::Double, f64_to_le_bytes(double_value, arch))
             }
         },
         CoreTypes::Bool(bool) => (Types::Bool, (bool.value as u8).to_le_bytes().to_vec()),
