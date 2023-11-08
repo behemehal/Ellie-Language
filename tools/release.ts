@@ -84,8 +84,8 @@ async function buildTargetedArch(target: Target, arch: string) {
         args: [
             "build",
             "--release",
-            "--target",
             "--quiet",
+            "--target",
             arch,
         ]
     });
@@ -93,7 +93,6 @@ async function buildTargetedArch(target: Target, arch: string) {
     const output = await command.output();
 
     if (!output.success) {
-        console.log(output);
         const stderr = new TextDecoder().decode(output.stderr);
         spinner.fail("Failed to build targeted arch");
         spinner.info(stderr);
@@ -205,9 +204,7 @@ for (const target of targets) {
             const fileHash = await resolveHash(file);
             buildHashes[path.parse(file).name] = fileHash;
             spinner.info("Build complete.")
-        } catch (e) {
-            console.log('Err', e);
-
+        } catch (_) {
             await removePreviousBuilds();
             spinner.fail("Build failed.");
             Deno.exit(1)
