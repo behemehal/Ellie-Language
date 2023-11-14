@@ -106,7 +106,9 @@ impl Formatter {
         for item in &page.items {
             match item {
                 Processors::Function(_) | Processors::Class(_) => {
-                    output.lines.push(String::new());
+                    if output.lines.len() != 0 {
+                        output.lines.push(String::new());
+                    }
                     last_element_is_fn_or_class = true;
                 }
                 Processors::Comment(e) => {
