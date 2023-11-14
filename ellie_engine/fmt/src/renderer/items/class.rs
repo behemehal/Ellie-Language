@@ -7,7 +7,25 @@ impl CodeRenderer for Class {
     fn render(&self, state: &State, options: &FormatterOptions) -> String {
         let state_scope_length = state.render_scope_space(options);
         let is_public = if self.public { "pub " } else { "" };
-        let mut class_input = format!("{state_scope_length}{is_public}class {} ", self.name);
+        let mut class_input = format!("{state_scope_length}{is_public}class {}", self.name);
+
+        if !self.generic_definings.is_empty() {
+            let mut generic_definings = "<".to_string();
+            for (index, generic_defining) in self.generic_definings.iter().enumerate() {
+                let mut _generic_defining = generic_defining.name.to_string();
+
+                if index != self.generic_definings.len() - 1 {
+                    if options.leave_space_after_comma {
+                        _generic_defining += ", "
+                    } else {
+                        _generic_defining += ","
+                    }
+                }
+                generic_definings += &_generic_defining;
+            }
+            generic_definings += ">";
+            class_input += &generic_definings;
+        }
 
         if self.body.is_empty() {
             class_input += &format!("{{}}{}", options.render_line_ending());
