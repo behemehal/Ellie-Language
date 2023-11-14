@@ -9,6 +9,6 @@ impl CodeRenderer for NullableType {
         let state_ending_token = &state.ending_token;
         let type_of_value = self.rtype.render(&State::empty_state(), options);
         //[type]?
-        format!("{state_scope_length}{type_of_value}?{state_ending_token}")
+        format!("{state_scope_length}?{type_of_value}{state_ending_token}")
     }
 }
