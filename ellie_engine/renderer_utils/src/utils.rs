@@ -294,11 +294,21 @@ pub fn _get_lines<T: ColorDisplay>(code: String, lines: defs::Cursor, color_outp
 
 /// Get line from code
 pub fn get_line(code: String, line: usize) -> String {
-    let v: Vec<&str> = code.split('\n').collect();
+    let v: Vec<&str> = code
+        .split(code.contains("\r\n").then(|| "\r\n").unwrap_or("\n"))
+        .collect();
     if line > v.len() {
-        v[v.len() - 1].to_string()
+        v[v.len() - 1]
+            .to_string()
+            .replace('\t', "    ")
+            .replace('\n', "")
+            .replace('\r', "")
     } else {
-        v[line].to_string()
+        v[line]
+            .to_string()
+            .replace('\t', "    ")
+            .replace('\n', "")
+            .replace('\r', "")
     }
 }
 
@@ -395,7 +405,7 @@ pub(crate) fn render_code_block<T: ColorDisplay>(
                     generate_blank((line_space - (i + 1).to_string().len()) + 1),
                     i + 1,
                     color_output.color(Colors::Reset),
-                    get_line(code.clone(), i).replace('\t', "    "), //:/
+                    get_line(code.clone(), i),
                     color_output.color(Colors::Green),
                     ref_message,
                     color_output.color(Colors::Reset),
@@ -424,7 +434,7 @@ pub(crate) fn render_code_block<T: ColorDisplay>(
                     generate_blank((line_space - (i + 1).to_string().len()) + 1),
                     i + 1,
                     color_output.color(Colors::Reset),
-                    get_line(code.clone(), i).replace('\t', "    "), //WTF? THIS IS THE ONLY SOLUTION
+                    get_line(code.clone(), i)
                 );
 
                 output += &format!(
@@ -503,7 +513,7 @@ pub(crate) fn render_code_block<T: ColorDisplay>(
 
     if reference {
         output += &format!(
-            "{}{}{}  ├──\n",
+            "{}{}{}  ├──",
             color_output.color(Colors::Yellow),
             generate_blank(line_space),
             color_output.color(Colors::Reset),
