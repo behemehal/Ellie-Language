@@ -216,7 +216,7 @@ pub struct Tokenizer {
 
 impl Tokenizer {
     /// ### Create a new tokenizer
-    /// [`Tokenizer`] is a base implementation of [`Iterator`], which iterates through the code
+    /// [`Tokenizer`] is a base implementation of [`crate::iterator::Iterator`], which iterates through the code
     /// ## Arguments
     /// * `code` - The code to tokenize
     /// * `path` - The path of the file
@@ -230,7 +230,7 @@ impl Tokenizer {
         }
     }
 
-    /// `tokenize_page` is a function initalizes [`Iterator`] and iters through the code
+    /// `tokenize_page` is a function initalizes [`crate::iterator::Iterator`] and iters through the code
     pub fn tokenize_page(&mut self) -> Result<&mut Vec<items::Processors>, Vec<error::Error>> {
         let mut last_char = '\0';
         for letter_char in self.code.chars() {

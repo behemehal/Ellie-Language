@@ -33,11 +33,18 @@ impl Iterator {
                 if matches!(&self.active.current, items::Processors::Comment(e) if e.line_comment) {
                     self.collected.push(self.active.current.clone());
                 } else {
-                    self.errors.push(error::error_list::ERROR_S26.clone().build(
+                    let mut error = error::error_list::ERROR_S26.clone().build(
                         vec![],
                         alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                         self.active.current.get_pos(),
-                    ));
+                    );
+
+                    if let Some(pos) = self.active.current.expects_semicolon() {
+                        error.reference_message = "expected ';'".to_string();
+                        error.reference_block = Some((pos, "<fill>".to_string()));
+                    }
+
+                    self.errors.push(error)
                 }
             } else if matches!(self.active.current.as_getter_call(), Some(getter_call) if !getter_call.cache.current.is_not_initialized())
             {
@@ -85,7 +92,9 @@ impl Iterator {
             dont_inc_column = true;
             if !self.active.is_complete() {
                 if let items::Processors::GetterCall(e) = &self.active.current {
-                    if !e.cache.current.is_not_initialized() {
+                    if !e.cache.current.is_not_initialized()
+                        && !e.cache.current.is_item_supports_multiline()
+                    {
                         self.errors.push(error::error_list::ERROR_S26.clone().build(
                             vec![],
                             alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),

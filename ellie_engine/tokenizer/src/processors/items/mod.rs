@@ -6,12 +6,13 @@ use ellie_core::{
         types::class_instance,
         Converter,
     },
-    defs, error,
+    defs::{self, Cursor},
+    error,
 };
 use enum_as_inner::EnumAsInner;
 use serde::{Deserialize, Serialize};
 
-use crate::syntax::items::*;
+use crate::syntax::items::{definers::DefinerTypes, *};
 
 use super::{types::TypeProcessor, EscapeCharEmitter};
 mod brk_processor;
@@ -246,6 +247,100 @@ impl Processors {
             }),
             _ => unreachable!(),
         }
+    }
+
+    pub fn expects_semicolon(&self) -> Option<Cursor> {
+        match self {
+            Processors::Variable(variable) => {
+                if variable.name_collected {
+                    if variable.data.has_type && !variable.data.has_value && variable.data.rtype.complete {
+                        Some(Cursor::build_with_skip_char(variable.data.type_pos.range_end))
+                    } else if variable.data.has_value && variable.data.value.is_complete() {
+                        Some(Cursor::build_with_skip_char(variable.data.value_pos.range_end))
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                }
+            },
+            Processors::GetterCall(getter) => {
+                if getter.cache.current.is_complete() {
+                    Some(Cursor::build_with_skip_char(getter.pos.range_end))
+                } else {
+                    None
+                }
+            }
+            Processors::SetterCall(setter) => {
+                if setter.value.is_complete() {
+                    Some(Cursor::build_with_skip_char(setter.value_pos.range_end))
+                } else {
+                    None
+                }
+            }
+            Processors::FileKey(filekey) => {
+                if filekey.name_collected
+                    && (filekey.value_cache.is_complete() || filekey.key_name != "")
+                {
+                    Some(filekey.pos)
+                } else {
+                    None
+                }
+            }
+            Processors::Import(import) => {
+                if import.import_filled
+                    && (!import.reference_starter_collected || import.reference != "")
+                {
+                    Some(import.pos)
+                } else {
+                    None
+                }
+            }
+            Processors::Ret(ret) => {
+                if ret.value.is_complete() {
+                    Some(ret.value_position)
+                } else {
+                    None
+                }
+            }
+            Processors::Brk(brk) => Some(brk.pos),
+            Processors::Go(go) => Some(go.pos),
+            Processors::Function(function) => {
+                if function.data.defining {
+                    Some(function.data.pos)
+                } else {
+                    None
+                }
+            }
+            _ => unreachable!("{:#?}", self),
+        }
+    }
+
+    pub fn build_variable(
+        name: String,
+        constant: bool,
+        public: bool,
+        rtype: Option<definers::DefinerCollector>,
+        value: Option<super::types::Processors>,
+    ) -> Processors {
+        Processors::Variable(variable::VariableCollector {
+            data: variable::Variable {
+                name,
+                constant,
+                public,
+                name_pos: Cursor::default(),
+                value_pos: Cursor::default(),
+                type_pos: Cursor::default(),
+                pos: Cursor::default(),
+                rtype: rtype.unwrap_or(definers::DefinerCollector {
+                    definer_type: DefinerTypes::Dynamic,
+                    complete: true,
+                }),
+                value: value.unwrap_or(super::types::Processors::default()),
+                ..Default::default()
+            },
+            ..Default::default()
+        })
     }
 }
 

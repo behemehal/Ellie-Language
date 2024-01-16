@@ -246,6 +246,22 @@ impl Processors {
         }
     }
 
+    pub fn is_item_supports_multiline(&self) -> bool {
+        match self {
+            Processors::String(_) => true,
+            Processors::Array(_) => true,
+            Processors::Cloak(_) => true,
+            Processors::Collective(_) => true,
+            Processors::Reference(_) => true,
+            Processors::BraceReference(_) => true,
+            Processors::AsKeyword(_) => true,
+            Processors::FunctionCall(e) => e.param_started,
+            Processors::ClassCall(_) => true,
+            Processors::Operator(_) => true,
+            _ => false,
+        }
+    }
+
     pub fn is_assignable(&self) -> bool {
         match self {
             Processors::Variable(_) => true,
