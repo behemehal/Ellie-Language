@@ -707,7 +707,12 @@ fn iterate_deep_type(
                         }
                         Ok(attributes)
                     }
-                    _ => match resolve_absolute_definer(parser, page_id, reference_type) {
+                    _ => match resolve_absolute_definer(
+                        parser,
+                        page_id,
+                        reference_type,
+                        reference_pos,
+                    ) {
                         Ok(e) => resolve_chain(e, reference_pos, page_id, parser),
                         Err(e) => {
                             errors.extend(e);
@@ -1612,10 +1617,11 @@ pub fn resolve_absolute_definer(
     parser: &mut Parser,
     page_id: usize,
     rtype: definers::DefinerCollecting,
+    pos: defs::Cursor,
 ) -> Result<definers::DefinerCollecting, Vec<error::Error>> {
     match rtype {
         definers::DefinerCollecting::Array(e) => {
-            let inner_type = match resolve_absolute_definer(parser, page_id, *e.rtype) {
+            let inner_type = match resolve_absolute_definer(parser, page_id, *e.rtype, e.pos) {
                 Ok(e) => e,
                 Err(e) => return Err(e),
             };
@@ -1668,8 +1674,8 @@ pub fn resolve_absolute_definer(
             let generics = e
                 .generics
                 .iter()
-                .filter_map(
-                    |x| match resolve_absolute_definer(parser, page_id, x.value.clone()) {
+                .filter_map(|x| {
+                    match resolve_absolute_definer(parser, page_id, x.value.clone(), x.pos) {
                         Ok(e) => Some(definers::GenericParameter {
                             value: e,
                             pos: x.pos,
@@ -1678,8 +1684,8 @@ pub fn resolve_absolute_definer(
                             errors.extend(e);
                             None
                         }
-                    },
-                )
+                    }
+                })
                 .collect::<Vec<_>>();
 
             if !errors.is_empty() {
@@ -1726,7 +1732,7 @@ pub fn resolve_absolute_definer(
             }
         }
         definers::DefinerCollecting::Collective(e) => {
-            let inner_type = match resolve_absolute_definer(parser, page_id, *e.value) {
+            let inner_type = match resolve_absolute_definer(parser, page_id, *e.value, e.pos) {
                 Ok(e) => e,
                 Err(e) => return Err(e),
             };
@@ -1759,7 +1765,7 @@ pub fn resolve_absolute_definer(
             ))
         }
         definers::DefinerCollecting::Nullable(e) => {
-            let inner_type = match resolve_absolute_definer(parser, page_id, *e.value) {
+            let inner_type = match resolve_absolute_definer(parser, page_id, *e.value, e.pos) {
                 Ok(e) => e,
                 Err(e) => return Err(e),
             };
@@ -1801,7 +1807,7 @@ pub fn resolve_absolute_definer(
                     }],
                     alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                     parser.find_page(page_id).unwrap().path.clone(),
-                    defs::Cursor::default(),
+                    pos,
                 )]),
             }
         }
@@ -2531,7 +2537,7 @@ pub fn resolve_type(
                         parser.find_page(target_page).unwrap().path.clone(),
                         match pos {
                             Some(e) => e,
-                            None => defs::Cursor::default(),
+                            None => operator.pos,
                         },
                     ));
                     None
