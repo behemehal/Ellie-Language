@@ -1803,7 +1803,7 @@ pub fn resolve_absolute_definer(
                 None => Err(vec![error::error_list::ERROR_S38.clone().build_with_path(
                     vec![error::ErrorBuildField {
                         key: "token".to_owned(),
-                        value: "collective".to_string(),
+                        value: "dyn".to_string(),
                     }],
                     alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                     parser.find_page(page_id).unwrap().path.clone(),
@@ -2308,6 +2308,11 @@ pub fn find_type(
         match result.found_item {
             DeepSearchItems::Class(e) => Some(definers::GenericType {
                 rtype,
+                pos: e.pos,
+                hash: e.hash,
+            }),
+            DeepSearchItems::GenericItem(e) => Some(definers::GenericType {
+                rtype: e.generic_name,
                 pos: e.pos,
                 hash: e.hash,
             }),
