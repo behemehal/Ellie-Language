@@ -1382,9 +1382,9 @@ pub fn process(
                 variable_pos,
             );
             match target {
-                Ok(_) => {
+                Ok(e) => {
                     let resolved = resolve_type(
-                        function_call.data.target.clone().to_definite(),
+                        e,
                         page_id,
                         parser,
                         &mut errors,
