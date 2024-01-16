@@ -18,7 +18,7 @@ pub struct Variable {
     pub value_pos: defs::Cursor,
     pub type_pos: defs::Cursor,
     pub hash: usize,
-    pub rtype: crate::syntax::items::definers::DefinerCollector,
+    pub rtype: DefinerCollector,
 }
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
