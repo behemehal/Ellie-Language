@@ -401,4 +401,11 @@ lazy_static! {
         semi_assist: true,
         ..Default::default()
     };
+    pub static ref ERROR_S65: error::Error = error::Error {
+        code: 0x64,
+        title: "ReferenceError".to_owned(),
+        message: "Unsafe variable definition".to_owned(),
+        full_assist: true,
+        ..Default::default()
+    };
 }
