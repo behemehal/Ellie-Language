@@ -172,7 +172,7 @@ impl Processors {
             Processors::String(_) => true,
             Processors::FunctionCall(_) => false,
             Processors::Variable(e) => {
-                if e.data.value == "false" || e.data.value == "true" {
+                if e.data.value == "false" || e.data.value == "true" || e.data.value == "null" {
                     true
                 } else {
                     false
@@ -188,7 +188,8 @@ impl Processors {
             Processors::Cloak(e) => e.data.collective.iter().all(|e| e.value.is_static()),
             Processors::Collective(e) => e.data.entries.iter().all(|e| e.value.is_static()),
             Processors::AsKeyword(e) => {
-                if matches!(e.data.rtype.definer_type, crate::syntax::items::definers::DefinerTypes::Generic(ref e) if e.rtype == "bool")
+                if (matches!(e.data.rtype.definer_type, crate::syntax::items::definers::DefinerTypes::Generic(ref e) if e.rtype == "bool")
+                    || matches!(e.data.rtype.definer_type, crate::syntax::items::definers::DefinerTypes::Generic(ref e) if e.rtype == "Null"))
                     && matches!(*e.data.target, Processors::Integer(ref e) if e.data.value == 1 || e.data.value == 0)
                 {
                     true

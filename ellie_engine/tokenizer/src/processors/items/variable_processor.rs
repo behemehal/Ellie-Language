@@ -40,12 +40,12 @@ impl crate::processors::Processor for VariableCollector {
                 self.name_collected = true;
                 self.type_collected = true;
             } else if letter_char == ';' {
+                self.data.pos.range_end = cursor;
                 errors.push(error::error_list::ERROR_S8.clone().build(
                     vec![],
                     alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                    defs::Cursor::build_from_cursor(cursor),
+                    self.data.pos,
                 ));
-                self.data.pos.range_end = cursor;
                 self.complete = true;
             } else if letter_char != ' ' {
                 errors.push(error::error_list::ERROR_S1.clone().build(

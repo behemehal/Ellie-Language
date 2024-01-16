@@ -70,16 +70,37 @@ impl super::Processor for VariableCollector {
                             Types::String(e) => Types::String(e),
                             Types::Char(e) => Types::Char(e),
                             Types::VariableType(e) => {
-                                Types::Bool(ellie_core::definite::types::bool::BoolType {
-                                    value: if e.value == "true" {
-                                        true
-                                    } else if e.value == "false" {
-                                        false
-                                    } else {
-                                        //This will give me headache later
-                                        unreachable!()
-                                    },
-                                })
+                                if e.value == "true" || e.value == "false" {
+                                    Types::Bool(ellie_core::definite::types::bool::BoolType {
+                                        value: e.value == "true",
+                                    })
+                                } else if e.value == "null" {
+                                    Types::Null
+                                } else {
+                                    parser.informations.push(
+                                        &error::error_list::ERROR_S50.clone().build_with_path(
+                                            vec![
+                                                error::ErrorBuildField::new(
+                                                    "target",
+                                                    &self.data.name,
+                                                ),
+                                                error::ErrorBuildField::new(
+                                                    "type",
+                                                    &self.data.name,
+                                                ),
+                                            ],
+                                            alloc::format!(
+                                                "{}:{}:{}",
+                                                file!().to_owned(),
+                                                line!(),
+                                                column!()
+                                            ),
+                                            path.clone(),
+                                            self.data.name_pos,
+                                        ),
+                                    );
+                                    return false;
+                                }
                             }
                             _ => unreachable!(),
                         },

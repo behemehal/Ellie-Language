@@ -363,7 +363,14 @@ pub fn operator_control(
                     | ("float", "double")
                     | ("double", "double")
                     | ("double", "float") => None,
-                    _ => Some(comparison_operator_to_string(operator)),
+                    | ("dyn", _) => None,
+                    | (_, "dyn") => None,
+                    (a, b) => {
+                        if a == b {
+                            return None;
+                        }
+                        Some(comparison_operator_to_string(operator))
+                    },
                 }
             }
             crate::definite::types::operator::ComparisonOperators::GreaterThan
