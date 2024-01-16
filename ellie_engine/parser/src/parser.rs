@@ -1903,7 +1903,7 @@ impl Parser {
                 }
             } else {
                 //Check leftover file keys are compatible with the element
-                match self.processed_pages.nth(processed_page_idx) {
+                match self.processed_pages.nth_mut(processed_page_idx) {
                     Some(e) => {
                         if !e.unassigned_file_keys.is_empty() {
                             match item {
@@ -2456,6 +2456,12 @@ impl Parser {
                             unprocessed_page.hash,
                         ),
                         Processors::Ret(e) => e.process(
+                            self,
+                            unprocessed_page_idx,
+                            processed_page_idx,
+                            unprocessed_page.hash,
+                        ),
+                        Processors::Brk(e) => e.process(
                             self,
                             unprocessed_page_idx,
                             processed_page_idx,

@@ -16,4 +16,5 @@ pub struct Constructor {
     pub name_pos: defs::Cursor,
     pub parameters_pos: defs::Cursor,
     pub pos: defs::Cursor,
+    pub class_hash: usize,
 }
