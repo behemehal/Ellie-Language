@@ -726,6 +726,14 @@ pub fn resolve_type(
         }
         CoreTypes::Function(_) => todo!(),
         CoreTypes::ClassCall(class_call) => {
+            let target: LocalHeader = match *class_call.target.clone() {
+                CoreTypes::VariableType(e) => assembler
+                    .find_local(&e.value, dependencies.clone(), true)
+                    .unwrap()
+                    .clone(),
+                _ => unreachable!("Unexpected target type"),
+            };
+
             assembler
                 .instructions
                 .push(instruction_table::Instructions::ARR(Instruction::implicit()));
@@ -750,46 +758,81 @@ pub fn resolve_type(
                 }
             }
 
+            let self_location = assembler.location() + 1;
+
             assembler
                 .instructions
                 .push(instruction_table::Instructions::CO(Instruction::absolute(
                     class_location,
                 )));
 
+            let previous_params_location = assembler.location() + 1;
+
+            // Reserve parameters
+            assembler
+                .instructions
+                .push(instruction_table::Instructions::STB(Instruction::implicit()));
+
+            for _ in class_call.params.iter().enumerate() {
+                assembler
+                    .instructions
+                    .push(instruction_table::Instructions::STB(Instruction::implicit()));
+            }
+            //-
+
+            // Insert self
+            assembler
+                .instructions
+                .push(instruction_table::Instructions::LDB(Instruction::absolute(
+                    self_location,
+                )));
+            assembler
+                .instructions
+                .push(instruction_table::Instructions::STB(Instruction::absolute(
+                    previous_params_location,
+                )));
+            //-
+
+            assembler
+                .instructions
+                .push(instruction_table::Instructions::CALL(
+                    Instruction::absolute(target.cursor),
+                ));
+
             match target_register {
                 instructions::Registers::A => {
                     assembler
                         .instructions
                         .push(instruction_table::Instructions::LDA(Instruction::absolute(
-                            assembler.location(),
+                            self_location,
                         )))
                 }
                 instructions::Registers::B => {
                     assembler
                         .instructions
                         .push(instruction_table::Instructions::LDB(Instruction::absolute(
-                            assembler.location(),
+                            self_location,
                         )))
                 }
                 instructions::Registers::C => {
                     assembler
                         .instructions
                         .push(instruction_table::Instructions::LDC(Instruction::absolute(
-                            assembler.location(),
+                            self_location,
                         )))
                 }
                 instructions::Registers::X => {
                     assembler
                         .instructions
                         .push(instruction_table::Instructions::LDX(Instruction::absolute(
-                            assembler.location(),
+                            self_location,
                         )))
                 }
                 instructions::Registers::Y => {
                     assembler
                         .instructions
                         .push(instruction_table::Instructions::LDY(Instruction::absolute(
-                            assembler.location(),
+                            self_location,
                         )))
                 }
             }

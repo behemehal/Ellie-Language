@@ -138,20 +138,6 @@ impl super::Processor for Class {
                         }
                         _ => None,
                     });
-
-                    if used_variables.is_none() {
-                        parser.informations.push(
-                            &error::error_list::ERROR_S64.clone().build_with_path(
-                                vec![error::ErrorBuildField {
-                                    key: "token".to_owned(),
-                                    value: generic_defining.name.clone(),
-                                }],
-                                alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                                path.clone(),
-                                generic_defining.pos,
-                            ),
-                        );
-                    }
                 }
 
                 for constructor in duplicate_constructors {
@@ -166,43 +152,8 @@ impl super::Processor for Class {
                     err.semi_assist = true;
                     parser.informations.push(&err);
                 }
-            } else if self.generic_definings.len() > 0 {
-                for generic_defining in &self.generic_definings {
-                    parser.informations.push(
-                        &error::error_list::ERROR_S64.clone().build_with_path(
-                            vec![error::ErrorBuildField {
-                                key: "token".to_owned(),
-                                value: generic_defining.name.clone(),
-                            }],
-                            alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                            path.clone(),
-                            generic_defining.pos,
-                        ),
-                    );
-                }
             }
 
-            let non_constants = self.body.iter().filter_map(|item| match item {
-                Processors::Variable(e) => {
-                    if !e.data.constant && e.data.has_value {
-                        Some(e)
-                    } else {
-                        None
-                    }
-                }
-                _ => None,
-            });
-
-            for non_constant in non_constants {
-                parser
-                    .informations
-                    .push(&error::error_list::ERROR_S62.clone().build_with_path(
-                        vec![],
-                        alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                        path.clone(),
-                        non_constant.data.pos,
-                    ));
-            }
 
             for (index, generic) in self.generic_definings.iter().enumerate() {
                 if let Some(other_index) = self
