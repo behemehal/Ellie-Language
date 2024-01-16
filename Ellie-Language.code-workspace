@@ -17,6 +17,10 @@
 			"name": "ellievm (Virtual Machine App)"
 		},
 		{
+			"path": "Ellie-Core-Library",
+			"name": "Ellie Core Library"
+		},
+		{
 			"path": "tools",
 			"name": "tools"
 		},
