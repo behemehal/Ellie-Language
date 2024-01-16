@@ -43,6 +43,7 @@ impl Converter<Constructor, ellie_core::definite::items::constructor::Constructo
             parameters_pos: self.parameters_pos,
             pos: self.pos,
             inner_page_id: 0,
+            class_hash: 0,
         }
     }
 

@@ -314,6 +314,7 @@ pub enum DeepTypeResult {
     Function(ellie_core::definite::types::function::Function),
     FunctionCall(ellie_core::definite::types::function_call::FunctionCall),
     FunctionParameter(ellie_core::definite::types::function::FunctionParameter),
+    ConstructorParameter(ellie_core::definite::items::constructor_parameter::ConstructorParameter),
     BraceReference(ellie_core::definite::types::brace_reference::BraceReferenceType),
     ClassInstance(ellie_core::definite::types::class_instance::ClassInstance),
     SelfItem(ellie_core::definite::items::self_item::SelfItem),
@@ -843,6 +844,9 @@ fn iterate_deep_type(
                             DeepTypeResult::ClassInstance(_) => todo!(),
                             DeepTypeResult::SelfItem(_) => todo!(),
                             DeepTypeResult::FunctionParameter(e) => Types::FunctionParameter(e),
+                            DeepTypeResult::ConstructorParameter(e) => {
+                                Types::ConstructorParameter(e)
+                            }
                         }),
                         reference_pos: e.reference_pos,
                         brace_pos: e.brace_pos,
@@ -870,6 +874,9 @@ fn iterate_deep_type(
                             DeepTypeResult::ClassInstance(_) => todo!(),
                             DeepTypeResult::SelfItem(_) => todo!(),
                             DeepTypeResult::FunctionParameter(e) => Types::FunctionParameter(e),
+                            DeepTypeResult::ConstructorParameter(e) => {
+                                Types::ConstructorParameter(e)
+                            }
                         }),
                         pos: e.pos,
                     },
@@ -901,6 +908,7 @@ fn iterate_deep_type(
                 DeepTypeResult::ClassInstance(_) => todo!(),
                 DeepTypeResult::SelfItem(_) => todo!(),
                 DeepTypeResult::FunctionParameter(e) => Types::FunctionParameter(e),
+                DeepTypeResult::ConstructorParameter(e) => Types::ConstructorParameter(e),
             };
 
             let second = match resolve_deep_type(parser, page_id, *e.second, errors) {
@@ -927,6 +935,7 @@ fn iterate_deep_type(
                 DeepTypeResult::ClassInstance(_) => todo!(),
                 DeepTypeResult::SelfItem(_) => todo!(),
                 DeepTypeResult::FunctionParameter(e) => Types::FunctionParameter(e),
+                DeepTypeResult::ConstructorParameter(e) => Types::ConstructorParameter(e),
             };
 
             DeepTypeResult::Operator(ellie_core::definite::types::operator::OperatorType {
@@ -1072,6 +1081,12 @@ fn iterate_deep_type(
                     DeepTypeResult::Enum(_) => todo!(),
                     DeepTypeResult::ClassInstance(_) => todo!(),
                     DeepTypeResult::SelfItem(_) => todo!(),
+                    DeepTypeResult::ConstructorParameter(e) => {
+                        collective.push(ellie_core::definite::types::array::ArrayEntry {
+                            value: Types::ConstructorParameter(e),
+                            location: i.location,
+                        });
+                    }
                 }
             }
             DeepTypeResult::Array(ellie_core::definite::types::array::ArrayType {
@@ -1205,6 +1220,31 @@ fn iterate_deep_type(
                         iterate_deep_type(parser, page_id, e.value, errors)
                     }
                     ProcessedDeepSearchItems::FunctionParameter(e) => {
+                        match generate_type_from_defining(e.rtype, page_id, parser) {
+                            Some(e) => match e {
+                                Types::Byte(e) => DeepTypeResult::Byte(e),
+                                Types::Integer(e) => DeepTypeResult::Integer(e),
+                                Types::Decimal(e) => DeepTypeResult::Decimal(e),
+                                Types::Bool(e) => DeepTypeResult::Bool(e),
+                                Types::String(e) => DeepTypeResult::String(e),
+                                Types::Char(e) => DeepTypeResult::Char(e),
+                                Types::Collective(e) => DeepTypeResult::Collective(e),
+                                Types::BraceReference(e) => DeepTypeResult::BraceReference(e),
+                                Types::Operator(e) => DeepTypeResult::Operator(e),
+                                Types::Cloak(e) => DeepTypeResult::Cloak(e),
+                                Types::Array(e) => DeepTypeResult::Array(e),
+                                Types::Function(e) => DeepTypeResult::Function(e),
+                                Types::ClassCall(e) => DeepTypeResult::ClassCall(e),
+                                Types::FunctionCall(e) => DeepTypeResult::FunctionCall(e),
+                                Types::Void => DeepTypeResult::Void,
+                                Types::Null => DeepTypeResult::Null,
+                                Types::Dynamic => DeepTypeResult::Dynamic,
+                                _ => unreachable!(),
+                            },
+                            None => panic!("This should never happen"),
+                        }
+                    }
+                    ProcessedDeepSearchItems::ConstructorParameter(e) => {
                         match generate_type_from_defining(e.rtype, page_id, parser) {
                             Some(e) => match e {
                                 Types::Byte(e) => DeepTypeResult::Byte(e),
@@ -1610,6 +1650,7 @@ fn iterate_deep_type(
         Types::EnumData(e) => DeepTypeResult::EnumData(e),
         Types::ClassInstance(_) => todo!(),
         Types::FunctionParameter(e) => DeepTypeResult::FunctionParameter(e),
+        Types::ConstructorParameter(e) => DeepTypeResult::ConstructorParameter(e),
     }
 }
 
@@ -1845,7 +1886,7 @@ pub enum ProcessedDeepSearchItems {
     ClassInstance(ellie_core::definite::types::class_instance::ClassInstance),
     GenericItem(ellie_core::definite::items::generic::Generic),
     FunctionParameter(ellie_core::definite::items::function_parameter::FunctionParameter),
-    //ConstructorParameter(ellie_tokenizer::syntax::items::constructor_parameter::ConstructorParameter),
+    ConstructorParameter(ellie_core::definite::items::constructor_parameter::ConstructorParameter),
     //MixUp(Vec<(String, String)>),
     //BrokenPageGraph,
     None,
@@ -1865,6 +1906,7 @@ impl ProcessedDeepSearchItems {
             ProcessedDeepSearchItems::SelfItem(e) => e.pos,
             ProcessedDeepSearchItems::GenericItem(e) => e.pos,
             ProcessedDeepSearchItems::FunctionParameter(e) => e.name_pos,
+            ProcessedDeepSearchItems::ConstructorParameter(e) => e.pos,
             _ => defs::Cursor::default(),
         }
     }
@@ -2157,6 +2199,15 @@ pub fn deep_search(
                                     found_page = FoundPage::fill_from_processed(page);
                                     found_type =
                                         ProcessedDeepSearchItems::FunctionParameter(e.clone());
+                                }
+                            }
+                            Collecting::ConstructorParameter(e) => {
+                                if e.name == name {
+                                    found_pos = Some(e.pos);
+                                    found = true;
+                                    found_page = FoundPage::fill_from_processed(page);
+                                    found_type =
+                                        ProcessedDeepSearchItems::ConstructorParameter(e.clone());
                                 }
                             }
                             Collecting::Function(e) => {
@@ -3020,5 +3071,6 @@ pub fn resolve_type(
             }),
         ),
         DeepTypeResult::FunctionParameter(e) => e.rtype,
+        DeepTypeResult::ConstructorParameter(e) => Some(e.rtype),
     }
 }

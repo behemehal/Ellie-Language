@@ -1500,5 +1500,32 @@ pub fn resolve_type(
 
             assembler.instructions.extend(instructions)
         }
+        CoreTypes::ConstructorParameter(e) => {
+            let pos = match assembler.find_local(&e.name, dependencies, false) {
+                Some(e) => e,
+                None => panic!("Constructor Parameter not found: {}", e.name),
+            };
+            let mut instructions = Vec::new();
+
+            match target_register {
+                instructions::Registers::A => {
+                    instructions.push(instruction_table::Instructions::LDA(pos.reference.clone()))
+                }
+                instructions::Registers::B => {
+                    instructions.push(instruction_table::Instructions::LDB(pos.reference.clone()))
+                }
+                instructions::Registers::C => {
+                    instructions.push(instruction_table::Instructions::LDC(pos.reference.clone()))
+                }
+                instructions::Registers::X => {
+                    instructions.push(instruction_table::Instructions::LDX(pos.reference.clone()))
+                }
+                instructions::Registers::Y => {
+                    instructions.push(instruction_table::Instructions::LDY(pos.reference.clone()))
+                }
+            }
+
+            assembler.instructions.extend(instructions)
+        }
     }
 }

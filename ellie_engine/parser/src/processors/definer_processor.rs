@@ -569,14 +569,6 @@ pub fn process(
             if deep_search_result.found {
                 match deep_search_result.found_item {
                     crate::parser::DeepSearchItems::Class(_) => {
-                        /*
-                        found = DefinerCollecting::Generic(definers::GenericType {
-                            hash: cloak_class.hash,
-                            rtype: "function".to_string(),
-                            pos: cloak_class.pos,
-                        });
-                        */
-
                         let params = e
                             .params
                             .iter()

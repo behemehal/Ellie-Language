@@ -1117,6 +1117,7 @@ impl Parser {
             deep_search_extensions::DeepTypeResult::Enum(_) => todo!(),
             deep_search_extensions::DeepTypeResult::ClassInstance(_) => todo!(),
             deep_search_extensions::DeepTypeResult::SelfItem(_) => todo!(),
+            deep_search_extensions::DeepTypeResult::ConstructorParameter(_) => todo!(),
         }
     }
 
@@ -1322,6 +1323,14 @@ impl Parser {
                                             found = true;
                                             found_page = FoundPage::fill(&unprocessed_page);
                                             found_type = DeepSearchItems::FunctionParameter(ellie_tokenizer::syntax::items::function_parameter::FunctionParameter::default().from_definite(e));
+                                        }
+                                    }
+                                    Collecting::ConstructorParameter(e) => {
+                                        if e.name == name {
+                                            found_pos = Some(e.pos);
+                                            found = true;
+                                            found_page = FoundPage::fill(&unprocessed_page);
+                                            found_type = DeepSearchItems::ConstructorParameter(ellie_tokenizer::syntax::items::constructor_parameter::ConstructorParameter::default().from_definite(e));
                                         }
                                     }
                                     Collecting::Variable(e) => {
@@ -2050,10 +2059,11 @@ impl Parser {
                             true
                         }
                         Processors::ConstructorParameter(e) => {
-                            self.processed_pages.nth_mut(processed_page_idx).unwrap().items.push(
-                            Collecting::ConstructorParameter(
-                                ellie_core::definite::items::constructor_parameter::ConstructorParameter { name: e.name.clone(), pos: e.pos }
-                            ));
+                            self.processed_pages
+                                .nth_mut(processed_page_idx)
+                                .unwrap()
+                                .items
+                                .push(Collecting::ConstructorParameter(e.clone().to_definite()));
                             true
                         }
                         Processors::Comment(_) => true,
@@ -2163,10 +2173,11 @@ impl Parser {
                             unreachable!("Unexpected element in body")
                         }
                         Processors::ConstructorParameter(e) => {
-                            self.processed_pages.nth_mut(processed_page_idx).unwrap().items.push(
-                            Collecting::ConstructorParameter(
-                                ellie_core::definite::items::constructor_parameter::ConstructorParameter { name: e.name.clone(), pos: e.pos }
-                            ));
+                            self.processed_pages
+                                .nth_mut(processed_page_idx)
+                                .unwrap()
+                                .items
+                                .push(Collecting::ConstructorParameter(e.clone().to_definite()));
                             true
                         }
                         Processors::Comment(_) => true,
@@ -2294,10 +2305,11 @@ impl Parser {
                             true
                         }
                         Processors::ConstructorParameter(e) => {
-                            self.processed_pages.nth_mut(processed_page_idx).unwrap().items.push(
-                                Collecting::ConstructorParameter(
-                                    ellie_core::definite::items::constructor_parameter::ConstructorParameter { name: e.name.clone(), pos: e.pos }
-                                ));
+                            self.processed_pages
+                                .nth_mut(processed_page_idx)
+                                .unwrap()
+                                .items
+                                .push(Collecting::ConstructorParameter(e.clone().to_definite()));
                             true
                         }
                         Processors::Comment(_) => true,
@@ -2492,10 +2504,11 @@ impl Parser {
                         ),
                         Processors::FunctionParameter(_) => true,
                         Processors::ConstructorParameter(e) => {
-                            self.processed_pages.nth_mut(processed_page_idx).unwrap().items.push(
-                            Collecting::ConstructorParameter(
-                                ellie_core::definite::items::constructor_parameter::ConstructorParameter { name: e.name.clone(), pos: e.pos }
-                            ));
+                            self.processed_pages
+                                .nth_mut(processed_page_idx)
+                                .unwrap()
+                                .items
+                                .push(Collecting::ConstructorParameter(e.clone().to_definite()));
                             true
                         }
                         Processors::Comment(_) => true,
@@ -2647,17 +2660,19 @@ impl Parser {
                             unprocessed_page.hash,
                         ),
                         Processors::FunctionParameter(e) => {
-                            self.processed_pages.nth_mut(processed_page_idx).unwrap().items.push(
-                                Collecting::FunctionParameter(
-                                    ellie_core::definite::items::function_parameter::FunctionParameter { name: e.name.clone(), rtype: e.rtype.clone(), name_pos: e.name_pos, rtype_pos: e.rtype_pos, hash: e.hash }
-                                ));
+                            self.processed_pages
+                                .nth_mut(processed_page_idx)
+                                .unwrap()
+                                .items
+                                .push(Collecting::FunctionParameter(e.clone().to_definite()));
                             true
                         }
                         Processors::ConstructorParameter(e) => {
-                            self.processed_pages.nth_mut(processed_page_idx).unwrap().items.push(
-                            Collecting::ConstructorParameter(
-                                ellie_core::definite::items::constructor_parameter::ConstructorParameter { name: e.name.clone(), pos: e.pos }
-                            ));
+                            self.processed_pages
+                                .nth_mut(processed_page_idx)
+                                .unwrap()
+                                .items
+                                .push(Collecting::ConstructorParameter(e.clone().to_definite()));
                             true
                         }
                         Processors::Comment(_) => true,

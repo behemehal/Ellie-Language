@@ -1,7 +1,20 @@
+use alloc::boxed::Box;
 use alloc::{borrow::ToOwned, vec, vec::Vec};
 use ellie_core::error;
+use ellie_core::utils::generate_hash_usize;
+use ellie_tokenizer::syntax::types::{
+    reference_type::{Chain, ReferenceType, ReferenceTypeCollector},
+    variable_type::{VariableType, VariableTypeCollector},
+};
 use ellie_tokenizer::{
-    processors::items::Processors, syntax::items::constructor::Constructor, tokenizer::PageType,
+    processors::items::Processors,
+    processors::types::Processors as TypeProcessor,
+    syntax::items::{
+        constructor::Constructor, constructor_parameter::ConstructorParameter,
+        setter_call::SetterCall,
+    },
+    syntax::types::operator_type::AssignmentOperators,
+    tokenizer::PageType,
 };
 
 impl super::Processor for Constructor {
@@ -18,6 +31,13 @@ impl super::Processor for Constructor {
             .unwrap_or_else(|| panic!("Failed to find page"))
             .clone();
         let path = class_body_page.path.clone();
+
+        let page = parser.pages.nth(page_idx).unwrap().clone();
+
+        let class_page_type = match page.page_type {
+            PageType::ClassBody(e) => e,
+            _ => unreachable!(),
+        };
 
         //Class body should have a self which will reference us page of class and class hash
         let class_instance_element = class_body_page
@@ -51,7 +71,67 @@ impl super::Processor for Constructor {
             })
             .unwrap_or_else(|| panic!("Failed to find class"));
 
+        let mut dependencies = vec![ellie_tokenizer::tokenizer::Dependency {
+            hash: page.hash,
+            processed: false,
+            module: None,
+            deep_link: Some(page.hash),
+            public: false,
+        }];
+        dependencies.extend(page.dependencies);
+
         let mut items = Vec::new();
+
+        items.push(
+            ellie_tokenizer::processors::items::Processors::ConstructorParameter(
+                ConstructorParameter {
+                    name: "self".to_owned(),
+                    rtype: ellie_core::definite::definers::DefinerCollecting::Generic(
+                        ellie_core::definite::definers::GenericType {
+                            rtype: "self".to_owned(),
+                            pos: class_page_type.pos,
+                            hash: class_page_type.hash,
+                        },
+                    ),
+                    hash: generate_hash_usize(),
+                    pos: self.pos,
+                },
+            ),
+        );
+
+        for variable in class_element
+            .body
+            .iter()
+            .filter_map(|item| match item.as_variable() {
+                Some(e) => e.data.has_value.then(|| e),
+                None => None,
+            })
+        {
+            let self_setter = Processors::SetterCall(SetterCall {
+                target: TypeProcessor::Reference(ReferenceTypeCollector {
+                    data: ReferenceType {
+                        reference: Box::new(TypeProcessor::Variable(VariableTypeCollector {
+                            data: VariableType {
+                                value: "self".to_owned(),
+                                ..Default::default()
+                            },
+                            ..Default::default()
+                        })),
+                        chain: vec![Chain {
+                            value: variable.data.name.clone(),
+                            ..Default::default()
+                        }],
+                        ..Default::default()
+                    },
+                    ..Default::default()
+                }),
+                value: variable.data.value.clone(),
+                operator: AssignmentOperators::Assignment,
+                hash: generate_hash_usize(),
+                ..Default::default()
+            });
+            items.push(self_setter);
+        }
 
         for (index, parameter) in self.parameters.clone().iter().enumerate() {
             if class_element.name == parameter.name {
@@ -136,17 +216,10 @@ impl super::Processor for Constructor {
             items,
             page_type: PageType::ConstructorBody,
             dependents: vec![],
-            dependencies: vec![ellie_tokenizer::tokenizer::Dependency {
-                hash: class_body_page.hash,
-                processed: false,
-                module: None,
-                deep_link: None,
-                public: false,
-            }],
+            dependencies,
             ..Default::default()
         };
         parser.pages.push_page(inner);
-        parser.process_page(inner_page_id);
 
         let processed = ellie_core::definite::items::Collecting::Constructor(
             ellie_core::definite::items::constructor::Constructor {
@@ -165,6 +238,7 @@ impl super::Processor for Constructor {
                 parameters_pos: self.parameters_pos,
                 pos: self.pos,
                 inner_page_id,
+                class_hash: class_element.hash,
             },
         );
         parser
