@@ -1342,9 +1342,27 @@ pub fn process(
                                                     }
                                                 }
                                             } else if reference_generic.rtype == "collective" {
-                                                todo!("collective index queries type not yet implemented")
+                                                errors.push(error::error_list::ERROR_S59.clone().build_with_path(
+                                                    vec![error::ErrorBuildField {
+                                                        key: "token".to_string(),
+                                                        value: "Collective Index Queries".to_string(),
+                                                    }],
+                                                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                                                    parser.find_page(page_id).unwrap().path.clone(),
+                                                    brace_reference.data.brace_pos
+                                                ));
+                                                Err(errors)
                                             } else {
-                                                todo!("custom index queries type not yet implemented")
+                                                errors.push(error::error_list::ERROR_S59.clone().build_with_path(
+                                                    vec![error::ErrorBuildField {
+                                                        key: "token".to_string(),
+                                                        value: "Custom Index Queries".to_string(),
+                                                    }],
+                                                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                                                    parser.find_page(page_id).unwrap().path.clone(),
+                                                    brace_reference.data.brace_pos
+                                                ));
+                                                Err(errors)
                                             }
                                         },
                                         _ => {
