@@ -74,6 +74,21 @@ impl ColorDisplay for CliColor {
 }
 
 #[cfg(feature = "cli-utils")]
+#[derive(Debug, Clone, Copy)]
+pub struct CliNoColor;
+
+#[cfg(feature = "cli-utils")]
+impl ColorDisplay for CliNoColor {
+    fn color(&self, _: Colors) -> String {
+        String::new()
+    }
+
+    fn text_style(&self, _: TextStyles) -> String {
+        String::new()
+    }
+}
+
+#[cfg(feature = "cli-utils")]
 pub fn file_exists(path: String) -> bool {
     Path::new(&path).exists()
 }

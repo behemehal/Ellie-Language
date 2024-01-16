@@ -246,6 +246,12 @@ pub fn generate_elliec_options() -> Command<'static> {
                         .takes_value(true)
                         .required(true)
                         .value_hint(ValueHint::FilePath),
+                )
+                .arg(
+                    Arg::new("disableColors")
+                        .help("Disable colors")
+                        .short('n')
+                        .takes_value(false),
                 ),
         )
         .subcommand(

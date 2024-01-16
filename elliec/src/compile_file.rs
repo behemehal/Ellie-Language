@@ -10,7 +10,7 @@ use ellie_engine::{
     ellie_parser::parser,
     ellie_renderer_utils::outputs,
     ellie_renderer_utils::utils::{
-        print_errors, print_warnings, read_file, CliColor, ColorDisplay, Colors,
+        print_errors, print_warnings, read_file, CliColor, CliNoColor, ColorDisplay, Colors, TextStyles,
     },
     ellie_tokenizer::tokenizer::ImportType,
     ellie_tokenizer::tokenizer::ResolvedImport,
@@ -34,6 +34,7 @@ pub struct CliCompilerSettings {
     pub show_debug_lines: bool,
     pub exclude_std: bool,
     pub compiler_settings: CompilerSettings,
+    pub disable_terminal_colors: bool,
 }
 
 pub fn get_output_path(
@@ -78,7 +79,33 @@ pub fn compile(
     modules: Vec<(parser::Module, Option<String>)>,
     cli_settings: CliCompilerSettings,
 ) {
-    let cli_color = &CliColor;
+    #[derive(Clone, Copy)]
+    enum CliColorWrapper {
+        NoColor(CliNoColor),
+        WithColor(CliColor),
+    }
+
+    impl ColorDisplay for CliColorWrapper {
+        fn color(&self, color: Colors) -> String {
+            match self {
+                CliColorWrapper::NoColor(cli) => cli.color(color),
+                CliColorWrapper::WithColor(cli) => cli.color(color),
+            }
+        }
+
+        fn text_style(&self, text_style: TextStyles) -> String {
+            match self {
+                CliColorWrapper::NoColor(cli) => cli.text_style(text_style),
+                CliColorWrapper::WithColor(cli) => cli.text_style(text_style),
+            }
+        }
+    }
+
+    let cli_color = match cli_settings.disable_terminal_colors {
+        true => CliColorWrapper::NoColor(CliNoColor),
+        false => CliColorWrapper::WithColor(CliColor),
+    };
+
     let exit_messages: Mutex<Vec<Box<dyn Fn()>>> = Mutex::new(vec![Box::new(|| {
         println!(
             "{}[?]{}: Ellie v{}",
@@ -397,7 +424,7 @@ pub fn compile(
                                         );
                                         }
                                     },
-                                    *cli_color,
+                                    cli_color,
                                 )
                             );
                         }
@@ -866,7 +893,7 @@ pub fn compile(
                                         );
                                     }
                                 },
-                                *cli_color,
+                                cli_color,
                             )
                         );
                         for message in exit_messages.lock().unwrap().iter() {
@@ -929,7 +956,7 @@ pub fn compile(
                             )
                             .to_string()
                         },
-                        *cli_color
+                        cli_color
                     )
                 );
                 for message in exit_messages.lock().unwrap().iter() {

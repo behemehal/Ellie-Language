@@ -533,6 +533,7 @@ fn main() {
                 performance_info: matches.is_present("performanceInfo"),
                 show_debug_lines: matches.is_present("showDebugLines"),
                 warnings: !matches.is_present("disableWarnings"),
+                disable_terminal_colors: matches.is_present("disableColors"),
             };
 
             compile_file::compile(
