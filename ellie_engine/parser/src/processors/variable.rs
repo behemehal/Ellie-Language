@@ -1,11 +1,14 @@
-use alloc::{borrow::ToOwned, string::ToString, vec, vec::Vec};
+use alloc::{borrow::ToOwned, boxed::Box, string::ToString, vec, vec::Vec};
 #[cfg(feature = "standard_rules")]
 use ellie_core::warning;
 use ellie_core::{
-    definite::{definers::DefinerCollecting, types::Types},
-    error,
+    definite::{
+        definers::DefinerCollecting,
+        types::{class_call, Types},
+    },
+    defs, error,
 };
-use ellie_tokenizer::syntax::items::variable::VariableCollector;
+use ellie_tokenizer::{syntax::items::variable::VariableCollector, tokenizer::PageType};
 
 impl super::Processor for VariableCollector {
     fn process(
@@ -131,16 +134,85 @@ impl super::Processor for VariableCollector {
             let resolved_defining = if !self.data.has_type {
                 Ok(DefinerCollecting::Dynamic)
             } else {
-                super::definer_processor::process(
+                match super::definer_processor::process(
                     self.data.rtype.definer_type.clone(),
                     parser,
                     page_hash,
                     Some(self.data.hash),
-                )
+                ) {
+                    Err(e) => {
+                        parser.informations.extend(&e);
+                        return false;
+                    }
+                    e => e,
+                }
             };
 
             let resolved_type = if !self.data.has_value {
-                Ok(Types::Null)
+                let null_able_class = crate::deep_search_extensions::find_type(
+                    "nullAble".to_string(),
+                    page_hash,
+                    parser,
+                );
+
+                match null_able_class {
+                    Some(null_able_class) => {
+                        let nullable_parameter = if resolved_defining.is_ok()
+                            && matches!(resolved_defining.clone().unwrap(), DefinerCollecting::ParentGeneric(parent_generic) if parent_generic.rtype == "nullAble")
+                        {
+                            resolved_defining
+                                .clone()
+                                .unwrap()
+                                .as_parent_generic()
+                                .unwrap()
+                                .generics[0]
+                                .clone()
+                                .value
+                        } else {
+                            resolved_defining.clone().unwrap()
+                        };
+
+                        Ok(Types::ClassCall(
+                            ellie_core::definite::types::class_call::ClassCall {
+                                target: Box::new(Types::VariableType(
+                                    ellie_core::definite::types::variable::VariableType {
+                                        value: null_able_class.rtype.clone(),
+                                        reference: null_able_class.hash,
+                                        pos: defs::Cursor::default(),
+                                    },
+                                )),
+                                resolved_generics: vec![],
+                                generic_parameters: vec![class_call::ClassCallGenericParameter {
+                                    value: nullable_parameter,
+                                    pos: defs::Cursor::default(),
+                                }],
+                                keyword_pos: defs::Cursor::default(),
+                                pos: defs::Cursor::default(),
+                                target_pos: defs::Cursor::default(),
+                                params: vec![],
+                            },
+                        ))
+                    }
+                    None => {
+                        parser.informations.push(
+                            &error::error_list::ERROR_S38.clone().build_with_path(
+                                vec![error::ErrorBuildField {
+                                    key: "token".to_owned(),
+                                    value: "nullAble".to_string(),
+                                }],
+                                alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                                parser
+                                    .processed_pages
+                                    .nth_mut(processed_page_idx)
+                                    .unwrap()
+                                    .path
+                                    .clone(),
+                                self.data.pos,
+                            ),
+                        );
+                        return false;
+                    }
+                }
             } else {
                 super::type_processor::process(
                     self.data.value.clone(),

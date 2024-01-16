@@ -2835,7 +2835,7 @@ pub fn resolve_type(
             }
         }
         DeepTypeResult::Null => {
-            let null_type = find_type("null".to_string(), target_page, parser);
+            let null_type = find_type("Null".to_string(), target_page, parser);
             match null_type {
                 Some(e) => Some(definers::DefinerCollecting::Generic(e)),
                 None => {
