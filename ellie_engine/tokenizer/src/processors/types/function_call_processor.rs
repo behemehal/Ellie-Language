@@ -56,6 +56,20 @@ impl crate::processors::Processor for function_call_type::FunctionCallCollector 
                     self.data.parameters[param_len - 1].value = self.itered_cache.current.clone();
                     self.data.parameters[param_len - 1].pos.range_end = cursor;
                 }
+
+                // If new parameter's value is initialized and the last parameter's range_start is not initialized, set it to the current cursor
+                if !self.itered_cache.current.is_not_initialized()
+                    && self
+                        .data
+                        .parameters
+                        .last()
+                        .unwrap()
+                        .pos
+                        .range_start
+                        .is_zero()
+                {
+                    self.data.parameters[param_len - 1].pos.range_start = cursor;
+                }
             }
         } else if letter_char != ' ' {
             errors.push(error::error_list::ERROR_S1.clone().build(

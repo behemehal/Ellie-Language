@@ -1,4 +1,7 @@
-use crate::{processors::EscapeCharEmitter, syntax::items::function};
+use crate::{
+    processors::EscapeCharEmitter,
+    syntax::items::{definers::DefinerTypes, function},
+};
 use ellie_core::{defs, error, utils};
 
 impl crate::processors::Processor for function::FunctionCollector {
@@ -204,7 +207,10 @@ impl crate::processors::Processor for function::FunctionCollector {
                 _ => false,
             });
 
-            if !self.data.no_return && !contains_ret {
+            if (!self.data.no_return && !matches!(&self.data.return_type.definer_type, DefinerTypes::Generic(generic) if generic.rtype == "void")
+            )
+                && !contains_ret
+            {
                 let mut error = error::error_list::ERROR_S2.clone().build(
                     vec![],
                     alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
