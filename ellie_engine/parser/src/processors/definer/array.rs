@@ -1,6 +1,6 @@
 use crate::{deep_search_extensions::resolve_type, parser::DeepSearchItems};
-use alloc::{borrow::ToOwned, boxed::Box, string::ToString, vec, vec::Vec};
-use ellie_core::{definite::definers, definite::definers::DefinerCollecting, defs::Cursor, error};
+use alloc::{borrow::ToOwned, string::ToString, vec};
+use ellie_core::{definite::definers, definite::definers::DefinerCollecting, error};
 use ellie_tokenizer::syntax::items::definers::ArrayType;
 
 impl super::DefinerParserProcessor for ArrayType {
@@ -45,7 +45,7 @@ impl super::DefinerParserProcessor for ArrayType {
                                             value: inner_type,
                                             pos: deep_search_result
                                                 .found_pos
-                                                .unwrap_or(Cursor::default()),
+                                                .unwrap_or_default(),
                                         }],
                                         hash: array_class.hash,
                                         rtype: "array".to_string(),
@@ -86,7 +86,7 @@ impl super::DefinerParserProcessor for ArrayType {
                                 parent_pos: array_class.pos,
                                 generics: vec![definers::GenericParameter {
                                     value: inner_type,
-                                    pos: deep_search_result.found_pos.unwrap_or(Cursor::default()),
+                                    pos: deep_search_result.found_pos.unwrap_or_default(),
                                 }],
                                 hash: array_class.hash,
                                 rtype: "array".to_string(),

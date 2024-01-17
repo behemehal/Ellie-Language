@@ -21,7 +21,7 @@ impl super::TypeParserProcessor for function_call_type::FunctionCallCollector {
         let mut _options = TypeParserProcessorOptions::new(options.parser, options.page_id);
 
         let target = self.data.target.process(
-            &mut _options
+            _options
                 .dont_include_setter()
                 .dont_exclude_getter()
                 .dont_ignore_type()
@@ -47,7 +47,7 @@ impl super::TypeParserProcessor for function_call_type::FunctionCallCollector {
                                 .iter()
                                 .filter_map(|param| {
                                     match param.value.process(
-                                        &mut &mut options
+                                        options
                                             .dont_include_setter()
                                             .dont_exclude_getter()
                                             .dont_ignore_type()
@@ -174,7 +174,7 @@ impl super::TypeParserProcessor for function_call_type::FunctionCallCollector {
                                     options.page_id,
                                 );
                                 match self.data.target.process(
-                                    &mut _options
+                                    _options
                                         .clone()
                                         .dont_include_setter()
                                         .dont_exclude_getter()

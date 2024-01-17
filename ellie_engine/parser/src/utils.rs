@@ -2,9 +2,10 @@ use crate::parser;
 use crate::processors::items::{ItemParserProcessor, ItemParserProcessorOptions};
 use alloc::borrow::ToOwned;
 use alloc::string::String;
-use alloc::vec::Vec;
 use alloc::vec;
-use ellie_core::definite::types::class_instance::{self, Attribute, AttributeType, ClassInstance};
+use alloc::vec::Vec;
+use ellie_core::definite::items::file_key::FileKey;
+use ellie_core::definite::types::class_instance::{Attribute, AttributeType, ClassInstance};
 use ellie_core::definite::{items::Collecting, Converter};
 use ellie_core::utils::{ExportPage, PageExport};
 use ellie_core::{defs, error};
@@ -12,8 +13,6 @@ use ellie_tokenizer::processors::items::Processors;
 use ellie_tokenizer::processors::types::Processors as TypeProcessors;
 use ellie_tokenizer::tokenizer::{Page, PageType};
 use serde::{Deserialize, Serialize};
-use ellie_core::definite::items::file_key::FileKey;
-
 
 pub fn parse_page_element(
     parser: &mut parser::Parser,

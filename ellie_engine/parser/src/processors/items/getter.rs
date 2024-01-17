@@ -4,7 +4,13 @@ use ellie_tokenizer::syntax::items::getter;
 
 impl super::ItemParserProcessor for getter::Getter {
     fn process(&self, options: &mut super::ItemParserProcessorOptions) -> bool {
-        let path = options.parser.pages.nth(options.page_idx).unwrap().path.clone();
+        let path = options
+            .parser
+            .pages
+            .nth(options.page_idx)
+            .unwrap()
+            .path
+            .clone();
         options
             .parser
             .informations

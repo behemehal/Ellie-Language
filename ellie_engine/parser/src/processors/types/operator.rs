@@ -18,7 +18,7 @@ impl super::TypeParserProcessor for operator_type::OperatorTypeCollector {
         let mut _options = super::TypeParserProcessorOptions::new(options.parser, options.page_id);
 
         let processed_first_value = self.data.first.process(
-            &mut _options
+            _options
                 .dont_exclude_getter()
                 .dont_include_setter()
                 .dont_ignore_type()
@@ -26,7 +26,7 @@ impl super::TypeParserProcessor for operator_type::OperatorTypeCollector {
         );
 
         let processed_second_value = self.data.second.process(
-            &mut _options
+            _options
                 .clone()
                 .dont_exclude_getter()
                 .dont_include_setter()
@@ -84,7 +84,7 @@ impl super::TypeParserProcessor for operator_type::OperatorTypeCollector {
             }
         }
 
-        let page_id = options.page_id.clone();
+        let page_id = options.page_id;
 
         match ellie_core::utils::operator_control(
             self.data.operator.clone().to_definite(),

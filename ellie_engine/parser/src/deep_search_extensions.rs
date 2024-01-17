@@ -1,4 +1,8 @@
-use crate::{parser::{DeepSearchItems, Parser}, processors::definer::{DefinerParserProcessor, DefinerParserProcessorOptions}, utils::FoundPage};
+use crate::{
+    parser::{DeepSearchItems, Parser},
+    processors::definer::{DefinerParserProcessor, DefinerParserProcessorOptions},
+    utils::FoundPage,
+};
 use alloc::{
     borrow::ToOwned,
     boxed::Box,
@@ -1429,7 +1433,7 @@ fn iterate_deep_type(
             } else {
                 let rtype = ellie_tokenizer::syntax::items::definers::DefinerTypes::Dynamic
                     .from_definite(as_keyword.rtype.clone())
-                    .process(&mut DefinerParserProcessorOptions::new(parser, page_id).build());
+                    .process(DefinerParserProcessorOptions::new(parser, page_id).build());
 
                 match rtype {
                     Ok(rtype) => {

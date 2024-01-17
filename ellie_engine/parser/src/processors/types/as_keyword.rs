@@ -11,7 +11,7 @@ impl super::TypeParserProcessor for as_keyword::AsKeywordCollector {
         let mut _options = super::TypeParserProcessorOptions::new(options.parser, options.page_id);
 
         match self.data.target.process(
-            &mut _options
+            _options
                 .dont_exclude_getter()
                 .dont_include_setter()
                 .dont_ignore_type()
@@ -19,7 +19,7 @@ impl super::TypeParserProcessor for as_keyword::AsKeywordCollector {
         ) {
             Ok(resolved_types) => {
                 match self.data.rtype.definer_type.process(
-                    &mut DefinerParserProcessorOptions::new(options.parser, options.page_id)
+                    DefinerParserProcessorOptions::new(options.parser, options.page_id)
                         .optional_ignore_hash(options.ignore_hash)
                         .build(),
                 ) {

@@ -10,7 +10,7 @@ impl super::ItemParserProcessor for Loop {
         let path = page.path.clone();
 
         let condition = match self.condition.current.process(
-            &mut TypeParserProcessorOptions::new(options.parser, options.page_hash)
+            TypeParserProcessorOptions::new(options.parser, options.page_hash)
                 .variable_pos(self.condition_pos)
                 .build(),
         ) {

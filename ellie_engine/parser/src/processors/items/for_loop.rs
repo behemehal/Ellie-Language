@@ -100,7 +100,7 @@ impl super::ItemParserProcessor for ForLoop {
             return false;
         } else {
             let iterator = match self.target_iterator.current.process(
-                &mut TypeParserProcessorOptions::new(options.parser, options.page_hash)
+                TypeParserProcessorOptions::new(options.parser, options.page_hash)
                     .variable_pos(self.pos)
                     .build(),
             ) {

@@ -6,7 +6,7 @@ use crate::processors::types::{TypeParserProcessor, TypeParserProcessorOptions};
 impl super::ItemParserProcessor for Ret {
     fn process(&self, options: &mut super::ItemParserProcessorOptions) -> bool {
         match self.value.current.process(
-            &mut TypeParserProcessorOptions::new(options.parser, options.page_hash)
+            TypeParserProcessorOptions::new(options.parser, options.page_hash)
                 .variable_pos(self.pos)
                 .build(),
         ) {

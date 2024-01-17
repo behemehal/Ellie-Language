@@ -84,7 +84,7 @@ impl super::ItemParserProcessor for FunctionCollector {
             let inner_page_id: usize = ellie_core::utils::generate_hash_usize();
 
             let mut return_type = match self.data.return_type.definer_type.process(
-                &mut DefinerParserProcessorOptions::new(options.parser, options.page_hash).build(),
+                DefinerParserProcessorOptions::new(options.parser, options.page_hash).build(),
             ) {
                 Ok(e) => e,
                 Err(e) => {
@@ -95,7 +95,7 @@ impl super::ItemParserProcessor for FunctionCollector {
 
             if !self.data.no_return {
                 match self.data.return_type.definer_type.process(
-                    &mut DefinerParserProcessorOptions::new(options.parser, options.page_hash)
+                    DefinerParserProcessorOptions::new(options.parser, options.page_hash)
                         .build(),
                 ) {
                     Ok(found_type) => {
@@ -215,7 +215,7 @@ impl super::ItemParserProcessor for FunctionCollector {
                         }
                     } else {
                         match parameter.rtype.definer_type.process(
-                            &mut DefinerParserProcessorOptions::new(
+                            DefinerParserProcessorOptions::new(
                                 options.parser,
                                 options.page_hash,
                             )

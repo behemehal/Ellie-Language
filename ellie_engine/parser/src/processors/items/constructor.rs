@@ -99,7 +99,7 @@ impl super::ItemParserProcessor for Constructor {
             .body
             .iter()
             .filter_map(|item| match item.as_variable() {
-                Some(e) => e.data.has_value.then(|| e),
+                Some(e) => e.data.has_value.then_some(e),
                 None => None,
             })
         {

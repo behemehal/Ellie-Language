@@ -1,6 +1,5 @@
 use crate::deep_search_extensions::{
-    deep_search, deep_search_hash, find_type, generate_type_from_defining, resolve_type,
-    ProcessedDeepSearchItems,
+    resolve_type,
 };
 use alloc::{borrow::ToOwned, boxed::Box, string::ToString, vec, vec::Vec};
 use ellie_core::{definite::types, error};
@@ -18,7 +17,7 @@ impl super::TypeParserProcessor for brace_reference_type::BraceReferenceTypeColl
         let index = self
             .data
             .value
-            .process(&mut _options.dont_include_setter().dont_ignore_type().build());
+            .process(_options.dont_include_setter().dont_ignore_type().build());
 
         match index {
             Ok(index) => {
@@ -37,12 +36,13 @@ impl super::TypeParserProcessor for brace_reference_type::BraceReferenceTypeColl
                     }
                 };
 
-                let mut _options = super::TypeParserProcessorOptions::new(options.parser, options.page_id);
+                let mut _options =
+                    super::TypeParserProcessorOptions::new(options.parser, options.page_id);
 
                 let reference = self
                     .data
                     .reference
-                    .process(&mut _options.dont_include_setter().dont_ignore_type().build());
+                    .process(_options.dont_include_setter().dont_ignore_type().build());
 
                 match reference {
                     Ok(found_reference) => {

@@ -12,14 +12,11 @@ impl super::TypeParserProcessor for array_type::ArrayTypeCollector {
         let mut collective = vec![];
 
         for i in &self.data.collective {
-            let mut _options = super::TypeParserProcessorOptions::new(options.parser, options.page_id);
-            let response = i.value.process(
-                &mut _options
-                    .dont_exclude_getter()
-                    
-                    .dont_include_setter()
-                    .build(),
-            );
+            let mut _options =
+                super::TypeParserProcessorOptions::new(options.parser, options.page_id);
+            let response = i
+                .value
+                .process(_options.dont_exclude_getter().dont_include_setter().build());
             if response.is_err() {
                 errors.append(&mut response.unwrap_err());
             } else {
@@ -31,7 +28,7 @@ impl super::TypeParserProcessor for array_type::ArrayTypeCollector {
         }
 
         if errors.is_empty() {
-            if collective.len() == 0 && !options.ignore_type {
+            if collective.is_empty() && !options.ignore_type {
                 errors.push(
                     error::error_list::ERROR_S55.clone().build_with_path(
                         vec![],

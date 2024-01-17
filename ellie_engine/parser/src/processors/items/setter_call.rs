@@ -19,7 +19,7 @@ impl super::ItemParserProcessor for SetterCall {
             .clone();
 
         match self.target.process(
-            &mut TypeParserProcessorOptions::new(options.parser, options.page_hash)
+            TypeParserProcessorOptions::new(options.parser, options.page_hash)
                 .include_setter()
                 .exclude_getter()
                 .variable_pos(self.target_pos)
@@ -28,7 +28,7 @@ impl super::ItemParserProcessor for SetterCall {
             Ok(target) => match target.clone() {
                 ellie_core::definite::types::Types::Reference(_) => {
                     match self.value.process(
-                        &mut TypeParserProcessorOptions::new(options.parser, options.page_hash)
+                        TypeParserProcessorOptions::new(options.parser, options.page_hash)
                             .exclude_getter()
                             .variable_pos(self.target_pos)
                             .build(),
@@ -112,7 +112,7 @@ impl super::ItemParserProcessor for SetterCall {
                 }
                 ellie_core::definite::types::Types::BraceReference(_) => {
                     match self.value.process(
-                        &mut TypeParserProcessorOptions::new(options.parser, options.page_hash)
+                        TypeParserProcessorOptions::new(options.parser, options.page_hash)
                             .variable_pos(self.target_pos)
                             .build(),
                     ) {
@@ -232,7 +232,7 @@ impl super::ItemParserProcessor for SetterCall {
                                     );
                                 } else {
                                     match self.value.process(
-                                        &mut TypeParserProcessorOptions::new(
+                                        TypeParserProcessorOptions::new(
                                             options.parser,
                                             options.page_idx,
                                         )
@@ -334,7 +334,7 @@ impl super::ItemParserProcessor for SetterCall {
                 }
                 ellie_core::definite::types::Types::SetterCall(_) => {
                     match self.value.process(
-                        &mut TypeParserProcessorOptions::new(options.parser, options.page_hash)
+                        TypeParserProcessorOptions::new(options.parser, options.page_hash)
                             .variable_pos(self.target_pos)
                             .build(),
                     ) {

@@ -36,9 +36,8 @@ impl super::ItemParserProcessor for Class {
                 .iter()
                 .any(|x| x.key_name == "dont_fix_variant"),
         ) {
-            options.parser
-                .informations
-                .push(&error::error_list::ERROR_S21.clone().build_with_path(
+            options.parser.informations.push(
+                &error::error_list::ERROR_S21.clone().build_with_path(
                     vec![error::ErrorBuildField {
                         key: "token".to_owned(),
                         value: self.name.clone(),
@@ -46,7 +45,8 @@ impl super::ItemParserProcessor for Class {
                     alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                     path.clone(),
                     self.name_pos,
-                ));
+                ),
+            );
         }
 
         if duplicate {
@@ -122,7 +122,7 @@ impl super::ItemParserProcessor for Class {
                     .filter(|el| el.is_some());
 
                 for generic_defining in &self.generic_definings {
-                    let used_variables = self.body.iter().find_map(|item| match item {
+                    let _used_variables = self.body.iter().find_map(|item| match item {
                         Processors::Variable(variable) => {
                             if prime
                                 .parameters

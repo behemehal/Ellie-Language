@@ -1,6 +1,6 @@
-use crate::{deep_search_extensions::resolve_type, parser::DeepSearchItems};
-use alloc::{borrow::ToOwned, boxed::Box, string::ToString, vec, vec::Vec};
-use ellie_core::{definite::definers, definite::definers::DefinerCollecting, defs::Cursor, error};
+
+use alloc::{borrow::ToOwned, string::ToString, vec};
+use ellie_core::{definite::definers, definite::definers::DefinerCollecting, error};
 use ellie_tokenizer::syntax::items::definers::CollectiveType;
 
 impl super::DefinerParserProcessor for CollectiveType {
@@ -46,13 +46,13 @@ impl super::DefinerParserProcessor for CollectiveType {
                                 value: key,
                                 pos: deep_search_result
                                     .found_pos
-                                    .unwrap_or(ellie_core::defs::Cursor::default()),
+                                    .unwrap_or_default(),
                             },
                             definers::GenericParameter {
                                 value,
                                 pos: deep_search_result
                                     .found_pos
-                                    .unwrap_or(ellie_core::defs::Cursor::default()),
+                                    .unwrap_or_default(),
                             },
                         ],
                         hash: collective_class.hash,

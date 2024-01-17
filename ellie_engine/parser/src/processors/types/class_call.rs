@@ -205,7 +205,7 @@ impl super::TypeParserProcessor for class_call_type::ClassCallCollector {
                                 .iter()
                                 .filter_map(|g| {
                                     match g.value.process(
-                                        &mut DefinerParserProcessorOptions::new(
+                                        DefinerParserProcessorOptions::new(
                                             options.parser,
                                             options.page_id,
                                         )
@@ -429,7 +429,7 @@ impl super::TypeParserProcessor for class_call_type::ClassCallCollector {
                                                     Some(generic_param) => generic_param
                                                         .value
                                                         .process(
-                                                            &mut DefinerParserProcessorOptions::new(
+                                                            DefinerParserProcessorOptions::new(
                                                                 options.parser,
                                                                 options.page_id,
                                                             )
@@ -448,7 +448,7 @@ impl super::TypeParserProcessor for class_call_type::ClassCallCollector {
                                                 );
 
                                                 match matching_param.value.process(
-                                                    &mut _options
+                                                    _options
                                                         .dont_exclude_getter()
                                                         .dont_ignore_type()
                                                         .dont_include_setter()

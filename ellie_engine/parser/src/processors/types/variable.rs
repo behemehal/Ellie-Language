@@ -7,7 +7,7 @@ use alloc::vec;
 use alloc::vec::Vec;
 use ellie_core::definite::types;
 use ellie_core::definite::Converter;
-use ellie_core::error::{self, error_list};
+use ellie_core::error::{self};
 use ellie_tokenizer::syntax::types::variable_type;
 use ellie_tokenizer::tokenizer::PageType;
 use types::Types;
@@ -147,7 +147,7 @@ impl super::TypeParserProcessor for variable_type::VariableTypeCollector {
                 }
                 crate::parser::DeepSearchItems::Function(function) => {
                     match function.return_type.definer_type.process(
-                        &mut DefinerParserProcessorOptions::new(options.parser, options.page_id)
+                        DefinerParserProcessorOptions::new(options.parser, options.page_id)
                             .optional_ignore_hash(options.ignore_hash)
                             .build(),
                     ) {

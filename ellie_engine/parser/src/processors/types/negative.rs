@@ -18,7 +18,7 @@ impl super::TypeParserProcessor for negative_type::Negative {
                     Ok(types::Types::Bool(types::bool::BoolType { value: true }))
                 }
                 _ => {
-                    return Err(vec![error::error_list::ERROR_S66.clone().build_with_path(
+                    Err(vec![error::error_list::ERROR_S66.clone().build_with_path(
                         vec![],
                         alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                         options
@@ -28,10 +28,10 @@ impl super::TypeParserProcessor for negative_type::Negative {
                             .path
                             .clone(),
                         self.pos,
-                    )]);
+                    )])
                 }
             },
-            Err(e) => return Err(e),
+            Err(e) => Err(e),
         }
     }
 }

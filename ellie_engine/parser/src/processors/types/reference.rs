@@ -1,5 +1,5 @@
 use crate::deep_search_extensions::{
-    deep_search, deep_search_hash, find_type, generate_type_from_defining, resolve_type,
+    find_type, resolve_type,
     ProcessedDeepSearchItems,
 };
 use alloc::borrow::ToOwned;
@@ -11,7 +11,7 @@ use alloc::vec;
 use alloc::vec::Vec;
 use ellie_core::definite::definers::DefinerCollecting;
 use ellie_core::definite::types::class_instance::AttributeType;
-use ellie_core::definite::{items::Collecting, Converter};
+use ellie_core::definite::{items::Collecting};
 use ellie_core::{definite::types, error};
 use ellie_tokenizer::syntax::types::reference_type;
 
@@ -24,8 +24,8 @@ impl super::TypeParserProcessor for reference_type::ReferenceTypeCollector {
         let mut errors = Vec::new();
 
         let mut binding = TypeParserProcessorOptions::new(options.parser, options.page_id);
-        let mut options = binding.dont_include_setter().dont_ignore_type().build();
-        let processed_reference = self.data.reference.process(&mut options).clone();
+        let options = binding.dont_include_setter().dont_ignore_type().build();
+        let processed_reference = self.data.reference.process(options).clone();
 
         match processed_reference {
             Ok(found_reference) => {

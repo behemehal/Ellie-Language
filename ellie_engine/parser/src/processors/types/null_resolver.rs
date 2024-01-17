@@ -9,7 +9,7 @@ impl super::TypeParserProcessor for null_resolver::NullResolver {
     ) -> Result<types::Types, Vec<error::Error>> {
         let mut _options = super::TypeParserProcessorOptions::new(options.parser, options.page_id);
         match self.target.process(
-            &mut _options
+            _options
                 .dont_exclude_getter()
                 .dont_include_setter()
                 .dont_ignore_type()

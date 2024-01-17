@@ -12,11 +12,11 @@ pub struct Import {
     pub import_filled: bool,
     pub public: bool,
     pub path_starter_collected: bool,
-    
+
     pub reference_starter_collected: bool,
     pub reference_pos: defs::Cursor,
     pub reference: String,
-    
+
     pub pos: defs::Cursor,
     pub complete: bool,
     pub hash: usize,

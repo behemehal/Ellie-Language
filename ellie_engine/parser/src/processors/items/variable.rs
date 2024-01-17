@@ -8,7 +8,7 @@ use ellie_core::{
     },
     defs, error,
 };
-use ellie_tokenizer::{syntax::items::variable::VariableCollector, tokenizer::PageType};
+use ellie_tokenizer::{syntax::items::variable::VariableCollector};
 
 use crate::processors::{
     definer::{DefinerParserProcessor, DefinerParserProcessorOptions},
@@ -152,7 +152,7 @@ impl super::ItemParserProcessor for VariableCollector {
                 Ok(DefinerCollecting::Dynamic)
             } else {
                 match self.data.rtype.definer_type.process(
-                    &mut DefinerParserProcessorOptions::new(options.parser, options.page_hash)
+                    DefinerParserProcessorOptions::new(options.parser, options.page_hash)
                         .ignore_hash(self.data.hash)
                         .build(),
                 ) {
@@ -232,7 +232,7 @@ impl super::ItemParserProcessor for VariableCollector {
                 }
             } else {
                 self.data.value.process(
-                    &mut TypeParserProcessorOptions::new(options.parser, options.page_hash)
+                    TypeParserProcessorOptions::new(options.parser, options.page_hash)
                         .variable_pos(self.data.pos)
                         .ignore_hash(self.data.hash)
                         .ignore_type()

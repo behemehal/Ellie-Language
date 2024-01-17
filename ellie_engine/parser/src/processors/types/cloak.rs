@@ -16,7 +16,7 @@ impl super::TypeParserProcessor for cloak_type::CloakTypeCollector {
                 super::TypeParserProcessorOptions::new(options.parser, options.page_id);
 
             first_entry.value.process(
-                &mut _options
+                _options
                     .dont_exclude_getter()
                     .dont_include_setter()
                     .dont_ignore_type()
@@ -30,7 +30,7 @@ impl super::TypeParserProcessor for cloak_type::CloakTypeCollector {
                     super::TypeParserProcessorOptions::new(options.parser, options.page_id);
                 let response = i
                     .value
-                    .process(&mut _options.dont_exclude_getter().dont_include_setter().build());
+                    .process(_options.dont_exclude_getter().dont_include_setter().build());
 
                 if response.is_err() {
                     errors.append(&mut response.unwrap_err());

@@ -124,7 +124,7 @@ impl super::ItemParserProcessor for EnumType {
             for item in &self.items {
                 let resolved_type = if item.has_type {
                     match item.enum_type.definer_type.process(
-                        &mut DefinerParserProcessorOptions::new(options.parser, options.page_idx)
+                        DefinerParserProcessorOptions::new(options.parser, options.page_idx)
                             .build(),
                     ) {
                         Ok(e) => Some(e),

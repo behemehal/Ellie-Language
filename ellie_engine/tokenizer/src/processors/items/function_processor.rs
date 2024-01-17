@@ -207,8 +207,8 @@ impl crate::processors::Processor for function::FunctionCollector {
                 _ => false,
             });
 
-            if (!self.data.no_return && !matches!(&self.data.return_type.definer_type, DefinerTypes::Generic(generic) if generic.rtype == "void")
-            )
+            if (!self.data.no_return
+                && !matches!(&self.data.return_type.definer_type, DefinerTypes::Generic(generic) if generic.rtype == "void"))
                 && !contains_ret
             {
                 let mut error = error::error_list::ERROR_S2.clone().build(
