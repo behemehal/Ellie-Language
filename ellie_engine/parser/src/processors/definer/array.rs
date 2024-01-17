@@ -43,9 +43,7 @@ impl super::DefinerParserProcessor for ArrayType {
                                         parent_pos: array_class.pos,
                                         generics: vec![definers::GenericParameter {
                                             value: inner_type,
-                                            pos: deep_search_result
-                                                .found_pos
-                                                .unwrap_or_default(),
+                                            pos: deep_search_result.found_pos.unwrap_or_default(),
                                         }],
                                         hash: array_class.hash,
                                         rtype: "array".to_string(),

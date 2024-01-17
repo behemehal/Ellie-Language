@@ -17,19 +17,17 @@ impl super::TypeParserProcessor for negative_type::Negative {
                 | types::Types::Negative(_) => {
                     Ok(types::Types::Bool(types::bool::BoolType { value: true }))
                 }
-                _ => {
-                    Err(vec![error::error_list::ERROR_S66.clone().build_with_path(
-                        vec![],
-                        alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                        options
-                            .parser
-                            .find_page(options.page_id)
-                            .unwrap()
-                            .path
-                            .clone(),
-                        self.pos,
-                    )])
-                }
+                _ => Err(vec![error::error_list::ERROR_S66.clone().build_with_path(
+                    vec![],
+                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                    options
+                        .parser
+                        .find_page(options.page_id)
+                        .unwrap()
+                        .path
+                        .clone(),
+                    self.pos,
+                )]),
             },
             Err(e) => Err(e),
         }

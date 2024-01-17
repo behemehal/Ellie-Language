@@ -1,4 +1,3 @@
-
 use alloc::{borrow::ToOwned, string::ToString, vec};
 use ellie_core::{definite::definers, definite::definers::DefinerCollecting, error};
 use ellie_tokenizer::syntax::items::definers::NullableType;
@@ -66,9 +65,7 @@ impl super::DefinerParserProcessor for NullableType {
                                         parent_pos: nullable_class.pos,
                                         generics: vec![definers::GenericParameter {
                                             value: inner_type,
-                                            pos: deep_search_result
-                                                .found_pos
-                                                .unwrap_or_default(),
+                                            pos: deep_search_result.found_pos.unwrap_or_default(),
                                         }],
                                         hash: nullable_class.hash,
                                         rtype: "nullAble".to_string(),

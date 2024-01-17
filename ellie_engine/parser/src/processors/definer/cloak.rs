@@ -1,7 +1,7 @@
+use alloc::borrow::ToOwned;
 use alloc::string::ToString;
 use alloc::vec;
 use alloc::vec::Vec;
-use alloc::{borrow::ToOwned};
 use ellie_core::{definite::definers, definite::definers::DefinerCollecting, error};
 use ellie_tokenizer::syntax::items::definers::CloakType;
 

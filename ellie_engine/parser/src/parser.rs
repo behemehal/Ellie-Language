@@ -11,14 +11,13 @@ use ellie_core::definite::definers::DefinerCollecting;
 use ellie_core::definite::types::class_instance;
 use ellie_core::definite::{items::Collecting, Converter};
 use ellie_core::defs::Cursor;
-use ellie_core::utils::{PageExport};
+use ellie_core::utils::PageExport;
 #[cfg(feature = "standard_rules")]
 use ellie_core::warning;
 use ellie_core::{defs, error, information};
 use ellie_tokenizer::processors::items::Processors;
 use ellie_tokenizer::syntax::items::condition::ConditionType;
 use ellie_tokenizer::tokenizer::{Dependency, Page, PageType};
-
 
 pub struct Parser {
     pub pages: PageExport<Page>,

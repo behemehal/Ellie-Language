@@ -421,26 +421,23 @@ impl super::TypeParserProcessor for class_call_type::ClassCallCollector {
 
                                                 let matching_param = &self.data.parameters[index];
 
-                                                let element_to_be_compared = match self
-                                                    .data
-                                                    .generic_parameters
-                                                    .get(index)
-                                                {
-                                                    Some(generic_param) => generic_param
-                                                        .value
-                                                        .process(
-                                                            DefinerParserProcessorOptions::new(
-                                                                options.parser,
-                                                                options.page_id,
+                                                let element_to_be_compared =
+                                                    match self.data.generic_parameters.get(index) {
+                                                        Some(generic_param) => generic_param
+                                                            .value
+                                                            .process(
+                                                                DefinerParserProcessorOptions::new(
+                                                                    options.parser,
+                                                                    options.page_id,
+                                                                )
+                                                                .optional_ignore_hash(
+                                                                    options.ignore_hash,
+                                                                )
+                                                                .build(),
                                                             )
-                                                            .optional_ignore_hash(
-                                                                options.ignore_hash,
-                                                            )
-                                                            .build(),
-                                                        )
-                                                        .unwrap(),
-                                                    None => element.clone(),
-                                                };
+                                                            .unwrap(),
+                                                        None => element.clone(),
+                                                    };
 
                                                 let mut _options = TypeParserProcessorOptions::new(
                                                     options.parser,

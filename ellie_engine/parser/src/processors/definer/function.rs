@@ -1,4 +1,3 @@
-
 use alloc::{borrow::ToOwned, boxed::Box, string::ToString, vec};
 use ellie_core::{definite::definers, definite::definers::DefinerCollecting, error};
 use ellie_tokenizer::syntax::items::definers::FunctionType;

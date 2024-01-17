@@ -1,6 +1,4 @@
-use crate::deep_search_extensions::{
-    resolve_type,
-};
+use crate::deep_search_extensions::resolve_type;
 use alloc::{borrow::ToOwned, boxed::Box, string::ToString, vec, vec::Vec};
 use ellie_core::{definite::types, error};
 use ellie_tokenizer::syntax::types::brace_reference_type;

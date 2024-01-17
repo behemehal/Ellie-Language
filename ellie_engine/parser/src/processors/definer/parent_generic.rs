@@ -1,4 +1,3 @@
-
 use alloc::{borrow::ToOwned, string::ToString, vec, vec::Vec};
 use ellie_core::{definite::definers, definite::definers::DefinerCollecting, error};
 use ellie_tokenizer::syntax::items::definers::ParentGenericType;

@@ -8,7 +8,7 @@ use ellie_core::{
     },
     defs, error,
 };
-use ellie_tokenizer::{syntax::items::variable::VariableCollector};
+use ellie_tokenizer::syntax::items::variable::VariableCollector;
 
 use crate::processors::{
     definer::{DefinerParserProcessor, DefinerParserProcessorOptions},

@@ -1,4 +1,3 @@
-
 use alloc::{borrow::ToOwned, string::ToString, vec};
 use ellie_core::{definite::definers, definite::definers::DefinerCollecting, error};
 use ellie_tokenizer::syntax::items::definers::CollectiveType;
@@ -44,15 +43,11 @@ impl super::DefinerParserProcessor for CollectiveType {
                         generics: vec![
                             definers::GenericParameter {
                                 value: key,
-                                pos: deep_search_result
-                                    .found_pos
-                                    .unwrap_or_default(),
+                                pos: deep_search_result.found_pos.unwrap_or_default(),
                             },
                             definers::GenericParameter {
                                 value,
-                                pos: deep_search_result
-                                    .found_pos
-                                    .unwrap_or_default(),
+                                pos: deep_search_result.found_pos.unwrap_or_default(),
                             },
                         ],
                         hash: collective_class.hash,

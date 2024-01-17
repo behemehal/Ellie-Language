@@ -95,8 +95,7 @@ impl super::ItemParserProcessor for FunctionCollector {
 
             if !self.data.no_return {
                 match self.data.return_type.definer_type.process(
-                    DefinerParserProcessorOptions::new(options.parser, options.page_hash)
-                        .build(),
+                    DefinerParserProcessorOptions::new(options.parser, options.page_hash).build(),
                 ) {
                     Ok(found_type) => {
                         return_type = found_type;
@@ -215,11 +214,8 @@ impl super::ItemParserProcessor for FunctionCollector {
                         }
                     } else {
                         match parameter.rtype.definer_type.process(
-                            DefinerParserProcessorOptions::new(
-                                options.parser,
-                                options.page_hash,
-                            )
-                            .build(),
+                            DefinerParserProcessorOptions::new(options.parser, options.page_hash)
+                                .build(),
                         ) {
                             Ok(e) => {
                                 #[cfg(feature = "standard_rules")]
