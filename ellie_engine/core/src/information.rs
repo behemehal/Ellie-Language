@@ -1,6 +1,5 @@
 use alloc::vec::Vec;
-use core::any::Any;
-use core::clone::Clone;
+use core::{any::Any, clone::Clone};
 use serde::{Deserialize, Serialize};
 
 /// Parser's output colider, it contains a list of warnings and errors and implements some of the [`Vec`] methods

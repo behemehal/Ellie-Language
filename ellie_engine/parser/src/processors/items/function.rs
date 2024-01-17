@@ -6,29 +6,31 @@ use ellie_core::{
     utils::{self, generate_hash_usize},
 };
 use ellie_tokenizer::{
-    syntax::items::function,
+    syntax::items::function::FunctionCollector,
     tokenizer::{FunctionPageType, PageType},
 };
 
-impl super::Processor for function::FunctionCollector {
-    fn process(
-        &self,
-        parser: &mut super::Parser,
-        page_idx: usize,
-        processed_page_idx: usize,
-        page_hash: usize,
-    ) -> bool {
-        let (duplicate, found) = parser.is_duplicate(
-            page_hash,
+use ellie_core::definite::{
+    definers,
+    items::{function, native_function, Collecting},
+};
+
+use crate::processors::definer::{DefinerParserProcessor, DefinerParserProcessorOptions};
+
+impl super::ItemParserProcessor for FunctionCollector {
+    fn process(&self, options: &mut super::ItemParserProcessorOptions) -> bool {
+        let (duplicate, found) = options.parser.is_duplicate(
+            options.page_hash,
             self.data.name.clone(),
             self.data.hash,
             self.data.pos,
         );
-        let page = parser.pages.nth(page_idx).unwrap().clone();
+        let page = options.parser.pages.nth(options.page_idx).unwrap().clone();
 
-        let function_key_definings = parser
+        let function_key_definings = options
+            .parser
             .processed_pages
-            .nth_mut(processed_page_idx)
+            .nth_mut(options.processed_page_idx)
             .unwrap()
             .unassigned_file_keys
             .clone();
@@ -39,9 +41,8 @@ impl super::Processor for function::FunctionCollector {
                 .iter()
                 .any(|x| x.key_name == "dont_fix_variant"),
         ) {
-            parser
-                .informations
-                .push(&error::error_list::ERROR_S21.clone().build_with_path(
+            options.parser.informations.push(
+                &error::error_list::ERROR_S21.clone().build_with_path(
                     vec![error::ErrorBuildField {
                         key: "token".to_owned(),
                         value: self.data.name.clone(),
@@ -49,7 +50,8 @@ impl super::Processor for function::FunctionCollector {
                     alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                     page.path.clone(),
                     self.data.name_pos,
-                ));
+                ),
+            );
         }
 
         if duplicate {
@@ -63,48 +65,42 @@ impl super::Processor for function::FunctionCollector {
                 err.reference_block = Some((cursor_pos, found_page.path));
                 err.reference_message = "Prime is here".to_owned();
                 err.semi_assist = true;
-                parser.informations.push(&err);
+                options.parser.informations.push(&err);
             } else {
-                parser
-                    .informations
-                    .push(&error::error_list::ERROR_S24.clone().build_with_path(
+                options.parser.informations.push(
+                    &error::error_list::ERROR_S24.clone().build_with_path(
                         vec![error::ErrorBuildField::new("token", &self.data.name)],
                         alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                         page.path.clone(),
                         self.data.name_pos,
-                    ))
+                    ),
+                )
             }
             true
         } else {
-            let mut parameters: Vec<ellie_core::definite::items::function::FunctionParameter> =
-                Vec::new();
+            let mut parameters: Vec<function::FunctionParameter> = Vec::new();
             let mut items = Vec::new();
 
             let inner_page_id: usize = ellie_core::utils::generate_hash_usize();
-            let mut return_type = match super::definer_processor::process(
-                self.data.return_type.definer_type.clone(),
-                parser,
-                page_hash,
-                None,
+
+            let mut return_type = match self.data.return_type.definer_type.process(
+                DefinerParserProcessorOptions::new(options.parser, options.page_hash).build(),
             ) {
                 Ok(e) => e,
                 Err(e) => {
-                    parser.informations.extend(&e);
+                    options.parser.informations.extend(&e);
                     return false;
                 }
             };
 
             if !self.data.no_return {
-                match super::definer_processor::process(
-                    self.data.return_type.definer_type.clone(),
-                    parser,
-                    page_hash,
-                    None,
+                match self.data.return_type.definer_type.process(
+                    DefinerParserProcessorOptions::new(options.parser, options.page_hash).build(),
                 ) {
                     Ok(found_type) => {
                         return_type = found_type;
                     }
-                    Err(type_error) => parser.informations.extend(&type_error),
+                    Err(type_error) => options.parser.informations.extend(&type_error),
                 }
             }
 
@@ -129,9 +125,9 @@ impl super::Processor for function::FunctionCollector {
                             },
                         ),
                     );
-                    parameters.push(ellie_core::definite::items::function::FunctionParameter {
+                    parameters.push(function::FunctionParameter {
                         name: "self".to_owned(),
-                        rtype: ellie_core::definite::definers::DefinerCollecting::Generic(
+                        rtype: definers::DefinerCollecting::Generic(
                             ellie_core::definite::definers::GenericType {
                                 rtype: "self".to_string(),
                                 pos: class_body.pos,
@@ -173,11 +169,11 @@ impl super::Processor for function::FunctionCollector {
                         ));
                         err.reference_message = "Prime is here".to_owned();
                         err.semi_assist = true;
-                        parser.informations.push(&err);
+                        options.parser.informations.push(&err);
                     }
 
-                    let (duplicate, found) = parser.is_duplicate(
-                        page_hash,
+                    let (duplicate, found) = options.parser.is_duplicate(
+                        options.page_hash,
                         parameter.name.clone(),
                         0,
                         parameter.name_pos,
@@ -197,9 +193,9 @@ impl super::Processor for function::FunctionCollector {
                             err.reference_block = Some((cursor_pos, page.path));
                             err.reference_message = "Prime is here".to_owned();
                             err.semi_assist = true;
-                            parser.informations.push(&err);
+                            options.parser.informations.push(&err);
                         } else {
-                            parser.informations.push(
+                            options.parser.informations.push(
                                 &error::error_list::ERROR_S24.clone().build_with_path(
                                     vec![error::ErrorBuildField {
                                         key: "token".to_owned(),
@@ -217,11 +213,9 @@ impl super::Processor for function::FunctionCollector {
                             )
                         }
                     } else {
-                        match super::definer_processor::process(
-                            parameter.rtype.definer_type.clone(),
-                            parser,
-                            page_hash,
-                            None,
+                        match parameter.rtype.definer_type.process(
+                            DefinerParserProcessorOptions::new(options.parser, options.page_hash)
+                                .build(),
                         ) {
                             Ok(e) => {
                                 #[cfg(feature = "standard_rules")]
@@ -232,13 +226,13 @@ impl super::Processor for function::FunctionCollector {
                                             parameter.name.clone()
                                         );
                                     if !is_correct
-                                        && !parser.global_key_matches(
-                                            page_hash,
+                                        && !options.parser.global_key_matches(
+                                            options.page_hash,
                                             "allow",
                                             "FunctionParameterNameRule",
                                         )
                                     {
-                                        parser.informations.push(
+                                        options.parser.informations.push(
                                             &warning::warning_list::WARNING_S3.clone().build(
                                                 vec![
                                                     warning::WarningBuildField {
@@ -267,18 +261,16 @@ impl super::Processor for function::FunctionCollector {
                                         hash: generate_hash_usize()
                                     },
                                 ));
-                                parameters.push(
-                                    ellie_core::definite::items::function::FunctionParameter {
-                                        name: parameter.name.clone(),
-                                        rtype: e,
-                                        multi_capture: parameter.multi_capture,
-                                        name_pos: parameter.name_pos,
-                                        rtype_pos: parameter.rtype_pos,
-                                        is_mut: parameter.is_mut,
-                                    },
-                                );
+                                parameters.push(function::FunctionParameter {
+                                    name: parameter.name.clone(),
+                                    rtype: e,
+                                    multi_capture: parameter.multi_capture,
+                                    name_pos: parameter.name_pos,
+                                    rtype_pos: parameter.rtype_pos,
+                                    is_mut: parameter.is_mut,
+                                });
                             }
-                            Err(type_error) => parser.informations.extend(&type_error),
+                            Err(type_error) => options.parser.informations.extend(&type_error),
                         }
                     }
                 }
@@ -288,11 +280,15 @@ impl super::Processor for function::FunctionCollector {
             {
                 let (is_correct, fixed) = (ellie_standard_rules::rules::FUNCTION_NAMING_ISSUE
                     .worker)(self.data.name.clone());
-                if !is_correct && !parser.global_key_matches(page_hash, "allow", "FunctionNameRule")
+                if !is_correct
+                    && !options.parser.global_key_matches(
+                        options.page_hash,
+                        "allow",
+                        "FunctionNameRule",
+                    )
                 {
-                    parser
-                        .informations
-                        .push(&warning::warning_list::WARNING_S1.clone().build(
+                    options.parser.informations.push(
+                        &warning::warning_list::WARNING_S1.clone().build(
                             vec![
                                 warning::WarningBuildField {
                                     key: "current".to_owned(),
@@ -305,30 +301,33 @@ impl super::Processor for function::FunctionCollector {
                             ],
                             page.path.clone(),
                             self.data.name_pos,
-                        ))
+                        ),
+                    )
                 }
             }
 
             if self.data.defining {
-                let processed_page = parser.processed_pages.nth_mut(processed_page_idx).unwrap();
-                processed_page
-                    .items
-                    .push(ellie_core::definite::items::Collecting::NativeFunction(
-                        ellie_core::definite::items::native_function::NativeFunction {
-                            name: self.data.name.clone(),
-                            pos: self.data.pos,
-                            parameters,
-                            hash: self.data.hash,
-                            return_type,
-                            public: self.data.public,
-                            name_pos: self.data.name_pos,
-                            parameters_pos: self.data.parameters_pos,
-                            return_pos: self.data.return_pos,
-                            file_keys: processed_page.unassigned_file_keys.clone(),
-                            no_return: self.data.no_return,
-                            module_name: parser.module_info.name.clone(),
-                        },
-                    ));
+                let processed_page = options
+                    .parser
+                    .processed_pages
+                    .nth_mut(options.processed_page_idx)
+                    .unwrap();
+                processed_page.items.push(Collecting::NativeFunction(
+                    native_function::NativeFunction {
+                        name: self.data.name.clone(),
+                        pos: self.data.pos,
+                        parameters,
+                        hash: self.data.hash,
+                        return_type,
+                        public: self.data.public,
+                        name_pos: self.data.name_pos,
+                        parameters_pos: self.data.parameters_pos,
+                        return_pos: self.data.return_pos,
+                        file_keys: processed_page.unassigned_file_keys.clone(),
+                        no_return: self.data.no_return,
+                        module_name: options.parser.module_info.name.clone(),
+                    },
+                ));
                 processed_page.unassigned_file_keys = vec![];
 
                 true
@@ -356,29 +355,31 @@ impl super::Processor for function::FunctionCollector {
                     dependencies,
                     ..Default::default()
                 };
-                parser.pages.push_page(inner);
+                options.parser.pages.push_page(inner);
 
-                let processed_page = parser.processed_pages.nth_mut(processed_page_idx).unwrap();
+                let processed_page = options
+                    .parser
+                    .processed_pages
+                    .nth_mut(options.processed_page_idx)
+                    .unwrap();
 
                 processed_page
                     .items
-                    .push(ellie_core::definite::items::Collecting::Function(
-                        ellie_core::definite::items::function::Function {
-                            name: self.data.name.clone(),
-                            pos: self.data.pos,
-                            parameters,
-                            hash: self.data.hash,
-                            return_type: return_type.clone(),
-                            file_keys: processed_page.unassigned_file_keys.clone(),
-                            public: self.data.public,
-                            name_pos: self.data.name_pos,
-                            body_pos: self.data.body_pos,
-                            parameters_pos: self.data.parameters_pos,
-                            return_pos: self.data.return_pos,
-                            no_return: self.data.no_return,
-                            inner_page_id,
-                        },
-                    ));
+                    .push(Collecting::Function(function::Function {
+                        name: self.data.name.clone(),
+                        pos: self.data.pos,
+                        parameters,
+                        hash: self.data.hash,
+                        return_type: return_type.clone(),
+                        file_keys: processed_page.unassigned_file_keys.clone(),
+                        public: self.data.public,
+                        name_pos: self.data.name_pos,
+                        body_pos: self.data.body_pos,
+                        parameters_pos: self.data.parameters_pos,
+                        return_pos: self.data.return_pos,
+                        no_return: self.data.no_return,
+                        inner_page_id,
+                    }));
                 processed_page.unassigned_file_keys = vec![];
                 true
             }

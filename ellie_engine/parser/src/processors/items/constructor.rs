@@ -1,38 +1,32 @@
-use alloc::boxed::Box;
-use alloc::{borrow::ToOwned, vec, vec::Vec};
-use ellie_core::error;
-use ellie_core::utils::generate_hash_usize;
-use ellie_tokenizer::syntax::types::{
-    reference_type::{Chain, ReferenceType, ReferenceTypeCollector},
-    variable_type::{VariableType, VariableTypeCollector},
-};
+use alloc::{borrow::ToOwned, boxed::Box, vec, vec::Vec};
+use ellie_core::{error, utils::generate_hash_usize};
 use ellie_tokenizer::{
-    processors::items::Processors,
-    processors::types::Processors as TypeProcessor,
-    syntax::items::{
-        constructor::Constructor, constructor_parameter::ConstructorParameter,
-        setter_call::SetterCall,
+    processors::{items::Processors, types::Processors as TypeProcessor},
+    syntax::{
+        items::{
+            constructor::Constructor, constructor_parameter::ConstructorParameter,
+            setter_call::SetterCall,
+        },
+        types::{
+            operator_type::AssignmentOperators,
+            reference_type::{Chain, ReferenceType, ReferenceTypeCollector},
+            variable_type::{VariableType, VariableTypeCollector},
+        },
     },
-    syntax::types::operator_type::AssignmentOperators,
     tokenizer::PageType,
 };
 
-impl super::Processor for Constructor {
-    fn process(
-        &self,
-        parser: &mut super::Parser,
-        page_idx: usize,
-        processed_page_idx: usize,
-        page_hash: usize,
-    ) -> bool {
-        let class_body_page = parser
+impl super::ItemParserProcessor for Constructor {
+    fn process(&self, options: &mut super::ItemParserProcessorOptions) -> bool {
+        let class_body_page = options
+            .parser
             .pages
-            .nth(page_idx)
+            .nth(options.page_idx)
             .unwrap_or_else(|| panic!("Failed to find page"))
             .clone();
         let path = class_body_page.path.clone();
 
-        let page = parser.pages.nth(page_idx).unwrap().clone();
+        let page = options.parser.pages.nth(options.page_idx).unwrap().clone();
 
         let class_page_type = match page.page_type {
             PageType::ClassBody(e) => e,
@@ -50,7 +44,8 @@ impl super::Processor for Constructor {
             .unwrap_or_else(|| panic!("Failed to find self"));
 
         //Get the page class belongs
-        let class_page = parser
+        let class_page = options
+            .parser
             .find_page(class_instance_element.class_page)
             .unwrap_or_else(|| panic!("Failed to class page"))
             .clone();
@@ -103,7 +98,7 @@ impl super::Processor for Constructor {
             .body
             .iter()
             .filter_map(|item| match item.as_variable() {
-                Some(e) => e.data.has_value.then(|| e),
+                Some(e) => e.data.has_value.then_some(e),
                 None => None,
             })
         {
@@ -144,7 +139,7 @@ impl super::Processor for Constructor {
                 err.reference_block = Some((class_element.pos, path.clone()));
                 err.reference_message = "Prime is here".to_owned();
                 err.semi_assist = true;
-                parser.informations.push(&err);
+                options.parser.informations.push(&err);
                 return false;
             }
 
@@ -163,12 +158,12 @@ impl super::Processor for Constructor {
                     err.reference_block = Some((self.parameters[other_index].pos, path.clone()));
                     err.reference_message = "Prime is here".to_owned();
                     err.semi_assist = true;
-                    parser.informations.push(&err);
+                    options.parser.informations.push(&err);
                 }
             }
             let mut param_found = false;
             let mut found_is_constant_variable = None;
-            let page = parser.find_page(page_hash).unwrap();
+            let page = options.parser.find_page(options.page_hash).unwrap();
             for item in page.items.iter() {
                 match item {
                     Processors::Variable(e) => {
@@ -193,18 +188,18 @@ impl super::Processor for Constructor {
                 );
                 err.reference_block = Some((class_element.pos, class_page.path.clone()));
                 err.reference_message = "Class body is here".to_owned();
-                parser.informations.push(&err);
+                options.parser.informations.push(&err);
             }
 
             if found_is_constant_variable.is_some() {
-                parser
-                    .informations
-                    .push(&error::error_list::ERROR_S18.clone().build_with_path(
+                options.parser.informations.push(
+                    &error::error_list::ERROR_S18.clone().build_with_path(
                         vec![],
                         alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                         class_body_page.path.clone(),
                         found_is_constant_variable.unwrap(),
-                    ));
+                    ),
+                );
             }
         }
         items.extend(self.inside_code.clone());
@@ -219,7 +214,7 @@ impl super::Processor for Constructor {
             dependencies,
             ..Default::default()
         };
-        parser.pages.push_page(inner);
+        options.parser.pages.push_page(inner);
 
         let processed = ellie_core::definite::items::Collecting::Constructor(
             ellie_core::definite::items::constructor::Constructor {
@@ -241,9 +236,10 @@ impl super::Processor for Constructor {
                 class_hash: class_element.hash,
             },
         );
-        parser
+        options
+            .parser
             .processed_pages
-            .nth_mut(processed_page_idx)
+            .nth_mut(options.processed_page_idx)
             .unwrap()
             .items
             .push(processed);

@@ -1,4 +1,8 @@
-use crate::parser::{DeepSearchItems, FoundPage, Parser};
+use crate::{
+    parser::{DeepSearchItems, Parser},
+    processors::definer::{DefinerParserProcessor, DefinerParserProcessorOptions},
+    utils::FoundPage,
+};
 use alloc::{
     borrow::ToOwned,
     boxed::Box,
@@ -7,12 +11,11 @@ use alloc::{
     vec::Vec,
 };
 use definers::GenericType;
-use ellie_core::definite::types::class_call::ClassCallGenericParameter;
 use ellie_core::{
     definite::{
         definers::{self, DefinerCollecting},
         items::Collecting,
-        types::{class_instance::AttributeType, Types},
+        types::{class_call::ClassCallGenericParameter, class_instance::AttributeType, Types},
         Converter,
     },
     defs, error,
@@ -1427,13 +1430,9 @@ fn iterate_deep_type(
             if !errors.is_empty() {
                 DeepTypeResult::NotFound
             } else {
-                let rtype = crate::processors::definer_processor::process(
-                    ellie_tokenizer::syntax::items::definers::DefinerTypes::Dynamic
-                        .from_definite(as_keyword.rtype.clone()),
-                    parser,
-                    page_id,
-                    None,
-                );
+                let rtype = ellie_tokenizer::syntax::items::definers::DefinerTypes::Dynamic
+                    .from_definite(as_keyword.rtype.clone())
+                    .process(DefinerParserProcessorOptions::new(parser, page_id).build());
 
                 match rtype {
                     Ok(rtype) => {

@@ -1,5 +1,4 @@
-use crate::definite::types;
-use crate::defs;
+use crate::{definite::types, defs};
 use serde::{Deserialize, Serialize};
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]

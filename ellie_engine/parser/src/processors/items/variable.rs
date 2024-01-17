@@ -8,19 +8,24 @@ use ellie_core::{
     },
     defs, error,
 };
-use ellie_tokenizer::{syntax::items::variable::VariableCollector, tokenizer::PageType};
+use ellie_tokenizer::syntax::items::variable::VariableCollector;
 
-impl super::Processor for VariableCollector {
-    fn process(
-        &self,
-        parser: &mut super::Parser,
-        page_idx: usize,
-        processed_page_idx: usize,
-        page_hash: usize,
-    ) -> bool {
-        let path = parser.pages.nth(page_idx).unwrap().path.clone();
-        let (duplicate, found) = parser.is_variable_duplicate(
-            page_hash,
+use crate::processors::{
+    definer::{DefinerParserProcessor, DefinerParserProcessorOptions},
+    types::{TypeParserProcessor, TypeParserProcessorOptions},
+};
+
+impl super::ItemParserProcessor for VariableCollector {
+    fn process(&self, options: &mut super::ItemParserProcessorOptions) -> bool {
+        let path = options
+            .parser
+            .pages
+            .nth(options.page_idx)
+            .unwrap()
+            .path
+            .clone();
+        let (duplicate, found) = options.parser.is_variable_duplicate(
+            options.page_hash,
             self.data.name.clone(),
             self.data.hash,
             self.data.pos,
@@ -31,28 +36,35 @@ impl super::Processor for VariableCollector {
                 let mut err = error::error_list::ERROR_S24.clone().build_with_path(
                     vec![error::ErrorBuildField::new("token", &self.data.name)],
                     alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                    parser.pages.nth(page_idx).unwrap().path.clone(),
+                    options
+                        .parser
+                        .pages
+                        .nth(options.page_idx)
+                        .unwrap()
+                        .path
+                        .clone(),
                     self.data.name_pos,
                 );
                 err.reference_block = Some((cursor_pos, page.path));
                 err.reference_message = "Prime is here".to_owned();
                 err.semi_assist = true;
-                parser.informations.push(&err);
+                options.parser.informations.push(&err);
             } else {
-                parser
-                    .informations
-                    .push(&error::error_list::ERROR_S24.clone().build_with_path(
+                options.parser.informations.push(
+                    &error::error_list::ERROR_S24.clone().build_with_path(
                         vec![error::ErrorBuildField::new("token", &self.data.name)],
                         alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                         path.clone(),
                         self.data.name_pos,
-                    ))
+                    ),
+                )
             }
             false
         } else {
-            let deep_cast = parser
+            let deep_cast = options
+                .parser
                 .processed_pages
-                .nth(processed_page_idx)
+                .nth(options.processed_page_idx)
                 .unwrap()
                 .unassigned_file_keys
                 .clone()
@@ -80,7 +92,7 @@ impl super::Processor for VariableCollector {
                                 } else if e.value == "null" {
                                     Types::Null
                                 } else {
-                                    parser.informations.push(
+                                    options.parser.informations.push(
                                         &error::error_list::ERROR_S50.clone().build_with_path(
                                             vec![
                                                 error::ErrorBuildField::new(
@@ -109,9 +121,10 @@ impl super::Processor for VariableCollector {
                         },
                         pos: self.data.pos,
                         name_pos: self.data.name_pos,
-                        file_keys: parser
+                        file_keys: options
+                            .parser
                             .processed_pages
-                            .nth(processed_page_idx)
+                            .nth(options.processed_page_idx)
                             .unwrap()
                             .unassigned_file_keys
                             .clone(),
@@ -125,7 +138,11 @@ impl super::Processor for VariableCollector {
                     },
                 );
 
-                let processed_page = parser.processed_pages.nth_mut(processed_page_idx).unwrap();
+                let processed_page = options
+                    .parser
+                    .processed_pages
+                    .nth_mut(options.processed_page_idx)
+                    .unwrap();
                 processed_page.unassigned_file_keys = Vec::new();
                 processed_page.items.push(processed);
                 return true;
@@ -134,14 +151,13 @@ impl super::Processor for VariableCollector {
             let resolved_defining = if !self.data.has_type {
                 Ok(DefinerCollecting::Dynamic)
             } else {
-                match super::definer_processor::process(
-                    self.data.rtype.definer_type.clone(),
-                    parser,
-                    page_hash,
-                    Some(self.data.hash),
+                match self.data.rtype.definer_type.process(
+                    DefinerParserProcessorOptions::new(options.parser, options.page_hash)
+                        .ignore_hash(self.data.hash)
+                        .build(),
                 ) {
                     Err(e) => {
-                        parser.informations.extend(&e);
+                        options.parser.informations.extend(&e);
                         return false;
                     }
                     e => e,
@@ -151,8 +167,8 @@ impl super::Processor for VariableCollector {
             let resolved_type = if !self.data.has_value {
                 let null_able_class = crate::deep_search_extensions::find_type(
                     "nullAble".to_string(),
-                    page_hash,
-                    parser,
+                    options.page_hash,
+                    options.parser,
                 );
 
                 match null_able_class {
@@ -194,16 +210,17 @@ impl super::Processor for VariableCollector {
                         ))
                     }
                     None => {
-                        parser.informations.push(
+                        options.parser.informations.push(
                             &error::error_list::ERROR_S38.clone().build_with_path(
                                 vec![error::ErrorBuildField {
                                     key: "token".to_owned(),
                                     value: "nullAble".to_string(),
                                 }],
                                 alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                                parser
+                                options
+                                    .parser
                                     .processed_pages
-                                    .nth_mut(processed_page_idx)
+                                    .nth_mut(options.processed_page_idx)
                                     .unwrap()
                                     .path
                                     .clone(),
@@ -214,15 +231,12 @@ impl super::Processor for VariableCollector {
                     }
                 }
             } else {
-                super::type_processor::process(
-                    self.data.value.clone(),
-                    parser,
-                    page_hash,
-                    Some(self.data.hash),
-                    false,
-                    false,
-                    true,
-                    Some(self.data.pos),
+                self.data.value.process(
+                    TypeParserProcessorOptions::new(options.parser, options.page_hash)
+                        .variable_pos(self.data.pos)
+                        .ignore_hash(self.data.hash)
+                        .ignore_type()
+                        .build(),
                 )
             };
 
@@ -230,7 +244,7 @@ impl super::Processor for VariableCollector {
                 let mut type_error = resolved_type.err().unwrap_or(vec![]);
                 let defining_error = resolved_defining.err().unwrap_or(vec![]);
                 type_error.extend(defining_error);
-                parser.informations.extend(&type_error);
+                options.parser.informations.extend(&type_error);
                 false
             } else {
                 #[cfg(feature = "standard_rules")]
@@ -240,11 +254,14 @@ impl super::Processor for VariableCollector {
                         self.data.name.clone()
                     );
                     if !is_correct
-                        && !parser.global_key_matches(page_hash, "allow", "VariableNameRule")
+                        && !options.parser.global_key_matches(
+                            options.page_hash,
+                            "allow",
+                            "VariableNameRule",
+                        )
                     {
-                        parser
-                            .informations
-                            .push(&warning::warning_list::WARNING_S2.clone().build(
+                        options.parser.informations.push(
+                            &warning::warning_list::WARNING_S2.clone().build(
                                 vec![
                                     warning::WarningBuildField {
                                         key: "current".to_owned(),
@@ -257,7 +274,8 @@ impl super::Processor for VariableCollector {
                                 ],
                                 path.clone(),
                                 self.data.name_pos,
-                            ))
+                            ),
+                        )
                     }
                 }
 
@@ -269,9 +287,10 @@ impl super::Processor for VariableCollector {
                         value: resolved_type.clone().unwrap(),
                         pos: self.data.pos,
                         name_pos: self.data.name_pos,
-                        file_keys: parser
+                        file_keys: options
+                            .parser
                             .processed_pages
-                            .nth(processed_page_idx)
+                            .nth(options.processed_page_idx)
                             .unwrap()
                             .unassigned_file_keys
                             .clone(),
@@ -286,17 +305,21 @@ impl super::Processor for VariableCollector {
                 );
 
                 if self.data.has_value && self.data.has_type {
-                    let comperable = parser.compare_defining_with_type(
+                    let comperable = options.parser.compare_defining_with_type(
                         resolved_defining.unwrap(),
                         resolved_type.unwrap().clone(),
-                        page_hash,
+                        options.page_hash,
                     );
 
-                    let current_page = parser.processed_pages.nth_mut(processed_page_idx).unwrap();
+                    let current_page = options
+                        .parser
+                        .processed_pages
+                        .nth_mut(options.processed_page_idx)
+                        .unwrap();
                     match comperable {
                         Ok(result) => {
                             if result.requires_cast {
-                                parser.informations.push(
+                                options.parser.informations.push(
                                 &error::error_list::ERROR_S41.clone().build_with_path(
                                     vec![error::ErrorBuildField {
                                         key: "token".to_owned(),
@@ -336,7 +359,7 @@ impl super::Processor for VariableCollector {
                                     Some((self.data.type_pos, current_page.path.clone()));
                                 err.reference_message = "Defined here".to_owned();
                                 err.semi_assist = true;
-                                parser.informations.push(&err);
+                                options.parser.informations.push(&err);
                                 return false;
                             }
                             if !result.same {
@@ -364,7 +387,7 @@ impl super::Processor for VariableCollector {
                                     Some((self.data.type_pos, current_page.path.clone()));
                                 err.reference_message = "Defined here".to_owned();
                                 err.semi_assist = true;
-                                parser.informations.push(&err);
+                                options.parser.informations.push(&err);
                                 false
                             } else {
                                 current_page.items.push(processed);
@@ -372,13 +395,16 @@ impl super::Processor for VariableCollector {
                             }
                         }
                         Err(err) => {
-                            parser.informations.extend(&err);
+                            options.parser.informations.extend(&err);
                             false
                         }
                     }
                 } else {
-                    let processed_page =
-                        parser.processed_pages.nth_mut(processed_page_idx).unwrap();
+                    let processed_page = options
+                        .parser
+                        .processed_pages
+                        .nth_mut(options.processed_page_idx)
+                        .unwrap();
                     processed_page.unassigned_file_keys = Vec::new();
                     processed_page.items.push(processed);
                     true

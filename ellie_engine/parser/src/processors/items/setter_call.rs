@@ -1,4 +1,7 @@
-use crate::deep_search_extensions::{deep_search_hash, resolve_type};
+use crate::{
+    deep_search_extensions::{deep_search_hash, resolve_type},
+    processors::types::{TypeParserProcessor, TypeParserProcessorOptions},
+};
 use alloc::{borrow::ToOwned, vec, vec::Vec};
 use ellie_core::{definite::Converter, error};
 use ellie_tokenizer::syntax::{
@@ -6,67 +9,56 @@ use ellie_tokenizer::syntax::{
     types::operator_type::{AssignmentOperators, Operators},
 };
 
-impl super::Processor for SetterCall {
-    fn process(
-        &self,
-        parser: &mut super::Parser,
-        page_idx: usize,
-        processed_page_idx: usize,
-        page_hash: usize,
-    ) -> bool {
-        let current_page = parser
+impl super::ItemParserProcessor for SetterCall {
+    fn process(&self, options: &mut super::ItemParserProcessorOptions) -> bool {
+        let current_page = options
+            .parser
             .pages
-            .nth(page_idx)
+            .nth(options.page_idx)
             .unwrap_or_else(|| panic!("Failed to find page"))
             .clone();
-        match super::type_processor::process(
-            self.target.clone(),
-            parser,
-            page_hash,
-            None,
-            true,
-            true,
-            false,
-            Some(self.target_pos),
+
+        match self.target.process(
+            TypeParserProcessorOptions::new(options.parser, options.page_hash)
+                .include_setter()
+                .exclude_getter()
+                .variable_pos(self.target_pos)
+                .build(),
         ) {
             Ok(target) => match target.clone() {
                 ellie_core::definite::types::Types::Reference(_) => {
-                    match super::type_processor::process(
-                        self.value.clone(),
-                        parser,
-                        page_hash,
-                        None,
-                        false,
-                        true,
-                        false,
-                        Some(self.target_pos),
+                    match self.value.process(
+                        TypeParserProcessorOptions::new(options.parser, options.page_hash)
+                            .exclude_getter()
+                            .variable_pos(self.target_pos)
+                            .build(),
                     ) {
                         Ok(processed_value_type) => {
                             let mut errors = Vec::new();
                             let target_type = match resolve_type(
                                 target.clone(),
-                                page_hash,
-                                parser,
+                                options.page_hash,
+                                options.parser,
                                 &mut errors,
                                 Some(self.target_pos),
                             ) {
                                 Some(e) => e,
                                 None => {
-                                    parser.informations.extend(&errors);
+                                    options.parser.informations.extend(&errors);
                                     return false;
                                 }
                             };
 
                             let value_defining = match resolve_type(
                                 processed_value_type.clone(),
-                                page_hash,
-                                parser,
+                                options.page_hash,
+                                options.parser,
                                 &mut errors,
                                 Some(self.target_pos),
                             ) {
                                 Some(e) => e,
                                 None => {
-                                    parser.informations.extend(&errors);
+                                    options.parser.informations.extend(&errors);
                                     return false;
                                 }
                             };
@@ -82,12 +74,15 @@ impl super::Processor for SetterCall {
                                 self.value_pos,
                             ) {
                                 Some(e) => {
-                                    parser.informations.push(&e);
+                                    options.parser.informations.push(&e);
                                     return false;
                                 }
                                 None => {
-                                    let page =
-                                        parser.processed_pages.nth_mut(processed_page_idx).unwrap();
+                                    let page = options
+                                        .parser
+                                        .processed_pages
+                                        .nth_mut(options.processed_page_idx)
+                                        .unwrap();
                                     page.items.push(ellie_core::definite::items::Collecting::SetterCall(
                                             ellie_core::definite::items::setter_call::SetterCall {
                                                 target,
@@ -111,33 +106,28 @@ impl super::Processor for SetterCall {
                             }
                         }
                         Err(e) => {
-                            parser.informations.extend(&e);
+                            options.parser.informations.extend(&e);
                         }
                     };
                 }
                 ellie_core::definite::types::Types::BraceReference(_) => {
-                    match super::type_processor::process(
-                        self.value.clone(),
-                        parser,
-                        page_hash,
-                        None,
-                        false,
-                        false,
-                        false,
-                        Some(self.value_pos),
+                    match self.value.process(
+                        TypeParserProcessorOptions::new(options.parser, options.page_hash)
+                            .variable_pos(self.target_pos)
+                            .build(),
                     ) {
                         Ok(processed_value_type) => {
                             let mut errors = Vec::new();
                             let mut target_type = match resolve_type(
                                 processed_value_type.clone(),
-                                page_hash,
-                                parser,
+                                options.page_hash,
+                                options.parser,
                                 &mut errors,
                                 Some(self.target_pos),
                             ) {
                                 Some(e) => e,
                                 None => {
-                                    parser.informations.extend(&errors);
+                                    options.parser.informations.extend(&errors);
                                     return true;
                                 }
                             };
@@ -151,14 +141,14 @@ impl super::Processor for SetterCall {
 
                             let value_defining = match resolve_type(
                                 processed_value_type.clone(),
-                                page_hash,
-                                parser,
+                                options.page_hash,
+                                options.parser,
                                 &mut errors,
                                 Some(self.target_pos),
                             ) {
                                 Some(e) => e,
                                 None => {
-                                    parser.informations.extend(&errors);
+                                    options.parser.informations.extend(&errors);
                                     return false;
                                 }
                             };
@@ -175,12 +165,15 @@ impl super::Processor for SetterCall {
                             ) {
                                 Some(e) => {
                                     errors.push(e);
-                                    parser.informations.extend(&errors);
+                                    options.parser.informations.extend(&errors);
                                     return false;
                                 }
                                 None => {
-                                    let page =
-                                        parser.processed_pages.nth_mut(processed_page_idx).unwrap();
+                                    let page = options
+                                        .parser
+                                        .processed_pages
+                                        .nth_mut(options.processed_page_idx)
+                                        .unwrap();
                                     page.items.push(ellie_core::definite::items::Collecting::SetterCall(
                                             ellie_core::definite::items::setter_call::SetterCall {
                                                 target,
@@ -204,14 +197,14 @@ impl super::Processor for SetterCall {
                             }
                         }
                         Err(e) => {
-                            parser.informations.extend(&e);
+                            options.parser.informations.extend(&e);
                         }
                     };
                 }
                 ellie_core::definite::types::Types::VariableType(variable_reference) => {
                     let deep_type = deep_search_hash(
-                        parser,
-                        page_hash,
+                        options.parser,
+                        options.page_hash,
                         variable_reference.reference,
                         vec![],
                         0,
@@ -222,7 +215,7 @@ impl super::Processor for SetterCall {
                                 variable,
                             ) => {
                                 if variable.constant {
-                                    parser.informations.push(
+                                    options.parser.informations.push(
                                         &ellie_core::error::error_list::ERROR_S18
                                             .clone()
                                             .build_with_path(
@@ -238,15 +231,13 @@ impl super::Processor for SetterCall {
                                             ),
                                     );
                                 } else {
-                                    match super::type_processor::process(
-                                        self.value.clone(),
-                                        parser,
-                                        page_hash,
-                                        None,
-                                        false,
-                                        false,
-                                        false,
-                                        Some(self.value_pos),
+                                    match self.value.process(
+                                        TypeParserProcessorOptions::new(
+                                            options.parser,
+                                            options.page_idx,
+                                        )
+                                        .variable_pos(self.target_pos)
+                                        .build(),
                                     ) {
                                         Ok(processed_value_type) => {
                                             let mut errors = Vec::new();
@@ -256,14 +247,14 @@ impl super::Processor for SetterCall {
                                             } else {
                                                 match resolve_type(
                                                     variable.value,
-                                                    page_hash,
-                                                    parser,
+                                                    options.page_hash,
+                                                    options.parser,
                                                     &mut errors,
                                                     Some(variable.value_pos),
                                                 ) {
                                                     Some(e) => e,
                                                     None => {
-                                                        parser.informations.extend(&errors);
+                                                        options.parser.informations.extend(&errors);
                                                         return false;
                                                     }
                                                 }
@@ -271,14 +262,14 @@ impl super::Processor for SetterCall {
 
                                             let value_defining = match resolve_type(
                                                 processed_value_type.clone(),
-                                                page_hash,
-                                                parser,
+                                                options.page_hash,
+                                                options.parser,
                                                 &mut errors,
                                                 Some(self.target_pos),
                                             ) {
                                                 Some(e) => e,
                                                 None => {
-                                                    parser.informations.extend(&errors);
+                                                    options.parser.informations.extend(&errors);
                                                     return false;
                                                 }
                                             };
@@ -296,13 +287,14 @@ impl super::Processor for SetterCall {
                                             ) {
                                                 Some(e) => {
                                                     errors.push(e);
-                                                    parser.informations.extend(&errors);
+                                                    options.parser.informations.extend(&errors);
                                                     return false;
                                                 }
                                                 None => {
-                                                    let page = parser
+                                                    let page = options
+                                                        .parser
                                                         .processed_pages
-                                                        .nth_mut(processed_page_idx)
+                                                        .nth_mut(options.processed_page_idx)
                                                         .unwrap();
                                                     page.items.push(ellie_core::definite::items::Collecting::SetterCall(
                                                             ellie_core::definite::items::setter_call::SetterCall {
@@ -327,56 +319,51 @@ impl super::Processor for SetterCall {
                                             }
                                         }
                                         Err(e) => {
-                                            parser.informations.extend(&e);
+                                            options.parser.informations.extend(&e);
                                         }
                                     }
                                 }
                             }
                             _ => {
-                                unreachable!("Parser should have prevented this");
+                                unreachable!("options.parser should have prevented this");
                             }
                         }
                     } else {
-                        unreachable!("Parser should have prevented this");
+                        unreachable!("options.parser should have prevented this");
                     }
                 }
                 ellie_core::definite::types::Types::SetterCall(_) => {
-                    match super::type_processor::process(
-                        self.value.clone(),
-                        parser,
-                        page_hash,
-                        None,
-                        false,
-                        false,
-                        false,
-                        Some(self.value_pos),
+                    match self.value.process(
+                        TypeParserProcessorOptions::new(options.parser, options.page_hash)
+                            .variable_pos(self.target_pos)
+                            .build(),
                     ) {
                         Ok(processed_value_type) => {
                             let mut errors = Vec::new();
                             let target_type = match resolve_type(
                                 target.clone(),
-                                page_hash,
-                                parser,
+                                options.page_hash,
+                                options.parser,
                                 &mut errors,
                                 Some(self.target_pos),
                             ) {
                                 Some(e) => e,
                                 None => {
-                                    parser.informations.extend(&errors);
+                                    options.parser.informations.extend(&errors);
                                     return false;
                                 }
                             };
 
                             let value_defining = match resolve_type(
                                 processed_value_type.clone(),
-                                page_hash,
-                                parser,
+                                options.page_hash,
+                                options.parser,
                                 &mut errors,
                                 Some(self.target_pos),
                             ) {
                                 Some(e) => e,
                                 None => {
-                                    parser.informations.extend(&errors);
+                                    options.parser.informations.extend(&errors);
                                     return false;
                                 }
                             };
@@ -392,12 +379,15 @@ impl super::Processor for SetterCall {
                                 self.value_pos,
                             ) {
                                 Some(e) => {
-                                    parser.informations.push(&e);
+                                    options.parser.informations.push(&e);
                                     return false;
                                 }
                                 None => {
-                                    let page =
-                                        parser.processed_pages.nth_mut(processed_page_idx).unwrap();
+                                    let page = options
+                                        .parser
+                                        .processed_pages
+                                        .nth_mut(options.processed_page_idx)
+                                        .unwrap();
                                     page.items.push(ellie_core::definite::items::Collecting::SetterCall(
                                             ellie_core::definite::items::setter_call::SetterCall {
                                                 target,
@@ -421,12 +411,12 @@ impl super::Processor for SetterCall {
                             }
                         }
                         Err(e) => {
-                            parser.informations.extend(&e);
+                            options.parser.informations.extend(&e);
                         }
                     }
                 }
                 ellie_core::definite::types::Types::FunctionParameter(_) => {
-                    parser.informations.push(
+                    options.parser.informations.push(
                         &ellie_core::error::error_list::ERROR_S59
                             .clone()
                             .build_with_path(
@@ -441,7 +431,7 @@ impl super::Processor for SetterCall {
                     );
                 }
                 _ => {
-                    parser.informations.push(
+                    options.parser.informations.push(
                         &ellie_core::error::error_list::ERROR_S43
                             .clone()
                             .build_with_path(
@@ -454,7 +444,7 @@ impl super::Processor for SetterCall {
                 }
             },
             Err(e) => {
-                parser.informations.extend(&e);
+                options.parser.informations.extend(&e);
             }
         }
         true

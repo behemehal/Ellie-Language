@@ -1,16 +1,18 @@
-use crate::instructions::Instruction;
-use crate::transpiler::Transpiler;
-use crate::utils::usize_to_le_bytes;
-use crate::{instruction_table, utils::limit_platform_size};
+use crate::{
+    instruction_table,
+    instructions::Instruction,
+    transpiler::Transpiler,
+    utils::{limit_platform_size, usize_to_le_bytes},
+};
 use alloc::{
     format,
     string::{String, ToString},
     vec::Vec,
 };
-use ellie_core::defs::{
-    DebugHeader, DebugHeaderType, ModuleMap, NativeCallTrace, PlatformArchitecture,
+use ellie_core::{
+    defs::{DebugHeader, DebugHeaderType, ModuleMap, NativeCallTrace, PlatformArchitecture},
+    utils::ExportPage,
 };
-use ellie_core::utils::ExportPage;
 use ellie_parser::parser::Module;
 use std::{io::Write, panic};
 

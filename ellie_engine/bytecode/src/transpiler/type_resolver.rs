@@ -1,7 +1,6 @@
-use alloc::vec;
-use alloc::vec::Vec;
+use alloc::{vec, vec::Vec};
 use ellie_core::{
-    definite::{types::class_instance::AttributeType, types::operator, types::Types as CoreTypes},
+    definite::types::{class_instance::AttributeType, operator, Types as CoreTypes},
     defs::PlatformArchitecture,
 };
 

@@ -1,4 +1,7 @@
-use crate::deep_search_extensions::resolve_type;
+use crate::{
+    deep_search_extensions::resolve_type,
+    processors::types::{TypeParserProcessor, TypeParserProcessorOptions},
+};
 use alloc::{borrow::ToOwned, boxed::Box, string::ToString, vec, vec::Vec};
 use ellie_core::{definite::types::Types, defs, error, utils::generate_hash_usize};
 use ellie_tokenizer::{
@@ -6,15 +9,15 @@ use ellie_tokenizer::{
     tokenizer::{ConditionPageType, PageType},
 };
 
-impl super::Processor for Condition {
-    fn process(
-        &self,
-        parser: &mut super::Parser,
-        page_idx: usize,
-        processed_page_idx: usize,
-        page_hash: usize,
-    ) -> bool {
-        let path = parser.pages.nth(page_idx).unwrap().path.clone();
+impl super::ItemParserProcessor for Condition {
+    fn process(&self, options: &mut super::ItemParserProcessorOptions) -> bool {
+        let path = options
+            .parser
+            .pages
+            .nth(options.page_idx)
+            .unwrap()
+            .path
+            .clone();
         //(processed_page_id, conditionType)
         let mut chains: Vec<(usize, Types)> = Vec::new();
         let condition_hash = generate_hash_usize();
@@ -25,27 +28,23 @@ impl super::Processor for Condition {
                 condition_type = Types::Void;
             } else {
                 let condition_pos = chain.condition.clone().current.get_pos();
-                match crate::processors::type_processor::process(
-                    chain.condition.clone().current.clone(),
-                    parser,
-                    page_hash,
-                    None,
-                    false,
-                    false,
-                    false,
-                    Some(self.pos),
+
+                match chain.condition.current.process(
+                    TypeParserProcessorOptions::new(options.parser, options.page_hash)
+                        .variable_pos(self.pos)
+                        .build(),
                 ) {
                     Ok(condition) => {
                         condition_type = condition.clone();
                         let condition_type = resolve_type(
                             condition,
-                            page_hash,
-                            parser,
+                            options.page_hash,
+                            options.parser,
                             &mut errors,
                             Some(condition_pos),
                         );
                         if !errors.is_empty() {
-                            parser.informations.extend(&errors);
+                            options.parser.informations.extend(&errors);
                             return false;
                         }
 
@@ -58,7 +57,7 @@ impl super::Processor for Condition {
 
                         //If condition type is not boolean, we can't continue
                         if condition_type.to_string() != "bool" {
-                            parser.informations.push(
+                            options.parser.informations.push(
                                 &error::error_list::ERROR_S3.clone().build_with_path(
                                     vec![
                                         error::ErrorBuildField {
@@ -83,13 +82,18 @@ impl super::Processor for Condition {
                         }
                     }
                     Err(e) => {
-                        parser.informations.extend(&e);
+                        options.parser.informations.extend(&e);
                         return false;
                     }
                 }
             }
 
-            let page = parser.pages.nth_mut(page_idx).unwrap().clone();
+            let page = options
+                .parser
+                .pages
+                .nth_mut(options.page_idx)
+                .unwrap()
+                .clone();
             let inner_page_id: usize = ellie_core::utils::generate_hash_usize();
             let mut dependencies = vec![ellie_tokenizer::tokenizer::Dependency {
                 hash: page.hash,
@@ -105,7 +109,7 @@ impl super::Processor for Condition {
                 inner: Some(page.hash),
                 path: page.path.clone(),
                 page_type: PageType::ConditionBody(ConditionPageType {
-                    page_hash,
+                    page_hash: options.page_hash,
                     condition_hash,
                     chain_type: chain.rtype,
                     keyword_pos: chain.keyword_pos,
@@ -115,11 +119,15 @@ impl super::Processor for Condition {
                 dependencies,
                 ..Default::default()
             };
-            parser.pages.push_page(inner);
+            options.parser.pages.push_page(inner);
             chains.push((inner_page_id, condition_type));
         }
 
-        let processed_page = parser.processed_pages.nth_mut(processed_page_idx).unwrap();
+        let processed_page = options
+            .parser
+            .processed_pages
+            .nth_mut(options.processed_page_idx)
+            .unwrap();
 
         processed_page
             .items

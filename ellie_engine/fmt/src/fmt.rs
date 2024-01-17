@@ -1,8 +1,6 @@
-use crate::renderer::CodeRenderer;
-use crate::renderer::State;
+use crate::renderer::{CodeRenderer, State};
 pub use ellie_tokenizer;
-use ellie_tokenizer::processors::items::Processors;
-use ellie_tokenizer::tokenizer::Page;
+use ellie_tokenizer::{processors::items::Processors, tokenizer::Page};
 
 #[derive(Clone, Debug, Copy)]
 pub struct FormatterOptions {

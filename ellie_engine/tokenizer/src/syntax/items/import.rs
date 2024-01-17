@@ -1,7 +1,5 @@
-use ellie_core::definite::Converter;
-use ellie_core::defs;
-use serde::Deserialize;
-use serde::Serialize;
+use ellie_core::{definite::Converter, defs};
+use serde::{Deserialize, Serialize};
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct Import {
@@ -12,11 +10,11 @@ pub struct Import {
     pub import_filled: bool,
     pub public: bool,
     pub path_starter_collected: bool,
-    
+
     pub reference_starter_collected: bool,
     pub reference_pos: defs::Cursor,
     pub reference: String,
-    
+
     pub pos: defs::Cursor,
     pub complete: bool,
     pub hash: usize,

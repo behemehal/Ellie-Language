@@ -33,5 +33,6 @@
 		"workbench.editor.labelFormat": "short",
 		"workbench.startupEditor": "readme",
 		"window.title": "Ellie-Language ${separator}${activeEditorShort}",
+		"rust-analyzer.imports.preferNoStd": true,
 	}
 }

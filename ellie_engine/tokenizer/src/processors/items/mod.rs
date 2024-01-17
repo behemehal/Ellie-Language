@@ -253,17 +253,24 @@ impl Processors {
         match self {
             Processors::Variable(variable) => {
                 if variable.name_collected {
-                    if variable.data.has_type && !variable.data.has_value && variable.data.rtype.complete {
-                        Some(Cursor::build_with_skip_char(variable.data.type_pos.range_end))
+                    if variable.data.has_type
+                        && !variable.data.has_value
+                        && variable.data.rtype.complete
+                    {
+                        Some(Cursor::build_with_skip_char(
+                            variable.data.type_pos.range_end,
+                        ))
                     } else if variable.data.has_value && variable.data.value.is_complete() {
-                        Some(Cursor::build_with_skip_char(variable.data.value_pos.range_end))
+                        Some(Cursor::build_with_skip_char(
+                            variable.data.value_pos.range_end,
+                        ))
                     } else {
                         None
                     }
                 } else {
                     None
                 }
-            },
+            }
             Processors::GetterCall(getter) => {
                 if getter.cache.current.is_complete() {
                     Some(Cursor::build_with_skip_char(getter.pos.range_end))

@@ -1,30 +1,25 @@
 use ellie_core::defs;
 use ellie_tokenizer::syntax::items::ret::Ret;
 
-impl super::Processor for Ret {
-    fn process(
-        &self,
-        parser: &mut super::Parser,
-        page_idx: usize,
-        processed_page_idx: usize,
-        page_hash: usize,
-    ) -> bool {
-        match super::type_processor::process(
-            self.value.current.clone(),
-            parser,
-            page_hash,
-            None,
-            false,
-            false,
-            false,
-            Some(self.pos),
+use crate::processors::types::{TypeParserProcessor, TypeParserProcessorOptions};
+
+impl super::ItemParserProcessor for Ret {
+    fn process(&self, options: &mut super::ItemParserProcessorOptions) -> bool {
+        match self.value.current.process(
+            TypeParserProcessorOptions::new(options.parser, options.page_hash)
+                .variable_pos(self.pos)
+                .build(),
         ) {
             Ok(value) => {
-                let unprocessed_page = parser.pages.nth_mut(page_idx).unwrap();
+                let unprocessed_page = options.parser.pages.nth_mut(options.page_idx).unwrap();
                 unprocessed_page.unreachable = true;
                 unprocessed_page.unreachable_range.range_start =
                     defs::CursorPosition(self.pos.range_end.0 + 1, 0);
-                let page = parser.processed_pages.nth_mut(processed_page_idx).unwrap();
+                let page = options
+                    .parser
+                    .processed_pages
+                    .nth_mut(options.processed_page_idx)
+                    .unwrap();
                 page.items
                     .push(ellie_core::definite::items::Collecting::Ret(
                         ellie_core::definite::items::ret::Ret {
@@ -37,7 +32,7 @@ impl super::Processor for Ret {
                 true
             }
             Err(type_error) => {
-                parser.informations.extend(&type_error);
+                options.parser.informations.extend(&type_error);
                 false
             }
         }

@@ -8,21 +8,24 @@ use ellie_tokenizer::{
     tokenizer::{ClassPageType, PageType},
 };
 
-impl super::Processor for Class {
-    fn process(
-        &self,
-        parser: &mut super::Parser,
-        page_idx: usize,
-        processed_page_idx: usize,
-        page_hash: usize,
-    ) -> bool {
+impl super::ItemParserProcessor for Class {
+    fn process(&self, options: &mut super::ItemParserProcessorOptions) -> bool {
         let (duplicate, found) =
-            parser.is_duplicate(page_hash, self.name.clone(), self.hash, self.pos);
+            options
+                .parser
+                .is_duplicate(options.page_hash, self.name.clone(), self.hash, self.pos);
 
-        let path = parser.pages.nth(page_idx).unwrap().path.clone();
-        let class_key_definings = parser
+        let path = options
+            .parser
+            .pages
+            .nth(options.page_idx)
+            .unwrap()
+            .path
+            .clone();
+        let class_key_definings = options
+            .parser
             .processed_pages
-            .nth_mut(processed_page_idx)
+            .nth_mut(options.processed_page_idx)
             .unwrap()
             .unassigned_file_keys
             .clone();
@@ -33,9 +36,8 @@ impl super::Processor for Class {
                 .iter()
                 .any(|x| x.key_name == "dont_fix_variant"),
         ) {
-            parser
-                .informations
-                .push(&error::error_list::ERROR_S21.clone().build_with_path(
+            options.parser.informations.push(
+                &error::error_list::ERROR_S21.clone().build_with_path(
                     vec![error::ErrorBuildField {
                         key: "token".to_owned(),
                         value: self.name.clone(),
@@ -43,7 +45,8 @@ impl super::Processor for Class {
                     alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                     path.clone(),
                     self.name_pos,
-                ));
+                ),
+            );
         }
 
         if duplicate {
@@ -57,16 +60,16 @@ impl super::Processor for Class {
                 err.reference_block = Some((cursor_pos, page.path));
                 err.reference_message = "Prime is here".to_owned();
                 err.semi_assist = true;
-                parser.informations.push(&err);
+                options.parser.informations.push(&err);
             } else {
-                parser
-                    .informations
-                    .push(&error::error_list::ERROR_S24.clone().build_with_path(
+                options.parser.informations.push(
+                    &error::error_list::ERROR_S24.clone().build_with_path(
                         vec![error::ErrorBuildField::new("token", &self.name)],
                         alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                         path,
                         self.name_pos,
-                    ))
+                    ),
+                )
             }
             return false;
         } else {
@@ -74,7 +77,13 @@ impl super::Processor for Class {
             {
                 let (is_correct, fixed) =
                     (ellie_standard_rules::rules::CLASS_NAMING_ISSUE.worker)(self.name.clone());
-                if !is_correct && !parser.global_key_matches(page_hash, "allow", "ClassNameRule") {
+                if !is_correct
+                    && !options.parser.global_key_matches(
+                        options.page_hash,
+                        "allow",
+                        "ClassNameRule",
+                    )
+                {
                     parser
                         .informations
                         .push(&warning::warning_list::WARNING_S1.clone().build(
@@ -94,7 +103,7 @@ impl super::Processor for Class {
                 }
             }
 
-            let page = parser.pages.nth(page_idx).unwrap();
+            let page = options.parser.pages.nth(options.page_idx).unwrap();
 
             let mut constructors = self.body.iter().filter_map(|item| item.as_constructor());
 
@@ -113,7 +122,7 @@ impl super::Processor for Class {
                     .filter(|el| el.is_some());
 
                 for generic_defining in &self.generic_definings {
-                    let used_variables = self.body.iter().find_map(|item| match item {
+                    let _used_variables = self.body.iter().find_map(|item| match item {
                         Processors::Variable(variable) => {
                             if prime
                                 .parameters
@@ -150,10 +159,9 @@ impl super::Processor for Class {
                     err.reference_block = Some((prime.pos, page.path.clone()));
                     err.reference_message = "Prime is here".to_owned();
                     err.semi_assist = true;
-                    parser.informations.push(&err);
+                    options.parser.informations.push(&err);
                 }
             }
-
 
             for (index, generic) in self.generic_definings.iter().enumerate() {
                 if let Some(other_index) = self
@@ -172,7 +180,7 @@ impl super::Processor for Class {
                             Some((self.generic_definings[other_index].pos, page.path.clone()));
                         err.reference_message = "Prime is here".to_owned();
                         err.semi_assist = true;
-                        parser.informations.push(&err);
+                        options.parser.informations.push(&err);
                     }
                 }
             }
@@ -216,7 +224,7 @@ impl super::Processor for Class {
                     name: self.name.clone(),
                     hash: self.hash,
                     pos: self.pos,
-                    page_hash,
+                    page_hash: options.page_hash,
                 }),
                 unreachable: false,
                 unreachable_range: defs::Cursor::default(),
@@ -228,8 +236,12 @@ impl super::Processor for Class {
                 .items
                 .push(Processors::ClassInstance(inner.generate_instance()));
 
-            parser.pages.push_page(inner);
-            let processed_page = parser.processed_pages.nth_mut(processed_page_idx).unwrap();
+            options.parser.pages.push_page(inner);
+            let processed_page = options
+                .parser
+                .processed_pages
+                .nth_mut(options.processed_page_idx)
+                .unwrap();
 
             let processed = ellie_core::definite::items::Collecting::Class(
                 ellie_core::definite::items::class::Class {

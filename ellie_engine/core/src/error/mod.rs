@@ -1,6 +1,8 @@
 use crate::alloc::borrow::ToOwned;
-use alloc::string::{String, ToString};
-use alloc::vec::Vec;
+use alloc::{
+    string::{String, ToString},
+    vec::Vec,
+};
 use core::clone::Clone;
 use serde::{Deserialize, Serialize};
 #[doc(hidden)]

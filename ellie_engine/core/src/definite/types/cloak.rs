@@ -1,5 +1,4 @@
-use crate::definite::types;
-use crate::defs;
+use crate::{definite::types, defs};
 use alloc::vec::Vec;
 use serde::{Deserialize, Serialize};
 
