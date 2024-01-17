@@ -335,7 +335,7 @@ lazy_static! {
     pub static ref ERROR_S55: error::Error = error::Error {
         code: 0x54,
         title: "TypeError".to_owned(),
-        message: "Consider giving this a type".to_owned(),
+        message: "Consider giving a type to this".to_owned(),
         ..Default::default()
     };
     pub static ref ERROR_S56: error::Error = error::Error {
@@ -406,6 +406,12 @@ lazy_static! {
         title: "ReferenceError".to_owned(),
         message: "Unsafe variable definition".to_owned(),
         full_assist: true,
+        ..Default::default()
+    };
+    pub static ref ERROR_S66: error::Error = error::Error {
+        code: 0x65,
+        title: "ReferenceError".to_owned(),
+        message: "Cannot apply unary operator".to_owned(),
         ..Default::default()
     };
 }

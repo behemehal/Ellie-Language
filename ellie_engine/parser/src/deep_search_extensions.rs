@@ -1,4 +1,4 @@
-use crate::parser::{DeepSearchItems, FoundPage, Parser};
+use crate::{parser::{DeepSearchItems, Parser}, processors::definer::{DefinerParserProcessor, DefinerParserProcessorOptions}, utils::FoundPage};
 use alloc::{
     borrow::ToOwned,
     boxed::Box,
@@ -1427,13 +1427,9 @@ fn iterate_deep_type(
             if !errors.is_empty() {
                 DeepTypeResult::NotFound
             } else {
-                let rtype = crate::processors::definer_processor::process(
-                    ellie_tokenizer::syntax::items::definers::DefinerTypes::Dynamic
-                        .from_definite(as_keyword.rtype.clone()),
-                    parser,
-                    page_id,
-                    None,
-                );
+                let rtype = ellie_tokenizer::syntax::items::definers::DefinerTypes::Dynamic
+                    .from_definite(as_keyword.rtype.clone())
+                    .process(&mut DefinerParserProcessorOptions::new(parser, page_id).build());
 
                 match rtype {
                     Ok(rtype) => {

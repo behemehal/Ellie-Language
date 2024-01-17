@@ -11,17 +11,19 @@ use ellie_core::{
 };
 use ellie_tokenizer::syntax::items::enum_type::EnumType;
 
-impl super::Processor for EnumType {
-    fn process(
-        &self,
-        parser: &mut super::Parser,
-        page_idx: usize,
-        processed_page_idx: usize,
-        //Ignore unused variables warning
-        page_hash: usize,
-    ) -> bool {
-        let path = parser.pages.nth(page_idx).unwrap().path.clone();
-        parser
+use crate::processors::definer::{DefinerParserProcessor, DefinerParserProcessorOptions};
+
+impl super::ItemParserProcessor for EnumType {
+    fn process(&self, options: &mut super::ItemParserProcessorOptions) -> bool {
+        let path = options
+            .parser
+            .pages
+            .nth(options.page_idx)
+            .unwrap()
+            .path
+            .clone();
+        options
+            .parser
             .informations
             .push(&error::error_list::ERROR_S59.clone().build_with_path(
                 vec![error::ErrorBuildField::new("token", &"enum".to_owned())],
@@ -32,11 +34,14 @@ impl super::Processor for EnumType {
         return false;
         let halt = true;
         let (duplicate, found) =
-            parser.is_duplicate(page_hash, self.name.clone(), self.hash, self.pos);
+            options
+                .parser
+                .is_duplicate(options.page_hash, self.name.clone(), self.hash, self.pos);
 
-        let enum_key_definings = parser
+        let enum_key_definings = options
+            .parser
             .processed_pages
-            .nth_mut(processed_page_idx)
+            .nth_mut(options.processed_page_idx)
             .unwrap()
             .unassigned_file_keys
             .clone();
@@ -47,9 +52,8 @@ impl super::Processor for EnumType {
                 .iter()
                 .any(|x| x.key_name == "dont_fix_variant"),
         ) {
-            parser
-                .informations
-                .push(&error::error_list::ERROR_S21.clone().build_with_path(
+            options.parser.informations.push(
+                &error::error_list::ERROR_S21.clone().build_with_path(
                     vec![error::ErrorBuildField {
                         key: "token".to_owned(),
                         value: self.name.clone(),
@@ -57,7 +61,8 @@ impl super::Processor for EnumType {
                     alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                     path.clone(),
                     self.name_pos,
-                ));
+                ),
+            );
         }
 
         if duplicate {
@@ -71,16 +76,16 @@ impl super::Processor for EnumType {
                 err.reference_block = Some((cursor_pos, page.path));
                 err.reference_message = "Prime is here".to_owned();
                 err.semi_assist = true;
-                parser.informations.push(&err);
+                options.parser.informations.push(&err);
             } else {
-                parser
-                    .informations
-                    .push(&error::error_list::ERROR_S24.clone().build_with_path(
+                options.parser.informations.push(
+                    &error::error_list::ERROR_S24.clone().build_with_path(
                         vec![error::ErrorBuildField::new("token", &self.name)],
                         alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                         path,
                         self.name_pos,
-                    ))
+                    ),
+                )
             }
             false
         } else {
@@ -88,10 +93,15 @@ impl super::Processor for EnumType {
             {
                 let (is_correct, fixed) =
                     (ellie_standard_rules::rules::ENUM_NAMING_ISSUE.worker)(self.name.clone());
-                if !is_correct && !parser.global_key_matches(page_hash, "allow", "ItemNameRule") {
-                    parser
-                        .informations
-                        .push(&warning::warning_list::WARNING_S6.clone().build(
+                if !is_correct
+                    && !options.parser.global_key_matches(
+                        options.page_hash,
+                        "allow",
+                        "ItemNameRule",
+                    )
+                {
+                    options.parser.informations.push(
+                        &warning::warning_list::WARNING_S6.clone().build(
                             vec![
                                 warning::WarningBuildField {
                                     key: "current".to_owned(),
@@ -104,7 +114,8 @@ impl super::Processor for EnumType {
                             ],
                             path.clone(),
                             self.name_pos,
-                        ))
+                        ),
+                    )
                 }
             }
 
@@ -112,15 +123,13 @@ impl super::Processor for EnumType {
 
             for item in &self.items {
                 let resolved_type = if item.has_type {
-                    match super::definer_processor::process(
-                        item.enum_type.definer_type.clone(),
-                        parser,
-                        page_hash,
-                        None,
+                    match item.enum_type.definer_type.process(
+                        &mut DefinerParserProcessorOptions::new(options.parser, options.page_idx)
+                            .build(),
                     ) {
                         Ok(e) => Some(e),
                         Err(errors) => {
-                            parser.informations.extend(&errors);
+                            options.parser.informations.extend(&errors);
                             halt = false;
                             continue;
                         }
@@ -136,11 +145,14 @@ impl super::Processor for EnumType {
                         item.identifier.clone()
                     );
                     if !is_correct
-                        && !parser.global_key_matches(page_hash, "allow", "EnumItemNameRule")
+                        && !options.parser.global_key_matches(
+                            options.page_hash,
+                            "allow",
+                            "EnumItemNameRule",
+                        )
                     {
-                        parser
-                            .informations
-                            .push(&warning::warning_list::WARNING_S7.clone().build(
+                        options.parser.informations.push(
+                            &warning::warning_list::WARNING_S7.clone().build(
                                 vec![
                                     warning::WarningBuildField {
                                         key: "current".to_owned(),
@@ -153,7 +165,8 @@ impl super::Processor for EnumType {
                                 ],
                                 path.clone(),
                                 item.identifier_pos,
-                            ))
+                            ),
+                        )
                     }
                 }
 
@@ -169,7 +182,11 @@ impl super::Processor for EnumType {
                 })
             }
 
-            let processed_page = parser.processed_pages.nth_mut(processed_page_idx).unwrap();
+            let processed_page = options
+                .parser
+                .processed_pages
+                .nth_mut(options.processed_page_idx)
+                .unwrap();
 
             let processed = ellie_core::definite::items::Collecting::Enum(
                 ellie_core::definite::items::enum_type::EnumType {

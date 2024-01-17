@@ -1,31 +1,22 @@
-use crate::processors::type_processor::process;
 use alloc::{borrow::ToOwned, vec, vec::Vec};
 use ellie_core::error;
 use ellie_tokenizer::{syntax::items::loop_type::Loop, tokenizer::PageType};
 
-impl super::Processor for Loop {
-    fn process(
-        &self,
-        parser: &mut super::Parser,
-        page_idx: usize,
-        processed_page_idx: usize,
-        page_hash: usize,
-    ) -> bool {
-        let page = parser.pages.nth(page_idx).unwrap().clone();
+use crate::processors::types::{TypeParserProcessor, TypeParserProcessorOptions};
+
+impl super::ItemParserProcessor for Loop {
+    fn process(&self, options: &mut super::ItemParserProcessorOptions) -> bool {
+        let page = options.parser.pages.nth(options.page_idx).unwrap().clone();
         let path = page.path.clone();
-        let condition = match process(
-            self.condition.current.clone(),
-            parser,
-            page_hash,
-            None,
-            false,
-            false,
-            false,
-            Some(self.condition_pos),
+
+        let condition = match self.condition.current.process(
+            &mut TypeParserProcessorOptions::new(options.parser, options.page_hash)
+                .variable_pos(self.condition_pos)
+                .build(),
         ) {
             Ok(rtype) => rtype,
             Err(e) => {
-                parser.informations.extend(&e);
+                options.parser.informations.extend(&e);
                 return false;
             }
         };
@@ -34,14 +25,14 @@ impl super::Processor for Loop {
 
         let target_condition = match crate::deep_search_extensions::resolve_type(
             condition.clone(),
-            page_hash,
-            parser,
+            options.page_hash,
+            options.parser,
             &mut errors,
             Some(self.iterator_pos),
         ) {
             Some(e) => e,
             None => {
-                parser.informations.extend(&errors);
+                options.parser.informations.extend(&errors);
                 return false;
             }
         };
@@ -49,7 +40,7 @@ impl super::Processor for Loop {
         match &target_condition {
             ellie_core::definite::definers::DefinerCollecting::Generic(e) => {
                 if e.rtype != "bool" {
-                    parser.informations.push(
+                    options.parser.informations.push(
                         &error::error_list::ERROR_S29.clone().build_with_path(
                             vec![error::ErrorBuildField {
                                 key: "token".to_owned(),
@@ -63,9 +54,8 @@ impl super::Processor for Loop {
                 }
             }
             _ => {
-                parser
-                    .informations
-                    .push(&error::error_list::ERROR_S29.clone().build_with_path(
+                options.parser.informations.push(
+                    &error::error_list::ERROR_S29.clone().build_with_path(
                         vec![error::ErrorBuildField {
                             key: "token".to_owned(),
                             value: target_condition.to_string(),
@@ -73,11 +63,12 @@ impl super::Processor for Loop {
                         alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                         path,
                         self.iterator_pos,
-                    ));
+                    ),
+                );
             }
         }
 
-        let page = parser.pages.nth(page_idx).unwrap().clone();
+        let page = options.parser.pages.nth(options.page_idx).unwrap().clone();
         let inner_page_id: usize = ellie_core::utils::generate_hash_usize();
         let mut dependencies = vec![ellie_tokenizer::tokenizer::Dependency {
             hash: page.hash,
@@ -98,8 +89,12 @@ impl super::Processor for Loop {
             dependencies,
             ..Default::default()
         };
-        parser.pages.push_page(inner);
-        let processed_page = parser.processed_pages.nth_mut(processed_page_idx).unwrap();
+        options.parser.pages.push_page(inner);
+        let processed_page = options
+            .parser
+            .processed_pages
+            .nth_mut(options.processed_page_idx)
+            .unwrap();
         processed_page
             .items
             .push(ellie_core::definite::items::Collecting::Loop(

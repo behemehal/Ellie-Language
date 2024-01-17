@@ -1,20 +1,22 @@
 #![allow(unused_variables)]
 #![allow(unreachable_code)]
-use crate::processors::type_processor::process;
 use alloc::{borrow::ToOwned, vec, vec::Vec};
 use ellie_core::{definite::definers::DefinerCollecting, error};
 use ellie_tokenizer::{syntax::items::for_loop::ForLoop, tokenizer::PageType};
 
-impl super::Processor for ForLoop {
-    fn process(
-        &self,
-        parser: &mut super::Parser,
-        page_idx: usize,
-        processed_page_idx: usize,
-        page_hash: usize,
-    ) -> bool {
-        let path = parser.pages.nth(page_idx).unwrap().path.clone();
-        parser
+use crate::processors::types::{TypeParserProcessor, TypeParserProcessorOptions};
+
+impl super::ItemParserProcessor for ForLoop {
+    fn process(&self, options: &mut super::ItemParserProcessorOptions) -> bool {
+        let path = options
+            .parser
+            .pages
+            .nth(options.page_idx)
+            .unwrap()
+            .path
+            .clone();
+        options
+            .parser
             .informations
             .push(&error::error_list::ERROR_S59.clone().build_with_path(
                 vec![error::ErrorBuildField::new(
@@ -26,10 +28,11 @@ impl super::Processor for ForLoop {
                 self.pos,
             ));
         return false;
-        let page = parser.pages.nth(page_idx).unwrap().clone();
+        let page = options.parser.pages.nth(options.page_idx).unwrap().clone();
         let path = page.path.clone();
 
-        parser
+        options
+            .parser
             .informations
             .push(&error::error_list::ERROR_S59.clone().build_with_path(
                 vec![error::ErrorBuildField::new("token", &"for".to_owned())],
@@ -39,14 +42,14 @@ impl super::Processor for ForLoop {
             ));
 
         if self.variable.current.as_variable().is_none() {
-            parser
-                .informations
-                .push(&error::error_list::ERROR_S27.clone().build_with_path(
+            options.parser.informations.push(
+                &error::error_list::ERROR_S27.clone().build_with_path(
                     vec![],
                     alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                     path,
                     self.variable_pos,
-                ));
+                ),
+            );
             return true;
         }
 
@@ -59,8 +62,12 @@ impl super::Processor for ForLoop {
             .value
             .clone();
 
-        let (duplicate, found) =
-            parser.is_duplicate(page_hash, variable_name.clone(), 0, self.variable_pos);
+        let (duplicate, found) = options.parser.is_duplicate(
+            options.page_hash,
+            variable_name.clone(),
+            0,
+            self.variable_pos,
+        );
 
         if duplicate {
             if let Some((page, cursor_pos)) = found {
@@ -76,11 +83,10 @@ impl super::Processor for ForLoop {
                 err.reference_block = Some((cursor_pos, page.path));
                 err.reference_message = "Prime is here".to_owned();
                 err.semi_assist = true;
-                parser.informations.push(&err);
+                options.parser.informations.push(&err);
             } else {
-                parser
-                    .informations
-                    .push(&error::error_list::ERROR_S24.clone().build_with_path(
+                options.parser.informations.push(
+                    &error::error_list::ERROR_S24.clone().build_with_path(
                         vec![error::ErrorBuildField {
                             key: "token".to_owned(),
                             value: variable_name.clone(),
@@ -88,23 +94,19 @@ impl super::Processor for ForLoop {
                         alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
                         path,
                         self.variable_pos,
-                    ))
+                    ),
+                )
             }
             return false;
         } else {
-            let iterator = match process(
-                self.target_iterator.current.clone(),
-                parser,
-                page_hash,
-                None,
-                false,
-                false,
-                false,
-                Some(self.pos),
+            let iterator = match self.target_iterator.current.process(
+                &mut TypeParserProcessorOptions::new(options.parser, options.page_hash)
+                    .variable_pos(self.pos)
+                    .build(),
             ) {
                 Ok(rtype) => rtype,
                 Err(e) => {
-                    parser.informations.extend(&e);
+                    options.parser.informations.extend(&e);
                     return false;
                 }
             };
@@ -113,14 +115,14 @@ impl super::Processor for ForLoop {
 
             let target_iterator = match crate::deep_search_extensions::resolve_type(
                 iterator.clone(),
-                page_hash,
-                parser,
+                options.page_hash,
+                options.parser,
                 &mut errors,
                 Some(self.iterator_pos),
             ) {
                 Some(e) => e,
                 None => {
-                    parser.informations.extend(&errors);
+                    options.parser.informations.extend(&errors);
                     return false;
                 }
             };
@@ -130,7 +132,7 @@ impl super::Processor for ForLoop {
             match &target_iterator {
                 ellie_core::definite::definers::DefinerCollecting::ParentGeneric(e) => {
                     if e.rtype != "array" {
-                        parser.informations.push(
+                        options.parser.informations.push(
                             &error::error_list::ERROR_S29.clone().build_with_path(
                                 vec![error::ErrorBuildField {
                                     key: "token".to_owned(),
@@ -145,7 +147,7 @@ impl super::Processor for ForLoop {
                     inner_type = e.generics[0].clone().value
                 }
                 _ => {
-                    parser.informations.push(
+                    options.parser.informations.push(
                         &error::error_list::ERROR_S29.clone().build_with_path(
                             vec![error::ErrorBuildField {
                                 key: "token".to_owned(),
@@ -206,8 +208,12 @@ impl super::Processor for ForLoop {
                 dependencies,
                 ..Default::default()
             };
-            parser.pages.push_page(inner);
-            let processed_page = parser.processed_pages.nth_mut(processed_page_idx).unwrap();
+            options.parser.pages.push_page(inner);
+            let processed_page = options
+                .parser
+                .processed_pages
+                .nth_mut(options.processed_page_idx)
+                .unwrap();
             processed_page
                 .items
                 .push(ellie_core::definite::items::Collecting::ForLoop(

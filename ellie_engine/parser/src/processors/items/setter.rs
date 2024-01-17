@@ -2,16 +2,17 @@ use alloc::{borrow::ToOwned, vec};
 use ellie_core::error;
 use ellie_tokenizer::syntax::items::setter;
 
-impl super::Processor for setter::Setter {
-    fn process(
-        &self,
-        parser: &mut super::Parser,
-        page_idx: usize,
-        _processed_page_idx: usize,
-        _page_hash: usize,
-    ) -> bool {
-        let path = parser.pages.nth(page_idx).unwrap().path.clone();
-        parser
+impl super::ItemParserProcessor for setter::Setter {
+    fn process(&self, options: &mut super::ItemParserProcessorOptions) -> bool {
+        let path = options
+            .parser
+            .pages
+            .nth(options.page_idx)
+            .unwrap()
+            .path
+            .clone();
+        options
+            .parser
             .informations
             .push(&error::error_list::ERROR_S59.clone().build_with_path(
                 vec![error::ErrorBuildField::new("token", &"getter".to_owned())],
@@ -23,9 +24,9 @@ impl super::Processor for setter::Setter {
         false
         /*
         let (duplicate, found) =
-            parser.is_duplicate(page_hash, self.name.clone(), self.hash.clone(), self.pos);
+            options.parser.is_duplicate(page_hash, self.name.clone(), self.hash.clone(), self.pos);
 
-        let setter_key_definings = parser
+        let setter_key_definings = options.parser
             .processed_pages
             .nth_mut(processed_page_idx)
             .unwrap()
@@ -39,7 +40,7 @@ impl super::Processor for setter::Setter {
                 .find(|x| x.key_name == "dont_fix_variant")
                 .is_some(),
         ) {
-            parser
+            options.parser
                 .informations
                 .push(&error::error_list::ERROR_S21.clone().build_with_path(
                     vec![error::ErrorBuildField {
@@ -63,9 +64,9 @@ impl super::Processor for setter::Setter {
                 err.reference_block = Some((cursor_pos, page.path));
                 err.reference_message = "Prime is here".to_owned();
                 err.semi_assist = true;
-                parser.informations.push(&err);
+                options.parser.informations.push(&err);
             } else {
-                parser
+                options.parser
                     .informations
                     .push(&error::error_list::ERROR_S24.clone().build_with_path(
                         vec![error::ErrorBuildField::new("token", &self.name)],
@@ -86,7 +87,7 @@ impl super::Processor for setter::Setter {
             let parameter = self.parameters.first().unwrap().clone();
 
             let (duplicate, found) =
-                parser.is_duplicate(page_hash, parameter.name.clone(), 0, parameter.name_pos);
+                options.parser.is_duplicate(page_hash, parameter.name.clone(), 0, parameter.name_pos);
 
             if duplicate {
                 if let Some((page, cursor_pos)) = found {
@@ -102,10 +103,10 @@ impl super::Processor for setter::Setter {
                     err.reference_block = Some((cursor_pos, page.path));
                     err.reference_message = "Prime is here".to_owned();
                     err.semi_assist = true;
-                    parser.informations.push(&err);
+                    options.parser.informations.push(&err);
                     return true;
                 } else {
-                    parser
+                    options.parser
                         .informations
                         .push(&error::error_list::ERROR_S24.clone().build_with_path(
                             vec![error::ErrorBuildField {
@@ -120,7 +121,7 @@ impl super::Processor for setter::Setter {
             } else {
                 match super::definer_processor::process(
                     parameter.rtype.definer_type.clone(),
-                    parser,
+                    options.parser,
                     page_hash,
                     None,
                 ) {
@@ -132,13 +133,13 @@ impl super::Processor for setter::Setter {
                                     parameter.name.clone(),
                                 );
                             if !is_correct
-                                && !parser.global_key_matches(
+                                && !options.parser.global_key_matches(
                                     page_hash,
                                     "allow",
                                     "FunctionParameterNameRule",
                                 )
                             {
-                                parser.informations.push(
+                                options.parser.informations.push(
                                     &warning::warning_list::WARNING_S3.clone().build(
                                         vec![
                                             warning::WarningBuildField {
@@ -177,7 +178,7 @@ impl super::Processor for setter::Setter {
                             });
                     }
                     Err(type_error) => {
-                        parser.informations.extend(&type_error);
+                        options.parser.informations.extend(&type_error);
                         return false;
                     }
                 }
@@ -187,9 +188,9 @@ impl super::Processor for setter::Setter {
             {
                 let (is_correct, fixed) =
                     (ellie_standard_rules::rules::FUNCTION_NAMING_ISSUE.worker)(self.name.clone());
-                if !is_correct && !parser.global_key_matches(page_hash, "allow", "FunctionNameRule")
+                if !is_correct && !options.parser.global_key_matches(page_hash, "allow", "FunctionNameRule")
                 {
-                    parser
+                    options.parser
                         .informations
                         .push(&warning::warning_list::WARNING_S1.clone().build(
                             vec![
@@ -208,7 +209,7 @@ impl super::Processor for setter::Setter {
                 }
             }
 
-            let page = parser.pages.nth_mut(page_idx).unwrap();
+            let page = options.parser.pages.nth_mut(options.page_idx).unwrap();
 
             let mut dependencies = vec![ellie_tokenizer::tokenizer::Dependency {
                 hash: page_hash,
@@ -230,11 +231,11 @@ impl super::Processor for setter::Setter {
                 dependencies,
                 ..Default::default()
             };
-            parser.pages.push_page(inner);
-            let processed_page = parser.processed_pages.nth_mut(processed_page_idx).unwrap();
+            options.parser.pages.push_page(inner);
+            let processed_page = options.parser.processed_pages.nth_mut(processed_page_idx).unwrap();
 
             if setter_parameter.is_none() {
-                panic!("{:?}", parser.informations);
+                panic!("{:?}", options.parser.informations);
             }
 
             processed_page
@@ -258,7 +259,7 @@ impl super::Processor for setter::Setter {
                 ));
             processed_page.unassigned_file_keys = vec![];
 
-            parser.process_page(inner_page_id);
+            options.parser.process_page(inner_page_id);
             true
         }
         */
