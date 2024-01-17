@@ -1,10 +1,9 @@
-use alloc::boxed::Box;
-use alloc::vec::Vec;
-use alloc::{borrow::ToOwned, vec};
-use ellie_core::definite::Converter;
-use ellie_core::{definite::types, error};
-use ellie_tokenizer::syntax::types::operator_type;
-use ellie_tokenizer::syntax::types::operator_type::Operators;
+use alloc::{borrow::ToOwned, boxed::Box, vec, vec::Vec};
+use ellie_core::{
+    definite::{types, Converter},
+    error,
+};
+use ellie_tokenizer::syntax::types::{operator_type, operator_type::Operators};
 
 use crate::deep_search_extensions::resolve_type;
 

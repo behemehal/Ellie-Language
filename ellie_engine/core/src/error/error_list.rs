@@ -1,5 +1,4 @@
-use crate::alloc::borrow::ToOwned;
-use crate::error;
+use crate::{alloc::borrow::ToOwned, error};
 
 lazy_static! {
     pub static ref ERROR_S1: error::Error = error::Error {

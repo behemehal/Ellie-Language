@@ -1,10 +1,8 @@
-use alloc::borrow::ToOwned;
-use alloc::boxed::Box;
-use alloc::string::ToString;
-use alloc::vec;
-use alloc::vec::Vec;
-use ellie_core::definite::definers::DefinerCollecting;
-use ellie_core::{definite::types, error};
+use alloc::{borrow::ToOwned, boxed::Box, string::ToString, vec, vec::Vec};
+use ellie_core::{
+    definite::{definers::DefinerCollecting, types},
+    error,
+};
 use ellie_tokenizer::syntax::types::function_call_type;
 
 use crate::deep_search_extensions::{generate_type_from_defining, resolve_type};

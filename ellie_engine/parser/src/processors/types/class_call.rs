@@ -1,19 +1,19 @@
-use alloc::borrow::ToOwned;
-use alloc::boxed::Box;
-use alloc::string::ToString;
-use alloc::vec;
-use alloc::vec::Vec;
-use ellie_core::definite::definers::DefinerCollecting;
-use ellie_core::definite::Converter;
-use ellie_core::{definite::types, error};
-use ellie_tokenizer::processors::types::Processors;
-use ellie_tokenizer::syntax::types::class_call_type;
-
-use crate::deep_search_extensions::{
-    deep_search, deep_search_hash, find_type, resolve_type, ProcessedDeepSearchItems,
+use alloc::{borrow::ToOwned, boxed::Box, string::ToString, vec, vec::Vec};
+use ellie_core::{
+    definite::{definers::DefinerCollecting, types, Converter},
+    error,
 };
-use crate::processors::definer::{DefinerParserProcessor, DefinerParserProcessorOptions};
-use crate::processors::types::TypeParserProcessorOptions;
+use ellie_tokenizer::{processors::types::Processors, syntax::types::class_call_type};
+
+use crate::{
+    deep_search_extensions::{
+        deep_search, deep_search_hash, find_type, resolve_type, ProcessedDeepSearchItems,
+    },
+    processors::{
+        definer::{DefinerParserProcessor, DefinerParserProcessorOptions},
+        types::TypeParserProcessorOptions,
+    },
+};
 
 impl super::TypeParserProcessor for class_call_type::ClassCallCollector {
     fn process(

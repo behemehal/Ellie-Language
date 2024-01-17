@@ -1,5 +1,4 @@
-use alloc::fmt::Debug;
-use alloc::string::String;
+use alloc::{fmt::Debug, string::String};
 use ellie_core::{definite, defs};
 use serde::{Deserialize, Serialize};
 

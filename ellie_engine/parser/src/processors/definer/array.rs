@@ -1,6 +1,9 @@
 use crate::{deep_search_extensions::resolve_type, parser::DeepSearchItems};
 use alloc::{borrow::ToOwned, string::ToString, vec};
-use ellie_core::{definite::definers, definite::definers::DefinerCollecting, error};
+use ellie_core::{
+    definite::{definers, definers::DefinerCollecting},
+    error,
+};
 use ellie_tokenizer::syntax::items::definers::ArrayType;
 
 impl super::DefinerParserProcessor for ArrayType {

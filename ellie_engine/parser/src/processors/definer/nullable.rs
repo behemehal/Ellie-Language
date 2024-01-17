@@ -1,5 +1,8 @@
 use alloc::{borrow::ToOwned, string::ToString, vec};
-use ellie_core::{definite::definers, definite::definers::DefinerCollecting, error};
+use ellie_core::{
+    definite::{definers, definers::DefinerCollecting},
+    error,
+};
 use ellie_tokenizer::syntax::items::definers::NullableType;
 
 impl super::DefinerParserProcessor for NullableType {

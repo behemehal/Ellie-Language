@@ -1,6 +1,4 @@
-use alloc::borrow::ToOwned;
-use alloc::vec::Vec;
-use alloc::{string::ToString, vec};
+use alloc::{borrow::ToOwned, string::ToString, vec, vec::Vec};
 use ellie_core::{definite::types, error};
 use ellie_tokenizer::syntax::types::collective_type;
 

@@ -1,7 +1,8 @@
-use crate::processors::items;
-use crate::processors::types::{self, TypeProcessor};
-use ellie_core::definite::Converter;
-use ellie_core::defs;
+use crate::processors::{
+    items,
+    types::{self, TypeProcessor},
+};
+use ellie_core::{definite::Converter, defs};
 use serde::{Deserialize, Serialize};
 
 #[derive(PartialEq, Debug, Copy, Clone, Serialize, Deserialize)]

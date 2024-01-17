@@ -1,15 +1,18 @@
-use crate::deep_search_extensions::{find_type, generate_type_from_defining};
-use crate::processors::definer::{DefinerParserProcessor, DefinerParserProcessorOptions};
-use alloc::borrow::ToOwned;
-use alloc::string::String;
-use alloc::string::ToString;
-use alloc::vec;
-use alloc::vec::Vec;
-use ellie_core::definite::types;
-use ellie_core::definite::Converter;
-use ellie_core::error::{self};
-use ellie_tokenizer::syntax::types::variable_type;
-use ellie_tokenizer::tokenizer::PageType;
+use crate::{
+    deep_search_extensions::{find_type, generate_type_from_defining},
+    processors::definer::{DefinerParserProcessor, DefinerParserProcessorOptions},
+};
+use alloc::{
+    borrow::ToOwned,
+    string::{String, ToString},
+    vec,
+    vec::Vec,
+};
+use ellie_core::{
+    definite::{types, Converter},
+    error::{self},
+};
+use ellie_tokenizer::{syntax::types::variable_type, tokenizer::PageType};
 use types::Types;
 
 impl super::TypeParserProcessor for variable_type::VariableTypeCollector {

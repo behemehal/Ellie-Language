@@ -1,5 +1,4 @@
-use alloc::vec::Vec;
-use alloc::{borrow::ToOwned, vec};
+use alloc::{borrow::ToOwned, vec, vec::Vec};
 use ellie_core::{definite::types, error};
 use ellie_tokenizer::syntax::types::negative_type;
 

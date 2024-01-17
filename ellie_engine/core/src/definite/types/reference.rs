@@ -1,10 +1,7 @@
-use crate::definite::types;
-use crate::defs;
+use crate::{definite::types, defs};
 use serde::{Deserialize, Serialize};
 
-use alloc::boxed::Box;
-use alloc::string::String;
-use alloc::vec::Vec;
+use alloc::{boxed::Box, string::String, vec::Vec};
 
 use super::class_instance::AttributeType;
 

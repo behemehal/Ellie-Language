@@ -49,10 +49,12 @@ pub fn parse_pages(
 #[macro_export]
 macro_rules! parseText {
     ($text:expr) => {{
-        use ellie_engine::ellie_core::defs;
-        use ellie_engine::ellie_parser::parser;
-        use ellie_engine::ellie_tokenizer::tokenizer::{Pager, ResolvedImport};
-        use ellie_engine::utils::{CompileOutput, MainProgram, ProgramRepository};
+        use ellie_engine::{
+            ellie_core::defs,
+            ellie_parser::parser,
+            ellie_tokenizer::tokenizer::{Pager, ResolvedImport},
+            utils::{CompileOutput, MainProgram, ProgramRepository},
+        };
 
         #[derive(Clone)]
         struct Repository {

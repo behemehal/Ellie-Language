@@ -1,8 +1,8 @@
-use alloc::borrow::ToOwned;
-use alloc::string::ToString;
-use alloc::vec;
-use alloc::vec::Vec;
-use ellie_core::{definite::definers, definite::definers::DefinerCollecting, error};
+use alloc::{borrow::ToOwned, string::ToString, vec, vec::Vec};
+use ellie_core::{
+    definite::{definers, definers::DefinerCollecting},
+    error,
+};
 use ellie_tokenizer::syntax::items::definers::CloakType;
 
 impl super::DefinerParserProcessor for CloakType {

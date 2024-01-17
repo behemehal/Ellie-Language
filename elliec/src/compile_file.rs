@@ -10,7 +10,8 @@ use ellie_engine::{
     ellie_parser::parser,
     ellie_renderer_utils::outputs,
     ellie_renderer_utils::utils::{
-        print_errors, print_warnings, read_file, CliColor, CliNoColor, ColorDisplay, Colors, TextStyles,
+        print_errors, print_warnings, read_file, CliColor, CliNoColor, ColorDisplay, Colors,
+        TextStyles,
     },
     ellie_tokenizer::tokenizer::ImportType,
     ellie_tokenizer::tokenizer::ResolvedImport,

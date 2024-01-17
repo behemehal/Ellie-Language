@@ -1,13 +1,12 @@
 use super::type_resolver::resolve_type;
-use crate::addressing_modes::AddressingModes;
-use crate::instruction_table;
-use crate::instructions;
-use crate::utils::limit_platform_size;
-use alloc::string::ToString;
-use alloc::vec;
-use ellie_core::definite::items::setter_call;
-use ellie_core::defs::DebugHeader;
-use ellie_core::defs::DebugHeaderType;
+use crate::{
+    addressing_modes::AddressingModes, instruction_table, instructions, utils::limit_platform_size,
+};
+use alloc::{string::ToString, vec};
+use ellie_core::{
+    definite::items::setter_call,
+    defs::{DebugHeader, DebugHeaderType},
+};
 
 impl super::Transpiler for setter_call::SetterCall {
     fn transpile(

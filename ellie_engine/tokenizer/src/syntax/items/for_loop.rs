@@ -1,4 +1,4 @@
-use crate::{processors::items::Processors, processors::types};
+use crate::processors::{items::Processors, types};
 use ellie_core::{
     definite::Converter,
     defs::{self, Cursor},

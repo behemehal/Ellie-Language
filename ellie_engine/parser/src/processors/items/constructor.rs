@@ -1,19 +1,18 @@
-use alloc::boxed::Box;
-use alloc::{borrow::ToOwned, vec, vec::Vec};
-use ellie_core::error;
-use ellie_core::utils::generate_hash_usize;
-use ellie_tokenizer::syntax::types::{
-    reference_type::{Chain, ReferenceType, ReferenceTypeCollector},
-    variable_type::{VariableType, VariableTypeCollector},
-};
+use alloc::{borrow::ToOwned, boxed::Box, vec, vec::Vec};
+use ellie_core::{error, utils::generate_hash_usize};
 use ellie_tokenizer::{
-    processors::items::Processors,
-    processors::types::Processors as TypeProcessor,
-    syntax::items::{
-        constructor::Constructor, constructor_parameter::ConstructorParameter,
-        setter_call::SetterCall,
+    processors::{items::Processors, types::Processors as TypeProcessor},
+    syntax::{
+        items::{
+            constructor::Constructor, constructor_parameter::ConstructorParameter,
+            setter_call::SetterCall,
+        },
+        types::{
+            operator_type::AssignmentOperators,
+            reference_type::{Chain, ReferenceType, ReferenceTypeCollector},
+            variable_type::{VariableType, VariableTypeCollector},
+        },
     },
-    syntax::types::operator_type::AssignmentOperators,
     tokenizer::PageType,
 };
 

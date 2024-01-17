@@ -11,12 +11,11 @@ use alloc::{
     vec::Vec,
 };
 use definers::GenericType;
-use ellie_core::definite::types::class_call::ClassCallGenericParameter;
 use ellie_core::{
     definite::{
         definers::{self, DefinerCollecting},
         items::Collecting,
-        types::{class_instance::AttributeType, Types},
+        types::{class_call::ClassCallGenericParameter, class_instance::AttributeType, Types},
         Converter,
     },
     defs, error,

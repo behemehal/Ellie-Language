@@ -1,18 +1,21 @@
 use core::ops::{Index, IndexMut};
 
-use alloc::borrow::ToOwned;
-use alloc::string::{String, ToString};
-use alloc::vec;
-use alloc::vec::Vec;
+use alloc::{
+    borrow::ToOwned,
+    string::{String, ToString},
+    vec,
+    vec::Vec,
+};
 use rand;
 use serde::{Deserialize, Serialize};
 
-use crate::definite::types::operator::Operators;
-use crate::definite::types::operator::{
-    assignment_operator_to_string, comparison_operator_to_string, logical_operator_to_string,
-    ArithmeticOperators, AssignmentOperators,
+use crate::{
+    definite::types::operator::{
+        assignment_operator_to_string, comparison_operator_to_string, logical_operator_to_string,
+        ArithmeticOperators, AssignmentOperators, Operators,
+    },
+    defs, error,
 };
-use crate::{defs, error};
 
 /// Response of [`reliable_name_range`] function
 /// ## Fields

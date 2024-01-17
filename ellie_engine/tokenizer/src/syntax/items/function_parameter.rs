@@ -1,10 +1,11 @@
-use ellie_core::definite::{
-    definers::DefinerCollecting,
-    items::function_parameter::FunctionParameter as DefiniteFunctionParameter, Converter,
+use ellie_core::{
+    definite::{
+        definers::DefinerCollecting,
+        items::function_parameter::FunctionParameter as DefiniteFunctionParameter, Converter,
+    },
+    defs,
 };
-use ellie_core::defs;
-use serde::Deserialize;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FunctionParameter {

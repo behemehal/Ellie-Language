@@ -1,7 +1,8 @@
-use alloc::vec::Vec;
-use alloc::{string::String, vec};
-use core::fmt::{Display, Error, Formatter};
-use core::mem;
+use alloc::{string::String, vec, vec::Vec};
+use core::{
+    fmt::{Display, Error, Formatter},
+    mem,
+};
 use ellie_core::defs::PlatformArchitecture;
 
 const INTEGER_SIZE: usize = mem::size_of::<usize>();

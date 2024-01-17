@@ -1,15 +1,18 @@
 use crate::deep_search_extensions::{find_type, resolve_type, ProcessedDeepSearchItems};
-use alloc::borrow::ToOwned;
-use alloc::boxed::Box;
+use alloc::{borrow::ToOwned, boxed::Box};
 use ellie_core::definite::types::reference::IndexChainAttribute;
 
-use alloc::string::{String, ToString};
-use alloc::vec;
-use alloc::vec::Vec;
-use ellie_core::definite::definers::DefinerCollecting;
-use ellie_core::definite::items::Collecting;
-use ellie_core::definite::types::class_instance::AttributeType;
-use ellie_core::{definite::types, error};
+use alloc::{
+    string::{String, ToString},
+    vec,
+    vec::Vec,
+};
+use ellie_core::{
+    definite::{
+        definers::DefinerCollecting, items::Collecting, types, types::class_instance::AttributeType,
+    },
+    error,
+};
 use ellie_tokenizer::syntax::types::reference_type;
 
 use super::TypeParserProcessorOptions;

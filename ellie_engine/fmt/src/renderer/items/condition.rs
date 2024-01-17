@@ -1,7 +1,6 @@
 use super::super::{CodeRenderer, State};
 use crate::fmt::FormatterOptions;
-use ellie_tokenizer::syntax::items::condition::Condition;
-use ellie_tokenizer::syntax::items::condition::ConditionChain;
+use ellie_tokenizer::syntax::items::condition::{Condition, ConditionChain};
 
 impl CodeRenderer for Condition {
     //Renderer Options

@@ -2,22 +2,27 @@ use crate::deep_search_extensions::{
     deep_search, resolve_deep_type, resolve_type, DeepTypeResult, ProcessedDeepSearchItems,
 };
 pub use crate::utils::*;
-use alloc::borrow::ToOwned;
-use alloc::format;
-use alloc::string::ToString;
-use alloc::vec::Vec;
-use alloc::{string::String, vec};
-use ellie_core::definite::definers::DefinerCollecting;
-use ellie_core::definite::types::class_instance;
-use ellie_core::definite::{items::Collecting, Converter};
-use ellie_core::defs::Cursor;
-use ellie_core::utils::PageExport;
+use alloc::{
+    borrow::ToOwned,
+    format,
+    string::{String, ToString},
+    vec,
+    vec::Vec,
+};
 #[cfg(feature = "standard_rules")]
 use ellie_core::warning;
-use ellie_core::{defs, error, information};
-use ellie_tokenizer::processors::items::Processors;
-use ellie_tokenizer::syntax::items::condition::ConditionType;
-use ellie_tokenizer::tokenizer::{Dependency, Page, PageType};
+use ellie_core::{
+    definite::{definers::DefinerCollecting, items::Collecting, types::class_instance, Converter},
+    defs,
+    defs::Cursor,
+    error, information,
+    utils::PageExport,
+};
+use ellie_tokenizer::{
+    processors::items::Processors,
+    syntax::items::condition::ConditionType,
+    tokenizer::{Dependency, Page, PageType},
+};
 
 pub struct Parser {
     pub pages: PageExport<Page>,

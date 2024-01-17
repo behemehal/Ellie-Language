@@ -1,17 +1,21 @@
-use crate::parser;
-use crate::processors::items::{ItemParserProcessor, ItemParserProcessorOptions};
-use alloc::borrow::ToOwned;
-use alloc::string::String;
-use alloc::vec;
-use alloc::vec::Vec;
-use ellie_core::definite::items::file_key::FileKey;
-use ellie_core::definite::types::class_instance::{Attribute, AttributeType, ClassInstance};
-use ellie_core::definite::{items::Collecting, Converter};
-use ellie_core::utils::{ExportPage, PageExport};
-use ellie_core::{defs, error};
-use ellie_tokenizer::processors::items::Processors;
-use ellie_tokenizer::processors::types::Processors as TypeProcessors;
-use ellie_tokenizer::tokenizer::{Page, PageType};
+use crate::{
+    parser,
+    processors::items::{ItemParserProcessor, ItemParserProcessorOptions},
+};
+use alloc::{borrow::ToOwned, string::String, vec, vec::Vec};
+use ellie_core::{
+    definite::{
+        items::{file_key::FileKey, Collecting},
+        types::class_instance::{Attribute, AttributeType, ClassInstance},
+        Converter,
+    },
+    defs, error,
+    utils::{ExportPage, PageExport},
+};
+use ellie_tokenizer::{
+    processors::{items::Processors, types::Processors as TypeProcessors},
+    tokenizer::{Page, PageType},
+};
 use serde::{Deserialize, Serialize};
 
 pub fn parse_page_element(

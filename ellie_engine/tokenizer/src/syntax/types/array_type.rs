@@ -2,8 +2,7 @@ use crate::processors::types;
 use ellie_core::{definite, defs};
 use serde::{Deserialize, Serialize};
 
-use alloc::boxed::Box;
-use alloc::vec::Vec;
+use alloc::{boxed::Box, vec::Vec};
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct ArrayEntry {

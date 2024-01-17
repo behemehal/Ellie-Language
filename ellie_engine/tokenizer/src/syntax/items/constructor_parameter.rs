@@ -1,10 +1,12 @@
-use ellie_core::definite::definers::DefinerCollecting;
-use ellie_core::definite::{
-    items::constructor_parameter::ConstructorParameter as DefiniteConstructorParameter, Converter,
+use ellie_core::{
+    definite::{
+        definers::DefinerCollecting,
+        items::constructor_parameter::ConstructorParameter as DefiniteConstructorParameter,
+        Converter,
+    },
+    defs,
 };
-use ellie_core::defs;
-use serde::Deserialize;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConstructorParameter {

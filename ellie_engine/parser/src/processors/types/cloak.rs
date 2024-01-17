@@ -1,5 +1,4 @@
-use alloc::vec;
-use alloc::vec::Vec;
+use alloc::{vec, vec::Vec};
 use ellie_core::{definite::types, error};
 use ellie_tokenizer::syntax::types::cloak_type;
 
